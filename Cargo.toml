@@ -1,0 +1,17 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[package]
+name = "nirvana-rust"
+version = "0.0.0"
+authors = ["John Simon <john@whatisaph.one>"]
+edition = "2021"
+publish = false
+
+[features]
+strict = []
+
+[dependencies]
+
+[profile.release]
+lto = true
+codegen-units = 1
