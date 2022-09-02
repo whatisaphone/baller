@@ -1,6 +1,21 @@
 #![warn(clippy::pedantic)]
+#![allow(clippy::module_name_repetitions)]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
-fn main() {
-    println!("Hello, world!");
+use crate::extract::Extract;
+use clap::Parser;
+use std::error::Error;
+
+mod extract;
+mod xor;
+
+#[derive(Parser)]
+enum Command {
+    Extract(Extract),
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    match Command::parse() {
+        Command::Extract(cmd) => cmd.run(),
+    }
 }
