@@ -1,9 +1,10 @@
-use crate::xor::XorStream;
+use crate::{script::disasm_to_string, xor::XorStream};
 use byteordered::byteorder::{ReadBytesExt, BE};
 use clap::Parser;
 use std::{
     collections::HashMap,
     error::Error,
+    fs,
     fs::{create_dir, File},
     io,
     io::{BufReader, Read, Seek, SeekFrom},
@@ -56,8 +57,17 @@ fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box
         let index = *next_index;
         *next_index += 1;
 
-        if is_block_recursive(s, len)? {
-            let dirname = format!("{}_{:02}", str::from_utf8(&id)?, index);
+        let id = str::from_utf8(&id)?;
+
+        if id == "SCRP" {
+            let mut blob = vec![0; len.try_into()?];
+            s.read_exact(&mut blob)?;
+            let script = disasm_to_string(&blob);
+
+            let filename = format!("{id}_{index:02}.s");
+            fs::write(state.dest.join(filename), &script)?;
+        } else if is_block_recursive(s, len)? {
+            let dirname = format!("{id}_{index:02}");
             state.dest.push(dirname);
             if !state.dest.exists() {
                 create_dir(&state.dest)?;
@@ -71,7 +81,7 @@ fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box
 
             state.dest.pop();
         } else {
-            let filename = format!("{}_{:02}.bin", str::from_utf8(&id)?, index);
+            let filename = format!("{id}_{index:02}.bin");
             let mut f = File::create(state.dest.join(filename))?;
             io::copy(&mut s.take(len), &mut f)?;
         }

@@ -7,6 +7,8 @@ use clap::Parser;
 use std::error::Error;
 
 mod extract;
+mod script;
+mod utils;
 mod xor;
 
 #[derive(Parser)]
