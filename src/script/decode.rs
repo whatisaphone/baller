@@ -15,7 +15,7 @@ pub fn disasm_to_string(code: &[u8]) -> String {
     }
     // Anything left was not decoded; dump the raw bytes
     for pos in decoder.pos..decoder.code.len() {
-        writeln!(output, "{:04x}  .db 0x{:02x}", pos, decoder.code[pos]).unwrap();
+        writeln!(output, "0x{:04x}  .db 0x{:02x}", pos, decoder.code[pos]).unwrap();
     }
     output
 }
@@ -66,14 +66,19 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
         0x4f => op_4f_inc(code),
+        0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
+        0x5e => op_5e_start_script(code),
+        0x66 => Some(Ins::FreeScript),
         0x6b => op_6b_cursor(code),
+        0x6c => Some(Ins::StopScript),
         0x73 => op_73_jump(code),
         0x7b => Some(Ins::Undecoded1([0x7b])),
         0x87 => Some(Ins::Random),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0xa4 => op_a4_array(code),
+        0xb6 => op_b6(code),
         0xbc => op_bc_array(code),
         0xd0 => Some(Ins::Now),
         0xf3 => op_f3(code),
@@ -134,8 +139,16 @@ fn op_4f_inc<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::Inc(read_var(code)?))
 }
 
+fn op_5c_jump_if<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    Some(Ins::JumpIf(read_i16(code)?))
+}
+
 fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::JumpUnless(read_i16(code)?))
+}
+
+fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    Some(Ins::StartScript(read_u8(code)?))
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -157,6 +170,19 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => Some(Ins::AssignString(read_var(code)?)),
+        0xc2 => Some(Ins::Sprintf(read_var(code)?)),
+        _ => None,
+    }
+}
+
+fn op_b6<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    op_b4_thru_b9(0xb6, code)
+}
+
+fn op_b4_thru_b9<'a>(opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x4b => Some(Ins::SomethingWithString([opcode, 0x4b], read_string(code)?)),
+        0xfe => Some(Ins::Undecoded2([opcode, 0xfe])),
         _ => None,
     }
 }
