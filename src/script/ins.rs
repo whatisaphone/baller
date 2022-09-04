@@ -1,4 +1,4 @@
-use std::{fmt, fmt::Write};
+use std::{fmt, fmt::Write, isize};
 
 pub enum Ins<'a> {
     Push(Operand<'a>),
@@ -51,6 +51,21 @@ pub struct Variable(pub u16);
 pub enum ItemSize {
     Byte,
     I16,
+}
+
+impl Ins<'_> {
+    pub fn jump_target(&self, offset: usize) -> Option<usize> {
+        match *self {
+            Self::JumpIf(rel) | Self::JumpUnless(rel) | Self::Jump(rel) => {
+                Some(
+                    (isize::try_from(offset).unwrap() + 3 + isize::try_from(rel).unwrap())
+                        .try_into()
+                        .unwrap(),
+                )
+            }
+            _ => None,
+        }
+    }
 }
 
 impl fmt::Display for Ins<'_> {

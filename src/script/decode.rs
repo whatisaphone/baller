@@ -5,38 +5,49 @@ use crate::{
     },
     utils::subslice_offset,
 };
-use std::fmt::Write;
+use std::{cell::Cell, fmt::Write};
 
 pub fn disasm_to_string(code: &[u8]) -> String {
     let mut output = String::new();
-    let mut decoder = Decoder::new(code);
+    let decoder = Decoder::new(code);
     while let Some((pos, ins)) = decoder.next() {
         writeln!(output, "0x{:04x}  {}", pos, ins).unwrap();
     }
     // Anything left was not decoded; dump the raw bytes
-    for pos in decoder.pos..decoder.code.len() {
+    for pos in decoder.pos()..decoder.code.len() {
         writeln!(output, "0x{:04x}  .db 0x{:02x}", pos, decoder.code[pos]).unwrap();
     }
     output
 }
 
-struct Decoder<'a> {
+pub struct Decoder<'a> {
     code: &'a [u8],
-    pos: usize,
+    pub pos: Cell<usize>,
 }
 
 impl<'a> Decoder<'a> {
-    fn new(code: &'a [u8]) -> Self {
-        Self { code, pos: 0 }
+    pub fn new(code: &'a [u8]) -> Self {
+        Self {
+            code,
+            pos: Cell::new(0),
+        }
     }
 
-    fn next(&mut self) -> Option<(usize, Ins)> {
-        let pos = self.pos;
+    pub fn next(&self) -> Option<(usize, Ins)> {
+        let pos = self.pos.get();
         let code = &self.code[pos..];
         let mut cur = code;
         let ins = decode_ins(&mut cur)?;
-        self.pos += subslice_offset(code, cur);
+        self.pos.set(pos + subslice_offset(code, cur));
         Some((pos, ins))
+    }
+
+    pub fn pos(&self) -> usize {
+        self.pos.get()
+    }
+
+    pub fn exhausted(&self) -> bool {
+        self.pos.get() == self.code.len()
     }
 }
 

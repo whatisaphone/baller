@@ -1,4 +1,7 @@
-use crate::{script::disasm_to_string, xor::XorStream};
+use crate::{
+    script::{decompile, disasm_to_string},
+    xor::XorStream,
+};
 use byteordered::byteorder::{ReadBytesExt, BE};
 use clap::Parser;
 use std::{
@@ -62,6 +65,9 @@ fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box
         if id == "SCRP" {
             let mut blob = vec![0; len.try_into()?];
             s.read_exact(&mut blob)?;
+            // Future: decompile
+            assert!(decompile(&blob).is_none());
+            // For now: disassemble
             let script = disasm_to_string(&blob);
 
             let filename = format!("{id}_{index:02}.s");
