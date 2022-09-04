@@ -1,10 +1,20 @@
 use crate::script::{decode::Decoder, ins::Ins};
 use arrayvec::ArrayVec;
-use std::mem;
+use std::{fmt::Write, mem};
 
 pub fn decompile(code: &[u8]) -> Option<String> {
-    find_basic_blocks(code);
-    None
+    let mut output = String::new();
+    let blocks = find_basic_blocks(code)?;
+    for block in blocks {
+        writeln!(output, "L{:04x}:", block.start).unwrap();
+        let decoder = Decoder::new(code);
+        decoder.set_pos(block.start);
+        while decoder.pos() < block.end {
+            let (_, ins) = decoder.next()?;
+            writeln!(output, "    {}", ins).unwrap();
+        }
+    }
+    Some(output)
 }
 
 fn find_basic_blocks(code: &[u8]) -> Option<Vec<BasicBlock>> {

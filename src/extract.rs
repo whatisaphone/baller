@@ -65,10 +65,8 @@ fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box
         if id == "SCRP" {
             let mut blob = vec![0; len.try_into()?];
             s.read_exact(&mut blob)?;
-            // Future: decompile
-            assert!(decompile(&blob).is_none());
-            // For now: disassemble
-            let script = disasm_to_string(&blob);
+            // For now try the decompiler, but fall back to the disassembler
+            let script = decompile(&blob).unwrap_or_else(|| disasm_to_string(&blob));
 
             let filename = format!("{id}_{index:02}.s");
             fs::write(state.dest.join(filename), &script)?;

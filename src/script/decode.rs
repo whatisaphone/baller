@@ -46,6 +46,10 @@ impl<'a> Decoder<'a> {
         self.pos.get()
     }
 
+    pub fn set_pos(&self, value: usize) {
+        self.pos.set(value);
+    }
+
     pub fn exhausted(&self) -> bool {
         self.pos.get() == self.code.len()
     }
