@@ -1,7 +1,9 @@
-use std::{fmt, fmt::Write, isize};
+use crate::script::misc::AnsiStr;
+use std::{fmt, isize};
 
 pub enum Ins<'a> {
-    Push(Operand<'a>),
+    Push(Operand),
+    PushString(&'a [u8]),
     GetArrayItem(Variable),
     StackDup,
     Not,
@@ -33,15 +35,17 @@ pub enum Ins<'a> {
     SetWindowTitle,
     Undecoded1([u8; 1]),
     Undecoded2([u8; 2]),
+    // _Simple_ opcodes which do not interact with the stack can be safely ignored during
+    // decompilation.
+    Undecoded2Simple([u8; 2]),
 }
 
 #[derive(Copy, Clone)]
-pub enum Operand<'a> {
+pub enum Operand {
     Byte(u8),
     I16(i16),
     I32(i32),
     Var(Variable),
-    String(&'a [u8]),
 }
 
 #[derive(Copy, Clone)]
@@ -72,6 +76,7 @@ impl fmt::Display for Ins<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Push(op) => write!(f, "push {op}"),
+            Self::PushString(s) => write!(f, "push-string {:?}", AnsiStr(s)),
             Self::GetArrayItem(var) => write!(f, "get-array-item {var}"),
             Self::StackDup => write!(f, "stack-dup"),
             Self::Not => write!(f, "not"),
@@ -104,19 +109,20 @@ impl fmt::Display for Ins<'_> {
             Self::Now => write!(f, "now"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
             Self::Undecoded1([b1]) => write!(f, ".db 0x{b1:02x}"),
-            Self::Undecoded2([b1, b2]) => write!(f, ".db 0x{b1:02x},0x{b2:02x}"),
+            Self::Undecoded2([b1, b2]) | Self::Undecoded2Simple([b1, b2]) => {
+                write!(f, ".db 0x{b1:02x},0x{b2:02x}")
+            }
         }
     }
 }
 
-impl fmt::Display for Operand<'_> {
+impl fmt::Display for Operand {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Byte(n) => n.fmt(f),
             Self::I16(n) => n.fmt(f),
             Self::I32(n) => n.fmt(f),
             Self::Var(var) => var.fmt(f),
-            Self::String(s) => fmt::Debug::fmt(&AnsiStr(s), f),
         }
     }
 }
@@ -145,29 +151,5 @@ impl fmt::Display for RelHex {
         } else {
             write!(f, "-0x{:04x}", -self.0)
         }
-    }
-}
-
-struct AnsiStr<'a>(&'a [u8]);
-
-impl fmt::Display for AnsiStr<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for &b in self.0 {
-            if (0x20..=0x7e).contains(&b) {
-                f.write_char(char::from(b))?;
-            } else {
-                write!(f, r"\x{b:02x}")?;
-            }
-        }
-        Ok(())
-    }
-}
-
-impl fmt::Debug for AnsiStr<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_char('"')?;
-        fmt::Display::fmt(self, f)?;
-        f.write_char('"')?;
-        Ok(())
     }
 }

@@ -33,7 +33,7 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    pub fn next(&self) -> Option<(usize, Ins)> {
+    pub fn next(&self) -> Option<(usize, Ins<'a>)> {
         let pos = self.pos.get();
         let code = &self.code[pos..];
         let mut cur = code;
@@ -119,7 +119,7 @@ fn op_03_push_var<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_04_push_str<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Push(Operand::String(read_string(code)?)))
+    Some(Ins::PushString(read_string(code)?))
 }
 
 fn op_07_get_array_item<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -167,7 +167,10 @@ fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Undecoded2([0x6b, read_u8(code)?]))
+    match read_u8(code)? {
+        b @ (0x91 | 0x93) => Some(Ins::Undecoded2Simple([0x6b, b])),
+        _ => Some(Ins::Undecoded2([0x6b, read_u8(code)?])),
+    }
 }
 
 fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

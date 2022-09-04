@@ -1,18 +1,19 @@
-use crate::script::{decode::Decoder, ins::Ins};
+use crate::script::{
+    ast::{format_block, Expr, Stmt},
+    decode::Decoder,
+    ins::{Ins, Operand, Variable},
+};
 use arrayvec::ArrayVec;
 use std::{fmt::Write, mem};
 
 pub fn decompile(code: &[u8]) -> Option<String> {
     let mut output = String::new();
     let blocks = find_basic_blocks(code)?;
-    for block in blocks {
+    for block in &blocks {
+        let mut stmts = Vec::new();
+        let _ = decompile_block(code, block, &mut stmts); // TODO: handle errors
         writeln!(output, "L{:04x}:", block.start).unwrap();
-        let decoder = Decoder::new(code);
-        decoder.set_pos(block.start);
-        while decoder.pos() < block.end {
-            let (_, ins) = decoder.next()?;
-            writeln!(output, "    {}", ins).unwrap();
-        }
+        output.push_str(&format_block(&stmts));
     }
     Some(output)
 }
@@ -82,5 +83,64 @@ fn split_block(blocks: &mut Vec<BasicBlock>, addr: usize) {
         *block = blk1;
         blocks.insert(i + 1, blk2);
         break;
+    }
+}
+
+fn decompile_block<'a>(
+    code: &'a [u8],
+    block: &BasicBlock,
+    output: &mut Vec<Stmt<'a>>,
+) -> Option<()> {
+    let mut stack = Vec::new();
+    let mut string_stack = Vec::new();
+
+    let decoder = Decoder::new(code);
+    decoder.set_pos(block.start);
+    while decoder.pos() < block.end {
+        let (_, ins) = decoder.next()?;
+        match ins {
+            Ins::Push(op) => {
+                match op {
+                    Operand::Byte(x) => stack.push(Expr::Number(x.into())),
+                    Operand::I16(x) => stack.push(Expr::Number(x.into())),
+                    Operand::I32(x) => stack.push(Expr::Number(x)),
+                    Operand::Var(var) => stack.push(Expr::Variable(var)),
+                }
+            }
+            Ins::PushString(s) => {
+                string_stack.push(s);
+            }
+            Ins::Set(var) => {
+                let expr = stack.pop()?;
+                output.push(Stmt::Assign(var, expr));
+            }
+            Ins::AssignString(var) => {
+                let expr = pop_string(&mut stack, &mut string_stack)?;
+                output.push(Stmt::Assign(var, expr));
+            }
+            Ins::FreeArray(var) => {
+                output.push(Stmt::FreeArray(var));
+            }
+            Ins::SetWindowTitle => {
+                let expr = pop_string(&mut stack, &mut string_stack)?;
+                output.push(Stmt::SetWindowTitle(expr));
+            }
+            Ins::Undecoded2Simple(b) => {
+                output.push(Stmt::Raw2(b));
+            }
+            _ => {
+                return None;
+            }
+        }
+    }
+    Some(())
+}
+
+fn pop_string<'a>(stack: &mut Vec<Expr>, string_stack: &mut Vec<&'a [u8]>) -> Option<Expr<'a>> {
+    match stack.pop()? {
+        Expr::Number(-1) => Some(Expr::String(string_stack.pop()?)),
+        Expr::Number(var_id) => Some(Expr::Variable(Variable(var_id.try_into().ok()?))),
+        Expr::String(_) => None,
+        Expr::Variable(var) => Some(Expr::Variable(var)),
     }
 }

@@ -65,11 +65,15 @@ fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box
         if id == "SCRP" {
             let mut blob = vec![0; len.try_into()?];
             s.read_exact(&mut blob)?;
-            // For now try the decompiler, but fall back to the disassembler
-            let script = decompile(&blob).unwrap_or_else(|| disasm_to_string(&blob));
 
+            if let Some(decomp) = decompile(&blob) {
+                let filename = format!("{id}_{index:02}.scu");
+                fs::write(state.dest.join(filename), &decomp)?;
+            }
+
+            let disasm = disasm_to_string(&blob);
             let filename = format!("{id}_{index:02}.s");
-            fs::write(state.dest.join(filename), &script)?;
+            fs::write(state.dest.join(filename), &disasm)?;
         } else if is_block_recursive(s, len)? {
             let dirname = format!("{id}_{index:02}");
             state.dest.push(dirname);
