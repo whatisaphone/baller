@@ -168,8 +168,9 @@ fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        b @ (0x91 | 0x93) => Some(Ins::Undecoded2Simple([0x6b, b])),
-        _ => Some(Ins::Undecoded2([0x6b, read_u8(code)?])),
+        b @ (0x91 | 0x93) => Some(Ins::Generic2Simple([0x6b, b])),
+        0x9c => Some(Ins::CursorCharset),
+        b => Some(Ins::Undecoded2([0x6b, b])),
     }
 }
 
@@ -178,7 +179,12 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Undecoded2([0x9b, read_u8(code)?]))
+    match read_u8(code)? {
+        0x64 => Some(Ins::LoadScript),
+        0x6c => Some(Ins::LockScript),
+        0x75 => Some(Ins::LoadCharset),
+        _ => None,
+    }
 }
 
 fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

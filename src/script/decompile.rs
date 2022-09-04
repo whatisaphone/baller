@@ -110,9 +110,45 @@ fn decompile_block<'a>(
             Ins::PushString(s) => {
                 string_stack.push(s);
             }
+            Ins::StackDup => {
+                // TODO: only constant expressions?
+                stack.push(stack.last()?.clone());
+            }
+            Ins::DimArray(item_size, var) => {
+                let swap = stack.pop()?;
+                let max2 = stack.pop()?;
+                let min2 = stack.pop()?;
+                let max1 = stack.pop()?;
+                let min1 = stack.pop()?;
+                output.push(Stmt::DimArray {
+                    var,
+                    item_size,
+                    min1,
+                    max1,
+                    min2,
+                    max2,
+                    swap,
+                });
+            }
             Ins::Set(var) => {
                 let expr = stack.pop()?;
                 output.push(Stmt::Assign(var, expr));
+            }
+            Ins::CursorCharset => {
+                let expr = stack.pop()?;
+                output.push(Stmt::CursorCharset(expr));
+            }
+            Ins::LoadScript => {
+                let expr = stack.pop()?;
+                output.push(Stmt::LoadScript(expr));
+            }
+            Ins::LockScript => {
+                let expr = stack.pop()?;
+                output.push(Stmt::LockScript(expr));
+            }
+            Ins::LoadCharset => {
+                let expr = stack.pop()?;
+                output.push(Stmt::LoadCharset(expr));
             }
             Ins::AssignString(var) => {
                 let expr = pop_string(&mut stack, &mut string_stack)?;
@@ -125,7 +161,7 @@ fn decompile_block<'a>(
                 let expr = pop_string(&mut stack, &mut string_stack)?;
                 output.push(Stmt::SetWindowTitle(expr));
             }
-            Ins::Undecoded2Simple(b) => {
+            Ins::Generic2Simple(b) => {
                 output.push(Stmt::Raw2(b));
             }
             _ => {

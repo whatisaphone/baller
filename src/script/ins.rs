@@ -23,10 +23,14 @@ pub enum Ins<'a> {
     JumpIf(i16),
     JumpUnless(i16),
     StartScript(u8),
+    CursorCharset,
     FreeScript,
     StopScript,
     Jump(i16),
     Random,
+    LoadScript,
+    LockScript,
+    LoadCharset,
     AssignString(Variable),
     Sprintf(Variable),
     SomethingWithString([u8; 2], &'a [u8]),
@@ -35,9 +39,7 @@ pub enum Ins<'a> {
     SetWindowTitle,
     Undecoded1([u8; 1]),
     Undecoded2([u8; 2]),
-    // _Simple_ opcodes which do not interact with the stack can be safely ignored during
-    // decompilation.
-    Undecoded2Simple([u8; 2]),
+    Generic2Simple([u8; 2]),
 }
 
 #[derive(Copy, Clone)]
@@ -96,10 +98,14 @@ impl fmt::Display for Ins<'_> {
             Self::JumpIf(rel) => write!(f, "jump-if {}", RelHex(rel)),
             Self::JumpUnless(rel) => write!(f, "jump-unless {}", RelHex(rel)),
             Self::StartScript(n) => write!(f, "start-script {}", n),
+            Self::CursorCharset => write!(f, "cursor-charset"),
             Self::FreeScript => write!(f, "free-script"),
             Self::StopScript => write!(f, "stop-script"),
             Self::Jump(rel) => write!(f, "jump {}", RelHex(rel)),
             Self::Random => write!(f, "random"),
+            Self::LoadScript => write!(f, "load-script"),
+            Self::LockScript => write!(f, "lock-script"),
+            Self::LoadCharset => write!(f, "load-charset"),
             Self::AssignString(var) => write!(f, "assign-string {var}"),
             Self::Sprintf(var) => write!(f, "sprintf {var}"),
             Self::SomethingWithString([b1, b2], s) => {
@@ -109,7 +115,7 @@ impl fmt::Display for Ins<'_> {
             Self::Now => write!(f, "now"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
             Self::Undecoded1([b1]) => write!(f, ".db 0x{b1:02x}"),
-            Self::Undecoded2([b1, b2]) | Self::Undecoded2Simple([b1, b2]) => {
+            Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x}")
             }
         }
