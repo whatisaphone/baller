@@ -1,40 +1,10 @@
 use crate::{extract::NICE, xor::XorWriteStream};
 use byteordered::byteorder::{WriteBytesExt, BE};
-use clap::Parser;
 use std::{
     error::Error,
-    fs,
-    fs::File,
     io::{BufWriter, Seek, SeekFrom, Write},
-    path::PathBuf,
     str,
 };
-
-#[derive(Parser)]
-pub struct Build {
-    input: PathBuf,
-    #[clap(short)]
-    output: PathBuf,
-}
-
-impl Build {
-    pub fn run(self) -> Result<(), Box<dyn Error>> {
-        let mut out = File::create(&self.output)?;
-
-        build(&mut out, |path| {
-            let path = self.input.join(path);
-            let metadata = fs::metadata(&path)?;
-            if metadata.is_dir() {
-                let names: Result<Vec<_>, Box<dyn Error>> = fs::read_dir(&path)?
-                    .map(|e| Ok(e?.file_name().into_string().unwrap()))
-                    .collect();
-                Ok(FsEntry::Dir(names?))
-            } else {
-                Ok(FsEntry::File(fs::read(path)?))
-            }
-        })
-    }
-}
 
 pub enum FsEntry {
     Dir(Vec<String>),

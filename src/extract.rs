@@ -3,44 +3,16 @@ use crate::{
     xor::XorStream,
 };
 use byteordered::byteorder::{ReadBytesExt, BE};
-use clap::Parser;
 use std::{
     collections::HashMap,
     error::Error,
     fmt::Write,
-    fs,
-    fs::{create_dir, File},
     io,
     io::{BufReader, Read, Seek, SeekFrom},
-    path::PathBuf,
     str,
 };
 
 pub const NICE: u8 = 0x69;
-
-#[derive(Parser)]
-pub struct Extract {
-    input: PathBuf,
-    #[clap(short)]
-    output: PathBuf,
-}
-
-impl Extract {
-    pub fn run(self) -> Result<(), Box<dyn Error>> {
-        if !self.output.exists() {
-            create_dir(&self.output)?;
-        }
-
-        let mut s = File::open(&self.input)?;
-
-        extract(&mut s, &mut |path, data| {
-            let path = self.output.join(path);
-            fs::create_dir_all(path.parent().unwrap())?;
-            fs::write(path, data)?;
-            Ok(())
-        })
-    }
-}
 
 pub fn extract(
     s: &mut (impl Read + Seek),
