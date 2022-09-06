@@ -7,6 +7,7 @@ use clap::Parser;
 use std::{
     collections::HashMap,
     error::Error,
+    fmt::Write,
     fs,
     fs::{create_dir, File},
     io,
@@ -15,7 +16,7 @@ use std::{
     str,
 };
 
-const NICE: u8 = 0x69;
+pub const NICE: u8 = 0x69;
 
 #[derive(Parser)]
 pub struct Extract {
@@ -30,71 +31,94 @@ impl Extract {
             create_dir(&self.output)?;
         }
 
-        let s = File::open(&self.input)?;
-        let s = XorStream::new(s, NICE);
-        let mut s = BufReader::new(s);
+        let mut s = File::open(&self.input)?;
 
-        let len = s.seek(SeekFrom::End(0))?;
-        s.rewind()?;
-
-        let mut state = State {
-            dest: self.output,
-            blocks: HashMap::new(),
-        };
-
-        while s.stream_position()? < len {
-            extract_block(&mut s, &mut state)?;
-        }
-        Ok(())
+        extract(&mut s, &mut |path, data| {
+            let path = self.output.join(path);
+            fs::create_dir_all(path.parent().unwrap())?;
+            fs::write(path, data)?;
+            Ok(())
+        })
     }
 }
 
-struct State {
-    dest: PathBuf,
-    blocks: HashMap<[u8; 4], i32>,
+pub fn extract(
+    s: &mut (impl Read + Seek),
+    write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+) -> Result<(), Box<dyn Error>> {
+    let s = XorStream::new(s, NICE);
+    let mut s = BufReader::new(s);
+
+    let len = s.seek(SeekFrom::End(0))?;
+    s.rewind()?;
+
+    let mut path = String::with_capacity(64);
+    path.push('.');
+    let mut state = State {
+        path,
+        blocks: HashMap::new(),
+        tmp_buf: Vec::new(),
+    };
+
+    extract_blocks(&mut s, &mut state, write, len)?;
+    Ok(())
 }
 
-fn extract_block<S: Read + Seek>(s: &mut S, state: &mut State) -> Result<(), Box<dyn Error>> {
-    read_block(s, |s, id, len| {
-        let next_index = state.blocks.entry(id).or_insert(0);
-        let index = *next_index;
-        *next_index += 1;
+struct State {
+    path: String,
+    blocks: HashMap<[u8; 4], i32>,
+    tmp_buf: Vec<u8>,
+}
 
-        let id = str::from_utf8(&id)?;
+fn extract_blocks<S: Read + Seek>(
+    s: &mut S,
+    state: &mut State,
+    write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    parent_len: u64,
+) -> Result<(), Box<dyn Error>> {
+    let mut map = String::with_capacity(1 << 10);
+    let start = s.stream_position()?;
+    while s.stream_position()? < start + parent_len {
+        read_block(s, |s, id, len| {
+            let next_index = state.blocks.entry(id).or_insert(0);
+            let index = *next_index;
+            *next_index += 1;
 
-        if id == "SCRP" {
-            let mut blob = vec![0; len.try_into()?];
-            s.read_exact(&mut blob)?;
+            let id = str::from_utf8(&id)?;
 
-            if let Some(decomp) = decompile(&blob) {
-                let filename = format!("{id}_{index:02}.scu");
-                fs::write(state.dest.join(filename), &decomp)?;
+            writeln!(map, "{id}_{index:02}").unwrap();
+
+            if is_block_recursive(s, len)? {
+                write!(state.path, "/{id}_{index:02}").unwrap();
+
+                extract_blocks(s, state, write, len)?;
+
+                state.path.truncate(state.path.rfind('/').unwrap_or(0));
+            } else {
+                state.tmp_buf.clear();
+                state.tmp_buf.reserve(len.try_into()?);
+                io::copy(&mut s.take(len), &mut state.tmp_buf)?;
+                let blob = &state.tmp_buf[..len.try_into()?];
+
+                if id == "SCRP" {
+                    if let Some(decomp) = decompile(blob) {
+                        let filename = format!("{path}/{id}_{index:02}.scu", path = state.path);
+                        write(&filename, decomp.as_bytes())?;
+                    }
+
+                    let disasm = disasm_to_string(blob);
+                    let filename = format!("{path}/{id}_{index:02}.s", path = state.path);
+                    write(&filename, disasm.as_bytes())?;
+                }
+
+                let filename = format!("{path}/{id}_{index:02}.bin", path = state.path);
+                write(&filename, &state.tmp_buf)?;
             }
-
-            let disasm = disasm_to_string(&blob);
-            let filename = format!("{id}_{index:02}.s");
-            fs::write(state.dest.join(filename), &disasm)?;
-        } else if is_block_recursive(s, len)? {
-            let dirname = format!("{id}_{index:02}");
-            state.dest.push(dirname);
-            if !state.dest.exists() {
-                create_dir(&state.dest)?;
-            }
-
-            let start = s.stream_position()?;
-
-            while s.stream_position()? < start + len {
-                extract_block(s, state)?;
-            }
-
-            state.dest.pop();
-        } else {
-            let filename = format!("{id}_{index:02}.bin");
-            let mut f = File::create(state.dest.join(filename))?;
-            io::copy(&mut s.take(len), &mut f)?;
-        }
-        Ok(())
-    })
+            Ok(())
+        })?;
+    }
+    write(&format!("{path}/.map", path = state.path), map.as_bytes())?;
+    Ok(())
 }
 
 fn read_block<S: Read + Seek, R>(
