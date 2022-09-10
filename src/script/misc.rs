@@ -1,5 +1,12 @@
 use std::{fmt, fmt::Write};
 
+pub fn write_indent(w: &mut impl Write, n: usize) -> fmt::Result {
+    for _ in 0..n {
+        w.write_str("    ")?;
+    }
+    Ok(())
+}
+
 pub struct AnsiStr<'a>(pub &'a [u8]);
 
 impl fmt::Display for AnsiStr<'_> {

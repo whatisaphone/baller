@@ -1,6 +1,6 @@
 use crate::script::{
     ins::{ItemSize, Variable},
-    misc::AnsiStr,
+    misc::{write_indent, AnsiStr},
 };
 use std::{fmt, fmt::Write};
 
@@ -22,6 +22,7 @@ pub enum Stmt<'a> {
     FreeArray(Variable),
     SetWindowTitle(Expr<'a>),
     Raw2([u8; 2]),
+    Raw(&'a [u8]),
 }
 
 #[derive(Clone)]
@@ -31,13 +32,13 @@ pub enum Expr<'a> {
     Variable(Variable),
 }
 
-pub fn format_block(stmts: &[Stmt]) -> String {
-    let mut output = String::new();
+pub fn write_block(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Result {
     for stmt in stmts {
-        write_stmt(&mut output, stmt).unwrap();
-        output.push('\n');
+        write_indent(w, indent)?;
+        write_stmt(w, stmt)?;
+        writeln!(w)?;
     }
-    output
+    Ok(())
 }
 
 fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
@@ -97,6 +98,15 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
         }
         Stmt::Raw2([b1, b2]) => {
             write!(w, ".db 0x{b1:02x},0x{b2:02x}")?;
+        }
+        Stmt::Raw(bytes) => {
+            w.write_str(".db ")?;
+            for (i, &b) in bytes.iter().enumerate() {
+                if i != 0 {
+                    w.write_char(',')?;
+                }
+                write!(w, "0x{b:02x}")?;
+            }
         }
     }
     Ok(())

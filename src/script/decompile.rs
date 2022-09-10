@@ -1,24 +1,24 @@
 use crate::script::{
-    ast::{format_block, Expr, Stmt},
+    ast::{write_block, Expr, Stmt},
     decode::Decoder,
     ins::{Ins, Operand, Variable},
+    misc::write_indent,
 };
 use arrayvec::ArrayVec;
-use std::{fmt::Write, mem};
+use indexmap::IndexMap;
+use std::{fmt, fmt::Write, mem};
 
 pub fn decompile(code: &[u8]) -> Option<String> {
-    let mut output = String::new();
+    let mut output = String::with_capacity(1024);
     let blocks = find_basic_blocks(code)?;
-    for block in &blocks {
-        let mut stmts = Vec::new();
-        let _ = decompile_block(code, block, &mut stmts); // TODO: handle errors
-        writeln!(output, "L{:04x}:", block.start).unwrap();
-        output.push_str(&format_block(&stmts));
+    let controls = build_control_structures(&blocks);
+    for block in controls.values() {
+        emit_block(&mut output, block, 0, &blocks, code).unwrap();
     }
     Some(output)
 }
 
-fn find_basic_blocks(code: &[u8]) -> Option<Vec<BasicBlock>> {
+fn find_basic_blocks(code: &[u8]) -> Option<IndexMap<usize, BasicBlock>> {
     let mut blocks = Vec::with_capacity(16);
     blocks.push(BasicBlock {
         start: 0,
@@ -49,7 +49,7 @@ fn find_basic_blocks(code: &[u8]) -> Option<Vec<BasicBlock>> {
     if !decoder.exhausted() {
         return None;
     }
-    Some(blocks)
+    Some(blocks.into_iter().map(|b| (b.start, b)).collect())
 }
 
 #[derive(Debug)]
@@ -86,6 +86,280 @@ fn split_block(blocks: &mut Vec<BasicBlock>, addr: usize) {
     }
 }
 
+fn build_control_structures(blocks: &IndexMap<usize, BasicBlock>) -> IndexMap<usize, ControlBlock> {
+    // Begin with a sequence of raw basic blocks
+    let mut controls = blocks
+        .values()
+        .map(|b| {
+            (b.start, ControlBlock {
+                start: b.start,
+                end: b.end,
+                control: Control::BasicBlock,
+                exits: b.exits.clone(),
+            })
+        })
+        .collect();
+
+    while build_one(&mut controls) {
+        // Convert groups of blocks to control structures one at a time
+    }
+    controls
+}
+
+fn build_one(blocks: &mut IndexMap<usize, ControlBlock>) -> bool {
+    for i in (0..blocks.len()).rev() {
+        if build_sequence(blocks, i) {
+            return true;
+        }
+        if build_while(blocks, i) {
+            return true;
+        }
+        if build_if(blocks, i) {
+            return true;
+        }
+        if build_else(blocks, i) {
+            return true;
+        }
+    }
+    false
+}
+
+fn build_sequence(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
+    let block = &blocks[index];
+    let single_exit_no_jump = block.exits.len() == 1 && block.exits[0] == block.end;
+    if !single_exit_no_jump {
+        return false;
+    }
+
+    let (_, next_block) = match blocks.get_index(index + 1) {
+        Some(block) => block,
+        None => return false,
+    };
+    let any_outside_jumps_to_next_block = blocks
+        .values()
+        .any(|b| b.start != block.start && b.exits.iter().any(|&p| p == next_block.start));
+    if any_outside_jumps_to_next_block {
+        return false;
+    }
+
+    let seq: Vec<_> = blocks.drain(index..=index + 1).map(|(_, b)| b).collect();
+    let start = seq.first().unwrap().start;
+    let end = seq.last().unwrap().end;
+    let exits = seq.last().unwrap().exits.clone();
+    let (temp_index, _) = blocks.insert_full(start, ControlBlock {
+        start,
+        end,
+        control: Control::Sequence(seq),
+        exits,
+    });
+    blocks.move_index(temp_index, index);
+    true
+}
+
+fn build_if(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
+    let block = &blocks[index];
+    if !matches!(block.control, Control::BasicBlock | Control::Sequence(_)) {
+        return false;
+    }
+
+    let conditional_forward_jump =
+        block.exits.len() == 2 && block.exits[0] == block.end && block.exits[1] > block.end;
+    if !conditional_forward_jump {
+        return false;
+    }
+
+    let (_, next_block) = match blocks.get_index(index + 1) {
+        Some(block) => block,
+        None => return false,
+    };
+    let jump_skips_single_block = block.exits[1] == next_block.end;
+    if !jump_skips_single_block {
+        return false;
+    }
+
+    let mut drain = blocks.drain(index..=index + 1).map(|(_, b)| b);
+    let condition = drain.next().unwrap();
+    let true_ = drain.next().unwrap();
+    drop(drain);
+
+    let mut exits = ArrayVec::new();
+    exits.push(condition.exits[1]);
+    assert!(true_.exits.len() == 1);
+    if true_.exits[0] != exits[0] {
+        exits.push(true_.exits[0]);
+    }
+
+    let (temp_index, _) = blocks.insert_full(condition.start, ControlBlock {
+        start: condition.start,
+        end: true_.end,
+        control: Control::If(Box::new(If {
+            condition,
+            true_,
+            false_: None,
+        })),
+        exits,
+    });
+    blocks.move_index(temp_index, index);
+    true
+}
+
+fn build_else(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
+    let block = &blocks[index];
+    let as_if = match &block.control {
+        Control::If(c) => c,
+        _ => return false,
+    };
+    if as_if.false_.is_some() {
+        return false;
+    }
+
+    let (_, next_block) = match blocks.get_index(index + 1) {
+        Some(block) => block,
+        None => return false,
+    };
+    let next_block_single_exit_no_jump =
+        next_block.exits.len() == 1 && next_block.exits[0] == next_block.end;
+    if !next_block_single_exit_no_jump {
+        return false;
+    }
+
+    let true_jumps_over_single_block =
+        as_if.true_.exits.len() == 1 && as_if.true_.exits[0] == next_block.end;
+    if !true_jumps_over_single_block {
+        return false;
+    }
+
+    let (_, false_) = blocks.shift_remove_index(index + 1).unwrap();
+    let block = &mut blocks[index];
+    let as_if = match &mut block.control {
+        Control::If(c) => c,
+        _ => unreachable!(),
+    };
+    block.end = false_.end;
+    block.exits.clear();
+    block.exits.push(block.end);
+    as_if.false_ = Some(false_);
+    true
+}
+
+fn build_while(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
+    let block = &blocks[index];
+    let conditional_forward_jump =
+        block.exits.len() == 2 && block.exits[0] == block.end && block.exits[1] > block.end;
+    if !conditional_forward_jump {
+        return false;
+    }
+
+    let (_, next_block) = match blocks.get_index(index + 1) {
+        Some(block) => block,
+        None => return false,
+    };
+    let condition_jumps_over_single_block = block.exits[1] == next_block.end;
+    if !condition_jumps_over_single_block {
+        return false;
+    }
+    let next_block_loops_to_start =
+        next_block.exits.len() == 1 && next_block.exits[0] == block.start;
+    if !next_block_loops_to_start {
+        return false;
+    }
+
+    let mut drain = blocks.drain(index..=index + 1).map(|(_k, v)| v);
+    let condition = drain.next().unwrap();
+    let body = drain.next().unwrap();
+    drop(drain);
+
+    let mut exits = ArrayVec::new();
+    exits.push(condition.exits[1]);
+    let (temp_index, _) = blocks.insert_full(condition.start, ControlBlock {
+        start: condition.start,
+        end: body.end,
+        control: Control::While(Box::new(While { condition, body })),
+        exits,
+    });
+    blocks.move_index(temp_index, index);
+    true
+}
+
+#[derive(Debug)]
+struct ControlBlock {
+    start: usize,
+    end: usize,
+    control: Control,
+    exits: ArrayVec<usize, 2>,
+}
+
+#[derive(Debug)]
+enum Control {
+    BasicBlock,
+    Sequence(Vec<ControlBlock>),
+    If(Box<If>),
+    While(Box<While>),
+}
+
+#[derive(Debug)]
+struct If {
+    condition: ControlBlock,
+    true_: ControlBlock,
+    false_: Option<ControlBlock>,
+}
+
+#[derive(Debug)]
+struct While {
+    condition: ControlBlock,
+    body: ControlBlock,
+}
+
+fn emit_block(
+    w: &mut impl Write,
+    block: &ControlBlock,
+    indent: usize,
+    blocks: &IndexMap<usize, BasicBlock>,
+    code: &[u8],
+) -> fmt::Result {
+    match &block.control {
+        Control::BasicBlock => {
+            write_indent(w, indent)?;
+            writeln!(w, "L{:04x}:", block.start)?;
+            let block = &blocks[&block.start];
+            let mut stmts = Vec::new();
+            let _ = decompile_block(code, block, &mut stmts); // TODO: handle errors
+            write_block(w, &stmts, indent)?;
+        }
+        Control::Sequence(blks) => {
+            for block in blks {
+                emit_block(w, block, indent, blocks, code)?;
+            }
+        }
+        Control::If(s) => {
+            write_indent(w, indent)?;
+            writeln!(w, "if")?;
+            emit_block(w, &s.condition, indent + 1, blocks, code)?;
+            write_indent(w, indent)?;
+            writeln!(w, "then")?;
+            emit_block(w, &s.true_, indent + 1, blocks, code)?;
+            if let Some(false_) = &s.false_ {
+                write_indent(w, indent)?;
+                writeln!(w, "else")?;
+                emit_block(w, false_, indent + 1, blocks, code)?;
+            }
+            write_indent(w, indent)?;
+            writeln!(w, "end")?;
+        }
+        Control::While(s) => {
+            write_indent(w, indent)?;
+            writeln!(w, "while")?;
+            emit_block(w, &s.condition, indent + 1, blocks, code)?;
+            write_indent(w, indent)?;
+            writeln!(w, "do")?;
+            emit_block(w, &s.body, indent + 1, blocks, code)?;
+            write_indent(w, indent)?;
+            writeln!(w, "end")?;
+        }
+    }
+    Ok(())
+}
+
 fn decompile_block<'a>(
     code: &'a [u8],
     block: &BasicBlock,
@@ -97,7 +371,7 @@ fn decompile_block<'a>(
     let decoder = Decoder::new(code);
     decoder.set_pos(block.start);
     while decoder.pos() < block.end {
-        let (_, ins) = decoder.next()?;
+        let (off, ins) = decoder.next()?;
         match ins {
             Ins::Push(op) => {
                 match op {
@@ -165,7 +439,9 @@ fn decompile_block<'a>(
                 output.push(Stmt::Raw2(b));
             }
             _ => {
-                return None;
+                // TODO: if stack is non-empty, this loses data
+                output.push(Stmt::Raw(&code[off..block.end]));
+                break;
             }
         }
     }
