@@ -1,7 +1,7 @@
 use crate::{
     script::{
         cursor::{read_i16, read_i32, read_string, read_u8, read_var},
-        ins::{Ins, ItemSize, Operand},
+        ins::{GenericArg, GenericIns, Ins, ItemSize, Operand},
     },
     utils::subslice_offset,
 };
@@ -88,14 +88,24 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x6b => op_6b_cursor(code),
         0x6c => Some(Ins::StopScript),
         0x73 => op_73_jump(code),
-        0x7b => Some(Ins::Undecoded1([0x7b])),
+        0x7b => {
+            Some(Ins::Generic(&[0x7b], &GenericIns {
+                name: "x7b",
+                args: &[GenericArg::Int],
+            }))
+        }
         0x87 => Some(Ins::Random),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0xa4 => op_a4_array(code),
         0xb6 => op_b6(code),
         0xbc => op_bc_array(code),
-        0xd0 => Some(Ins::Now),
+        0xd0 => {
+            Some(Ins::Generic(&[0xd0], &GenericIns {
+                name: "now",
+                args: &[],
+            }))
+        }
         0xf3 => op_f3(code),
         0xfa => op_fa_window_title(code),
         _ => None,
@@ -127,7 +137,21 @@ fn op_07_get_array_item<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Undecoded2([0x26, read_u8(code)?]))
+    match read_u8(code)? {
+        0x39 => {
+            Some(Ins::Generic(&[0x26, 0x39], &GenericIns {
+                name: "x26-x39",
+                args: &[GenericArg::Int, GenericArg::Int],
+            }))
+        }
+        0x7d => {
+            Some(Ins::Generic(&[0x26, 0x7d], &GenericIns {
+                name: "x26-x7d",
+                args: &[GenericArg::List],
+            }))
+        }
+        op => Some(Ins::Undecoded2([0x26, op])),
+    }
 }
 
 fn op_37_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -188,7 +212,15 @@ fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Undecoded2([0x9c, read_u8(code)?]))
+    match read_u8(code)? {
+        0xb5 => {
+            Some(Ins::Generic(&[0x9c, 0xb5], &GenericIns {
+                name: "x9c-xb5",
+                args: &[GenericArg::Int],
+            }))
+        }
+        _ => None,
+    }
 }
 
 fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

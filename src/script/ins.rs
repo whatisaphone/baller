@@ -1,6 +1,7 @@
 use crate::script::misc::AnsiStr;
 use std::{fmt, isize};
 
+#[derive(Debug)]
 pub enum Ins<'a> {
     Push(Operand),
     PushString(&'a [u8]),
@@ -35,14 +36,26 @@ pub enum Ins<'a> {
     Sprintf(Variable),
     SomethingWithString([u8; 2], &'a [u8]),
     FreeArray(Variable),
-    Now,
     SetWindowTitle,
     Undecoded1([u8; 1]),
     Undecoded2([u8; 2]),
+    Generic(&'a [u8], &'a GenericIns),
     Generic2Simple([u8; 2]),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug)]
+pub struct GenericIns {
+    pub name: &'static str,
+    pub args: &'static [GenericArg],
+}
+
+#[derive(Debug)]
+pub enum GenericArg {
+    Int,
+    List,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub enum Operand {
     Byte(u8),
     I16(i16),
@@ -50,10 +63,10 @@ pub enum Operand {
     Var(Variable),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Variable(pub u16);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum ItemSize {
     Byte,
     I16,
@@ -112,12 +125,12 @@ impl fmt::Display for Ins<'_> {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x},{:?}", AnsiStr(s))
             }
             Self::FreeArray(var) => write!(f, "free-array {var}"),
-            Self::Now => write!(f, "now"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
             Self::Undecoded1([b1]) => write!(f, ".db 0x{b1:02x}"),
             Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x}")
             }
+            Self::Generic(_, ins) => f.write_str(ins.name),
         }
     }
 }

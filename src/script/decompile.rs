@@ -1,20 +1,18 @@
 use crate::script::{
-    ast::{write_block, Expr, Stmt},
+    ast::{write_stmts, Expr, Stmt},
     decode::Decoder,
-    ins::{Ins, Operand, Variable},
-    misc::write_indent,
+    ins::{GenericArg, Ins, Operand, Variable},
 };
 use arrayvec::ArrayVec;
 use indexmap::IndexMap;
-use std::{fmt, fmt::Write, mem};
+use std::mem;
 
 pub fn decompile(code: &[u8]) -> Option<String> {
     let mut output = String::with_capacity(1024);
     let blocks = find_basic_blocks(code)?;
     let controls = build_control_structures(&blocks);
-    for block in controls.values() {
-        emit_block(&mut output, block, 0, &blocks, code).unwrap();
-    }
+    let ast = build_ast(&controls, code);
+    write_stmts(&mut output, &ast, 0).unwrap();
     Some(output)
 }
 
@@ -298,6 +296,7 @@ enum Control {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct If {
     condition: ControlBlock,
     true_: ControlBlock,
@@ -310,68 +309,66 @@ struct While {
     body: ControlBlock,
 }
 
-fn emit_block(
-    w: &mut impl Write,
-    block: &ControlBlock,
-    indent: usize,
-    blocks: &IndexMap<usize, BasicBlock>,
-    code: &[u8],
-) -> fmt::Result {
-    match &block.control {
-        Control::BasicBlock => {
-            write_indent(w, indent)?;
-            writeln!(w, "L{:04x}:", block.start)?;
-            let block = &blocks[&block.start];
-            let mut stmts = Vec::new();
-            let _ = decompile_block(code, block, &mut stmts); // TODO: handle errors
-            write_block(w, &stmts, indent)?;
-        }
-        Control::Sequence(blks) => {
-            for block in blks {
-                emit_block(w, block, indent, blocks, code)?;
-            }
-        }
-        Control::If(s) => {
-            write_indent(w, indent)?;
-            writeln!(w, "if")?;
-            emit_block(w, &s.condition, indent + 1, blocks, code)?;
-            write_indent(w, indent)?;
-            writeln!(w, "then")?;
-            emit_block(w, &s.true_, indent + 1, blocks, code)?;
-            if let Some(false_) = &s.false_ {
-                write_indent(w, indent)?;
-                writeln!(w, "else")?;
-                emit_block(w, false_, indent + 1, blocks, code)?;
-            }
-            write_indent(w, indent)?;
-            writeln!(w, "end")?;
-        }
-        Control::While(s) => {
-            write_indent(w, indent)?;
-            writeln!(w, "while")?;
-            emit_block(w, &s.condition, indent + 1, blocks, code)?;
-            write_indent(w, indent)?;
-            writeln!(w, "do")?;
-            emit_block(w, &s.body, indent + 1, blocks, code)?;
-            write_indent(w, indent)?;
-            writeln!(w, "end")?;
+fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<Stmt<'a>> {
+    let mut stmts = Vec::new();
+    for block in blocks.values() {
+        match decompile_block(block, code, &mut stmts) {
+            Ok(BlockExit::Fallthrough) => {}
+            _ => break, // TODO: handle error
         }
     }
-    Ok(())
+    stmts
 }
 
 fn decompile_block<'a>(
+    block: &ControlBlock,
     code: &'a [u8],
-    block: &BasicBlock,
+    stmts: &mut Vec<Stmt<'a>>,
+) -> Result<BlockExit<'a>, ()> {
+    match &block.control {
+        Control::BasicBlock => decompile_stmts(code, block, stmts),
+        Control::Sequence(blks) => {
+            for block in blks {
+                match decompile_block(block, code, stmts)? {
+                    BlockExit::Fallthrough => {}
+                    _ => return Err(()),
+                }
+            }
+            Ok(BlockExit::Fallthrough)
+        }
+        Control::If(_) => Err(()), // TODO
+        Control::While(b) => {
+            let condition = match decompile_stmts(code, &b.condition, stmts)? {
+                BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
+                _ => return Err(()),
+            };
+            let mut body_stmts = Vec::new();
+            match decompile_block(&b.body, code, &mut body_stmts)? {
+                BlockExit::Jump(_) => {} // TODO: verify jump target?
+                _ => return Err(()),
+            }
+            stmts.push(Stmt::While {
+                condition,
+                body: body_stmts,
+            });
+            Ok(BlockExit::Fallthrough)
+        }
+    }
+}
+
+#[allow(clippy::too_many_lines)]
+fn decompile_stmts<'a>(
+    code: &'a [u8],
+    block: &ControlBlock,
     output: &mut Vec<Stmt<'a>>,
-) -> Option<()> {
+) -> Result<BlockExit<'a>, ()> {
     let mut stack = Vec::new();
     let mut string_stack = Vec::new();
 
     let decoder = Decoder::new(code);
     decoder.set_pos(block.start);
     while decoder.pos() < block.end {
-        let (off, ins) = decoder.next()?;
+        let (off, ins) = decoder.next().ok_or(())?;
         match ins {
             Ins::Push(op) => {
                 match op {
@@ -386,14 +383,29 @@ fn decompile_block<'a>(
             }
             Ins::StackDup => {
                 // TODO: only constant expressions?
-                stack.push(stack.last()?.clone());
+                stack.push(stack.last().ok_or(())?.clone());
+            }
+            Ins::LessOrEqual => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::LessOrEqual(Box::new((lhs, rhs))));
+            }
+            Ins::Add => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::Add(Box::new((lhs, rhs))));
+            }
+            Ins::Sub => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::Sub(Box::new((lhs, rhs))));
             }
             Ins::DimArray(item_size, var) => {
-                let swap = stack.pop()?;
-                let max2 = stack.pop()?;
-                let min2 = stack.pop()?;
-                let max1 = stack.pop()?;
-                let min1 = stack.pop()?;
+                let swap = stack.pop().ok_or(())?;
+                let max2 = stack.pop().ok_or(())?;
+                let min2 = stack.pop().ok_or(())?;
+                let max1 = stack.pop().ok_or(())?;
+                let min1 = stack.pop().ok_or(())?;
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
@@ -405,54 +417,105 @@ fn decompile_block<'a>(
                 });
             }
             Ins::Set(var) => {
-                let expr = stack.pop()?;
+                let expr = stack.pop().ok_or(())?;
                 output.push(Stmt::Assign(var, expr));
             }
+            Ins::SetArrayItem(var) => {
+                let value = stack.pop().ok_or(())?;
+                let index = stack.pop().ok_or(())?;
+                output.push(Stmt::SetArrayItem(var, index, value));
+            }
+            Ins::Inc(var) => {
+                output.push(Stmt::Inc(var));
+            }
+            Ins::JumpUnless(rel) => {
+                if decoder.pos() != block.end {
+                    return Err(());
+                }
+                let expr = stack.pop().ok_or(())?;
+                return Ok(BlockExit::JumpUnless(rel, expr));
+            }
             Ins::CursorCharset => {
-                let expr = stack.pop()?;
+                let expr = stack.pop().ok_or(())?;
                 output.push(Stmt::CursorCharset(expr));
             }
+            Ins::Jump(rel) => {
+                if decoder.pos() != block.end {
+                    return Err(());
+                }
+                return Ok(BlockExit::Jump(rel));
+            }
             Ins::LoadScript => {
-                let expr = stack.pop()?;
+                let expr = stack.pop().ok_or(())?;
                 output.push(Stmt::LoadScript(expr));
             }
             Ins::LockScript => {
-                let expr = stack.pop()?;
+                let expr = stack.pop().ok_or(())?;
                 output.push(Stmt::LockScript(expr));
             }
             Ins::LoadCharset => {
-                let expr = stack.pop()?;
+                let expr = stack.pop().ok_or(())?;
                 output.push(Stmt::LoadCharset(expr));
             }
             Ins::AssignString(var) => {
-                let expr = pop_string(&mut stack, &mut string_stack)?;
+                let expr = pop_string(&mut stack, &mut string_stack).ok_or(())?;
                 output.push(Stmt::Assign(var, expr));
             }
             Ins::FreeArray(var) => {
                 output.push(Stmt::FreeArray(var));
             }
             Ins::SetWindowTitle => {
-                let expr = pop_string(&mut stack, &mut string_stack)?;
+                let expr = pop_string(&mut stack, &mut string_stack).ok_or(())?;
                 output.push(Stmt::SetWindowTitle(expr));
             }
             Ins::Generic2Simple(b) => {
                 output.push(Stmt::Raw2(b));
             }
+            Ins::Generic(_, ins) => {
+                let mut args = Vec::with_capacity(ins.args.len());
+                for arg in ins.args.iter().rev() {
+                    match arg {
+                        GenericArg::Int => args.push(stack.pop().ok_or(())?),
+                        GenericArg::List => args.push(pop_list(&mut stack).ok_or(())?),
+                    }
+                }
+                args.reverse();
+                output.push(Stmt::Generic(ins, args));
+            }
             _ => {
                 // TODO: if stack is non-empty, this loses data
                 output.push(Stmt::Raw(&code[off..block.end]));
-                break;
+                return Err(());
             }
         }
     }
-    Some(())
+    Ok(BlockExit::Fallthrough)
+}
+
+enum BlockExit<'a> {
+    Fallthrough,
+    Jump(i16),
+    JumpUnless(i16, Expr<'a>),
 }
 
 fn pop_string<'a>(stack: &mut Vec<Expr>, string_stack: &mut Vec<&'a [u8]>) -> Option<Expr<'a>> {
     match stack.pop()? {
         Expr::Number(-1) => Some(Expr::String(string_stack.pop()?)),
         Expr::Number(var_id) => Some(Expr::Variable(Variable(var_id.try_into().ok()?))),
-        Expr::String(_) => None,
         Expr::Variable(var) => Some(Expr::Variable(var)),
+        _ => None,
     }
+}
+
+fn pop_list<'a>(stack: &mut Vec<Expr<'a>>) -> Option<Expr<'a>> {
+    let len = match stack.pop()? {
+        Expr::Number(n) => n,
+        _ => return None,
+    };
+    let mut list = Vec::with_capacity(len.try_into().ok()?);
+    for _ in 0..len {
+        list.push(stack.pop()?);
+    }
+    list.reverse();
+    Some(Expr::List(list))
 }

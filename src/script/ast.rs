@@ -1,5 +1,5 @@
 use crate::script::{
-    ins::{ItemSize, Variable},
+    ins::{GenericIns, ItemSize, Variable},
     misc::{write_indent, AnsiStr},
 };
 use std::{fmt, fmt::Write};
@@ -15,12 +15,19 @@ pub enum Stmt<'a> {
         swap: Expr<'a>,
     },
     Assign(Variable, Expr<'a>),
+    SetArrayItem(Variable, Expr<'a>, Expr<'a>),
+    Inc(Variable),
     CursorCharset(Expr<'a>),
     LoadScript(Expr<'a>),
     LockScript(Expr<'a>),
     LoadCharset(Expr<'a>),
     FreeArray(Variable),
     SetWindowTitle(Expr<'a>),
+    While {
+        condition: Expr<'a>,
+        body: Vec<Stmt<'a>>,
+    },
+    Generic(&'a GenericIns, Vec<Expr<'a>>),
     Raw2([u8; 2]),
     Raw(&'a [u8]),
 }
@@ -30,18 +37,22 @@ pub enum Expr<'a> {
     Number(i32),
     String(&'a [u8]),
     Variable(Variable),
+    List(Vec<Expr<'a>>),
+    LessOrEqual(Box<(Expr<'a>, Expr<'a>)>),
+    Add(Box<(Expr<'a>, Expr<'a>)>),
+    Sub(Box<(Expr<'a>, Expr<'a>)>),
 }
 
-pub fn write_block(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Result {
+pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Result {
     for stmt in stmts {
         write_indent(w, indent)?;
-        write_stmt(w, stmt)?;
+        write_stmt(w, stmt, indent)?;
         writeln!(w)?;
     }
     Ok(())
 }
 
-fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
+fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
     match *stmt {
         Stmt::DimArray {
             var,
@@ -72,6 +83,17 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
             w.write_str(" = ")?;
             write_expr(w, expr)?;
         }
+        Stmt::SetArrayItem(var, ref index, ref value) => {
+            write_var(w, var)?;
+            w.write_char('[')?;
+            write_expr(w, index)?;
+            w.write_str("] = ")?;
+            write_expr(w, value)?;
+        }
+        Stmt::Inc(var) => {
+            write_var(w, var)?;
+            w.write_str("++")?;
+        }
         Stmt::CursorCharset(ref expr) => {
             w.write_str("cursor-charset ")?;
             write_expr(w, expr)?;
@@ -92,9 +114,27 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
             w.write_str("free-array ")?;
             write_var(w, var)?;
         }
+        Stmt::While {
+            ref condition,
+            ref body,
+        } => {
+            w.write_str("while ")?;
+            write_expr(w, condition)?;
+            writeln!(w, " {{")?;
+            write_stmts(w, body, indent + 1)?;
+            write_indent(w, indent)?;
+            write!(w, "}}")?;
+        }
         Stmt::SetWindowTitle(ref expr) => {
             w.write_str("set-window-title ")?;
             write_expr(w, expr)?;
+        }
+        Stmt::Generic(ins, ref exprs) => {
+            w.write_str(ins.name)?;
+            for expr in exprs {
+                w.write_char(' ')?;
+                write_expr(w, expr)?;
+            }
         }
         Stmt::Raw2([b1, b2]) => {
             write!(w, ".db 0x{b1:02x},0x{b2:02x}")?;
@@ -113,11 +153,43 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt) -> fmt::Result {
 }
 
 fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
-    match *expr {
-        Expr::Number(n) => write!(w, "{n}"),
-        Expr::String(s) => write!(w, "{:?}", AnsiStr(s)),
-        Expr::Variable(var) => write_var(w, var),
+    match expr {
+        Expr::Number(n) => {
+            write!(w, "{n}")?;
+        }
+        Expr::String(s) => {
+            write!(w, "{:?}", AnsiStr(s))?;
+        }
+        &Expr::Variable(var) => {
+            write_var(w, var)?;
+        }
+        Expr::List(exprs) => {
+            w.write_char('[')?;
+            for (i, expr) in exprs.iter().enumerate() {
+                if i != 0 {
+                    w.write_str(", ")?;
+                }
+                write_expr(w, expr)?;
+            }
+            w.write_char(']')?;
+        }
+        Expr::LessOrEqual(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" <= ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Add(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" + ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Sub(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" - ")?;
+            write_expr(w, &xs.1)?;
+        }
     }
+    Ok(())
 }
 
 fn write_var(w: &mut impl Write, var: Variable) -> fmt::Result {
