@@ -75,7 +75,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x15 => Some(Ins::Sub),
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
-        0x1b => Some(Ins::Undecoded1([0x1b])),
+        0x1b => {
+            Some(Ins::Generic(&[0x1b], &GenericIns {
+                name: "x1b",
+                args: &[GenericArg::Int, GenericArg::List],
+                returns_value: true,
+            }))
+        }
         0x26 => op_26_sprite(code),
         0x37 => op_37_dim_array(code),
         0x43 => op_43_set(code),
@@ -92,9 +98,16 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             Some(Ins::Generic(&[0x7b], &GenericIns {
                 name: "x7b",
                 args: &[GenericArg::Int],
+                returns_value: false,
             }))
         }
-        0x87 => Some(Ins::Random),
+        0x87 => {
+            Some(Ins::Generic(&[0x87], &GenericIns {
+                name: "random",
+                args: &[GenericArg::Int],
+                returns_value: true,
+            }))
+        }
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0xa4 => op_a4_array(code),
@@ -104,6 +117,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             Some(Ins::Generic(&[0xd0], &GenericIns {
                 name: "now",
                 args: &[],
+                returns_value: false,
             }))
         }
         0xf3 => op_f3(code),
@@ -142,12 +156,14 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             Some(Ins::Generic(&[0x26, 0x39], &GenericIns {
                 name: "x26-x39",
                 args: &[GenericArg::Int, GenericArg::Int],
+                returns_value: false,
             }))
         }
         0x7d => {
             Some(Ins::Generic(&[0x26, 0x7d], &GenericIns {
                 name: "x26-x7d",
                 args: &[GenericArg::List],
+                returns_value: false,
             }))
         }
         op => Some(Ins::Undecoded2([0x26, op])),
@@ -217,6 +233,7 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             Some(Ins::Generic(&[0x9c, 0xb5], &GenericIns {
                 name: "x9c-xb5",
                 args: &[GenericArg::Int],
+                returns_value: false,
             }))
         }
         _ => None,
@@ -251,7 +268,23 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::Undecoded2([0xf3, read_u8(code)?]))
+    match read_u8(code)? {
+        0x06 => {
+            Some(Ins::Generic(&[0xf3, 0x06], &GenericIns {
+                name: "read-ini-int",
+                args: &[GenericArg::String],
+                returns_value: true,
+            }))
+        }
+        0x07 => {
+            Some(Ins::Generic(&[0xf3, 0x06], &GenericIns {
+                name: "read-ini-string",
+                args: &[GenericArg::String],
+                returns_value: true,
+            }))
+        }
+        _ => None,
+    }
 }
 
 fn op_fa_window_title<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

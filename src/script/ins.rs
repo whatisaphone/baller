@@ -28,7 +28,6 @@ pub enum Ins<'a> {
     FreeScript,
     StopScript,
     Jump(i16),
-    Random,
     LoadScript,
     LockScript,
     LoadCharset,
@@ -37,7 +36,6 @@ pub enum Ins<'a> {
     SomethingWithString([u8; 2], &'a [u8]),
     FreeArray(Variable),
     SetWindowTitle,
-    Undecoded1([u8; 1]),
     Undecoded2([u8; 2]),
     Generic(&'a [u8], &'a GenericIns),
     Generic2Simple([u8; 2]),
@@ -47,11 +45,13 @@ pub enum Ins<'a> {
 pub struct GenericIns {
     pub name: &'static str,
     pub args: &'static [GenericArg],
+    pub returns_value: bool,
 }
 
 #[derive(Debug)]
 pub enum GenericArg {
     Int,
+    String,
     List,
 }
 
@@ -115,7 +115,6 @@ impl fmt::Display for Ins<'_> {
             Self::FreeScript => write!(f, "free-script"),
             Self::StopScript => write!(f, "stop-script"),
             Self::Jump(rel) => write!(f, "jump {}", RelHex(rel)),
-            Self::Random => write!(f, "random"),
             Self::LoadScript => write!(f, "load-script"),
             Self::LockScript => write!(f, "lock-script"),
             Self::LoadCharset => write!(f, "load-charset"),
@@ -126,7 +125,6 @@ impl fmt::Display for Ins<'_> {
             }
             Self::FreeArray(var) => write!(f, "free-array {var}"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
-            Self::Undecoded1([b1]) => write!(f, ".db 0x{b1:02x}"),
             Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x}")
             }

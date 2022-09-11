@@ -23,6 +23,11 @@ pub enum Stmt<'a> {
     LoadCharset(Expr<'a>),
     FreeArray(Variable),
     SetWindowTitle(Expr<'a>),
+    If {
+        condition: Expr<'a>,
+        true_: Vec<Stmt<'a>>,
+        false_: Vec<Stmt<'a>>,
+    },
     While {
         condition: Expr<'a>,
         body: Vec<Stmt<'a>>,
@@ -38,9 +43,17 @@ pub enum Expr<'a> {
     String(&'a [u8]),
     Variable(Variable),
     List(Vec<Expr<'a>>),
+    ArrayIndex(Variable, Box<Expr<'a>>),
+    Not(Box<Expr<'a>>),
+    Equal(Box<(Expr<'a>, Expr<'a>)>),
+    NotEqual(Box<(Expr<'a>, Expr<'a>)>),
+    Greater(Box<(Expr<'a>, Expr<'a>)>),
+    Less(Box<(Expr<'a>, Expr<'a>)>),
     LessOrEqual(Box<(Expr<'a>, Expr<'a>)>),
     Add(Box<(Expr<'a>, Expr<'a>)>),
     Sub(Box<(Expr<'a>, Expr<'a>)>),
+    LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
+    Call(&'a GenericIns, Vec<Expr<'a>>),
 }
 
 pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Result {
@@ -52,6 +65,7 @@ pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Re
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
     match *stmt {
         Stmt::DimArray {
@@ -114,13 +128,30 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
             w.write_str("free-array ")?;
             write_var(w, var)?;
         }
+        Stmt::If {
+            ref condition,
+            ref true_,
+            ref false_,
+        } => {
+            w.write_str("if (")?;
+            write_expr(w, condition)?;
+            writeln!(w, ") {{")?;
+            write_stmts(w, true_, indent + 1)?;
+            if !false_.is_empty() {
+                write_indent(w, indent)?;
+                writeln!(w, "}} else {{")?;
+                write_stmts(w, false_, indent + 1)?;
+            }
+            write_indent(w, indent)?;
+            write!(w, "}}")?;
+        }
         Stmt::While {
             ref condition,
             ref body,
         } => {
-            w.write_str("while ")?;
+            w.write_str("while (")?;
             write_expr(w, condition)?;
-            writeln!(w, " {{")?;
+            writeln!(w, ") {{")?;
             write_stmts(w, body, indent + 1)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
@@ -173,6 +204,36 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
             }
             w.write_char(']')?;
         }
+        &Expr::ArrayIndex(var, ref index) => {
+            write_var(w, var)?;
+            w.write_char('[')?;
+            write_expr(w, index)?;
+            w.write_char(']')?;
+        }
+        Expr::Not(expr) => {
+            w.write_char('!')?;
+            write_expr(w, expr)?;
+        }
+        Expr::Equal(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" == ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::NotEqual(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" != ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Greater(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" > ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Less(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" < ")?;
+            write_expr(w, &xs.1)?;
+        }
         Expr::LessOrEqual(xs) => {
             write_expr(w, &xs.0)?;
             w.write_str(" <= ")?;
@@ -187,6 +248,18 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
             write_expr(w, &xs.0)?;
             w.write_str(" - ")?;
             write_expr(w, &xs.1)?;
+        }
+        Expr::LogicalOr(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" || ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Call(ins, args) => {
+            w.write_str(ins.name)?;
+            for expr in args {
+                w.write_char(' ')?;
+                write_expr(w, expr)?;
+            }
         }
     }
     Ok(())

@@ -296,7 +296,6 @@ enum Control {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 struct If {
     condition: ControlBlock,
     true_: ControlBlock,
@@ -336,7 +335,32 @@ fn decompile_block<'a>(
             }
             Ok(BlockExit::Fallthrough)
         }
-        Control::If(_) => Err(()), // TODO
+        Control::If(b) => {
+            let condition = match decompile_stmts(code, &b.condition, stmts)? {
+                BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
+                _ => return Err(()),
+            };
+            let mut true_stmts = Vec::new();
+            let true_exit = decompile_block(&b.true_, code, &mut true_stmts)?;
+            match (&b.false_, true_exit) {
+                // TODO: verify jump target?
+                (None, BlockExit::Fallthrough) | (Some(_), BlockExit::Jump(_)) => {}
+                _ => return Err(()),
+            }
+            let mut false_stmts = Vec::new();
+            if let Some(false_) = &b.false_ {
+                match decompile_block(false_, code, &mut false_stmts)? {
+                    BlockExit::Fallthrough => {} // TODO: verify jump target?
+                    _ => return Err(()),
+                }
+            }
+            stmts.push(Stmt::If {
+                condition,
+                true_: true_stmts,
+                false_: false_stmts,
+            });
+            Ok(BlockExit::Fallthrough)
+        }
         Control::While(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
@@ -381,9 +405,37 @@ fn decompile_stmts<'a>(
             Ins::PushString(s) => {
                 string_stack.push(s);
             }
+            Ins::GetArrayItem(var) => {
+                let index = stack.pop().ok_or(())?;
+                stack.push(Expr::ArrayIndex(var, Box::new(index)));
+            }
             Ins::StackDup => {
                 // TODO: only constant expressions?
                 stack.push(stack.last().ok_or(())?.clone());
+            }
+            Ins::Not => {
+                let expr = stack.pop().ok_or(())?;
+                stack.push(Expr::Not(Box::new(expr)));
+            }
+            Ins::Equal => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::Equal(Box::new((lhs, rhs))));
+            }
+            Ins::NotEqual => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::NotEqual(Box::new((lhs, rhs))));
+            }
+            Ins::Greater => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::Greater(Box::new((lhs, rhs))));
+            }
+            Ins::Less => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::Less(Box::new((lhs, rhs))));
             }
             Ins::LessOrEqual => {
                 let rhs = stack.pop().ok_or(())?;
@@ -399,6 +451,11 @@ fn decompile_stmts<'a>(
                 let rhs = stack.pop().ok_or(())?;
                 let lhs = stack.pop().ok_or(())?;
                 stack.push(Expr::Sub(Box::new((lhs, rhs))));
+            }
+            Ins::LogicalOr => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::LogicalOr(Box::new((lhs, rhs))));
             }
             Ins::DimArray(item_size, var) => {
                 let swap = stack.pop().ok_or(())?;
@@ -474,13 +531,19 @@ fn decompile_stmts<'a>(
             Ins::Generic(_, ins) => {
                 let mut args = Vec::with_capacity(ins.args.len());
                 for arg in ins.args.iter().rev() {
-                    match arg {
-                        GenericArg::Int => args.push(stack.pop().ok_or(())?),
-                        GenericArg::List => args.push(pop_list(&mut stack).ok_or(())?),
-                    }
+                    let expr = match arg {
+                        GenericArg::Int => stack.pop().ok_or(())?,
+                        GenericArg::String => pop_string(&mut stack, &mut string_stack).ok_or(())?,
+                        GenericArg::List => pop_list(&mut stack).ok_or(())?,
+                    };
+                    args.push(expr);
                 }
                 args.reverse();
-                output.push(Stmt::Generic(ins, args));
+                if ins.returns_value {
+                    stack.push(Expr::Call(ins, args));
+                } else {
+                    output.push(Stmt::Generic(ins, args));
+                }
             }
             _ => {
                 // TODO: if stack is non-empty, this loses data
