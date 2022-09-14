@@ -135,7 +135,7 @@ fn build_sequence(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> b
     };
     let any_outside_jumps_to_next_block = blocks
         .values()
-        .any(|b| b.start != block.start && b.exits.iter().any(|&p| p == next_block.start));
+        .any(|b| b.start < block.start && b.exits.iter().any(|&p| p == next_block.start));
     if any_outside_jumps_to_next_block {
         return false;
     }
