@@ -52,6 +52,7 @@ pub enum Expr<'a> {
     LessOrEqual(Box<(Expr<'a>, Expr<'a>)>),
     Add(Box<(Expr<'a>, Expr<'a>)>),
     Sub(Box<(Expr<'a>, Expr<'a>)>),
+    LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
     Call(&'a GenericIns, Vec<Expr<'a>>),
 }
@@ -247,6 +248,11 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
         Expr::Sub(xs) => {
             write_expr(w, &xs.0)?;
             w.write_str(" - ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::LogicalAnd(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" && ")?;
             write_expr(w, &xs.1)?;
         }
         Expr::LogicalOr(xs) => {

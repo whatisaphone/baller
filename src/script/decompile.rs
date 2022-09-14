@@ -390,6 +390,7 @@ fn decompile_stmts<'a>(
     decoder.set_pos(block.start);
     while decoder.pos() < block.end {
         let (off, ins) = decoder.next().ok_or(())?;
+        #[allow(clippy::match_wildcard_for_single_variants)]
         match ins {
             Ins::Push(op) => {
                 match op {
@@ -448,6 +449,11 @@ fn decompile_stmts<'a>(
                 let rhs = stack.pop().ok_or(())?;
                 let lhs = stack.pop().ok_or(())?;
                 stack.push(Expr::Sub(Box::new((lhs, rhs))));
+            }
+            Ins::LogicalAnd => {
+                let rhs = stack.pop().ok_or(())?;
+                let lhs = stack.pop().ok_or(())?;
+                stack.push(Expr::LogicalAnd(Box::new((lhs, rhs))));
             }
             Ins::LogicalOr => {
                 let rhs = stack.pop().ok_or(())?;
