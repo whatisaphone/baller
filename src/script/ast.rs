@@ -23,6 +23,7 @@ pub enum Stmt<'a> {
     LoadCharset(Expr<'a>),
     FreeArray(Variable),
     SetWindowTitle(Expr<'a>),
+    Goto(i16),
     If {
         condition: Expr<'a>,
         true_: Vec<Stmt<'a>>,
@@ -128,6 +129,9 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
         Stmt::FreeArray(var) => {
             w.write_str("free-array ")?;
             write_var(w, var)?;
+        }
+        Stmt::Goto(target) => {
+            write!(w, "goto 0x{target:x}")?;
         }
         Stmt::If {
             ref condition,

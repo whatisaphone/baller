@@ -72,6 +72,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x10 => Some(Ins::Greater),
         0x11 => Some(Ins::Less),
         0x12 => Some(Ins::LessOrEqual),
+        0x13 => Some(Ins::GreaterOrEqual),
         0x14 => Some(Ins::Add),
         0x15 => Some(Ins::Sub),
         0x18 => Some(Ins::LogicalAnd),

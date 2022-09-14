@@ -313,6 +313,9 @@ fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<
     for block in blocks.values() {
         match decompile_block(block, code, &mut stmts) {
             Ok(BlockExit::Fallthrough) => {}
+            Ok(BlockExit::Jump(target)) => {
+                stmts.push(Stmt::Goto(target));
+            }
             _ => break, // TODO: handle error
         }
     }
