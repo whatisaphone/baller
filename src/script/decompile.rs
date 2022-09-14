@@ -1,7 +1,7 @@
 use crate::script::{
     ast::{write_stmts, Expr, Stmt},
     decode::Decoder,
-    ins::{GenericArg, Ins, Operand, Variable},
+    ins::{GenericArg, GenericIns, Ins, Operand, Variable},
 };
 use arrayvec::ArrayVec;
 use indexmap::IndexMap;
@@ -327,13 +327,14 @@ fn decompile_block<'a>(
     match &block.control {
         Control::BasicBlock => decompile_stmts(code, block, stmts),
         Control::Sequence(blks) => {
+            let mut exit = BlockExit::Fallthrough;
             for block in blks {
-                match decompile_block(block, code, stmts)? {
-                    BlockExit::Fallthrough => {}
-                    _ => return Err(()),
+                if !matches!(exit, BlockExit::Fallthrough) {
+                    return Err(());
                 }
+                exit = decompile_block(block, code, stmts)?;
             }
-            Ok(BlockExit::Fallthrough)
+            Ok(exit)
         }
         Control::If(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
@@ -341,25 +342,21 @@ fn decompile_block<'a>(
                 _ => return Err(()),
             };
             let mut true_stmts = Vec::new();
-            let true_exit = decompile_block(&b.true_, code, &mut true_stmts)?;
-            match (&b.false_, true_exit) {
-                // TODO: verify jump target?
-                (None, BlockExit::Fallthrough) | (Some(_), BlockExit::Jump(_)) => {}
-                _ => return Err(()),
-            }
+            let mut exit = decompile_block(&b.true_, code, &mut true_stmts)?;
             let mut false_stmts = Vec::new();
             if let Some(false_) = &b.false_ {
-                match decompile_block(false_, code, &mut false_stmts)? {
-                    BlockExit::Fallthrough => {} // TODO: verify jump target?
-                    _ => return Err(()),
+                if !matches!(exit, BlockExit::Jump(_)) {
+                    // TODO: verify jump target?
+                    return Err(());
                 }
+                exit = decompile_block(false_, code, &mut false_stmts)?;
             }
             stmts.push(Stmt::If {
                 condition,
                 true_: true_stmts,
                 false_: false_stmts,
             });
-            Ok(BlockExit::Fallthrough)
+            Ok(exit)
         }
         Control::While(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
@@ -411,7 +408,7 @@ fn decompile_stmts<'a>(
             }
             Ins::StackDup => {
                 // TODO: only constant expressions?
-                stack.push(stack.last().ok_or(())?.clone());
+                stack.push(stack.last().cloned().unwrap_or(Expr::String(b"TODO")));
             }
             Ins::Not => {
                 let expr = stack.pop().ok_or(())?;
@@ -457,6 +454,10 @@ fn decompile_stmts<'a>(
                 let lhs = stack.pop().ok_or(())?;
                 stack.push(Expr::LogicalOr(Box::new((lhs, rhs))));
             }
+            Ins::PopDiscard => {
+                // TODO: handle error once case statements are handled
+                let _ignore_err = stack.pop().ok_or(());
+            }
             Ins::DimArray(item_size, var) => {
                 let swap = stack.pop().ok_or(())?;
                 let max2 = stack.pop().ok_or(())?;
@@ -485,11 +486,21 @@ fn decompile_stmts<'a>(
             Ins::Inc(var) => {
                 output.push(Stmt::Inc(var));
             }
+            Ins::JumpIf(rel) => {
+                if decoder.pos() != block.end {
+                    return Err(());
+                }
+                let expr = stack.pop().ok_or(())?;
+                let expr = Expr::Not(Box::new(expr));
+                // TODO: verify stack is empty
+                return Ok(BlockExit::JumpUnless(rel, expr));
+            }
             Ins::JumpUnless(rel) => {
                 if decoder.pos() != block.end {
                     return Err(());
                 }
                 let expr = stack.pop().ok_or(())?;
+                // TODO: verify stack is empty
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
             Ins::CursorCharset => {
@@ -500,6 +511,7 @@ fn decompile_stmts<'a>(
                 if decoder.pos() != block.end {
                     return Err(());
                 }
+                // TODO: verify stack is empty
                 return Ok(BlockExit::Jump(rel));
             }
             Ins::LoadScript => {
@@ -517,6 +529,45 @@ fn decompile_stmts<'a>(
             Ins::AssignString(var) => {
                 let expr = pop_string(&mut stack, &mut string_stack).ok_or(())?;
                 output.push(Stmt::Assign(var, expr));
+            }
+            Ins::Sprintf(var) => {
+                let mut args = pop_list(&mut stack).ok_or(())?;
+                let first_arg = stack.pop().ok_or(())?;
+                match &mut args {
+                    Expr::List(xs) => xs.insert(0, first_arg),
+                    _ => unreachable!(),
+                }
+                let format = pop_string(&mut stack, &mut string_stack).ok_or(())?;
+                output.push(Stmt::Generic(
+                    &GenericIns {
+                        name: "sprintf",
+                        args: &[GenericArg::String, GenericArg::Int, GenericArg::List],
+                        returns_value: false,
+                    },
+                    vec![Expr::Variable(var), format, args],
+                ));
+            }
+            Ins::SomethingWithString(_, s) => {
+                output.push(Stmt::Generic(
+                    &GenericIns {
+                        name: "xb6-x4b",
+                        args: &[],
+                        returns_value: false,
+                    },
+                    vec![Expr::String(s)],
+                ));
+            }
+            Ins::DimArray1D(item_size, var) => {
+                let max = stack.pop().ok_or(())?;
+                output.push(Stmt::DimArray {
+                    var,
+                    item_size,
+                    min1: Expr::Number(0),
+                    max1: Expr::Number(0),
+                    min2: Expr::Number(0),
+                    max2: max,
+                    swap: Expr::Number(0),
+                });
             }
             Ins::FreeArray(var) => {
                 output.push(Stmt::FreeArray(var));
@@ -552,6 +603,10 @@ fn decompile_stmts<'a>(
             }
         }
     }
+    if decoder.pos() != block.end {
+        return Err(());
+    }
+    // TODO: verify stack is empty
     Ok(BlockExit::Fallthrough)
 }
 

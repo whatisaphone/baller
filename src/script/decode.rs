@@ -55,6 +55,7 @@ impl<'a> Decoder<'a> {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let opcode = read_u8(code)?;
     match opcode {
@@ -73,6 +74,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x12 => Some(Ins::LessOrEqual),
         0x14 => Some(Ins::Add),
         0x15 => Some(Ins::Sub),
+        0x18 => Some(Ins::LogicalAnd),
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
         0x1b => {
@@ -90,13 +92,40 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
-        0x66 => Some(Ins::FreeScript),
+        0x66 => {
+            Some(Ins::Generic(&[0x66], &GenericIns {
+                name: "free-script",
+                args: &[],
+                returns_value: false,
+            }))
+        }
         0x6b => op_6b_cursor(code),
-        0x6c => Some(Ins::StopScript),
+        0x6c => {
+            Some(Ins::Generic(&[0x6c], &GenericIns {
+                name: "stop-script",
+                args: &[],
+                returns_value: false,
+            }))
+        }
         0x73 => op_73_jump(code),
+        0x74 => op_74(code),
+        0x75 => {
+            Some(Ins::Generic(&[0x75], &GenericIns {
+                name: "x75",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
         0x7b => {
             Some(Ins::Generic(&[0x7b], &GenericIns {
                 name: "x7b",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0x7c => {
+            Some(Ins::Generic(&[0x7c], &GenericIns {
+                name: "x7c",
                 args: &[GenericArg::Int],
                 returns_value: false,
             }))
@@ -108,11 +137,34 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: true,
             }))
         }
+        0x88 => {
+            Some(Ins::Generic(&[0x88], &GenericIns {
+                name: "random2",
+                args: &[GenericArg::Int, GenericArg::Int],
+                returns_value: true,
+            }))
+        }
+        0x98 => {
+            Some(Ins::Generic(&[0x98], &GenericIns {
+                name: "x98",
+                args: &[GenericArg::Int],
+                returns_value: true,
+            }))
+        }
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0xa4 => op_a4_array(code),
         0xb6 => op_b6(code),
+        0xa9 => op_a9(code),
+        0xb7 => op_b7(code),
         0xbc => op_bc_array(code),
+        0xca => {
+            Some(Ins::Generic(&[0xca], &GenericIns {
+                name: "xca",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
         0xd0 => {
             Some(Ins::Generic(&[0xd0], &GenericIns {
                 name: "now",
@@ -166,16 +218,25 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: false,
             }))
         }
+        0x9e => {
+            Some(Ins::Generic(&[0x26, 0x9e], &GenericIns {
+                name: "x26-x9e",
+                args: &[],
+                returns_value: false,
+            }))
+        }
         op => Some(Ins::Undecoded2([0x26, op])),
     }
 }
 
 fn op_37_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::DimArray(read_item_size(code)?, read_var(code)?))
+    let item_size = to_item_size(read_u8(code)?)?;
+    let var = read_var(code)?;
+    Some(Ins::DimArray(item_size, var))
 }
 
-fn read_item_size(code: &mut &[u8]) -> Option<ItemSize> {
-    match read_u8(code)? {
+fn to_item_size(n: u8) -> Option<ItemSize> {
+    match n {
         4 => Some(ItemSize::Byte),
         5 => Some(ItemSize::I16),
         _ => None,
@@ -203,7 +264,12 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    Some(Ins::StartScript(read_u8(code)?))
+    read_u8(code)?; // TODO: preserve this byte
+    Some(Ins::Generic(&[0x5e, 0x00], &GenericIns {
+        name: "start-script",
+        args: &[GenericArg::Int, GenericArg::List],
+        returns_value: false,
+    }))
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -216,6 +282,33 @@ fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::Jump(read_i16(code)?))
+}
+
+fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0xe6 => {
+            Some(Ins::Generic(&[0x74, 0xe6], &GenericIns {
+                name: "x74-xe6",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0xe8 => {
+            Some(Ins::Generic(&[0x74, 0xe8], &GenericIns {
+                name: "x74-xe8",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0xff => {
+            Some(Ins::Generic(&[0x74, 0xff], &GenericIns {
+                name: "x74-xff",
+                args: &[],
+                returns_value: false,
+            }))
+        }
+        _ => None,
+    }
 }
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -248,20 +341,53 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_a9<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0xa9 => {
+            Some(Ins::Generic(&[0xa9, 0xa9], &GenericIns {
+                name: "xa9-xa9",
+                args: &[],
+                returns_value: false,
+            }))
+        }
+        _ => None,
+    }
+}
+
 fn op_b6<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     op_b4_thru_b9(0xb6, code)
 }
 
-fn op_b4_thru_b9<'a>(opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
+fn op_b7<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    op_b4_thru_b9(0xb7, code)
+}
+
+fn op_b4_thru_b9<'a>(_opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    const TODO_OPCODE: u8 = 0xff;
     match read_u8(code)? {
-        0x4b => Some(Ins::SomethingWithString([opcode, 0x4b], read_string(code)?)),
-        0xfe => Some(Ins::Undecoded2([opcode, 0xfe])),
+        0x4b => {
+            Some(Ins::SomethingWithString(
+                [TODO_OPCODE, 0x4b],
+                read_string(code)?,
+            ))
+        }
+        0xfe => {
+            Some(Ins::Generic(&[TODO_OPCODE, 0xfe], &GenericIns {
+                name: "xb6-xfe",
+                args: &[], // NOTE: this pops an int for opcode b8 and b9
+                returns_value: false,
+            }))
+        }
         _ => None,
     }
 }
 
 fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    match read_u8(code)? {
+    let n = read_u8(code)?;
+    if let Some(item_size) = to_item_size(n) {
+        return Some(Ins::DimArray1D(item_size, read_var(code)?));
+    }
+    match n {
         0xcc => Some(Ins::FreeArray(read_var(code)?)),
         _ => None,
     }

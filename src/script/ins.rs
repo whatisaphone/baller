@@ -15,6 +15,7 @@ pub enum Ins<'a> {
     LessOrEqual,
     Add,
     Sub,
+    LogicalAnd,
     LogicalOr,
     PopDiscard,
     DimArray(ItemSize, Variable),
@@ -23,10 +24,7 @@ pub enum Ins<'a> {
     Inc(Variable),
     JumpIf(i16),
     JumpUnless(i16),
-    StartScript(u8),
     CursorCharset,
-    FreeScript,
-    StopScript,
     Jump(i16),
     LoadScript,
     LockScript,
@@ -34,6 +32,7 @@ pub enum Ins<'a> {
     AssignString(Variable),
     Sprintf(Variable),
     SomethingWithString([u8; 2], &'a [u8]),
+    DimArray1D(ItemSize, Variable),
     FreeArray(Variable),
     SetWindowTitle,
     Undecoded2([u8; 2]),
@@ -102,6 +101,7 @@ impl fmt::Display for Ins<'_> {
             Self::LessOrEqual => write!(f, "less-or-equal"),
             Self::Add => write!(f, "add"),
             Self::Sub => write!(f, "sub"),
+            Self::LogicalAnd => write!(f, "logical-and"),
             Self::LogicalOr => write!(f, "logical-or"),
             Self::PopDiscard => write!(f, "pop-discard"),
             Self::DimArray(size, var) => write!(f, "dim-array {var}[{size}]"),
@@ -110,10 +110,7 @@ impl fmt::Display for Ins<'_> {
             Self::Inc(var) => write!(f, "inc {var}"),
             Self::JumpIf(rel) => write!(f, "jump-if {}", RelHex(rel)),
             Self::JumpUnless(rel) => write!(f, "jump-unless {}", RelHex(rel)),
-            Self::StartScript(n) => write!(f, "start-script {}", n),
             Self::CursorCharset => write!(f, "cursor-charset"),
-            Self::FreeScript => write!(f, "free-script"),
-            Self::StopScript => write!(f, "stop-script"),
             Self::Jump(rel) => write!(f, "jump {}", RelHex(rel)),
             Self::LoadScript => write!(f, "load-script"),
             Self::LockScript => write!(f, "lock-script"),
@@ -123,6 +120,7 @@ impl fmt::Display for Ins<'_> {
             Self::SomethingWithString([b1, b2], s) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x},{:?}", AnsiStr(s))
             }
+            Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
             Self::FreeArray(var) => write!(f, "free-array {var}"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
             Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
