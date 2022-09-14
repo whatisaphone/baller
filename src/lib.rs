@@ -11,6 +11,9 @@ pub use crate::{
     extract::extract,
 };
 
+#[macro_use]
+mod macros;
+
 mod build;
 mod extract;
 mod script;

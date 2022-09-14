@@ -9,6 +9,9 @@ use crate::{
 use clap::Parser;
 use std::{error::Error, fs, fs::File, path::PathBuf};
 
+#[macro_use]
+mod macros;
+
 mod build;
 mod extract;
 mod script;

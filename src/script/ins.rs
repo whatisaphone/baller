@@ -1,4 +1,4 @@
-use crate::script::misc::AnsiStr;
+use crate::{script::misc::AnsiStr, utils::byte_array::ByteArray};
 use std::{fmt, isize};
 
 #[derive(Debug)]
@@ -37,7 +37,7 @@ pub enum Ins<'a> {
     FreeArray(Variable),
     SetWindowTitle,
     Undecoded2([u8; 2]),
-    Generic(&'a [u8], &'a GenericIns),
+    Generic(ByteArray<2>, &'a GenericIns),
     Generic2Simple([u8; 2]),
 }
 
