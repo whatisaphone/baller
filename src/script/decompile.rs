@@ -316,24 +316,31 @@ fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<
             Ok(BlockExit::Jump(target)) => {
                 stmts.push(Stmt::Goto(target));
             }
-            _ => break, // TODO: handle error
+            Ok(_) => {
+                stmts.push(Stmt::DecompileError(block.end, "unexpected block exit"));
+            }
+            Err(DecompileError(offset, message)) => {
+                stmts.push(Stmt::DecompileError(offset, message));
+            }
         }
     }
     stmts
 }
 
+struct DecompileError(usize, &'static str);
+
 fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
     stmts: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, ()> {
+) -> Result<BlockExit<'a>, DecompileError> {
     match &block.control {
         Control::BasicBlock => decompile_stmts(code, block, stmts),
         Control::Sequence(blks) => {
             let mut exit = BlockExit::Fallthrough;
             for block in blks {
                 if !matches!(exit, BlockExit::Fallthrough) {
-                    return Err(());
+                    return Err(DecompileError(block.start, "unexpected block exit"));
                 }
                 exit = decompile_block(block, code, stmts)?;
             }
@@ -342,7 +349,7 @@ fn decompile_block<'a>(
         Control::If(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => return Err(()),
+                _ => return Err(DecompileError(b.condition.end, "unexpected block exit")),
             };
             let mut true_stmts = Vec::new();
             let mut exit = decompile_block(&b.true_, code, &mut true_stmts)?;
@@ -350,7 +357,7 @@ fn decompile_block<'a>(
             if let Some(false_) = &b.false_ {
                 if !matches!(exit, BlockExit::Jump(_)) {
                     // TODO: verify jump target?
-                    return Err(());
+                    return Err(DecompileError(b.true_.end, "unexpected block exit"));
                 }
                 exit = decompile_block(false_, code, &mut false_stmts)?;
             }
@@ -364,12 +371,12 @@ fn decompile_block<'a>(
         Control::While(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => return Err(()),
+                _ => return Err(DecompileError(b.condition.end, "unexpected block exit")),
             };
             let mut body_stmts = Vec::new();
             match decompile_block(&b.body, code, &mut body_stmts)? {
                 BlockExit::Jump(_) => {} // TODO: verify jump target?
-                _ => return Err(()),
+                _ => return Err(DecompileError(b.body.end, "unexpected block exit")),
             }
             stmts.push(Stmt::While {
                 condition,
@@ -385,14 +392,32 @@ fn decompile_stmts<'a>(
     code: &'a [u8],
     block: &ControlBlock,
     output: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, ()> {
+) -> Result<BlockExit<'a>, DecompileError> {
     let mut stack = Vec::new();
     let mut string_stack = Vec::new();
 
     let decoder = Decoder::new(code);
     decoder.set_pos(block.start);
+
+    macro_rules! pop {
+        () => {
+            stack
+                .pop()
+                .ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+        };
+        (: string) => {
+            pop_string(&mut stack, &mut string_stack)
+                .ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+        };
+        (: list) => {
+            pop_list(&mut stack).ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+        };
+    }
+
     while decoder.pos() < block.end {
-        let (off, ins) = decoder.next().ok_or(())?;
+        let (off, ins) = decoder
+            .next()
+            .ok_or_else(|| DecompileError(decoder.pos(), "opcode decode"))?;
         #[allow(clippy::match_wildcard_for_single_variants)]
         match ins {
             Ins::Push(op) => {
@@ -407,7 +432,7 @@ fn decompile_stmts<'a>(
                 string_stack.push(s);
             }
             Ins::GetArrayItem(var) => {
-                let index = stack.pop().ok_or(())?;
+                let index = pop!()?;
                 stack.push(Expr::ArrayIndex(var, Box::new(index)));
             }
             Ins::StackDup => {
@@ -415,64 +440,64 @@ fn decompile_stmts<'a>(
                 stack.push(stack.last().cloned().unwrap_or(Expr::String(b"TODO")));
             }
             Ins::Not => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 stack.push(Expr::Not(Box::new(expr)));
             }
             Ins::Equal => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::Equal(Box::new((lhs, rhs))));
             }
             Ins::NotEqual => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::NotEqual(Box::new((lhs, rhs))));
             }
             Ins::Greater => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::Greater(Box::new((lhs, rhs))));
             }
             Ins::Less => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::Less(Box::new((lhs, rhs))));
             }
             Ins::LessOrEqual => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::LessOrEqual(Box::new((lhs, rhs))));
             }
             Ins::Add => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::Add(Box::new((lhs, rhs))));
             }
             Ins::Sub => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::Sub(Box::new((lhs, rhs))));
             }
             Ins::LogicalAnd => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::LogicalAnd(Box::new((lhs, rhs))));
             }
             Ins::LogicalOr => {
-                let rhs = stack.pop().ok_or(())?;
-                let lhs = stack.pop().ok_or(())?;
+                let rhs = pop!()?;
+                let lhs = pop!()?;
                 stack.push(Expr::LogicalOr(Box::new((lhs, rhs))));
             }
             Ins::PopDiscard => {
                 // TODO: handle error once case statements are handled
-                let _ignore_err = stack.pop().ok_or(());
+                let _ignore_err = pop!();
             }
             Ins::DimArray(item_size, var) => {
-                let swap = stack.pop().ok_or(())?;
-                let max2 = stack.pop().ok_or(())?;
-                let min2 = stack.pop().ok_or(())?;
-                let max1 = stack.pop().ok_or(())?;
-                let min1 = stack.pop().ok_or(())?;
+                let swap = pop!()?;
+                let max2 = pop!()?;
+                let min2 = pop!()?;
+                let max1 = pop!()?;
+                let min1 = pop!()?;
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
@@ -484,12 +509,12 @@ fn decompile_stmts<'a>(
                 });
             }
             Ins::Set(var) => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 output.push(Stmt::Assign(var, expr));
             }
             Ins::SetArrayItem(var) => {
-                let value = stack.pop().ok_or(())?;
-                let index = stack.pop().ok_or(())?;
+                let value = pop!()?;
+                let index = pop!()?;
                 output.push(Stmt::SetArrayItem(var, index, value));
             }
             Ins::Inc(var) => {
@@ -497,56 +522,56 @@ fn decompile_stmts<'a>(
             }
             Ins::JumpIf(rel) => {
                 if decoder.pos() != block.end {
-                    return Err(());
+                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
                 }
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
                 // TODO: verify stack is empty
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
             Ins::JumpUnless(rel) => {
                 if decoder.pos() != block.end {
-                    return Err(());
+                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
                 }
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 // TODO: verify stack is empty
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
             Ins::CursorCharset => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 output.push(Stmt::CursorCharset(expr));
             }
             Ins::Jump(rel) => {
                 if decoder.pos() != block.end {
-                    return Err(());
+                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
                 }
                 // TODO: verify stack is empty
                 return Ok(BlockExit::Jump(rel));
             }
             Ins::LoadScript => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 output.push(Stmt::LoadScript(expr));
             }
             Ins::LockScript => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 output.push(Stmt::LockScript(expr));
             }
             Ins::LoadCharset => {
-                let expr = stack.pop().ok_or(())?;
+                let expr = pop!()?;
                 output.push(Stmt::LoadCharset(expr));
             }
             Ins::AssignString(var) => {
-                let expr = pop_string(&mut stack, &mut string_stack).ok_or(())?;
+                let expr = pop!(:string)?;
                 output.push(Stmt::Assign(var, expr));
             }
             Ins::Sprintf(var) => {
-                let mut args = pop_list(&mut stack).ok_or(())?;
-                let first_arg = stack.pop().ok_or(())?;
+                let mut args = pop!(:list)?;
+                let first_arg = pop!()?;
                 match &mut args {
                     Expr::List(xs) => xs.insert(0, first_arg),
                     _ => unreachable!(),
                 }
-                let format = pop_string(&mut stack, &mut string_stack).ok_or(())?;
+                let format = pop!(:string)?;
                 output.push(Stmt::Generic(
                     &GenericIns {
                         name: "sprintf",
@@ -567,7 +592,7 @@ fn decompile_stmts<'a>(
                 ));
             }
             Ins::DimArray1D(item_size, var) => {
-                let max = stack.pop().ok_or(())?;
+                let max = pop!()?;
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
@@ -582,7 +607,7 @@ fn decompile_stmts<'a>(
                 output.push(Stmt::FreeArray(var));
             }
             Ins::SetWindowTitle => {
-                let expr = pop_string(&mut stack, &mut string_stack).ok_or(())?;
+                let expr = pop!(:string)?;
                 output.push(Stmt::SetWindowTitle(expr));
             }
             Ins::Generic2Simple(b) => {
@@ -592,9 +617,9 @@ fn decompile_stmts<'a>(
                 let mut args = Vec::with_capacity(ins.args.len());
                 for arg in ins.args.iter().rev() {
                     let expr = match arg {
-                        GenericArg::Int => stack.pop().ok_or(())?,
-                        GenericArg::String => pop_string(&mut stack, &mut string_stack).ok_or(())?,
-                        GenericArg::List => pop_list(&mut stack).ok_or(())?,
+                        GenericArg::Int => pop!()?,
+                        GenericArg::String => pop!(:string)?,
+                        GenericArg::List => pop!(:list)?,
                     };
                     args.push(expr);
                 }
@@ -608,12 +633,12 @@ fn decompile_stmts<'a>(
             _ => {
                 // TODO: if stack is non-empty, this loses data
                 output.push(Stmt::Raw(&code[off..block.end]));
-                return Err(());
+                return Err(DecompileError(off, "unhandled instruction"));
             }
         }
     }
     if decoder.pos() != block.end {
-        return Err(());
+        return Err(DecompileError(decoder.pos(), "mismatched block end"));
     }
     // TODO: verify stack is empty
     Ok(BlockExit::Fallthrough)

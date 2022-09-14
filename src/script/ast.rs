@@ -36,6 +36,7 @@ pub enum Stmt<'a> {
     Generic(&'a GenericIns, Vec<Expr<'a>>),
     Raw2([u8; 2]),
     Raw(&'a [u8]),
+    DecompileError(usize, &'static str),
 }
 
 #[derive(Clone)]
@@ -183,6 +184,9 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
                 }
                 write!(w, "0x{b:02x}")?;
             }
+        }
+        Stmt::DecompileError(offset, message) => {
+            write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")?;
         }
     }
     Ok(())
