@@ -468,6 +468,11 @@ fn decompile_stmts<'a>(
                 let lhs = pop!()?;
                 stack.push(Expr::LessOrEqual(Box::new((lhs, rhs))));
             }
+            Ins::GreaterOrEqual => {
+                let rhs = pop!()?;
+                let lhs = pop!()?;
+                stack.push(Expr::GreaterOrEqual(Box::new((lhs, rhs))));
+            }
             Ins::Add => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;

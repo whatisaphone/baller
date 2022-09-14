@@ -52,6 +52,7 @@ pub enum Expr<'a> {
     Greater(Box<(Expr<'a>, Expr<'a>)>),
     Less(Box<(Expr<'a>, Expr<'a>)>),
     LessOrEqual(Box<(Expr<'a>, Expr<'a>)>),
+    GreaterOrEqual(Box<(Expr<'a>, Expr<'a>)>),
     Add(Box<(Expr<'a>, Expr<'a>)>),
     Sub(Box<(Expr<'a>, Expr<'a>)>),
     LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
@@ -246,6 +247,11 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
         Expr::LessOrEqual(xs) => {
             write_expr(w, &xs.0)?;
             w.write_str(" <= ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::GreaterOrEqual(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" >= ")?;
             write_expr(w, &xs.1)?;
         }
         Expr::Add(xs) => {
