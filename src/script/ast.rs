@@ -1,6 +1,9 @@
-use crate::script::{
-    ins::{GenericIns, ItemSize, Variable},
-    misc::{write_indent, AnsiStr},
+use crate::{
+    script::{
+        ins::{GenericIns, ItemSize, Variable},
+        misc::{write_indent, AnsiStr},
+    },
+    utils::byte_array::ByteArray,
 };
 use std::{fmt, fmt::Write};
 
@@ -33,7 +36,11 @@ pub enum Stmt<'a> {
         condition: Expr<'a>,
         body: Vec<Stmt<'a>>,
     },
-    Generic(&'a GenericIns, Vec<Expr<'a>>),
+    Generic {
+        bytecode: ByteArray<2>,
+        ins: &'a GenericIns,
+        args: Vec<Expr<'a>>,
+    },
     Raw2([u8; 2]),
     Raw(&'a [u8]),
     DecompileError(usize, &'static str),
@@ -59,7 +66,7 @@ pub enum Expr<'a> {
     Div(Box<(Expr<'a>, Expr<'a>)>),
     LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
-    Call(&'a GenericIns, Vec<Expr<'a>>),
+    Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
 }
 
 pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize) -> fmt::Result {
@@ -169,9 +176,13 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
             w.write_str("set-window-title ")?;
             write_expr(w, expr)?;
         }
-        Stmt::Generic(ins, ref exprs) => {
-            w.write_str(ins.name)?;
-            for expr in exprs {
+        Stmt::Generic {
+            ref bytecode,
+            ins,
+            ref args,
+        } => {
+            GenericIns::write_name(w, ins, bytecode)?;
+            for expr in args {
                 w.write_char(' ')?;
                 write_expr(w, expr)?;
             }
@@ -286,8 +297,8 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
             w.write_str(" || ")?;
             write_expr(w, &xs.1)?;
         }
-        Expr::Call(ins, args) => {
-            w.write_str(ins.name)?;
+        Expr::Call(bytecode, ins, args) => {
+            GenericIns::write_name(w, ins, bytecode)?;
             for expr in args {
                 w.write_char(' ')?;
                 write_expr(w, expr)?;

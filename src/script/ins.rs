@@ -1,5 +1,5 @@
 use crate::{script::misc::AnsiStr, utils::byte_array::ByteArray};
-use std::{fmt, isize};
+use std::{fmt, fmt::Write, isize};
 
 #[derive(Debug)]
 pub enum Ins<'a> {
@@ -40,12 +40,13 @@ pub enum Ins<'a> {
     SetWindowTitle,
     Undecoded2([u8; 2]),
     Generic(ByteArray<2>, &'a GenericIns),
+    GenericWithVar(ByteArray<2>, &'a GenericIns, Variable),
     Generic2Simple([u8; 2]),
 }
 
 #[derive(Debug)]
 pub struct GenericIns {
-    pub name: &'static str,
+    pub name: Option<&'static str>,
     pub args: &'static [GenericArg],
     pub returns_value: bool,
 }
@@ -133,8 +134,31 @@ impl fmt::Display for Ins<'_> {
             Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x}")
             }
-            Self::Generic(_, ins) => f.write_str(ins.name),
+            Self::Generic(ref bytecode, ins) => GenericIns::write_name(f, ins, bytecode),
+            Self::GenericWithVar(ref bytecode, ins, var) => {
+                GenericIns::write_name(f, ins, bytecode)?;
+                write!(f, " {var}")
+            }
         }
+    }
+}
+
+impl GenericIns {
+    pub fn write_name(w: &mut impl Write, ins: &GenericIns, bytecode: &[u8]) -> fmt::Result {
+        match &ins.name {
+            Some(name) => w.write_str(name),
+            None => Self::write_fallback_name(w, bytecode),
+        }
+    }
+
+    fn write_fallback_name(w: &mut impl Write, bytes: &[u8]) -> fmt::Result {
+        for (i, b) in bytes.iter().enumerate() {
+            if i != 0 {
+                w.write_char('-')?;
+            }
+            write!(w, "x{b:02x}")?;
+        }
+        Ok(())
     }
 }
 

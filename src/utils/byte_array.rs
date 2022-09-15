@@ -1,16 +1,23 @@
-use std::{fmt, ops::Deref};
+use std::{fmt, iter::Copied, ops::Deref, slice};
 
+#[derive(Clone)]
 pub struct ByteArray<const CAPACITY: usize> {
     len: u8,
     data: [u8; CAPACITY],
 }
 
-impl<const CAPACITY: usize> ByteArray<CAPACITY> {
-    pub fn new() -> Self {
+impl<const CAPACITY: usize> Default for ByteArray<CAPACITY> {
+    fn default() -> Self {
         Self {
             len: 0,
             data: [0; CAPACITY],
         }
+    }
+}
+
+impl<const CAPACITY: usize> ByteArray<CAPACITY> {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn as_slice(&self) -> &[u8] {
@@ -34,5 +41,14 @@ impl<const CAPACITY: usize> Deref for ByteArray<CAPACITY> {
 impl<const CAPACITY: usize> fmt::Debug for ByteArray<CAPACITY> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.as_slice().fmt(f)
+    }
+}
+
+impl<'a, const CAPACITY: usize> IntoIterator for &'a ByteArray<CAPACITY> {
+    type Item = u8;
+    type IntoIter = Copied<slice::Iter<'a, u8>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data[..self.len.into()].iter().copied()
     }
 }

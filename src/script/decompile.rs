@@ -428,6 +428,37 @@ fn decompile_stmts<'a>(
         };
     }
 
+    macro_rules! decompile_generic {
+        ($bytecode:expr, $ins:expr, $var:expr) => {{
+            let bytecode = $bytecode;
+            let ins = $ins;
+            let var: Option<Variable> = $var;
+
+            let mut args = Vec::with_capacity(usize::from(var.is_some()) + ins.args.len());
+            for arg in ins.args.iter().rev() {
+                let expr = match arg {
+                    GenericArg::Int => pop!()?,
+                    GenericArg::String => pop!(:string)?,
+                    GenericArg::List => pop!(:list)?,
+                };
+                args.push(expr);
+            }
+            if let Some(var) = var {
+                args.push(Expr::Variable(var));
+            }
+            args.reverse();
+            if ins.returns_value {
+                stack.push(Expr::Call(bytecode, ins, args));
+            } else {
+                output.push(Stmt::Generic {
+                    bytecode,
+                    ins,
+                    args,
+                });
+            }
+        }};
+    }
+
     while decoder.pos() < block.end {
         let (off, ins) = decoder
             .next()
@@ -593,24 +624,26 @@ fn decompile_stmts<'a>(
                     _ => unreachable!(),
                 }
                 let format = pop!(:string)?;
-                output.push(Stmt::Generic(
-                    &GenericIns {
-                        name: "sprintf",
+                output.push(Stmt::Generic {
+                    bytecode: bytearray![0xa4, 0xc2],
+                    ins: &GenericIns {
+                        name: Some("sprintf"),
                         args: &[GenericArg::String, GenericArg::Int, GenericArg::List],
                         returns_value: false,
                     },
-                    vec![Expr::Variable(var), format, args],
-                ));
+                    args: vec![Expr::Variable(var), format, args],
+                });
             }
-            Ins::SomethingWithString(_, s) => {
-                output.push(Stmt::Generic(
-                    &GenericIns {
-                        name: "xb6-x4b",
+            Ins::SomethingWithString([b1, b2], s) => {
+                output.push(Stmt::Generic {
+                    bytecode: bytearray![b1, b2],
+                    ins: &GenericIns {
+                        name: None,
                         args: &[],
                         returns_value: false,
                     },
-                    vec![Expr::String(s)],
-                ));
+                    args: vec![Expr::String(s)],
+                });
             }
             Ins::DimArray1D(item_size, var) => {
                 let max = pop!()?;
@@ -634,22 +667,11 @@ fn decompile_stmts<'a>(
             Ins::Generic2Simple(b) => {
                 output.push(Stmt::Raw2(b));
             }
-            Ins::Generic(_, ins) => {
-                let mut args = Vec::with_capacity(ins.args.len());
-                for arg in ins.args.iter().rev() {
-                    let expr = match arg {
-                        GenericArg::Int => pop!()?,
-                        GenericArg::String => pop!(:string)?,
-                        GenericArg::List => pop!(:list)?,
-                    };
-                    args.push(expr);
-                }
-                args.reverse();
-                if ins.returns_value {
-                    stack.push(Expr::Call(ins, args));
-                } else {
-                    output.push(Stmt::Generic(ins, args));
-                }
+            Ins::Generic(bytecode, ins) => {
+                decompile_generic!(bytecode.clone(), ins, None);
+            }
+            Ins::GenericWithVar(bytecode, ins, var) => {
+                decompile_generic!(bytecode.clone(), ins, Some(var));
             }
             _ => {
                 // TODO: if stack is non-empty, this loses data
