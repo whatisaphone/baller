@@ -8,7 +8,7 @@
 
 pub use crate::{
     build::{build, FsEntry},
-    extract::extract,
+    extract::{extract, read_index},
 };
 
 #[macro_use]

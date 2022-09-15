@@ -2,7 +2,7 @@ use crate::{
     script::{decompile, disasm_to_string},
     xor::XorStream,
 };
-use byteordered::byteorder::{ReadBytesExt, BE};
+use byteordered::byteorder::{ReadBytesExt, BE, LE};
 use std::{
     collections::HashMap,
     error::Error,
@@ -13,6 +13,78 @@ use std::{
 };
 
 pub const NICE: u8 = 0x69;
+
+#[allow(dead_code)]
+pub struct Index {
+    lfl_disks: Vec<u8>,
+    lfl_offsets: Vec<i32>,
+    scripts: Directory,
+}
+
+struct Directory {
+    disk_numbers: Vec<u8>,
+    disk_offsets: Vec<i32>,
+    glob_sizes: Vec<i32>,
+}
+
+pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
+    let s = XorStream::new(s, NICE);
+    let mut s = BufReader::new(s);
+
+    let len = s.seek(SeekFrom::End(0))?;
+    s.rewind()?;
+
+    let mut path = String::with_capacity(64);
+    path.push('.');
+    let mut state = State {
+        path,
+        blocks: HashMap::new(),
+        tmp_buf: Vec::new(),
+    };
+
+    let mut lfl_disks = None;
+    let mut lfl_offsets = None;
+    let mut scripts = None;
+
+    let handle_block: &mut dyn FnMut(&_, &[u8]) -> _ = &mut |path, blob| {
+        let mut r = io::Cursor::new(blob);
+        if path == "./DISK_01.bin" {
+            let count = r.read_i16::<LE>()?;
+            let mut list = vec![0; count.try_into()?];
+            r.read_exact(&mut list)?;
+            lfl_disks = Some(list);
+        } else if path == "./DLFL_01.bin" {
+            let count = r.read_i16::<LE>()?;
+            let mut list = vec![0; count.try_into()?];
+            r.read_i32_into::<LE>(&mut list)?;
+            lfl_offsets = Some(list);
+        } else if path == "./DIRS_01.bin" {
+            let count = r.read_i16::<LE>()?;
+            let mut dir = Directory {
+                disk_numbers: vec![0; count.try_into()?],
+                disk_offsets: vec![0; count.try_into()?],
+                glob_sizes: vec![0; count.try_into()?],
+            };
+            r.read_exact(&mut dir.disk_numbers)?;
+            r.read_i32_into::<LE>(&mut dir.disk_offsets)?;
+            r.read_i32_into::<LE>(&mut dir.glob_sizes)?;
+            scripts = Some(dir);
+        } else {
+            r.seek(SeekFrom::End(0))?;
+        }
+        if r.stream_position()? != blob.len().try_into()? {
+            return Err("wrong block size".into());
+        }
+        Ok(())
+    };
+
+    extract_blocks(&mut s, &mut state, handle_block, len)?;
+    Ok(Index {
+        lfl_disks: lfl_disks.ok_or("index incomplete")?,
+        lfl_offsets: lfl_offsets.ok_or("index incomplete")?,
+        scripts: scripts.ok_or("index incomplete")?,
+    })
+}
 
 pub fn extract(
     s: &mut (impl Read + Seek),
@@ -32,7 +104,12 @@ pub fn extract(
         tmp_buf: Vec::new(),
     };
 
-    extract_blocks(&mut s, &mut state, write, len)?;
+    let handle_block: &mut dyn FnMut(&_, &_) -> _ = &mut |path, blob| {
+        write(path, blob)?;
+        Ok(())
+    };
+
+    extract_blocks(&mut s, &mut state, handle_block, len)?;
     Ok(())
 }
 
@@ -45,7 +122,7 @@ struct State {
 fn extract_blocks<S: Read + Seek>(
     s: &mut S,
     state: &mut State,
-    write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    write: &mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     parent_len: u64,
 ) -> Result<(), Box<dyn Error>> {
     let mut map = String::with_capacity(1 << 10);

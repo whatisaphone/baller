@@ -4,7 +4,7 @@
 
 use crate::{
     build::{build, FsEntry},
-    extract::extract,
+    extract::{extract, read_index},
 };
 use clap::Parser;
 use std::{error::Error, fs, fs::File, path::PathBuf};
@@ -66,17 +66,29 @@ struct Extract {
 
 impl Extract {
     fn run(self) -> Result<(), Box<dyn Error>> {
+        let mut input = self.input.into_os_string().into_string().unwrap();
+        if !input.ends_with("he0") {
+            return Err("input path must end with \"he0\"".into());
+        }
+
         if !self.output.exists() {
             fs::create_dir(&self.output)?;
         }
 
-        let mut s = File::open(&self.input)?;
+        let mut f = File::open(&input)?;
+        let _index = read_index(&mut f)?;
+        drop(f);
 
-        extract(&mut s, &mut |path, data| {
+        input.truncate(input.len() - 3);
+        input.push_str("(b)"); // Disk 1 is (a), disk 2 is (b), etc
+        let mut f = File::open(&input)?;
+        extract(&mut f, &mut |path, data| {
             let path = self.output.join(path);
             fs::create_dir_all(path.parent().unwrap())?;
             fs::write(path, data)?;
             Ok(())
-        })
+        })?;
+        drop(f);
+        Ok(())
     }
 }
