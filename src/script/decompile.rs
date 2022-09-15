@@ -592,25 +592,9 @@ fn decompile_stmts<'a>(
                 block_end_checks!();
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
-            Ins::CursorCharset => {
-                let expr = pop!()?;
-                output.push(Stmt::CursorCharset(expr));
-            }
             Ins::Jump(rel) => {
                 block_end_checks!();
                 return Ok(BlockExit::Jump(rel));
-            }
-            Ins::LoadScript => {
-                let expr = pop!()?;
-                output.push(Stmt::LoadScript(expr));
-            }
-            Ins::LockScript => {
-                let expr = pop!()?;
-                output.push(Stmt::LockScript(expr));
-            }
-            Ins::LoadCharset => {
-                let expr = pop!()?;
-                output.push(Stmt::LoadCharset(expr));
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
@@ -656,13 +640,6 @@ fn decompile_stmts<'a>(
                     max2: max,
                     swap: Expr::Number(0),
                 });
-            }
-            Ins::FreeArray(var) => {
-                output.push(Stmt::FreeArray(var));
-            }
-            Ins::SetWindowTitle => {
-                let expr = pop!(:string)?;
-                output.push(Stmt::SetWindowTitle(expr));
             }
             Ins::Generic(bytecode, ins) => {
                 decompile_generic!(bytecode.clone(), ins, None);

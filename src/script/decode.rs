@@ -312,7 +312,13 @@ fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: false,
             }))
         }
-        0x9c => Some(Ins::CursorCharset),
+        0x9c => {
+            Some(Ins::Generic(bytearray![0x6b, 0x9c], &GenericIns {
+                name: Some("cursor-charset"),
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
         _ => None,
     }
 }
@@ -364,9 +370,27 @@ fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x64 => Some(Ins::LoadScript),
-        0x6c => Some(Ins::LockScript),
-        0x75 => Some(Ins::LoadCharset),
+        0x64 => {
+            Some(Ins::Generic(bytearray![0x9b, 0x64], &GenericIns {
+                name: Some("load-script"),
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0x6c => {
+            Some(Ins::Generic(bytearray![0x9b, 0x6c], &GenericIns {
+                name: Some("lock-script"),
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0x75 => {
+            Some(Ins::Generic(bytearray![0x9b, 0x75], &GenericIns {
+                name: Some("load-charset"),
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
         _ => None,
     }
 }
@@ -452,7 +476,18 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         return Some(Ins::DimArray1D(item_size, read_var(code)?));
     }
     match n {
-        0xcc => Some(Ins::FreeArray(read_var(code)?)),
+        0xcc => {
+            let var = read_var(code)?;
+            Some(Ins::GenericWithVar(
+                bytearray![0xbc, 0xcc],
+                &GenericIns {
+                    name: Some("free-array"),
+                    args: &[],
+                    returns_value: false,
+                },
+                var,
+            ))
+        }
         _ => None,
     }
 }
@@ -492,7 +527,13 @@ fn op_f8<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_fa_window_title<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0xf3 => Some(Ins::SetWindowTitle),
+        0xf3 => {
+            Some(Ins::Generic(bytearray![0xfa, 0xf3], &GenericIns {
+                name: Some("set-window-title"),
+                args: &[GenericArg::String],
+                returns_value: false,
+            }))
+        }
         _ => None,
     }
 }

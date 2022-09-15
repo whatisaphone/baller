@@ -27,17 +27,11 @@ pub enum Ins<'a> {
     Inc(Variable),
     JumpIf(i16),
     JumpUnless(i16),
-    CursorCharset,
     Jump(i16),
-    LoadScript,
-    LockScript,
-    LoadCharset,
     AssignString(Variable),
     Sprintf(Variable),
     SomethingWithString([u8; 2], &'a [u8]),
     DimArray1D(ItemSize, Variable),
-    FreeArray(Variable),
-    SetWindowTitle,
     Generic(ByteArray<2>, &'a GenericIns),
     GenericWithVar(ByteArray<2>, &'a GenericIns, Variable),
 }
@@ -116,19 +110,13 @@ impl fmt::Display for Ins<'_> {
             Self::Inc(var) => write!(f, "inc {var}"),
             Self::JumpIf(rel) => write!(f, "jump-if {}", RelHex(rel)),
             Self::JumpUnless(rel) => write!(f, "jump-unless {}", RelHex(rel)),
-            Self::CursorCharset => write!(f, "cursor-charset"),
             Self::Jump(rel) => write!(f, "jump {}", RelHex(rel)),
-            Self::LoadScript => write!(f, "load-script"),
-            Self::LockScript => write!(f, "lock-script"),
-            Self::LoadCharset => write!(f, "load-charset"),
             Self::AssignString(var) => write!(f, "assign-string {var}"),
             Self::Sprintf(var) => write!(f, "sprintf {var}"),
             Self::SomethingWithString([b1, b2], s) => {
                 write!(f, ".db 0x{b1:02x},0x{b2:02x},{:?}", AnsiStr(s))
             }
             Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
-            Self::FreeArray(var) => write!(f, "free-array {var}"),
-            Self::SetWindowTitle => write!(f, "set-window-title"),
             Self::Generic(ref bytecode, ins) => GenericIns::write_name(f, ins, bytecode),
             Self::GenericWithVar(ref bytecode, ins, var) => {
                 GenericIns::write_name(f, ins, bytecode)?;

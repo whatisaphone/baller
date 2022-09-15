@@ -20,12 +20,6 @@ pub enum Stmt<'a> {
     Assign(Variable, Expr<'a>),
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
     Inc(Variable),
-    CursorCharset(Expr<'a>),
-    LoadScript(Expr<'a>),
-    LockScript(Expr<'a>),
-    LoadCharset(Expr<'a>),
-    FreeArray(Variable),
-    SetWindowTitle(Expr<'a>),
     Goto(i16),
     If {
         condition: Expr<'a>,
@@ -119,26 +113,6 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
             write_var(w, var)?;
             w.write_str("++")?;
         }
-        Stmt::CursorCharset(ref expr) => {
-            w.write_str("cursor-charset ")?;
-            write_expr(w, expr)?;
-        }
-        Stmt::LoadScript(ref expr) => {
-            w.write_str("load-script ")?;
-            write_expr(w, expr)?;
-        }
-        Stmt::LockScript(ref expr) => {
-            w.write_str("lock-script ")?;
-            write_expr(w, expr)?;
-        }
-        Stmt::LoadCharset(ref expr) => {
-            w.write_str("load-charset ")?;
-            write_expr(w, expr)?;
-        }
-        Stmt::FreeArray(var) => {
-            w.write_str("free-array ")?;
-            write_var(w, var)?;
-        }
         Stmt::Goto(target) => {
             write!(w, "goto 0x{target:x}")?;
         }
@@ -169,10 +143,6 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
             write_stmts(w, body, indent + 1)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
-        }
-        Stmt::SetWindowTitle(ref expr) => {
-            w.write_str("set-window-title ")?;
-            write_expr(w, expr)?;
         }
         Stmt::Generic {
             ref bytecode,
