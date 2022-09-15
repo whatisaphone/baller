@@ -52,7 +52,7 @@ fn extract_blocks<S: Read + Seek>(
     let start = s.stream_position()?;
     while s.stream_position()? < start + parent_len {
         read_block(s, |s, id, len| {
-            let next_index = state.blocks.entry(id).or_insert(0);
+            let next_index = state.blocks.entry(id).or_insert(1);
             let index = *next_index;
             *next_index += 1;
 
