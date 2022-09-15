@@ -414,6 +414,20 @@ fn decompile_stmts<'a>(
         };
     }
 
+    macro_rules! block_end_checks {
+        () => {
+            if decoder.pos() != block.end {
+                return Err(DecompileError(decoder.pos(), "mismatched block end"));
+            }
+            if !stack.is_empty() {
+                output.push(Stmt::DecompileError(
+                    decoder.pos(),
+                    "values remain on stack",
+                ));
+            }
+        };
+    }
+
     while decoder.pos() < block.end {
         let (off, ins) = decoder
             .next()
@@ -494,8 +508,9 @@ fn decompile_stmts<'a>(
                 stack.push(Expr::LogicalOr(Box::new((lhs, rhs))));
             }
             Ins::PopDiscard => {
-                // TODO: handle error once case statements are handled
-                let _ignore_err = pop!();
+                if pop!().is_err() {
+                    output.push(Stmt::DecompileError(off, "stack underflow"));
+                }
             }
             Ins::DimArray(item_size, var) => {
                 let swap = pop!()?;
@@ -526,20 +541,14 @@ fn decompile_stmts<'a>(
                 output.push(Stmt::Inc(var));
             }
             Ins::JumpIf(rel) => {
-                if decoder.pos() != block.end {
-                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
-                }
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                // TODO: verify stack is empty
+                block_end_checks!();
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
             Ins::JumpUnless(rel) => {
-                if decoder.pos() != block.end {
-                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
-                }
                 let expr = pop!()?;
-                // TODO: verify stack is empty
+                block_end_checks!();
                 return Ok(BlockExit::JumpUnless(rel, expr));
             }
             Ins::CursorCharset => {
@@ -547,10 +556,7 @@ fn decompile_stmts<'a>(
                 output.push(Stmt::CursorCharset(expr));
             }
             Ins::Jump(rel) => {
-                if decoder.pos() != block.end {
-                    return Err(DecompileError(decoder.pos(), "mismatched block end"));
-                }
-                // TODO: verify stack is empty
+                block_end_checks!();
                 return Ok(BlockExit::Jump(rel));
             }
             Ins::LoadScript => {
@@ -642,10 +648,7 @@ fn decompile_stmts<'a>(
             }
         }
     }
-    if decoder.pos() != block.end {
-        return Err(DecompileError(decoder.pos(), "mismatched block end"));
-    }
-    // TODO: verify stack is empty
+    block_end_checks!();
     Ok(BlockExit::Fallthrough)
 }
 
