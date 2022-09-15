@@ -110,19 +110,19 @@ pub fn extract(
     let write = RefCell::new(write);
 
     let handle_block: &mut BlockHandler = &mut |path, id, index, blob| {
+        let filename = format!("{path}/{id}_{index:02}.bin");
+        write.borrow_mut()(&filename, blob)?;
+
         if id == "SCRP" {
+            let disasm = disasm_to_string(blob);
+            let filename = format!("{path}/{id}_{index:02}.s");
+            write.borrow_mut()(&filename, disasm.as_bytes())?;
+
             if let Some(decomp) = decompile(blob) {
                 let filename = format!("{path}/{id}_{index:02}.scu");
                 write.borrow_mut()(&filename, decomp.as_bytes())?;
             }
-
-            let disasm = disasm_to_string(blob);
-            let filename = format!("{path}/{id}_{index:02}.s");
-            write.borrow_mut()(&filename, disasm.as_bytes())?;
         }
-
-        let filename = format!("{path}/{id}_{index:02}.bin");
-        write.borrow_mut()(&filename, blob)?;
         Ok(())
     };
 
