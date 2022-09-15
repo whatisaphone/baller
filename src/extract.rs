@@ -4,6 +4,7 @@ use crate::{
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
 use std::{
+    cell::RefCell,
     collections::HashMap,
     error::Error,
     fmt::Write,
@@ -46,19 +47,19 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
     let mut lfl_offsets = None;
     let mut scripts = None;
 
-    let handle_block: &mut dyn FnMut(&_, &[u8]) -> _ = &mut |path, blob| {
+    let handle_block: &mut BlockHandler = &mut |_path, id, _index, blob| {
         let mut r = io::Cursor::new(blob);
-        if path == "./DISK_01.bin" {
+        if id == "DISK" {
             let count = r.read_i16::<LE>()?;
             let mut list = vec![0; count.try_into()?];
             r.read_exact(&mut list)?;
             lfl_disks = Some(list);
-        } else if path == "./DLFL_01.bin" {
+        } else if id == "DLFL" {
             let count = r.read_i16::<LE>()?;
             let mut list = vec![0; count.try_into()?];
             r.read_i32_into::<LE>(&mut list)?;
             lfl_offsets = Some(list);
-        } else if path == "./DIRS_01.bin" {
+        } else if id == "DIRS" {
             let count = r.read_i16::<LE>()?;
             let mut dir = Directory {
                 disk_numbers: vec![0; count.try_into()?],
@@ -78,7 +79,9 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         Ok(())
     };
 
-    extract_blocks(&mut s, &mut state, handle_block, len)?;
+    let handle_map: &mut MapHandler = &mut |_, _| Ok(());
+
+    scan_blocks(&mut s, &mut state, handle_block, handle_map, len)?;
     Ok(Index {
         lfl_disks: lfl_disks.ok_or("index incomplete")?,
         lfl_offsets: lfl_offsets.ok_or("index incomplete")?,
@@ -104,12 +107,31 @@ pub fn extract(
         tmp_buf: Vec::new(),
     };
 
-    let handle_block: &mut dyn FnMut(&_, &_) -> _ = &mut |path, blob| {
-        write(path, blob)?;
+    let write = RefCell::new(write);
+
+    let handle_block: &mut BlockHandler = &mut |path, id, index, blob| {
+        if id == "SCRP" {
+            if let Some(decomp) = decompile(blob) {
+                let filename = format!("{path}/{id}_{index:02}.scu");
+                write.borrow_mut()(&filename, decomp.as_bytes())?;
+            }
+
+            let disasm = disasm_to_string(blob);
+            let filename = format!("{path}/{id}_{index:02}.s");
+            write.borrow_mut()(&filename, disasm.as_bytes())?;
+        }
+
+        let filename = format!("{path}/{id}_{index:02}.bin");
+        write.borrow_mut()(&filename, blob)?;
         Ok(())
     };
 
-    extract_blocks(&mut s, &mut state, handle_block, len)?;
+    let handle_map: &mut MapHandler = &mut |path, blob| {
+        write.borrow_mut()(path, blob)?;
+        Ok(())
+    };
+
+    scan_blocks(&mut s, &mut state, handle_block, handle_map, len)?;
     Ok(())
 }
 
@@ -119,10 +141,14 @@ struct State {
     tmp_buf: Vec<u8>,
 }
 
-fn extract_blocks<S: Read + Seek>(
+type BlockHandler<'a> = dyn FnMut(&str, &str, i32, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
+type MapHandler<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
+
+fn scan_blocks<S: Read + Seek>(
     s: &mut S,
     state: &mut State,
-    write: &mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    handle_block: &mut BlockHandler,
+    handle_map: &mut MapHandler,
     parent_len: u64,
 ) -> Result<(), Box<dyn Error>> {
     let mut map = String::with_capacity(1 << 10);
@@ -140,7 +166,7 @@ fn extract_blocks<S: Read + Seek>(
             if is_block_recursive(s, len)? {
                 write!(state.path, "/{id}_{index:02}").unwrap();
 
-                extract_blocks(s, state, write, len)?;
+                scan_blocks(s, state, handle_block, handle_map, len)?;
 
                 state.path.truncate(state.path.rfind('/').unwrap_or(0));
             } else {
@@ -149,24 +175,12 @@ fn extract_blocks<S: Read + Seek>(
                 io::copy(&mut s.take(len), &mut state.tmp_buf)?;
                 let blob = &state.tmp_buf[..len.try_into()?];
 
-                if id == "SCRP" {
-                    if let Some(decomp) = decompile(blob) {
-                        let filename = format!("{path}/{id}_{index:02}.scu", path = state.path);
-                        write(&filename, decomp.as_bytes())?;
-                    }
-
-                    let disasm = disasm_to_string(blob);
-                    let filename = format!("{path}/{id}_{index:02}.s", path = state.path);
-                    write(&filename, disasm.as_bytes())?;
-                }
-
-                let filename = format!("{path}/{id}_{index:02}.bin", path = state.path);
-                write(&filename, &state.tmp_buf)?;
+                handle_block(&state.path, id, index, blob)?;
             }
             Ok(())
         })?;
     }
-    write(&format!("{path}/.map", path = state.path), map.as_bytes())?;
+    handle_map(&format!("{path}/.map", path = state.path), map.as_bytes())?;
     Ok(())
 }
 
