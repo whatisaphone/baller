@@ -75,6 +75,8 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x13 => Some(Ins::GreaterOrEqual),
         0x14 => Some(Ins::Add),
         0x15 => Some(Ins::Sub),
+        0x16 => Some(Ins::Mul),
+        0x17 => Some(Ins::Div),
         0x18 => Some(Ins::LogicalAnd),
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
@@ -90,6 +92,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
         0x4f => op_4f_inc(code),
+        0x5a => {
+            Some(Ins::Generic(bytearray![0x5a], &GenericIns {
+                name: "x5a",
+                args: &[GenericArg::Int],
+                returns_value: true,
+            }))
+        }
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
@@ -159,6 +168,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xa9 => op_a9(code),
         0xb7 => op_b7(code),
         0xbc => op_bc_array(code),
+        0xc1 => {
+            Some(Ins::Generic(bytearray![0xc1], &GenericIns {
+                name: "xc1",
+                args: &[GenericArg::Int, GenericArg::String],
+                returns_value: false,
+            }))
+        }
         0xca => {
             Some(Ins::Generic(bytearray![0xca], &GenericIns {
                 name: "xca",
@@ -173,7 +189,16 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: false,
             }))
         }
+        0xd4 => {
+            let _var = read_var(code)?; // TODO: don't throw this away
+            Some(Ins::Generic(bytearray![0xd4], &GenericIns {
+                name: "xd4",
+                args: &[GenericArg::Int, GenericArg::Int],
+                returns_value: false,
+            }))
+        }
         0xf3 => op_f3(code),
+        0xf8 => op_f8(code),
         0xfa => op_fa_window_title(code),
         _ => None,
     }
@@ -240,6 +265,7 @@ fn to_item_size(n: u8) -> Option<ItemSize> {
     match n {
         4 => Some(ItemSize::Byte),
         5 => Some(ItemSize::I16),
+        6 => Some(ItemSize::I32),
         _ => None,
     }
 }
@@ -287,9 +313,23 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
+        0x09 => {
+            Some(Ins::Generic(bytearray![0x74, 0x09], &GenericIns {
+                name: "x74-x09",
+                args: &[],
+                returns_value: false,
+            }))
+        }
         0xe6 => {
             Some(Ins::Generic(bytearray![0x74, 0xe6], &GenericIns {
                 name: "x74-xe6",
+                args: &[GenericArg::Int],
+                returns_value: false,
+            }))
+        }
+        0xe7 => {
+            Some(Ins::Generic(bytearray![0x74, 0xe7], &GenericIns {
+                name: "x74-xe7",
                 args: &[GenericArg::Int],
                 returns_value: false,
             }))
@@ -337,6 +377,21 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => Some(Ins::AssignString(read_var(code)?)),
+        0x80 => {
+            let _var = read_var(code)?; // TODO: don't throw this away
+            Some(Ins::Generic(bytearray![0xa4, 0x80], &GenericIns {
+                name: "xa4-x80",
+                args: &[
+                    GenericArg::Int,
+                    GenericArg::Int,
+                    GenericArg::Int,
+                    GenericArg::Int,
+                    GenericArg::Int,
+                    GenericArg::Int,
+                ],
+                returns_value: false,
+            }))
+        }
         0xc2 => Some(Ins::Sprintf(read_var(code)?)),
         _ => None,
     }
@@ -401,6 +456,19 @@ fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             Some(Ins::Generic(bytearray![0xf3, 0x07], &GenericIns {
                 name: "read-ini-string",
                 args: &[GenericArg::String],
+                returns_value: true,
+            }))
+        }
+        _ => None,
+    }
+}
+
+fn op_f8<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x0d => {
+            Some(Ins::Generic(bytearray![0xf8, 0x0d], &GenericIns {
+                name: "xf8-x0d",
+                args: &[GenericArg::Int],
                 returns_value: true,
             }))
         }

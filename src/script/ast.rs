@@ -55,6 +55,8 @@ pub enum Expr<'a> {
     GreaterOrEqual(Box<(Expr<'a>, Expr<'a>)>),
     Add(Box<(Expr<'a>, Expr<'a>)>),
     Sub(Box<(Expr<'a>, Expr<'a>)>),
+    Mul(Box<(Expr<'a>, Expr<'a>)>),
+    Div(Box<(Expr<'a>, Expr<'a>)>),
     LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
     Call(&'a GenericIns, Vec<Expr<'a>>),
@@ -264,6 +266,16 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
             w.write_str(" - ")?;
             write_expr(w, &xs.1)?;
         }
+        Expr::Mul(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" * ")?;
+            write_expr(w, &xs.1)?;
+        }
+        Expr::Div(xs) => {
+            write_expr(w, &xs.0)?;
+            w.write_str(" / ")?;
+            write_expr(w, &xs.1)?;
+        }
         Expr::LogicalAnd(xs) => {
             write_expr(w, &xs.0)?;
             w.write_str(" && ")?;
@@ -293,5 +305,6 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
     match item_size {
         ItemSize::Byte => "byte",
         ItemSize::I16 => "i16",
+        ItemSize::I32 => "i32",
     }
 }

@@ -16,6 +16,8 @@ pub enum Ins<'a> {
     GreaterOrEqual,
     Add,
     Sub,
+    Mul,
+    Div,
     LogicalAnd,
     LogicalOr,
     PopDiscard,
@@ -70,6 +72,7 @@ pub struct Variable(pub u16);
 pub enum ItemSize {
     Byte,
     I16,
+    I32,
 }
 
 impl Ins<'_> {
@@ -103,6 +106,8 @@ impl fmt::Display for Ins<'_> {
             Self::GreaterOrEqual => write!(f, "greater-or-equal"),
             Self::Add => write!(f, "add"),
             Self::Sub => write!(f, "sub"),
+            Self::Mul => write!(f, "mul"),
+            Self::Div => write!(f, "div"),
             Self::LogicalAnd => write!(f, "logical-and"),
             Self::LogicalOr => write!(f, "logical-or"),
             Self::PopDiscard => write!(f, "pop-discard"),
@@ -155,6 +160,7 @@ impl fmt::Display for ItemSize {
         match self {
             Self::Byte => write!(f, "byte"),
             Self::I16 => write!(f, "i16"),
+            Self::I32 => write!(f, "i32"),
         }
     }
 }

@@ -497,6 +497,16 @@ fn decompile_stmts<'a>(
                 let lhs = pop!()?;
                 stack.push(Expr::Sub(Box::new((lhs, rhs))));
             }
+            Ins::Mul => {
+                let rhs = pop!()?;
+                let lhs = pop!()?;
+                stack.push(Expr::Mul(Box::new((lhs, rhs))));
+            }
+            Ins::Div => {
+                let rhs = pop!()?;
+                let lhs = pop!()?;
+                stack.push(Expr::Div(Box::new((lhs, rhs))));
+            }
             Ins::LogicalAnd => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
