@@ -15,7 +15,6 @@ use std::{
 
 pub const NICE: u8 = 0x69;
 
-#[allow(dead_code)]
 pub struct Index {
     lfl_disks: Vec<u8>,
     lfl_offsets: Vec<i32>,
@@ -23,8 +22,10 @@ pub struct Index {
 }
 
 struct Directory {
-    disk_numbers: Vec<u8>,
-    disk_offsets: Vec<i32>,
+    /// The game internally calls this "disk number"
+    room_numbers: Vec<u8>,
+    /// The game internally calls this "disk offset"
+    offsets: Vec<i32>,
     glob_sizes: Vec<i32>,
 }
 
@@ -47,7 +48,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
     let mut lfl_offsets = None;
     let mut scripts = None;
 
-    let handle_block: &mut BlockHandler = &mut |_path, id, _index, blob| {
+    let handle_block: &mut BlockHandler = &mut |_path, id, _index, _pos, blob| {
         let mut r = io::Cursor::new(blob);
         if id == "DISK" {
             let count = r.read_i16::<LE>()?;
@@ -62,12 +63,12 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         } else if id == "DIRS" {
             let count = r.read_i16::<LE>()?;
             let mut dir = Directory {
-                disk_numbers: vec![0; count.try_into()?],
-                disk_offsets: vec![0; count.try_into()?],
+                room_numbers: vec![0; count.try_into()?],
+                offsets: vec![0; count.try_into()?],
                 glob_sizes: vec![0; count.try_into()?],
             };
-            r.read_exact(&mut dir.disk_numbers)?;
-            r.read_i32_into::<LE>(&mut dir.disk_offsets)?;
+            r.read_exact(&mut dir.room_numbers)?;
+            r.read_i32_into::<LE>(&mut dir.offsets)?;
             r.read_i32_into::<LE>(&mut dir.glob_sizes)?;
             scripts = Some(dir);
         } else {
@@ -90,6 +91,8 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
 }
 
 pub fn extract(
+    root: &Index,
+    disk_number: u8,
     s: &mut (impl Read + Seek),
     write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
 ) -> Result<(), Box<dyn Error>> {
@@ -109,7 +112,12 @@ pub fn extract(
 
     let write = RefCell::new(write);
 
-    let handle_block: &mut BlockHandler = &mut |path, id, index, blob| {
+    let handle_block: &mut BlockHandler = &mut |path, id, index, pos, blob| {
+        if id == "SCRP" {
+            *index = find_index(root, &root.scripts, disk_number, pos)
+                .ok_or("script missing from index")?;
+        }
+
         let filename = format!("{path}/{id}_{index:02}.bin");
         write.borrow_mut()(&filename, blob)?;
 
@@ -141,7 +149,21 @@ struct State {
     tmp_buf: Vec<u8>,
 }
 
-type BlockHandler<'a> = dyn FnMut(&str, &str, i32, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
+fn find_index(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
+    let offset: i32 = offset.try_into().ok()?;
+    for i in 0..dir.room_numbers.len() {
+        let room_number: usize = dir.room_numbers[i].into();
+        let dnum = index.lfl_disks[room_number];
+        let doff = index.lfl_offsets[room_number] + dir.offsets[i];
+        if dnum == disk_number && doff == offset {
+            return Some(i.try_into().unwrap());
+        }
+    }
+    None
+}
+
+type BlockHandler<'a> =
+    dyn FnMut(&str, &str, &mut i32, u64, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
 type MapHandler<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
 
 fn scan_blocks<S: Read + Seek>(
@@ -153,15 +175,18 @@ fn scan_blocks<S: Read + Seek>(
 ) -> Result<(), Box<dyn Error>> {
     let mut map = String::with_capacity(1 << 10);
     let start = s.stream_position()?;
-    while s.stream_position()? < start + parent_len {
+    loop {
+        let pos = s.stream_position()?;
+        if pos >= start + parent_len {
+            break;
+        }
+
         read_block(s, |s, id, len| {
             let next_index = state.blocks.entry(id).or_insert(1);
-            let index = *next_index;
+            let mut index = *next_index;
             *next_index += 1;
 
             let id = str::from_utf8(&id)?;
-
-            writeln!(map, "{id}_{index:02}").unwrap();
 
             if is_block_recursive(s, len)? {
                 write!(state.path, "/{id}_{index:02}").unwrap();
@@ -175,8 +200,11 @@ fn scan_blocks<S: Read + Seek>(
                 io::copy(&mut s.take(len), &mut state.tmp_buf)?;
                 let blob = &state.tmp_buf[..len.try_into()?];
 
-                handle_block(&state.path, id, index, blob)?;
+                handle_block(&state.path, id, &mut index, pos, blob)?;
             }
+
+            // The block handler might have modified the index.
+            writeln!(map, "{id}_{index:02}").unwrap();
             Ok(())
         })?;
     }
