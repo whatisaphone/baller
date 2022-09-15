@@ -664,19 +664,11 @@ fn decompile_stmts<'a>(
                 let expr = pop!(:string)?;
                 output.push(Stmt::SetWindowTitle(expr));
             }
-            Ins::Generic2Simple(b) => {
-                output.push(Stmt::Raw2(b));
-            }
             Ins::Generic(bytecode, ins) => {
                 decompile_generic!(bytecode.clone(), ins, None);
             }
             Ins::GenericWithVar(bytecode, ins, var) => {
                 decompile_generic!(bytecode.clone(), ins, Some(var));
-            }
-            _ => {
-                // TODO: if stack is non-empty, this loses data
-                output.push(Stmt::Raw(&code[off..block.end]));
-                return Err(DecompileError(off, "unhandled instruction"));
             }
         }
     }

@@ -38,10 +38,8 @@ pub enum Ins<'a> {
     DimArray1D(ItemSize, Variable),
     FreeArray(Variable),
     SetWindowTitle,
-    Undecoded2([u8; 2]),
     Generic(ByteArray<2>, &'a GenericIns),
     GenericWithVar(ByteArray<2>, &'a GenericIns, Variable),
-    Generic2Simple([u8; 2]),
 }
 
 #[derive(Debug)]
@@ -131,9 +129,6 @@ impl fmt::Display for Ins<'_> {
             Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
             Self::FreeArray(var) => write!(f, "free-array {var}"),
             Self::SetWindowTitle => write!(f, "set-window-title"),
-            Self::Undecoded2([b1, b2]) | Self::Generic2Simple([b1, b2]) => {
-                write!(f, ".db 0x{b1:02x},0x{b2:02x}")
-            }
             Self::Generic(ref bytecode, ins) => GenericIns::write_name(f, ins, bytecode),
             Self::GenericWithVar(ref bytecode, ins, var) => {
                 GenericIns::write_name(f, ins, bytecode)?;

@@ -41,8 +41,6 @@ pub enum Stmt<'a> {
         ins: &'a GenericIns,
         args: Vec<Expr<'a>>,
     },
-    Raw2([u8; 2]),
-    Raw(&'a [u8]),
     DecompileError(usize, &'static str),
 }
 
@@ -185,18 +183,6 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize) -> fmt::Result {
             for expr in args {
                 w.write_char(' ')?;
                 write_expr(w, expr)?;
-            }
-        }
-        Stmt::Raw2([b1, b2]) => {
-            write!(w, ".db 0x{b1:02x},0x{b2:02x}")?;
-        }
-        Stmt::Raw(bytes) => {
-            w.write_str(".db ")?;
-            for (i, &b) in bytes.iter().enumerate() {
-                if i != 0 {
-                    w.write_char(',')?;
-                }
-                write!(w, "0x{b:02x}")?;
             }
         }
         Stmt::DecompileError(offset, message) => {

@@ -255,7 +255,7 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: false,
             }))
         }
-        op => Some(Ins::Undecoded2([0x26, op])),
+        _ => None,
     }
 }
 
@@ -305,9 +305,15 @@ fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        b @ (0x91 | 0x93) => Some(Ins::Generic2Simple([0x6b, b])),
+        b @ (0x91 | 0x93) => {
+            Some(Ins::Generic(bytearray![0x6b, b], &GenericIns {
+                name: None,
+                args: &[],
+                returns_value: false,
+            }))
+        }
         0x9c => Some(Ins::CursorCharset),
-        b => Some(Ins::Undecoded2([0x6b, b])),
+        _ => None,
     }
 }
 
