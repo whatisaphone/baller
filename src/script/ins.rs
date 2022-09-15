@@ -158,7 +158,14 @@ impl fmt::Display for Operand {
 
 impl fmt::Display for Variable {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "var{}", self.0)
+        let (scope, index) = (self.0 & 0xf000, self.0 & 0x0fff);
+        let scope = match scope {
+            0x0000 => "global",
+            0x4000 => "local",
+            0x8000 => "room",
+            _ => panic!("bad variable scope bits"),
+        };
+        write!(f, "{}{}", scope, index)
     }
 }
 

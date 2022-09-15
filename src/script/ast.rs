@@ -265,7 +265,7 @@ fn write_expr(w: &mut impl Write, expr: &Expr) -> fmt::Result {
 }
 
 fn write_var(w: &mut impl Write, var: Variable) -> fmt::Result {
-    write!(w, "var{}", var.0)
+    write!(w, "{}", var)
 }
 
 fn format_item_size(item_size: ItemSize) -> &'static str {
