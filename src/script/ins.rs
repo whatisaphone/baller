@@ -114,7 +114,8 @@ impl fmt::Display for Ins<'_> {
             Self::AssignString(var) => write!(f, "assign-string {var}"),
             Self::Sprintf(var) => write!(f, "sprintf {var}"),
             Self::SomethingWithString([b1, b2], s) => {
-                write!(f, ".db 0x{b1:02x},0x{b2:02x},{:?}", AnsiStr(s))
+                GenericIns::write_fallback_name(f, &[b1, b2])?;
+                write!(f, " {:?}", AnsiStr(s))
             }
             Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
             Self::Generic(ref bytecode, ins) => GenericIns::write_name(f, ins, bytecode),
