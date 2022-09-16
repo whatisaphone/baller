@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_stmts, Expr, Stmt, WriteCx},
+        ast::{write_stmts, Case, Expr, Stmt, WriteCx},
         decode::Decoder,
         ins::{GenericArg, GenericIns, Ins, Operand, Variable},
     },
@@ -14,7 +14,8 @@ pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     let mut output = String::with_capacity(1024);
     let blocks = find_basic_blocks(code)?;
     let controls = build_control_structures(&blocks);
-    let ast = build_ast(&controls, code);
+    let mut ast = build_ast(&controls, code);
+    build_cases(&mut ast);
     write_stmts(&mut output, &ast, 0, &WriteCx { config }).unwrap();
     Some(output)
 }
@@ -422,12 +423,7 @@ fn decompile_stmts<'a>(
             if decoder.pos() != block.end {
                 return Err(DecompileError(decoder.pos(), "mismatched block end"));
             }
-            if !stack.is_empty() {
-                output.push(Stmt::DecompileError(
-                    decoder.pos(),
-                    "values remain on stack",
-                ));
-            }
+            // TODD: check for values remaining on stack
         };
     }
 
@@ -485,7 +481,9 @@ fn decompile_stmts<'a>(
             }
             Ins::StackDup => {
                 // TODO: only constant expressions?
-                stack.push(stack.last().cloned().unwrap_or(Expr::String(b"TODO")));
+                stack.push(Expr::StackDup(Box::new(
+                    stack.last().cloned().unwrap_or(Expr::StackUnderflow),
+                )));
             }
             Ins::Not => {
                 let expr = pop!()?;
@@ -682,4 +680,147 @@ fn pop_list<'a>(stack: &mut Vec<Expr<'a>>) -> Option<Expr<'a>> {
     }
     list.reverse();
     Some(Expr::List(list))
+}
+
+fn build_cases(ast: &mut [Stmt]) {
+    for stmt in ast {
+        if is_case(stmt) {
+            build_case(stmt);
+        }
+    }
+}
+
+fn is_case(stmt: &Stmt) -> bool {
+    let (condition, true_, false_) = match stmt {
+        Stmt::If {
+            condition,
+            true_,
+            false_,
+        } => (condition, true_, false_),
+        _ => return false,
+    };
+    let (lhs, _rhs) = &**match condition {
+        Expr::Equal(eq) => eq,
+        _ => return false,
+    };
+    if !matches!(lhs, Expr::StackDup(_)) {
+        return false;
+    }
+    // HACK: assume decompile errors are stack underflows
+    if !matches!(true_.first(), Some(Stmt::DecompileError(_, _))) {
+        return false;
+    }
+    let false_ = match &**false_ {
+        [s] => s,
+        _ => return false,
+    };
+    if is_case(false_) {
+        return true;
+    }
+    // HACK: assume decompile errors are stack underflows
+    if matches!(false_, Stmt::DecompileError(_, _)) {
+        return true;
+    }
+    false
+}
+
+fn build_case(stmt: &mut Stmt) {
+    let mut value = None;
+    let mut cases = Vec::new();
+    append_case(stmt, &mut value, &mut cases);
+    *stmt = Stmt::Case {
+        value: value.unwrap(),
+        cases,
+    };
+}
+
+fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mut Vec<Case<'a>>) {
+    let (condition, true_, false_) = match stmt {
+        Stmt::If {
+            condition,
+            true_,
+            false_,
+        } => (condition, true_, false_),
+        _ => unreachable!(),
+    };
+    let (lhs, rhs) = &mut **match condition {
+        Expr::Equal(eq) => eq,
+        _ => unreachable!(),
+    };
+    debug_assert!(matches!(lhs, Expr::StackDup(_)));
+    if value.is_none() {
+        *value = Some(lhs.clone());
+    }
+    // HACK: assume decompile errors are stack underflows
+    debug_assert!(matches!(true_.first(), Some(Stmt::DecompileError(_, _))));
+    true_.remove(0);
+    // move exprs into a case; leave dummy values behind
+    cases.push(Case {
+        value: mem::replace(rhs, Expr::Number(0)),
+        body: mem::take(true_),
+    });
+    let false_ = match &mut **false_ {
+        [s] => s,
+        _ => unreachable!(),
+    };
+    match false_ {
+        true_if @ Stmt::If { .. } => {
+            append_case(true_if, value, cases);
+        }
+        // HACK: assume decompile errors are stack underflows
+        Stmt::DecompileError(_, _) => {}
+        _ => unreachable!(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::read_scrp;
+    use std::error::Error;
+
+    #[test]
+    fn basic_if() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let out = decompile(&bytecode[0x23c..0x266], &Config::default()).unwrap();
+        assert_starts_with(
+            &out,
+            r#"if (read-ini-int "NoPrinting") {
+    global449 = 1
+}
+"#,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn basic_case() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let out = decompile(&bytecode[0x501..0x542], &Config::default()).unwrap();
+        assert_starts_with(
+            &out,
+            r#"case global215 {
+    of 2 {
+        global90[0] = 70
+    }
+    of 1 {
+        global90[0] = 77
+    }
+    of 0 {
+        global90[0] = 83
+    }
+}
+"#,
+        );
+        Ok(())
+    }
+
+    fn assert_starts_with(string: &str, prefix: &str) {
+        assert!(
+            string.starts_with(prefix),
+            "assertion failed: {:?} starts with {:?}",
+            string,
+            prefix
+        );
+    }
 }

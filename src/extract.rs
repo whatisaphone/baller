@@ -17,17 +17,17 @@ use std::{
 pub const NICE: u8 = 0x69;
 
 pub struct Index {
-    lfl_disks: Vec<u8>,
-    lfl_offsets: Vec<i32>,
-    scripts: Directory,
+    pub lfl_disks: Vec<u8>,
+    pub lfl_offsets: Vec<i32>,
+    pub scripts: Directory,
 }
 
-struct Directory {
+pub struct Directory {
     /// The game internally calls this "disk number"
-    room_numbers: Vec<u8>,
+    pub room_numbers: Vec<u8>,
     /// The game internally calls this "disk offset"
-    offsets: Vec<i32>,
-    glob_sizes: Vec<i32>,
+    pub offsets: Vec<i32>,
+    pub glob_sizes: Vec<i32>,
 }
 
 pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {

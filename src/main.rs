@@ -17,6 +17,8 @@ mod build;
 mod config;
 mod extract;
 mod script;
+#[cfg(test)]
+mod tests;
 mod utils;
 mod xor;
 

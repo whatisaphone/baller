@@ -31,6 +31,10 @@ pub enum Stmt<'a> {
         condition: Expr<'a>,
         body: Vec<Stmt<'a>>,
     },
+    Case {
+        value: Expr<'a>,
+        cases: Vec<Case<'a>>,
+    },
     Generic {
         bytecode: ByteArray<2>,
         ins: &'a GenericIns,
@@ -39,11 +43,18 @@ pub enum Stmt<'a> {
     DecompileError(usize, &'static str),
 }
 
+pub struct Case<'a> {
+    pub value: Expr<'a>,
+    pub body: Vec<Stmt<'a>>,
+}
+
 #[derive(Clone)]
 pub enum Expr<'a> {
     Number(i32),
     String(&'a [u8]),
     Variable(Variable),
+    StackDup(Box<Expr<'a>>),
+    StackUnderflow,
     List(Vec<Expr<'a>>),
     ArrayIndex(Variable, Box<Expr<'a>>),
     Not(Box<Expr<'a>>),
@@ -138,6 +149,25 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             write_indent(w, indent)?;
             write!(w, "}}")?;
         }
+        Stmt::Case {
+            ref value,
+            ref cases,
+        } => {
+            w.write_str("case ")?;
+            write_expr(w, value, cx)?;
+            writeln!(w, " {{")?;
+            for case in cases {
+                write_indent(w, indent + 1)?;
+                w.write_str("of ")?;
+                write_expr(w, &case.value, cx)?;
+                writeln!(w, " {{")?;
+                write_stmts(w, &case.body, indent + 2, cx)?;
+                write_indent(w, indent + 1)?;
+                writeln!(w, "}}")?;
+            }
+            write_indent(w, indent)?;
+            writeln!(w, "}}")?;
+        }
         Stmt::While {
             ref condition,
             ref body,
@@ -167,6 +197,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
     match expr {
         Expr::Number(n) => {
@@ -177,6 +208,12 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
         }
         &Expr::Variable(var) => {
             write_var(w, var, cx)?;
+        }
+        Expr::StackDup(expr) => {
+            write_expr(w, expr, cx)?;
+        }
+        Expr::StackUnderflow => {
+            w.write_str("@DECOMPILE ERROR stack underflow")?;
         }
         Expr::List(exprs) => {
             w.write_char('[')?;
