@@ -1,18 +1,21 @@
-use crate::script::{
-    ast::{write_stmts, Expr, Stmt},
-    decode::Decoder,
-    ins::{GenericArg, GenericIns, Ins, Operand, Variable},
+use crate::{
+    config::Config,
+    script::{
+        ast::{write_stmts, Expr, Stmt, WriteCx},
+        decode::Decoder,
+        ins::{GenericArg, GenericIns, Ins, Operand, Variable},
+    },
 };
 use arrayvec::ArrayVec;
 use indexmap::IndexMap;
 use std::mem;
 
-pub fn decompile(code: &[u8]) -> Option<String> {
+pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     let mut output = String::with_capacity(1024);
     let blocks = find_basic_blocks(code)?;
     let controls = build_control_structures(&blocks);
     let ast = build_ast(&controls, code);
-    write_stmts(&mut output, &ast, 0).unwrap();
+    write_stmts(&mut output, &ast, 0, &WriteCx { config }).unwrap();
     Some(output)
 }
 

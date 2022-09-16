@@ -1,4 +1,4 @@
-use nirvana_rust::{build, extract, read_index, FsEntry};
+use nirvana_rust::{build, extract, read_index, Config, FsEntry};
 use std::{
     collections::HashMap,
     env,
@@ -20,9 +20,13 @@ fn round_trip() -> Result<(), Box<dyn Error>> {
     let input_path = fixture_path("baseball 2001.(b)");
     let mut input = File::open(&input_path)?;
     let mut fs = HashMap::with_capacity(1 << 10);
-    extract(&index, disk_number, &mut input, &mut |path, data| {
-        fs_write(&mut fs, path, data.to_vec())
-    })?;
+    extract(
+        &index,
+        disk_number,
+        &Config::default(),
+        &mut input,
+        &mut |path, data| fs_write(&mut fs, path, data.to_vec()),
+    )?;
     drop(input);
 
     let mut output = Vec::new();

@@ -1,4 +1,5 @@
 use crate::{
+    config::Config,
     script::{decompile, disasm_to_string},
     xor::XorStream,
 };
@@ -93,6 +94,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
 pub fn extract(
     root: &Index,
     disk_number: u8,
+    config: &Config,
     s: &mut (impl Read + Seek),
     write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
 ) -> Result<(), Box<dyn Error>> {
@@ -126,7 +128,7 @@ pub fn extract(
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;
 
-            if let Some(decomp) = decompile(blob) {
+            if let Some(decomp) = decompile(blob, config) {
                 let filename = format!("{path}/{id}_{index:02}.scu");
                 write.borrow_mut()(&filename, decomp.as_bytes())?;
             }

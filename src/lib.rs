@@ -8,6 +8,7 @@
 
 pub use crate::{
     build::{build, FsEntry},
+    config::Config,
     extract::{extract, read_index},
 };
 
@@ -15,6 +16,7 @@ pub use crate::{
 mod macros;
 
 mod build;
+mod config;
 mod extract;
 mod script;
 mod utils;
