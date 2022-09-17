@@ -8,7 +8,8 @@ use crate::{
 };
 use arrayvec::ArrayVec;
 use indexmap::IndexMap;
-use std::mem;
+use std::{fmt, mem};
+use tracing::{debug, instrument};
 
 pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     let mut output = String::with_capacity(1024);
@@ -88,6 +89,7 @@ fn split_block(blocks: &mut Vec<BasicBlock>, addr: usize) {
     }
 }
 
+#[instrument(level = "debug", skip(blocks))]
 fn build_control_structures(blocks: &IndexMap<usize, BasicBlock>) -> IndexMap<usize, ControlBlock> {
     // Begin with a sequence of raw basic blocks
     let mut controls = blocks
@@ -158,6 +160,14 @@ fn build_sequence(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> b
     true
 }
 
+struct AddrRange<'a>(&'a ControlBlock);
+
+impl fmt::Display for AddrRange<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "0x{:x}..0x{:x}", self.0.start, self.0.end)
+    }
+}
+
 fn build_if(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
     let block = &blocks[index];
     if !matches!(block.control, Control::BasicBlock | Control::Sequence(_)) {
@@ -181,6 +191,12 @@ fn build_if(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
     if !jump_skips_single_block {
         return false;
     }
+
+    debug!(
+        cond = %AddrRange(&blocks[index]),
+        body = %AddrRange(&blocks[index + 1]),
+        "building if",
+    );
 
     let mut drain = blocks.drain(index..=index + 1).map(|(_, b)| b);
     let condition = drain.next().unwrap();
@@ -234,6 +250,12 @@ fn build_else(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool 
         return false;
     }
 
+    debug!(
+        owner = %AddrRange(&blocks[index]),
+        body = %AddrRange(&blocks[index + 1]),
+        "building else",
+    );
+
     let (_, false_) = blocks.shift_remove_index(index + 1).unwrap();
     let block = &mut blocks[index];
     let as_if = match &mut block.control {
@@ -268,6 +290,12 @@ fn build_while(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool
     if !next_block_loops_to_start {
         return false;
     }
+
+    debug!(
+        cond = %AddrRange(&blocks[index]),
+        body = %AddrRange(&blocks[index + 1]),
+        "building while",
+    );
 
     let mut drain = blocks.drain(index..=index + 1).map(|(_k, v)| v);
     let condition = drain.next().unwrap();

@@ -13,6 +13,7 @@ use std::{
     io::{BufReader, Read, Seek, SeekFrom},
     str,
 };
+use tracing::info_span;
 
 pub const NICE: u8 = 0x69;
 
@@ -128,7 +129,11 @@ pub fn extract(
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;
 
-            if let Some(decomp) = decompile(blob, config) {
+            let decomp = {
+                let _span = info_span!("decompile", scrp = *index).entered();
+                decompile(blob, config)
+            };
+            if let Some(decomp) = decomp {
                 let filename = format!("{path}/{id}_{index:02}.scu");
                 write.borrow_mut()(&filename, decomp.as_bytes())?;
             }
