@@ -458,37 +458,6 @@ fn decompile_stmts<'a>(
         };
     }
 
-    macro_rules! decompile_generic {
-        ($bytecode:expr, $ins:expr, $var:expr) => {{
-            let bytecode = $bytecode;
-            let ins = $ins;
-            let var: Option<Variable> = $var;
-
-            let mut args = Vec::with_capacity(usize::from(var.is_some()) + ins.args.len());
-            for arg in ins.args.iter().rev() {
-                let expr = match arg {
-                    GenericArg::Int => pop!()?,
-                    GenericArg::String => pop!(:string)?,
-                    GenericArg::List => pop!(:list)?,
-                };
-                args.push(expr);
-            }
-            if let Some(var) = var {
-                args.push(Expr::Variable(var));
-            }
-            args.reverse();
-            if ins.returns_value {
-                stack.push(Expr::Call(bytecode, ins, args));
-            } else {
-                output.push(Stmt::Generic {
-                    bytecode,
-                    ins,
-                    args,
-                });
-            }
-        }};
-    }
-
     while decoder.pos() < block.end {
         let (off, ins) = decoder.next().ok_or_else(|| {
             DecompileError(decoder.pos(), DecompileErrorKind::Other("opcode decode"))
@@ -500,10 +469,8 @@ fn decompile_stmts<'a>(
                     Operand::I16(x) => stack.push(Expr::Number(x.into())),
                     Operand::I32(x) => stack.push(Expr::Number(x)),
                     Operand::Var(var) => stack.push(Expr::Variable(var)),
+                    Operand::String(s) => string_stack.push(s),
                 }
-            }
-            Ins::PushString(s) => {
-                string_stack.push(s);
             }
             Ins::GetArrayItem(var) => {
                 let index = pop!()?;
@@ -658,17 +625,6 @@ fn decompile_stmts<'a>(
                     args: vec![Expr::Variable(var), format, args],
                 });
             }
-            Ins::SomethingWithString([b1, b2], s) => {
-                output.push(Stmt::Generic {
-                    bytecode: bytearray![b1, b2],
-                    ins: &GenericIns {
-                        name: None,
-                        args: &[],
-                        returns_value: false,
-                    },
-                    args: vec![Expr::String(s)],
-                });
-            }
             Ins::DimArray1D(item_size, var) => {
                 let max = pop!()?;
                 output.push(Stmt::DimArray {
@@ -681,16 +637,44 @@ fn decompile_stmts<'a>(
                     swap: Expr::Number(0),
                 });
             }
-            Ins::Generic(bytecode, ins) => {
-                decompile_generic!(bytecode.clone(), ins, None);
-            }
-            Ins::GenericWithVar(bytecode, ins, var) => {
-                decompile_generic!(bytecode.clone(), ins, Some(var));
+            Ins::Generic(bytecode, operands, ins) => {
+                let mut args = Vec::with_capacity(operands.len() + ins.args.len());
+                for arg in ins.args.iter().rev() {
+                    let expr = match arg {
+                        GenericArg::Int => pop!()?,
+                        GenericArg::String => pop!(:string)?,
+                        GenericArg::List => pop!(:list)?,
+                    };
+                    args.push(expr);
+                }
+                for op in operands.iter().rev() {
+                    args.push(operand_to_expr(op));
+                }
+                args.reverse();
+                if ins.returns_value {
+                    stack.push(Expr::Call(bytecode, ins, args));
+                } else {
+                    output.push(Stmt::Generic {
+                        bytecode,
+                        ins,
+                        args,
+                    });
+                }
             }
         }
     }
     block_end_checks!();
     Ok(BlockExit::Fallthrough)
+}
+
+fn operand_to_expr<'a>(operand: &Operand<'a>) -> Expr<'a> {
+    match *operand {
+        Operand::Byte(x) => Expr::Number(x.into()),
+        Operand::I16(x) => Expr::Number(x.into()),
+        Operand::I32(x) => Expr::Number(x),
+        Operand::Var(v) => Expr::Variable(v),
+        Operand::String(s) => Expr::String(s),
+    }
 }
 
 enum BlockExit<'a> {

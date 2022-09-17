@@ -1,10 +1,10 @@
 use crate::{script::misc::AnsiStr, utils::byte_array::ByteArray};
+use arrayvec::ArrayVec;
 use std::{fmt, fmt::Write, isize};
 
 #[derive(Debug)]
 pub enum Ins<'a> {
-    Push(Operand),
-    PushString(&'a [u8]),
+    Push(Operand<'a>),
     GetArrayItem(Variable),
     StackDup,
     Not,
@@ -30,10 +30,8 @@ pub enum Ins<'a> {
     Jump(i16),
     AssignString(Variable),
     Sprintf(Variable),
-    SomethingWithString([u8; 2], &'a [u8]),
     DimArray1D(ItemSize, Variable),
-    Generic(ByteArray<2>, &'a GenericIns),
-    GenericWithVar(ByteArray<2>, &'a GenericIns, Variable),
+    Generic(ByteArray<2>, ArrayVec<Operand<'a>, 2>, &'a GenericIns),
 }
 
 #[derive(Debug)]
@@ -51,11 +49,12 @@ pub enum GenericArg {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum Operand {
+pub enum Operand<'a> {
     Byte(u8),
     I16(i16),
     I32(i32),
     Var(Variable),
+    String(&'a [u8]),
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -87,7 +86,6 @@ impl fmt::Display for Ins<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Self::Push(op) => write!(f, "push {op}"),
-            Self::PushString(s) => write!(f, "push-string {:?}", AnsiStr(s)),
             Self::GetArrayItem(var) => write!(f, "get-array-item {var}"),
             Self::StackDup => write!(f, "stack-dup"),
             Self::Not => write!(f, "not"),
@@ -113,15 +111,13 @@ impl fmt::Display for Ins<'_> {
             Self::Jump(rel) => write!(f, "jump {}", RelHex(rel)),
             Self::AssignString(var) => write!(f, "assign-string {var}"),
             Self::Sprintf(var) => write!(f, "sprintf {var}"),
-            Self::SomethingWithString([b1, b2], s) => {
-                GenericIns::write_fallback_name(f, &[b1, b2])?;
-                write!(f, " {:?}", AnsiStr(s))
-            }
             Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
-            Self::Generic(ref bytecode, ins) => GenericIns::write_name(f, ins, bytecode),
-            Self::GenericWithVar(ref bytecode, ins, var) => {
+            Self::Generic(ref bytecode, ref operands, ins) => {
                 GenericIns::write_name(f, ins, bytecode)?;
-                write!(f, " {var}")
+                for op in operands {
+                    write!(f, " {op}")?;
+                }
+                Ok(())
             }
         }
     }
@@ -146,13 +142,14 @@ impl GenericIns {
     }
 }
 
-impl fmt::Display for Operand {
+impl fmt::Display for Operand<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Byte(n) => n.fmt(f),
             Self::I16(n) => n.fmt(f),
             Self::I32(n) => n.fmt(f),
             Self::Var(var) => var.fmt(f),
+            Self::String(s) => write!(f, "{:?}", AnsiStr(s)),
         }
     }
 }
