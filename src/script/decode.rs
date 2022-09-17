@@ -285,7 +285,7 @@ macro_rules! ins {
         ins!(
             @ops,
             in = {$($in)*},
-            out = {},
+            out = {,},
         )
     };
     // Parse one item
@@ -297,7 +297,7 @@ macro_rules! ins {
         ins!(
             @ops,
             in = {$($($tail)*)?},
-            out = {ins!(@op_kind $type)($value), $($out)*},
+            out = {$($out)* ins!(@op_kind $type)($value),},
         )
     };
     (@op_kind var) => {
@@ -310,7 +310,7 @@ macro_rules! ins {
     (
         @ops,
         in = {},
-        out = {$($out:tt)*},
+        out = {, $($out:tt)*},
     ) => {
         arrayvec![$($out)*]
     };
@@ -327,7 +327,7 @@ macro_rules! ins {
         ins!(
             @args,
             in = {$($in)*},
-            out = {},
+            out = {,},
         )
     };
     // Parse one item
@@ -339,7 +339,7 @@ macro_rules! ins {
         ins!(
             @args,
             in = {$($($rest)*)?},
-            out = {ins!(@one_arg $arg), $($out)*},
+            out = {$($out)* ins!(@one_arg $arg),},
         )
     };
     (@one_arg int) => {
@@ -355,7 +355,7 @@ macro_rules! ins {
     (
         @args,
         in = {},
-        out = {$($out:tt)*},
+        out = {, $($out:tt)*},
     ) => {
         &[$($out)*]
     };
@@ -366,7 +366,7 @@ macro_rules! ins {
 
     // Fallback error
     (@ $($rest:tt)*) => {
-        compile_error!("macro has failed");
+        compile_error!("macro has failed")
     };
 
     // Main entrypoint. Transfer control to @parse
