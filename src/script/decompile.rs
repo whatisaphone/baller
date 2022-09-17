@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_stmts, Case, Expr, Stmt, WriteCx},
+        ast::{write_stmts, Case, DecompileErrorKind, Expr, Stmt, WriteCx},
         decode::Decoder,
         ins::{GenericArg, GenericIns, Ins, Operand, Variable},
     },
@@ -321,7 +321,10 @@ fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<
                 stmts.push(Stmt::Goto(target));
             }
             Ok(_) => {
-                stmts.push(Stmt::DecompileError(block.end, "unexpected block exit"));
+                stmts.push(Stmt::DecompileError(
+                    block.end,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
             }
             Err(DecompileError(offset, message)) => {
                 stmts.push(Stmt::DecompileError(offset, message));
@@ -331,7 +334,7 @@ fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<
     stmts
 }
 
-struct DecompileError(usize, &'static str);
+struct DecompileError(usize, DecompileErrorKind);
 
 fn decompile_block<'a>(
     block: &ControlBlock,
@@ -344,7 +347,10 @@ fn decompile_block<'a>(
             let mut exit = BlockExit::Fallthrough;
             for block in blks {
                 if !matches!(exit, BlockExit::Fallthrough) {
-                    return Err(DecompileError(block.start, "unexpected block exit"));
+                    return Err(DecompileError(
+                        block.start,
+                        DecompileErrorKind::WrongBlockExit,
+                    ));
                 }
                 exit = decompile_block(block, code, stmts)?;
             }
@@ -353,7 +359,12 @@ fn decompile_block<'a>(
         Control::If(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => return Err(DecompileError(b.condition.end, "unexpected block exit")),
+                _ => {
+                    return Err(DecompileError(
+                        b.condition.end,
+                        DecompileErrorKind::WrongBlockExit,
+                    ));
+                }
             };
             let mut true_stmts = Vec::new();
             let mut exit = decompile_block(&b.true_, code, &mut true_stmts)?;
@@ -361,7 +372,10 @@ fn decompile_block<'a>(
             if let Some(false_) = &b.false_ {
                 if !matches!(exit, BlockExit::Jump(_)) {
                     // TODO: verify jump target?
-                    return Err(DecompileError(b.true_.end, "unexpected block exit"));
+                    return Err(DecompileError(
+                        b.true_.end,
+                        DecompileErrorKind::WrongBlockExit,
+                    ));
                 }
                 exit = decompile_block(false_, code, &mut false_stmts)?;
             }
@@ -375,12 +389,22 @@ fn decompile_block<'a>(
         Control::While(b) => {
             let condition = match decompile_stmts(code, &b.condition, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => return Err(DecompileError(b.condition.end, "unexpected block exit")),
+                _ => {
+                    return Err(DecompileError(
+                        b.condition.end,
+                        DecompileErrorKind::WrongBlockExit,
+                    ));
+                }
             };
             let mut body_stmts = Vec::new();
             match decompile_block(&b.body, code, &mut body_stmts)? {
                 BlockExit::Jump(_) => {} // TODO: verify jump target?
-                _ => return Err(DecompileError(b.body.end, "unexpected block exit")),
+                _ => {
+                    return Err(DecompileError(
+                        b.body.end,
+                        DecompileErrorKind::WrongBlockExit,
+                    ));
+                }
             }
             stmts.push(Stmt::While {
                 condition,
@@ -407,21 +431,25 @@ fn decompile_stmts<'a>(
         () => {
             stack
                 .pop()
-                .ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+                .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
         (: string) => {
             pop_string(&mut stack, &mut string_stack)
-                .ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+                .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
         (: list) => {
-            pop_list(&mut stack).ok_or_else(|| DecompileError(decoder.pos(), "stack underflow"))
+            pop_list(&mut stack)
+                .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
     }
 
     macro_rules! block_end_checks {
         () => {
             if decoder.pos() != block.end {
-                return Err(DecompileError(decoder.pos(), "mismatched block end"));
+                return Err(DecompileError(
+                    decoder.pos(),
+                    DecompileErrorKind::Other("mismatched block end"),
+                ));
             }
             // TODD: check for values remaining on stack
         };
@@ -459,10 +487,9 @@ fn decompile_stmts<'a>(
     }
 
     while decoder.pos() < block.end {
-        let (off, ins) = decoder
-            .next()
-            .ok_or_else(|| DecompileError(decoder.pos(), "opcode decode"))?;
-        #[allow(clippy::match_wildcard_for_single_variants)]
+        let (off, ins) = decoder.next().ok_or_else(|| {
+            DecompileError(decoder.pos(), DecompileErrorKind::Other("opcode decode"))
+        })?;
         match ins {
             Ins::Push(op) => {
                 match op {
@@ -551,7 +578,10 @@ fn decompile_stmts<'a>(
             }
             Ins::PopDiscard => {
                 if pop!().is_err() {
-                    output.push(Stmt::DecompileError(off, "stack underflow"));
+                    output.push(Stmt::DecompileError(
+                        off,
+                        DecompileErrorKind::StackUnderflow,
+                    ));
                 }
             }
             Ins::DimArray(item_size, var) => {
@@ -586,16 +616,22 @@ fn decompile_stmts<'a>(
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
                 block_end_checks!();
-                return Ok(BlockExit::JumpUnless(rel, expr));
+                #[allow(clippy::cast_sign_loss)]
+                let target = decoder.pos().wrapping_add(rel as isize as usize);
+                return Ok(BlockExit::JumpUnless(target, expr));
             }
             Ins::JumpUnless(rel) => {
                 let expr = pop!()?;
                 block_end_checks!();
-                return Ok(BlockExit::JumpUnless(rel, expr));
+                #[allow(clippy::cast_sign_loss)]
+                let target = decoder.pos().wrapping_add(rel as isize as usize);
+                return Ok(BlockExit::JumpUnless(target, expr));
             }
             Ins::Jump(rel) => {
                 block_end_checks!();
-                return Ok(BlockExit::Jump(rel));
+                #[allow(clippy::cast_sign_loss)]
+                let target = decoder.pos().wrapping_add(rel as isize as usize);
+                return Ok(BlockExit::Jump(target));
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
@@ -656,8 +692,8 @@ fn decompile_stmts<'a>(
 
 enum BlockExit<'a> {
     Fallthrough,
-    Jump(i16),
-    JumpUnless(i16, Expr<'a>),
+    Jump(usize),
+    JumpUnless(usize, Expr<'a>),
 }
 
 fn pop_string<'a>(stack: &mut Vec<Expr>, string_stack: &mut Vec<&'a [u8]>) -> Option<Expr<'a>> {
@@ -706,8 +742,10 @@ fn is_case(stmt: &Stmt) -> bool {
     if !matches!(lhs, Expr::StackDup(_)) {
         return false;
     }
-    // HACK: assume decompile errors are stack underflows
-    if !matches!(true_.first(), Some(Stmt::DecompileError(_, _))) {
+    if !matches!(
+        true_.first(),
+        Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
+    ) {
         return false;
     }
     let false_ = match &**false_ {
@@ -717,8 +755,10 @@ fn is_case(stmt: &Stmt) -> bool {
     if is_case(false_) {
         return true;
     }
-    // HACK: assume decompile errors are stack underflows
-    if matches!(false_, Stmt::DecompileError(_, _)) {
+    if matches!(
+        false_,
+        Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
+    ) {
         return true;
     }
     false
@@ -751,8 +791,10 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
     if value.is_none() {
         *value = Some(lhs.clone());
     }
-    // HACK: assume decompile errors are stack underflows
-    debug_assert!(matches!(true_.first(), Some(Stmt::DecompileError(_, _))));
+    debug_assert!(matches!(
+        true_.first(),
+        Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
+    ));
     true_.remove(0);
     // move exprs into a case; leave dummy values behind
     cases.push(Case {
@@ -767,8 +809,7 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
         true_if @ Stmt::If { .. } => {
             append_case(true_if, value, cases);
         }
-        // HACK: assume decompile errors are stack underflows
-        Stmt::DecompileError(_, _) => {}
+        Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow) => {}
         _ => unreachable!(),
     }
 }

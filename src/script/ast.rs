@@ -21,7 +21,7 @@ pub enum Stmt<'a> {
     Assign(Variable, Expr<'a>),
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
     Inc(Variable),
-    Goto(i16),
+    Goto(usize),
     If {
         condition: Expr<'a>,
         true_: Vec<Stmt<'a>>,
@@ -40,7 +40,14 @@ pub enum Stmt<'a> {
         ins: &'a GenericIns,
         args: Vec<Expr<'a>>,
     },
-    DecompileError(usize, &'static str),
+    DecompileError(usize, DecompileErrorKind),
+}
+
+#[derive(Copy, Clone)]
+pub enum DecompileErrorKind {
+    StackUnderflow,
+    WrongBlockExit,
+    Other(&'static str),
 }
 
 pub struct Case<'a> {
@@ -190,7 +197,12 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
                 write_expr(w, expr, cx)?;
             }
         }
-        Stmt::DecompileError(offset, message) => {
+        Stmt::DecompileError(offset, kind) => {
+            let message = match kind {
+                DecompileErrorKind::StackUnderflow => "stack underflow",
+                DecompileErrorKind::WrongBlockExit => "wrong block exit",
+                DecompileErrorKind::Other(msg) => msg,
+            };
             write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")?;
         }
     }
