@@ -174,6 +174,9 @@ fn build_if(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
         Some(block) => block,
         None => return false,
     };
+    if next_block.exits.len() != 1 {
+        return false;
+    }
     let jump_skips_single_block = block.exits[1] == next_block.end;
     if !jump_skips_single_block {
         return false;
