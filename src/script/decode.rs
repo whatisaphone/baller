@@ -55,6 +55,249 @@ impl<'a> Decoder<'a> {
     }
 }
 
+/// I regret everything.
+macro_rules! ins {
+    ////////////////////////////////////////////////////////////////////////////
+    // Parse
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Parse bytecode
+    (
+        @parse,
+        bytecode = {},
+        name = $name:tt,
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = $retval:tt,
+        rest = {[$($byte:expr),+] $(, $($rest:tt)*)?},
+    ) => {
+        ins!(
+            @parse,
+            bytecode = {bytearray![$($byte),+]},
+            name = $name,
+            ops = $ops,
+            args = $args,
+            retval = $retval,
+            rest = {$($($rest)*)?},
+        )
+    };
+    // Parse args
+    (
+        @parse,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = $ops:tt,
+        args = {},
+        retval = $retval:tt,
+        rest = {args = [$($args:tt)*] $(, $($rest:tt)*)?},
+    ) => {
+        ins!(
+            @parse,
+            bytecode = $bytecode,
+            name = $name,
+            ops = $ops,
+            args = {ins!(@args, begin = {$($args)*})},
+            retval = $retval,
+            rest = {$($($rest)*)?},
+        )
+    };
+    // Parse retval
+    (
+        @parse,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = {},
+        rest = {retval $(, $($rest:tt)*)?},
+    ) => {
+        ins!(
+            @parse,
+            bytecode = $bytecode,
+            name = $name,
+            ops = $ops,
+            args = $args,
+            retval = {true},
+            rest = {$($($rest)*)?},
+        )
+    };
+    // Done parsing. Transfer control to @set_defaults
+    (
+        @parse,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = $retval:tt,
+        rest = {},
+    ) => {
+        ins!(
+            @set_defaults,
+            bytecode = $bytecode,
+            name = $name,
+            ops = $ops,
+            args = $args,
+            retval = $retval,
+        )
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Defaults
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Set default name
+    (
+        @set_defaults,
+        bytecode = $bytecode:tt,
+        name = {},
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = $retval:tt,
+    ) => {
+        ins!(
+            @set_defaults,
+            bytecode = $bytecode,
+            name = {None},
+            ops = $ops,
+            args = $args,
+            retval = $retval,
+        )
+    };
+    // Set default ops
+    (
+        @set_defaults,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = {},
+        args = $args:tt,
+        retval = $retval:tt,
+    ) => {
+        ins!(
+            @set_defaults,
+            bytecode = $bytecode,
+            name = $name,
+            ops = {arrayvec![]},
+            args = $args,
+            retval = $retval,
+        )
+    };
+    // Set default args
+    (
+        @set_defaults,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = $ops:tt,
+        args = {},
+        retval = $retval:tt,
+    ) => {
+        ins!(
+            @set_defaults,
+            bytecode = $bytecode,
+            name = $name,
+            ops = $ops,
+            args = {&[]},
+            retval = $retval,
+        )
+    };
+    // Set default retval
+    (
+        @set_defaults,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = {},
+    ) => {
+        ins!(
+            @set_defaults,
+            bytecode = $bytecode,
+            name = $name,
+            ops = $ops,
+            args = $args,
+            retval = {false},
+        )
+    };
+    // All defaults set. Emit.
+    (
+        @set_defaults,
+        bytecode = {$($bytecode:tt)*},
+        name = {$($name:tt)*},
+        ops = {$($ops:tt)*},
+        args = {$($args:tt)*},
+        retval = {$retval:tt},
+    ) => {
+        Some(Ins::Generic({$($bytecode)*}, {$($ops)*}, &GenericIns {
+            name: {$($name)*},
+            args: {$($args)*},
+            returns_value: $retval,
+        }))
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Args
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Entry point
+    (
+        @args,
+        begin = {$($in:tt)*}
+    ) => {
+        ins!(
+            @args,
+            in = {$($in)*},
+            out = {},
+        )
+    };
+    // Parse one item
+    (
+        @args,
+        in = {$arg:ident $(, $($rest:tt)*)?},
+        out = {$($out:tt)*},
+    ) => {
+        ins!(
+            @args,
+            in = {$($($rest)*)?},
+            out = {ins!(@one_arg $arg), $($out)*},
+        )
+    };
+    // Done. Return a slice.
+    (
+        @args,
+        in = {},
+        out = {$($out:tt)*},
+    ) => {
+        &[$($out)*]
+    };
+    (@one_arg int) => {
+        GenericArg::Int
+    };
+    (@one_arg list) => {
+        GenericArg::List
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Public matchers
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Fallback error
+    (@ $($rest:tt)*) => {
+        compile_error!("macro has failed");
+    };
+
+    // Main entrypoint. Transfer control to @parse
+    ($($rest:tt)*) => {
+        ins!(
+            @parse,
+            bytecode = {},
+            name = {},
+            ops = {},
+            args = {},
+            retval = {},
+            rest = {$($rest)*},
+        )
+    };
+}
+
 #[allow(clippy::too_many_lines)]
 fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let opcode = read_u8(code)?;
@@ -81,26 +324,14 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x18 => Some(Ins::LogicalAnd),
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
-        0x1b => {
-            Some(Ins::Generic(bytearray![0x1b], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int, GenericArg::List],
-                returns_value: true,
-            }))
-        }
+        0x1b => ins!([0x1b], args = [int, list], retval),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
         0x37 => op_37_dim_array(code),
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
         0x4f => op_4f_inc(code),
-        0x5a => {
-            Some(Ins::Generic(bytearray![0x5a], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: true,
-            }))
-        }
+        0x5a => ins!([0x5a], args = [int], retval),
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
