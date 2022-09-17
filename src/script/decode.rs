@@ -416,6 +416,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
         0x4f => op_4f_inc(code),
+        0x57 => op_57_dec(code),
         0x5a => ins!([0x5a], args = [int], retval),
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
@@ -423,6 +424,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x66 => ins!([0x66], name = "free-script"),
         0x6b => op_6b_cursor(code),
         0x6c => ins!([0x6c], name = "stop-script"),
+        0x6d => ins!([0x6d], args = [int, list], retval),
         0x73 => op_73_jump(code),
         0x74 => op_74(code),
         0x75 => ins!([0x75], args = [int]),
@@ -434,10 +436,16 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
+        0xa0 => ins!([0xa0], args = [int, int], retval),
+        0xa3 => ins!([0xa0], args = [int, int], retval),
         0xa4 => op_a4_array(code),
+        0xa7 => ins!([0xa7], name = "pop-discard", args = [int]),
+        0xad => ins!([0xad], args = [int, list], retval),
         0xb6 => op_b6(code),
         0xa9 => op_a9(code),
         0xb7 => op_b7(code),
+        0xbd => ins!([0xbd], name = "return", args = [int]),
+        0xbf => ins!([0xbf], name = "call-script", args = [int, list], retval),
         0xbc => op_bc_array(code),
         0xc1 => ins!([0xc1], args = [int, string]),
         0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
@@ -446,6 +454,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xca => ins!([0xca], args = [int]),
         0xd0 => ins!([0xd0], name = "now"),
         0xd4 => ins!([0xd4], ops = [var: read_var(code)?], args = [int, int]),
+        0xd6 => Some(Ins::BitwiseAnd),
         0xd7 => Some(Ins::BitwiseOr),
         0xd9 => ins!([0xd9], name = "close-file", args = [int]),
         0xda => ins!([0xda], name = "open-file", args = [string, int], retval),
@@ -533,6 +542,10 @@ fn op_4f_inc<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::Inc(read_var(code)?))
 }
 
+fn op_57_dec<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    Some(Ins::Dec(read_var(code)?))
+}
+
 fn op_5c_jump_if<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::JumpIf(read_i16(code)?))
 }
@@ -543,11 +556,12 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let sub = read_u8(code)?;
-    ins!([0x5e, sub], name = "start-script", args = [int, list])
+    ins!([0x5e, sub], name = "run-script", args = [int, list])
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
+        sub @ (0x13 | 0x14) => ins!([0x6b, sub], args = [int]),
         sub @ (0x91 | 0x93) => ins!([0x6b, sub]),
         0x9c => ins!([0x6b, 0x9c], name = "cursor-charset", args = [int]),
         _ => None,

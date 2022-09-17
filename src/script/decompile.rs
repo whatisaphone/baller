@@ -587,6 +587,9 @@ fn decompile_stmts<'a>(
             Ins::Inc(var) => {
                 output.push(Stmt::Inc(var));
             }
+            Ins::Dec(var) => {
+                output.push(Stmt::Dec(var));
+            }
             Ins::JumpIf(rel) => {
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
@@ -641,6 +644,11 @@ fn decompile_stmts<'a>(
                     max2: max,
                     swap: Expr::Number(0),
                 });
+            }
+            Ins::BitwiseAnd => {
+                let rhs = pop!()?;
+                let lhs = pop!()?;
+                stack.push(Expr::BitwiseAnd(Box::new((lhs, rhs))));
             }
             Ins::BitwiseOr => {
                 let rhs = pop!()?;

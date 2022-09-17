@@ -21,6 +21,7 @@ pub enum Stmt<'a> {
     Assign(Variable, Expr<'a>),
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
     Inc(Variable),
+    Dec(Variable),
     Goto(usize),
     If {
         condition: Expr<'a>,
@@ -78,6 +79,7 @@ pub enum Expr<'a> {
     Div(Box<(Expr<'a>, Expr<'a>)>),
     LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
+    BitwiseAnd(Box<(Expr<'a>, Expr<'a>)>),
     BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
     Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
 }
@@ -137,6 +139,10 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
         Stmt::Inc(var) => {
             write_var(w, var, cx)?;
             w.write_str("++")?;
+        }
+        Stmt::Dec(var) => {
+            write_var(w, var, cx)?;
+            w.write_str("--")?;
         }
         Stmt::Goto(target) => {
             write!(w, "goto 0x{target:x}")?;
@@ -316,6 +322,11 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
         Expr::LogicalOr(xs) => {
             write_expr(w, &xs.0, cx)?;
             w.write_str(" || ")?;
+            write_expr(w, &xs.1, cx)?;
+        }
+        Expr::BitwiseAnd(xs) => {
+            write_expr(w, &xs.0, cx)?;
+            w.write_str(" & ")?;
             write_expr(w, &xs.1, cx)?;
         }
         Expr::BitwiseOr(xs) => {
