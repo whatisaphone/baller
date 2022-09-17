@@ -64,6 +64,7 @@ pub enum Expr<'a> {
     StackUnderflow,
     List(Vec<Expr<'a>>),
     ArrayIndex(Variable, Box<Expr<'a>>),
+    ArrayIndex2D(Variable, Box<(Expr<'a>, Expr<'a>)>),
     Not(Box<Expr<'a>>),
     Equal(Box<(Expr<'a>, Expr<'a>)>),
     NotEqual(Box<(Expr<'a>, Expr<'a>)>),
@@ -77,6 +78,7 @@ pub enum Expr<'a> {
     Div(Box<(Expr<'a>, Expr<'a>)>),
     LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
+    BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
     Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
 }
 
@@ -243,6 +245,15 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
             write_expr(w, index, cx)?;
             w.write_char(']')?;
         }
+        &Expr::ArrayIndex2D(var, ref indices) => {
+            let (index1, index2) = &**indices;
+            write_var(w, var, cx)?;
+            w.write_char('[')?;
+            write_expr(w, index1, cx)?;
+            w.write_str(", ")?;
+            write_expr(w, index2, cx)?;
+            w.write_char(']')?;
+        }
         Expr::Not(expr) => {
             w.write_char('!')?;
             write_expr(w, expr, cx)?;
@@ -305,6 +316,11 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
         Expr::LogicalOr(xs) => {
             write_expr(w, &xs.0, cx)?;
             w.write_str(" || ")?;
+            write_expr(w, &xs.1, cx)?;
+        }
+        Expr::BitwiseOr(xs) => {
+            write_expr(w, &xs.0, cx)?;
+            w.write_str(" | ")?;
             write_expr(w, &xs.1, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {

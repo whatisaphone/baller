@@ -65,6 +65,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x03 => op_03_push_var(code),
         0x04 => op_04_push_str(code),
         0x07 => op_07_get_array_item(code),
+        0x0b => op_0b_get_array_item_2d(code),
         0x0c => Some(Ins::StackDup),
         0x0d => Some(Ins::Not),
         0x0e => Some(Ins::Equal),
@@ -87,6 +88,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 returns_value: true,
             }))
         }
+        0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
         0x37 => op_37_dim_array(code),
         0x43 => op_43_set(code),
@@ -163,6 +165,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         }
         0x9b => op_9b(code),
         0x9c => op_9c(code),
+        0x9f => {
+            Some(Ins::Generic(bytearray![0x9f], arrayvec![], &GenericIns {
+                name: None,
+                args: &[GenericArg::Int, GenericArg::Int],
+                returns_value: true,
+            }))
+        }
         0xa4 => op_a4_array(code),
         0xb6 => op_b6(code),
         0xa9 => op_a9(code),
@@ -184,9 +193,16 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         }
         0xc8 => {
             Some(Ins::Generic(bytearray![0xc8], arrayvec![], &GenericIns {
-                name: None,
+                name: Some("kludge-retval"),
                 args: &[GenericArg::List],
                 returns_value: true,
+            }))
+        }
+        0xc9 => {
+            Some(Ins::Generic(bytearray![0xc8], arrayvec![], &GenericIns {
+                name: Some("kludge"),
+                args: &[GenericArg::List],
+                returns_value: false,
             }))
         }
         0xca => {
@@ -215,6 +231,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 },
             ))
         }
+        0xd7 => Some(Ins::BitwiseOr),
         0xd9 => {
             Some(Ins::Generic(bytearray![0xd9], arrayvec![], &GenericIns {
                 name: Some("close-file"),
@@ -287,6 +304,44 @@ fn op_04_push_str<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_07_get_array_item<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::GetArrayItem(read_var(code)?))
+}
+
+fn op_0b_get_array_item_2d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    Some(Ins::GetArrayItem2D(read_var(code)?))
+}
+
+fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x2d => {
+            Some(Ins::Generic(
+                bytearray![0x25, 0x2d],
+                arrayvec![],
+                &GenericIns {
+                    name: None,
+                    args: &[
+                        GenericArg::Int,
+                        GenericArg::Int,
+                        GenericArg::Int,
+                        GenericArg::Int,
+                        GenericArg::List,
+                    ],
+                    returns_value: true,
+                },
+            ))
+        }
+        0x7d => {
+            Some(Ins::Generic(
+                bytearray![0x25, 0x7d],
+                arrayvec![],
+                &GenericIns {
+                    name: None,
+                    args: &[GenericArg::Int, GenericArg::List],
+                    returns_value: true,
+                },
+            ))
+        }
+        _ => None,
+    }
 }
 
 fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

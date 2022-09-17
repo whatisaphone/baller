@@ -476,6 +476,11 @@ fn decompile_stmts<'a>(
                 let index = pop!()?;
                 stack.push(Expr::ArrayIndex(var, Box::new(index)));
             }
+            Ins::GetArrayItem2D(var) => {
+                let index1 = pop!()?;
+                let index2 = pop!()?;
+                stack.push(Expr::ArrayIndex2D(var, Box::new((index1, index2))));
+            }
             Ins::StackDup => {
                 // TODO: only constant expressions?
                 stack.push(Expr::StackDup(Box::new(
@@ -636,6 +641,11 @@ fn decompile_stmts<'a>(
                     max2: max,
                     swap: Expr::Number(0),
                 });
+            }
+            Ins::BitwiseOr => {
+                let rhs = pop!()?;
+                let lhs = pop!()?;
+                stack.push(Expr::BitwiseOr(Box::new((lhs, rhs))));
             }
             Ins::Generic(bytecode, operands, ins) => {
                 let mut args = Vec::with_capacity(operands.len() + ins.args.len());

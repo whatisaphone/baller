@@ -6,6 +6,7 @@ use std::{fmt, fmt::Write, isize};
 pub enum Ins<'a> {
     Push(Operand<'a>),
     GetArrayItem(Variable),
+    GetArrayItem2D(Variable),
     StackDup,
     Not,
     Equal,
@@ -31,6 +32,7 @@ pub enum Ins<'a> {
     AssignString(Variable),
     Sprintf(Variable),
     DimArray1D(ItemSize, Variable),
+    BitwiseOr,
     Generic(ByteArray<2>, ArrayVec<Operand<'a>, 2>, &'a GenericIns),
 }
 
@@ -87,6 +89,7 @@ impl fmt::Display for Ins<'_> {
         match *self {
             Self::Push(op) => write!(f, "push {op}"),
             Self::GetArrayItem(var) => write!(f, "get-array-item {var}"),
+            Self::GetArrayItem2D(var) => write!(f, "get-array-item-2d {var}"),
             Self::StackDup => write!(f, "stack-dup"),
             Self::Not => write!(f, "not"),
             Self::Equal => write!(f, "equal"),
@@ -112,6 +115,7 @@ impl fmt::Display for Ins<'_> {
             Self::AssignString(var) => write!(f, "assign-string {var}"),
             Self::Sprintf(var) => write!(f, "sprintf {var}"),
             Self::DimArray1D(size, var) => write!(f, "dim-array-1d {var}[{size}]"),
+            Self::BitwiseOr => write!(f, "bitwise-or"),
             Self::Generic(ref bytecode, ref operands, ins) => {
                 GenericIns::write_name(f, ins, bytecode)?;
                 for op in operands {
