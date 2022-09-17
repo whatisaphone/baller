@@ -81,6 +81,46 @@ macro_rules! ins {
             rest = {$($($rest)*)?},
         )
     };
+    // Parse name
+    (
+        @parse,
+        bytecode = $bytecode:tt,
+        name = {},
+        ops = $ops:tt,
+        args = $args:tt,
+        retval = $retval:tt,
+        rest = {name = $name:expr $(, $($rest:tt)*)?},
+    ) => {
+        ins!(
+            @parse,
+            bytecode = $bytecode,
+            name = {Some($name)},
+            ops = $ops,
+            args = $args,
+            retval = $retval,
+            rest = {$($($rest)*)?},
+        )
+    };
+    // Parse ops
+    (
+        @parse,
+        bytecode = $bytecode:tt,
+        name = $name:tt,
+        ops = {},
+        args = $args:tt,
+        retval = $retval:tt,
+        rest = {ops = [$($ops:tt)*] $(, $($rest:tt)*)?},
+    ) => {
+        ins!(
+            @parse,
+            bytecode = $bytecode,
+            name = $name,
+            ops = {ins!(@ops, begin = {$($ops)*})},
+            args = $args,
+            retval = $retval,
+            rest = {$($($rest)*)?},
+        )
+    };
     // Parse args
     (
         @parse,
@@ -234,6 +274,48 @@ macro_rules! ins {
     };
 
     ////////////////////////////////////////////////////////////////////////////
+    // Ops
+    ////////////////////////////////////////////////////////////////////////////
+
+    // Entry point
+    (
+        @ops,
+        begin = {$($in:tt)*}
+    ) => {
+        ins!(
+            @ops,
+            in = {$($in)*},
+            out = {},
+        )
+    };
+    // Parse one item
+    (
+        @ops,
+        in = {$type:ident: $value:expr $(, $($tail:tt)*)?},
+        out = {$($out:tt)*},
+    ) => {
+        ins!(
+            @ops,
+            in = {$($($tail)*)?},
+            out = {ins!(@op_kind $type)($value), $($out)*},
+        )
+    };
+    (@op_kind var) => {
+        Operand::Var
+    };
+    (@op_kind string) => {
+        Operand::String
+    };
+    // Done. Return them.
+    (
+        @ops,
+        in = {},
+        out = {$($out:tt)*},
+    ) => {
+        arrayvec![$($out)*]
+    };
+
+    ////////////////////////////////////////////////////////////////////////////
     // Args
     ////////////////////////////////////////////////////////////////////////////
 
@@ -260,6 +342,15 @@ macro_rules! ins {
             out = {ins!(@one_arg $arg), $($out)*},
         )
     };
+    (@one_arg int) => {
+        GenericArg::Int
+    };
+    (@one_arg string) => {
+        GenericArg::String
+    };
+    (@one_arg list) => {
+        GenericArg::List
+    };
     // Done. Return a slice.
     (
         @args,
@@ -267,12 +358,6 @@ macro_rules! ins {
         out = {$($out:tt)*},
     ) => {
         &[$($out)*]
-    };
-    (@one_arg int) => {
-        GenericArg::Int
-    };
-    (@one_arg list) => {
-        GenericArg::List
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -335,179 +420,42 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
-        0x66 => {
-            Some(Ins::Generic(bytearray![0x66], arrayvec![], &GenericIns {
-                name: Some("free-script"),
-                args: &[],
-                returns_value: false,
-            }))
-        }
+        0x66 => ins!([0x66], name = "free-script"),
         0x6b => op_6b_cursor(code),
-        0x6c => {
-            Some(Ins::Generic(bytearray![0x6c], arrayvec![], &GenericIns {
-                name: Some("stop-script"),
-                args: &[],
-                returns_value: false,
-            }))
-        }
+        0x6c => ins!([0x6c], name = "stop-script"),
         0x73 => op_73_jump(code),
         0x74 => op_74(code),
-        0x75 => {
-            Some(Ins::Generic(bytearray![0x75], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0x7b => {
-            Some(Ins::Generic(bytearray![0x7b], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0x7c => {
-            Some(Ins::Generic(bytearray![0x7c], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0x87 => {
-            Some(Ins::Generic(bytearray![0x87], arrayvec![], &GenericIns {
-                name: Some("random"),
-                args: &[GenericArg::Int],
-                returns_value: true,
-            }))
-        }
-        0x88 => {
-            Some(Ins::Generic(bytearray![0x88], arrayvec![], &GenericIns {
-                name: Some("random2"),
-                args: &[GenericArg::Int, GenericArg::Int],
-                returns_value: true,
-            }))
-        }
-        0x98 => {
-            Some(Ins::Generic(bytearray![0x98], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: true,
-            }))
-        }
+        0x75 => ins!([0x75], args = [int]),
+        0x7b => ins!([0x7b], args = [int]),
+        0x7c => ins!([0x7c], args = [int]),
+        0x87 => ins!([0x87], name = "random", args = [int], retval),
+        0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
+        0x98 => ins!([0x98], args = [int], retval),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
-        0x9f => {
-            Some(Ins::Generic(bytearray![0x9f], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int, GenericArg::Int],
-                returns_value: true,
-            }))
-        }
+        0x9f => ins!([0x9f], args = [int, int], retval),
         0xa4 => op_a4_array(code),
         0xb6 => op_b6(code),
         0xa9 => op_a9(code),
         0xb7 => op_b7(code),
         0xbc => op_bc_array(code),
-        0xc1 => {
-            Some(Ins::Generic(bytearray![0xc1], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int, GenericArg::String],
-                returns_value: false,
-            }))
-        }
-        0xc4 => {
-            Some(Ins::Generic(bytearray![0xc4], arrayvec![], &GenericIns {
-                name: Some("abs"),
-                args: &[GenericArg::Int],
-                returns_value: true,
-            }))
-        }
-        0xc8 => {
-            Some(Ins::Generic(bytearray![0xc8], arrayvec![], &GenericIns {
-                name: Some("kludge-retval"),
-                args: &[GenericArg::List],
-                returns_value: true,
-            }))
-        }
-        0xc9 => {
-            Some(Ins::Generic(bytearray![0xc8], arrayvec![], &GenericIns {
-                name: Some("kludge"),
-                args: &[GenericArg::List],
-                returns_value: false,
-            }))
-        }
-        0xca => {
-            Some(Ins::Generic(bytearray![0xca], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0xd0 => {
-            Some(Ins::Generic(bytearray![0xd0], arrayvec![], &GenericIns {
-                name: Some("now"),
-                args: &[],
-                returns_value: false,
-            }))
-        }
-        0xd4 => {
-            let var = read_var(code)?;
-            Some(Ins::Generic(
-                bytearray![0xd4],
-                arrayvec![Operand::Var(var)],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int, GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
+        0xc1 => ins!([0xc1], args = [int, string]),
+        0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
+        0xc8 => ins!([0xc8], name = "kludge-retval", args = [list], retval),
+        0xc9 => ins!([0xc9], name = "kludge", args = [list]),
+        0xca => ins!([0xca], args = [int]),
+        0xd0 => ins!([0xd0], name = "now"),
+        0xd4 => ins!([0xd4], ops = [var: read_var(code)?], args = [int, int]),
         0xd7 => Some(Ins::BitwiseOr),
-        0xd9 => {
-            Some(Ins::Generic(bytearray![0xd9], arrayvec![], &GenericIns {
-                name: Some("close-file"),
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0xda => {
-            Some(Ins::Generic(bytearray![0xda], arrayvec![], &GenericIns {
-                name: Some("open-file"),
-                args: &[GenericArg::String, GenericArg::Int],
-                returns_value: true,
-            }))
-        }
-        0xde => {
-            Some(Ins::Generic(bytearray![0xde], arrayvec![], &GenericIns {
-                name: Some("delete-file"),
-                args: &[GenericArg::String],
-                returns_value: true,
-            }))
-        }
-        0xe2 => {
-            Some(Ins::Generic(bytearray![0xe2], arrayvec![], &GenericIns {
-                name: None,
-                args: &[GenericArg::Int],
-                returns_value: false,
-            }))
-        }
-        0xee => {
-            Some(Ins::Generic(bytearray![0xee], arrayvec![], &GenericIns {
-                name: Some("strlen"),
-                args: &[GenericArg::Int],
-                returns_value: true,
-            }))
-        }
+        0xd9 => ins!([0xd9], name = "close-file", args = [int]),
+        0xda => ins!([0xda], name = "open-file", args = [string, int], retval),
+        0xde => ins!([0xde], name = "delete-file", args = [string]),
+        0xe2 => ins!([0xe2], args = [int]),
+        0xee => ins!([0xee], name = "strlen", args = [int], retval),
         0xf3 => op_f3(code),
         0xf4 => op_f4(code),
         0xf8 => op_f8(code),
-        0xf9 => {
-            Some(Ins::Generic(bytearray![0xf9], arrayvec![], &GenericIns {
-                name: Some("create-directory"),
-                args: &[GenericArg::String],
-                returns_value: false,
-            }))
-        }
+        0xf9 => ins!([0xf9], name = "create-directory", args = [string]),
         0xfa => op_fa_window_title(code),
         _ => None,
     }
@@ -543,73 +491,17 @@ fn op_0b_get_array_item_2d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x2d => {
-            Some(Ins::Generic(
-                bytearray![0x25, 0x2d],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::List,
-                    ],
-                    returns_value: true,
-                },
-            ))
-        }
-        0x7d => {
-            Some(Ins::Generic(
-                bytearray![0x25, 0x7d],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int, GenericArg::List],
-                    returns_value: true,
-                },
-            ))
-        }
+        0x2d => ins!([0x25, 0x2d], args = [int, int, int, int, list], retval),
+        0x7d => ins!([0x25, 0x7d], args = [int, list], retval),
         _ => None,
     }
 }
 
 fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x39 => {
-            Some(Ins::Generic(
-                bytearray![0x26, 0x39],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int, GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0x7d => {
-            Some(Ins::Generic(
-                bytearray![0x26, 0x7d],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::List],
-                    returns_value: false,
-                },
-            ))
-        }
-        0x9e => {
-            Some(Ins::Generic(
-                bytearray![0x26, 0x9e],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
+        0x39 => ins!([0x26, 0x39], args = [int, int]),
+        0x7d => ins!([0x26, 0x7d], args = [list]),
+        0x9e => ins!([0x26, 0x9e]),
         _ => None,
     }
 }
@@ -651,41 +543,13 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let sub = read_u8(code)?;
-    Some(Ins::Generic(
-        bytearray![0x5e, sub],
-        arrayvec![],
-        &GenericIns {
-            name: Some("start-script"),
-            args: &[GenericArg::Int, GenericArg::List],
-            returns_value: false,
-        },
-    ))
+    ins!([0x5e, sub], name = "start-script", args = [int, list])
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        b @ (0x91 | 0x93) => {
-            Some(Ins::Generic(
-                bytearray![0x6b, b],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
-        0x9c => {
-            Some(Ins::Generic(
-                bytearray![0x6b, 0x9c],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("cursor-charset"),
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
+        sub @ (0x91 | 0x93) => ins!([0x6b, sub]),
+        0x9c => ins!([0x6b, 0x9c], name = "cursor-charset", args = [int]),
         _ => None,
     }
 }
@@ -696,117 +560,27 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x09 => {
-            Some(Ins::Generic(
-                bytearray![0x74, 0x09],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
-        0xe6 => {
-            Some(Ins::Generic(
-                bytearray![0x74, 0xe6],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0xe7 => {
-            Some(Ins::Generic(
-                bytearray![0x74, 0xe7],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0xe8 => {
-            Some(Ins::Generic(
-                bytearray![0x74, 0xe8],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0xff => {
-            Some(Ins::Generic(
-                bytearray![0x74, 0xff],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
+        0x09 => ins!([0x74, 0x09]),
+        0xe6 => ins!([0x74, 0xe6], args = [int]),
+        0xe7 => ins!([0x74, 0xe7], args = [int]),
+        0xe8 => ins!([0x74, 0xe8], args = [int]),
+        0xff => ins!([0x74, 0xff]),
         _ => None,
     }
 }
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x64 => {
-            Some(Ins::Generic(
-                bytearray![0x9b, 0x64],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("load-script"),
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0x6c => {
-            Some(Ins::Generic(
-                bytearray![0x9b, 0x6c],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("lock-script"),
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
-        0x75 => {
-            Some(Ins::Generic(
-                bytearray![0x9b, 0x75],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("load-charset"),
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
+        0x64 => ins!([0x9b, 0x64], name = "load-script", args = [int]),
+        0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [int]),
+        0x75 => ins!([0x9b, 0x75], name = "load-charset", args = [int]),
         _ => None,
     }
 }
 
 fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0xb5 => {
-            Some(Ins::Generic(
-                bytearray![0x9c, 0xb5],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int],
-                    returns_value: false,
-                },
-            ))
-        }
+        0xb5 => ins!([0x9c, 0xb5], args = [int]),
         _ => None,
     }
 }
@@ -815,45 +589,18 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => Some(Ins::AssignString(read_var(code)?)),
         0x7f => {
-            let var = read_var(code)?;
-            let var2 = read_var(code)?;
-            Some(Ins::Generic(
-                bytearray![0xa4, 0x7f],
-                arrayvec![Operand::Var(var), Operand::Var(var2)],
-                &GenericIns {
-                    name: None,
-                    args: &[
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                    ],
-                    returns_value: false,
-                },
-            ))
+            ins!(
+                [0xa4, 0x7f],
+                ops = [var: read_var(code)?, var: read_var(code)?],
+                args = [int, int, int, int, int, int, int, int],
+            )
         }
         0x80 => {
-            let var = read_var(code)?;
-            Some(Ins::Generic(
-                bytearray![0xa4, 0x80],
-                arrayvec![Operand::Var(var)],
-                &GenericIns {
-                    name: None,
-                    args: &[
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                        GenericArg::Int,
-                    ],
-                    returns_value: false,
-                },
-            ))
+            ins!(
+                [0xa4, 0x80],
+                ops = [var: read_var(code)?],
+                args = [int, int, int, int, int, int],
+            )
         }
         0xc2 => Some(Ins::Sprintf(read_var(code)?)),
         _ => None,
@@ -862,17 +609,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_a9<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0xa9 => {
-            Some(Ins::Generic(
-                bytearray![0xa9, 0xa9],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
+        0xa9 => ins!([0xa9, 0xa9]),
         _ => None,
     }
 }
@@ -887,40 +624,14 @@ fn op_b7<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_b4_thru_b9<'a>(opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x4b => {
-            let s = read_string(code)?;
-            Some(Ins::Generic(
-                bytearray![opcode, 0x4b],
-                arrayvec![Operand::String(s)],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
-        0xc2 => {
-            let s = read_string(code)?;
-            Some(Ins::Generic(
-                bytearray![opcode, 0xc2],
-                arrayvec![Operand::String(s)],
-                &GenericIns {
-                    name: None,
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
+        0x4b => ins!([opcode, 0x4b], ops = [string: read_string(code)?]),
+        0xc2 => ins!([opcode, 0xc2], ops = [string: read_string(code)?]),
         0xfe => {
-            Some(Ins::Generic(
-                bytearray![opcode, 0xfe],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[], // NOTE: this pops an int for opcode b8 and b9
-                    returns_value: false,
-                },
-            ))
+            // NOTE: this changes for different opcodes
+            if !(opcode == 0xb6 || opcode == 0xb7) {
+                return None;
+            }
+            ins!([opcode, 0xfe])
         }
         _ => None,
     }
@@ -932,45 +643,21 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         return Some(Ins::DimArray1D(item_size, read_var(code)?));
     }
     match n {
-        0xcc => {
-            let var = read_var(code)?;
-            Some(Ins::Generic(
-                bytearray![0xbc, 0xcc],
-                arrayvec![Operand::Var(var)],
-                &GenericIns {
-                    name: Some("free-array"),
-                    args: &[],
-                    returns_value: false,
-                },
-            ))
-        }
+        0xcc => ins!([0xbc, 0xcc], name = "free-array", ops = [var: read_var(code)?]),
         _ => None,
     }
 }
 
 fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x06 => {
-            Some(Ins::Generic(
-                bytearray![0xf3, 0x06],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("read-ini-int"),
-                    args: &[GenericArg::String],
-                    returns_value: true,
-                },
-            ))
-        }
+        0x06 => ins!([0xf3, 0x06], name = "read-ini-int", args = [string], retval),
         0x07 => {
-            Some(Ins::Generic(
-                bytearray![0xf3, 0x07],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("read-ini-string"),
-                    args: &[GenericArg::String],
-                    returns_value: true,
-                },
-            ))
+            ins!(
+                [0xf3, 0x07],
+                name = "read-ini-string",
+                args = [string],
+                retval,
+            )
         }
         _ => None,
     }
@@ -979,15 +666,11 @@ fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_f4<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => {
-            Some(Ins::Generic(
-                bytearray![0xf4, 0x07],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("write-ini-string"),
-                    args: &[GenericArg::String, GenericArg::String],
-                    returns_value: false,
-                },
-            ))
+            ins!(
+                [0xf4, 0x07],
+                name = "write-ini-string",
+                args = [string, string],
+            )
         }
         _ => None,
     }
@@ -995,34 +678,14 @@ fn op_f4<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_f8<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x0d => {
-            Some(Ins::Generic(
-                bytearray![0xf8, 0x0d],
-                arrayvec![],
-                &GenericIns {
-                    name: None,
-                    args: &[GenericArg::Int],
-                    returns_value: true,
-                },
-            ))
-        }
+        0x0d => ins!([0xf8, 0x0d], args = [int], retval),
         _ => None,
     }
 }
 
 fn op_fa_window_title<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0xf3 => {
-            Some(Ins::Generic(
-                bytearray![0xfa, 0xf3],
-                arrayvec![],
-                &GenericIns {
-                    name: Some("set-window-title"),
-                    args: &[GenericArg::String],
-                    returns_value: false,
-                },
-            ))
-        }
+        0xf3 => ins!([0xfa, 0xf3], name = "set-window-title", args = [string]),
         _ => None,
     }
 }
