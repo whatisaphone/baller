@@ -1,5 +1,5 @@
 #![warn(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::module_name_repetitions, clippy::never_loop)]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
 use crate::{

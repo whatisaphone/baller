@@ -8,8 +8,8 @@ use crate::{
 };
 use arrayvec::ArrayVec;
 use indexmap::IndexMap;
-use std::{fmt, mem};
-use tracing::{debug, instrument};
+use std::{fmt, mem, ops::Range};
+use tracing::{debug, instrument, trace};
 
 pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     let mut output = String::with_capacity(1024);
@@ -89,229 +89,257 @@ fn split_block(blocks: &mut Vec<BasicBlock>, addr: usize) {
     }
 }
 
-#[instrument(level = "debug", skip(blocks))]
-fn build_control_structures(blocks: &IndexMap<usize, BasicBlock>) -> IndexMap<usize, ControlBlock> {
-    // Begin with a sequence of raw basic blocks
-    let mut controls = blocks
-        .values()
-        .map(|b| {
-            (b.start, ControlBlock {
-                start: b.start,
-                end: b.end,
-                control: Control::BasicBlock,
-                exits: b.exits.clone(),
-            })
-        })
-        .collect();
+fn basic_blocks_get_index_by_end(blocks: &IndexMap<usize, BasicBlock>, addr: usize) -> usize {
+    let result = 'result: loop {
+        if let Some(index) = blocks.get_index_of(&addr) {
+            break 'result index - 1;
+        }
+        break 'result blocks.len() - 1;
+    };
+    debug_assert!(blocks[result].end == addr);
+    result
+}
 
-    while build_one(&mut controls) {
-        // Convert groups of blocks to control structures one at a time
+#[instrument(level = "debug", skip(basics))]
+fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<ControlBlock> {
+    let end = basics[basics.len() - 1].end;
+
+    let mut controls = Vec::with_capacity(16);
+    controls.push(ControlBlock {
+        start: 0,
+        end,
+        control: Control::CodeRange,
+    });
+
+    let mut work = Vec::with_capacity(16);
+    work.push(0);
+
+    while let Some(index) = work.pop() {
+        scan_ctrl(index, basics, &mut controls, &mut work);
     }
     controls
 }
 
-fn build_one(blocks: &mut IndexMap<usize, ControlBlock>) -> bool {
-    for i in (0..blocks.len()).rev() {
-        if build_sequence(blocks, i) {
-            return true;
+fn scan_ctrl(
+    ctrl_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) {
+    let control = &controls[ctrl_index];
+    debug_assert!(matches!(control.control, Control::CodeRange));
+    let start_index = basics.get_index_of(&control.start).unwrap();
+    let end_index = basic_blocks_get_index_by_end(basics, control.end) + 1;
+    for i in start_index..end_index {
+        if build_while(ctrl_index, i, basics, controls, work) {
+            return;
         }
-        if build_while(blocks, i) {
-            return true;
-        }
-        if build_if(blocks, i) {
-            return true;
-        }
-        if build_else(blocks, i) {
-            return true;
+        if build_if(ctrl_index, i, basics, controls, work) {
+            return;
         }
     }
-    false
 }
 
-fn build_sequence(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
-    let block = &blocks[index];
-    let single_exit_no_jump = block.exits.len() == 1 && block.exits[0] == block.end;
-    if !single_exit_no_jump {
-        return false;
-    }
+fn split_ctrl_range(index: usize, mid: usize, controls: &mut Vec<ControlBlock>) -> (usize, usize) {
+    let parent = &controls[index];
+    let start = parent.start;
+    let end = parent.end;
+    debug_assert!(matches!(parent.control, Control::CodeRange));
+    debug_assert!(start <= mid && mid <= end);
 
-    let (_, next_block) = match blocks.get_index(index + 1) {
-        Some(block) => block,
-        None => return false,
-    };
-    let any_outside_jumps_to_next_block = blocks
-        .values()
-        .any(|b| b.start < block.start && b.exits.iter().any(|&p| p == next_block.start));
-    if any_outside_jumps_to_next_block {
-        return false;
-    }
-
-    let seq: Vec<_> = blocks.drain(index..=index + 1).map(|(_, b)| b).collect();
-    let start = seq.first().unwrap().start;
-    let end = seq.last().unwrap().end;
-    let exits = seq.last().unwrap().exits.clone();
-    let (temp_index, _) = blocks.insert_full(start, ControlBlock {
+    let out1 = controls.len();
+    controls.push(ControlBlock {
         start,
-        end,
-        control: Control::Sequence(seq),
-        exits,
+        end: mid,
+        control: Control::CodeRange,
     });
-    blocks.move_index(temp_index, index);
-    true
+
+    let out2 = controls.len();
+    controls.push(ControlBlock {
+        start: mid,
+        end,
+        control: Control::CodeRange,
+    });
+
+    trace!("split #{index} into #{out1}+#{out2} 0x{start:x}..0x{mid:x}..0x{end:x}");
+
+    controls[index].control = Control::Sequence(out1, out2);
+    (out1, out2)
 }
 
-struct AddrRange<'a>(&'a ControlBlock);
+fn build_if(
+    parent_index: usize,
+    basic_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) -> bool {
+    let parent = &controls[parent_index];
 
-impl fmt::Display for AddrRange<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "0x{:x}..0x{:x}", self.0.start, self.0.end)
-    }
-}
-
-fn build_if(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
-    let block = &blocks[index];
-    if !matches!(block.control, Control::BasicBlock | Control::Sequence(_)) {
+    // Require conditional forward jump, still within parent block
+    let cond_block = &basics[basic_index];
+    if !(cond_block.exits.len() == 2
+        && cond_block.exits[0] == cond_block.end
+        && cond_block.exits[1] > cond_block.end
+        && cond_block.exits[1] <= parent.end)
+    {
         return false;
     }
 
-    let conditional_forward_jump =
-        block.exits.len() == 2 && block.exits[0] == block.end && block.exits[1] > block.end;
-    if !conditional_forward_jump {
-        return false;
-    }
-
-    let (_, next_block) = match blocks.get_index(index + 1) {
-        Some(block) => block,
-        None => return false,
-    };
-    if next_block.exits.len() != 1 {
-        return false;
-    }
-    let jump_skips_single_block = block.exits[1] == next_block.end;
-    if !jump_skips_single_block {
-        return false;
-    }
+    let body_start = cond_block.end;
+    let body_end = cond_block.exits[1];
 
     debug!(
-        cond = %AddrRange(&blocks[index]),
-        body = %AddrRange(&blocks[index + 1]),
+        parent = %AddrRange(parent.start..parent.end),
+        cond = %AddrRange(cond_block.start..cond_block.end),
+        body = %AddrRange(body_start..body_end),
         "building if",
     );
 
-    let mut drain = blocks.drain(index..=index + 1).map(|(_, b)| b);
-    let condition = drain.next().unwrap();
-    let true_ = drain.next().unwrap();
-    drop(drain);
+    let (_before, hereafter) = split_ctrl_range(parent_index, cond_block.start, controls);
+    let (here, after) = split_ctrl_range(hereafter, body_end, controls);
+    let (condition, true_) = split_ctrl_range(here, body_start, controls);
 
-    let mut exits = ArrayVec::new();
-    exits.push(condition.exits[1]);
-    assert!(true_.exits.len() == 1);
-    if true_.exits[0] != exits[0] {
-        exits.push(true_.exits[0]);
-    }
-
-    let (temp_index, _) = blocks.insert_full(condition.start, ControlBlock {
-        start: condition.start,
-        end: true_.end,
-        control: Control::If(Box::new(If {
-            condition,
-            true_,
-            false_: None,
-        })),
-        exits,
+    controls[here].control = Control::If(If {
+        condition,
+        true_,
+        false_: None,
     });
-    blocks.move_index(temp_index, index);
+
+    work.push(true_);
+    work.push(after);
+
+    build_else(hereafter, here, condition, true_, basics, controls, work);
+
     true
 }
 
-fn build_else(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
-    let block = &blocks[index];
-    let as_if = match &block.control {
-        Control::If(c) => c,
-        _ => return false,
-    };
-    if as_if.false_.is_some() {
-        return false;
+// parent_index points to Sequence(If(cond, true, None), CodeRange).
+fn build_else(
+    parent_index: usize,
+    if_index: usize,
+    cond_index: usize,
+    true_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) {
+    let parent = &controls[parent_index];
+
+    let cond_ctrl = &controls[cond_index];
+    let cond_block = &basics[&cond_ctrl.start];
+    debug_assert!(
+        cond_block.start == cond_ctrl.start && cond_block.end == cond_ctrl.end,
+        "control block covers exactly one basic block",
+    );
+    debug_assert!(cond_block.exits.len() == 2 && cond_block.exits[0] == cond_block.end);
+
+    let else_start = cond_block.exits[1];
+
+    let true_ctrl = &controls[true_index];
+    let true_end_block_index = basic_blocks_get_index_by_end(basics, true_ctrl.end);
+    let true_end_block = &basics[true_end_block_index];
+    // Require the then block to end at the beginning of the else block, with an
+    // unconditional jump over a range of code which will later form the else block.
+    if !(true_ctrl.end == else_start
+        && true_end_block.exits.len() == 1
+        && true_end_block.exits[0] > true_end_block.end
+        && true_end_block.exits[0] <= parent.end)
+    {
+        return;
     }
 
-    let (_, next_block) = match blocks.get_index(index + 1) {
-        Some(block) => block,
-        None => return false,
-    };
-    let next_block_single_exit_no_jump =
-        next_block.exits.len() == 1 && next_block.exits[0] == next_block.end;
-    if !next_block_single_exit_no_jump {
-        return false;
-    }
-
-    let true_jumps_over_single_block =
-        as_if.true_.exits.len() == 1 && as_if.true_.exits[0] == next_block.end;
-    if !true_jumps_over_single_block {
-        return false;
-    }
+    let else_end = true_end_block.exits[0];
 
     debug!(
-        owner = %AddrRange(&blocks[index]),
-        body = %AddrRange(&blocks[index + 1]),
+        then = %AddrRange(true_ctrl.start..true_ctrl.end),
+        "else" = %AddrRange(else_start..else_end),
         "building else",
     );
 
-    let (_, false_) = blocks.shift_remove_index(index + 1).unwrap();
-    let block = &mut blocks[index];
-    let as_if = match &mut block.control {
-        Control::If(c) => c,
+    let (first, second) = match controls[parent_index].control {
+        Control::Sequence(first, second) => (first, second),
         _ => unreachable!(),
     };
-    block.end = false_.end;
-    block.exits.clear();
-    block.exits.push(block.end);
-    as_if.false_ = Some(false_);
-    true
+    debug_assert!(first == if_index);
+    debug_assert!(matches!(controls[first].control, Control::If { .. }));
+    debug_assert!(matches!(controls[second].control, Control::CodeRange));
+    debug_assert!(controls[second].start == else_start);
+    debug_assert!(controls[second].end == parent.end);
+
+    // Create the else block with bytes taken from the front of `second`. Then
+    // modify `second` to start after the else block.
+    let else_index = controls.len();
+    controls.push(ControlBlock {
+        start: else_start,
+        end: else_end,
+        control: Control::CodeRange,
+    });
+    let if_ = match &mut controls[if_index].control {
+        Control::If(if_) => if_,
+        _ => unreachable!(),
+    };
+    if_.false_ = Some(else_index);
+
+    controls[second].start = else_end;
+
+    work.push(else_index);
 }
 
-fn build_while(blocks: &mut IndexMap<usize, ControlBlock>, index: usize) -> bool {
-    let block = &blocks[index];
-    let conditional_forward_jump =
-        block.exits.len() == 2 && block.exits[0] == block.end && block.exits[1] > block.end;
-    if !conditional_forward_jump {
+fn build_while(
+    parent_index: usize,
+    basic_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) -> bool {
+    let parent = &controls[parent_index];
+
+    // Require conditional forward jump as the condition
+    let cond_block = &basics[basic_index];
+    if !(cond_block.exits.len() == 2
+        && cond_block.exits[0] == cond_block.end
+        && cond_block.exits[1] > cond_block.end
+        && cond_block.exits[1] <= parent.end)
+    {
         return false;
     }
 
-    let (_, next_block) = match blocks.get_index(index + 1) {
-        Some(block) => block,
-        None => return false,
-    };
-    let condition_jumps_over_single_block = block.exits[1] == next_block.end;
-    if !condition_jumps_over_single_block {
-        return false;
-    }
-    let next_block_loops_to_start =
-        next_block.exits.len() == 1 && next_block.exits[0] == block.start;
-    if !next_block_loops_to_start {
+    let body_start = cond_block.end;
+    let body_end = cond_block.exits[1];
+
+    let body_end_block_index = basic_blocks_get_index_by_end(basics, body_end);
+    let body_end_block = &basics[body_end_block_index];
+    // Require the end block to jump back to the condition
+    if !(body_end_block.exits.len() == 1 && body_end_block.exits[0] == cond_block.start) {
         return false;
     }
 
     debug!(
-        cond = %AddrRange(&blocks[index]),
-        body = %AddrRange(&blocks[index + 1]),
+        parent = %AddrRange(parent.start..parent.end),
+        cond = %AddrRange(cond_block.start..cond_block.end),
+        body = %AddrRange(body_start..body_end),
         "building while",
     );
 
-    let mut drain = blocks.drain(index..=index + 1).map(|(_k, v)| v);
-    let condition = drain.next().unwrap();
-    let body = drain.next().unwrap();
-    drop(drain);
+    let (_before, hereafter) = split_ctrl_range(parent_index, cond_block.start, controls);
+    let (here, after) = split_ctrl_range(hereafter, body_end, controls);
+    let (condition, body) = split_ctrl_range(here, body_start, controls);
 
-    let mut exits = ArrayVec::new();
-    exits.push(condition.exits[1]);
-    let (temp_index, _) = blocks.insert_full(condition.start, ControlBlock {
-        start: condition.start,
-        end: body.end,
-        control: Control::While(Box::new(While { condition, body })),
-        exits,
-    });
-    blocks.move_index(temp_index, index);
+    controls[here].control = Control::While(While { condition, body });
+
+    work.push(body);
+    work.push(after);
+
     true
+}
+
+struct AddrRange(Range<usize>);
+
+impl fmt::Display for AddrRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "0x{:x}..0x{:x}", self.0.start, self.0.end)
+    }
 }
 
 #[derive(Debug)]
@@ -319,47 +347,42 @@ struct ControlBlock {
     start: usize,
     end: usize,
     control: Control,
-    exits: ArrayVec<usize, 2>,
 }
 
 #[derive(Debug)]
 enum Control {
-    BasicBlock,
-    Sequence(Vec<ControlBlock>),
-    If(Box<If>),
-    While(Box<While>),
+    CodeRange,
+    Sequence(usize, usize),
+    If(If),
+    While(While),
 }
 
 #[derive(Debug)]
 struct If {
-    condition: ControlBlock,
-    true_: ControlBlock,
-    false_: Option<ControlBlock>,
+    condition: usize,
+    true_: usize,
+    false_: Option<usize>,
 }
 
 #[derive(Debug)]
 struct While {
-    condition: ControlBlock,
-    body: ControlBlock,
+    condition: usize,
+    body: usize,
 }
 
-fn build_ast<'a>(blocks: &IndexMap<usize, ControlBlock>, code: &'a [u8]) -> Vec<Stmt<'a>> {
+fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> Vec<Stmt<'a>> {
     let mut stmts = Vec::new();
-    for block in blocks.values() {
-        match decompile_block(block, code, &mut stmts) {
-            Ok(BlockExit::Fallthrough) => {}
-            Ok(BlockExit::Jump(target)) => {
-                stmts.push(Stmt::Goto(target));
-            }
-            Ok(_) => {
-                stmts.push(Stmt::DecompileError(
-                    block.end,
-                    DecompileErrorKind::WrongBlockExit,
-                ));
-            }
-            Err(DecompileError(offset, message)) => {
-                stmts.push(Stmt::DecompileError(offset, message));
-            }
+    let entry = &controls[0];
+    match decompile_block(entry, code, controls, &mut stmts) {
+        Ok(BlockExit::Fallthrough) => {}
+        Ok(_) => {
+            stmts.push(Stmt::DecompileError(
+                entry.end,
+                DecompileErrorKind::WrongBlockExit,
+            ));
+        }
+        Err(DecompileError(offset, message)) => {
+            stmts.push(Stmt::DecompileError(offset, message));
         }
     }
     stmts
@@ -370,45 +393,43 @@ struct DecompileError(usize, DecompileErrorKind);
 fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
+    controls: &[ControlBlock],
     stmts: &mut Vec<Stmt<'a>>,
 ) -> Result<BlockExit<'a>, DecompileError> {
     match &block.control {
-        Control::BasicBlock => decompile_stmts(code, block, stmts),
-        Control::Sequence(blks) => {
-            let mut exit = BlockExit::Fallthrough;
-            for block in blks {
-                if !matches!(exit, BlockExit::Fallthrough) {
-                    return Err(DecompileError(
-                        block.start,
+        Control::CodeRange => decompile_stmts(code, block.start, block.end, stmts),
+        &Control::Sequence(first, second) => {
+            match decompile_block(&controls[first], code, controls, stmts)? {
+                BlockExit::Fallthrough => {}
+                _ => {
+                    stmts.push(Stmt::DecompileError(
+                        controls[first].end,
                         DecompileErrorKind::WrongBlockExit,
                     ));
                 }
-                exit = decompile_block(block, code, stmts)?;
             }
-            Ok(exit)
+            decompile_block(&controls[second], code, controls, stmts)
         }
         Control::If(b) => {
-            let condition = match decompile_stmts(code, &b.condition, stmts)? {
+            let cond_block = &controls[b.condition];
+            debug_assert!(matches!(cond_block.control, Control::CodeRange));
+            let condition = match decompile_stmts(code, cond_block.start, cond_block.end, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => {
-                    return Err(DecompileError(
-                        b.condition.end,
-                        DecompileErrorKind::WrongBlockExit,
-                    ));
-                }
+                _ => Expr::DecompileError(cond_block.end, DecompileErrorKind::WrongBlockExit),
             };
             let mut true_stmts = Vec::new();
-            let mut exit = decompile_block(&b.true_, code, &mut true_stmts)?;
+            let mut exit = decompile_block(&controls[b.true_], code, controls, &mut true_stmts)?;
             let mut false_stmts = Vec::new();
-            if let Some(false_) = &b.false_ {
+            if let Some(false_) = b.false_ {
+                // If there's a false, verify the true exit, then decompile the false
                 if !matches!(exit, BlockExit::Jump(_)) {
                     // TODO: verify jump target?
-                    return Err(DecompileError(
-                        b.true_.end,
+                    true_stmts.push(Stmt::DecompileError(
+                        controls[b.true_].end,
                         DecompileErrorKind::WrongBlockExit,
                     ));
                 }
-                exit = decompile_block(false_, code, &mut false_stmts)?;
+                exit = decompile_block(&controls[false_], code, controls, &mut false_stmts)?;
             }
             stmts.push(Stmt::If {
                 condition,
@@ -418,27 +439,24 @@ fn decompile_block<'a>(
             Ok(exit)
         }
         Control::While(b) => {
-            let condition = match decompile_stmts(code, &b.condition, stmts)? {
+            let cond_block = &controls[b.condition];
+            debug_assert!(matches!(cond_block.control, Control::CodeRange));
+            let cond_expr = match decompile_stmts(code, cond_block.start, cond_block.end, stmts)? {
                 BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => {
-                    return Err(DecompileError(
-                        b.condition.end,
-                        DecompileErrorKind::WrongBlockExit,
-                    ));
-                }
+                _ => Expr::DecompileError(cond_block.end, DecompileErrorKind::WrongBlockExit),
             };
             let mut body_stmts = Vec::new();
-            match decompile_block(&b.body, code, &mut body_stmts)? {
+            match decompile_block(&controls[b.body], code, controls, &mut body_stmts)? {
                 BlockExit::Jump(_) => {} // TODO: verify jump target?
                 _ => {
-                    return Err(DecompileError(
-                        b.body.end,
+                    stmts.push(Stmt::DecompileError(
+                        cond_block.end,
                         DecompileErrorKind::WrongBlockExit,
                     ));
                 }
             }
             stmts.push(Stmt::While {
-                condition,
+                condition: cond_expr,
                 body: body_stmts,
             });
             Ok(BlockExit::Fallthrough)
@@ -449,14 +467,15 @@ fn decompile_block<'a>(
 #[allow(clippy::too_many_lines)]
 fn decompile_stmts<'a>(
     code: &'a [u8],
-    block: &ControlBlock,
+    block_start: usize,
+    block_end: usize,
     output: &mut Vec<Stmt<'a>>,
 ) -> Result<BlockExit<'a>, DecompileError> {
     let mut stack = Vec::new();
     let mut string_stack = Vec::new();
 
     let decoder = Decoder::new(code);
-    decoder.set_pos(block.start);
+    decoder.set_pos(block_start);
 
     macro_rules! pop {
         () => {
@@ -474,19 +493,19 @@ fn decompile_stmts<'a>(
         };
     }
 
-    macro_rules! block_end_checks {
+    macro_rules! final_checks {
         () => {
-            if decoder.pos() != block.end {
-                return Err(DecompileError(
+            // TODO: enable this check once case statements are sorted
+            if false && !stack.is_empty() {
+                output.push(Stmt::DecompileError(
                     decoder.pos(),
-                    DecompileErrorKind::Other("mismatched block end"),
+                    DecompileErrorKind::Other("values remain on stack"),
                 ));
             }
-            // TODD: check for values remaining on stack
         };
     }
 
-    while decoder.pos() < block.end {
+    while decoder.pos() < block_end {
         let (off, ins) = decoder.next().ok_or_else(|| {
             DecompileError(decoder.pos(), DecompileErrorKind::Other("opcode decode"))
         })?;
@@ -619,25 +638,45 @@ fn decompile_stmts<'a>(
                 output.push(Stmt::Dec(var));
             }
             Ins::JumpIf(rel) => {
+                #[allow(clippy::cast_sign_loss)]
+                let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                block_end_checks!();
-                #[allow(clippy::cast_sign_loss)]
-                let target = decoder.pos().wrapping_add(rel as isize as usize);
-                return Ok(BlockExit::JumpUnless(target, expr));
+                if decoder.pos() == block_end {
+                    final_checks!();
+                    return Ok(BlockExit::JumpUnless(target, expr));
+                }
+                // TODO: popped expr is swallowed here, emit it somehow
+                output.push(Stmt::DecompileError(
+                    off,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
             }
             Ins::JumpUnless(rel) => {
-                let expr = pop!()?;
-                block_end_checks!();
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                return Ok(BlockExit::JumpUnless(target, expr));
+                let expr = pop!()?;
+                if decoder.pos() == block_end {
+                    final_checks!();
+                    return Ok(BlockExit::JumpUnless(target, expr));
+                }
+                // TODO: popped expr is swallowed here, emit it somehow
+                output.push(Stmt::DecompileError(
+                    off,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
             }
             Ins::Jump(rel) => {
-                block_end_checks!();
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                return Ok(BlockExit::Jump(target));
+                if decoder.pos() == block_end {
+                    final_checks!();
+                    return Ok(BlockExit::Jump(target));
+                }
+                output.push(Stmt::DecompileError(
+                    off,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
@@ -709,7 +748,13 @@ fn decompile_stmts<'a>(
             }
         }
     }
-    block_end_checks!();
+    if decoder.pos() != block_end {
+        output.push(Stmt::DecompileError(
+            decoder.pos(),
+            DecompileErrorKind::WrongBlockExit,
+        ));
+    }
+    final_checks!();
     Ok(BlockExit::Fallthrough)
 }
 
@@ -861,6 +906,37 @@ mod tests {
             &out,
             r#"if (read-ini-int "NoPrinting") {
     global449 = 1
+}
+"#,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn basic_if_else() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let out = decompile(&bytecode[0x5ba..0x5d4], &Config::default()).unwrap();
+        assert_starts_with(
+            &out,
+            r#"if (!global414) {
+    global414 = 1
+} else {
+    global414 = 0
+}
+"#,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn basic_while() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let out = decompile(&bytecode[0x1b2..0x1d1], &Config::default()).unwrap();
+        assert_starts_with(
+            &out,
+            r#"while (local1 <= global105) {
+    global220[local1] = local1
+    local1++
 }
 "#,
         );

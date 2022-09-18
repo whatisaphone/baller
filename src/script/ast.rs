@@ -22,6 +22,7 @@ pub enum Stmt<'a> {
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
     Inc(Variable),
     Dec(Variable),
+    #[allow(dead_code)]
     Goto(usize),
     If {
         condition: Expr<'a>,
@@ -44,7 +45,7 @@ pub enum Stmt<'a> {
     DecompileError(usize, DecompileErrorKind),
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum DecompileErrorKind {
     StackUnderflow,
     WrongBlockExit,
@@ -82,6 +83,7 @@ pub enum Expr<'a> {
     BitwiseAnd(Box<(Expr<'a>, Expr<'a>)>),
     BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
     Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
+    DecompileError(usize, DecompileErrorKind),
 }
 
 pub struct WriteCx<'a> {
@@ -206,12 +208,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             }
         }
         Stmt::DecompileError(offset, kind) => {
-            let message = match kind {
-                DecompileErrorKind::StackUnderflow => "stack underflow",
-                DecompileErrorKind::WrongBlockExit => "wrong block exit",
-                DecompileErrorKind::Other(msg) => msg,
-            };
-            write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")?;
+            write_decomile_error(w, offset, kind)?;
         }
     }
     Ok(())
@@ -341,6 +338,9 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
                 write_expr(w, expr, cx)?;
             }
         }
+        &Expr::DecompileError(offset, kind) => {
+            write_decomile_error(w, offset, kind)?;
+        }
     }
     Ok(())
 }
@@ -362,4 +362,17 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
         ItemSize::I16 => "i16",
         ItemSize::I32 => "i32",
     }
+}
+
+fn write_decomile_error(
+    w: &mut impl Write,
+    offset: usize,
+    kind: DecompileErrorKind,
+) -> fmt::Result {
+    let message = match kind {
+        DecompileErrorKind::StackUnderflow => "stack underflow",
+        DecompileErrorKind::WrongBlockExit => "wrong block exit",
+        DecompileErrorKind::Other(msg) => msg,
+    };
+    write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")
 }

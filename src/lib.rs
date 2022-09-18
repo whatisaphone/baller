@@ -2,7 +2,8 @@
 #![allow(
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::module_name_repetitions
+    clippy::module_name_repetitions,
+    clippy::never_loop
 )]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
