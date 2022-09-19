@@ -744,7 +744,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7e => {
             ins!(
                 [0xa4, 0x7e],
-                name = "array-x7e",
+                name = "array-set-list",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, list],
             )
@@ -752,7 +752,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7f => {
             ins!(
                 [0xa4, 0x7f],
-                name = "array-x7f",
+                name = "array-copy-range",
                 ops = [var: read_var(code)?, var: read_var(code)?],
                 args = [int, int, int, int, int, int, int, int],
             )
@@ -760,7 +760,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x80 => {
             ins!(
                 [0xa4, 0x80],
-                name = "array-x80",
+                name = "array-set-values",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, int, int],
             )
