@@ -410,6 +410,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
         0x1b => Some(Ins::In),
+        0x1c => op_1c_image(code),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
         0x34 => {
@@ -424,9 +425,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x37 => op_37_dim_array(code),
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
+        0x48 => ins!([0x48], name = "atoi", args = [int], retval),
         0x4f => op_4f_inc(code),
+        0x50 => ins!([0x50]),
+        0x53 => ins!([0x53], name = "inc-array-item", ops = [var: read_var(code)?], args = [int]),
         0x57 => op_57_dec(code),
         0x5a => ins!([0x5a], args = [int], retval),
+        0x5b => ins!([0x5b], name = "dec-array-item", ops = [var: read_var(code)?], args = [int]),
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
@@ -434,6 +439,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x63 => op_63_array_sizes(code),
         0x64 => ins!([0x64], name = "get-free-arrays", retval),
         0x66 => ins!([0x66], name = "free-script"),
+        0x69 => op_69_window(code),
         0x6b => op_6b_cursor(code),
         0x6c => ins!([0x6c], name = "stop-script"),
         0x6d => ins!([0x6d], args = [int, list], retval),
@@ -448,6 +454,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
         0x8b => ins!([0x8b], args = [int], retval),
         0x8c => ins!([0x8c], args = [int], retval),
+        0x94 => op_94(code),
         0x98 => ins!([0x98], args = [int], retval),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
@@ -471,6 +478,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xc8 => ins!([0xc8], name = "kludge-retval", args = [list], retval),
         0xc9 => ins!([0xc9], name = "kludge", args = [list]),
         0xca => ins!([0xca], args = [int]),
+        0xcf => ins!([0xcf], name = "input-dialog", args = [string], retval),
         0xd0 => ins!([0xd0], name = "now"),
         0xd1 => ins!([0xd1]),
         0xd4 => ins!([0xd4], ops = [var: read_var(code)?], args = [int, int]),
@@ -520,6 +528,18 @@ fn op_0b_get_array_item_2d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::GetArrayItem2D(read_var(code)?))
 }
 
+fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x20 => ins!([0x1c, 0x20], args = [int]),
+        0x21 => ins!([0x1c, 0x21], args = [int]),
+        0x39 => ins!([0x1c, 0x39], args = [int]),
+        0x85 => ins!([0x1c, 0x85], args = [int, int, int, int, int]),
+        0xd9 => ins!([0x1c, 0xd9]),
+        0xff => ins!([0x1c, 0xff]),
+        _ => None,
+    }
+}
+
 fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x2d => ins!([0x25, 0x2d], args = [int, int, int, int, list], retval),
@@ -530,9 +550,15 @@ fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x39 => ins!([0x26, 0x39], args = [int, int]),
-        0x7d => ins!([0x26, 0x7d], args = [list]),
-        0x9e => ins!([0x26, 0x9e]),
+        0x2b => ins!([0x26, 0x2b], name = "sprite-x2b", args = [int]),
+        0x39 => ins!([0x26, 0x39], name = "sprite-set-range", args = [int, int]),
+        0x3f => ins!([0x26, 0x3f], name = "sprite-x3f", args = [int]),
+        0x41 => ins!([0x26, 0x41], name = "sprite-x41", args = [int, int]),
+        0x52 => ins!([0x26, 0x52], name = "sprite-x52", args = [int]),
+        0x7c => ins!([0x26, 0x7c], name = "sprite-x7c", args = [int]),
+        0x7d => ins!([0x26, 0x7d], name = "sprite-x7d", args = [list]),
+        0x9e => ins!([0x26, 0x9e], name = "sprite-x9e"),
+        0xd9 => ins!([0x26, 0xd9], name = "sprite-clear"),
         _ => None,
     }
 }
@@ -597,10 +623,21 @@ fn op_63_array_sizes<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_69_window<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x39 => ins!([0x69, 0x39], args = [int]),
+        0x3a => ins!([0x69, 0x3a], args = [int]),
+        0x3f => ins!([0x69, 0x3f], args = [int]),
+        0xf3 => ins!([0x69, 0xf3], args = [string]),
+        0xff => ins!([0x69, 0xff]),
+        _ => None,
+    }
+}
+
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         sub @ (0x13 | 0x14) => ins!([0x6b, sub], args = [int]),
-        sub @ (0x91 | 0x93) => ins!([0x6b, sub]),
+        sub @ 0x90..=0x93 => ins!([0x6b, sub]),
         0x9c => ins!([0x6b, 0x9c], name = "cursor-charset", args = [int]),
         _ => None,
     }
@@ -617,6 +654,13 @@ fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xe7 => ins!([0x74, 0xe7], args = [int]),
         0xe8 => ins!([0x74, 0xe8], args = [int]),
         0xff => ins!([0x74, 0xff]),
+        _ => None,
+    }
+}
+
+fn op_94<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x42 => ins!([0x94, 0x42], args = [int, int], retval),
         _ => None,
     }
 }
