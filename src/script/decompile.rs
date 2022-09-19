@@ -805,6 +805,22 @@ fn build_cases(ast: &mut [Stmt]) {
     for stmt in ast {
         if is_case(stmt) {
             build_case(stmt);
+            continue;
+        }
+
+        match stmt {
+            Stmt::If {
+                condition: _,
+                true_,
+                false_,
+            } => {
+                build_cases(true_);
+                build_cases(false_);
+            }
+            Stmt::While { condition: _, body } => {
+                build_cases(body);
+            }
+            _ => {}
         }
     }
 }
