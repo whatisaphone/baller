@@ -805,7 +805,6 @@ fn build_cases(ast: &mut [Stmt]) {
     for stmt in ast {
         if is_case(stmt) {
             build_case(stmt);
-            continue;
         }
 
         match stmt {
@@ -819,6 +818,11 @@ fn build_cases(ast: &mut [Stmt]) {
             }
             Stmt::While { condition: _, body } => {
                 build_cases(body);
+            }
+            Stmt::Case { value: _, cases } => {
+                for case in cases {
+                    build_cases(&mut case.body);
+                }
             }
             _ => {}
         }
