@@ -435,8 +435,8 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5b => ins!([0x5b], name = "dec-array-item", ops = [var: read_var(code)?], args = [int]),
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
-        0x5e => op_5e_start_script(code),
-        0x60 => op_60(code),
+        0x5e => op_5e_run_script(code),
+        0x60 => op_60_start_script(code),
         0x63 => op_63_array_sizes(code),
         0x64 => ins!([0x64], name = "get-free-arrays", retval),
         0x66 => ins!([0x66], name = "free-script"),
@@ -485,7 +485,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xd4 => {
             ins!([0xd4], name = "shuffle-array", ops = [var: read_var(code)?], args = [int, int])
         }
-        0xd5 => op_d5(code),
+        0xd5 => op_d5_exec_script(code),
         0xd6 => Some(Ins::BitwiseAnd),
         0xd7 => Some(Ins::BitwiseOr),
         0xd9 => ins!([0xd9], name = "close-file", args = [int]),
@@ -625,18 +625,32 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::JumpUnless(read_i16(code)?))
 }
 
-fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    let sub = read_u8(code)?;
-    ins!([0x5e, sub], name = "run-script", args = [int, list])
+fn op_5e_run_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x01 => ins!([0x5e, 0x01], name = "run-script-x01", args = [int, list]),
+        0xc3 => ins!([0x5e, 0xc3], name = "run-script-xc3", args = [int, list]),
+        _ => None,
+    }
 }
 
-fn op_60<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    let sub = read_u8(code)?;
-    ins!(
-        [0x60, sub],
-        name = "start-script-60",
-        args = [int, int, list],
-    )
+fn op_60_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x01 => {
+            ins!(
+                [0x60, 0x01],
+                name = "start-script-x01",
+                args = [int, int, list],
+            )
+        }
+        0xc3 => {
+            ins!(
+                [0x60, 0xc3],
+                name = "start-script-xc3",
+                args = [int, int, list],
+            )
+        }
+        _ => None,
+    }
 }
 
 fn op_63_array_sizes<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -797,9 +811,12 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
-fn op_d5<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    let sub = read_u8(code)?;
-    ins!([0xd5, sub], name = "exec-script", args = [int, list])
+fn op_d5_exec_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x01 => ins!([0xd5, 0x01], name = "exec-script-x01", args = [int, list]),
+        0xc3 => ins!([0xd5, 0xc3], name = "exec-script-xc3", args = [int, list]),
+        _ => None,
+    }
 }
 
 fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
