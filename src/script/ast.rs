@@ -20,6 +20,7 @@ pub enum Stmt<'a> {
     },
     Assign(Variable, Expr<'a>),
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
+    SetArrayItem2D(Variable, Expr<'a>, Expr<'a>, Expr<'a>),
     Inc(Variable),
     Dec(Variable),
     #[allow(dead_code)]
@@ -142,6 +143,15 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             write_var(w, var, cx)?;
             w.write_char('[')?;
             write_expr(w, index, cx)?;
+            w.write_str("] = ")?;
+            write_expr(w, value, cx)?;
+        }
+        Stmt::SetArrayItem2D(var, ref index_y, ref index_x, ref value) => {
+            write_var(w, var, cx)?;
+            w.write_char('[')?;
+            write_expr(w, index_y, cx)?;
+            w.write_str("][")?;
+            write_expr(w, index_x, cx)?;
             w.write_str("] = ")?;
             write_expr(w, value, cx)?;
         }

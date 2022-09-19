@@ -414,6 +414,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x1c => op_1c_image(code),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
+        0x28 => op_28_sprite_group(code),
         0x34 => {
             ins!(
                 [0x34],
@@ -427,6 +428,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
         0x48 => ins!([0x48], name = "atoi", args = [int], retval),
+        0x4b => op_4b_set_array_item_2d(code),
         0x4f => op_4f_inc(code),
         0x50 => ins!([0x50]),
         0x53 => ins!([0x53], name = "inc-array-item", ops = [var: read_var(code)?], args = [int]),
@@ -460,6 +462,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0x9d => op_9d(code),
+        0x9e => op_9e_palette(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
         0xa0 => ins!([0xa0], args = [int, int], retval),
         0xa3 => ins!([0xa3], args = [int, int], retval),
@@ -474,6 +477,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xbc => op_bc_array(code),
         0xbd => ins!([0xbd], name = "return", args = [int]),
         0xbf => ins!([0xbf], name = "call-script", args = [int, list], retval),
+        0xc0 => op_c0_dim_array(code),
         0xc1 => ins!([0xc1], name = "pop-discard-2", args = [int, string]),
         0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
         0xc8 => ins!([0xc8], name = "kludge-retval", args = [list], retval),
@@ -586,10 +590,24 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_28_sprite_group<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x39 => {
+            ins!(
+                [0x28, 0x39],
+                name = "sprite-group-set-current",
+                args = [int],
+            )
+        }
+        0xd9 => ins!([0x28, 0xd9], name = "sprite-group-clear"),
+        _ => None,
+    }
+}
+
 fn op_37_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let item_size = to_item_size(read_u8(code)?)?;
     let var = read_var(code)?;
-    Some(Ins::DimArray(item_size, var))
+    Some(Ins::DimArray2D(item_size, var))
 }
 
 fn to_item_size(n: u8) -> Option<ItemSize> {
@@ -607,6 +625,10 @@ fn op_43_set<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_47_set_array_item<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::SetArrayItem(read_var(code)?))
+}
+
+fn op_4b_set_array_item_2d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    Some(Ins::SetArrayItem2D(read_var(code)?))
 }
 
 fn op_4f_inc<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -673,8 +695,8 @@ fn op_69_window<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x13 => ins!([0x6b, 0x13], name = "cursor-x13", args = [int]),
-        0x14 => ins!([0x6b, 0x14], name = "cursor-x14", args = [int]),
+        0x13 => ins!([0x6b, 0x13], name = "cursor-set-image-bw", args = [int]),
+        0x14 => ins!([0x6b, 0x14], name = "cursor-set-image-color", args = [int]),
         0x90 => ins!([0x6b, 0x90], name = "cursor-x90"),
         0x91 => ins!([0x6b, 0x91], name = "cursor-x91"),
         0x92 => ins!([0x6b, 0x92], name = "cursor-x92"),
@@ -718,6 +740,7 @@ fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x64 => ins!([0x9b, 0x64], name = "load-script", args = [int]),
         0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [int]),
         0x75 => ins!([0x9b, 0x75], name = "load-charset", args = [int]),
+        0xc0 => ins!([0x9b, 0xc0], name = "free-image", args = [int]),
         _ => None,
     }
 }
@@ -738,13 +761,22 @@ fn op_9d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_9e_palette<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x39 => ins!([0x9e, 0x39], name = "palette-set-current", args = [int]),
+        0xd9 => ins!([0x9e, 0xd9], name = "palette-xd9", args = [int]),
+        0xff => ins!([0x9e, 0xff], name = "palette-unset-current"),
+        _ => None,
+    }
+}
+
 fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => Some(Ins::AssignString(read_var(code)?)),
         0x7e => {
             ins!(
                 [0xa4, 0x7e],
-                name = "array-set-list",
+                name = "array-fill-list",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, list],
             )
@@ -760,12 +792,20 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x80 => {
             ins!(
                 [0xa4, 0x80],
-                name = "array-set-values",
+                name = "array-fill-values",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, int, int],
             )
         }
         0xc2 => Some(Ins::Sprintf(read_var(code)?)),
+        0xd4 => {
+            ins!(
+                [0xa4, 0xd4],
+                name = "array-set-row",
+                ops = [var: read_var(code)?],
+                args = [int, list],
+            )
+        }
         _ => None,
     }
 }
@@ -803,12 +843,18 @@ fn op_b4_thru_b9<'a>(opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let n = read_u8(code)?;
     if let Some(item_size) = to_item_size(n) {
-        return Some(Ins::DimArray1D(item_size, read_var(code)?));
+        return Some(Ins::DimArray1DSimple(item_size, read_var(code)?));
     }
     match n {
         0xcc => ins!([0xbc, 0xcc], name = "free-array", ops = [var: read_var(code)?]),
         _ => None,
     }
+}
+
+fn op_c0_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    let item_size = to_item_size(read_u8(code)?)?;
+    let var = read_var(code)?;
+    Some(Ins::DimArray2DSimple(item_size, var))
 }
 
 fn op_d5_exec_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {

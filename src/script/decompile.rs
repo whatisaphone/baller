@@ -611,7 +611,7 @@ fn decompile_stmts<'a>(
                 let value = pop!()?;
                 stack.push(Expr::In(Box::new((value, list))));
             }
-            Ins::DimArray(item_size, var) => {
+            Ins::DimArray2D(item_size, var) => {
                 let swap = pop!()?;
                 let max2 = pop!()?;
                 let min2 = pop!()?;
@@ -635,6 +635,12 @@ fn decompile_stmts<'a>(
                 let value = pop!()?;
                 let index = pop!()?;
                 output.push(Stmt::SetArrayItem(var, index, value));
+            }
+            Ins::SetArrayItem2D(var) => {
+                let value = pop!()?;
+                let index_x = pop!()?;
+                let index_y = pop!()?;
+                output.push(Stmt::SetArrayItem2D(var, index_y, index_x, value));
             }
             Ins::Inc(var) => {
                 output.push(Stmt::Inc(var));
@@ -705,7 +711,7 @@ fn decompile_stmts<'a>(
                     args: vec![Expr::Variable(var), format, args],
                 });
             }
-            Ins::DimArray1D(item_size, var) => {
+            Ins::DimArray1DSimple(item_size, var) => {
                 let max = pop!()?;
                 output.push(Stmt::DimArray {
                     var,
@@ -714,6 +720,19 @@ fn decompile_stmts<'a>(
                     max1: Expr::Number(0),
                     min2: Expr::Number(0),
                     max2: max,
+                    swap: Expr::Number(0),
+                });
+            }
+            Ins::DimArray2DSimple(item_size, var) => {
+                let max_x = pop!()?;
+                let max_y = pop!()?;
+                output.push(Stmt::DimArray {
+                    var,
+                    item_size,
+                    min1: Expr::Number(0),
+                    max1: max_x,
+                    min2: Expr::Number(0),
+                    max2: max_y,
                     swap: Expr::Number(0),
                 });
             }
