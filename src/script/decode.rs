@@ -386,6 +386,7 @@ macro_rules! ins {
 #[allow(clippy::too_many_lines)]
 fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let opcode = read_u8(code)?;
+    #[allow(clippy::match_same_arms)]
     match opcode {
         0x00 => op_00_push_byte(code),
         0x01 => op_01_push_i16(code),
@@ -446,42 +447,44 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x6e => ins!([0x6e], args = [int, list]),
         0x73 => op_73_jump(code),
         0x74 => op_74(code),
-        0x75 => ins!([0x75], args = [int]),
+        0x75 => ins!([0x75], name = "stop-sound", args = [int]),
         0x7b => ins!([0x7b], args = [int]),
-        0x7c => ins!([0x7c], args = [int]),
-        0x7f => ins!([0x7f], args = [int, int, int, int]),
+        0x7c => ins!([0x7c], name = "free-running-script", args = [int]),
+        0x7f => ins!([0x7f], name = "put-actor", args = [int, int, int, int]),
         0x87 => ins!([0x87], name = "random", args = [int], retval),
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
-        0x8b => ins!([0x8b], args = [int], retval),
-        0x8c => ins!([0x8c], args = [int], retval),
+        0x8b => ins!([0x8b], name = "is-script-running", args = [int], retval),
+        0x8c => ins!([0x8c], name = "get-room", args = [int], retval),
         0x94 => op_94(code),
-        0x98 => ins!([0x98], args = [int], retval),
+        0x98 => ins!([0x98], name = "is-sound-playing", args = [int], retval),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
         0x9d => op_9d(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
         0xa0 => ins!([0xa0], args = [int, int], retval),
-        0xa3 => ins!([0xa0], args = [int, int], retval),
+        0xa3 => ins!([0xa3], args = [int, int], retval),
         0xa4 => op_a4_array(code),
         0xa6 => ins!([0xa6], args = [int, int, int, int, int]),
         0xa7 => ins!([0xa7], name = "pop-discard", args = [int]),
         0xa9 => op_a9(code),
-        0xad => ins!([0xad], args = [int, list], retval),
+        0xad => Some(Ins::In), // same as 0x1b except iterates in reverse order?
         0xb6 => op_b6(code),
         0xb7 => op_b7(code),
-        0xb3 => ins!([0xb3]),
+        0xb3 => ins!([0xb3], name = "stop-script-34"),
         0xbc => op_bc_array(code),
         0xbd => ins!([0xbd], name = "return", args = [int]),
         0xbf => ins!([0xbf], name = "call-script", args = [int, list], retval),
-        0xc1 => ins!([0xc1], args = [int, string]),
+        0xc1 => ins!([0xc1], name = "pop-discard-2", args = [int, string]),
         0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
         0xc8 => ins!([0xc8], name = "kludge-retval", args = [list], retval),
         0xc9 => ins!([0xc9], name = "kludge", args = [list]),
-        0xca => ins!([0xca], args = [int]),
+        0xca => ins!([0xca], name = "sleep", args = [int]),
         0xcf => ins!([0xcf], name = "input-dialog", args = [string], retval),
         0xd0 => ins!([0xd0], name = "now"),
         0xd1 => ins!([0xd1]),
-        0xd4 => ins!([0xd4], ops = [var: read_var(code)?], args = [int, int]),
+        0xd4 => {
+            ins!([0xd4], name = "shuffle-array", ops = [var: read_var(code)?], args = [int, int])
+        }
         0xd5 => op_d5(code),
         0xd6 => Some(Ins::BitwiseAnd),
         0xd7 => Some(Ins::BitwiseOr),
@@ -492,7 +495,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xee => ins!([0xee], name = "strlen", args = [int], retval),
         0xf3 => op_f3(code),
         0xf4 => op_f4(code),
-        0xf8 => op_f8(code),
+        0xf8 => op_f8_get_size(code),
         0xf9 => ins!([0xf9], name = "create-directory", args = [string]),
         0xfa => op_fa_window_title(code),
         0xfc => ins!([0xfc], args = [int, int], retval),
@@ -530,20 +533,40 @@ fn op_0b_get_array_item_2d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x20 => ins!([0x1c, 0x20], args = [int]),
-        0x21 => ins!([0x1c, 0x21], args = [int]),
-        0x39 => ins!([0x1c, 0x39], args = [int]),
-        0x85 => ins!([0x1c, 0x85], args = [int, int, int, int, int]),
-        0xd9 => ins!([0x1c, 0xd9]),
-        0xff => ins!([0x1c, 0xff]),
+        0x20 => ins!([0x1c, 0x20], name = "image-x20", args = [int]),
+        0x21 => ins!([0x1c, 0x21], name = "image-x21", args = [int]),
+        0x39 => ins!([0x1c, 0x39], name = "image-x39", args = [int]),
+        0x85 => {
+            ins!(
+                [0x1c, 0x85],
+                name = "image-x85",
+                args = [int, int, int, int, int],
+            )
+        }
+        0xd9 => ins!([0x1c, 0xd9], name = "image-xd9"),
+        0xff => ins!([0x1c, 0xff], name = "image-xff"),
         _ => None,
     }
 }
 
 fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x2d => ins!([0x25, 0x2d], args = [int, int, int, int, list], retval),
-        0x7d => ins!([0x25, 0x7d], args = [int, list], retval),
+        0x2d => {
+            ins!(
+                [0x25, 0x2d],
+                name = "sprite-retval-x2d",
+                args = [int, int, int, int, list],
+                retval
+            )
+        }
+        0x7d => {
+            ins!(
+                [0x25, 0x7d],
+                name = "sprite-retval-x7d",
+                args = [int, list],
+                retval
+            )
+        }
         _ => None,
     }
 }
@@ -618,26 +641,30 @@ fn op_60<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_63_array_sizes<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x01 => ins!([0x63, 0x01], name = "array-len-1", ops = [var: read_var(code)?], retval),
+        0x01 => ins!([0x63, 0x01], name = "array-len-1d", ops = [var: read_var(code)?], retval),
         _ => None,
     }
 }
 
 fn op_69_window<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x39 => ins!([0x69, 0x39], args = [int]),
-        0x3a => ins!([0x69, 0x3a], args = [int]),
-        0x3f => ins!([0x69, 0x3f], args = [int]),
-        0xf3 => ins!([0x69, 0xf3], args = [string]),
-        0xff => ins!([0x69, 0xff]),
+        0x39 => ins!([0x69, 0x39], name = "window-x39", args = [int]),
+        0x3a => ins!([0x69, 0x3a], name = "window-x3a", args = [int]),
+        0x3f => ins!([0x69, 0x3f], name = "window-x3f", args = [int]),
+        0xf3 => ins!([0x69, 0xf3], name = "window-xf3", args = [string]),
+        0xff => ins!([0x69, 0xff], name = "window-xff"),
         _ => None,
     }
 }
 
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        sub @ (0x13 | 0x14) => ins!([0x6b, sub], args = [int]),
-        sub @ 0x90..=0x93 => ins!([0x6b, sub]),
+        0x13 => ins!([0x6b, 0x13], name = "cursor-x13", args = [int]),
+        0x14 => ins!([0x6b, 0x14], name = "cursor-x14", args = [int]),
+        0x90 => ins!([0x6b, 0x90], name = "cursor-x90"),
+        0x91 => ins!([0x6b, 0x91], name = "cursor-x91"),
+        0x92 => ins!([0x6b, 0x92], name = "cursor-x92"),
+        0x93 => ins!([0x6b, 0x93], name = "cursor-x93"),
         0x9c => ins!([0x6b, 0x9c], name = "cursor-charset", args = [int]),
         _ => None,
     }
@@ -649,18 +676,25 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x09 => ins!([0x74, 0x09]),
-        0xe6 => ins!([0x74, 0xe6], args = [int]),
-        0xe7 => ins!([0x74, 0xe7], args = [int]),
-        0xe8 => ins!([0x74, 0xe8], args = [int]),
-        0xff => ins!([0x74, 0xff]),
+        0x09 => ins!([0x74, 0x09], name = "sound-x09"),
+        0xe6 => ins!([0x74, 0xe6], name = "sound-xe6", args = [int]),
+        0xe7 => ins!([0x74, 0xe7], name = "sound-xe7", args = [int]),
+        0xe8 => ins!([0x74, 0xe8], name = "sound-xe8", args = [int]),
+        0xff => ins!([0x74, 0xff], name = "sound-xff"),
         _ => None,
     }
 }
 
 fn op_94<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x42 => ins!([0x94, 0x42], args = [int, int], retval),
+        0x42 => {
+            ins!(
+                [0x94, 0x42],
+                name = "palette-x42",
+                args = [int, int],
+                retval,
+            )
+        }
         _ => None,
     }
 }
@@ -683,9 +717,9 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_9d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x4c => ins!([0x9c, 0x4c], args = [int]),
-        0xc5 => ins!([0x9c, 0xc5], args = [int]),
-        0xd9 => ins!([0x9c, 0xd9]),
+        0x4c => ins!([0x9c, 0x4c], name = "actor-x4c", args = [int]),
+        0xc5 => ins!([0x9c, 0xc5], name = "actor-xc5", args = [int]),
+        0xd9 => ins!([0x9c, 0xd9], name = "actor-xd9"),
         _ => None,
     }
 }
@@ -696,6 +730,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7e => {
             ins!(
                 [0xa4, 0x7e],
+                name = "array-x7e",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, list],
             )
@@ -703,6 +738,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7f => {
             ins!(
                 [0xa4, 0x7f],
+                name = "array-x7f",
                 ops = [var: read_var(code)?, var: read_var(code)?],
                 args = [int, int, int, int, int, int, int, int],
             )
@@ -710,6 +746,7 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x80 => {
             ins!(
                 [0xa4, 0x80],
+                name = "array-x80",
                 ops = [var: read_var(code)?],
                 args = [int, int, int, int, int, int],
             )
@@ -762,7 +799,7 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_d5<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     let sub = read_u8(code)?;
-    ins!([0xd5, sub], name = "start-script-d5", args = [int, list])
+    ins!([0xd5, sub], name = "exec-script", args = [int, list])
 }
 
 fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
@@ -793,9 +830,9 @@ fn op_f4<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
-fn op_f8<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+fn op_f8_get_size<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x0d => ins!([0xf8, 0x0d], args = [int], retval),
+        0x0d => ins!([0xf8, 0x0d], name = "get-sound-size", args = [int], retval),
         _ => None,
     }
 }
