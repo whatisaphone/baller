@@ -201,7 +201,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
                 writeln!(w, "}}")?;
             }
             write_indent(w, indent)?;
-            writeln!(w, "}}")?;
+            write!(w, "}}")?;
         }
         Stmt::While {
             ref condition,
