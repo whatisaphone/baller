@@ -412,6 +412,15 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x1b => ins!([0x1b], args = [int, list], retval),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
+        0x34 => {
+            ins!(
+                [0x34],
+                name = "find-all-objects-of-class",
+                args = [int, list],
+                retval,
+            )
+        }
+        0x36 => ins!([0x36], name = "iif", args = [int, int, int], retval),
         0x37 => op_37_dim_array(code),
         0x43 => op_43_set(code),
         0x47 => op_47_set_array_item(code),
@@ -421,39 +430,51 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_start_script(code),
+        0x60 => op_60(code),
+        0x63 => op_63_array_sizes(code),
+        0x64 => ins!([0x64], name = "get-free-arrays", retval),
         0x66 => ins!([0x66], name = "free-script"),
         0x6b => op_6b_cursor(code),
         0x6c => ins!([0x6c], name = "stop-script"),
         0x6d => ins!([0x6d], args = [int, list], retval),
+        0x6e => ins!([0x6e], args = [int, list]),
         0x73 => op_73_jump(code),
         0x74 => op_74(code),
         0x75 => ins!([0x75], args = [int]),
         0x7b => ins!([0x7b], args = [int]),
         0x7c => ins!([0x7c], args = [int]),
+        0x7f => ins!([0x7f], args = [int, int, int, int]),
         0x87 => ins!([0x87], name = "random", args = [int], retval),
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
+        0x8b => ins!([0x8b], args = [int], retval),
+        0x8c => ins!([0x8c], args = [int], retval),
         0x98 => ins!([0x98], args = [int], retval),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
+        0x9d => op_9d(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
         0xa0 => ins!([0xa0], args = [int, int], retval),
         0xa3 => ins!([0xa0], args = [int, int], retval),
         0xa4 => op_a4_array(code),
+        0xa6 => ins!([0xa6], args = [int, int, int, int, int]),
         0xa7 => ins!([0xa7], name = "pop-discard", args = [int]),
+        0xa9 => op_a9(code),
         0xad => ins!([0xad], args = [int, list], retval),
         0xb6 => op_b6(code),
-        0xa9 => op_a9(code),
         0xb7 => op_b7(code),
+        0xb3 => ins!([0xb3]),
+        0xbc => op_bc_array(code),
         0xbd => ins!([0xbd], name = "return", args = [int]),
         0xbf => ins!([0xbf], name = "call-script", args = [int, list], retval),
-        0xbc => op_bc_array(code),
         0xc1 => ins!([0xc1], args = [int, string]),
         0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
         0xc8 => ins!([0xc8], name = "kludge-retval", args = [list], retval),
         0xc9 => ins!([0xc9], name = "kludge", args = [list]),
         0xca => ins!([0xca], args = [int]),
         0xd0 => ins!([0xd0], name = "now"),
+        0xd1 => ins!([0xd1]),
         0xd4 => ins!([0xd4], ops = [var: read_var(code)?], args = [int, int]),
+        0xd5 => op_d5(code),
         0xd6 => Some(Ins::BitwiseAnd),
         0xd7 => Some(Ins::BitwiseOr),
         0xd9 => ins!([0xd9], name = "close-file", args = [int]),
@@ -466,6 +487,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xf8 => op_f8(code),
         0xf9 => ins!([0xf9], name = "create-directory", args = [string]),
         0xfa => op_fa_window_title(code),
+        0xfc => ins!([0xfc], args = [int, int], retval),
         _ => None,
     }
 }
@@ -559,6 +581,22 @@ fn op_5e_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     ins!([0x5e, sub], name = "run-script", args = [int, list])
 }
 
+fn op_60<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    let sub = read_u8(code)?;
+    ins!(
+        [0x60, sub],
+        name = "start-script-60",
+        args = [int, int, list],
+    )
+}
+
+fn op_63_array_sizes<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x01 => ins!([0x63, 0x01], name = "array-len-1", ops = [var: read_var(code)?], retval),
+        _ => None,
+    }
+}
+
 fn op_6b_cursor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         sub @ (0x13 | 0x14) => ins!([0x6b, sub], args = [int]),
@@ -599,9 +637,25 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_9d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x4c => ins!([0x9c, 0x4c], args = [int]),
+        0xc5 => ins!([0x9c, 0xc5], args = [int]),
+        0xd9 => ins!([0x9c, 0xd9]),
+        _ => None,
+    }
+}
+
 fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x07 => Some(Ins::AssignString(read_var(code)?)),
+        0x7e => {
+            ins!(
+                [0xa4, 0x7e],
+                ops = [var: read_var(code)?],
+                args = [int, int, int, int, list],
+            )
+        }
         0x7f => {
             ins!(
                 [0xa4, 0x7f],
@@ -639,7 +693,7 @@ fn op_b7<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_b4_thru_b9<'a>(opcode: u8, code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x4b => ins!([opcode, 0x4b], ops = [string: read_string(code)?]),
-        0xc2 => ins!([opcode, 0xc2], ops = [string: read_string(code)?]),
+        0xc2 => ins!([opcode, 0xc2], ops = [string: read_string(code)?], args = [int, list]),
         0xfe => {
             // NOTE: this changes for different opcodes
             if !(opcode == 0xb6 || opcode == 0xb7) {
@@ -660,6 +714,11 @@ fn op_bc_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xcc => ins!([0xbc, 0xcc], name = "free-array", ops = [var: read_var(code)?]),
         _ => None,
     }
+}
+
+fn op_d5<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    let sub = read_u8(code)?;
+    ins!([0xd5, sub], name = "start-script-d5", args = [int, list])
 }
 
 fn op_f3<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
