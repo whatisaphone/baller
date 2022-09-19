@@ -409,7 +409,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x18 => Some(Ins::LogicalAnd),
         0x19 => Some(Ins::LogicalOr),
         0x1a => Some(Ins::PopDiscard),
-        0x1b => ins!([0x1b], args = [int, list], retval),
+        0x1b => Some(Ins::In),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
         0x34 => {

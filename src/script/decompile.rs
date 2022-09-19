@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_stmts, Case, DecompileErrorKind, Expr, Stmt, WriteCx},
+        ast::{write_stmts, Case, CaseCond, DecompileErrorKind, Expr, Stmt, WriteCx},
         decode::Decoder,
         ins::{GenericArg, GenericIns, Ins, Operand, Variable},
     },
@@ -606,6 +606,11 @@ fn decompile_stmts<'a>(
                     ));
                 }
             }
+            Ins::In => {
+                let list = pop!(:list)?;
+                let value = pop!()?;
+                stack.push(Expr::In(Box::new((value, list))));
+            }
             Ins::DimArray(item_size, var) => {
                 let swap = pop!()?;
                 let max2 = pop!()?;
@@ -813,12 +818,14 @@ fn is_case(stmt: &Stmt) -> bool {
         } => (condition, true_, false_),
         _ => return false,
     };
-    let (lhs, _rhs) = &**match condition {
-        Expr::Equal(eq) => eq,
+    match condition {
+        Expr::Equal(ops) | Expr::In(ops) => {
+            let (lhs, _rhs) = &**ops;
+            if !matches!(lhs, Expr::StackDup(_)) {
+                return false;
+            }
+        }
         _ => return false,
-    };
-    if !matches!(lhs, Expr::StackDup(_)) {
-        return false;
     }
     if !matches!(
         true_.first(),
@@ -826,15 +833,13 @@ fn is_case(stmt: &Stmt) -> bool {
     ) {
         return false;
     }
-    let false_ = match &**false_ {
-        [s] => s,
-        _ => return false,
-    };
-    if is_case(false_) {
+    // Check for another case
+    if false_.len() == 1 && is_case(&false_[0]) {
         return true;
     }
+    // Check for terminal else
     if matches!(
-        false_,
+        &false_[0],
         Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
     ) {
         return true;
@@ -861,34 +866,55 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
         } => (condition, true_, false_),
         _ => unreachable!(),
     };
-    let (lhs, rhs) = &mut **match condition {
-        Expr::Equal(eq) => eq,
+    let cond = match condition {
+        Expr::Equal(ops) => {
+            let (lhs, rhs) = &mut **ops;
+            debug_assert!(matches!(lhs, Expr::StackDup(_)));
+            if value.is_none() {
+                *value = Some(lhs.clone());
+            }
+            // leave dummy value behind
+            CaseCond::Eq(mem::replace(rhs, Expr::Number(0)))
+        }
+        Expr::In(ops) => {
+            let (lhs, rhs) = &mut **ops;
+            debug_assert!(matches!(lhs, Expr::StackDup(_)));
+            if value.is_none() {
+                *value = Some(lhs.clone());
+            }
+            // leave dummy value behind
+            CaseCond::In(mem::replace(rhs, Expr::Number(0)))
+        }
         _ => unreachable!(),
     };
-    debug_assert!(matches!(lhs, Expr::StackDup(_)));
-    if value.is_none() {
-        *value = Some(lhs.clone());
-    }
+
     debug_assert!(matches!(
         true_.first(),
         Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
     ));
     true_.remove(0);
-    // move exprs into a case; leave dummy values behind
+
     cases.push(Case {
-        value: mem::replace(rhs, Expr::Number(0)),
+        cond,
         body: mem::take(true_),
     });
-    let false_ = match &mut **false_ {
-        [s] => s,
-        _ => unreachable!(),
-    };
-    match false_ {
-        true_if @ Stmt::If { .. } => {
-            append_case(true_if, value, cases);
-        }
-        Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow) => {}
-        _ => unreachable!(),
+
+    // Append another case
+    if false_.len() == 1 && matches!(false_[0], Stmt::If { .. }) {
+        append_case(&mut false_[0], value, cases);
+        return;
+    }
+    // Append terminal else
+    debug_assert!(matches!(
+        false_[0],
+        Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
+    ));
+    false_.remove(0);
+    if !false_.is_empty() {
+        cases.push(Case {
+            cond: CaseCond::Else,
+            body: mem::take(false_),
+        });
     }
 }
 
@@ -944,7 +970,7 @@ mod tests {
     }
 
     #[test]
-    fn basic_case() -> Result<(), Box<dyn Error>> {
+    fn case_eq() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let out = decompile(&bytecode[0x501..0x542], &Config::default()).unwrap();
         assert_starts_with(
@@ -958,6 +984,37 @@ mod tests {
     }
     of 0 {
         global90[0] = 83
+    }
+}
+"#,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn case_range() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(415)?;
+        let out = decompile(&bytecode[0x1e..0xa6], &Config::default()).unwrap();
+        assert_starts_with(
+            &out,
+            r#"case local1 {
+    in [1, 3, 5] {
+        local4 = 350
+    }
+    in [2, 4, 6] {
+        local4 = 351
+    }
+    in [7, 9, 11] {
+        local4 = 356
+    }
+    in [8, 10, 12] {
+        local4 = 357
+    }
+    else {
+        xb6-xfe
+        xb6-x4b "Invalid kid code"
+        local4 = 350
+        pop-discard 0
     }
 }
 "#,

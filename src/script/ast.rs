@@ -53,8 +53,14 @@ pub enum DecompileErrorKind {
 }
 
 pub struct Case<'a> {
-    pub value: Expr<'a>,
+    pub cond: CaseCond<'a>,
     pub body: Vec<Stmt<'a>>,
+}
+
+pub enum CaseCond<'a> {
+    Eq(Expr<'a>),
+    In(Expr<'a>),
+    Else,
 }
 
 #[derive(Clone)]
@@ -82,6 +88,7 @@ pub enum Expr<'a> {
     LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
     BitwiseAnd(Box<(Expr<'a>, Expr<'a>)>),
     BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
+    In(Box<(Expr<'a>, Expr<'a>)>),
     Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
     DecompileError(usize, DecompileErrorKind),
 }
@@ -175,8 +182,19 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             writeln!(w, " {{")?;
             for case in cases {
                 write_indent(w, indent + 1)?;
-                w.write_str("of ")?;
-                write_expr(w, &case.value, cx)?;
+                match &case.cond {
+                    CaseCond::Eq(value) => {
+                        w.write_str("of ")?;
+                        write_expr(w, value, cx)?;
+                    }
+                    CaseCond::In(list) => {
+                        w.write_str("in ")?;
+                        write_expr(w, list, cx)?;
+                    }
+                    CaseCond::Else => {
+                        w.write_str("else")?;
+                    }
+                }
                 writeln!(w, " {{")?;
                 write_stmts(w, &case.body, indent + 2, cx)?;
                 write_indent(w, indent + 1)?;
@@ -329,6 +347,11 @@ fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
         Expr::BitwiseOr(xs) => {
             write_expr(w, &xs.0, cx)?;
             w.write_str(" | ")?;
+            write_expr(w, &xs.1, cx)?;
+        }
+        Expr::In(xs) => {
+            write_expr(w, &xs.0, cx)?;
+            w.write_str(" in ")?;
             write_expr(w, &xs.1, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {
