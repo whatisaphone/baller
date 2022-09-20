@@ -53,6 +53,8 @@ pub enum GenericArg {
     Int,
     String,
     List,
+    // same as above, but with type hint
+    IntScript,
 }
 
 #[derive(Copy, Clone, Debug)]

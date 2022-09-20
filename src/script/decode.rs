@@ -351,6 +351,9 @@ macro_rules! ins {
     (@one_arg list) => {
         GenericArg::List
     };
+    (@one_arg script) => {
+        GenericArg::IntScript
+    };
     // Done. Return a slice.
     (
         @args,
@@ -454,11 +457,11 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x74 => op_74(code),
         0x75 => ins!([0x75], name = "stop-sound", args = [int]),
         0x7b => ins!([0x7b], name = "go-to-room", args = [int]),
-        0x7c => ins!([0x7c], name = "free-running-script", args = [int]),
+        0x7c => ins!([0x7c], name = "free-running-script", args = [script]),
         0x7f => ins!([0x7f], name = "put-actor", args = [int, int, int, int]),
         0x87 => ins!([0x87], name = "random", args = [int], retval),
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
-        0x8b => ins!([0x8b], name = "is-script-running", args = [int], retval),
+        0x8b => ins!([0x8b], name = "is-script-running", args = [script], retval),
         0x8c => ins!([0x8c], name = "get-room", args = [int], retval),
         0x94 => op_94(code),
         0x95 => op_95_cutscene_start(code),
@@ -481,7 +484,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xb3 => ins!([0xb3], name = "stop-script-34"),
         0xbc => op_bc_array(code),
         0xbd => ins!([0xbd], name = "return", args = [int]),
-        0xbf => ins!([0xbf], name = "call-script", args = [int, list], retval),
+        0xbf => ins!([0xbf], name = "call-script", args = [script, list], retval),
         0xc0 => op_c0_dim_array(code),
         0xc1 => ins!([0xc1], name = "pop-discard-2", args = [int, string]),
         0xc4 => ins!([0xc4], name = "abs", args = [int], retval),
@@ -699,8 +702,8 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_5e_run_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x01 => ins!([0x5e, 0x01], name = "run-script-x01", args = [int, list]),
-        0xc3 => ins!([0x5e, 0xc3], name = "run-script-xc3", args = [int, list]),
+        0x01 => ins!([0x5e, 0x01], name = "run-script-x01", args = [script, list]),
+        0xc3 => ins!([0x5e, 0xc3], name = "run-script-xc3", args = [script, list]),
         _ => None,
     }
 }
@@ -711,14 +714,14 @@ fn op_60_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             ins!(
                 [0x60, 0x01],
                 name = "start-script-x01",
-                args = [int, int, list],
+                args = [script, int, list],
             )
         }
         0xc3 => {
             ins!(
                 [0x60, 0xc3],
                 name = "start-script-xc3",
-                args = [int, int, list],
+                args = [script, int, list],
             )
         }
         _ => None,
@@ -794,8 +797,8 @@ fn op_95_cutscene_start<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x64 => ins!([0x9b, 0x64], name = "load-script", args = [int]),
-        0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [int]),
+        0x64 => ins!([0x9b, 0x64], name = "load-script", args = [script]),
+        0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [script]),
         0x75 => ins!([0x9b, 0x75], name = "load-charset", args = [int]),
         0x7b => ins!([0x9b, 0x7b], name = "queue-load-room", args = [int]),
         0xc0 => ins!([0x9b, 0xc0], name = "free-image", args = [int]),
@@ -926,8 +929,20 @@ fn op_c0_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_d5_exec_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x01 => ins!([0xd5, 0x01], name = "exec-script-x01", args = [int, list]),
-        0xc3 => ins!([0xd5, 0xc3], name = "exec-script-xc3", args = [int, list]),
+        0x01 => {
+            ins!(
+                [0xd5, 0x01],
+                name = "exec-script-x01",
+                args = [script, list],
+            )
+        }
+        0xc3 => {
+            ins!(
+                [0xd5, 0xc3],
+                name = "exec-script-xc3",
+                args = [script, list],
+            )
+        }
         _ => None,
     }
 }

@@ -755,7 +755,7 @@ fn decompile_stmts<'a>(
                 let mut args = Vec::with_capacity(operands.len() + ins.args.len());
                 for arg in ins.args.iter().rev() {
                     let expr = match arg {
-                        GenericArg::Int => pop!()?,
+                        GenericArg::Int | GenericArg::IntScript => pop!()?,
                         GenericArg::String => pop!(:string)?,
                         GenericArg::List => pop!(:list)?,
                     };
@@ -1063,6 +1063,15 @@ mod tests {
 }
 "#,
         );
+        Ok(())
+    }
+
+    #[test]
+    fn call_scripts_by_name() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let config = Config::from_ini("script.80 = test")?;
+        let out = decompile(&bytecode[0x5ce..0x5d4], &config).unwrap();
+        assert_eq!(out, "run-script-x01 test []\n");
         Ok(())
     }
 

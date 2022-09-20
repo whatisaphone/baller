@@ -3,12 +3,14 @@ use std::error::Error;
 #[derive(Default)]
 pub struct Config {
     pub global_names: Vec<Option<String>>,
+    pub script_names: Vec<Option<String>>,
 }
 
 impl Config {
     pub fn from_ini(ini: &str) -> Result<Self, Box<dyn Error>> {
         let mut result = Self {
-            global_names: Vec::new(),
+            global_names: Vec::with_capacity(1024),
+            script_names: Vec::with_capacity(512),
         };
         for (ln, line) in ini.lines().enumerate() {
             let line = line.split_once(';').map_or(line, |(a, _)| a); // Trim comments
@@ -23,9 +25,22 @@ impl Config {
             match dots.next() {
                 Some("global") => {
                     let id = it_final(&mut dots, ln)?;
-                    let id: u16 = id.parse().map_err(|_| parse_err(ln))?;
-                    extend(&mut result.global_names, id.into());
-                    result.global_names[usize::from(id)] = Some(value.to_string());
+                    let id: usize = id.parse().map_err(|_| parse_err(ln))?;
+                    extend(&mut result.global_names, id);
+                    result.global_names[id] = Some(value.to_string());
+                }
+                Some("script") => {
+                    let id = it_next(&mut dots, ln)?;
+                    let id: usize = id.parse().map_err(|_| parse_err(ln))?;
+                    match dots.next() {
+                        None => {
+                            extend(&mut result.script_names, id);
+                            result.script_names[id] = Some(value.to_string());
+                        }
+                        Some(_) => {
+                            return Err(parse_err(ln));
+                        }
+                    }
                 }
                 _ => {
                     return Err(parse_err(ln));

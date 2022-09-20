@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     script::{
-        ins::{GenericIns, ItemSize, Variable},
+        ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
     },
     utils::byte_array::ByteArray,
@@ -96,6 +96,11 @@ pub enum Expr<'a> {
 
 pub struct WriteCx<'a> {
     pub config: &'a Config,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+enum EmitAs {
+    Script,
 }
 
 pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize, cx: &WriteCx) -> fmt::Result {
@@ -230,9 +235,17 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref args,
         } => {
             GenericIns::write_name(w, ins, bytecode)?;
-            for expr in args {
+            for (i, expr) in args.iter().enumerate() {
+                // XXX: assume ins args are at the end of expr args
+                let arg = i
+                    .checked_sub(args.len() - ins.args.len())
+                    .map(|i| &ins.args[i]);
+                let emit_as = match arg {
+                    Some(GenericArg::IntScript) => Some(EmitAs::Script),
+                    _ => None,
+                };
                 w.write_char(' ')?;
-                write_expr(w, expr, cx)?;
+                write_expr_as(w, expr, emit_as, cx)?;
             }
         }
         Stmt::DecompileError(offset, kind) => {
@@ -242,11 +255,32 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
     Ok(())
 }
 
-#[allow(clippy::too_many_lines)]
 fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
+    write_expr_as(w, expr, None, cx)
+}
+
+#[allow(clippy::too_many_lines)]
+fn write_expr_as(
+    w: &mut impl Write,
+    expr: &Expr,
+    emit_as: Option<EmitAs>,
+    cx: &WriteCx,
+) -> fmt::Result {
     match expr {
-        Expr::Number(n) => {
-            write!(w, "{n}")?;
+        &Expr::Number(n) => {
+            'done: loop {
+                if emit_as == Some(EmitAs::Script) {
+                    if let Ok(n) = usize::try_from(n) {
+                        if let Some(name) = cx.config.script_names.get(n).and_then(Option::as_deref)
+                        {
+                            w.write_str(name)?;
+                            break 'done;
+                        }
+                    }
+                }
+                write!(w, "{n}")?;
+                break 'done;
+            }
         }
         Expr::String(s) => {
             write!(w, "{:?}", AnsiStr(s))?;
