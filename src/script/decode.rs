@@ -415,6 +415,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x1a => Some(Ins::PopDiscard),
         0x1b => Some(Ins::In),
         0x1c => op_1c_image(code),
+        0x1d => ins!([0x1d], name = "min", args = [int, int], retval),
         0x1e => ins!([0x1e], name = "max", args = [int, int], retval),
         0x25 => op_25_sprite_retval(code),
         0x26 => op_26_sprite(code),
