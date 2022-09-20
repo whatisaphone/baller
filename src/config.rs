@@ -1,30 +1,58 @@
-use serde::Deserialize;
 use std::{collections::HashMap, error::Error};
 
-#[derive(Default, Deserialize)]
+#[derive(Default)]
 pub struct Config {
     pub globals: HashMap<u16, String>,
 }
 
 impl Config {
     pub fn from_ini(ini: &str) -> Result<Self, Box<dyn Error>> {
-        let data: HashMap<String, HashMap<String, String>> = serde_ini::from_str(ini)?;
         let mut result = Self {
             globals: HashMap::new(),
         };
-        for (section, pairs) in data {
-            match section.as_str() {
-                "globals" => {
-                    for (key, value) in pairs {
-                        let key: u16 = key.parse()?;
-                        result.globals.insert(key, value);
-                    }
+        for (ln, line) in ini.lines().enumerate() {
+            let line = line.split_once(';').map_or(line, |(a, _)| a); // Trim comments
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+            let (lhs, rhs) = line.split_once('=').ok_or_else(|| parse_err(ln))?;
+            let key = lhs.trim();
+            let value = rhs.trim();
+            let mut dots = key.split('.');
+            match dots.next() {
+                Some("global") => {
+                    let id = it_final(&mut dots, ln)?;
+                    let id: u16 = id.parse().map_err(|_| parse_err(ln))?;
+                    result.globals.insert(id, value.to_string());
                 }
                 _ => {
-                    return Err("unexpected section in ini".into());
+                    return Err(parse_err(ln));
                 }
             }
         }
         Ok(result)
     }
+}
+
+fn it_next<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<T, Box<dyn Error>> {
+    it.next().ok_or_else(|| parse_err(ln))
+}
+
+fn it_end<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<(), Box<dyn Error>> {
+    match it.next() {
+        Some(_) => return Err(parse_err(ln)),
+        None => Ok(()),
+    }
+}
+
+fn it_final<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<T, Box<dyn Error>> {
+    let result = it_next(it, ln);
+    it_end(it, ln)?;
+    result
+}
+
+fn parse_err(line_index: usize) -> Box<dyn Error> {
+    let line_number = line_index + 1;
+    format!("bad config on line {line_number}").into()
 }
