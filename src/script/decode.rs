@@ -450,7 +450,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x73 => op_73_jump(code),
         0x74 => op_74(code),
         0x75 => ins!([0x75], name = "stop-sound", args = [int]),
-        0x7b => ins!([0x7b], args = [int]),
+        0x7b => ins!([0x7b], name = "go-to-room", args = [int]),
         0x7c => ins!([0x7c], name = "free-running-script", args = [int]),
         0x7f => ins!([0x7f], name = "put-actor", args = [int, int, int, int]),
         0x87 => ins!([0x87], name = "random", args = [int], retval),
