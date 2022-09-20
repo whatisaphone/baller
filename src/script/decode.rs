@@ -300,6 +300,9 @@ macro_rules! ins {
             out = {$($out)* ins!(@op_kind $type)($value),},
         )
     };
+    (@op_kind u8) => {
+        Operand::Byte
+    };
     (@op_kind var) => {
         Operand::Var
     };
@@ -501,10 +504,20 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xd5 => op_d5_exec_script(code),
         0xd6 => Some(Ins::BitwiseAnd),
         0xd7 => Some(Ins::BitwiseOr),
-        0xd9 => ins!([0xd9], name = "close-file", args = [int]),
-        0xda => ins!([0xda], name = "open-file", args = [string, int], retval),
-        0xde => ins!([0xde], name = "delete-file", args = [string]),
+        0xd9 => ins!([0xd9], name = "file-close", args = [int]),
+        0xda => ins!([0xda], name = "file-open", args = [string, int], retval),
+        0xdb => op_db_file_read(code),
+        0xdc => op_dc_file_write(code),
+        0xde => ins!([0xde], name = "file-delete", args = [string]),
         0xe2 => ins!([0xe2], args = [int]),
+        0xea => {
+            ins!(
+                [0xea],
+                name = "redim",
+                ops = [u8: read_u8(code)?, var: read_var(code)?],
+                args = [int, int],
+            )
+        }
         0xee => ins!([0xee], name = "strlen", args = [int], retval),
         0xf3 => op_f3(code),
         0xf4 => op_f4(code),
@@ -799,6 +812,7 @@ fn op_95_cutscene_start<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x64 => ins!([0x9b, 0x64], name = "load-script", args = [script]),
+        0x6a => ins!([0x9b, 0x6a], name = "free-costume", args = [int]),
         0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [script]),
         0x75 => ins!([0x9b, 0x75], name = "load-charset", args = [int]),
         0x7b => ins!([0x9b, 0x7b], name = "queue-load-room", args = [int]),
@@ -938,6 +952,35 @@ fn op_d5_exec_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 [0xd5, 0xc3],
                 name = "exec-script-xc3",
                 args = [script, list],
+            )
+        }
+        _ => None,
+    }
+}
+
+fn op_db_file_read<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x08 => {
+            ins!(
+                [0xdb, 0x08],
+                name = "file-read-array",
+                ops = [u8: read_u8(code)?],
+                args = [int, int],
+                retval,
+            )
+        }
+        _ => None,
+    }
+}
+
+fn op_dc_file_write<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x08 => {
+            ins!(
+                [0xdb, 0x08],
+                name = "file-write-array",
+                ops = [u8: read_u8(code)?],
+                args = [int, int],
             )
         }
         _ => None,
