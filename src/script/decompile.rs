@@ -15,11 +15,13 @@ pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     if code.is_empty() {
         return Some(String::new());
     }
-    let mut output = String::with_capacity(1024);
+
     let blocks = find_basic_blocks(code)?;
     let controls = build_control_structures(&blocks);
     let mut ast = build_ast(&controls, code);
     build_cases(&mut ast);
+
+    let mut output = String::with_capacity(1024);
     write_stmts(&mut output, &ast, 0, &WriteCx { config }).unwrap();
     Some(output)
 }
