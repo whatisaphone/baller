@@ -382,7 +382,12 @@ fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
     let (scope, index) = (var.0 & 0xf000, var.0 & 0x0fff);
     if scope == 0x0000 {
         // global
-        if let Some(name) = cx.config.globals.get(&index) {
+        if let Some(name) = cx
+            .config
+            .global_names
+            .get(usize::from(index))
+            .and_then(Option::as_deref)
+        {
             return w.write_str(name);
         }
     }
