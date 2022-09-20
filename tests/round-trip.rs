@@ -7,10 +7,22 @@ use std::{
     io,
     io::{Read, Seek, SeekFrom},
     path::{Path, PathBuf},
+    thread,
 };
 
 #[test]
-fn round_trip() -> Result<(), Box<dyn Error>> {
+fn round_trip() {
+    // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
+    // scripts. Run in a thread with a larger stack.
+    thread::Builder::new()
+        .stack_size(8 << 20)
+        .spawn(|| round_trip_thread().unwrap())
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+fn round_trip_thread() -> Result<(), Box<dyn Error>> {
     let input_path = fixture_path("baseball 2001.he0");
     let mut input = File::open(&input_path)?;
     let index = read_index(&mut input)?;

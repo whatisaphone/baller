@@ -115,16 +115,31 @@ pub fn extract(
 
     let write = RefCell::new(write);
 
-    let handle_block: &mut BlockHandler = &mut |path, id, index, pos, blob| {
-        if id == "SCRP" {
-            *index = find_index(root, &root.scripts, disk_number, pos)
-                .ok_or("script missing from index")?;
+    let handle_block: &mut BlockHandler = &mut |path, id, index, pos, mut blob| {
+        match id {
+            // SCRP number comes from index
+            "SCRP" => {
+                *index = find_index(root, &root.scripts, disk_number, pos)
+                    .ok_or("script missing from index")?;
+            }
+            // LSC2 number comes from block header
+            "LSC2" => {
+                let index_bytes = blob.get(..4).ok_or("local script missing header")?;
+                *index = i32::from_le_bytes(index_bytes.try_into().unwrap());
+            }
+            // Otherwise the number is a counter per block type (passed by caller)
+            _ => {}
         }
 
         let filename = format!("{path}/{id}_{index:02}.bin");
         write.borrow_mut()(&filename, blob)?;
 
-        if id == "SCRP" || id == "ENCD" || id == "EXCD" {
+        if id == "SCRP" || id == "ENCD" || id == "EXCD" || id == "LSC2" {
+            if id == "LSC2" {
+                // Skip header. Code starts at offset 4.
+                blob = &blob[4..];
+            }
+
             let disasm = disasm_to_string(blob);
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;

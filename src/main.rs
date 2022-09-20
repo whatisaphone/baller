@@ -28,11 +28,27 @@ enum Command {
     Extract(Extract),
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    match Command::parse() {
+fn main() {
+    // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
+    // scripts. Run in a thread with a larger stack.
+    #[cfg(debug_assertions)]
+    std::thread::Builder::new()
+        .stack_size(8 << 20)
+        .spawn(main_thread)
+        .unwrap()
+        .join()
+        .unwrap();
+
+    #[cfg(not(debug_assertions))]
+    main_thread();
+}
+
+fn main_thread() {
+    let r = match Command::parse() {
         Command::Build(cmd) => cmd.run(),
         Command::Extract(cmd) => cmd.run(),
-    }
+    };
+    r.unwrap();
 }
 
 #[derive(Parser)]
