@@ -303,6 +303,9 @@ macro_rules! ins {
     (@op_kind u8) => {
         Operand::Byte
     };
+    (@op_kind i16) => {
+        Operand::I16
+    };
     (@op_kind var) => {
         Operand::Var
     };
@@ -804,9 +807,7 @@ fn op_94<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_95_cutscene_start<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    read_u8(code)?; // TODO: don't throw these away
-    read_i16(code)?;
-    ins!([0x95], name = "cutscene-start")
+    ins!([0x95], name = "cutscene-start", ops = [u8: read_u8(code)?, i16: read_i16(code)?])
 }
 
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
