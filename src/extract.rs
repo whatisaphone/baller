@@ -124,7 +124,7 @@ pub fn extract(
         let filename = format!("{path}/{id}_{index:02}.bin");
         write.borrow_mut()(&filename, blob)?;
 
-        if id == "SCRP" {
+        if id == "SCRP" || id == "ENCD" || id == "EXCD" {
             let disasm = disasm_to_string(blob);
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;

@@ -441,6 +441,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x60 => op_60_start_script(code),
         0x63 => op_63_array_sizes(code),
         0x64 => ins!([0x64], name = "get-free-arrays", retval),
+        0x65 => ins!([0x65], name = "finish-script"),
         0x66 => ins!([0x66], name = "free-script"),
         0x69 => op_69_window(code),
         0x6b => op_6b_cursor(code),
