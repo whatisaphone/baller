@@ -1071,7 +1071,7 @@ mod tests {
         let bytecode = read_scrp(1)?;
         let config = Config::from_ini("script.80 = test")?;
         let out = decompile(&bytecode[0x5ce..0x5d4], &config).unwrap();
-        assert_eq!(out, "run-script-x01 test []\n");
+        assert_eq!(out, "run-script test []\n");
         Ok(())
     }
 

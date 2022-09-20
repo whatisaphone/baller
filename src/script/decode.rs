@@ -702,7 +702,7 @@ fn op_5d_jump_unless<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_5e_run_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x01 => ins!([0x5e, 0x01], name = "run-script-x01", args = [script, list]),
+        0x01 => ins!([0x5e, 0x01], name = "run-script", args = [script, list]),
         0xc3 => ins!([0x5e, 0xc3], name = "run-script-xc3", args = [script, list]),
         _ => None,
     }
@@ -713,7 +713,7 @@ fn op_60_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x01 => {
             ins!(
                 [0x60, 0x01],
-                name = "start-script-x01",
+                name = "start-script",
                 args = [script, int, list],
             )
         }
@@ -930,11 +930,7 @@ fn op_c0_dim_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_d5_exec_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x01 => {
-            ins!(
-                [0xd5, 0x01],
-                name = "exec-script-x01",
-                args = [script, list],
-            )
+            ins!([0xd5, 0x01], name = "exec-script", args = [script, list])
         }
         0xc3 => {
             ins!(
