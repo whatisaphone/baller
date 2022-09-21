@@ -11,22 +11,29 @@ use indexmap::IndexMap;
 use std::{fmt, mem, ops::Range};
 use tracing::{debug, instrument, trace};
 
-pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> Option<String> {
+pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     if code.is_empty() {
-        return Some(String::new());
+        return String::new();
     }
 
-    let blocks = find_basic_blocks(code)?;
+    let (blocks, decode_extent) = find_basic_blocks(code);
     let controls = build_control_structures(&blocks);
     let mut ast = build_ast(&controls, code);
     build_cases(&mut ast);
 
+    if decode_extent != code.len() {
+        ast.push(Stmt::DecompileError(
+            decode_extent,
+            DecompileErrorKind::Other("incomplete decode"),
+        ));
+    }
+
     let mut output = String::with_capacity(1024);
     write_stmts(&mut output, &ast, 0, &WriteCx { scope, config }).unwrap();
-    Some(output)
+    output
 }
 
-fn find_basic_blocks(code: &[u8]) -> Option<IndexMap<usize, BasicBlock>> {
+fn find_basic_blocks(code: &[u8]) -> (IndexMap<usize, BasicBlock>, usize) {
     let mut blocks = Vec::with_capacity(16);
     blocks.push(BasicBlock {
         start: 0,
@@ -53,11 +60,8 @@ fn find_basic_blocks(code: &[u8]) -> Option<IndexMap<usize, BasicBlock>> {
             block.exits.push(jump_target);
         }
     }
-    // Cannot analyze incomplete data
-    if !decoder.exhausted() {
-        return None;
-    }
-    Some(blocks.into_iter().map(|b| (b.start, b)).collect())
+    let blocks: IndexMap<_, _> = blocks.into_iter().map(|b| (b.start, b)).collect();
+    (blocks, decoder.pos())
 }
 
 #[derive(Debug)]
@@ -975,8 +979,7 @@ mod tests {
             &bytecode[0x23c..0x266],
             Scope::Global(1),
             &Config::default(),
-        )
-        .unwrap();
+        );
         assert_starts_with(
             &out,
             r#"if (read-ini-int "NoPrinting") {
@@ -994,8 +997,7 @@ mod tests {
             &bytecode[0x5ba..0x5d4],
             Scope::Global(1),
             &Config::default(),
-        )
-        .unwrap();
+        );
         assert_starts_with(
             &out,
             r#"if (!global414) {
@@ -1015,8 +1017,7 @@ mod tests {
             &bytecode[0x1b2..0x1d1],
             Scope::Global(1),
             &Config::default(),
-        )
-        .unwrap();
+        );
         assert_starts_with(
             &out,
             r#"while (local1 <= global105) {
@@ -1035,8 +1036,7 @@ mod tests {
             &bytecode[0x501..0x542],
             Scope::Global(1),
             &Config::default(),
-        )
-        .unwrap();
+        );
         assert_starts_with(
             &out,
             r#"case global215 {
@@ -1058,7 +1058,7 @@ mod tests {
     #[test]
     fn case_range() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(415)?;
-        let out = decompile(&bytecode[0x1e..0xa6], Scope::Global(1), &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x1e..0xa6], Scope::Global(1), &Config::default());
         assert_starts_with(
             &out,
             r#"case local1 {
@@ -1090,7 +1090,7 @@ mod tests {
     fn call_scripts_by_name() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let config = Config::from_ini("script.80 = test")?;
-        let out = decompile(&bytecode[0x5ce..0x5d4], Scope::Global(1), &config).unwrap();
+        let out = decompile(&bytecode[0x5ce..0x5d4], Scope::Global(1), &config);
         assert_eq!(out, "run-script test/*80*/ []\n");
         Ok(())
     }

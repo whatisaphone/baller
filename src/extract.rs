@@ -166,10 +166,8 @@ pub fn extract(
                 let _span = info_span!("decompile", scrp = *index).entered();
                 decompile(blob, scope, config)
             };
-            if let Some(decomp) = decomp {
-                let filename = format!("{path}/{id}_{index:02}.scu");
-                write.borrow_mut()(&filename, decomp.as_bytes())?;
-            }
+            let filename = format!("{path}/{id}_{index:02}.scu");
+            write.borrow_mut()(&filename, decomp.as_bytes())?;
         }
         Ok(())
     };
