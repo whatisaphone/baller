@@ -15,6 +15,12 @@ pub struct Room {
 #[derive(Default)]
 pub struct Script {
     pub name: Option<String>,
+    pub locals: Vec<Var>,
+}
+
+#[derive(Default)]
+pub struct Var {
+    pub name: Option<String>,
 }
 
 impl Config {
@@ -42,17 +48,7 @@ impl Config {
                     result.global_names[id] = Some(value.to_string());
                 }
                 Some("script") => {
-                    let id = it_next(&mut dots, ln)?;
-                    let id: usize = id.parse().map_err(|_| parse_err(ln))?;
-                    extend(&mut result.scripts, id);
-                    match dots.next() {
-                        None => {
-                            result.scripts[id].name = Some(value.to_string());
-                        }
-                        Some(_) => {
-                            return Err(parse_err(ln));
-                        }
-                    }
+                    handle_script_key(ln, &mut dots, value, &mut result.scripts)?;
                 }
                 Some("room") => {
                     let room = it_next(&mut dots, ln)?;
@@ -61,18 +57,7 @@ impl Config {
                     if it_next(&mut dots, ln)? != "script" {
                         return Err(parse_err(ln));
                     }
-                    let script = it_next(&mut dots, ln)?;
-                    let script: usize = script.parse().map_err(|_| parse_err(ln))?;
-                    // XXX: this wastes a bunch of memory since local scripts start at 2048
-                    extend(&mut result.rooms[room].scripts, script);
-                    match dots.next() {
-                        None => {
-                            result.rooms[room].scripts[script].name = Some(value.to_string());
-                        }
-                        Some(_) => {
-                            return Err(parse_err(ln));
-                        }
-                    }
+                    handle_script_key(ln, &mut dots, value, &mut result.rooms[room].scripts)?;
                 }
                 _ => {
                     return Err(parse_err(ln));
@@ -81,6 +66,33 @@ impl Config {
         }
         Ok(result)
     }
+}
+
+fn handle_script_key<'a>(
+    ln: usize,
+    dots: &mut impl Iterator<Item = &'a str>,
+    value: &str,
+    scripts: &mut Vec<Script>,
+) -> Result<(), Box<dyn Error>> {
+    let script = it_next(dots, ln)?;
+    let script: usize = script.parse().map_err(|_| parse_err(ln))?;
+    // XXX: this wastes a bunch of memory since local scripts start at 2048
+    extend(scripts, script);
+    match dots.next() {
+        None => {
+            scripts[script].name = Some(value.to_string());
+        }
+        Some("local") => {
+            let local = it_final(dots, ln)?;
+            let local: usize = local.parse().map_err(|_| parse_err(ln))?;
+            extend(&mut scripts[script].locals, local);
+            scripts[script].locals[local].name = Some(value.to_string());
+        }
+        Some(_) => {
+            return Err(parse_err(ln));
+        }
+    }
+    Ok(())
 }
 
 fn it_next<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<T, Box<dyn Error>> {

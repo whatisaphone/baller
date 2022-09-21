@@ -1,6 +1,6 @@
 use crate::{
     config::Config,
-    script::{decompile, disasm_to_string},
+    script::{decompile, disasm_to_string, Scope},
     xor::XorStream,
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
@@ -144,16 +144,27 @@ pub fn extract(
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;
 
-            let mut room = None;
-            if id == "ENCD" || id == "EXCD" || id == "LSC2" {
-                // HACK: get room from path
-                debug_assert!(path.starts_with("./LECF_01/LFLF_"));
-                room = Some(path[15..17].parse().unwrap());
-            }
+            let scope = match id {
+                "SCRP" => Scope::Global(*index),
+                "LSC2" | "ENCD" | "EXCD" => {
+                    // HACK: get room from path
+                    // TODO: this is not accurate. get real room number from directory
+                    debug_assert!(&path[0..15] == "./LECF_01/LFLF_");
+                    let room: i32 = path[15..17].parse().unwrap();
+                    debug_assert!(&path[17..18] == "/");
+                    match id {
+                        "LSC2" => Scope::RoomLocal(room, *index),
+                        "ENCD" => Scope::RoomEnter(room),
+                        "EXCD" => Scope::RoomExit(room),
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            };
 
             let decomp = {
                 let _span = info_span!("decompile", scrp = *index).entered();
-                decompile(blob, room, config)
+                decompile(blob, scope, config)
             };
             if let Some(decomp) = decomp {
                 let filename = format!("{path}/{id}_{index:02}.scu");

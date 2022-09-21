@@ -95,8 +95,15 @@ pub enum Expr<'a> {
 }
 
 pub struct WriteCx<'a> {
-    pub room: Option<i32>,
+    pub scope: Scope,
     pub config: &'a Config,
+}
+
+pub enum Scope {
+    Global(i32),
+    RoomLocal(i32, i32),
+    RoomEnter(i32),
+    RoomExit(i32),
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -400,19 +407,33 @@ fn write_expr_as(
 }
 
 fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
-    let (scope, index) = (var.0 & 0xf000, var.0 & 0x0fff);
-    if scope == 0x0000 {
-        // global
-        if let Some(name) = cx
-            .config
-            .global_names
-            .get(usize::from(index))
-            .and_then(Option::as_deref)
-        {
-            return w.write_str(name);
+    let (scope, number) = (var.0 & 0xf000, var.0 & 0x0fff);
+    match scope {
+        0x0000 => {
+            // global
+            if let Some(name) = cx
+                .config
+                .global_names
+                .get(usize::from(number))
+                .and_then(Option::as_deref)
+            {
+                return w.write_str(name);
+            }
+            return write!(w, "global{number}");
         }
+        0x4000 => {
+            // local
+            if let Some(name) = get_local_var_name(number, cx) {
+                return w.write_str(name);
+            }
+            return write!(w, "local{number}");
+        }
+        0x8000 => {
+            // room
+            return write!(w, "room{number}");
+        }
+        _ => panic!("bad variable scope bits"),
     }
-    write!(w, "{}", var)
 }
 
 fn write_generic(
@@ -459,8 +480,29 @@ fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
     // Local script
     cx.config
         .rooms
-        .get(usize::try_from(cx.room?).ok()?)?
+        .get(usize::try_from(cx.scope.room()?).ok()?)?
         .scripts
+        .get(usize::try_from(number).ok()?)?
+        .name
+        .as_deref()
+}
+
+fn get_local_var_name<'a>(number: u16, cx: &WriteCx<'a>) -> Option<&'a str> {
+    let script = match cx.scope {
+        Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).ok()?)?,
+        Scope::RoomLocal(room, script) => {
+            cx.config
+                .rooms
+                .get(usize::try_from(room).ok()?)?
+                .scripts
+                .get(usize::try_from(script).ok()?)?
+        }
+        Scope::RoomEnter(_) | Scope::RoomExit(_) => {
+            return None; // TODO
+        }
+    };
+    script
+        .locals
         .get(usize::try_from(number).ok()?)?
         .name
         .as_deref()
@@ -477,4 +519,15 @@ fn write_decomile_error(
         DecompileErrorKind::Other(msg) => msg,
     };
     write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")
+}
+
+impl Scope {
+    pub fn room(&self) -> Option<i32> {
+        match *self {
+            Scope::Global(_) => None,
+            Scope::RoomLocal(room, _) | Scope::RoomEnter(room) | Scope::RoomExit(room) => {
+                Some(room)
+            }
+        }
+    }
 }

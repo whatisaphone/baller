@@ -1,4 +1,4 @@
-pub use self::{decode::disasm_to_string, decompile::decompile};
+pub use self::{ast::Scope, decode::disasm_to_string, decompile::decompile};
 
 mod ast;
 mod cursor;
