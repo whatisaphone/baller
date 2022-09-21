@@ -610,10 +610,12 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x25 => ins!([0x26, 0x25], name = "sprite-x25", args = [int]),
         0x2b => ins!([0x26, 0x2b], name = "sprite-x2b", args = [int]),
+        0x34 => ins!([0x26, 0x34], name = "sprite-x34", args = [int]),
         0x39 => ins!([0x26, 0x39], name = "sprite-set-range", args = [int, int]),
         0x3f => ins!([0x26, 0x3f], name = "sprite-x3f", args = [int]),
         0x41 => ins!([0x26, 0x41], name = "sprite-x41", args = [int, int]),
         0x52 => ins!([0x26, 0x52], name = "sprite-x52", args = [int]),
+        0x56 => ins!([0x26, 0x56], name = "sprite-x56", args = [int]),
         0x7c => ins!([0x26, 0x7c], name = "sprite-x7c", args = [int]),
         0x7d => ins!([0x26, 0x7d], name = "sprite-x7d", args = [list]),
         0x9e => ins!([0x26, 0x9e], name = "sprite-x9e"),
@@ -813,9 +815,12 @@ fn op_95_cutscene_start<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x64 => ins!([0x9b, 0x64], name = "load-script", args = [script]),
+        0x69 => ins!([0x9b, 0x69], name = "free-sound", args = [int]),
         0x6a => ins!([0x9b, 0x6a], name = "free-costume", args = [int]),
         0x6c => ins!([0x9b, 0x6c], name = "lock-script", args = [script]),
         0x75 => ins!([0x9b, 0x75], name = "load-charset", args = [int]),
+        0x79 => ins!([0x9b, 0x79], name = "queue-sound", args = [int]),
+        0x7a => ins!([0x9b, 0x7a], name = "queue-costume", args = [int]),
         0x7b => ins!([0x9b, 0x7b], name = "queue-load-room", args = [int]),
         0xc0 => ins!([0x9b, 0xc0], name = "free-image", args = [int]),
         _ => None,
