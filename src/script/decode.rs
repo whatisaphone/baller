@@ -466,6 +466,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7b => ins!([0x7b], name = "go-to-room", args = [int]),
         0x7c => ins!([0x7c], name = "free-running-script", args = [script]),
         0x7f => ins!([0x7f], name = "put-actor", args = [int, int, int, int]),
+        0x82 => ins!([0x82], name = "actor-do-anim", args = [int, int]),
         0x87 => ins!([0x87], name = "random", args = [int], retval),
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
         0x8b => ins!([0x8b], name = "is-script-running", args = [script], retval),
@@ -476,7 +477,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x98 => ins!([0x98], name = "is-sound-playing", args = [int], retval),
         0x9b => op_9b(code),
         0x9c => op_9c(code),
-        0x9d => op_9d(code),
+        0x9d => op_9d_actor(code),
         0x9e => op_9e_palette(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
         0xa0 => ins!([0xa0], args = [int, int], retval),
@@ -486,9 +487,11 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xa7 => ins!([0xa7], name = "pop-discard", args = [int]),
         0xa9 => op_a9(code),
         0xad => Some(Ins::In), // same as 0x1b except iterates in reverse order?
+        0xb0 => ins!([0xb0], name = "sleep-frames", args = [int]),
+        0xb1 => ins!([0xb1], name = "sleep-seconds", args = [int]),
+        0xb3 => ins!([0xb3], name = "stop-script-34"),
         0xb6 => op_b6(code),
         0xb7 => op_b7(code),
-        0xb3 => ins!([0xb3], name = "stop-script-34"),
         0xbc => op_bc_array(code),
         0xbd => ins!([0xbd], name = "return", args = [int]),
         0xbf => ins!([0xbf], name = "call-script", args = [script, list], retval),
@@ -501,6 +504,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xcf => ins!([0xcf], name = "input-dialog", args = [string], retval),
         0xd0 => ins!([0xd0], name = "now"),
         0xd1 => ins!([0xd1]),
+        0xd2 => ins!([0xd2], name = "actor-get-var", args = [int, int], retval),
         0xd4 => {
             ins!([0xd4], name = "shuffle-array", ops = [var: read_var(code)?], args = [int, int])
         }
@@ -591,15 +595,23 @@ fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 [0x25, 0x2d],
                 name = "sprite-retval-x2d",
                 args = [int, int, int, int, list],
-                retval
+                retval,
+            )
+        }
+        0x3f => {
+            ins!(
+                [0x25, 0x3f],
+                name = "sprite-get-image",
+                args = [int],
+                retval,
             )
         }
         0x7d => {
             ins!(
                 [0x25, 0x7d],
-                name = "sprite-retval-x7d",
+                name = "sprite-has-class",
                 args = [int, list],
-                retval
+                retval,
             )
         }
         _ => None,
@@ -804,6 +816,14 @@ fn op_94<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 retval,
             )
         }
+        0xd9 => {
+            ins!(
+                [0x94, 0xd9],
+                name = "palette-xd9",
+                args = [int, int, int],
+                retval,
+            )
+        }
         _ => None,
     }
 }
@@ -823,6 +843,7 @@ fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x7a => ins!([0x9b, 0x7a], name = "queue-costume", args = [int]),
         0x7b => ins!([0x9b, 0x7b], name = "queue-load-room", args = [int]),
         0xc0 => ins!([0x9b, 0xc0], name = "free-image", args = [int]),
+        0xcb => ins!([0x9b, 0xcb], name = "queue-image", args = [int]),
         _ => None,
     }
 }
@@ -834,11 +855,14 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
-fn op_9d<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+fn op_9d_actor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x4c => ins!([0x9c, 0x4c], name = "actor-x4c", args = [int]),
-        0xc5 => ins!([0x9c, 0xc5], name = "actor-xc5", args = [int]),
-        0xd9 => ins!([0x9c, 0xd9], name = "actor-xd9"),
+        0x2b => ins!([0x9d, 0x2b], name = "actor-x2b", args = [int]),
+        0x4c => ins!([0x9d, 0x4c], name = "actor-x4c", args = [int]),
+        0x4e => ins!([0x9d, 0x4e], name = "actor-set-sounds", args = [list]),
+        0xc5 => ins!([0x9d, 0xc5], name = "actor-set-current", args = [int]),
+        0xc6 => ins!([0x9d, 0xc6], name = "actor-set-var", args = [int, int]),
+        0xd9 => ins!([0x9d, 0xd9], name = "actor-xd9"),
         _ => None,
     }
 }
