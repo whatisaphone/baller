@@ -12,10 +12,10 @@ pub enum Stmt<'a> {
     DimArray {
         var: Variable,
         item_size: ItemSize,
-        min1: Expr<'a>,
-        max1: Expr<'a>,
-        min2: Expr<'a>,
-        max2: Expr<'a>,
+        min_y: Expr<'a>,
+        max_y: Expr<'a>,
+        min_x: Expr<'a>,
+        max_x: Expr<'a>,
         swap: Expr<'a>,
     },
     Assign(Variable, Expr<'a>),
@@ -121,10 +121,10 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
         Stmt::DimArray {
             var,
             item_size,
-            ref min1,
-            ref max1,
-            ref min2,
-            ref max2,
+            ref min_y,
+            ref max_y,
+            ref min_x,
+            ref max_x,
             ref swap,
         } => {
             w.write_str("dim array ")?;
@@ -132,13 +132,13 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             w.write_str(" ")?;
             w.write_str(format_item_size(item_size))?;
             w.write_char('[')?;
-            write_expr(w, min1, cx)?;
+            write_expr(w, min_y, cx)?;
             w.write_str("...")?;
-            write_expr(w, max1, cx)?;
+            write_expr(w, max_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, min2, cx)?;
+            write_expr(w, min_x, cx)?;
             w.write_str("...")?;
-            write_expr(w, max2, cx)?;
+            write_expr(w, max_x, cx)?;
             w.write_str("] swap=")?;
             write_expr(w, swap, cx)?;
         }
@@ -318,7 +318,7 @@ fn write_expr_as(
             write_var(w, var, cx)?;
             w.write_char('[')?;
             write_expr(w, index1, cx)?;
-            w.write_str(", ")?;
+            w.write_str("][")?;
             write_expr(w, index2, cx)?;
             w.write_char(']')?;
         }

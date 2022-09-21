@@ -525,13 +525,13 @@ fn decompile_stmts<'a>(
                 }
             }
             Ins::GetArrayItem(var) => {
-                let index = pop!()?;
-                stack.push(Expr::ArrayIndex(var, Box::new(index)));
+                let x = pop!()?;
+                stack.push(Expr::ArrayIndex(var, Box::new(x)));
             }
             Ins::GetArrayItem2D(var) => {
-                let index1 = pop!()?;
-                let index2 = pop!()?;
-                stack.push(Expr::ArrayIndex2D(var, Box::new((index1, index2))));
+                let x = pop!()?;
+                let y = pop!()?;
+                stack.push(Expr::ArrayIndex2D(var, Box::new((y, x))));
             }
             Ins::StackDup => {
                 // TODO: only constant expressions?
@@ -618,17 +618,17 @@ fn decompile_stmts<'a>(
             }
             Ins::DimArray2D(item_size, var) => {
                 let swap = pop!()?;
-                let max2 = pop!()?;
-                let min2 = pop!()?;
-                let max1 = pop!()?;
-                let min1 = pop!()?;
+                let max_x = pop!()?;
+                let min_x = pop!()?;
+                let max_y = pop!()?;
+                let min_y = pop!()?;
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
-                    min1,
-                    max1,
-                    min2,
-                    max2,
+                    min_y,
+                    max_y,
+                    min_x,
+                    max_x,
                     swap,
                 });
             }
@@ -717,15 +717,15 @@ fn decompile_stmts<'a>(
                 });
             }
             Ins::DimArray1DSimple(item_size, var) => {
-                let max = pop!()?;
+                let max_x = pop!()?;
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
-                    min1: Expr::Number(0),
-                    max1: Expr::Number(0),
-                    min2: Expr::Number(0),
-                    max2: max,
-                    swap: Expr::Number(0),
+                    min_y: Expr::Number(0),
+                    max_y: Expr::Number(0),
+                    min_x: Expr::Number(0),
+                    max_x,
+                    swap: Expr::Number(2),
                 });
             }
             Ins::DimArray2DSimple(item_size, var) => {
@@ -734,11 +734,11 @@ fn decompile_stmts<'a>(
                 output.push(Stmt::DimArray {
                     var,
                     item_size,
-                    min1: Expr::Number(0),
-                    max1: max_x,
-                    min2: Expr::Number(0),
-                    max2: max_y,
-                    swap: Expr::Number(0),
+                    min_y: Expr::Number(0),
+                    max_y,
+                    min_x: Expr::Number(0),
+                    max_x,
+                    swap: Expr::Number(2),
                 });
             }
             Ins::BitwiseAnd => {
