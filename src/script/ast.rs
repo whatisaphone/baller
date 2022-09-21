@@ -95,6 +95,7 @@ pub enum Expr<'a> {
 }
 
 pub struct WriteCx<'a> {
+    pub room: Option<i32>,
     pub config: &'a Config,
 }
 
@@ -102,6 +103,8 @@ pub struct WriteCx<'a> {
 enum EmitAs {
     Script,
 }
+
+const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
 
 pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize, cx: &WriteCx) -> fmt::Result {
     for stmt in stmts {
@@ -270,12 +273,12 @@ fn write_expr_as(
         &Expr::Number(n) => {
             'done: loop {
                 if emit_as == Some(EmitAs::Script) {
-                    if let Ok(n) = usize::try_from(n) {
-                        if let Some(name) = cx.config.script_names.get(n).and_then(Option::as_deref)
-                        {
-                            w.write_str(name)?;
-                            break 'done;
-                        }
+                    if let Some(name) = get_script_name(n, cx) {
+                        w.write_str(name)?;
+                        w.write_str("/*")?;
+                        write!(w, "{n}")?;
+                        w.write_str("*/")?;
+                        break 'done;
                     }
                 }
                 write!(w, "{n}")?;
@@ -434,6 +437,25 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
         ItemSize::I16 => "i16",
         ItemSize::I32 => "i32",
     }
+}
+
+fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
+    if number < LOCAL_SCRIPT_CUTOFF {
+        // Global script
+        return cx
+            .config
+            .script_names
+            .get(usize::try_from(number).ok()?)?
+            .as_deref();
+    }
+    // Local script
+    cx.config
+        .rooms
+        .get(usize::try_from(cx.room?).ok()?)?
+        .scripts
+        .get(usize::try_from(number).ok()?)?
+        .name
+        .as_deref()
 }
 
 fn write_decomile_error(

@@ -11,7 +11,7 @@ use indexmap::IndexMap;
 use std::{fmt, mem, ops::Range};
 use tracing::{debug, instrument, trace};
 
-pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
+pub fn decompile(code: &[u8], room: Option<i32>, config: &Config) -> Option<String> {
     if code.is_empty() {
         return Some(String::new());
     }
@@ -22,7 +22,7 @@ pub fn decompile(code: &[u8], config: &Config) -> Option<String> {
     build_cases(&mut ast);
 
     let mut output = String::with_capacity(1024);
-    write_stmts(&mut output, &ast, 0, &WriteCx { config }).unwrap();
+    write_stmts(&mut output, &ast, 0, &WriteCx { room, config }).unwrap();
     Some(output)
 }
 
@@ -971,7 +971,7 @@ mod tests {
     #[test]
     fn basic_if() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(&bytecode[0x23c..0x266], &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x23c..0x266], None, &Config::default()).unwrap();
         assert_starts_with(
             &out,
             r#"if (read-ini-int "NoPrinting") {
@@ -985,7 +985,7 @@ mod tests {
     #[test]
     fn basic_if_else() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(&bytecode[0x5ba..0x5d4], &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x5ba..0x5d4], None, &Config::default()).unwrap();
         assert_starts_with(
             &out,
             r#"if (!global414) {
@@ -1001,7 +1001,7 @@ mod tests {
     #[test]
     fn basic_while() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(&bytecode[0x1b2..0x1d1], &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x1b2..0x1d1], None, &Config::default()).unwrap();
         assert_starts_with(
             &out,
             r#"while (local1 <= global105) {
@@ -1016,7 +1016,7 @@ mod tests {
     #[test]
     fn case_eq() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(&bytecode[0x501..0x542], &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x501..0x542], None, &Config::default()).unwrap();
         assert_starts_with(
             &out,
             r#"case global215 {
@@ -1038,7 +1038,7 @@ mod tests {
     #[test]
     fn case_range() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(415)?;
-        let out = decompile(&bytecode[0x1e..0xa6], &Config::default()).unwrap();
+        let out = decompile(&bytecode[0x1e..0xa6], None, &Config::default()).unwrap();
         assert_starts_with(
             &out,
             r#"case local1 {
@@ -1070,8 +1070,8 @@ mod tests {
     fn call_scripts_by_name() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let config = Config::from_ini("script.80 = test")?;
-        let out = decompile(&bytecode[0x5ce..0x5d4], &config).unwrap();
-        assert_eq!(out, "run-script test []\n");
+        let out = decompile(&bytecode[0x5ce..0x5d4], None, &config).unwrap();
+        assert_eq!(out, "run-script test/*80*/ []\n");
         Ok(())
     }
 

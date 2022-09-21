@@ -93,7 +93,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
 }
 
 pub fn extract(
-    root: &Index,
+    dirs: &Index,
     disk_number: u8,
     config: &Config,
     s: &mut (impl Read + Seek),
@@ -119,7 +119,7 @@ pub fn extract(
         match id {
             // SCRP number comes from index
             "SCRP" => {
-                *index = find_index(root, &root.scripts, disk_number, pos)
+                *index = find_index(dirs, &dirs.scripts, disk_number, pos)
                     .ok_or("script missing from index")?;
             }
             // LSC2 number comes from block header
@@ -144,9 +144,16 @@ pub fn extract(
             let filename = format!("{path}/{id}_{index:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;
 
+            let mut room = None;
+            if id == "ENCD" || id == "EXCD" || id == "LSC2" {
+                // HACK: get room from path
+                debug_assert!(path.starts_with("./LECF_01/LFLF_"));
+                room = Some(path[15..17].parse().unwrap());
+            }
+
             let decomp = {
                 let _span = info_span!("decompile", scrp = *index).entered();
-                decompile(blob, config)
+                decompile(blob, room, config)
             };
             if let Some(decomp) = decomp {
                 let filename = format!("{path}/{id}_{index:02}.scu");
