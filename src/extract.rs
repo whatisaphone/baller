@@ -50,7 +50,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
     let mut lfl_offsets = None;
     let mut scripts = None;
 
-    let handle_block: &mut BlockHandler = &mut |_path, id, _index, _pos, blob| {
+    let handle_block: &mut BlockHandler = &mut |_path, id, _number, _pos, blob| {
         let mut r = io::Cursor::new(blob);
         if id == "DISK" {
             let count = r.read_i16::<LE>()?;
@@ -101,7 +101,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
 }
 
 pub fn extract(
-    dirs: &Index,
+    index: &Index,
     disk_number: u8,
     config: &Config,
     s: &mut (impl Read + Seek),
@@ -126,29 +126,29 @@ pub fn extract(
 
     let handle_container: &mut ContainerHandler = &mut |id, number, offset| {
         if id == "LFLF" {
-            *number = find_lfl_number(disk_number, offset, dirs).ok_or("LFL not in index")?;
+            *number = find_lfl_number(disk_number, offset, index).ok_or("LFL not in index")?;
             current_room.set(*number);
         }
         Ok(())
     };
 
-    let handle_block: &mut BlockHandler = &mut |path, id, index, pos, mut blob| {
+    let handle_block: &mut BlockHandler = &mut |path, id, number, pos, mut blob| {
         match id {
             // SCRP number comes from index
             "SCRP" => {
-                *index = find_index(dirs, &dirs.scripts, disk_number, pos)
+                *number = find_object_number(index, &index.scripts, disk_number, pos)
                     .ok_or("script missing from index")?;
             }
             // LSC2 number comes from block header
             "LSC2" => {
-                let index_bytes = blob.get(..4).ok_or("local script missing header")?;
-                *index = i32::from_le_bytes(index_bytes.try_into().unwrap());
+                let number_bytes = blob.get(..4).ok_or("local script missing header")?;
+                *number = i32::from_le_bytes(number_bytes.try_into().unwrap());
             }
             // Otherwise the number is a counter per block type (passed by caller)
             _ => {}
         }
 
-        let filename = format!("{path}/{id}_{index:02}.bin");
+        let filename = format!("{path}/{id}_{number:02}.bin");
         write.borrow_mut()(&filename, blob)?;
 
         if id == "SCRP" || id == "ENCD" || id == "EXCD" || id == "LSC2" {
@@ -158,22 +158,22 @@ pub fn extract(
             }
 
             let disasm = disasm_to_string(blob);
-            let filename = format!("{path}/{id}_{index:02}.s");
+            let filename = format!("{path}/{id}_{number:02}.s");
             write.borrow_mut()(&filename, disasm.as_bytes())?;
 
             let scope = match id {
-                "SCRP" => Scope::Global(*index),
-                "LSC2" => Scope::RoomLocal(current_room.get(), *index),
+                "SCRP" => Scope::Global(*number),
+                "LSC2" => Scope::RoomLocal(current_room.get(), *number),
                 "ENCD" => Scope::RoomEnter(current_room.get()),
                 "EXCD" => Scope::RoomExit(current_room.get()),
                 _ => unreachable!(),
             };
 
             let decomp = {
-                let _span = info_span!("decompile", scrp = *index).entered();
+                let _span = info_span!("decompile", scrp = *number).entered();
                 decompile(blob, scope, config)
             };
-            let filename = format!("{path}/{id}_{index:02}.scu");
+            let filename = format!("{path}/{id}_{number:02}.scu");
             write.borrow_mut()(&filename, decomp.as_bytes())?;
         }
         Ok(())
@@ -210,7 +210,7 @@ fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {
     None
 }
 
-fn find_index(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
+fn find_object_number(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
     let offset: i32 = offset.try_into().ok()?;
     for i in 0..dir.room_numbers.len() {
         let room_number: usize = dir.room_numbers[i].into();
@@ -245,16 +245,16 @@ fn scan_blocks<S: Read + Seek>(
         }
 
         read_block(s, |s, id, len| {
-            let next_index = state.blocks.entry(id).or_insert(1);
-            let mut index = *next_index;
-            *next_index += 1;
+            let next_number = state.blocks.entry(id).or_insert(1);
+            let mut number = *next_number;
+            *next_number += 1;
 
             let id = str::from_utf8(&id)?;
 
             if is_block_recursive(s, len)? {
-                handle_container(id, &mut index, s.stream_position()?)?;
+                handle_container(id, &mut number, s.stream_position()?)?;
 
-                write!(state.path, "/{id}_{index:02}").unwrap();
+                write!(state.path, "/{id}_{number:02}").unwrap();
 
                 scan_blocks(s, state, handle_container, handle_block, handle_map, len)?;
 
@@ -265,11 +265,11 @@ fn scan_blocks<S: Read + Seek>(
                 io::copy(&mut s.take(len), &mut state.tmp_buf)?;
                 let blob = &state.tmp_buf[..len.try_into()?];
 
-                handle_block(&state.path, id, &mut index, pos, blob)?;
+                handle_block(&state.path, id, &mut number, pos, blob)?;
             }
 
-            // The block handler might have modified the index.
-            writeln!(map, "{id}_{index:02}").unwrap();
+            // The block handler might have modified the object number.
+            writeln!(map, "{id}_{number:02}").unwrap();
             Ok(())
         })?;
     }
