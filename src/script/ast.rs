@@ -451,8 +451,9 @@ fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
         // Global script
         return cx
             .config
-            .script_names
+            .scripts
             .get(usize::try_from(number).ok()?)?
+            .name
             .as_deref();
     }
     // Local script

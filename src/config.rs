@@ -3,17 +3,17 @@ use std::error::Error;
 #[derive(Default)]
 pub struct Config {
     pub global_names: Vec<Option<String>>,
-    pub script_names: Vec<Option<String>>,
+    pub scripts: Vec<Script>,
     pub rooms: Vec<Room>,
 }
 
 #[derive(Default)]
 pub struct Room {
-    pub scripts: Vec<LocalScript>,
+    pub scripts: Vec<Script>,
 }
 
 #[derive(Default)]
-pub struct LocalScript {
+pub struct Script {
     pub name: Option<String>,
 }
 
@@ -21,7 +21,7 @@ impl Config {
     pub fn from_ini(ini: &str) -> Result<Self, Box<dyn Error>> {
         let mut result = Self {
             global_names: Vec::with_capacity(1024),
-            script_names: Vec::with_capacity(512),
+            scripts: Vec::with_capacity(512),
             rooms: Vec::with_capacity(64),
         };
         for (ln, line) in ini.lines().enumerate() {
@@ -44,10 +44,10 @@ impl Config {
                 Some("script") => {
                     let id = it_next(&mut dots, ln)?;
                     let id: usize = id.parse().map_err(|_| parse_err(ln))?;
-                    extend(&mut result.script_names, id);
+                    extend(&mut result.scripts, id);
                     match dots.next() {
                         None => {
-                            result.script_names[id] = Some(value.to_string());
+                            result.scripts[id].name = Some(value.to_string());
                         }
                         Some(_) => {
                             return Err(parse_err(ln));
