@@ -237,19 +237,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ins,
             ref args,
         } => {
-            GenericIns::write_name(w, ins, bytecode)?;
-            for (i, expr) in args.iter().enumerate() {
-                // XXX: assume ins args are at the end of expr args
-                let arg = i
-                    .checked_sub(args.len() - ins.args.len())
-                    .map(|i| &ins.args[i]);
-                let emit_as = match arg {
-                    Some(GenericArg::IntScript) => Some(EmitAs::Script),
-                    _ => None,
-                };
-                w.write_char(' ')?;
-                write_expr_as(w, expr, emit_as, cx)?;
-            }
+            write_generic(w, bytecode, ins, args, cx)?;
         }
         Stmt::DecompileError(offset, kind) => {
             write_decomile_error(w, offset, kind)?;
@@ -402,11 +390,7 @@ fn write_expr_as(
             write_expr(w, &xs.1, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {
-            GenericIns::write_name(w, ins, bytecode)?;
-            for expr in args {
-                w.write_char(' ')?;
-                write_expr(w, expr, cx)?;
-            }
+            write_generic(w, bytecode, ins, args, cx)?;
         }
         &Expr::DecompileError(offset, kind) => {
             write_decomile_error(w, offset, kind)?;
@@ -429,6 +413,29 @@ fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
         }
     }
     write!(w, "{}", var)
+}
+
+fn write_generic(
+    w: &mut impl Write,
+    bytecode: &[u8],
+    ins: &GenericIns,
+    args: &[Expr],
+    cx: &WriteCx,
+) -> fmt::Result {
+    GenericIns::write_name(w, ins, bytecode)?;
+    for (i, expr) in args.iter().enumerate() {
+        // XXX: assume ins args are at the end of expr args
+        let arg = i
+            .checked_sub(args.len() - ins.args.len())
+            .map(|i| &ins.args[i]);
+        let emit_as = match arg {
+            Some(GenericArg::IntScript) => Some(EmitAs::Script),
+            _ => None,
+        };
+        w.write_char(' ')?;
+        write_expr_as(w, expr, emit_as, cx)?;
+    }
+    Ok(())
 }
 
 fn format_item_size(item_size: ItemSize) -> &'static str {
