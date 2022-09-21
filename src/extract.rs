@@ -5,7 +5,7 @@ use crate::{
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
 use std::{
-    cell::RefCell,
+    cell::{Cell, RefCell},
     collections::HashMap,
     error::Error,
     fmt::Write,
@@ -82,9 +82,17 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         Ok(())
     };
 
+    let handle_container: &mut ContainerHandler = &mut |_, _, _| Ok(());
     let handle_map: &mut MapHandler = &mut |_, _| Ok(());
 
-    scan_blocks(&mut s, &mut state, handle_block, handle_map, len)?;
+    scan_blocks(
+        &mut s,
+        &mut state,
+        handle_container,
+        handle_block,
+        handle_map,
+        len,
+    )?;
     Ok(Index {
         lfl_disks: lfl_disks.ok_or("index incomplete")?,
         lfl_offsets: lfl_offsets.ok_or("index incomplete")?,
@@ -113,7 +121,16 @@ pub fn extract(
         tmp_buf: Vec::new(),
     };
 
+    let current_room = Cell::new(0);
     let write = RefCell::new(write);
+
+    let handle_container: &mut ContainerHandler = &mut |id, number, offset| {
+        if id == "LFLF" {
+            *number = find_lfl_number(disk_number, offset, dirs).ok_or("LFL not in index")?;
+            current_room.set(*number);
+        }
+        Ok(())
+    };
 
     let handle_block: &mut BlockHandler = &mut |path, id, index, pos, mut blob| {
         match id {
@@ -146,19 +163,9 @@ pub fn extract(
 
             let scope = match id {
                 "SCRP" => Scope::Global(*index),
-                "LSC2" | "ENCD" | "EXCD" => {
-                    // HACK: get room from path
-                    // TODO: this is not accurate. get real room number from directory
-                    debug_assert!(&path[0..15] == "./LECF_01/LFLF_");
-                    let room: i32 = path[15..17].parse().unwrap();
-                    debug_assert!(&path[17..18] == "/");
-                    match id {
-                        "LSC2" => Scope::RoomLocal(room, *index),
-                        "ENCD" => Scope::RoomEnter(room),
-                        "EXCD" => Scope::RoomExit(room),
-                        _ => unreachable!(),
-                    }
-                }
+                "LSC2" => Scope::RoomLocal(current_room.get(), *index),
+                "ENCD" => Scope::RoomEnter(current_room.get()),
+                "EXCD" => Scope::RoomExit(current_room.get()),
                 _ => unreachable!(),
             };
 
@@ -177,7 +184,14 @@ pub fn extract(
         Ok(())
     };
 
-    scan_blocks(&mut s, &mut state, handle_block, handle_map, len)?;
+    scan_blocks(
+        &mut s,
+        &mut state,
+        handle_container,
+        handle_block,
+        handle_map,
+        len,
+    )?;
     Ok(())
 }
 
@@ -185,6 +199,15 @@ struct State {
     path: String,
     blocks: HashMap<[u8; 4], i32>,
     tmp_buf: Vec<u8>,
+}
+
+fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {
+    for i in 0..index.lfl_disks.len() {
+        if index.lfl_disks[i] == disk_number && Ok(index.lfl_offsets[i]) == offset.try_into() {
+            return Some(i.try_into().unwrap());
+        }
+    }
+    None
 }
 
 fn find_index(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
@@ -200,6 +223,7 @@ fn find_index(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> O
     None
 }
 
+type ContainerHandler<'a> = dyn FnMut(&str, &mut i32, u64) -> Result<(), Box<dyn Error>> + 'a;
 type BlockHandler<'a> =
     dyn FnMut(&str, &str, &mut i32, u64, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
 type MapHandler<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
@@ -207,6 +231,7 @@ type MapHandler<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
 fn scan_blocks<S: Read + Seek>(
     s: &mut S,
     state: &mut State,
+    handle_container: &mut ContainerHandler,
     handle_block: &mut BlockHandler,
     handle_map: &mut MapHandler,
     parent_len: u64,
@@ -227,9 +252,11 @@ fn scan_blocks<S: Read + Seek>(
             let id = str::from_utf8(&id)?;
 
             if is_block_recursive(s, len)? {
+                handle_container(id, &mut index, s.stream_position()?)?;
+
                 write!(state.path, "/{id}_{index:02}").unwrap();
 
-                scan_blocks(s, state, handle_block, handle_map, len)?;
+                scan_blocks(s, state, handle_container, handle_block, handle_map, len)?;
 
                 state.path.truncate(state.path.rfind('/').unwrap_or(0));
             } else {
