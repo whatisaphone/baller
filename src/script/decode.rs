@@ -447,11 +447,13 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5d => op_5d_jump_unless(code),
         0x5e => op_5e_run_script(code),
         0x60 => op_60_start_script(code),
+        0x61 => op_61_draw_object(code),
         0x63 => op_63_array_sizes(code),
         0x64 => ins!([0x64], name = "get-free-arrays", retval),
         0x65 => ins!([0x65], name = "finish-script"),
         0x66 => ins!([0x66], name = "free-script"),
         0x69 => op_69_window(code),
+        0x6a => ins!([0x6a], args = [int]),
         0x6b => op_6b_cursor(code),
         0x6c => ins!([0x6c], name = "stop-script"),
         0x6d => ins!([0x6d], args = [int, list], retval),
@@ -586,6 +588,14 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
+        0x1f => {
+            ins!(
+                [0x25, 0x1f],
+                name = "sprite-get-hotspot-y",
+                args = [int],
+                retval,
+            )
+        }
         0x2d => {
             ins!(
                 [0x25, 0x2d],
@@ -755,6 +765,13 @@ fn op_60_start_script<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     }
 }
 
+fn op_61_draw_object<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x3f => ins!([0x61, 0x3f], name = "draw-object-x3f", args = [int, int]),
+        _ => None,
+    }
+}
+
 fn op_63_array_sizes<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x01 => ins!([0x63, 0x01], name = "array-len-1d", ops = [var: read_var(code)?], retval),
@@ -766,7 +783,7 @@ fn op_69_window<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x39 => ins!([0x69, 0x39], name = "window-set-current", args = [int]),
         0x3a => ins!([0x69, 0x3a], name = "window-x3a", args = [int]),
-        0x3f => ins!([0x69, 0x3f], name = "window-create", args = [int]),
+        0x3f => ins!([0x69, 0x3f], name = "window-set-image", args = [int]),
         0xd9 => ins!([0x69, 0xd9], name = "window-destroy"),
         0xf3 => ins!([0x69, 0xf3], name = "window-set-text", args = [string]),
         0xff => ins!([0x69, 0xff], name = "window-xff"),
