@@ -5,6 +5,7 @@ pub struct Config {
     pub global_names: Vec<Option<String>>,
     pub scripts: Vec<Script>,
     pub rooms: Vec<Room>,
+    pub suppress_local_variable_declarations: bool,
 }
 
 #[derive(Default)]
@@ -29,6 +30,7 @@ impl Config {
             global_names: Vec::with_capacity(1024),
             scripts: Vec::with_capacity(512),
             rooms: Vec::with_capacity(64),
+            suppress_local_variable_declarations: false,
         };
         for (ln, line) in ini.lines().enumerate() {
             let line = line.split_once(';').map_or(line, |(a, _)| a); // Trim comments

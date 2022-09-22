@@ -6,3 +6,4 @@ mod decode;
 mod decompile;
 mod ins;
 mod misc;
+mod visit;

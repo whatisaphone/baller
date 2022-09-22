@@ -1,9 +1,20 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_stmts, Case, CaseCond, DecompileErrorKind, Expr, Scope, Stmt, WriteCx},
+        ast::{
+            write_local_vars,
+            write_stmts,
+            Case,
+            CaseCond,
+            DecompileErrorKind,
+            Expr,
+            Scope,
+            Stmt,
+            WriteCx,
+        },
         decode::Decoder,
         ins::{GenericArg, GenericIns, Ins, Operand, Variable},
+        visit::Visitor,
     },
 };
 use arrayvec::ArrayVec;
@@ -28,8 +39,14 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
         ));
     }
 
+    let locals = collect_locals(&ast);
+
     let mut output = String::with_capacity(1024);
-    write_stmts(&mut output, &ast, 0, &WriteCx { scope, config }).unwrap();
+    let cx = WriteCx { scope, config };
+    if !config.suppress_local_variable_declarations {
+        write_local_vars(&mut output, &locals, &cx).unwrap();
+    }
+    write_stmts(&mut output, &ast, 0, &cx).unwrap();
     output
 }
 
@@ -966,6 +983,34 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
     }
 }
 
+fn collect_locals(stmts: &[Stmt]) -> Vec<Variable> {
+    struct CollectLocals {
+        out: Vec<Variable>,
+    }
+
+    impl Visitor for CollectLocals {
+        fn var(&mut self, var: Variable) {
+            if applies(var) {
+                self.out.push(var);
+            }
+        }
+    }
+
+    fn applies(var: Variable) -> bool {
+        let scope = var.0 & 0xf000;
+        scope == 0x4000
+    }
+
+    let mut locals = CollectLocals {
+        out: Vec::with_capacity(16),
+    };
+    locals.stmts(stmts);
+
+    locals.out.sort_unstable_by_key(|v| v.0);
+    locals.out.dedup_by_key(|v| v.0);
+    locals.out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1013,11 +1058,10 @@ mod tests {
     #[test]
     fn basic_while() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(
-            &bytecode[0x1b2..0x1d1],
-            Scope::Global(1),
-            &Config::default(),
-        );
+        let out = decompile(&bytecode[0x1b2..0x1d1], Scope::Global(1), &Config {
+            suppress_local_variable_declarations: true,
+            ..<_>::default()
+        });
         assert_starts_with(
             &out,
             r#"while (local1 <= global105) {
@@ -1058,7 +1102,10 @@ mod tests {
     #[test]
     fn case_range() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(415)?;
-        let out = decompile(&bytecode[0x1e..0xa6], Scope::Global(1), &Config::default());
+        let out = decompile(&bytecode[0x1e..0xa6], Scope::Global(1), &Config {
+            suppress_local_variable_declarations: true,
+            ..<_>::default()
+        });
         assert_starts_with(
             &out,
             r#"case local1 {

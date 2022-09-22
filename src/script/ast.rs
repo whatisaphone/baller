@@ -113,6 +113,19 @@ enum EmitAs {
 
 const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
 
+pub fn write_local_vars(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fmt::Result {
+    if vars.is_empty() {
+        return Ok(());
+    }
+    for &var in vars {
+        w.write_str("local variable ")?;
+        write_var(w, var, cx)?;
+        writeln!(w)?;
+    }
+    writeln!(w)?;
+    Ok(())
+}
+
 pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize, cx: &WriteCx) -> fmt::Result {
     for stmt in stmts {
         write_indent(w, indent)?;
