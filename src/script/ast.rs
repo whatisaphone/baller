@@ -1,5 +1,5 @@
 use crate::{
-    config::Config,
+    config::{Config, Script},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
@@ -113,16 +113,41 @@ enum EmitAs {
 
 const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
 
-pub fn write_local_vars(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fmt::Result {
-    if vars.is_empty() {
-        return Ok(());
+pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fmt::Result {
+    match cx.scope {
+        Scope::Global(num) => write!(w, "; SCRP {num}")?,
+        Scope::RoomLocal(room, num) => write!(w, "; LSC2 {room} {num}")?,
+        Scope::RoomEnter(room) => write!(w, "; ENCD {room}")?,
+        Scope::RoomExit(room) => write!(w, "; EXCD {room}")?,
     }
-    for &var in vars {
-        w.write_str("local variable ")?;
-        write_var(w, var, cx)?;
-        writeln!(w)?;
+    let script = get_script_config(cx);
+    if let Some(name) = script.and_then(|s| s.name.as_ref()) {
+        write!(w, " {name}")?;
     }
     writeln!(w)?;
+    writeln!(w)?;
+
+    let num_params: u16 = script.and_then(|c| c.params).unwrap_or(0);
+    let params_end = vars.partition_point(|v| v.0 & 0x0fff < num_params);
+
+    if !vars[..params_end].is_empty() {
+        for &var in &vars[..params_end] {
+            w.write_str("parameter ")?;
+            write_var(w, var, cx)?;
+            writeln!(w)?;
+        }
+        writeln!(w)?;
+    }
+
+    if !vars[params_end..].is_empty() {
+        for &var in &vars[params_end..] {
+            w.write_str("local variable ")?;
+            write_var(w, var, cx)?;
+            writeln!(w)?;
+        }
+        writeln!(w)?;
+    }
+
     Ok(())
 }
 
@@ -436,10 +461,7 @@ fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
         }
         0x4000 => {
             // local
-            if let Some(name) = get_local_var_name(number, cx) {
-                return w.write_str(name);
-            }
-            return write!(w, "local{number}");
+            write_local_var_name(w, number, cx)
         }
         0x8000 => {
             // room
@@ -500,25 +522,44 @@ fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
         .as_deref()
 }
 
-fn get_local_var_name<'a>(number: u16, cx: &WriteCx<'a>) -> Option<&'a str> {
-    let script = match cx.scope {
-        Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).ok()?)?,
+fn write_local_var_name<'a>(w: &mut impl Write, number: u16, cx: &WriteCx<'a>) -> fmt::Result {
+    'have_script: loop {
+        let script = match get_script_config(cx) {
+            Some(script) => script,
+            None => break 'have_script,
+        };
+        if let Some(name) = script
+            .locals
+            .get(usize::try_from(number).unwrap())
+            .and_then(|v| v.name.as_ref())
+        {
+            w.write_str(name)?;
+            return Ok(());
+        }
+        if number < script.params.unwrap_or(0) {
+            write!(w, "arg{number}")?;
+            return Ok(());
+        }
+        break 'have_script;
+    }
+    write!(w, "local{number}")?;
+    Ok(())
+}
+
+fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
+    match cx.scope {
+        Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).unwrap()),
         Scope::RoomLocal(room, script) => {
             cx.config
                 .rooms
-                .get(usize::try_from(room).ok()?)?
-                .scripts
-                .get(usize::try_from(script).ok()?)?
+                .get(usize::try_from(room).unwrap())
+                .map(|r| &r.scripts)
+                .and_then(|s| s.get(usize::try_from(script).unwrap()))
         }
         Scope::RoomEnter(_) | Scope::RoomExit(_) => {
-            return None; // TODO
+            None // TODO
         }
-    };
-    script
-        .locals
-        .get(usize::try_from(number).ok()?)?
-        .name
-        .as_deref()
+    }
 }
 
 fn write_decomile_error(

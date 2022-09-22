@@ -5,7 +5,7 @@ pub struct Config {
     pub global_names: Vec<Option<String>>,
     pub scripts: Vec<Script>,
     pub rooms: Vec<Room>,
-    pub suppress_local_variable_declarations: bool,
+    pub suppress_preamble: bool,
 }
 
 #[derive(Default)]
@@ -16,6 +16,7 @@ pub struct Room {
 #[derive(Default)]
 pub struct Script {
     pub name: Option<String>,
+    pub params: Option<u16>,
     pub locals: Vec<Var>,
 }
 
@@ -30,7 +31,7 @@ impl Config {
             global_names: Vec::with_capacity(1024),
             scripts: Vec::with_capacity(512),
             rooms: Vec::with_capacity(64),
-            suppress_local_variable_declarations: false,
+            suppress_preamble: false,
         };
         for (ln, line) in ini.lines().enumerate() {
             let line = line.split_once(';').map_or(line, |(a, _)| a); // Trim comments
@@ -73,7 +74,7 @@ impl Config {
 fn handle_script_key<'a>(
     ln: usize,
     dots: &mut impl Iterator<Item = &'a str>,
-    value: &str,
+    mut value: &str,
     scripts: &mut Vec<Script>,
 ) -> Result<(), Box<dyn Error>> {
     let script = it_next(dots, ln)?;
@@ -82,6 +83,16 @@ fn handle_script_key<'a>(
     extend(scripts, script);
     match dots.next() {
         None => {
+            // parse param count as in `func(2)`
+            if let Some(paren) = value.find('(') {
+                if *value.as_bytes().last().unwrap() != b')' {
+                    return Err(parse_err(ln));
+                }
+                let params = &value[paren + 1..value.len() - 1];
+                let params: u16 = params.parse().map_err(|_| parse_err(ln))?;
+                scripts[script].params = Some(params);
+                value = &value[..paren];
+            }
             scripts[script].name = Some(value.to_string());
         }
         Some("local") => {

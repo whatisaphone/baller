@@ -2,7 +2,7 @@ use crate::{
     config::Config,
     script::{
         ast::{
-            write_local_vars,
+            write_preamble,
             write_stmts,
             Case,
             CaseCond,
@@ -43,8 +43,8 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
 
     let mut output = String::with_capacity(1024);
     let cx = WriteCx { scope, config };
-    if !config.suppress_local_variable_declarations {
-        write_local_vars(&mut output, &locals, &cx).unwrap();
+    if !config.suppress_preamble {
+        write_preamble(&mut output, &locals, &cx).unwrap();
     }
     write_stmts(&mut output, &ast, 0, &cx).unwrap();
     output
@@ -1020,11 +1020,10 @@ mod tests {
     #[test]
     fn basic_if() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(
-            &bytecode[0x23c..0x266],
-            Scope::Global(1),
-            &Config::default(),
-        );
+        let out = decompile(&bytecode[0x23c..0x266], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
         assert_starts_with(
             &out,
             r#"if (read-ini-int "NoPrinting") {
@@ -1038,11 +1037,10 @@ mod tests {
     #[test]
     fn basic_if_else() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(
-            &bytecode[0x5ba..0x5d4],
-            Scope::Global(1),
-            &Config::default(),
-        );
+        let out = decompile(&bytecode[0x5ba..0x5d4], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
         assert_starts_with(
             &out,
             r#"if (!global414) {
@@ -1059,7 +1057,7 @@ mod tests {
     fn basic_while() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let out = decompile(&bytecode[0x1b2..0x1d1], Scope::Global(1), &Config {
-            suppress_local_variable_declarations: true,
+            suppress_preamble: true,
             ..<_>::default()
         });
         assert_starts_with(
@@ -1076,11 +1074,10 @@ mod tests {
     #[test]
     fn case_eq() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let out = decompile(
-            &bytecode[0x501..0x542],
-            Scope::Global(1),
-            &Config::default(),
-        );
+        let out = decompile(&bytecode[0x501..0x542], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
         assert_starts_with(
             &out,
             r#"case global215 {
@@ -1103,7 +1100,7 @@ mod tests {
     fn case_range() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(415)?;
         let out = decompile(&bytecode[0x1e..0xa6], Scope::Global(1), &Config {
-            suppress_local_variable_declarations: true,
+            suppress_preamble: true,
             ..<_>::default()
         });
         assert_starts_with(
@@ -1136,7 +1133,8 @@ mod tests {
     #[test]
     fn call_scripts_by_name() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
-        let config = Config::from_ini("script.80 = test")?;
+        let mut config = Config::from_ini("script.80 = test")?;
+        config.suppress_preamble = true;
         let out = decompile(&bytecode[0x5ce..0x5d4], Scope::Global(1), &config);
         assert_eq!(out, "run-script test/*80*/ []\n");
         Ok(())
