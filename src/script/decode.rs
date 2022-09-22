@@ -459,7 +459,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x6d => ins!([0x6d], args = [int, list], retval),
         0x6e => ins!([0x6e], args = [int, list]),
         0x73 => op_73_jump(code),
-        0x74 => op_74(code),
+        0x74 => op_74_sound(code),
         0x75 => ins!([0x75], name = "stop-sound", args = [int]),
         0x7b => ins!([0x7b], name = "go-to-room", args = [int]),
         0x7c => ins!([0x7c], name = "free-running-script", args = [script]),
@@ -808,13 +808,13 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::Jump(read_i16(code)?))
 }
 
-fn op_74<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+fn op_74_sound<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x09 => ins!([0x74, 0x09], name = "sound-x09"),
         0xe6 => ins!([0x74, 0xe6], name = "sound-xe6", args = [int]),
         0xe7 => ins!([0x74, 0xe7], name = "sound-xe7", args = [int]),
-        0xe8 => ins!([0x74, 0xe8], name = "sound-xe8", args = [int]),
-        0xff => ins!([0x74, 0xff], name = "sound-xff"),
+        0xe8 => ins!([0x74, 0xe8], name = "sound-set-current", args = [int]),
+        0xff => ins!([0x74, 0xff], name = "sound-play"),
         _ => None,
     }
 }

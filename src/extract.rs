@@ -191,14 +191,14 @@ fn extract_recursive<R: Read + Seek>(
                 .ok_or("LFL not in index")?;
             state.current_room
         }
-        b"TALK" => {
+        b"DIGI" | b"TALK" => {
             find_object_number(
                 state.index,
                 &state.index.sounds,
                 state.disk_number,
                 offset - 8,
             )
-            .ok_or("TALK not in index")?
+            .ok_or("sound not in index")?
         }
         _ => {
             *state
