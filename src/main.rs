@@ -5,10 +5,15 @@
 use crate::{
     build::{build, FsEntry},
     config::Config,
-    extract::{extract, read_index},
+    extract::{extract, read_index, Index},
 };
 use clap::Parser;
-use std::{error::Error, fs, fs::File, path::PathBuf};
+use std::{
+    error::Error,
+    fs,
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 #[macro_use]
 mod macros;
@@ -106,17 +111,34 @@ impl Extract {
         let index = read_index(&mut f)?;
         drop(f);
 
-        let disk_number = 2;
         input.truncate(input.len() - 3);
-        input.push_str("(b)"); // Disk 1 is (a), disk 2 is (b), etc
+
+        Self::disk(&index, &config, &mut input, &self.output, 1)?;
+        Self::disk(&index, &config, &mut input, &self.output, 2)?;
+        Ok(())
+    }
+
+    fn disk(
+        index: &Index,
+        config: &Config,
+        input: &mut String,
+        output: &Path,
+        disk_number: u8,
+    ) -> Result<(), Box<dyn Error>> {
+        input.push('(');
+        input.push((disk_number + b'a' - 1).into());
+        input.push(')');
+
         let mut f = File::open(&input)?;
-        extract(&index, disk_number, &config, &mut f, &mut |path, data| {
-            let path = self.output.join(path);
+        extract(index, disk_number, config, &mut f, &mut |path, data| {
+            let path = output.join(path);
             fs::create_dir_all(path.parent().unwrap())?;
             fs::write(path, data)?;
             Ok(())
         })?;
         drop(f);
+
+        input.truncate(input.len() - 3);
         Ok(())
     }
 }

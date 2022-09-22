@@ -21,6 +21,7 @@ pub struct Index {
     pub lfl_disks: Vec<u8>,
     pub lfl_offsets: Vec<i32>,
     pub scripts: Directory,
+    pub sounds: Directory,
 }
 
 pub struct Directory {
@@ -49,6 +50,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
     let mut lfl_disks = None;
     let mut lfl_offsets = None;
     let mut scripts = None;
+    let mut sounds = None;
 
     let handle_block: &mut BlockHandler = &mut |_path, id, _number, _pos, blob| {
         let mut r = io::Cursor::new(blob);
@@ -63,16 +65,9 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
             r.read_i32_into::<LE>(&mut list)?;
             lfl_offsets = Some(list);
         } else if id == "DIRS" {
-            let count = r.read_i16::<LE>()?;
-            let mut dir = Directory {
-                room_numbers: vec![0; count.try_into()?],
-                offsets: vec![0; count.try_into()?],
-                glob_sizes: vec![0; count.try_into()?],
-            };
-            r.read_exact(&mut dir.room_numbers)?;
-            r.read_i32_into::<LE>(&mut dir.offsets)?;
-            r.read_i32_into::<LE>(&mut dir.glob_sizes)?;
-            scripts = Some(dir);
+            scripts = Some(read_directory(&mut r)?);
+        } else if id == "DIRN" {
+            sounds = Some(read_directory(&mut r)?);
         } else {
             r.seek(SeekFrom::End(0))?;
         }
@@ -97,7 +92,21 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         lfl_disks: lfl_disks.ok_or("index incomplete")?,
         lfl_offsets: lfl_offsets.ok_or("index incomplete")?,
         scripts: scripts.ok_or("index incomplete")?,
+        sounds: sounds.ok_or("index incomplete")?,
     })
+}
+
+fn read_directory(r: &mut impl Read) -> Result<Directory, Box<dyn Error>> {
+    let count = r.read_i16::<LE>()?;
+    let mut dir = Directory {
+        room_numbers: vec![0; count.try_into()?],
+        offsets: vec![0; count.try_into()?],
+        glob_sizes: vec![0; count.try_into()?],
+    };
+    r.read_exact(&mut dir.room_numbers)?;
+    r.read_i32_into::<LE>(&mut dir.offsets)?;
+    r.read_i32_into::<LE>(&mut dir.glob_sizes)?;
+    Ok(dir)
 }
 
 pub fn extract(
@@ -128,6 +137,9 @@ pub fn extract(
         if id == "LFLF" {
             *number = find_lfl_number(disk_number, offset, index).ok_or("LFL not in index")?;
             current_room.set(*number);
+        } else if id == "TALK" {
+            *number = find_object_number(index, &index.sounds, disk_number, offset - 8)
+                .ok_or("TALK not in index")?;
         }
         Ok(())
     };
