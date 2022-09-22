@@ -5,12 +5,13 @@ use crate::{
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
 use std::{
-    cell::{Cell, RefCell},
     collections::HashMap,
     error::Error,
+    fmt,
     fmt::Write,
     io,
     io::{BufReader, Read, Seek, SeekFrom},
+    mem,
     str,
 };
 use tracing::info_span;
@@ -39,61 +40,66 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
     let len = s.seek(SeekFrom::End(0))?;
     s.rewind()?;
 
-    let mut path = String::with_capacity(64);
-    path.push('.');
-    let mut state = State {
-        path,
-        blocks: HashMap::new(),
-        tmp_buf: Vec::new(),
+    let mut state = IndexState {
+        buf: Vec::with_capacity(64 << 10),
+        lfl_disks: None,
+        lfl_offsets: None,
+        scripts: None,
+        sounds: None,
     };
 
-    let mut lfl_disks = None;
-    let mut lfl_offsets = None;
-    let mut scripts = None;
-    let mut sounds = None;
+    scan_blocks(&mut s, &mut state, handle_index_block, len)?;
 
-    let handle_block: &mut BlockHandler = &mut |_path, id, _number, _pos, blob| {
-        let mut r = io::Cursor::new(blob);
-        if id == "DISK" {
+    Ok(Index {
+        lfl_disks: state.lfl_disks.ok_or("index incomplete")?,
+        lfl_offsets: state.lfl_offsets.ok_or("index incomplete")?,
+        scripts: state.scripts.ok_or("index incomplete")?,
+        sounds: state.sounds.ok_or("index incomplete")?,
+    })
+}
+
+struct IndexState {
+    buf: Vec<u8>,
+    lfl_disks: Option<Vec<u8>>,
+    lfl_offsets: Option<Vec<i32>>,
+    scripts: Option<Directory>,
+    sounds: Option<Directory>,
+}
+
+fn handle_index_block<R: Read>(
+    stream: &mut R,
+    state: &mut IndexState,
+    id: [u8; 4],
+    len: u64,
+) -> Result<(), Box<dyn Error>> {
+    state.buf.resize(len.try_into().unwrap(), 0);
+    stream.read_exact(&mut state.buf)?;
+    let mut r = io::Cursor::new(&state.buf);
+
+    match &id {
+        b"DISK" => {
             let count = r.read_i16::<LE>()?;
             let mut list = vec![0; count.try_into()?];
             r.read_exact(&mut list)?;
-            lfl_disks = Some(list);
-        } else if id == "DLFL" {
+            state.lfl_disks = Some(list);
+        }
+        b"DLFL" => {
             let count = r.read_i16::<LE>()?;
             let mut list = vec![0; count.try_into()?];
             r.read_i32_into::<LE>(&mut list)?;
-            lfl_offsets = Some(list);
-        } else if id == "DIRS" {
-            scripts = Some(read_directory(&mut r)?);
-        } else if id == "DIRN" {
-            sounds = Some(read_directory(&mut r)?);
-        } else {
+            state.lfl_offsets = Some(list);
+        }
+        b"DIRS" => {
+            state.scripts = Some(read_directory(&mut r)?);
+        }
+        b"DIRN" => {
+            state.sounds = Some(read_directory(&mut r)?);
+        }
+        _ => {
             r.seek(SeekFrom::End(0))?;
         }
-        if r.stream_position()? != blob.len().try_into()? {
-            return Err("wrong block size".into());
-        }
-        Ok(())
-    };
-
-    let handle_container: &mut ContainerHandler = &mut |_, _, _| Ok(());
-    let handle_map: &mut MapHandler = &mut |_, _| Ok(());
-
-    scan_blocks(
-        &mut s,
-        &mut state,
-        handle_container,
-        handle_block,
-        handle_map,
-        len,
-    )?;
-    Ok(Index {
-        lfl_disks: lfl_disks.ok_or("index incomplete")?,
-        lfl_offsets: lfl_offsets.ok_or("index incomplete")?,
-        scripts: scripts.ok_or("index incomplete")?,
-        sounds: sounds.ok_or("index incomplete")?,
-    })
+    }
+    Ok(())
 }
 
 fn read_directory(r: &mut impl Read) -> Result<Directory, Box<dyn Error>> {
@@ -122,95 +128,196 @@ pub fn extract(
     let len = s.seek(SeekFrom::End(0))?;
     s.rewind()?;
 
-    let mut path = String::with_capacity(64);
-    path.push('.');
-    let mut state = State {
-        path,
-        blocks: HashMap::new(),
-        tmp_buf: Vec::new(),
+    let mut state = ExtractState {
+        disk_number,
+        index,
+        config,
+        write,
+        path: {
+            let mut path = String::with_capacity(64);
+            path.push('.');
+            path
+        },
+        current_room: 0,
+        block_numbers: HashMap::new(),
+        map: String::with_capacity(1 << 10),
+        buf: Vec::with_capacity(64 << 10),
     };
 
-    let current_room = Cell::new(0);
-    let write = RefCell::new(write);
+    scan_blocks(&mut s, &mut state, handle_extract_block, len)?;
 
-    let handle_container: &mut ContainerHandler = &mut |id, number, offset| {
-        if id == "LFLF" {
-            *number = find_lfl_number(disk_number, offset, index).ok_or("LFL not in index")?;
-            current_room.set(*number);
-        } else if id == "TALK" {
-            *number = find_object_number(index, &index.sounds, disk_number, offset - 8)
-                .ok_or("TALK not in index")?;
-        }
-        Ok(())
-    };
-
-    let handle_block: &mut BlockHandler = &mut |path, id, number, pos, mut blob| {
-        match id {
-            // SCRP number comes from index
-            "SCRP" => {
-                *number = find_object_number(index, &index.scripts, disk_number, pos)
-                    .ok_or("script missing from index")?;
-            }
-            // LSC2 number comes from block header
-            "LSC2" => {
-                let number_bytes = blob.get(..4).ok_or("local script missing header")?;
-                *number = i32::from_le_bytes(number_bytes.try_into().unwrap());
-            }
-            // Otherwise the number is a counter per block type (passed by caller)
-            _ => {}
-        }
-
-        let filename = format!("{path}/{id}_{number:02}.bin");
-        write.borrow_mut()(&filename, blob)?;
-
-        if id == "SCRP" || id == "ENCD" || id == "EXCD" || id == "LSC2" {
-            if id == "LSC2" {
-                // Skip header. Code starts at offset 4.
-                blob = &blob[4..];
-            }
-
-            let disasm = disasm_to_string(blob);
-            let filename = format!("{path}/{id}_{number:02}.s");
-            write.borrow_mut()(&filename, disasm.as_bytes())?;
-
-            let scope = match id {
-                "SCRP" => Scope::Global(*number),
-                "LSC2" => Scope::RoomLocal(current_room.get(), *number),
-                "ENCD" => Scope::RoomEnter(current_room.get()),
-                "EXCD" => Scope::RoomExit(current_room.get()),
-                _ => unreachable!(),
-            };
-
-            let decomp = {
-                let _span = info_span!("decompile", scrp = *number).entered();
-                decompile(blob, scope, config)
-            };
-            let filename = format!("{path}/{id}_{number:02}.scu");
-            write.borrow_mut()(&filename, decomp.as_bytes())?;
-        }
-        Ok(())
-    };
-
-    let handle_map: &mut MapHandler = &mut |path, blob| {
-        write.borrow_mut()(path, blob)?;
-        Ok(())
-    };
-
-    scan_blocks(
-        &mut s,
-        &mut state,
-        handle_container,
-        handle_block,
-        handle_map,
-        len,
-    )?;
+    (state.write)(&format!("{}/.map", state.path), state.map.as_bytes())?;
     Ok(())
 }
 
-struct State {
+struct ExtractState<'a> {
+    disk_number: u8,
+    index: &'a Index,
+    config: &'a Config,
+    write: &'a mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     path: String,
-    blocks: HashMap<[u8; 4], i32>,
-    tmp_buf: Vec<u8>,
+    current_room: i32,
+    block_numbers: HashMap<[u8; 4], i32>,
+    map: String,
+    buf: Vec<u8>,
+}
+
+fn handle_extract_block<R: Read + Seek>(
+    r: &mut R,
+    state: &mut ExtractState,
+    id: [u8; 4],
+    len: u64,
+) -> Result<(), Box<dyn Error>> {
+    let offset = r.stream_position()?;
+
+    if guess_is_block_recursive(r, len)? {
+        extract_recursive(r, state, id, offset, len)?;
+    } else {
+        extract_flat(r, state, id, len, offset)?;
+    }
+    Ok(())
+}
+
+fn extract_recursive<R: Read + Seek>(
+    r: &mut R,
+    state: &mut ExtractState,
+    id: [u8; 4],
+    offset: u64,
+    len: u64,
+) -> Result<(), Box<dyn Error>> {
+    let number = match &id {
+        b"LFLF" => {
+            state.current_room = find_lfl_number(state.disk_number, offset, state.index)
+                .ok_or("LFL not in index")?;
+            state.current_room
+        }
+        b"TALK" => {
+            find_object_number(
+                state.index,
+                &state.index.sounds,
+                state.disk_number,
+                offset - 8,
+            )
+            .ok_or("TALK not in index")?
+        }
+        _ => {
+            *state
+                .block_numbers
+                .entry(id)
+                .and_modify(|n| *n += 1)
+                .or_insert(1)
+        }
+    };
+
+    writeln!(state.map, "{}", IdAndNum(id, number))?;
+
+    write!(state.path, "/{}", IdAndNum(id, number))?;
+
+    // copy most fields, temporarily move some
+    let mut inner = ExtractState {
+        disk_number: state.disk_number,
+        index: state.index,
+        config: state.config,
+        write: state.write,
+        path: mem::take(&mut state.path),
+        current_room: state.current_room,
+        block_numbers: HashMap::new(),
+        map: String::with_capacity(1 << 10),
+        buf: mem::take(&mut state.buf),
+    };
+
+    scan_blocks(r, &mut inner, handle_extract_block, len)?;
+
+    // return temporarily moved fields
+    state.buf = mem::take(&mut inner.buf);
+    state.path = mem::take(&mut inner.path);
+
+    let map = inner.map;
+    (state.write)(&format!("{}/.map", state.path), map.as_bytes())?;
+
+    state.path.truncate(state.path.rfind('/').unwrap());
+    Ok(())
+}
+
+fn extract_flat<R: Read + Seek>(
+    r: &mut R,
+    state: &mut ExtractState,
+    id: [u8; 4],
+    len: u64,
+    offset: u64,
+) -> Result<(), Box<dyn Error>> {
+    state.buf.clear();
+    state.buf.reserve(len.try_into()?);
+    io::copy(&mut r.take(len), &mut state.buf)?;
+
+    let number = match &id {
+        // SCRP number comes from index
+        b"SCRP" => {
+            find_object_number(
+                state.index,
+                &state.index.scripts,
+                state.disk_number,
+                offset - 8,
+            )
+            .ok_or("script missing from index")?
+        }
+        // LSC2 number comes from block header
+        b"LSC2" => {
+            let number_bytes = state.buf.get(..4).ok_or("local script missing header")?;
+            i32::from_le_bytes(number_bytes.try_into().unwrap())
+        }
+        // Otherwise use a counter per block type
+        _ => {
+            *state
+                .block_numbers
+                .entry(id)
+                .and_modify(|n| *n += 1)
+                .or_insert(1)
+        }
+    };
+
+    writeln!(state.map, "{}", IdAndNum(id, number))?;
+
+    let filename = format!("{}/{}.bin", state.path, IdAndNum(id, number));
+    (state.write)(&filename, &state.buf)?;
+
+    match &id {
+        b"SCRP" | b"LSC2" | b"ENCD" | b"EXCD" => extract_script(state, id, number)?,
+        _ => {}
+    }
+    Ok(())
+}
+
+fn extract_script(
+    state: &mut ExtractState,
+    id: [u8; 4],
+    number: i32,
+) -> Result<(), Box<dyn Error>> {
+    let mut blob = state.buf.as_slice();
+
+    if id == *b"LSC2" {
+        // Skip header. Code starts at offset 4.
+        blob = &blob[4..];
+    }
+
+    let disasm = disasm_to_string(blob);
+    let filename = format!("{}/{}.s", state.path, IdAndNum(id, number));
+    (state.write)(&filename, disasm.as_bytes())?;
+
+    let decomp = {
+        let _span = info_span!("decompile", scrp = number).entered();
+        let scope = match &id {
+            b"SCRP" => Scope::Global(number),
+            b"LSC2" => Scope::RoomLocal(state.current_room, number),
+            b"ENCD" => Scope::RoomEnter(state.current_room),
+            b"EXCD" => Scope::RoomExit(state.current_room),
+            _ => unreachable!(),
+        };
+        decompile(blob, scope, state.config)
+    };
+    let filename = format!("{}/{}.scu", state.path, IdAndNum(id, number),);
+    (state.write)(&filename, decomp.as_bytes())?;
+    Ok(())
 }
 
 fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {
@@ -235,57 +342,38 @@ fn find_object_number(index: &Index, dir: &Directory, disk_number: u8, offset: u
     None
 }
 
-type ContainerHandler<'a> = dyn FnMut(&str, &mut i32, u64) -> Result<(), Box<dyn Error>> + 'a;
-type BlockHandler<'a> =
-    dyn FnMut(&str, &str, &mut i32, u64, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
-type MapHandler<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
+struct IdAndNum([u8; 4], i32);
 
-fn scan_blocks<S: Read + Seek>(
-    s: &mut S,
+impl fmt::Display for IdAndNum {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(str::from_utf8(&self.0).unwrap())?;
+        f.write_char('_')?;
+        write!(f, "{:02}", self.1)?;
+        Ok(())
+    }
+}
+
+type BlockHandler<Stream, State> =
+    fn(&mut Stream, &mut State, [u8; 4], u64) -> Result<(), Box<dyn Error>>;
+
+fn scan_blocks<Stream: Read + Seek, State>(
+    s: &mut Stream,
     state: &mut State,
-    handle_container: &mut ContainerHandler,
-    handle_block: &mut BlockHandler,
-    handle_map: &mut MapHandler,
+    handle_block: BlockHandler<Stream, State>,
     parent_len: u64,
 ) -> Result<(), Box<dyn Error>> {
-    let mut map = String::with_capacity(1 << 10);
     let start = s.stream_position()?;
     loop {
         let pos = s.stream_position()?;
-        if pos >= start + parent_len {
+        if pos == start + parent_len {
             break;
         }
+        if pos > start + parent_len {
+            return Err("misaligned block end".into());
+        }
 
-        read_block(s, |s, id, len| {
-            let next_number = state.blocks.entry(id).or_insert(1);
-            let mut number = *next_number;
-            *next_number += 1;
-
-            let id = str::from_utf8(&id)?;
-
-            if is_block_recursive(s, len)? {
-                handle_container(id, &mut number, s.stream_position()?)?;
-
-                write!(state.path, "/{id}_{number:02}").unwrap();
-
-                scan_blocks(s, state, handle_container, handle_block, handle_map, len)?;
-
-                state.path.truncate(state.path.rfind('/').unwrap_or(0));
-            } else {
-                state.tmp_buf.clear();
-                state.tmp_buf.reserve(len.try_into()?);
-                io::copy(&mut s.take(len), &mut state.tmp_buf)?;
-                let blob = &state.tmp_buf[..len.try_into()?];
-
-                handle_block(&state.path, id, &mut number, pos, blob)?;
-            }
-
-            // The block handler might have modified the object number.
-            writeln!(map, "{id}_{number:02}").unwrap();
-            Ok(())
-        })?;
+        read_block(s, |s, id, len| handle_block(s, state, id, len))?;
     }
-    handle_map(&format!("{path}/.map", path = state.path), map.as_bytes())?;
     Ok(())
 }
 
@@ -307,7 +395,7 @@ fn read_block<S: Read + Seek, R>(
 }
 
 // heuristic
-fn is_block_recursive<S: Read + Seek>(s: &mut S, len: u64) -> Result<bool, Box<dyn Error>> {
+fn guess_is_block_recursive<S: Read + Seek>(s: &mut S, len: u64) -> Result<bool, Box<dyn Error>> {
     if len < 8 {
         return Ok(false);
     }
