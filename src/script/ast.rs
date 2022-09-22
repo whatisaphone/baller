@@ -300,7 +300,7 @@ fn write_expr_as(
             write_var(w, var, cx)?;
         }
         Expr::StackDup(expr) => {
-            write_expr(w, expr, cx)?;
+            write_expr_as(w, expr, emit_as, cx)?;
         }
         Expr::StackUnderflow => {
             w.write_str("@DECOMPILE ERROR stack underflow")?;
