@@ -464,6 +464,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x50 => ins!([0x50]),
         0x53 => ins!([0x53], name = "inc-array-item", ops = [var: read_var(code)?], args = [int]),
         0x57 => op_57_dec(code),
+        0x58 => op_58(code),
         0x5a => ins!([0x5a], args = [int], retval),
         0x5b => ins!([0x5b], name = "dec-array-item", ops = [var: read_var(code)?], args = [int]),
         0x5c => op_5c_jump_if(code),
@@ -471,6 +472,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x5e => op_5e_run_script(code),
         0x60 => op_60_start_script(code),
         0x61 => op_61_draw_object(code),
+        0x62 => ins!([0x62], name = "draw-x62", args = [int]),
         0x63 => op_63_array_sizes(code),
         0x64 => ins!([0x64], name = "get-free-arrays", retval),
         0x65 => ins!([0x65], name = "finish-script"),
@@ -492,6 +494,9 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x88 => ins!([0x88], name = "random2", args = [int, int], retval),
         0x8b => ins!([0x8b], name = "is-script-running", args = [script], retval),
         0x8c => ins!([0x8c], name = "get-room", args = [int], retval),
+        0x8d => ins!([0x8d], args = [int], retval),
+        0x8e => ins!([0x8e], args = [int], retval),
+        0x91 => ins!([0x91], name = "actor-get-costume", args = [int], retval),
         0x94 => op_94(code),
         0x95 => op_95_cutscene_start(code),
         0x96 => ins!([0x96], name = "cutscene-end"),
@@ -502,12 +507,14 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x9e => op_9e_palette(code),
         0x9f => ins!([0x9f], args = [int, int], retval),
         0xa0 => ins!([0xa0], args = [int, int], retval),
+        0xa2 => ins!([0xa2], args = [int], retval),
         0xa3 => ins!([0xa3], args = [int, int], retval),
         0xa4 => op_a4_array(code),
         0xa6 => ins!([0xa6], args = [int, int, int, int, int]),
         0xa7 => ins!([0xa7], name = "pop-discard", args = [int]),
         0xa9 => op_a9(code),
         0xad => Some(Ins::In), // same as 0x1b except iterates in reverse order?
+        0xae => op_ae(code),
         0xb0 => ins!([0xb0], name = "sleep-frames", args = [int]),
         0xb1 => ins!([0xb1], name = "sleep-seconds", args = [int]),
         0xb3 => ins!([0xb3], name = "stop-script-34"),
@@ -572,6 +579,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0xf8 => op_f8_get_size(code),
         0xf9 => ins!([0xf9], name = "create-directory", args = [string]),
         0xfa => op_fa_window_title(code),
+        0xfb => op_fb(code),
         0xfc => ins!([0xfc], args = [int, int], retval),
         _ => None,
     }
@@ -610,6 +618,13 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x20 => ins!([0x1c, 0x20], name = "image-x20", args = [int]),
         0x21 => ins!([0x1c, 0x21], name = "image-x21", args = [int]),
         0x30 => ins!([0x1c, 0x30], name = "image-x30"),
+        0x33 => {
+            ins!(
+                [0x1c, 0x33],
+                name = "image-x33",
+                args = [int, int, int, int, int],
+            )
+        }
         0x34 => ins!([0x1c, 0x34], name = "image-x34", args = [int]),
         0x36 => ins!([0x1c, 0x36], name = "image-x36", args = [int]),
         0x39 => ins!([0x1c, 0x39], name = "image-x39", args = [int]),
@@ -625,6 +640,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x89 => ins!([0x1c, 0x89], name = "image-x89", args = [int]),
         0x9a => ins!([0x1c, 0x9a], name = "image-x9a", args = [int, int]),
         0xd9 => ins!([0x1c, 0xd9], name = "image-xd9"),
+        0xf6 => ins!([0x1c, 0xf6], name = "image-xf6"),
         0xff => ins!([0x1c, 0xff], name = "image-xff"),
         _ => None,
     }
@@ -671,6 +687,14 @@ fn op_25_sprite_retval<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 [0x25, 0x7d],
                 name = "sprite-has-class",
                 args = [int, list],
+                retval,
+            )
+        }
+        0xc6 => {
+            ins!(
+                [0x25, 0xc6],
+                name = "sprite-get-xc6",
+                args = [int, int],
                 retval,
             )
         }
@@ -884,6 +908,13 @@ fn op_57_dec<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::Dec(read_var(code)?))
 }
 
+fn op_58<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0x0a => ins!([0x58, 0x0a], name = "timer-x0a", args = [int], retval),
+        _ => None,
+    }
+}
+
 fn op_5c_jump_if<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     Some(Ins::JumpIf(read_i16(code)?))
 }
@@ -1013,7 +1044,9 @@ fn op_9b<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x79 => ins!([0x9b, 0x79], name = "queue-sound", args = [int]),
         0x7a => ins!([0x9b, 0x7a], name = "queue-costume", args = [int]),
         0x7b => ins!([0x9b, 0x7b], name = "queue-load-room", args = [int]),
+        0x9f => ins!([0x9b, 0x9f], name = "unlock-image", args = [int]),
         0xc0 => ins!([0x9b, 0xc0], name = "free-image", args = [int]),
+        0xca => ins!([0x9b, 0xca], name = "lock-image", args = [int]),
         0xcb => ins!([0x9b, 0xcb], name = "queue-image", args = [int]),
         _ => None,
     }
@@ -1029,13 +1062,17 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_9d_actor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
+        0x15 => ins!([0x9d, 0x15], name = "actor-set-conditons", args = [list]),
         0x2b => ins!([0x9d, 0x2b], name = "actor-x2b", args = [int]),
         0x4c => ins!([0x9d, 0x4c], name = "actor-x4c", args = [int]),
         0x4e => ins!([0x9d, 0x4e], name = "actor-set-sounds", args = [list]),
         0x54 => ins!([0x9d, 0x54], name = "actor-x54", args = [int]),
         0x56 => ins!([0x9d, 0x56], name = "actor-x56", args = [int, int]),
         0x57 => ins!([0x9d, 0x57], name = "actor-x57", args = [int]),
+        0x5c => ins!([0x9d, 0x5c], name = "actor-x5c", args = [int]),
+        0x5f => ins!([0x9d, 0x5f], name = "actor-x5f"),
         0x61 => ins!([0x9d, 0x61], name = "actor-x61", args = [int]),
+        0x62 => ins!([0x9d, 0x62], name = "actor-x62", args = [int]),
         0x63 => ins!([0x9d, 0x63], name = "actor-x63", args = [int, int]),
         0xc5 => ins!([0x9d, 0xc5], name = "actor-set-current", args = [int]),
         0xc6 => ins!([0x9d, 0xc6], name = "actor-set-var", args = [int, int]),
@@ -1106,6 +1143,13 @@ fn op_a4_array<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_a9<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0xa9 => ins!([0xa9, 0xa9]),
+        _ => None,
+    }
+}
+
+fn op_ae<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0xa0 => ins!([0xae, 0xa0], name = "quit-without-prompt"),
         _ => None,
     }
 }
@@ -1266,6 +1310,19 @@ fn op_f8_get_size<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_fa_window_title<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0xf3 => ins!([0xfa, 0xf3], name = "set-window-title", args = [string]),
+        _ => None,
+    }
+}
+
+fn op_fb<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
+    match read_u8(code)? {
+        0xf8 => {
+            ins!(
+                [0xfb, 0xf8],
+                name = "polygon-quadrilateral",
+                args = [int, int, int, int, int, int, int, int, int],
+            )
+        }
         _ => None,
     }
 }
