@@ -74,6 +74,7 @@ pub enum ItemSize {
     Byte,
     I16,
     I32,
+    Char,
 }
 
 impl Ins<'_> {
@@ -189,6 +190,7 @@ impl fmt::Display for ItemSize {
             Self::Byte => write!(f, "byte"),
             Self::I16 => write!(f, "i16"),
             Self::I32 => write!(f, "i32"),
+            Self::Char => write!(f, "char"),
         }
     }
 }

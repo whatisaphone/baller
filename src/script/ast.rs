@@ -500,6 +500,7 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
         ItemSize::Byte => "byte",
         ItemSize::I16 => "i16",
         ItemSize::I32 => "i32",
+        ItemSize::Char => "char",
     }
 }
 
