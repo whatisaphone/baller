@@ -139,6 +139,7 @@ pub fn extract(
             path
         },
         current_room: 0,
+        current_object: 0,
         block_numbers: HashMap::new(),
         map: String::with_capacity(1 << 10),
         buf: Vec::with_capacity(64 << 10),
@@ -157,6 +158,7 @@ struct ExtractState<'a> {
     write: &'a mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     path: String,
     current_room: i32,
+    current_object: u16,
     block_numbers: HashMap<[u8; 4], i32>,
     map: String,
     buf: Vec<u8>,
@@ -221,6 +223,7 @@ fn extract_recursive<R: Read + Seek>(
         write: state.write,
         path: mem::take(&mut state.path),
         current_room: state.current_room,
+        current_object: state.current_object,
         block_numbers: HashMap::new(),
         map: String::with_capacity(1 << 10),
         buf: mem::take(&mut state.buf),
@@ -266,6 +269,11 @@ fn extract_flat<R: Read + Seek>(
             let number_bytes = state.buf.get(..4).ok_or("local script missing header")?;
             i32::from_le_bytes(number_bytes.try_into().unwrap())
         }
+        b"CDHD" => {
+            let number_bytes = state.buf.get(..2).ok_or("bad object header")?;
+            state.current_object = u16::from_le_bytes(number_bytes.try_into().unwrap());
+            state.current_object.into()
+        }
         // Otherwise use a counter per block type
         _ => {
             *state
@@ -283,6 +291,10 @@ fn extract_flat<R: Read + Seek>(
 
     match &id {
         b"SCRP" | b"LSC2" | b"ENCD" | b"EXCD" => extract_script(state, id, number)?,
+        b"VERB" => {
+            debug_assert!(number == 1); // only one VERB per OBCD
+            extract_verb(state)?;
+        }
         _ => {}
     }
     Ok(())
@@ -305,7 +317,7 @@ fn extract_script(
     (state.write)(&filename, disasm.as_bytes())?;
 
     let decomp = {
-        let _span = info_span!("decompile", scrp = number).entered();
+        let _span = info_span!("decompile", script = %IdAndNum(id, number)).entered();
         let scope = match &id {
             b"SCRP" => Scope::Global(number),
             b"LSC2" => Scope::RoomLocal(state.current_room, number),
@@ -318,6 +330,43 @@ fn extract_script(
     let filename = format!("{}/{}.scu", state.path, IdAndNum(id, number),);
     (state.write)(&filename, decomp.as_bytes())?;
     Ok(())
+}
+
+fn extract_verb(state: &mut ExtractState) -> Result<(), Box<dyn Error>> {
+    let mut pos = 0;
+    while let Some((number, offset)) = read_verb(&state.buf[pos..]) {
+        let start = (offset - 8).try_into()?; // relative to block including type/len
+        pos += 3;
+        let next_offset = read_verb(&state.buf[pos..]).map(|(_, o)| o);
+        let end = match next_offset {
+            Some(o) => (o - 8).try_into()?,
+            None => state.buf.len(),
+        };
+        let code = &state.buf[start..end];
+
+        let disasm = disasm_to_string(code);
+        let filename = format!("{}/{}.s", state.path, IdAndNum(*b"VERB", number.into()));
+        (state.write)(&filename, disasm.as_bytes())?;
+
+        let decomp = {
+            let _span =
+                info_span!("decompile", object = state.current_object, verb = number).entered();
+            let scope = Scope::Verb(state.current_room, state.current_object);
+            decompile(code, scope, state.config)
+        };
+        let filename = format!("{}/{}.scu", state.path, IdAndNum(*b"VERB", number.into()),);
+        (state.write)(&filename, decomp.as_bytes())?;
+    }
+    Ok(())
+}
+
+fn read_verb(buf: &[u8]) -> Option<(u8, u16)> {
+    let number = *buf.get(0)?;
+    if number == 0 {
+        return None;
+    }
+    let offset = u16::from_le_bytes(buf.get(1..3)?.try_into().unwrap());
+    Some((number, offset))
 }
 
 fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {

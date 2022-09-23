@@ -113,6 +113,7 @@ pub enum Scope {
     RoomLocal(i32, i32),
     RoomEnter(i32),
     RoomExit(i32),
+    Verb(i32, u16),
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -128,6 +129,7 @@ pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fm
         Scope::RoomLocal(room, num) => write!(w, "; LSC2 {room} {num}")?,
         Scope::RoomEnter(room) => write!(w, "; ENCD {room}")?,
         Scope::RoomExit(room) => write!(w, "; EXCD {room}")?,
+        Scope::Verb(room, object) => write!(w, "; VERB {room} {object}")?,
     }
     let script = get_script_config(cx);
     if let Some(name) = script.and_then(|s| s.name.as_ref()) {
@@ -589,7 +591,7 @@ fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
                 .map(|r| &r.scripts)
                 .and_then(|s| s.get(usize::try_from(script).unwrap()))
         }
-        Scope::RoomEnter(_) | Scope::RoomExit(_) => {
+        Scope::RoomEnter(_) | Scope::RoomExit(_) | Scope::Verb(_, _) => {
             None // TODO
         }
     }
@@ -624,9 +626,10 @@ impl Scope {
     pub fn room(&self) -> Option<i32> {
         match *self {
             Scope::Global(_) => None,
-            Scope::RoomLocal(room, _) | Scope::RoomEnter(room) | Scope::RoomExit(room) => {
-                Some(room)
-            }
+            Scope::RoomLocal(room, _)
+            | Scope::RoomEnter(room)
+            | Scope::RoomExit(room)
+            | Scope::Verb(room, _) => Some(room),
         }
     }
 }
