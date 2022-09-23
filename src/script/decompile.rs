@@ -414,14 +414,14 @@ fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> Vec<Stmt<'a>> {
     stmts
 }
 
-struct DecompileError(usize, DecompileErrorKind);
+struct DecompileError<'a>(usize, DecompileErrorKind<'a>);
 
 fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
     controls: &[ControlBlock],
     stmts: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, DecompileError> {
+) -> Result<BlockExit<'a>, DecompileError<'a>> {
     match &block.control {
         Control::CodeRange => decompile_stmts(code, block.start, block.end, stmts),
         &Control::Sequence(first, second) => {
@@ -496,7 +496,7 @@ fn decompile_stmts<'a>(
     block_start: usize,
     block_end: usize,
     output: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, DecompileError> {
+) -> Result<BlockExit<'a>, DecompileError<'a>> {
     let mut stack = Vec::new();
     let mut string_stack = Vec::new();
 
@@ -521,11 +521,10 @@ fn decompile_stmts<'a>(
 
     macro_rules! final_checks {
         () => {
-            // TODO: enable this check once case statements are sorted
-            if false && !stack.is_empty() {
+            while let Some(expr) = stack.pop() {
                 output.push(Stmt::DecompileError(
                     decoder.pos(),
-                    DecompileErrorKind::Other("values remain on stack"),
+                    DecompileErrorKind::StackOrphan(Box::new(expr)),
                 ));
             }
         };
@@ -846,13 +845,23 @@ fn pop_list<'a>(stack: &mut Vec<Expr<'a>>) -> Option<Expr<'a>> {
     Some(Expr::List(list))
 }
 
-fn build_cases(ast: &mut [Stmt]) {
-    for stmt in ast {
-        if is_case(stmt) {
-            build_case(stmt);
+fn build_cases(stmts: &mut Vec<Stmt>) {
+    let mut i = 0;
+    while i < stmts.len() {
+        if is_case(&stmts[i])
+            && matches!(
+                i.checked_sub(1).and_then(|im1| stmts.get(im1)),
+                Some(Stmt::DecompileError(_, DecompileErrorKind::StackOrphan(_)))
+            )
+        {
+            // Cases are always paired with a stack error which we can remove once the
+            // pattern is recognized.
+            stmts.remove(i - 1);
+            i -= 1;
+            build_case(&mut stmts[i]);
         }
 
-        match stmt {
+        match &mut stmts[i] {
             Stmt::If {
                 condition: _,
                 true_,
@@ -871,6 +880,8 @@ fn build_cases(ast: &mut [Stmt]) {
             }
             _ => {}
         }
+
+        i += 1;
     }
 }
 

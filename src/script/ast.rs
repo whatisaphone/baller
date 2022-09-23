@@ -43,12 +43,13 @@ pub enum Stmt<'a> {
         ins: &'a GenericIns,
         args: Vec<Expr<'a>>,
     },
-    DecompileError(usize, DecompileErrorKind),
+    DecompileError(usize, DecompileErrorKind<'a>),
 }
 
-#[derive(Copy, Clone, Debug)]
-pub enum DecompileErrorKind {
+#[derive(Clone)]
+pub enum DecompileErrorKind<'a> {
     StackUnderflow,
+    StackOrphan(Box<Expr<'a>>),
     WrongBlockExit,
     Other(&'static str),
 }
@@ -91,7 +92,7 @@ pub enum Expr<'a> {
     BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
     In(Box<(Expr<'a>, Expr<'a>)>),
     Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
-    DecompileError(usize, DecompileErrorKind),
+    DecompileError(usize, DecompileErrorKind<'a>),
 }
 
 pub struct WriteCx<'a> {
@@ -284,8 +285,8 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
         } => {
             write_generic(w, bytecode, ins, args, cx)?;
         }
-        Stmt::DecompileError(offset, kind) => {
-            write_decomile_error(w, offset, kind)?;
+        Stmt::DecompileError(offset, ref kind) => {
+            write_decomile_error(w, offset, kind, cx)?;
         }
     }
     Ok(())
@@ -437,8 +438,8 @@ fn write_expr_as(
         Expr::Call(bytecode, ins, args) => {
             write_generic(w, bytecode, ins, args, cx)?;
         }
-        &Expr::DecompileError(offset, kind) => {
-            write_decomile_error(w, offset, kind)?;
+        &Expr::DecompileError(offset, ref kind) => {
+            write_decomile_error(w, offset, kind, cx)?;
         }
     }
     Ok(())
@@ -565,14 +566,26 @@ fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
 fn write_decomile_error(
     w: &mut impl Write,
     offset: usize,
-    kind: DecompileErrorKind,
+    kind: &DecompileErrorKind,
+    cx: &WriteCx,
 ) -> fmt::Result {
-    let message = match kind {
-        DecompileErrorKind::StackUnderflow => "stack underflow",
-        DecompileErrorKind::WrongBlockExit => "wrong block exit",
-        DecompileErrorKind::Other(msg) => msg,
-    };
-    write!(w, "@DECOMPILE ERROR near 0x{offset:x} {message}")
+    write!(w, "@DECOMPILE ERROR near 0x{offset:x} ")?;
+    match kind {
+        DecompileErrorKind::StackUnderflow => {
+            w.write_str("stack underflow")?;
+        }
+        DecompileErrorKind::StackOrphan(expr) => {
+            w.write_str("stack orphan ")?;
+            write_expr(w, expr, cx)?;
+        }
+        DecompileErrorKind::WrongBlockExit => {
+            w.write_str("wrong block exit")?;
+        }
+        DecompileErrorKind::Other(msg) => {
+            w.write_str(msg)?;
+        }
+    }
+    Ok(())
 }
 
 impl Scope {
