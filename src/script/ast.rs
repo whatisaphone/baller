@@ -18,6 +18,14 @@ pub enum Stmt<'a> {
         max_x: Expr<'a>,
         swap: Expr<'a>,
     },
+    RedimArray {
+        var: Variable,
+        item_size: ItemSize,
+        min_y: Expr<'a>,
+        max_y: Expr<'a>,
+        min_x: Expr<'a>,
+        max_x: Expr<'a>,
+    },
     Assign(Variable, Expr<'a>),
     SetArrayItem(Variable, Expr<'a>, Expr<'a>),
     SetArrayItem2D(Variable, Expr<'a>, Expr<'a>, Expr<'a>),
@@ -187,6 +195,28 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             write_expr(w, max_x, cx)?;
             w.write_str("] swap=")?;
             write_expr(w, swap, cx)?;
+        }
+        Stmt::RedimArray {
+            var,
+            item_size,
+            ref min_y,
+            ref max_y,
+            ref min_x,
+            ref max_x,
+        } => {
+            w.write_str("redim array ")?;
+            write_var(w, var, cx)?;
+            w.write_str(" ")?;
+            w.write_str(format_item_size(item_size))?;
+            w.write_char('[')?;
+            write_expr(w, min_y, cx)?;
+            w.write_str("...")?;
+            write_expr(w, max_y, cx)?;
+            w.write_str("][")?;
+            write_expr(w, min_x, cx)?;
+            w.write_str("...")?;
+            write_expr(w, max_x, cx)?;
+            w.write_char(']')?;
         }
         Stmt::Assign(var, ref expr) => {
             write_var(w, var, cx)?;
@@ -497,6 +527,7 @@ fn write_generic(
 
 fn format_item_size(item_size: ItemSize) -> &'static str {
     match item_size {
+        ItemSize::Bit => "bit",
         ItemSize::Byte => "byte",
         ItemSize::I16 => "i16",
         ItemSize::I32 => "i32",

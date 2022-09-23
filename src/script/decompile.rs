@@ -553,6 +553,15 @@ fn decompile_stmts<'a>(
                 let y = pop!()?;
                 stack.push(Expr::ArrayIndex2D(var, Box::new((y, x))));
             }
+            Ins::StackDupN(count) => {
+                for _ in 0..count {
+                    let expr = stack
+                        .get(stack.len() - usize::from(count))
+                        .ok_or(DecompileError(off, DecompileErrorKind::StackUnderflow))?;
+                    let expr = Box::new(expr.clone());
+                    stack.push(Expr::StackDup(expr));
+                }
+            }
             Ins::StackDup => {
                 // TODO: only constant expressions?
                 stack.push(Expr::StackDup(Box::new(
@@ -650,6 +659,20 @@ fn decompile_stmts<'a>(
                     min_x,
                     max_x,
                     swap,
+                });
+            }
+            Ins::RedimArray2D(item_size, var) => {
+                let max_x = pop!()?;
+                let min_x = pop!()?;
+                let max_y = pop!()?;
+                let min_y = pop!()?;
+                output.push(Stmt::RedimArray {
+                    var,
+                    item_size,
+                    min_y,
+                    max_y,
+                    min_x,
+                    max_x,
                 });
             }
             Ins::Set(var) => {

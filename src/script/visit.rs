@@ -54,6 +54,20 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
             visit.expr(max_x);
             visit.expr(swap);
         }
+        Stmt::RedimArray {
+            var,
+            item_size: _,
+            min_y,
+            max_y,
+            min_x,
+            max_x,
+        } => {
+            visit.var(*var);
+            visit.expr(min_y);
+            visit.expr(max_y);
+            visit.expr(min_x);
+            visit.expr(max_x);
+        }
         Stmt::Assign(var, expr) => {
             visit.var(*var);
             visit.expr(expr);

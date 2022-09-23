@@ -7,6 +7,7 @@ pub enum Ins<'a> {
     Push(Operand<'a>),
     GetArrayItem(Variable),
     GetArrayItem2D(Variable),
+    StackDupN(u16),
     StackDup,
     Not,
     Equal,
@@ -24,6 +25,7 @@ pub enum Ins<'a> {
     PopDiscard,
     In,
     DimArray2D(ItemSize, Variable),
+    RedimArray2D(ItemSize, Variable),
     Set(Variable),
     SetArrayItem(Variable),
     SetArrayItem2D(Variable),
@@ -71,6 +73,7 @@ pub struct Variable(pub u16);
 
 #[derive(Copy, Clone, Debug)]
 pub enum ItemSize {
+    Bit,
     Byte,
     I16,
     I32,
@@ -98,6 +101,7 @@ impl fmt::Display for Ins<'_> {
             Self::Push(op) => write!(f, "push {op}"),
             Self::GetArrayItem(var) => write!(f, "get-array-item {var}"),
             Self::GetArrayItem2D(var) => write!(f, "get-array-item-2d {var}"),
+            Self::StackDupN(count) => write!(f, "stack-dup-n {count}"),
             Self::StackDup => write!(f, "stack-dup"),
             Self::Not => write!(f, "not"),
             Self::Equal => write!(f, "equal"),
@@ -115,6 +119,7 @@ impl fmt::Display for Ins<'_> {
             Self::PopDiscard => write!(f, "pop-discard"),
             Self::In => write!(f, "in"),
             Self::DimArray2D(size, var) => write!(f, "dim-array-2d {var}[{size}]"),
+            Self::RedimArray2D(size, var) => write!(f, "redim-array-2d {var}[{size}]"),
             Self::Set(var) => write!(f, "set {var}"),
             Self::SetArrayItem(var) => write!(f, "set-array-item {var}"),
             Self::SetArrayItem2D(var) => write!(f, "set-array-item-2d {var}"),
@@ -187,6 +192,7 @@ impl fmt::Display for Variable {
 impl fmt::Display for ItemSize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Bit => write!(f, "bit"),
             Self::Byte => write!(f, "byte"),
             Self::I16 => write!(f, "i16"),
             Self::I32 => write!(f, "i32"),
