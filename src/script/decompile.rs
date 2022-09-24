@@ -516,7 +516,7 @@ fn decompile_stmts<'a>(
     code: &'a [u8],
     block: &ControlBlock,
     output: &mut Vec<Stmt<'a>>,
-    exit: BlockExit,
+    expected_exit: BlockExit,
 ) -> Result<Option<Expr<'a>>, DecompileError<'a>> {
     debug_assert!(matches!(block.control, Control::CodeRange));
 
@@ -539,6 +539,25 @@ fn decompile_stmts<'a>(
         (: list) => {
             pop_list(&mut stack)
                 .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
+        };
+    }
+
+    macro_rules! handle_jump {
+        ($target:expr, $expr:expr) => {
+            let target = $target;
+            let expr = $expr;
+
+            if decoder.pos() == block.end {
+                return Ok(finish_block(
+                    expected_exit,
+                    decoder.pos(),
+                    target,
+                    expr,
+                    &mut stack,
+                    output,
+                ));
+            }
+            unfinished_block(decoder.pos(), expr, output);
         };
     }
 
@@ -713,39 +732,18 @@ fn decompile_stmts<'a>(
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                return Ok(finish_block(
-                    exit,
-                    decoder.pos(),
-                    target,
-                    Some(expr),
-                    &mut stack,
-                    output,
-                ));
+                handle_jump!(target, Some(expr));
             }
             Ins::JumpUnless(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
-                return Ok(finish_block(
-                    exit,
-                    decoder.pos(),
-                    target,
-                    Some(expr),
-                    &mut stack,
-                    output,
-                ));
+                handle_jump!(target, Some(expr));
             }
             Ins::Jump(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                return Ok(finish_block(
-                    exit,
-                    decoder.pos(),
-                    target,
-                    None,
-                    &mut stack,
-                    output,
-                ));
+                handle_jump!(target, None);
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
@@ -831,7 +829,7 @@ fn decompile_stmts<'a>(
         }
     }
     Ok(finish_block(
-        exit,
+        expected_exit,
         decoder.pos(),
         decoder.pos(),
         None,
@@ -888,6 +886,19 @@ fn finish_block<'a>(
             )))
         }
     }
+}
+
+fn unfinished_block<'a>(pos: usize, expr: Option<Expr<'a>>, output: &mut Vec<Stmt<'a>>) {
+    if let Some(expr) = expr {
+        output.push(Stmt::DecompileError(
+            pos,
+            DecompileErrorKind::StackOrphan(Box::new(expr)),
+        ));
+    }
+    output.push(Stmt::DecompileError(
+        pos,
+        DecompileErrorKind::WrongBlockExit,
+    ));
 }
 
 #[derive(Copy, Clone)]
