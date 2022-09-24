@@ -154,6 +154,10 @@ fn scan_ctrl(
 ) {
     let control = &controls[ctrl_index];
     debug_assert!(matches!(control.control, Control::CodeRange));
+    if control.start == control.end {
+        return; // ignore empty blocks
+    }
+
     let start_index = basics.get_index_of(&control.start).unwrap();
     let end_index = basic_blocks_get_index_by_end(basics, control.end) + 1;
     for i in start_index..end_index {
@@ -206,7 +210,7 @@ fn build_if(
     let cond_block = &basics[basic_index];
     if !(cond_block.exits.len() == 2
         && cond_block.exits[0] == cond_block.end
-        && cond_block.exits[1] > cond_block.end
+        && cond_block.exits[1] >= cond_block.end
         && cond_block.exits[1] <= parent.end)
     {
         return false;
@@ -1129,6 +1133,22 @@ mod tests {
     global414 = 0
 }
 "#,
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn if_with_empty_body() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(19)?;
+        let out = decompile(&bytecode[0x6d..0x73], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
+        assert_eq!(
+            out,
+            "if (global229) {
+}
+",
         );
         Ok(())
     }
