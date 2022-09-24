@@ -399,14 +399,14 @@ struct While {
 fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> Vec<Stmt<'a>> {
     let mut stmts = Vec::new();
     let entry = &controls[0];
-    match decompile_block(entry, code, controls, &mut stmts) {
-        Ok(BlockExit::Fallthrough) => {}
-        Ok(_) => {
-            stmts.push(Stmt::DecompileError(
-                entry.end,
-                DecompileErrorKind::WrongBlockExit,
-            ));
-        }
+    match decompile_block(
+        entry,
+        code,
+        controls,
+        &mut stmts,
+        BlockExit::Jump(entry.end),
+    ) {
+        Ok(()) => {}
         Err(DecompileError(offset, message)) => {
             stmts.push(Stmt::DecompileError(offset, message));
         }
@@ -421,71 +421,88 @@ fn decompile_block<'a>(
     code: &'a [u8],
     controls: &[ControlBlock],
     stmts: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, DecompileError<'a>> {
+    expected_exit: BlockExit,
+) -> Result<(), DecompileError<'a>> {
+    debug_assert!(matches!(expected_exit, BlockExit::Jump(_))); // not passing expr to caller
+
     match &block.control {
-        Control::CodeRange => decompile_stmts(code, block.start, block.end, stmts),
+        Control::CodeRange => {
+            decompile_stmts(code, block, stmts, expected_exit)?;
+            Ok(())
+        }
         &Control::Sequence(first, second) => {
-            match decompile_block(&controls[first], code, controls, stmts)? {
-                BlockExit::Fallthrough => {}
-                _ => {
-                    stmts.push(Stmt::DecompileError(
-                        controls[first].end,
-                        DecompileErrorKind::WrongBlockExit,
-                    ));
-                }
-            }
-            decompile_block(&controls[second], code, controls, stmts)
+            decompile_block(
+                &controls[first],
+                code,
+                controls,
+                stmts,
+                BlockExit::Jump(controls[first].end),
+            )?;
+            decompile_block(&controls[second], code, controls, stmts, expected_exit)
         }
         Control::If(b) => {
-            let cond_block = &controls[b.condition];
-            debug_assert!(matches!(cond_block.control, Control::CodeRange));
-            let condition = match decompile_stmts(code, cond_block.start, cond_block.end, stmts)? {
-                BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => Expr::DecompileError(cond_block.end, DecompileErrorKind::WrongBlockExit),
-            };
+            let condition = decompile_stmts(
+                code,
+                &controls[b.condition],
+                stmts,
+                BlockExit::JumpUnless(controls[b.true_].end),
+            )?
+            .unwrap();
+
             let mut true_stmts = Vec::new();
-            let mut exit = decompile_block(&controls[b.true_], code, controls, &mut true_stmts)?;
+            let expected = match b.false_ {
+                Some(false_) => controls[false_].end,
+                None => controls[b.true_].end,
+            };
+            decompile_block(
+                &controls[b.true_],
+                code,
+                controls,
+                &mut true_stmts,
+                BlockExit::Jump(expected),
+            )?;
+
             let mut false_stmts = Vec::new();
             if let Some(false_) = b.false_ {
-                // If there's a false, verify the true exit, then decompile the false
-                if !matches!(exit, BlockExit::Jump(_)) {
-                    // TODO: verify jump target?
-                    true_stmts.push(Stmt::DecompileError(
-                        controls[b.true_].end,
-                        DecompileErrorKind::WrongBlockExit,
-                    ));
-                }
-                exit = decompile_block(&controls[false_], code, controls, &mut false_stmts)?;
+                decompile_block(
+                    &controls[false_],
+                    code,
+                    controls,
+                    &mut false_stmts,
+                    BlockExit::Jump(controls[false_].end),
+                )?;
             }
+
             stmts.push(Stmt::If {
                 condition,
                 true_: true_stmts,
                 false_: false_stmts,
             });
-            Ok(exit)
+            Ok(())
         }
         Control::While(b) => {
-            let cond_block = &controls[b.condition];
-            debug_assert!(matches!(cond_block.control, Control::CodeRange));
-            let cond_expr = match decompile_stmts(code, cond_block.start, cond_block.end, stmts)? {
-                BlockExit::JumpUnless(_, expr) => expr, // TODO: verify jump target?
-                _ => Expr::DecompileError(cond_block.end, DecompileErrorKind::WrongBlockExit),
-            };
+            let cond_expr = decompile_stmts(
+                code,
+                &controls[b.condition],
+                stmts,
+                BlockExit::JumpUnless(controls[b.body].end),
+            )?
+            .unwrap();
+
             let mut body_stmts = Vec::new();
-            match decompile_block(&controls[b.body], code, controls, &mut body_stmts)? {
-                BlockExit::Jump(_) => {} // TODO: verify jump target?
-                _ => {
-                    stmts.push(Stmt::DecompileError(
-                        cond_block.end,
-                        DecompileErrorKind::WrongBlockExit,
-                    ));
-                }
-            }
+            decompile_block(
+                &controls[b.body],
+                code,
+                controls,
+                &mut body_stmts,
+                BlockExit::Jump(controls[b.condition].start),
+            )?;
+
             stmts.push(Stmt::While {
                 condition: cond_expr,
                 body: body_stmts,
             });
-            Ok(BlockExit::Fallthrough)
+            Ok(())
         }
     }
 }
@@ -493,15 +510,17 @@ fn decompile_block<'a>(
 #[allow(clippy::too_many_lines)]
 fn decompile_stmts<'a>(
     code: &'a [u8],
-    block_start: usize,
-    block_end: usize,
+    block: &ControlBlock,
     output: &mut Vec<Stmt<'a>>,
-) -> Result<BlockExit<'a>, DecompileError<'a>> {
+    exit: BlockExit,
+) -> Result<Option<Expr<'a>>, DecompileError<'a>> {
+    debug_assert!(matches!(block.control, Control::CodeRange));
+
     let mut stack = Vec::new();
     let mut string_stack = Vec::new();
 
     let decoder = Decoder::new(code);
-    decoder.set_pos(block_start);
+    decoder.set_pos(block.start);
 
     macro_rules! pop {
         () => {
@@ -519,18 +538,7 @@ fn decompile_stmts<'a>(
         };
     }
 
-    macro_rules! final_checks {
-        () => {
-            while let Some(expr) = stack.pop() {
-                output.push(Stmt::DecompileError(
-                    decoder.pos(),
-                    DecompileErrorKind::StackOrphan(Box::new(expr)),
-                ));
-            }
-        };
-    }
-
-    while decoder.pos() < block_end {
+    while decoder.pos() < block.end {
         let (off, ins) = decoder.next().ok_or_else(|| {
             DecompileError(decoder.pos(), DecompileErrorKind::Other("opcode decode"))
         })?;
@@ -701,40 +709,38 @@ fn decompile_stmts<'a>(
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                if decoder.pos() == block_end {
-                    final_checks!();
-                    return Ok(BlockExit::JumpUnless(target, expr));
-                }
-                // TODO: popped expr is swallowed here, emit it somehow
-                output.push(Stmt::DecompileError(
-                    off,
-                    DecompileErrorKind::WrongBlockExit,
+                return Ok(finish_block(
+                    exit,
+                    decoder.pos(),
+                    target,
+                    Some(expr),
+                    &mut stack,
+                    output,
                 ));
             }
             Ins::JumpUnless(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
-                if decoder.pos() == block_end {
-                    final_checks!();
-                    return Ok(BlockExit::JumpUnless(target, expr));
-                }
-                // TODO: popped expr is swallowed here, emit it somehow
-                output.push(Stmt::DecompileError(
-                    off,
-                    DecompileErrorKind::WrongBlockExit,
+                return Ok(finish_block(
+                    exit,
+                    decoder.pos(),
+                    target,
+                    Some(expr),
+                    &mut stack,
+                    output,
                 ));
             }
             Ins::Jump(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                if decoder.pos() == block_end {
-                    final_checks!();
-                    return Ok(BlockExit::Jump(target));
-                }
-                output.push(Stmt::DecompileError(
-                    off,
-                    DecompileErrorKind::WrongBlockExit,
+                return Ok(finish_block(
+                    exit,
+                    decoder.pos(),
+                    target,
+                    None,
+                    &mut stack,
+                    output,
                 ));
             }
             Ins::AssignString(var) => {
@@ -820,14 +826,14 @@ fn decompile_stmts<'a>(
             }
         }
     }
-    if decoder.pos() != block_end {
-        output.push(Stmt::DecompileError(
-            decoder.pos(),
-            DecompileErrorKind::WrongBlockExit,
-        ));
-    }
-    final_checks!();
-    Ok(BlockExit::Fallthrough)
+    Ok(finish_block(
+        exit,
+        decoder.pos(),
+        decoder.pos(),
+        None,
+        &mut stack,
+        output,
+    ))
 }
 
 fn operand_to_expr<'a>(operand: &Operand<'a>) -> Expr<'a> {
@@ -840,10 +846,50 @@ fn operand_to_expr<'a>(operand: &Operand<'a>) -> Expr<'a> {
     }
 }
 
-enum BlockExit<'a> {
-    Fallthrough,
+fn finish_block<'a>(
+    expected_exit: BlockExit,
+    pos: usize,
+    target: usize,
+    expr: Option<Expr<'a>>,
+    stack: &mut Vec<Expr<'a>>,
+    output: &mut Vec<Stmt<'a>>,
+) -> Option<Expr<'a>> {
+    while let Some(expr) = stack.pop() {
+        output.push(Stmt::DecompileError(
+            pos,
+            DecompileErrorKind::StackOrphan(Box::new(expr)),
+        ));
+    }
+
+    match expected_exit {
+        BlockExit::Jump(expected_target) => {
+            if target != expected_target || expr.is_some() {
+                output.push(Stmt::DecompileError(
+                    pos,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
+            }
+            None
+        }
+        BlockExit::JumpUnless(expected_target) => {
+            if target != expected_target {
+                output.push(Stmt::DecompileError(
+                    pos,
+                    DecompileErrorKind::WrongBlockExit,
+                ));
+            }
+            Some(expr.unwrap_or(Expr::DecompileError(
+                pos,
+                DecompileErrorKind::WrongBlockExit,
+            )))
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+enum BlockExit {
     Jump(usize),
-    JumpUnless(usize, Expr<'a>),
+    JumpUnless(usize),
 }
 
 fn pop_string<'a>(stack: &mut Vec<Expr>, string_stack: &mut Vec<&'a [u8]>) -> Option<Expr<'a>> {
