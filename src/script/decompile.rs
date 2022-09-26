@@ -193,7 +193,7 @@ fn split_ctrl_range(index: usize, mid: usize, controls: &mut Vec<ControlBlock>) 
 
     trace!("split #{index} into #{out1}+#{out2} 0x{start:x}..0x{mid:x}..0x{end:x}");
 
-    controls[index].control = Control::Sequence(out1, out2);
+    controls[index].control = Control::Sequence(vec![out1, out2]);
     (out1, out2)
 }
 
@@ -287,10 +287,13 @@ fn build_else(
         "building else",
     );
 
-    let (first, second) = match controls[parent_index].control {
-        Control::Sequence(first, second) => (first, second),
+    let children = match &controls[parent_index].control {
+        Control::Sequence(children) => (children),
         _ => unreachable!(),
     };
+    debug_assert!(children.len() == 2);
+    let first = children[0];
+    let second = children[1];
     debug_assert!(first == if_index);
     debug_assert!(matches!(controls[first].control, Control::If { .. }));
     debug_assert!(matches!(controls[second].control, Control::CodeRange));
@@ -382,7 +385,7 @@ struct ControlBlock {
 #[derive(Debug)]
 enum Control {
     CodeRange,
-    Sequence(usize, usize),
+    Sequence(Vec<usize>),
     If(If),
     While(While),
 }
@@ -434,15 +437,23 @@ fn decompile_block<'a>(
             decompile_stmts(code, block, stmts, expected_exit)?;
             Ok(())
         }
-        &Control::Sequence(first, second) => {
+        Control::Sequence(children) => {
+            for &i in &children[..children.len() - 1] {
+                decompile_block(
+                    &controls[i],
+                    code,
+                    controls,
+                    stmts,
+                    BlockExit::Jump(controls[i].end),
+                )?;
+            }
             decompile_block(
-                &controls[first],
+                &controls[*children.last().unwrap()],
                 code,
                 controls,
                 stmts,
-                BlockExit::Jump(controls[first].end),
-            )?;
-            decompile_block(&controls[second], code, controls, stmts, expected_exit)
+                expected_exit,
+            )
         }
         Control::If(b) => {
             let condition = decompile_stmts(
