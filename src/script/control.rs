@@ -48,6 +48,13 @@ pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<Con
     while let Some(index) = work.pop() {
         scan_ctrl(index, basics, &mut controls, &mut work);
     }
+
+    work.push(0);
+
+    while let Some(index) = work.pop() {
+        flatten_sequences(index, &mut controls, &mut work);
+    }
+
     controls
 }
 
@@ -270,6 +277,66 @@ fn build_while(
     work.push(after);
 
     true
+}
+
+fn flatten_sequences(index: usize, controls: &mut Vec<ControlBlock>, work: &mut Vec<usize>) {
+    match &mut controls[index].control {
+        Control::CodeRange => {}
+        Control::Sequence(_) => {
+            let mut sink = Vec::new();
+
+            flatten_sequence(index, &mut sink, controls, work);
+
+            match &mut controls[index].control {
+                Control::Sequence(ch) => *ch = sink,
+                _ => unreachable!(),
+            }
+        }
+        Control::If(b) => {
+            work.push(b.condition);
+            work.push(b.true_);
+            work.extend(b.false_);
+        }
+        Control::While(b) => {
+            work.push(b.condition);
+            work.push(b.body);
+        }
+    }
+}
+
+fn flatten_sequence(
+    index: usize,
+    sink: &mut Vec<usize>,
+    controls: &[ControlBlock],
+    work: &mut Vec<usize>,
+) {
+    // Recurse into sequences
+
+    if let Control::Sequence(children) = &controls[index].control {
+        for &child in children {
+            flatten_sequence(child, sink, controls, work);
+        }
+        return;
+    }
+
+    // All other types are stored in the current sequence, then added to the work
+    // queue.
+
+    sink.push(index);
+
+    match &controls[index].control {
+        Control::Sequence(_) => unreachable!(),
+        Control::CodeRange => {}
+        Control::If(b) => {
+            work.push(b.condition);
+            work.push(b.true_);
+            work.extend(b.false_);
+        }
+        Control::While(b) => {
+            work.push(b.condition);
+            work.push(b.body);
+        }
+    }
 }
 
 struct AddrRange(Range<usize>);
