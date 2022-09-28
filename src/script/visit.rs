@@ -100,6 +100,10 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
             visit.expr(condition);
             visit.stmts(body);
         }
+        Stmt::Do { body, condition } => {
+            visit.stmts(body);
+            visit.expr(condition);
+        }
         Stmt::Case { value, cases } => {
             visit.expr(value);
             for case in cases {

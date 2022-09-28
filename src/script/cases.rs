@@ -26,7 +26,7 @@ pub fn build_cases(stmts: &mut Vec<Stmt>) {
                 build_cases(true_);
                 build_cases(false_);
             }
-            Stmt::While { condition: _, body } => {
+            Stmt::While { condition: _, body } | Stmt::Do { body, condition: _ } => {
                 build_cases(body);
             }
             Stmt::Case { value: _, cases } => {

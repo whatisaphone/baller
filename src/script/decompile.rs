@@ -203,6 +203,46 @@ mod tests {
     }
 
     #[test]
+    fn do_until() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(46)?;
+        let out = decompile(&bytecode[0xc9..0xde], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
+        assert_eq!(
+            out,
+            "do {
+    local13 = local0[local7]
+    local7--
+} until (local13 == 32)
+",
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn do_until_containing_if() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(337)?;
+        let out = decompile(&bytecode[0x128..0x145], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
+        assert_eq!(
+            out,
+            "do {
+    if (!global577) {
+        global577 = global677
+    } else {
+        global677 = global577
+    }
+    stop-script
+} until (global577)
+",
+        );
+        Ok(())
+    }
+
+    #[test]
     fn call_scripts_by_name() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let mut config = Config::from_ini("script.80 = test")?;

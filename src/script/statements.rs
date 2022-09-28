@@ -25,6 +25,7 @@ pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> Vec<Stmt<'a>>
 
 struct DecompileError<'a>(usize, DecompileErrorKind<'a>);
 
+#[allow(clippy::too_many_lines)]
 fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
@@ -118,6 +119,30 @@ fn decompile_block<'a>(
             stmts.push(Stmt::While {
                 condition: cond_expr,
                 body: body_stmts,
+            });
+            Ok(())
+        }
+        Control::Do(b) => {
+            let mut body_stmts = Vec::new();
+            decompile_block(
+                &controls[b.body],
+                code,
+                controls,
+                &mut body_stmts,
+                BlockExit::Jump(controls[b.condition].start),
+            )?;
+
+            let cond_expr = decompile_stmts(
+                code,
+                &controls[b.condition],
+                &mut body_stmts,
+                BlockExit::JumpUnless(controls[b.body].start),
+            )?
+            .unwrap();
+
+            stmts.push(Stmt::Do {
+                body: body_stmts,
+                condition: cond_expr,
             });
             Ok(())
         }
