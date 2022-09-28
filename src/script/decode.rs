@@ -660,7 +660,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x89 => ins!([0x1c, 0x89], name = "image-x89", args = [int]),
         0x9a => ins!([0x1c, 0x9a], name = "image-x9a", args = [int, int]),
         0xd9 => ins!([0x1c, 0xd9], name = "image-xd9"),
-        0xf6 => ins!([0x1c, 0xf6], name = "image-xf6"),
+        0xf6 => ins!([0x1c, 0xf6], name = "image-xf6", args = [int]),
         0xff => ins!([0x1c, 0xff], name = "image-xff"),
         _ => None,
     }
