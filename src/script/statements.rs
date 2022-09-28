@@ -17,7 +17,8 @@ pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> StmtBlock<'a>
     ) {
         Ok(()) => {}
         Err(DecompileError(offset, message)) => {
-            block.stmts.push(Stmt::DecompileError(offset, message));
+            // TODO: address
+            block.push(usize::MAX, Stmt::DecompileError(offset, message));
         }
     }
     block
@@ -91,7 +92,7 @@ fn decompile_block<'a>(
                 )?;
             }
 
-            out.stmts.push(Stmt::If {
+            out.push(block.start, Stmt::If {
                 condition,
                 true_: true_block,
                 false_: false_block,
@@ -116,7 +117,7 @@ fn decompile_block<'a>(
                 BlockExit::Jump(controls[b.condition].start),
             )?;
 
-            out.stmts.push(Stmt::While {
+            out.push(block.start, Stmt::While {
                 condition: cond_expr,
                 body,
             });
@@ -151,7 +152,7 @@ fn decompile_block<'a>(
                 }
             };
 
-            out.stmts.push(Stmt::Do {
+            out.push(block.start, Stmt::Do {
                 body: body_block,
                 condition: cond_expr,
             });
@@ -192,21 +193,22 @@ fn decompile_stmts<'a>(
     }
 
     macro_rules! handle_jump {
-        ($target:expr, $expr:expr) => {
+        ($off:expr, $target:expr, $expr:expr) => {
+            let off = $off;
             let target = $target;
             let expr = $expr;
 
             if decoder.pos() == block.end {
                 return Ok(finish_block(
                     expected_exit,
-                    decoder.pos(),
+                    off,
                     target,
                     expr,
                     &mut stack,
                     out,
                 ));
             }
-            append_goto(target, expr, out);
+            append_goto(off, target, expr, out);
         };
     }
 
@@ -314,10 +316,10 @@ fn decompile_stmts<'a>(
             }
             Ins::PopDiscard => {
                 if pop!().is_err() {
-                    out.stmts.push(Stmt::DecompileError(
+                    out.push(
                         off,
-                        DecompileErrorKind::StackUnderflow,
-                    ));
+                        Stmt::DecompileError(off, DecompileErrorKind::StackUnderflow),
+                    );
                 }
             }
             Ins::In => {
@@ -331,7 +333,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                out.stmts.push(Stmt::DimArray {
+                out.push(off, Stmt::DimArray {
                     var,
                     item_size,
                     min_y,
@@ -346,7 +348,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                out.stmts.push(Stmt::RedimArray {
+                out.push(off, Stmt::RedimArray {
                     var,
                     item_size,
                     min_y,
@@ -357,47 +359,46 @@ fn decompile_stmts<'a>(
             }
             Ins::Set(var) => {
                 let expr = pop!()?;
-                out.stmts.push(Stmt::Assign(var, expr));
+                out.push(off, Stmt::Assign(var, expr));
             }
             Ins::SetArrayItem(var) => {
                 let value = pop!()?;
                 let index = pop!()?;
-                out.stmts.push(Stmt::SetArrayItem(var, index, value));
+                out.push(off, Stmt::SetArrayItem(var, index, value));
             }
             Ins::SetArrayItem2D(var) => {
                 let value = pop!()?;
                 let index_x = pop!()?;
                 let index_y = pop!()?;
-                out.stmts
-                    .push(Stmt::SetArrayItem2D(var, index_y, index_x, value));
+                out.push(off, Stmt::SetArrayItem2D(var, index_y, index_x, value));
             }
             Ins::Inc(var) => {
-                out.stmts.push(Stmt::Inc(var));
+                out.push(off, Stmt::Inc(var));
             }
             Ins::Dec(var) => {
-                out.stmts.push(Stmt::Dec(var));
+                out.push(off, Stmt::Dec(var));
             }
             Ins::JumpIf(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                handle_jump!(target, Some(expr));
+                handle_jump!(off, target, Some(expr));
             }
             Ins::JumpUnless(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
-                handle_jump!(target, Some(expr));
+                handle_jump!(off, target, Some(expr));
             }
             Ins::Jump(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                handle_jump!(target, None);
+                handle_jump!(off, target, None);
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
-                out.stmts.push(Stmt::Assign(var, expr));
+                out.push(off, Stmt::Assign(var, expr));
             }
             Ins::Sprintf(var) => {
                 let mut args = pop!(:list)?;
@@ -407,7 +408,7 @@ fn decompile_stmts<'a>(
                     _ => unreachable!(),
                 }
                 let format = pop!(:string)?;
-                out.stmts.push(Stmt::Generic {
+                out.push(off, Stmt::Generic {
                     bytecode: bytearray![0xa4, 0xc2],
                     ins: &GenericIns {
                         name: Some("sprintf"),
@@ -419,7 +420,7 @@ fn decompile_stmts<'a>(
             }
             Ins::DimArray1DSimple(item_size, var) => {
                 let max_x = pop!()?;
-                out.stmts.push(Stmt::DimArray {
+                out.push(off, Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -432,7 +433,7 @@ fn decompile_stmts<'a>(
             Ins::DimArray2DSimple(item_size, var) => {
                 let max_x = pop!()?;
                 let max_y = pop!()?;
-                out.stmts.push(Stmt::DimArray {
+                out.push(off, Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -469,7 +470,7 @@ fn decompile_stmts<'a>(
                 if ins.returns_value {
                     stack.push(Expr::Call(bytecode, ins, args));
                 } else {
-                    out.stmts.push(Stmt::Generic {
+                    out.push(off, Stmt::Generic {
                         bytecode,
                         ins,
                         args,
@@ -507,10 +508,10 @@ fn finish_block<'a>(
     out: &mut StmtBlock<'a>,
 ) -> Option<Expr<'a>> {
     while let Some(expr) = stack.pop() {
-        out.stmts.push(Stmt::DecompileError(
+        out.push(
             pos,
-            DecompileErrorKind::StackOrphan(Box::new(expr)),
-        ));
+            Stmt::DecompileError(pos, DecompileErrorKind::StackOrphan(Box::new(expr))),
+        );
     }
 
     let actual_exit = match expr {
@@ -519,7 +520,7 @@ fn finish_block<'a>(
     };
 
     if actual_exit != expected_exit {
-        append_goto(target, expr.take(), out);
+        append_goto(pos, target, expr.take(), out);
     }
 
     match expected_exit {
@@ -533,15 +534,16 @@ fn finish_block<'a>(
     }
 }
 
-fn append_goto<'a>(target: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
+fn append_goto<'a>(pos: usize, target: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
     match expr {
         None => {
-            out.stmts.push(Stmt::Goto(target));
+            out.push(pos, Stmt::Goto(target));
         }
         Some(expr) => {
-            out.stmts.push(Stmt::If {
+            out.push(pos, Stmt::If {
                 condition: Expr::Not(Box::new(expr)),
                 true_: StmtBlock {
+                    addrs: vec![pos],
                     stmts: vec![Stmt::Goto(target)],
                 },
                 false_: StmtBlock::default(),

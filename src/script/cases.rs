@@ -12,7 +12,7 @@ pub fn build_cases(block: &mut StmtBlock) {
         {
             // Cases are always paired with a stack error which we can remove once the
             // pattern is recognized.
-            block.stmts.remove(i - 1);
+            block.remove(i - 1);
             i -= 1;
             build_case(&mut block.stmts[i]);
         }
@@ -124,7 +124,7 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
         true_.stmts.first(),
         Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
     ));
-    true_.stmts.remove(0);
+    true_.remove(0);
 
     cases.push(Case {
         cond,
@@ -141,7 +141,7 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
         false_.stmts[0],
         Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
     ));
-    false_.stmts.remove(0);
+    false_.remove(0);
     if !false_.stmts.is_empty() {
         cases.push(Case {
             cond: CaseCond::Else,

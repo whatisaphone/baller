@@ -10,6 +10,7 @@ use std::{fmt, fmt::Write};
 
 #[derive(Default)]
 pub struct StmtBlock<'a> {
+    pub addrs: Vec<usize>,
     pub stmts: Vec<Stmt<'a>>,
 }
 
@@ -129,6 +130,18 @@ enum EmitAs {
     Script,
 }
 
+impl<'a> StmtBlock<'a> {
+    pub fn push(&mut self, addr: usize, stmt: Stmt<'a>) {
+        self.addrs.push(addr);
+        self.stmts.push(stmt);
+    }
+
+    pub fn remove(&mut self, index: usize) {
+        self.addrs.remove(index);
+        self.stmts.remove(index);
+    }
+}
+
 const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
 
 pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fmt::Result {
@@ -176,6 +189,7 @@ pub fn write_block(
     indent: usize,
     cx: &WriteCx,
 ) -> fmt::Result {
+    debug_assert!(block.stmts.len() == block.addrs.len());
     for stmt in &block.stmts {
         write_indent(w, indent)?;
         write_stmt(w, stmt, indent, cx)?;

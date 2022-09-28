@@ -22,10 +22,13 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     build_cases(&mut ast);
 
     if decode_extent != code.len() {
-        ast.stmts.push(Stmt::DecompileError(
+        ast.push(
             decode_extent,
-            DecompileErrorKind::Other("incomplete decode"),
-        ));
+            Stmt::DecompileError(
+                decode_extent,
+                DecompileErrorKind::Other("incomplete decode"),
+            ),
+        );
     }
 
     let locals = collect_locals(&ast);
