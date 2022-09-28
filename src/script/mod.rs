@@ -7,6 +7,7 @@ mod control;
 mod cursor;
 mod decode;
 mod decompile;
+mod goto;
 mod ins;
 mod misc;
 mod statements;

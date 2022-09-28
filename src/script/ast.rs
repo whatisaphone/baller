@@ -38,6 +38,7 @@ pub enum Stmt<'a> {
     Inc(Variable),
     Dec(Variable),
     Goto(usize),
+    Label,
     If {
         condition: Expr<'a>,
         true_: StmtBlock<'a>,
@@ -136,6 +137,11 @@ impl<'a> StmtBlock<'a> {
         self.stmts.push(stmt);
     }
 
+    pub fn insert(&mut self, index: usize, addr: usize, stmt: Stmt<'a>) {
+        self.addrs.insert(index, addr);
+        self.stmts.insert(index, stmt);
+    }
+
     pub fn remove(&mut self, index: usize) {
         self.addrs.remove(index);
         self.stmts.remove(index);
@@ -190,16 +196,21 @@ pub fn write_block(
     cx: &WriteCx,
 ) -> fmt::Result {
     debug_assert!(block.stmts.len() == block.addrs.len());
-    for stmt in &block.stmts {
-        write_indent(w, indent)?;
-        write_stmt(w, stmt, indent, cx)?;
+    for i in 0..block.stmts.len() {
+        write_stmt(w, block.addrs[i], &block.stmts[i], indent, cx)?;
         writeln!(w)?;
     }
     Ok(())
 }
 
 #[allow(clippy::too_many_lines)]
-fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> fmt::Result {
+fn write_stmt(
+    w: &mut impl Write,
+    addr: usize,
+    stmt: &Stmt,
+    indent: usize,
+    cx: &WriteCx,
+) -> fmt::Result {
     match *stmt {
         Stmt::DimArray {
             var,
@@ -210,6 +221,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref max_x,
             ref swap,
         } => {
+            write_indent(w, indent)?;
             w.write_str("dim array ")?;
             write_var(w, var, cx)?;
             w.write_str(" ")?;
@@ -233,6 +245,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref min_x,
             ref max_x,
         } => {
+            write_indent(w, indent)?;
             w.write_str("redim array ")?;
             write_var(w, var, cx)?;
             w.write_str(" ")?;
@@ -248,11 +261,13 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             w.write_char(']')?;
         }
         Stmt::Assign(var, ref expr) => {
+            write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_str(" = ")?;
             write_expr(w, expr, cx)?;
         }
         Stmt::SetArrayItem(var, ref index, ref value) => {
+            write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
             write_expr(w, index, cx)?;
@@ -260,6 +275,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             write_expr(w, value, cx)?;
         }
         Stmt::SetArrayItem2D(var, ref index_y, ref index_x, ref value) => {
+            write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
             write_expr(w, index_y, cx)?;
@@ -269,21 +285,30 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             write_expr(w, value, cx)?;
         }
         Stmt::Inc(var) => {
+            write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_str("++")?;
         }
         Stmt::Dec(var) => {
+            write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_str("--")?;
         }
         Stmt::Goto(target) => {
-            write!(w, "goto 0x{target:x}")?;
+            write_indent(w, indent)?;
+            w.write_str("goto ")?;
+            write_label(w, target)?;
+        }
+        Stmt::Label => {
+            write_label(w, addr)?;
+            w.write_char(':')?;
         }
         Stmt::If {
             ref condition,
             ref true_,
             ref false_,
         } => {
+            write_indent(w, indent)?;
             w.write_str("if (")?;
             write_expr(w, condition, cx)?;
             writeln!(w, ") {{")?;
@@ -300,6 +325,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref value,
             ref cases,
         } => {
+            write_indent(w, indent)?;
             w.write_str("case ")?;
             write_expr(w, value, cx)?;
             writeln!(w, " {{")?;
@@ -330,6 +356,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref condition,
             ref body,
         } => {
+            write_indent(w, indent)?;
             w.write_str("while (")?;
             write_expr(w, condition, cx)?;
             writeln!(w, ") {{")?;
@@ -341,6 +368,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref body,
             ref condition,
         } => {
+            write_indent(w, indent)?;
             writeln!(w, "do {{")?;
             write_block(w, body, indent + 1, cx)?;
             write_indent(w, indent)?;
@@ -356,9 +384,11 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ins,
             ref args,
         } => {
+            write_indent(w, indent)?;
             write_generic(w, bytecode, ins, args, cx)?;
         }
         Stmt::DecompileError(offset, ref kind) => {
+            write_indent(w, indent)?;
             write_decomile_error(w, offset, kind, cx)?;
         }
     }
@@ -636,6 +666,10 @@ fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
             None // TODO
         }
     }
+}
+
+fn write_label(w: &mut impl Write, addr: usize) -> fmt::Result {
+    write!(w, "label{addr:04x}")
 }
 
 fn write_decomile_error(

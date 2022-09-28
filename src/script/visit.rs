@@ -5,15 +5,15 @@ use crate::script::{
 
 pub trait Visitor: AsVisitor {
     fn block(&mut self, block: &StmtBlock) {
-        visit_block(block, self.as_visit_mut());
+        default_visit_block(block, self.as_visit_mut());
     }
 
     fn stmt(&mut self, stmt: &Stmt) {
-        visit_stmt(stmt, self.as_visit_mut());
+        default_visit_stmt(stmt, self.as_visit_mut());
     }
 
     fn expr(&mut self, expr: &Expr) {
-        visit_expr(expr, self.as_visit_mut());
+        default_visit_expr(expr, self.as_visit_mut());
     }
 
     #[allow(unused_variables)]
@@ -30,13 +30,14 @@ impl<V: Visitor> AsVisitor for V {
     }
 }
 
-fn visit_block(block: &StmtBlock, visit: &mut dyn Visitor) {
+fn default_visit_block(block: &StmtBlock, visit: &mut dyn Visitor) {
     for s in &block.stmts {
         visit.stmt(s);
     }
 }
 
-fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
+pub fn default_visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
+    #[allow(clippy::match_same_arms)]
     match stmt {
         Stmt::DimArray {
             var,
@@ -86,7 +87,7 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
         Stmt::Inc(var) | Stmt::Dec(var) => {
             visit.var(*var);
         }
-        Stmt::Goto(_target) => {}
+        Stmt::Label | Stmt::Goto(_) => {}
         Stmt::If {
             condition,
             true_,
@@ -129,7 +130,7 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
     }
 }
 
-fn visit_expr(expr: &Expr, visit: &mut dyn Visitor) {
+fn default_visit_expr(expr: &Expr, visit: &mut dyn Visitor) {
     match expr {
         &Expr::Variable(var) => {
             visit.var(var);

@@ -5,6 +5,7 @@ use crate::{
         basic::find_basic_blocks,
         cases::build_cases,
         control::build_control_structures,
+        goto::add_labels_for_gotos,
         ins::Variable,
         statements::build_ast,
         visit::Visitor,
@@ -20,6 +21,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     let controls = build_control_structures(&blocks);
     let mut ast = build_ast(&controls, code);
     build_cases(&mut ast);
+    add_labels_for_gotos(&mut ast);
 
     if decode_extent != code.len() {
         ast.push(
