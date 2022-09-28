@@ -384,12 +384,7 @@ fn scan_loops(
             work.push(b.condition);
             work.push(b.body);
         }
-        Control::Do(b) => {
-            work.push(b.body);
-            if let Some(condition) = b.condition {
-                work.push(condition);
-            }
-        }
+        Control::Do(_) => {}
     }
 }
 
@@ -416,6 +411,7 @@ fn scan_loops_in_sequence(
                 for i in basic_start..=basic_end {
                     if let Some(build) = scan_do(index, i, controls, basics) {
                         build_do(index, build, controls);
+                        work.push(index); // Scan for later loops in same sequence
                         return;
                     }
                 }
@@ -430,12 +426,7 @@ fn scan_loops_in_sequence(
                 work.push(b.condition);
                 work.push(b.body);
             }
-            Control::Do(b) => {
-                work.push(b.body);
-                if let Some(condition) = b.condition {
-                    work.push(condition);
-                }
-            }
+            Control::Do(_) => {}
         }
     }
 }
