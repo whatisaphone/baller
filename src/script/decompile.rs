@@ -1,7 +1,7 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_preamble, write_stmts, DecompileErrorKind, Scope, Stmt, WriteCx},
+        ast::{write_block, write_preamble, DecompileErrorKind, Scope, Stmt, StmtBlock, WriteCx},
         basic::find_basic_blocks,
         cases::build_cases,
         control::build_control_structures,
@@ -22,7 +22,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     build_cases(&mut ast);
 
     if decode_extent != code.len() {
-        ast.push(Stmt::DecompileError(
+        ast.stmts.push(Stmt::DecompileError(
             decode_extent,
             DecompileErrorKind::Other("incomplete decode"),
         ));
@@ -35,11 +35,11 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     if !config.suppress_preamble {
         write_preamble(&mut output, &locals, &cx).unwrap();
     }
-    write_stmts(&mut output, &ast, 0, &cx).unwrap();
+    write_block(&mut output, &ast, 0, &cx).unwrap();
     output
 }
 
-fn collect_locals(stmts: &[Stmt]) -> Vec<Variable> {
+fn collect_locals(block: &StmtBlock) -> Vec<Variable> {
     struct CollectLocals {
         out: Vec<Variable>,
     }
@@ -60,7 +60,7 @@ fn collect_locals(stmts: &[Stmt]) -> Vec<Variable> {
     let mut locals = CollectLocals {
         out: Vec::with_capacity(16),
     };
-    locals.stmts(stmts);
+    locals.block(block);
 
     locals.out.sort_unstable_by_key(|v| v.0);
     locals.out.dedup_by_key(|v| v.0);

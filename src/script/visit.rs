@@ -1,11 +1,11 @@
 use crate::script::{
-    ast::{CaseCond, Expr, Stmt},
+    ast::{CaseCond, Expr, Stmt, StmtBlock},
     ins::Variable,
 };
 
 pub trait Visitor: AsVisitor {
-    fn stmts(&mut self, stmts: &[Stmt]) {
-        visit_stmts(stmts, self.as_visit_mut());
+    fn block(&mut self, block: &StmtBlock) {
+        visit_block(block, self.as_visit_mut());
     }
 
     fn stmt(&mut self, stmt: &Stmt) {
@@ -30,8 +30,8 @@ impl<V: Visitor> AsVisitor for V {
     }
 }
 
-fn visit_stmts(stmts: &[Stmt], visit: &mut dyn Visitor) {
-    for s in stmts {
+fn visit_block(block: &StmtBlock, visit: &mut dyn Visitor) {
+    for s in &block.stmts {
         visit.stmt(s);
     }
 }
@@ -93,15 +93,15 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
             false_,
         } => {
             visit.expr(condition);
-            visit.stmts(true_);
-            visit.stmts(false_);
+            visit.block(true_);
+            visit.block(false_);
         }
         Stmt::While { condition, body } => {
             visit.expr(condition);
-            visit.stmts(body);
+            visit.block(body);
         }
         Stmt::Do { body, condition } => {
-            visit.stmts(body);
+            visit.block(body);
             if let Some(condition) = condition {
                 visit.expr(condition);
             }
@@ -113,7 +113,7 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
                     CaseCond::Eq(x) | CaseCond::In(x) => visit.expr(x),
                     CaseCond::Else => {}
                 }
-                visit.stmts(&case.body);
+                visit.block(&case.body);
             }
         }
         Stmt::Generic {

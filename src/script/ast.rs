@@ -8,6 +8,11 @@ use crate::{
 };
 use std::{fmt, fmt::Write};
 
+#[derive(Default)]
+pub struct StmtBlock<'a> {
+    pub stmts: Vec<Stmt<'a>>,
+}
+
 pub enum Stmt<'a> {
     DimArray {
         var: Variable,
@@ -35,15 +40,15 @@ pub enum Stmt<'a> {
     Goto(usize),
     If {
         condition: Expr<'a>,
-        true_: Vec<Stmt<'a>>,
-        false_: Vec<Stmt<'a>>,
+        true_: StmtBlock<'a>,
+        false_: StmtBlock<'a>,
     },
     While {
         condition: Expr<'a>,
-        body: Vec<Stmt<'a>>,
+        body: StmtBlock<'a>,
     },
     Do {
-        body: Vec<Stmt<'a>>,
+        body: StmtBlock<'a>,
         condition: Option<Expr<'a>>,
     },
     Case {
@@ -68,7 +73,7 @@ pub enum DecompileErrorKind<'a> {
 
 pub struct Case<'a> {
     pub cond: CaseCond<'a>,
-    pub body: Vec<Stmt<'a>>,
+    pub body: StmtBlock<'a>,
 }
 
 pub enum CaseCond<'a> {
@@ -166,8 +171,13 @@ pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fm
     Ok(())
 }
 
-pub fn write_stmts(w: &mut impl Write, stmts: &[Stmt], indent: usize, cx: &WriteCx) -> fmt::Result {
-    for stmt in stmts {
+pub fn write_block(
+    w: &mut impl Write,
+    block: &StmtBlock,
+    indent: usize,
+    cx: &WriteCx,
+) -> fmt::Result {
+    for stmt in &block.stmts {
         write_indent(w, indent)?;
         write_stmt(w, stmt, indent, cx)?;
         writeln!(w)?;
@@ -264,11 +274,11 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             w.write_str("if (")?;
             write_expr(w, condition, cx)?;
             writeln!(w, ") {{")?;
-            write_stmts(w, true_, indent + 1, cx)?;
-            if !false_.is_empty() {
+            write_block(w, true_, indent + 1, cx)?;
+            if !false_.stmts.is_empty() {
                 write_indent(w, indent)?;
                 writeln!(w, "}} else {{")?;
-                write_stmts(w, false_, indent + 1, cx)?;
+                write_block(w, false_, indent + 1, cx)?;
             }
             write_indent(w, indent)?;
             write!(w, "}}")?;
@@ -296,7 +306,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
                     }
                 }
                 writeln!(w, " {{")?;
-                write_stmts(w, &case.body, indent + 2, cx)?;
+                write_block(w, &case.body, indent + 2, cx)?;
                 write_indent(w, indent + 1)?;
                 writeln!(w, "}}")?;
             }
@@ -310,7 +320,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             w.write_str("while (")?;
             write_expr(w, condition, cx)?;
             writeln!(w, ") {{")?;
-            write_stmts(w, body, indent + 1, cx)?;
+            write_block(w, body, indent + 1, cx)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
         }
@@ -319,7 +329,7 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             ref condition,
         } => {
             writeln!(w, "do {{")?;
-            write_stmts(w, body, indent + 1, cx)?;
+            write_block(w, body, indent + 1, cx)?;
             write_indent(w, indent)?;
             w.write_char('}')?;
             if let Some(condition) = condition {

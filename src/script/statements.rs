@@ -1,26 +1,26 @@
 use crate::script::{
-    ast::{DecompileErrorKind, Expr, Stmt},
+    ast::{DecompileErrorKind, Expr, Stmt, StmtBlock},
     control::{Control, ControlBlock},
     decode::Decoder,
     ins::{GenericArg, GenericIns, Ins, Operand, Variable},
 };
 
-pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> Vec<Stmt<'a>> {
-    let mut stmts = Vec::new();
+pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> StmtBlock<'a> {
+    let mut block = StmtBlock::default();
     let entry = &controls[0];
     match decompile_block(
         entry,
         code,
         controls,
-        &mut stmts,
+        &mut block,
         BlockExit::Jump(entry.end),
     ) {
         Ok(()) => {}
         Err(DecompileError(offset, message)) => {
-            stmts.push(Stmt::DecompileError(offset, message));
+            block.stmts.push(Stmt::DecompileError(offset, message));
         }
     }
-    stmts
+    block
 }
 
 struct DecompileError<'a>(usize, DecompileErrorKind<'a>);
@@ -30,14 +30,14 @@ fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
     controls: &[ControlBlock],
-    stmts: &mut Vec<Stmt<'a>>,
+    out: &mut StmtBlock<'a>,
     expected_exit: BlockExit,
 ) -> Result<(), DecompileError<'a>> {
     debug_assert!(matches!(expected_exit, BlockExit::Jump(_))); // not passing expr to caller
 
     match &block.control {
         Control::CodeRange => {
-            decompile_stmts(code, block, stmts, expected_exit)?;
+            decompile_stmts(code, block, out, expected_exit)?;
             Ok(())
         }
         Control::Sequence(children) => {
@@ -46,7 +46,7 @@ fn decompile_block<'a>(
                     &controls[i],
                     code,
                     controls,
-                    stmts,
+                    out,
                     BlockExit::Jump(controls[i].end),
                 )?;
             }
@@ -54,7 +54,7 @@ fn decompile_block<'a>(
                 &controls[*children.last().unwrap()],
                 code,
                 controls,
-                stmts,
+                out,
                 expected_exit,
             )
         }
@@ -62,12 +62,12 @@ fn decompile_block<'a>(
             let condition = decompile_stmts(
                 code,
                 &controls[b.condition],
-                stmts,
+                out,
                 BlockExit::JumpUnless(controls[b.true_].end),
             )?
             .unwrap();
 
-            let mut true_stmts = Vec::new();
+            let mut true_block = StmtBlock::default();
             let expected = match b.false_ {
                 Some(false_) => controls[false_].end,
                 None => controls[b.true_].end,
@@ -76,25 +76,25 @@ fn decompile_block<'a>(
                 &controls[b.true_],
                 code,
                 controls,
-                &mut true_stmts,
+                &mut true_block,
                 BlockExit::Jump(expected),
             )?;
 
-            let mut false_stmts = Vec::new();
+            let mut false_block = StmtBlock::default();
             if let Some(false_) = b.false_ {
                 decompile_block(
                     &controls[false_],
                     code,
                     controls,
-                    &mut false_stmts,
+                    &mut false_block,
                     BlockExit::Jump(controls[false_].end),
                 )?;
             }
 
-            stmts.push(Stmt::If {
+            out.stmts.push(Stmt::If {
                 condition,
-                true_: true_stmts,
-                false_: false_stmts,
+                true_: true_block,
+                false_: false_block,
             });
             Ok(())
         }
@@ -102,28 +102,28 @@ fn decompile_block<'a>(
             let cond_expr = decompile_stmts(
                 code,
                 &controls[b.condition],
-                stmts,
+                out,
                 BlockExit::JumpUnless(controls[b.body].end),
             )?
             .unwrap();
 
-            let mut body_stmts = Vec::new();
+            let mut body = StmtBlock::default();
             decompile_block(
                 &controls[b.body],
                 code,
                 controls,
-                &mut body_stmts,
+                &mut body,
                 BlockExit::Jump(controls[b.condition].start),
             )?;
 
-            stmts.push(Stmt::While {
+            out.stmts.push(Stmt::While {
                 condition: cond_expr,
-                body: body_stmts,
+                body,
             });
             Ok(())
         }
         Control::Do(b) => {
-            let mut body_stmts = Vec::new();
+            let mut body_block = StmtBlock::default();
             let expected_exit = match b.condition {
                 None => BlockExit::Jump(controls[b.body].start),
                 Some(condition) => BlockExit::Jump(controls[condition].start),
@@ -132,7 +132,7 @@ fn decompile_block<'a>(
                 &controls[b.body],
                 code,
                 controls,
-                &mut body_stmts,
+                &mut body_block,
                 expected_exit,
             )?;
 
@@ -143,7 +143,7 @@ fn decompile_block<'a>(
                         decompile_stmts(
                             code,
                             &controls[condition],
-                            &mut body_stmts,
+                            &mut body_block,
                             BlockExit::JumpUnless(controls[b.body].start),
                         )?
                         .unwrap(),
@@ -151,8 +151,8 @@ fn decompile_block<'a>(
                 }
             };
 
-            stmts.push(Stmt::Do {
-                body: body_stmts,
+            out.stmts.push(Stmt::Do {
+                body: body_block,
                 condition: cond_expr,
             });
             Ok(())
@@ -164,7 +164,7 @@ fn decompile_block<'a>(
 fn decompile_stmts<'a>(
     code: &'a [u8],
     block: &ControlBlock,
-    output: &mut Vec<Stmt<'a>>,
+    out: &mut StmtBlock<'a>,
     expected_exit: BlockExit,
 ) -> Result<Option<Expr<'a>>, DecompileError<'a>> {
     debug_assert!(matches!(block.control, Control::CodeRange));
@@ -203,10 +203,10 @@ fn decompile_stmts<'a>(
                     target,
                     expr,
                     &mut stack,
-                    output,
+                    out,
                 ));
             }
-            unfinished_block(decoder.pos(), expr, output);
+            unfinished_block(decoder.pos(), expr, out);
         };
     }
 
@@ -314,7 +314,7 @@ fn decompile_stmts<'a>(
             }
             Ins::PopDiscard => {
                 if pop!().is_err() {
-                    output.push(Stmt::DecompileError(
+                    out.stmts.push(Stmt::DecompileError(
                         off,
                         DecompileErrorKind::StackUnderflow,
                     ));
@@ -331,7 +331,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                output.push(Stmt::DimArray {
+                out.stmts.push(Stmt::DimArray {
                     var,
                     item_size,
                     min_y,
@@ -346,7 +346,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                output.push(Stmt::RedimArray {
+                out.stmts.push(Stmt::RedimArray {
                     var,
                     item_size,
                     min_y,
@@ -357,24 +357,25 @@ fn decompile_stmts<'a>(
             }
             Ins::Set(var) => {
                 let expr = pop!()?;
-                output.push(Stmt::Assign(var, expr));
+                out.stmts.push(Stmt::Assign(var, expr));
             }
             Ins::SetArrayItem(var) => {
                 let value = pop!()?;
                 let index = pop!()?;
-                output.push(Stmt::SetArrayItem(var, index, value));
+                out.stmts.push(Stmt::SetArrayItem(var, index, value));
             }
             Ins::SetArrayItem2D(var) => {
                 let value = pop!()?;
                 let index_x = pop!()?;
                 let index_y = pop!()?;
-                output.push(Stmt::SetArrayItem2D(var, index_y, index_x, value));
+                out.stmts
+                    .push(Stmt::SetArrayItem2D(var, index_y, index_x, value));
             }
             Ins::Inc(var) => {
-                output.push(Stmt::Inc(var));
+                out.stmts.push(Stmt::Inc(var));
             }
             Ins::Dec(var) => {
-                output.push(Stmt::Dec(var));
+                out.stmts.push(Stmt::Dec(var));
             }
             Ins::JumpIf(rel) => {
                 #[allow(clippy::cast_sign_loss)]
@@ -396,7 +397,7 @@ fn decompile_stmts<'a>(
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
-                output.push(Stmt::Assign(var, expr));
+                out.stmts.push(Stmt::Assign(var, expr));
             }
             Ins::Sprintf(var) => {
                 let mut args = pop!(:list)?;
@@ -406,7 +407,7 @@ fn decompile_stmts<'a>(
                     _ => unreachable!(),
                 }
                 let format = pop!(:string)?;
-                output.push(Stmt::Generic {
+                out.stmts.push(Stmt::Generic {
                     bytecode: bytearray![0xa4, 0xc2],
                     ins: &GenericIns {
                         name: Some("sprintf"),
@@ -418,7 +419,7 @@ fn decompile_stmts<'a>(
             }
             Ins::DimArray1DSimple(item_size, var) => {
                 let max_x = pop!()?;
-                output.push(Stmt::DimArray {
+                out.stmts.push(Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -431,7 +432,7 @@ fn decompile_stmts<'a>(
             Ins::DimArray2DSimple(item_size, var) => {
                 let max_x = pop!()?;
                 let max_y = pop!()?;
-                output.push(Stmt::DimArray {
+                out.stmts.push(Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -468,7 +469,7 @@ fn decompile_stmts<'a>(
                 if ins.returns_value {
                     stack.push(Expr::Call(bytecode, ins, args));
                 } else {
-                    output.push(Stmt::Generic {
+                    out.stmts.push(Stmt::Generic {
                         bytecode,
                         ins,
                         args,
@@ -483,7 +484,7 @@ fn decompile_stmts<'a>(
         decoder.pos(),
         None,
         &mut stack,
-        output,
+        out,
     ))
 }
 
@@ -503,10 +504,10 @@ fn finish_block<'a>(
     target: usize,
     expr: Option<Expr<'a>>,
     stack: &mut Vec<Expr<'a>>,
-    output: &mut Vec<Stmt<'a>>,
+    out: &mut StmtBlock<'a>,
 ) -> Option<Expr<'a>> {
     while let Some(expr) = stack.pop() {
-        output.push(Stmt::DecompileError(
+        out.stmts.push(Stmt::DecompileError(
             pos,
             DecompileErrorKind::StackOrphan(Box::new(expr)),
         ));
@@ -515,7 +516,7 @@ fn finish_block<'a>(
     match expected_exit {
         BlockExit::Jump(expected_target) => {
             if target != expected_target || expr.is_some() {
-                output.push(Stmt::DecompileError(
+                out.stmts.push(Stmt::DecompileError(
                     pos,
                     DecompileErrorKind::WrongBlockExit,
                 ));
@@ -524,7 +525,7 @@ fn finish_block<'a>(
         }
         BlockExit::JumpUnless(expected_target) => {
             if target != expected_target {
-                output.push(Stmt::DecompileError(
+                out.stmts.push(Stmt::DecompileError(
                     pos,
                     DecompileErrorKind::WrongBlockExit,
                 ));
@@ -537,14 +538,14 @@ fn finish_block<'a>(
     }
 }
 
-fn unfinished_block<'a>(pos: usize, expr: Option<Expr<'a>>, output: &mut Vec<Stmt<'a>>) {
+fn unfinished_block<'a>(pos: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
     if let Some(expr) = expr {
-        output.push(Stmt::DecompileError(
+        out.stmts.push(Stmt::DecompileError(
             pos,
             DecompileErrorKind::StackOrphan(Box::new(expr)),
         ));
     }
-    output.push(Stmt::DecompileError(
+    out.stmts.push(Stmt::DecompileError(
         pos,
         DecompileErrorKind::WrongBlockExit,
     ));

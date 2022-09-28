@@ -1,23 +1,23 @@
-use crate::script::ast::{Case, CaseCond, DecompileErrorKind, Expr, Stmt};
+use crate::script::ast::{Case, CaseCond, DecompileErrorKind, Expr, Stmt, StmtBlock};
 use std::mem;
 
-pub fn build_cases(stmts: &mut Vec<Stmt>) {
+pub fn build_cases(block: &mut StmtBlock) {
     let mut i = 0;
-    while i < stmts.len() {
-        if is_case(&stmts[i])
+    while i < block.stmts.len() {
+        if is_case(&block.stmts[i])
             && matches!(
-                i.checked_sub(1).and_then(|im1| stmts.get(im1)),
+                i.checked_sub(1).and_then(|im1| block.stmts.get(im1)),
                 Some(Stmt::DecompileError(_, DecompileErrorKind::StackOrphan(_)))
             )
         {
             // Cases are always paired with a stack error which we can remove once the
             // pattern is recognized.
-            stmts.remove(i - 1);
+            block.stmts.remove(i - 1);
             i -= 1;
-            build_case(&mut stmts[i]);
+            build_case(&mut block.stmts[i]);
         }
 
-        match &mut stmts[i] {
+        match &mut block.stmts[i] {
             Stmt::If {
                 condition: _,
                 true_,
@@ -60,18 +60,18 @@ fn is_case(stmt: &Stmt) -> bool {
         _ => return false,
     }
     if !matches!(
-        true_.first(),
+        true_.stmts.first(),
         Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
     ) {
         return false;
     }
     // Check for another case
-    if false_.len() == 1 && is_case(&false_[0]) {
+    if false_.stmts.len() == 1 && is_case(&false_.stmts[0]) {
         return true;
     }
     // Check for terminal else
     if matches!(
-        &false_[0],
+        &false_.stmts[0],
         Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
     ) {
         return true;
@@ -121,10 +121,10 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
     };
 
     debug_assert!(matches!(
-        true_.first(),
+        true_.stmts.first(),
         Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
     ));
-    true_.remove(0);
+    true_.stmts.remove(0);
 
     cases.push(Case {
         cond,
@@ -132,17 +132,17 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
     });
 
     // Append another case
-    if false_.len() == 1 && matches!(false_[0], Stmt::If { .. }) {
-        append_case(&mut false_[0], value, cases);
+    if false_.stmts.len() == 1 && matches!(false_.stmts[0], Stmt::If { .. }) {
+        append_case(&mut false_.stmts[0], value, cases);
         return;
     }
     // Append terminal else
     debug_assert!(matches!(
-        false_[0],
+        false_.stmts[0],
         Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
     ));
-    false_.remove(0);
-    if !false_.is_empty() {
+    false_.stmts.remove(0);
+    if !false_.stmts.is_empty() {
         cases.push(Case {
             cond: CaseCond::Else,
             body: mem::take(false_),
