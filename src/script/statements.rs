@@ -176,6 +176,8 @@ fn decompile_stmts<'a>(
     let decoder = Decoder::new(code);
     decoder.set_pos(block.start);
 
+    let mut next_stmt_addr = block.start;
+
     macro_rules! pop {
         () => {
             stack
@@ -192,23 +194,33 @@ fn decompile_stmts<'a>(
         };
     }
 
+    macro_rules! bump_stmt_addr {
+        () => {{
+            let addr = next_stmt_addr;
+            #[allow(unused_assignments)]
+            {
+                next_stmt_addr = decoder.pos();
+            }
+            addr
+        }};
+    }
+
     macro_rules! handle_jump {
-        ($off:expr, $target:expr, $expr:expr) => {
-            let off = $off;
+        ($target:expr, $expr:expr) => {
             let target = $target;
             let expr = $expr;
 
             if decoder.pos() == block.end {
                 return Ok(finish_block(
                     expected_exit,
-                    off,
+                    bump_stmt_addr!(),
                     target,
                     expr,
                     &mut stack,
                     out,
                 ));
             }
-            append_goto(off, target, expr, out);
+            append_goto(bump_stmt_addr!(), target, expr, out);
         };
     }
 
@@ -317,7 +329,7 @@ fn decompile_stmts<'a>(
             Ins::PopDiscard => {
                 if pop!().is_err() {
                     out.push(
-                        off,
+                        bump_stmt_addr!(),
                         Stmt::DecompileError(off, DecompileErrorKind::StackUnderflow),
                     );
                 }
@@ -333,7 +345,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                out.push(off, Stmt::DimArray {
+                out.push(bump_stmt_addr!(), Stmt::DimArray {
                     var,
                     item_size,
                     min_y,
@@ -348,7 +360,7 @@ fn decompile_stmts<'a>(
                 let min_x = pop!()?;
                 let max_y = pop!()?;
                 let min_y = pop!()?;
-                out.push(off, Stmt::RedimArray {
+                out.push(bump_stmt_addr!(), Stmt::RedimArray {
                     var,
                     item_size,
                     min_y,
@@ -359,46 +371,49 @@ fn decompile_stmts<'a>(
             }
             Ins::Set(var) => {
                 let expr = pop!()?;
-                out.push(off, Stmt::Assign(var, expr));
+                out.push(bump_stmt_addr!(), Stmt::Assign(var, expr));
             }
             Ins::SetArrayItem(var) => {
                 let value = pop!()?;
                 let index = pop!()?;
-                out.push(off, Stmt::SetArrayItem(var, index, value));
+                out.push(bump_stmt_addr!(), Stmt::SetArrayItem(var, index, value));
             }
             Ins::SetArrayItem2D(var) => {
                 let value = pop!()?;
                 let index_x = pop!()?;
                 let index_y = pop!()?;
-                out.push(off, Stmt::SetArrayItem2D(var, index_y, index_x, value));
+                out.push(
+                    bump_stmt_addr!(),
+                    Stmt::SetArrayItem2D(var, index_y, index_x, value),
+                );
             }
             Ins::Inc(var) => {
-                out.push(off, Stmt::Inc(var));
+                out.push(bump_stmt_addr!(), Stmt::Inc(var));
             }
             Ins::Dec(var) => {
-                out.push(off, Stmt::Dec(var));
+                out.push(bump_stmt_addr!(), Stmt::Dec(var));
             }
             Ins::JumpIf(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
                 let expr = Expr::Not(Box::new(expr));
-                handle_jump!(off, target, Some(expr));
+                handle_jump!(target, Some(expr));
             }
             Ins::JumpUnless(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
-                handle_jump!(off, target, Some(expr));
+                handle_jump!(target, Some(expr));
             }
             Ins::Jump(rel) => {
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
-                handle_jump!(off, target, None);
+                handle_jump!(target, None);
             }
             Ins::AssignString(var) => {
                 let expr = pop!(:string)?;
-                out.push(off, Stmt::Assign(var, expr));
+                out.push(bump_stmt_addr!(), Stmt::Assign(var, expr));
             }
             Ins::Sprintf(var) => {
                 let mut args = pop!(:list)?;
@@ -408,7 +423,7 @@ fn decompile_stmts<'a>(
                     _ => unreachable!(),
                 }
                 let format = pop!(:string)?;
-                out.push(off, Stmt::Generic {
+                out.push(bump_stmt_addr!(), Stmt::Generic {
                     bytecode: bytearray![0xa4, 0xc2],
                     ins: &GenericIns {
                         name: Some("sprintf"),
@@ -420,7 +435,7 @@ fn decompile_stmts<'a>(
             }
             Ins::DimArray1DSimple(item_size, var) => {
                 let max_x = pop!()?;
-                out.push(off, Stmt::DimArray {
+                out.push(bump_stmt_addr!(), Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -433,7 +448,7 @@ fn decompile_stmts<'a>(
             Ins::DimArray2DSimple(item_size, var) => {
                 let max_x = pop!()?;
                 let max_y = pop!()?;
-                out.push(off, Stmt::DimArray {
+                out.push(bump_stmt_addr!(), Stmt::DimArray {
                     var,
                     item_size,
                     min_y: Expr::Number(0),
@@ -470,7 +485,7 @@ fn decompile_stmts<'a>(
                 if ins.returns_value {
                     stack.push(Expr::Call(bytecode, ins, args));
                 } else {
-                    out.push(off, Stmt::Generic {
+                    out.push(bump_stmt_addr!(), Stmt::Generic {
                         bytecode,
                         ins,
                         args,
@@ -481,7 +496,7 @@ fn decompile_stmts<'a>(
     }
     Ok(finish_block(
         expected_exit,
-        decoder.pos(),
+        bump_stmt_addr!(),
         decoder.pos(),
         None,
         &mut stack,
