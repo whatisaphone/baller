@@ -36,7 +36,6 @@ pub enum Stmt<'a> {
     SetArrayItem2D(Variable, Expr<'a>, Expr<'a>, Expr<'a>),
     Inc(Variable),
     Dec(Variable),
-    #[allow(dead_code)]
     Goto(usize),
     If {
         condition: Expr<'a>,

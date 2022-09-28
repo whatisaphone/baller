@@ -206,7 +206,7 @@ fn decompile_stmts<'a>(
                     out,
                 ));
             }
-            unfinished_block(decoder.pos(), expr, out);
+            append_goto(target, expr, out);
         };
     }
 
@@ -502,7 +502,7 @@ fn finish_block<'a>(
     expected_exit: BlockExit,
     pos: usize,
     target: usize,
-    expr: Option<Expr<'a>>,
+    mut expr: Option<Expr<'a>>,
     stack: &mut Vec<Expr<'a>>,
     out: &mut StmtBlock<'a>,
 ) -> Option<Expr<'a>> {
@@ -513,23 +513,18 @@ fn finish_block<'a>(
         ));
     }
 
+    let actual_exit = match expr {
+        None => BlockExit::Jump(target),
+        Some(_) => BlockExit::JumpUnless(target),
+    };
+
+    if actual_exit != expected_exit {
+        append_goto(target, expr.take(), out);
+    }
+
     match expected_exit {
-        BlockExit::Jump(expected_target) => {
-            if target != expected_target || expr.is_some() {
-                out.stmts.push(Stmt::DecompileError(
-                    pos,
-                    DecompileErrorKind::WrongBlockExit,
-                ));
-            }
-            None
-        }
-        BlockExit::JumpUnless(expected_target) => {
-            if target != expected_target {
-                out.stmts.push(Stmt::DecompileError(
-                    pos,
-                    DecompileErrorKind::WrongBlockExit,
-                ));
-            }
+        BlockExit::Jump(_) => None,
+        BlockExit::JumpUnless(_) => {
             Some(expr.unwrap_or(Expr::DecompileError(
                 pos,
                 DecompileErrorKind::WrongBlockExit,
@@ -538,20 +533,24 @@ fn finish_block<'a>(
     }
 }
 
-fn unfinished_block<'a>(pos: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
-    if let Some(expr) = expr {
-        out.stmts.push(Stmt::DecompileError(
-            pos,
-            DecompileErrorKind::StackOrphan(Box::new(expr)),
-        ));
+fn append_goto<'a>(target: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
+    match expr {
+        None => {
+            out.stmts.push(Stmt::Goto(target));
+        }
+        Some(expr) => {
+            out.stmts.push(Stmt::If {
+                condition: Expr::Not(Box::new(expr)),
+                true_: StmtBlock {
+                    stmts: vec![Stmt::Goto(target)],
+                },
+                false_: StmtBlock::default(),
+            });
+        }
     }
-    out.stmts.push(Stmt::DecompileError(
-        pos,
-        DecompileErrorKind::WrongBlockExit,
-    ));
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 enum BlockExit {
     Jump(usize),
     JumpUnless(usize),
