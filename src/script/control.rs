@@ -35,7 +35,7 @@ pub struct While {
 #[derive(Debug)]
 pub struct Do {
     pub body: usize,
-    pub condition: usize,
+    pub condition: Option<usize>,
 }
 
 #[instrument(level = "debug", skip(basics))]
@@ -317,7 +317,9 @@ fn flatten_sequences(index: usize, controls: &mut Vec<ControlBlock>, work: &mut 
         }
         Control::Do(b) => {
             work.push(b.body);
-            work.push(b.condition);
+            if let Some(condition) = b.condition {
+                work.push(condition);
+            }
         }
     }
 }
@@ -356,7 +358,9 @@ fn flatten_sequence(
         }
         Control::Do(b) => {
             work.push(b.body);
-            work.push(b.condition);
+            if let Some(condition) = b.condition {
+                work.push(condition);
+            }
         }
     }
 }
@@ -382,7 +386,9 @@ fn scan_loops(
         }
         Control::Do(b) => {
             work.push(b.body);
-            work.push(b.condition);
+            if let Some(condition) = b.condition {
+                work.push(condition);
+            }
         }
     }
 }
@@ -426,7 +432,9 @@ fn scan_loops_in_sequence(
             }
             Control::Do(b) => {
                 work.push(b.body);
-                work.push(b.condition);
+                if let Some(condition) = b.condition {
+                    work.push(condition);
+                }
             }
         }
     }
@@ -440,49 +448,61 @@ fn scan_do(
 ) -> Option<BuildDo> {
     let parent = &controls[parent_index];
 
-    // Require conditional backward jump within parent sequence
-    let cond_block = &basics[basic_index];
-    if !(cond_block.exits.len() == 2
-        && cond_block.exits[0] == cond_block.end
-        && cond_block.exits[1] < cond_block.end
-        && cond_block.exits[1] >= parent.start)
-    {
+    let end_block = &basics[basic_index];
+    let conditional = match end_block.exits.len() {
+        1 => false,
+        2 => true,
+        _ => unreachable!(),
+    };
+    let start = *end_block.exits.last().unwrap();
+    let end = end_block.end;
+
+    // Require backward jump within parent sequence
+    if !(start < end && start >= parent.start) {
         return None;
     }
 
-    let body_start = cond_block.exits[1];
-    let body_end = cond_block.start;
-    let cond_start = cond_block.start;
-    let cond_end = cond_block.end;
+    // Require the start/end to be on block boundaries or within splittable blocks
+    match &controls[parent_index].control {
+        Control::CodeRange => {}
+        Control::Sequence(_) => {
+            match seq_start_boundary(parent_index, start, controls) {
+                (_, SeqBoundary::Exact | SeqBoundary::CanSplit) => {}
+                (_, SeqBoundary::CanNotSplit) => return None,
+            }
+            match seq_end_boundary(parent_index, end, controls) {
+                (_, SeqBoundary::Exact | SeqBoundary::CanSplit) => {}
+                (_, SeqBoundary::CanNotSplit) => return None,
+            }
+        }
+        _ => unreachable!(),
+    }
 
     Some(BuildDo {
-        body_start,
-        body_end,
-        cond_start,
-        cond_end,
+        start,
+        end,
+        conditional,
     })
 }
 
 struct BuildDo {
-    body_start: usize,
-    body_end: usize,
-    cond_start: usize,
-    cond_end: usize,
+    start: usize,
+    end: usize,
+    conditional: bool,
 }
 
 fn build_do(
     parent_index: usize,
     BuildDo {
-        body_start,
-        body_end,
-        cond_start,
-        cond_end,
+        start,
+        end,
+        conditional,
     }: BuildDo,
     controls: &mut Vec<ControlBlock>,
 ) {
     trace!(
-        body = %AddrRange(body_start..body_end),
-        condition = %AddrRange(cond_start..cond_end),
+        addr = %AddrRange(start..end),
+        conditional,
         "building do, parent=#{}",
         parent_index,
     );
@@ -508,8 +528,8 @@ fn build_do(
 
     // Ensure the blocks have boundaries at the start/end addresses
 
-    let body_seq_index = seq_index_starting_at_addr(parent_index, body_start, controls);
-    let cond_seq_index = seq_index_ending_at_addr(parent_index, cond_end, controls);
+    let seq_start_index = seq_index_starting_at_addr(parent_index, start, controls);
+    let seq_end_index = seq_index_ending_at_addr(parent_index, end, controls);
 
     // Drain the range of blocks which will form the loop.
 
@@ -517,36 +537,41 @@ fn build_do(
         Control::Sequence(blocks) => blocks,
         _ => unreachable!(),
     };
-    let mut drain = seq_blocks.drain(body_seq_index..=cond_seq_index);
-    let seq_children: Vec<_> = drain
-        .by_ref()
-        .take(cond_seq_index - body_seq_index)
-        .collect();
-    let condition = drain.next().unwrap();
-    debug_assert!(drain.next().is_none());
-    drop(drain);
+    let mut drain = seq_blocks.drain(seq_start_index..=seq_end_index);
+    let (body_blocks, condition) = if conditional {
+        let body_blocks: Vec<_> = drain
+            .by_ref()
+            .take(seq_end_index - seq_start_index)
+            .collect();
+        let condition = drain.next().unwrap();
+        debug_assert!(drain.next().is_none());
+        drop(drain);
+        (body_blocks, Some(condition))
+    } else {
+        (drain.collect(), None)
+    };
 
-    // Combine the list of blocks into one. If there are none, synthesize a
-    // zero-length block.
+    // Combine the list of body blocks into one.
 
-    let body = match seq_children.len() {
+    let body = match body_blocks.len() {
         0 => {
-            debug_assert!(body_start == body_end);
+            // If there are none, synthesize a zero-length block.
+            debug_assert!(start == controls[condition.unwrap()].start);
             let body = controls.len();
             controls.push(ControlBlock {
-                start: body_start,
-                end: body_end,
+                start,
+                end: start,
                 control: Control::CodeRange,
             });
             body
         }
-        1 => seq_children[0],
+        1 => body_blocks[0],
         _ => {
             let body = controls.len();
             controls.push(ControlBlock {
-                start: body_start,
-                end: body_end,
-                control: Control::Sequence(seq_children),
+                start,
+                end: controls[*body_blocks.last().unwrap()].end,
+                control: Control::Sequence(body_blocks),
             });
             body
         }
@@ -556,8 +581,8 @@ fn build_do(
 
     let do_ = controls.len();
     controls.push(ControlBlock {
-        start: body_start,
-        end: cond_end,
+        start,
+        end,
         control: Control::Do(Do { body, condition }),
     });
 
@@ -565,14 +590,14 @@ fn build_do(
         Control::Sequence(blocks) => blocks,
         _ => unreachable!(),
     };
-    seq_blocks.insert(body_seq_index, do_);
+    seq_blocks.insert(seq_start_index, do_);
 }
 
-fn seq_index_starting_at_addr(
+fn seq_start_boundary(
     parent_index: usize,
     addr: usize,
-    controls: &mut Vec<ControlBlock>,
-) -> usize {
+    controls: &[ControlBlock],
+) -> (usize, SeqBoundary) {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
     let seq_blocks = match &controls[parent_index].control {
         Control::Sequence(seq_blocks) => seq_blocks,
@@ -582,19 +607,21 @@ fn seq_index_starting_at_addr(
         .iter()
         .position(|&b| controls[b].end > addr)
         .unwrap();
-    if addr == controls[seq_blocks[i]].start {
-        return i;
-    }
-
-    split_seq(parent_index, i, addr, controls);
-    i + 1
+    let split = if addr == controls[seq_blocks[i]].start {
+        SeqBoundary::Exact
+    } else if matches!(controls[seq_blocks[i]].control, Control::CodeRange) {
+        SeqBoundary::CanSplit
+    } else {
+        SeqBoundary::CanNotSplit
+    };
+    (i, split)
 }
 
-fn seq_index_ending_at_addr(
+fn seq_end_boundary(
     parent_index: usize,
     addr: usize,
-    controls: &mut Vec<ControlBlock>,
-) -> usize {
+    controls: &[ControlBlock],
+) -> (usize, SeqBoundary) {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
     let seq_blocks = match &controls[parent_index].control {
         Control::Sequence(seq_blocks) => seq_blocks,
@@ -604,12 +631,54 @@ fn seq_index_ending_at_addr(
         .iter()
         .rposition(|&b| controls[b].start < addr)
         .unwrap();
-    if addr == controls[seq_blocks[i]].end {
-        return i;
-    }
+    let split = if addr == controls[seq_blocks[i]].end {
+        SeqBoundary::Exact
+    } else if matches!(controls[seq_blocks[i]].control, Control::CodeRange) {
+        SeqBoundary::CanSplit
+    } else {
+        SeqBoundary::CanNotSplit
+    };
+    (i, split)
+}
 
-    split_seq(parent_index, i, addr, controls);
-    i
+enum SeqBoundary {
+    Exact,
+    CanSplit,
+    CanNotSplit,
+}
+
+fn seq_index_starting_at_addr(
+    parent_index: usize,
+    addr: usize,
+    controls: &mut Vec<ControlBlock>,
+) -> usize {
+    debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
+
+    match seq_start_boundary(parent_index, addr, controls) {
+        (i, SeqBoundary::Exact) => i,
+        (i, SeqBoundary::CanSplit) => {
+            split_seq(parent_index, i, addr, controls);
+            i + 1
+        }
+        (_, SeqBoundary::CanNotSplit) => unreachable!(),
+    }
+}
+
+fn seq_index_ending_at_addr(
+    parent_index: usize,
+    addr: usize,
+    controls: &mut Vec<ControlBlock>,
+) -> usize {
+    debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
+
+    match seq_end_boundary(parent_index, addr, controls) {
+        (i, SeqBoundary::Exact) => i,
+        (i, SeqBoundary::CanSplit) => {
+            split_seq(parent_index, i, addr, controls);
+            i
+        }
+        (_, SeqBoundary::CanNotSplit) => unreachable!(),
+    }
 }
 
 fn split_seq(parent_index: usize, seq_index: usize, addr: usize, controls: &mut Vec<ControlBlock>) {
@@ -621,6 +690,10 @@ fn split_seq(parent_index: usize, seq_index: usize, addr: usize, controls: &mut 
     let end = controls[seq_blocks[seq_index]].end;
     trace!("split_seq #{parent_index}[{seq_index}] 0x{start:x}..0x{end:x} at 0x{addr:x}");
     debug_assert!(start < addr && addr < end);
+    debug_assert!(matches!(
+        controls[seq_blocks[seq_index]].control,
+        Control::CodeRange,
+    ));
 
     let first = seq_blocks[seq_index];
     controls[first].end = addr;

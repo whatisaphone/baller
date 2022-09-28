@@ -44,7 +44,7 @@ pub enum Stmt<'a> {
     },
     Do {
         body: Vec<Stmt<'a>>,
-        condition: Expr<'a>,
+        condition: Option<Expr<'a>>,
     },
     Case {
         value: Expr<'a>,
@@ -321,9 +321,12 @@ fn write_stmt(w: &mut impl Write, stmt: &Stmt, indent: usize, cx: &WriteCx) -> f
             writeln!(w, "do {{")?;
             write_stmts(w, body, indent + 1, cx)?;
             write_indent(w, indent)?;
-            write!(w, "}} until (")?;
-            write_expr(w, condition, cx)?;
-            w.write_char(')')?;
+            w.write_char('}')?;
+            if let Some(condition) = condition {
+                w.write_str(" until (")?;
+                write_expr(w, condition, cx)?;
+                w.write_char(')')?;
+            }
         }
         Stmt::Generic {
             ref bytecode,

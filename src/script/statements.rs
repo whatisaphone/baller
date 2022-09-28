@@ -124,21 +124,32 @@ fn decompile_block<'a>(
         }
         Control::Do(b) => {
             let mut body_stmts = Vec::new();
+            let expected_exit = match b.condition {
+                None => BlockExit::Jump(controls[b.body].start),
+                Some(condition) => BlockExit::Jump(controls[condition].start),
+            };
             decompile_block(
                 &controls[b.body],
                 code,
                 controls,
                 &mut body_stmts,
-                BlockExit::Jump(controls[b.condition].start),
+                expected_exit,
             )?;
 
-            let cond_expr = decompile_stmts(
-                code,
-                &controls[b.condition],
-                &mut body_stmts,
-                BlockExit::JumpUnless(controls[b.body].start),
-            )?
-            .unwrap();
+            let cond_expr = match b.condition {
+                None => None,
+                Some(condition) => {
+                    Some(
+                        decompile_stmts(
+                            code,
+                            &controls[condition],
+                            &mut body_stmts,
+                            BlockExit::JumpUnless(controls[b.body].start),
+                        )?
+                        .unwrap(),
+                    )
+                }
+            };
 
             stmts.push(Stmt::Do {
                 body: body_stmts,

@@ -102,7 +102,9 @@ fn visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
         }
         Stmt::Do { body, condition } => {
             visit.stmts(body);
-            visit.expr(condition);
+            if let Some(condition) = condition {
+                visit.expr(condition);
+            }
         }
         Stmt::Case { value, cases } => {
             visit.expr(value);

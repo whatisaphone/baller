@@ -15,7 +15,7 @@ pub fn find_basic_blocks(code: &[u8]) -> (IndexMap<usize, BasicBlock>, usize) {
     blocks.push(BasicBlock {
         start: 0,
         end: code.len(),
-        exits: ArrayVec::new(),
+        exits: arrayvec![code.len()],
     });
 
     let decoder = Decoder::new(code);
