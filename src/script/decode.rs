@@ -629,7 +629,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x20 => ins!([0x1c, 0x20], name = "image-x20", args = [int]),
         0x21 => ins!([0x1c, 0x21], name = "image-x21", args = [int]),
         0x30 => ins!([0x1c, 0x30], name = "image-x30"),
-        0x31 => ins!([0x1c, 0x31], name = "image-x31", args = [string]),
+        0x31 => ins!([0x1c, 0x31], name = "image-path", args = [string]),
         0x33 => {
             ins!(
                 [0x1c, 0x33],
@@ -646,9 +646,9 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 args = [int, int, int, int, int],
             )
         }
-        0x39 => ins!([0x1c, 0x39], name = "image-x39", args = [int]),
+        0x39 => ins!([0x1c, 0x39], name = "image-select", args = [int]),
         0x41 => ins!([0x1c, 0x41], name = "image-x41", args = [int, int]),
-        0x56 => ins!([0x1c, 0x56], name = "image-x56", args = [int]),
+        0x56 => ins!([0x1c, 0x56], name = "image-palette", args = [int]),
         0x62 => ins!([0x1c, 0x62], name = "image-x62", args = [int]),
         0x85 => {
             ins!(
@@ -659,7 +659,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         }
         0x89 => ins!([0x1c, 0x89], name = "image-x89", args = [int]),
         0x9a => ins!([0x1c, 0x9a], name = "image-x9a", args = [int, int]),
-        0xd9 => ins!([0x1c, 0xd9], name = "image-xd9"),
+        0xd9 => ins!([0x1c, 0xd9], name = "image-op-create"),
         0xf6 => ins!([0x1c, 0xf6], name = "image-xf6", args = [int]),
         0xff => ins!([0x1c, 0xff], name = "image-xff"),
         _ => None,
@@ -775,7 +775,7 @@ fn op_26_sprite<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x41 => ins!([0x26, 0x41], name = "sprite-set-hotspot", args = [int, int]),
         0x4d => ins!([0x26, 0x4d], name = "sprite-x4d", args = [int, int]),
         0x52 => ins!([0x26, 0x52], name = "sprite-x52", args = [int]),
-        0x56 => ins!([0x26, 0x56], name = "sprite-x56", args = [int]),
+        0x56 => ins!([0x26, 0x56], name = "sprite-palette", args = [int]),
         0x61 => ins!([0x26, 0x61], name = "sprite-x61", args = [int]),
         0x62 => ins!([0x26, 0x62], name = "sprite-x62", args = [int]),
         0x7c => ins!([0x26, 0x7c], name = "sprite-x7c", args = [int]),
@@ -1162,7 +1162,7 @@ fn op_9c<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0xb5 => ins!([0x9c, 0xb5], args = [int]),
         0xd5 => ins!([0x9c, 0xd5], args = [int]),
-        0xdd => ins!([0x9c, 0xdd], name = "save-game", args = [int, string]),
+        0xdd => ins!([0x9c, 0xdd], name = "save-load-game", args = [int, string]),
         _ => None,
     }
 }
@@ -1317,7 +1317,12 @@ fn op_b9<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 }
 
 fn op_b4_thru_b9<'a>(opcode: u8, flag: bool, code: &mut &'a [u8]) -> Option<Ins<'a>> {
-    match read_u8(code)? {
+    let sub = read_u8(code)?;
+    let stack_hack = opcode == 0xb9;
+    if stack_hack && sub != 0xfe {
+        return None;
+    }
+    match sub {
         0x41 => ins!([opcode, 0x41], args = [int, int]),
         0x45 => ins!([opcode, 0x45]),
         0x4b => ins!([opcode, 0x4b], ops = [string: read_string(code)?]),
@@ -1328,7 +1333,7 @@ fn op_b4_thru_b9<'a>(opcode: u8, flag: bool, code: &mut &'a [u8]) -> Option<Ins<
             Some(Ins::Generic(
                 bytearray![opcode, 0xfe],
                 ArrayVec::new(),
-                if flag {
+                if flag && !stack_hack {
                     &GenericIns {
                         name: None,
                         args: &[GenericArg::Int],
