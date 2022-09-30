@@ -597,6 +597,17 @@ fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
             write_local_var_name(w, number, cx)
         }
         0x8000 => {
+            if let Some(room) = cx.scope.room() {
+                if let Some(name) = cx
+                    .config
+                    .rooms
+                    .get(usize::try_from(room).unwrap())
+                    .and_then(|r| r.vars.get(usize::from(number)))
+                    .and_then(|v| v.name.as_deref())
+                {
+                    return w.write_str(name);
+                }
+            }
             // room
             return write!(w, "room{number}");
         }

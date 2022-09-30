@@ -10,6 +10,7 @@ pub struct Config {
 
 #[derive(Default)]
 pub struct Room {
+    pub vars: Vec<Var>,
     pub scripts: Vec<Script>,
 }
 
@@ -57,10 +58,25 @@ impl Config {
                     let room = it_next(&mut dots, ln)?;
                     let room: usize = room.parse().map_err(|_| parse_err(ln))?;
                     extend(&mut result.rooms, room);
-                    if it_next(&mut dots, ln)? != "script" {
-                        return Err(parse_err(ln));
+                    match it_next(&mut dots, ln)? {
+                        "var" => {
+                            let var = it_final(&mut dots, ln)?;
+                            let var: usize = var.parse().map_err(|_| parse_err(ln))?;
+                            extend(&mut result.rooms[room].vars, var);
+                            result.rooms[room].vars[var].name = Some(value.to_string());
+                        }
+                        "script" => {
+                            handle_script_key(
+                                ln,
+                                &mut dots,
+                                value,
+                                &mut result.rooms[room].scripts,
+                            )?;
+                        }
+                        _ => {
+                            return Err(parse_err(ln));
+                        }
                     }
-                    handle_script_key(ln, &mut dots, value, &mut result.rooms[room].scripts)?;
                 }
                 _ => {
                     return Err(parse_err(ln));
