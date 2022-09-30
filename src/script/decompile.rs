@@ -131,6 +131,27 @@ mod tests {
     }
 
     #[test]
+    fn if_else_if() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(406)?;
+        let out = decompile(&bytecode[0x7c..0xbd], Scope::Global(1), &Config {
+            suppress_preamble: true,
+            ..<_>::default()
+        });
+        assert_eq!(
+            out,
+            "if (local1 == 26) {
+    local4 = call-script 236 [local3]
+} else if (local1 in [23, 24]) {
+    local4 = call-script 235 [local3, local1]
+} else {
+    local4 = global315[local3][local1]
+}
+",
+        );
+        Ok(())
+    }
+
+    #[test]
     fn basic_while() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(1)?;
         let out = decompile(&bytecode[0x1b2..0x1d1], Scope::Global(1), &Config {

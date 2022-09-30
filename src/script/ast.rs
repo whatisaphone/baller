@@ -313,11 +313,7 @@ fn write_stmt(
             write_expr(w, condition, cx)?;
             writeln!(w, ") {{")?;
             write_block(w, true_, indent + 1, cx)?;
-            if !false_.stmts.is_empty() {
-                write_indent(w, indent)?;
-                writeln!(w, "}} else {{")?;
-                write_block(w, false_, indent + 1, cx)?;
-            }
+            write_if_else(w, false_, indent, cx)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
         }
@@ -392,6 +388,39 @@ fn write_stmt(
             write_decomile_error(w, offset, kind, cx)?;
         }
     }
+    Ok(())
+}
+
+fn write_if_else(
+    w: &mut impl Write,
+    block: &StmtBlock,
+    indent: usize,
+    cx: &WriteCx,
+) -> fmt::Result {
+    if block.stmts.is_empty() {
+        return Ok(());
+    }
+
+    if block.stmts.len() == 1 {
+        if let Stmt::If {
+            condition,
+            true_,
+            false_,
+        } = &block.stmts[0]
+        {
+            write_indent(w, indent)?;
+            w.write_str("} else if (")?;
+            write_expr(w, condition, cx)?;
+            writeln!(w, ") {{")?;
+            write_block(w, true_, indent + 1, cx)?;
+            write_if_else(w, false_, indent, cx)?;
+            return Ok(());
+        }
+    }
+
+    write_indent(w, indent)?;
+    writeln!(w, "}} else {{")?;
+    write_block(w, block, indent + 1, cx)?;
     Ok(())
 }
 
