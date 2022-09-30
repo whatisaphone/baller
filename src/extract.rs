@@ -188,6 +188,7 @@ fn extract_recursive<R: Read + Seek>(
     len: u64,
 ) -> Result<(), Box<dyn Error>> {
     let number = match &id {
+        b"LECF" => state.disk_number.into(),
         b"LFLF" => {
             state.current_room = find_lfl_number(state.disk_number, offset, state.index)
                 .ok_or("LFL not in index")?;
