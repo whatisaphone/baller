@@ -42,7 +42,15 @@ fn decompile_block<'a>(
             Ok(())
         }
         Control::Sequence(children) => {
-            for &i in &children[..children.len() - 1] {
+            // Skip zero-length blocks since they mess up expected exits. The passed
+            // expected exit must be sent to the last block that actually contains
+            // instructions.
+            let last_nonempty_child = children
+                .iter()
+                .rposition(|&b| controls[b].start != controls[b].end)
+                .unwrap();
+
+            for &i in &children[..last_nonempty_child] {
                 decompile_block(
                     &controls[i],
                     code,
@@ -52,7 +60,7 @@ fn decompile_block<'a>(
                 )?;
             }
             decompile_block(
-                &controls[*children.last().unwrap()],
+                &controls[children[last_nonempty_child]],
                 code,
                 controls,
                 out,
