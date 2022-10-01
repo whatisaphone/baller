@@ -28,9 +28,9 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
 
     let (blocks, decode_extent) = find_basic_blocks(code);
     let controls = build_control_structures(&blocks);
-    let (script, mut root) = build_ast(&controls, code);
+    let (mut script, mut root) = build_ast(&controls, code);
     build_cases(&script, &mut root);
-    add_labels_for_gotos(&script, &mut root);
+    add_labels_for_gotos(&mut script, &mut root);
 
     if decode_extent != code.len() {
         root.push(
@@ -42,7 +42,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
         );
     }
 
-    let locals = collect_locals(&script, &root);
+    let locals = collect_locals(&mut script, &mut root);
 
     let mut output = String::with_capacity(1024);
     let cx = WriteCx { scope, config };
@@ -53,7 +53,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     output
 }
 
-fn collect_locals(script: &Scripto, block: &StmtBlock) -> Vec<Variable> {
+fn collect_locals(script: &mut Scripto, block: &mut StmtBlock) -> Vec<Variable> {
     struct CollectLocals {
         out: Vec<Variable>,
     }

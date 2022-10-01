@@ -4,7 +4,7 @@ use crate::script::{
 };
 use tracing::trace;
 
-pub fn add_labels_for_gotos(script: &Scripto, ast: &mut StmtBlock) {
+pub fn add_labels_for_gotos(script: &mut Scripto, ast: &mut StmtBlock) {
     let mut collect = CollectGotoTargets {
         targets: Vec::new(),
     };
@@ -32,8 +32,8 @@ struct CollectGotoTargets {
 }
 
 impl Visitor for CollectGotoTargets {
-    fn stmt(&mut self, script: &Scripto, stmt: &Stmt) {
-        if let &Stmt::Goto(target) = stmt {
+    fn stmt(&mut self, script: &mut Scripto, stmt: &mut Stmt) {
+        if let &mut Stmt::Goto(target) = stmt {
             if !self.targets.contains(&target) {
                 self.targets.push(target);
             }

@@ -2,17 +2,18 @@ use crate::script::{
     ast::{CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock},
     ins::Variable,
 };
+use std::mem;
 
 pub trait Visitor: AsVisitor {
-    fn block(&mut self, script: &Scripto, block: &StmtBlock) {
+    fn block(&mut self, script: &mut Scripto, block: &mut StmtBlock) {
         default_visit_block(script, block, self.as_visit_mut());
     }
 
-    fn stmt(&mut self, script: &Scripto, stmt: &Stmt) {
+    fn stmt(&mut self, script: &mut Scripto, stmt: &mut Stmt) {
         default_visit_stmt(script, stmt, self.as_visit_mut());
     }
 
-    fn expr(&mut self, script: &Scripto, id: ExprId) {
+    fn expr(&mut self, script: &mut Scripto, id: ExprId) {
         default_visit_expr(script, id, self.as_visit_mut());
     }
 
@@ -30,13 +31,13 @@ impl<V: Visitor> AsVisitor for V {
     }
 }
 
-fn default_visit_block(script: &Scripto, block: &StmtBlock, visit: &mut dyn Visitor) {
-    for s in &block.stmts {
+fn default_visit_block(script: &mut Scripto, block: &mut StmtBlock, visit: &mut dyn Visitor) {
+    for s in &mut block.stmts {
         visit.stmt(script, s);
     }
 }
 
-pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor) {
+pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn Visitor) {
     #[allow(clippy::match_same_arms)]
     match *stmt {
         Stmt::DimArray {
@@ -90,8 +91,8 @@ pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor
         Stmt::Label | Stmt::Goto(_) => {}
         Stmt::If {
             condition,
-            ref true_,
-            ref false_,
+            ref mut true_,
+            ref mut false_,
         } => {
             visit.expr(script, condition);
             visit.block(script, true_);
@@ -99,13 +100,13 @@ pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor
         }
         Stmt::While {
             condition,
-            ref body,
+            ref mut body,
         } => {
             visit.expr(script, condition);
             visit.block(script, body);
         }
         Stmt::Do {
-            ref body,
+            ref mut body,
             condition,
         } => {
             visit.block(script, body);
@@ -113,14 +114,17 @@ pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor
                 visit.expr(script, condition);
             }
         }
-        Stmt::Case { value, ref cases } => {
+        Stmt::Case {
+            value,
+            ref mut cases,
+        } => {
             visit.expr(script, value);
             for case in cases {
                 match case.cond {
                     CaseCond::Eq(x) | CaseCond::In(x) => visit.expr(script, x),
                     CaseCond::Else => {}
                 }
-                visit.block(script, &case.body);
+                visit.block(script, &mut case.body);
             }
         }
         Stmt::Generic {
@@ -136,14 +140,20 @@ pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor
     }
 }
 
-fn default_visit_expr(script: &Scripto, id: ExprId, visit: &mut dyn Visitor) {
+fn default_visit_expr(script: &mut Scripto, id: ExprId, visit: &mut dyn Visitor) {
     match script.exprs[id] {
         Expr::Variable(var) => {
             visit.var(var);
         }
-        Expr::List(ref exprs) => {
-            for &expr in exprs {
+        Expr::List(ref mut exprs) => {
+            // Temporarily take exprs, then put it back
+            let exprs = mem::take(exprs);
+            for &expr in &exprs {
                 visit.expr(script, expr);
+            }
+            match script.exprs[id] {
+                Expr::List(ref mut exprs_mut) => *exprs_mut = exprs,
+                _ => unreachable!(),
             }
         }
         Expr::ArrayIndex(var, x) => {
@@ -176,9 +186,15 @@ fn default_visit_expr(script: &Scripto, id: ExprId, visit: &mut dyn Visitor) {
             visit.expr(script, lhs);
             visit.expr(script, rhs);
         }
-        Expr::Call(_, _, ref args) => {
-            for &arg in args {
+        Expr::Call(_, _, ref mut args) => {
+            // Temporarily take args, then put it back
+            let args = mem::take(args);
+            for &arg in &args {
                 visit.expr(script, arg);
+            }
+            match script.exprs[id] {
+                Expr::Call(_, _, ref mut args_mut) => *args_mut = args,
+                _ => unreachable!(),
             }
         }
         Expr::Number(_) | Expr::String(_) | Expr::StackUnderflow | Expr::DecompileError(_, _) => {}
