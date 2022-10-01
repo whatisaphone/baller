@@ -469,7 +469,14 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x53 => ins!([0x53], name = "inc-array-item", ops = [var: read_var(code)?], args = [int]),
         0x57 => op_57_dec(code),
         0x58 => op_58(code),
-        0x5a => ins!([0x5a], args = [int], retval),
+        0x5a => {
+            ins!(
+                [0x5a],
+                name = "sound-samples-remaining",
+                args = [int],
+                retval,
+            )
+        }
         0x5b => ins!([0x5b], name = "dec-array-item", ops = [var: read_var(code)?], args = [int]),
         0x5c => op_5c_jump_if(code),
         0x5d => op_5d_jump_unless(code),
@@ -647,7 +654,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
             )
         }
         0x39 => ins!([0x1c, 0x39], name = "image-select", args = [int]),
-        0x41 => ins!([0x1c, 0x41], name = "image-x41", args = [int, int]),
+        0x41 => ins!([0x1c, 0x41], name = "image-pos", args = [int, int]),
         0x56 => ins!([0x1c, 0x56], name = "image-palette", args = [int]),
         0x62 => ins!([0x1c, 0x62], name = "image-x62", args = [int]),
         0x85 => {
@@ -657,7 +664,7 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 args = [int, int, int, int, int],
             )
         }
-        0x89 => ins!([0x1c, 0x89], name = "image-x89", args = [int]),
+        0x89 => ins!([0x1c, 0x89], name = "image-render-into", args = [int]),
         0x9a => ins!([0x1c, 0x9a], name = "image-x9a", args = [int, int]),
         0xd9 => ins!([0x1c, 0xd9], name = "image-op-create"),
         0xf6 => ins!([0x1c, 0xf6], name = "image-xf6", args = [int]),
@@ -1100,8 +1107,8 @@ fn op_73_jump<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 fn op_74_sound<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
         0x09 => ins!([0x74, 0x09], name = "sound-x09"),
-        0xe6 => ins!([0x74, 0xe6], name = "sound-xe6", args = [int]),
-        0xe7 => ins!([0x74, 0xe7], name = "sound-xe7", args = [int]),
+        0xe6 => ins!([0x74, 0xe6], name = "sound-channel", args = [int]),
+        0xe7 => ins!([0x74, 0xe7], name = "sound-offset", args = [int]),
         0xe8 => ins!([0x74, 0xe8], name = "sound-select", args = [int]),
         0xf5 => ins!([0x74, 0xf5], name = "sound-xf5"),
         0xff => ins!([0x74, 0xff], name = "sound-play"),
@@ -1186,7 +1193,7 @@ fn op_9d_actor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
                 args = [int, int, int, int],
             )
         }
-        0x4c => ins!([0x9d, 0x4c], name = "actor-x4c", args = [int]),
+        0x4c => ins!([0x9d, 0x4c], name = "actor-set-costume", args = [int]),
         0x4e => ins!([0x9d, 0x4e], name = "actor-set-sounds", args = [list]),
         0x50 => ins!([0x9d, 0x50], name = "actor-x50", args = [int, int]),
         0x54 => ins!([0x9d, 0x54], name = "actor-x54", args = [int]),
