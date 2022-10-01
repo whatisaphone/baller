@@ -140,7 +140,7 @@ pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn
     }
 }
 
-fn default_visit_expr(script: &mut Scripto, id: ExprId, visit: &mut dyn Visitor) {
+pub fn default_visit_expr(script: &mut Scripto, id: ExprId, visit: &mut dyn Visitor) {
     match script.exprs[id] {
         Expr::Variable(var) => {
             visit.var(var);
@@ -197,6 +197,10 @@ fn default_visit_expr(script: &mut Scripto, id: ExprId, visit: &mut dyn Visitor)
                 _ => unreachable!(),
             }
         }
-        Expr::Number(_) | Expr::String(_) | Expr::StackUnderflow | Expr::DecompileError(_, _) => {}
+        Expr::Number(_)
+        | Expr::String(_)
+        | Expr::StackUnderflow
+        | Expr::EnumConst(_, _)
+        | Expr::DecompileError(_, _) => {}
     }
 }

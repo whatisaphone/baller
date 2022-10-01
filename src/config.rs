@@ -1,10 +1,13 @@
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
 #[derive(Default)]
 pub struct Config {
     pub global_names: Vec<Option<String>>,
+    pub global_types: Vec<Option<EnumId>>,
     pub scripts: Vec<Script>,
     pub rooms: Vec<Room>,
+    pub enums: Vec<Enum>,
+    pub enum_names: HashMap<String, EnumId>,
     pub suppress_preamble: bool,
 }
 
@@ -26,12 +29,22 @@ pub struct Var {
     pub name: Option<String>,
 }
 
+#[derive(Default)]
+pub struct Enum {
+    pub values: HashMap<i32, String>,
+}
+
+pub type EnumId = usize;
+
 impl Config {
     pub fn from_ini(ini: &str) -> Result<Self, Box<dyn Error>> {
         let mut result = Self {
             global_names: Vec::with_capacity(1024),
+            global_types: Vec::with_capacity(1024),
             scripts: Vec::with_capacity(512),
             rooms: Vec::with_capacity(64),
+            enums: Vec::with_capacity(64),
+            enum_names: HashMap::with_capacity(64),
             suppress_preamble: false,
         };
         for (ln, line) in ini.lines().enumerate() {
@@ -45,11 +58,26 @@ impl Config {
             let value = rhs.trim();
             let mut dots = key.split('.');
             match dots.next() {
+                Some("enum") => {
+                    handle_enum_key(ln, &mut dots, value, &mut result)?;
+                }
                 Some("global") => {
                     let id = it_final(&mut dots, ln)?;
                     let id: usize = id.parse().map_err(|_| parse_err(ln))?;
+                    let (name, type_) = match value.split_once(':') {
+                        None => (value, None),
+                        Some((name, ty)) => {
+                            let enum_id = *result
+                                .enum_names
+                                .get(ty.trim_start())
+                                .ok_or_else(|| parse_err(ln))?;
+                            (name.trim_end(), Some(enum_id))
+                        }
+                    };
                     extend(&mut result.global_names, id);
-                    result.global_names[id] = Some(value.to_string());
+                    result.global_names[id] = Some(name.to_string());
+                    extend(&mut result.global_types, id);
+                    result.global_types[id] = type_;
                 }
                 Some("script") => {
                     handle_script_key(ln, &mut dots, value, &mut result.scripts)?;
@@ -121,6 +149,25 @@ fn handle_script_key<'a>(
             return Err(parse_err(ln));
         }
     }
+    Ok(())
+}
+
+fn handle_enum_key<'a>(
+    ln: usize,
+    dots: &mut impl Iterator<Item = &'a str>,
+    value: &str,
+    config: &mut Config,
+) -> Result<(), Box<dyn Error>> {
+    let enum_name = it_next(dots, ln)?.to_string();
+    let const_value: i32 = it_final(dots, ln)?.parse().map_err(|_| parse_err(ln))?;
+    let const_name = value.to_string();
+
+    let enum_id = *config.enum_names.entry(enum_name).or_insert_with(|| {
+        let id = config.enums.len();
+        config.enums.push(Enum::default());
+        id
+    });
+    config.enums[enum_id].values.insert(const_value, const_name);
     Ok(())
 }
 

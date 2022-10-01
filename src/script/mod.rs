@@ -11,4 +11,5 @@ mod goto;
 mod ins;
 mod misc;
 mod statements;
+mod types;
 mod visit;

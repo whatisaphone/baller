@@ -2,7 +2,8 @@
 #![allow(
     clippy::match_on_vec_items,
     clippy::module_name_repetitions,
-    clippy::never_loop
+    clippy::never_loop,
+    clippy::single_match
 )]
 #![cfg_attr(feature = "strict", deny(warnings))]
 

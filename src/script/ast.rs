@@ -1,5 +1,5 @@
 use crate::{
-    config::{Config, Script},
+    config::{Config, EnumId, Script},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
@@ -115,6 +115,7 @@ pub enum Expr<'a> {
     BitwiseOr(ExprId, ExprId),
     In(ExprId, ExprId),
     Call(ByteArray<2>, &'a GenericIns, Vec<ExprId>),
+    EnumConst(EnumId, i32),
     DecompileError(usize, DecompileErrorKind),
 }
 
@@ -574,6 +575,10 @@ fn write_expr_as(
         }
         Expr::Call(bytecode, ins, args) => {
             write_generic(w, script, bytecode, ins, args, cx)?;
+        }
+        &Expr::EnumConst(enum_id, value) => {
+            let name = &cx.config.enums[enum_id].values[&value];
+            write!(w, "{name}/*{value}*/")?;
         }
         &Expr::DecompileError(offset, ref kind) => {
             write_decomile_error(w, script, offset, kind, cx)?;

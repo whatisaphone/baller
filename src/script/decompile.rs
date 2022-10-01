@@ -17,6 +17,7 @@ use crate::{
         goto::add_labels_for_gotos,
         ins::Variable,
         statements::build_ast,
+        types::spread_types,
         visit::Visitor,
     },
 };
@@ -31,6 +32,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     let (mut script, mut root) = build_ast(&controls, code);
     build_cases(&script, &mut root);
     add_labels_for_gotos(&mut script, &mut root);
+    spread_types(&mut script, &mut root, config);
 
     if decode_extent != code.len() {
         root.push(
