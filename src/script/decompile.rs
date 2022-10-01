@@ -1,7 +1,16 @@
 use crate::{
     config::Config,
     script::{
-        ast::{write_block, write_preamble, DecompileErrorKind, Scope, Stmt, StmtBlock, WriteCx},
+        ast::{
+            write_block,
+            write_preamble,
+            DecompileErrorKind,
+            Scope,
+            Scripto,
+            Stmt,
+            StmtBlock,
+            WriteCx,
+        },
         basic::find_basic_blocks,
         cases::build_cases,
         control::build_control_structures,
@@ -19,12 +28,12 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
 
     let (blocks, decode_extent) = find_basic_blocks(code);
     let controls = build_control_structures(&blocks);
-    let mut ast = build_ast(&controls, code);
-    build_cases(&mut ast);
-    add_labels_for_gotos(&mut ast);
+    let (script, mut root) = build_ast(&controls, code);
+    build_cases(&script, &mut root);
+    add_labels_for_gotos(&script, &mut root);
 
     if decode_extent != code.len() {
-        ast.push(
+        root.push(
             decode_extent,
             Stmt::DecompileError(
                 decode_extent,
@@ -33,18 +42,18 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
         );
     }
 
-    let locals = collect_locals(&ast);
+    let locals = collect_locals(&script, &root);
 
     let mut output = String::with_capacity(1024);
     let cx = WriteCx { scope, config };
     if !config.suppress_preamble {
         write_preamble(&mut output, &locals, &cx).unwrap();
     }
-    write_block(&mut output, &ast, 0, &cx).unwrap();
+    write_block(&mut output, &script, &root, 0, &cx).unwrap();
     output
 }
 
-fn collect_locals(block: &StmtBlock) -> Vec<Variable> {
+fn collect_locals(script: &Scripto, block: &StmtBlock) -> Vec<Variable> {
     struct CollectLocals {
         out: Vec<Variable>,
     }
@@ -65,7 +74,7 @@ fn collect_locals(block: &StmtBlock) -> Vec<Variable> {
     let mut locals = CollectLocals {
         out: Vec::with_capacity(16),
     };
-    locals.block(block);
+    locals.block(script, block);
 
     locals.out.sort_unstable_by_key(|v| v.0);
     locals.out.dedup_by_key(|v| v.0);

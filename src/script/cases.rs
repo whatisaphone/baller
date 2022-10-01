@@ -1,10 +1,19 @@
-use crate::script::ast::{Case, CaseCond, DecompileErrorKind, Expr, Stmt, StmtBlock};
+use crate::script::ast::{
+    Case,
+    CaseCond,
+    DecompileErrorKind,
+    Expr,
+    ExprId,
+    Scripto,
+    Stmt,
+    StmtBlock,
+};
 use std::mem;
 
-pub fn build_cases(block: &mut StmtBlock) {
+pub fn build_cases(script: &Scripto, block: &mut StmtBlock) {
     let mut i = 0;
     while i < block.stmts.len() {
-        if is_case(&block.stmts[i])
+        if is_case(script, &block.stmts[i])
             && matches!(
                 i.checked_sub(1).and_then(|im1| block.stmts.get(im1)),
                 Some(Stmt::DecompileError(_, DecompileErrorKind::StackOrphan(_)))
@@ -14,7 +23,7 @@ pub fn build_cases(block: &mut StmtBlock) {
             // pattern is recognized.
             block.remove(i - 1);
             i -= 1;
-            build_case(&mut block.stmts[i]);
+            build_case(script, &mut block.stmts[i]);
         }
 
         match &mut block.stmts[i] {
@@ -23,15 +32,15 @@ pub fn build_cases(block: &mut StmtBlock) {
                 true_,
                 false_,
             } => {
-                build_cases(true_);
-                build_cases(false_);
+                build_cases(script, true_);
+                build_cases(script, false_);
             }
             Stmt::While { condition: _, body } | Stmt::Do { body, condition: _ } => {
-                build_cases(body);
+                build_cases(script, body);
             }
             Stmt::Case { value: _, cases } => {
                 for case in cases {
-                    build_cases(&mut case.body);
+                    build_cases(script, &mut case.body);
                 }
             }
             _ => {}
@@ -41,8 +50,8 @@ pub fn build_cases(block: &mut StmtBlock) {
     }
 }
 
-fn is_case(stmt: &Stmt) -> bool {
-    let (condition, true_, false_) = match stmt {
+fn is_case(script: &Scripto, stmt: &Stmt) -> bool {
+    let (&condition, true_, false_) = match stmt {
         Stmt::If {
             condition,
             true_,
@@ -50,10 +59,9 @@ fn is_case(stmt: &Stmt) -> bool {
         } => (condition, true_, false_),
         _ => return false,
     };
-    match condition {
-        Expr::Equal(ops) | Expr::In(ops) => {
-            let (lhs, _rhs) = &**ops;
-            if !matches!(lhs, Expr::StackDup(_)) {
+    match script.exprs[condition] {
+        Expr::Equal(lhs, _rhs) | Expr::In(lhs, _rhs) => {
+            if !matches!(script.exprs[lhs], Expr::StackDup(_)) {
                 return false;
             }
         }
@@ -66,7 +74,7 @@ fn is_case(stmt: &Stmt) -> bool {
         return false;
     }
     // Check for another case
-    if false_.stmts.len() == 1 && is_case(&false_.stmts[0]) {
+    if false_.stmts.len() == 1 && is_case(script, &false_.stmts[0]) {
         return true;
     }
     // Check for terminal else
@@ -79,18 +87,23 @@ fn is_case(stmt: &Stmt) -> bool {
     false
 }
 
-fn build_case(stmt: &mut Stmt) {
+fn build_case(script: &Scripto, stmt: &mut Stmt) {
     let mut value = None;
     let mut cases = Vec::new();
-    append_case(stmt, &mut value, &mut cases);
+    append_case(script, stmt, &mut value, &mut cases);
     *stmt = Stmt::Case {
         value: value.unwrap(),
         cases,
     };
 }
 
-fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mut Vec<Case<'a>>) {
-    let (condition, true_, false_) = match stmt {
+fn append_case<'a>(
+    script: &Scripto,
+    stmt: &mut Stmt<'a>,
+    value: &mut Option<ExprId>,
+    cases: &mut Vec<Case<'a>>,
+) {
+    let (&mut condition, true_, false_) = match stmt {
         Stmt::If {
             condition,
             true_,
@@ -98,24 +111,20 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
         } => (condition, true_, false_),
         _ => unreachable!(),
     };
-    let cond = match condition {
-        Expr::Equal(ops) => {
-            let (lhs, rhs) = &mut **ops;
-            debug_assert!(matches!(lhs, Expr::StackDup(_)));
+    let cond = match script.exprs[condition] {
+        Expr::Equal(lhs, rhs) => {
+            debug_assert!(matches!(script.exprs[lhs], Expr::StackDup(_)));
             if value.is_none() {
-                *value = Some(lhs.clone());
+                *value = Some(lhs);
             }
-            // leave dummy value behind
-            CaseCond::Eq(mem::replace(rhs, Expr::Number(0)))
+            CaseCond::Eq(rhs)
         }
-        Expr::In(ops) => {
-            let (lhs, rhs) = &mut **ops;
-            debug_assert!(matches!(lhs, Expr::StackDup(_)));
+        Expr::In(lhs, rhs) => {
+            debug_assert!(matches!(script.exprs[lhs], Expr::StackDup(_)));
             if value.is_none() {
-                *value = Some(lhs.clone());
+                *value = Some(lhs);
             }
-            // leave dummy value behind
-            CaseCond::In(mem::replace(rhs, Expr::Number(0)))
+            CaseCond::In(rhs)
         }
         _ => unreachable!(),
     };
@@ -133,7 +142,7 @@ fn append_case<'a>(stmt: &mut Stmt<'a>, value: &mut Option<Expr<'a>>, cases: &mu
 
     // Append another case
     if false_.stmts.len() == 1 && matches!(false_.stmts[0], Stmt::If { .. }) {
-        append_case(&mut false_.stmts[0], value, cases);
+        append_case(script, &mut false_.stmts[0], value, cases);
         return;
     }
     // Append terminal else

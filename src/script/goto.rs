@@ -1,14 +1,14 @@
 use crate::script::{
-    ast::{DecompileErrorKind, Stmt, StmtBlock},
+    ast::{DecompileErrorKind, Scripto, Stmt, StmtBlock},
     visit::{default_visit_stmt, Visitor},
 };
 use tracing::trace;
 
-pub fn add_labels_for_gotos(ast: &mut StmtBlock) {
+pub fn add_labels_for_gotos(script: &Scripto, ast: &mut StmtBlock) {
     let mut collect = CollectGotoTargets {
         targets: Vec::new(),
     };
-    collect.block(ast);
+    collect.block(script, ast);
     let mut targets = collect.targets;
     if targets.is_empty() {
         return;
@@ -32,13 +32,13 @@ struct CollectGotoTargets {
 }
 
 impl Visitor for CollectGotoTargets {
-    fn stmt(&mut self, stmt: &Stmt) {
+    fn stmt(&mut self, script: &Scripto, stmt: &Stmt) {
         if let &Stmt::Goto(target) = stmt {
             if !self.targets.contains(&target) {
                 self.targets.push(target);
             }
         }
-        default_visit_stmt(stmt, self);
+        default_visit_stmt(script, stmt, self);
     }
 }
 

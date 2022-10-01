@@ -1,5 +1,6 @@
 #![warn(clippy::pedantic)]
 #![allow(
+    clippy::match_on_vec_items,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::module_name_repetitions,

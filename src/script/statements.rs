@@ -1,17 +1,19 @@
 use crate::script::{
-    ast::{DecompileErrorKind, Expr, Stmt, StmtBlock},
+    ast::{DecompileErrorKind, Expr, ExprId, Scripto, Stmt, StmtBlock},
     control::{Control, ControlBlock},
     decode::Decoder,
     ins::{GenericArg, GenericIns, Ins, Operand, Variable},
 };
 
-pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> StmtBlock<'a> {
+pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> (Scripto<'a>, StmtBlock<'a>) {
+    let mut script = Scripto::default();
     let mut block = StmtBlock::default();
     let entry = &controls[0];
     match decompile_block(
         entry,
         code,
         controls,
+        &mut script,
         &mut block,
         BlockExit::Jump(entry.end),
     ) {
@@ -21,24 +23,25 @@ pub fn build_ast<'a>(controls: &[ControlBlock], code: &'a [u8]) -> StmtBlock<'a>
             block.push(usize::MAX, Stmt::DecompileError(offset, message));
         }
     }
-    block
+    (script, block)
 }
 
-struct DecompileError<'a>(usize, DecompileErrorKind<'a>);
+struct DecompileError(usize, DecompileErrorKind);
 
 #[allow(clippy::too_many_lines)]
 fn decompile_block<'a>(
     block: &ControlBlock,
     code: &'a [u8],
     controls: &[ControlBlock],
+    script: &mut Scripto<'a>,
     out: &mut StmtBlock<'a>,
     expected_exit: BlockExit,
-) -> Result<(), DecompileError<'a>> {
+) -> Result<(), DecompileError> {
     debug_assert!(matches!(expected_exit, BlockExit::Jump(_))); // not passing expr to caller
 
     match &block.control {
         Control::CodeRange => {
-            decompile_stmts(code, block, out, expected_exit)?;
+            decompile_stmts(code, block, script, out, expected_exit)?;
             Ok(())
         }
         Control::Sequence(children) => {
@@ -55,6 +58,7 @@ fn decompile_block<'a>(
                     &controls[i],
                     code,
                     controls,
+                    script,
                     out,
                     BlockExit::Jump(controls[i].end),
                 )?;
@@ -63,6 +67,7 @@ fn decompile_block<'a>(
                 &controls[children[last_nonempty_child]],
                 code,
                 controls,
+                script,
                 out,
                 expected_exit,
             )
@@ -71,6 +76,7 @@ fn decompile_block<'a>(
             let condition = decompile_stmts(
                 code,
                 &controls[b.condition],
+                script,
                 out,
                 BlockExit::JumpUnless(controls[b.true_].end),
             )?
@@ -85,6 +91,7 @@ fn decompile_block<'a>(
                 &controls[b.true_],
                 code,
                 controls,
+                script,
                 &mut true_block,
                 BlockExit::Jump(expected),
             )?;
@@ -95,6 +102,7 @@ fn decompile_block<'a>(
                     &controls[false_],
                     code,
                     controls,
+                    script,
                     &mut false_block,
                     BlockExit::Jump(controls[false_].end),
                 )?;
@@ -111,6 +119,7 @@ fn decompile_block<'a>(
             let cond_expr = decompile_stmts(
                 code,
                 &controls[b.condition],
+                script,
                 out,
                 BlockExit::JumpUnless(controls[b.body].end),
             )?
@@ -121,6 +130,7 @@ fn decompile_block<'a>(
                 &controls[b.body],
                 code,
                 controls,
+                script,
                 &mut body,
                 BlockExit::Jump(controls[b.condition].start),
             )?;
@@ -141,6 +151,7 @@ fn decompile_block<'a>(
                 &controls[b.body],
                 code,
                 controls,
+                script,
                 &mut body_block,
                 expected_exit,
             )?;
@@ -152,6 +163,7 @@ fn decompile_block<'a>(
                         decompile_stmts(
                             code,
                             &controls[condition],
+                            script,
                             &mut body_block,
                             BlockExit::JumpUnless(controls[b.body].start),
                         )?
@@ -173,9 +185,10 @@ fn decompile_block<'a>(
 fn decompile_stmts<'a>(
     code: &'a [u8],
     block: &ControlBlock,
+    script: &mut Scripto<'a>,
     out: &mut StmtBlock<'a>,
     expected_exit: BlockExit,
-) -> Result<Option<Expr<'a>>, DecompileError<'a>> {
+) -> Result<Option<ExprId>, DecompileError> {
     debug_assert!(matches!(block.control, Control::CodeRange));
 
     let mut stack = Vec::new();
@@ -193,11 +206,11 @@ fn decompile_stmts<'a>(
                 .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
         (: string) => {
-            pop_string(&mut stack, &mut string_stack)
+            pop_string(script, &mut stack, &mut string_stack)
                 .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
         (: list) => {
-            pop_list(&mut stack)
+            pop_list(script, &mut stack)
                 .ok_or_else(|| DecompileError(decoder.pos(), DecompileErrorKind::StackUnderflow))
         };
     }
@@ -225,11 +238,18 @@ fn decompile_stmts<'a>(
                     target,
                     expr,
                     &mut stack,
+                    script,
                     out,
                 ));
             }
-            append_goto(bump_stmt_addr!(), target, expr, out);
+            append_goto(bump_stmt_addr!(), target, expr, script, out);
         };
+    }
+
+    macro_rules! push_expr {
+        ($expr:expr) => {{
+            stack.push(add_expr(script, $expr));
+        }};
     }
 
     while decoder.pos() < block.end {
@@ -239,100 +259,101 @@ fn decompile_stmts<'a>(
         match ins {
             Ins::Push(op) => {
                 match op {
-                    Operand::Byte(x) => stack.push(Expr::Number(x.into())),
-                    Operand::I16(x) => stack.push(Expr::Number(x.into())),
-                    Operand::I32(x) => stack.push(Expr::Number(x)),
-                    Operand::Var(var) => stack.push(Expr::Variable(var)),
+                    Operand::Byte(x) => push_expr!(Expr::Number(x.into())),
+                    Operand::I16(x) => push_expr!(Expr::Number(x.into())),
+                    Operand::I32(x) => push_expr!(Expr::Number(x)),
+                    Operand::Var(var) => push_expr!(Expr::Variable(var)),
                     Operand::String(s) => string_stack.push(s),
                 }
             }
             Ins::GetArrayItem(var) => {
                 let x = pop!()?;
-                stack.push(Expr::ArrayIndex(var, Box::new(x)));
+                push_expr!(Expr::ArrayIndex(var, x));
             }
             Ins::GetArrayItem2D(var) => {
                 let x = pop!()?;
                 let y = pop!()?;
-                stack.push(Expr::ArrayIndex2D(var, Box::new((y, x))));
+                push_expr!(Expr::ArrayIndex2D(var, y, x));
             }
             Ins::StackDupN(count) => {
                 for _ in 0..count {
-                    let expr = stack
+                    let &expr = stack
                         .get(stack.len() - usize::from(count))
                         .ok_or(DecompileError(off, DecompileErrorKind::StackUnderflow))?;
-                    let expr = Box::new(expr.clone());
-                    stack.push(Expr::StackDup(expr));
+                    push_expr!(Expr::StackDup(expr));
                 }
             }
             Ins::StackDup => {
                 // TODO: only constant expressions?
-                stack.push(Expr::StackDup(Box::new(
-                    stack.last().cloned().unwrap_or(Expr::StackUnderflow),
-                )));
+                let expr = stack
+                    .last()
+                    .copied()
+                    .unwrap_or_else(|| add_expr(script, Expr::StackUnderflow));
+                push_expr!(Expr::StackDup(expr));
             }
             Ins::Not => {
                 let expr = pop!()?;
-                stack.push(Expr::Not(Box::new(expr)));
+                push_expr!(Expr::Not(expr));
             }
             Ins::Equal => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Equal(Box::new((lhs, rhs))));
+                push_expr!(Expr::Equal(lhs, rhs));
             }
             Ins::NotEqual => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::NotEqual(Box::new((lhs, rhs))));
+                push_expr!(Expr::NotEqual(lhs, rhs));
             }
             Ins::Greater => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Greater(Box::new((lhs, rhs))));
+                push_expr!(Expr::Greater(lhs, rhs));
             }
             Ins::Less => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Less(Box::new((lhs, rhs))));
+                push_expr!(Expr::Less(lhs, rhs));
             }
             Ins::LessOrEqual => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::LessOrEqual(Box::new((lhs, rhs))));
+                push_expr!(Expr::LessOrEqual(lhs, rhs));
             }
             Ins::GreaterOrEqual => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::GreaterOrEqual(Box::new((lhs, rhs))));
+                push_expr!(Expr::GreaterOrEqual(lhs, rhs));
             }
             Ins::Add => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Add(Box::new((lhs, rhs))));
+                push_expr!(Expr::Add(lhs, rhs));
             }
             Ins::Sub => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Sub(Box::new((lhs, rhs))));
+                push_expr!(Expr::Sub(lhs, rhs));
             }
             Ins::Mul => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Mul(Box::new((lhs, rhs))));
+                push_expr!(Expr::Mul(lhs, rhs));
             }
             Ins::Div => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::Div(Box::new((lhs, rhs))));
+                push_expr!(Expr::Div(lhs, rhs));
             }
             Ins::LogicalAnd => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::LogicalAnd(Box::new((lhs, rhs))));
+                push_expr!(Expr::LogicalAnd(lhs, rhs));
             }
             Ins::LogicalOr => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::LogicalOr(Box::new((lhs, rhs))));
+                push_expr!(Expr::LogicalOr(lhs, rhs));
             }
             Ins::PopDiscard => {
                 if pop!().is_err() {
@@ -345,7 +366,7 @@ fn decompile_stmts<'a>(
             Ins::In => {
                 let list = pop!(:list)?;
                 let value = pop!()?;
-                stack.push(Expr::In(Box::new((value, list))));
+                push_expr!(Expr::In(value, list));
             }
             Ins::DimArray2D(item_size, var) => {
                 let swap = pop!()?;
@@ -405,7 +426,7 @@ fn decompile_stmts<'a>(
                 #[allow(clippy::cast_sign_loss)]
                 let target = decoder.pos().wrapping_add(rel as isize as usize);
                 let expr = pop!()?;
-                let expr = Expr::Not(Box::new(expr));
+                let expr = add_expr(script, Expr::Not(expr));
                 handle_jump!(target, Some(expr));
             }
             Ins::JumpUnless(rel) => {
@@ -424,13 +445,14 @@ fn decompile_stmts<'a>(
                 out.push(bump_stmt_addr!(), Stmt::Assign(var, expr));
             }
             Ins::Sprintf(var) => {
-                let mut args = pop!(:list)?;
+                let args = pop!(:list)?;
                 let first_arg = pop!()?;
-                match &mut args {
+                match &mut script.exprs[args] {
                     Expr::List(xs) => xs.insert(0, first_arg),
                     _ => unreachable!(),
                 }
                 let format = pop!(:string)?;
+                let dest = add_expr(script, Expr::Variable(var));
                 out.push(bump_stmt_addr!(), Stmt::Generic {
                     bytecode: bytearray![0xa4, 0xc2],
                     ins: &GenericIns {
@@ -438,7 +460,7 @@ fn decompile_stmts<'a>(
                         args: &[GenericArg::String, GenericArg::Int, GenericArg::List],
                         returns_value: false,
                     },
-                    args: vec![Expr::Variable(var), format, args],
+                    args: vec![dest, format, args],
                 });
             }
             Ins::DimArray1DSimple(item_size, var) => {
@@ -446,11 +468,11 @@ fn decompile_stmts<'a>(
                 out.push(bump_stmt_addr!(), Stmt::DimArray {
                     var,
                     item_size,
-                    min_y: Expr::Number(0),
-                    max_y: Expr::Number(0),
-                    min_x: Expr::Number(0),
+                    min_y: add_expr(script, Expr::Number(0)),
+                    max_y: add_expr(script, Expr::Number(0)),
+                    min_x: add_expr(script, Expr::Number(0)),
                     max_x,
-                    swap: Expr::Number(2),
+                    swap: add_expr(script, Expr::Number(2)),
                 });
             }
             Ins::DimArray2DSimple(item_size, var) => {
@@ -459,22 +481,22 @@ fn decompile_stmts<'a>(
                 out.push(bump_stmt_addr!(), Stmt::DimArray {
                     var,
                     item_size,
-                    min_y: Expr::Number(0),
+                    min_y: add_expr(script, Expr::Number(0)),
                     max_y,
-                    min_x: Expr::Number(0),
+                    min_x: add_expr(script, Expr::Number(0)),
                     max_x,
-                    swap: Expr::Number(2),
+                    swap: add_expr(script, Expr::Number(2)),
                 });
             }
             Ins::BitwiseAnd => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::BitwiseAnd(Box::new((lhs, rhs))));
+                push_expr!(Expr::BitwiseAnd(lhs, rhs));
             }
             Ins::BitwiseOr => {
                 let rhs = pop!()?;
                 let lhs = pop!()?;
-                stack.push(Expr::BitwiseOr(Box::new((lhs, rhs))));
+                push_expr!(Expr::BitwiseOr(lhs, rhs));
             }
             Ins::Generic(bytecode, operands, ins) => {
                 let mut args = Vec::with_capacity(operands.len() + ins.args.len());
@@ -487,11 +509,11 @@ fn decompile_stmts<'a>(
                     args.push(expr);
                 }
                 for op in operands.iter().rev() {
-                    args.push(operand_to_expr(op));
+                    args.push(operand_to_expr(script, op));
                 }
                 args.reverse();
                 if ins.returns_value {
-                    stack.push(Expr::Call(bytecode, ins, args));
+                    push_expr!(Expr::Call(bytecode, ins, args));
                 } else {
                     out.push(bump_stmt_addr!(), Stmt::Generic {
                         bytecode,
@@ -508,32 +530,41 @@ fn decompile_stmts<'a>(
         decoder.pos(),
         None,
         &mut stack,
+        script,
         out,
     ))
 }
 
-fn operand_to_expr<'a>(operand: &Operand<'a>) -> Expr<'a> {
-    match *operand {
+fn add_expr<'a>(script: &mut Scripto<'a>, expr: Expr<'a>) -> ExprId {
+    let id = script.exprs.len();
+    script.exprs.push(expr);
+    id
+}
+
+fn operand_to_expr<'a>(script: &mut Scripto<'a>, operand: &Operand<'a>) -> ExprId {
+    let expr = match *operand {
         Operand::Byte(x) => Expr::Number(x.into()),
         Operand::I16(x) => Expr::Number(x.into()),
         Operand::I32(x) => Expr::Number(x),
         Operand::Var(v) => Expr::Variable(v),
         Operand::String(s) => Expr::String(s),
-    }
+    };
+    add_expr(script, expr)
 }
 
 fn finish_block<'a>(
     expected_exit: BlockExit,
     pos: usize,
     target: usize,
-    mut expr: Option<Expr<'a>>,
-    stack: &mut Vec<Expr<'a>>,
+    mut expr: Option<ExprId>,
+    stack: &mut Vec<ExprId>,
+    script: &mut Scripto<'a>,
     out: &mut StmtBlock<'a>,
-) -> Option<Expr<'a>> {
+) -> Option<ExprId> {
     while let Some(expr) = stack.pop() {
         out.push(
             pos,
-            Stmt::DecompileError(pos, DecompileErrorKind::StackOrphan(Box::new(expr))),
+            Stmt::DecompileError(pos, DecompileErrorKind::StackOrphan(expr)),
         );
     }
 
@@ -543,28 +574,37 @@ fn finish_block<'a>(
     };
 
     if actual_exit != expected_exit {
-        append_goto(pos, target, expr.take(), out);
+        append_goto(pos, target, expr.take(), script, out);
     }
 
     match expected_exit {
         BlockExit::Jump(_) => None,
         BlockExit::JumpUnless(_) => {
-            Some(expr.unwrap_or(Expr::DecompileError(
-                pos,
-                DecompileErrorKind::WrongBlockExit,
-            )))
+            Some(expr.unwrap_or_else(|| {
+                add_expr(
+                    script,
+                    Expr::DecompileError(pos, DecompileErrorKind::WrongBlockExit),
+                )
+            }))
         }
     }
 }
 
-fn append_goto<'a>(pos: usize, target: usize, expr: Option<Expr<'a>>, out: &mut StmtBlock<'a>) {
+fn append_goto<'a>(
+    pos: usize,
+    target: usize,
+    expr: Option<ExprId>,
+    script: &mut Scripto<'a>,
+    out: &mut StmtBlock<'a>,
+) {
     match expr {
         None => {
             out.push(pos, Stmt::Goto(target));
         }
         Some(expr) => {
+            let condition = add_expr(script, Expr::Not(expr));
             out.push(pos, Stmt::If {
-                condition: Expr::Not(Box::new(expr)),
+                condition,
                 true_: StmtBlock {
                     addrs: vec![pos],
                     stmts: vec![Stmt::Goto(target)],
@@ -581,17 +621,26 @@ enum BlockExit {
     JumpUnless(usize),
 }
 
-fn pop_string<'a>(stack: &mut Vec<Expr>, string_stack: &mut Vec<&'a [u8]>) -> Option<Expr<'a>> {
-    match stack.pop()? {
-        Expr::Number(-1) => Some(Expr::String(string_stack.pop()?)),
-        Expr::Number(var_id) => Some(Expr::Variable(Variable(var_id.try_into().ok()?))),
-        Expr::Variable(var) => Some(Expr::Variable(var)),
+fn pop_string<'a>(
+    script: &mut Scripto<'a>,
+    stack: &mut Vec<ExprId>,
+    string_stack: &mut Vec<&'a [u8]>,
+) -> Option<ExprId> {
+    match script.exprs[stack.pop()?] {
+        Expr::Number(-1) => Some(add_expr(script, Expr::String(string_stack.pop()?))),
+        Expr::Number(var_id) => {
+            Some(add_expr(
+                script,
+                Expr::Variable(Variable(var_id.try_into().ok()?)),
+            ))
+        }
+        Expr::Variable(var) => Some(add_expr(script, Expr::Variable(var))),
         _ => None,
     }
 }
 
-fn pop_list<'a>(stack: &mut Vec<Expr<'a>>) -> Option<Expr<'a>> {
-    let len = match stack.pop()? {
+fn pop_list<'a>(script: &mut Scripto<'a>, stack: &mut Vec<ExprId>) -> Option<ExprId> {
+    let len = match script.exprs[stack.pop()?] {
         Expr::Number(n) => n,
         _ => return None,
     };
@@ -600,5 +649,5 @@ fn pop_list<'a>(stack: &mut Vec<Expr<'a>>) -> Option<Expr<'a>> {
         list.push(stack.pop()?);
     }
     list.reverse();
-    Some(Expr::List(list))
+    Some(add_expr(script, Expr::List(list)))
 }

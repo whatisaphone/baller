@@ -1,5 +1,9 @@
 #![warn(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions, clippy::never_loop)]
+#![allow(
+    clippy::match_on_vec_items,
+    clippy::module_name_repetitions,
+    clippy::never_loop
+)]
 #![cfg_attr(feature = "strict", deny(warnings))]
 
 use crate::{

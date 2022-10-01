@@ -9,6 +9,11 @@ use crate::{
 use std::{fmt, fmt::Write};
 
 #[derive(Default)]
+pub struct Scripto<'a> {
+    pub exprs: Vec<Expr<'a>>,
+}
+
+#[derive(Default)]
 pub struct StmtBlock<'a> {
     pub addrs: Vec<usize>,
     pub stmts: Vec<Stmt<'a>>,
@@ -18,99 +23,99 @@ pub enum Stmt<'a> {
     DimArray {
         var: Variable,
         item_size: ItemSize,
-        min_y: Expr<'a>,
-        max_y: Expr<'a>,
-        min_x: Expr<'a>,
-        max_x: Expr<'a>,
-        swap: Expr<'a>,
+        min_y: ExprId,
+        max_y: ExprId,
+        min_x: ExprId,
+        max_x: ExprId,
+        swap: ExprId,
     },
     RedimArray {
         var: Variable,
         item_size: ItemSize,
-        min_y: Expr<'a>,
-        max_y: Expr<'a>,
-        min_x: Expr<'a>,
-        max_x: Expr<'a>,
+        min_y: ExprId,
+        max_y: ExprId,
+        min_x: ExprId,
+        max_x: ExprId,
     },
-    Assign(Variable, Expr<'a>),
-    SetArrayItem(Variable, Expr<'a>, Expr<'a>),
-    SetArrayItem2D(Variable, Expr<'a>, Expr<'a>, Expr<'a>),
+    Assign(Variable, ExprId),
+    SetArrayItem(Variable, ExprId, ExprId),
+    SetArrayItem2D(Variable, ExprId, ExprId, ExprId),
     Inc(Variable),
     Dec(Variable),
     Goto(usize),
     Label,
     If {
-        condition: Expr<'a>,
+        condition: ExprId,
         true_: StmtBlock<'a>,
         false_: StmtBlock<'a>,
     },
     While {
-        condition: Expr<'a>,
+        condition: ExprId,
         body: StmtBlock<'a>,
     },
     Do {
         body: StmtBlock<'a>,
-        condition: Option<Expr<'a>>,
+        condition: Option<ExprId>,
     },
     Case {
-        value: Expr<'a>,
+        value: ExprId,
         cases: Vec<Case<'a>>,
     },
     Generic {
         bytecode: ByteArray<2>,
         ins: &'a GenericIns,
-        args: Vec<Expr<'a>>,
+        args: Vec<ExprId>,
     },
-    DecompileError(usize, DecompileErrorKind<'a>),
+    DecompileError(usize, DecompileErrorKind),
 }
 
-#[derive(Clone)]
-pub enum DecompileErrorKind<'a> {
+pub enum DecompileErrorKind {
     StackUnderflow,
-    StackOrphan(Box<Expr<'a>>),
+    StackOrphan(ExprId),
     WrongBlockExit,
     Other(&'static str),
 }
 
 pub struct Case<'a> {
-    pub cond: CaseCond<'a>,
+    pub cond: CaseCond,
     pub body: StmtBlock<'a>,
 }
 
-pub enum CaseCond<'a> {
-    Eq(Expr<'a>),
-    In(Expr<'a>),
+pub enum CaseCond {
+    Eq(ExprId),
+    In(ExprId),
     Else,
 }
 
-#[derive(Clone)]
+pub type ExprId = usize;
+
 pub enum Expr<'a> {
     Number(i32),
     String(&'a [u8]),
     Variable(Variable),
-    StackDup(Box<Expr<'a>>),
+    StackDup(ExprId),
     StackUnderflow,
-    List(Vec<Expr<'a>>),
-    ArrayIndex(Variable, Box<Expr<'a>>),
-    ArrayIndex2D(Variable, Box<(Expr<'a>, Expr<'a>)>),
-    Not(Box<Expr<'a>>),
-    Equal(Box<(Expr<'a>, Expr<'a>)>),
-    NotEqual(Box<(Expr<'a>, Expr<'a>)>),
-    Greater(Box<(Expr<'a>, Expr<'a>)>),
-    Less(Box<(Expr<'a>, Expr<'a>)>),
-    LessOrEqual(Box<(Expr<'a>, Expr<'a>)>),
-    GreaterOrEqual(Box<(Expr<'a>, Expr<'a>)>),
-    Add(Box<(Expr<'a>, Expr<'a>)>),
-    Sub(Box<(Expr<'a>, Expr<'a>)>),
-    Mul(Box<(Expr<'a>, Expr<'a>)>),
-    Div(Box<(Expr<'a>, Expr<'a>)>),
-    LogicalAnd(Box<(Expr<'a>, Expr<'a>)>),
-    LogicalOr(Box<(Expr<'a>, Expr<'a>)>),
-    BitwiseAnd(Box<(Expr<'a>, Expr<'a>)>),
-    BitwiseOr(Box<(Expr<'a>, Expr<'a>)>),
-    In(Box<(Expr<'a>, Expr<'a>)>),
-    Call(ByteArray<2>, &'a GenericIns, Vec<Expr<'a>>),
-    DecompileError(usize, DecompileErrorKind<'a>),
+    List(Vec<ExprId>),
+    ArrayIndex(Variable, ExprId),
+    ArrayIndex2D(Variable, ExprId, ExprId),
+    Not(ExprId),
+    Equal(ExprId, ExprId),
+    NotEqual(ExprId, ExprId),
+    Greater(ExprId, ExprId),
+    Less(ExprId, ExprId),
+    LessOrEqual(ExprId, ExprId),
+    GreaterOrEqual(ExprId, ExprId),
+    Add(ExprId, ExprId),
+    Sub(ExprId, ExprId),
+    Mul(ExprId, ExprId),
+    Div(ExprId, ExprId),
+    LogicalAnd(ExprId, ExprId),
+    LogicalOr(ExprId, ExprId),
+    BitwiseAnd(ExprId, ExprId),
+    BitwiseOr(ExprId, ExprId),
+    In(ExprId, ExprId),
+    Call(ByteArray<2>, &'a GenericIns, Vec<ExprId>),
+    DecompileError(usize, DecompileErrorKind),
 }
 
 pub struct WriteCx<'a> {
@@ -191,13 +196,14 @@ pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fm
 
 pub fn write_block(
     w: &mut impl Write,
+    script: &Scripto,
     block: &StmtBlock,
     indent: usize,
     cx: &WriteCx,
 ) -> fmt::Result {
     debug_assert!(block.stmts.len() == block.addrs.len());
     for i in 0..block.stmts.len() {
-        write_stmt(w, block.addrs[i], &block.stmts[i], indent, cx)?;
+        write_stmt(w, script, block.addrs[i], &block.stmts[i], indent, cx)?;
         writeln!(w)?;
     }
     Ok(())
@@ -206,6 +212,7 @@ pub fn write_block(
 #[allow(clippy::too_many_lines)]
 fn write_stmt(
     w: &mut impl Write,
+    script: &Scripto,
     addr: usize,
     stmt: &Stmt,
     indent: usize,
@@ -215,11 +222,11 @@ fn write_stmt(
         Stmt::DimArray {
             var,
             item_size,
-            ref min_y,
-            ref max_y,
-            ref min_x,
-            ref max_x,
-            ref swap,
+            min_y,
+            max_y,
+            min_x,
+            max_x,
+            swap,
         } => {
             write_indent(w, indent)?;
             w.write_str("dim array ")?;
@@ -227,23 +234,23 @@ fn write_stmt(
             w.write_str(" ")?;
             w.write_str(format_item_size(item_size))?;
             w.write_char('[')?;
-            write_expr(w, min_y, cx)?;
+            write_expr(w, script, min_y, cx)?;
             w.write_str("...")?;
-            write_expr(w, max_y, cx)?;
+            write_expr(w, script, max_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, min_x, cx)?;
+            write_expr(w, script, min_x, cx)?;
             w.write_str("...")?;
-            write_expr(w, max_x, cx)?;
+            write_expr(w, script, max_x, cx)?;
             w.write_str("] swap=")?;
-            write_expr(w, swap, cx)?;
+            write_expr(w, script, swap, cx)?;
         }
         Stmt::RedimArray {
             var,
             item_size,
-            ref min_y,
-            ref max_y,
-            ref min_x,
-            ref max_x,
+            min_y,
+            max_y,
+            min_x,
+            max_x,
         } => {
             write_indent(w, indent)?;
             w.write_str("redim array ")?;
@@ -251,38 +258,38 @@ fn write_stmt(
             w.write_str(" ")?;
             w.write_str(format_item_size(item_size))?;
             w.write_char('[')?;
-            write_expr(w, min_y, cx)?;
+            write_expr(w, script, min_y, cx)?;
             w.write_str("...")?;
-            write_expr(w, max_y, cx)?;
+            write_expr(w, script, max_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, min_x, cx)?;
+            write_expr(w, script, min_x, cx)?;
             w.write_str("...")?;
-            write_expr(w, max_x, cx)?;
+            write_expr(w, script, max_x, cx)?;
             w.write_char(']')?;
         }
-        Stmt::Assign(var, ref expr) => {
+        Stmt::Assign(var, expr) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_str(" = ")?;
-            write_expr(w, expr, cx)?;
+            write_expr(w, script, expr, cx)?;
         }
-        Stmt::SetArrayItem(var, ref index, ref value) => {
+        Stmt::SetArrayItem(var, index, value) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, index, cx)?;
+            write_expr(w, script, index, cx)?;
             w.write_str("] = ")?;
-            write_expr(w, value, cx)?;
+            write_expr(w, script, value, cx)?;
         }
-        Stmt::SetArrayItem2D(var, ref index_y, ref index_x, ref value) => {
+        Stmt::SetArrayItem2D(var, index_y, index_x, value) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, index_y, cx)?;
+            write_expr(w, script, index_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, index_x, cx)?;
+            write_expr(w, script, index_x, cx)?;
             w.write_str("] = ")?;
-            write_expr(w, value, cx)?;
+            write_expr(w, script, value, cx)?;
         }
         Stmt::Inc(var) => {
             write_indent(w, indent)?;
@@ -304,44 +311,41 @@ fn write_stmt(
             w.write_char(':')?;
         }
         Stmt::If {
-            ref condition,
+            condition,
             ref true_,
             ref false_,
         } => {
             write_indent(w, indent)?;
             w.write_str("if (")?;
-            write_expr(w, condition, cx)?;
+            write_expr(w, script, condition, cx)?;
             writeln!(w, ") {{")?;
-            write_block(w, true_, indent + 1, cx)?;
-            write_if_else(w, false_, indent, cx)?;
+            write_block(w, script, true_, indent + 1, cx)?;
+            write_if_else(w, script, false_, indent, cx)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
         }
-        Stmt::Case {
-            ref value,
-            ref cases,
-        } => {
+        Stmt::Case { value, ref cases } => {
             write_indent(w, indent)?;
             w.write_str("case ")?;
-            write_expr(w, value, cx)?;
+            write_expr(w, script, value, cx)?;
             writeln!(w, " {{")?;
             for case in cases {
                 write_indent(w, indent + 1)?;
-                match &case.cond {
+                match case.cond {
                     CaseCond::Eq(value) => {
                         w.write_str("of ")?;
-                        write_expr(w, value, cx)?;
+                        write_expr(w, script, value, cx)?;
                     }
                     CaseCond::In(list) => {
                         w.write_str("in ")?;
-                        write_expr(w, list, cx)?;
+                        write_expr(w, script, list, cx)?;
                     }
                     CaseCond::Else => {
                         w.write_str("else")?;
                     }
                 }
                 writeln!(w, " {{")?;
-                write_block(w, &case.body, indent + 2, cx)?;
+                write_block(w, script, &case.body, indent + 2, cx)?;
                 write_indent(w, indent + 1)?;
                 writeln!(w, "}}")?;
             }
@@ -349,29 +353,29 @@ fn write_stmt(
             write!(w, "}}")?;
         }
         Stmt::While {
-            ref condition,
+            condition,
             ref body,
         } => {
             write_indent(w, indent)?;
             w.write_str("while (")?;
-            write_expr(w, condition, cx)?;
+            write_expr(w, script, condition, cx)?;
             writeln!(w, ") {{")?;
-            write_block(w, body, indent + 1, cx)?;
+            write_block(w, script, body, indent + 1, cx)?;
             write_indent(w, indent)?;
             write!(w, "}}")?;
         }
         Stmt::Do {
             ref body,
-            ref condition,
+            condition,
         } => {
             write_indent(w, indent)?;
             writeln!(w, "do {{")?;
-            write_block(w, body, indent + 1, cx)?;
+            write_block(w, script, body, indent + 1, cx)?;
             write_indent(w, indent)?;
             w.write_char('}')?;
             if let Some(condition) = condition {
                 w.write_str(" until (")?;
-                write_expr(w, condition, cx)?;
+                write_expr(w, script, condition, cx)?;
                 w.write_char(')')?;
             }
         }
@@ -381,11 +385,11 @@ fn write_stmt(
             ref args,
         } => {
             write_indent(w, indent)?;
-            write_generic(w, bytecode, ins, args, cx)?;
+            write_generic(w, script, bytecode, ins, args, cx)?;
         }
         Stmt::DecompileError(offset, ref kind) => {
             write_indent(w, indent)?;
-            write_decomile_error(w, offset, kind, cx)?;
+            write_decomile_error(w, script, offset, kind, cx)?;
         }
     }
     Ok(())
@@ -393,6 +397,7 @@ fn write_stmt(
 
 fn write_if_else(
     w: &mut impl Write,
+    script: &Scripto,
     block: &StmtBlock,
     indent: usize,
     cx: &WriteCx,
@@ -404,38 +409,39 @@ fn write_if_else(
     if block.stmts.len() == 1 {
         if let Stmt::If {
             condition,
-            true_,
-            false_,
-        } = &block.stmts[0]
+            ref true_,
+            ref false_,
+        } = block.stmts[0]
         {
             write_indent(w, indent)?;
             w.write_str("} else if (")?;
-            write_expr(w, condition, cx)?;
+            write_expr(w, script, condition, cx)?;
             writeln!(w, ") {{")?;
-            write_block(w, true_, indent + 1, cx)?;
-            write_if_else(w, false_, indent, cx)?;
+            write_block(w, script, true_, indent + 1, cx)?;
+            write_if_else(w, script, false_, indent, cx)?;
             return Ok(());
         }
     }
 
     write_indent(w, indent)?;
     writeln!(w, "}} else {{")?;
-    write_block(w, block, indent + 1, cx)?;
+    write_block(w, script, block, indent + 1, cx)?;
     Ok(())
 }
 
-fn write_expr(w: &mut impl Write, expr: &Expr, cx: &WriteCx) -> fmt::Result {
-    write_expr_as(w, expr, None, cx)
+fn write_expr(w: &mut impl Write, script: &Scripto, id: ExprId, cx: &WriteCx) -> fmt::Result {
+    write_expr_as(w, script, id, None, cx)
 }
 
 #[allow(clippy::too_many_lines)]
 fn write_expr_as(
     w: &mut impl Write,
-    expr: &Expr,
+    script: &Scripto,
+    id: ExprId,
     emit_as: Option<EmitAs>,
     cx: &WriteCx,
 ) -> fmt::Result {
-    match expr {
+    match &script.exprs[id] {
         &Expr::Number(n) => {
             'done: loop {
                 if emit_as == Some(EmitAs::Script) {
@@ -457,121 +463,120 @@ fn write_expr_as(
         &Expr::Variable(var) => {
             write_var(w, var, cx)?;
         }
-        Expr::StackDup(expr) => {
-            write_expr_as(w, expr, emit_as, cx)?;
+        &Expr::StackDup(expr) => {
+            write_expr_as(w, script, expr, emit_as, cx)?;
         }
         Expr::StackUnderflow => {
             w.write_str("@DECOMPILE ERROR stack underflow")?;
         }
         Expr::List(exprs) => {
             w.write_char('[')?;
-            for (i, expr) in exprs.iter().enumerate() {
+            for (i, &expr) in exprs.iter().enumerate() {
                 if i != 0 {
                     w.write_str(", ")?;
                 }
-                write_expr(w, expr, cx)?;
+                write_expr(w, script, expr, cx)?;
             }
             w.write_char(']')?;
         }
-        &Expr::ArrayIndex(var, ref index) => {
+        &Expr::ArrayIndex(var, x) => {
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, index, cx)?;
+            write_expr(w, script, x, cx)?;
             w.write_char(']')?;
         }
-        &Expr::ArrayIndex2D(var, ref indices) => {
-            let (index1, index2) = &**indices;
+        &Expr::ArrayIndex2D(var, y, x) => {
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, index1, cx)?;
+            write_expr(w, script, y, cx)?;
             w.write_str("][")?;
-            write_expr(w, index2, cx)?;
+            write_expr(w, script, x, cx)?;
             w.write_char(']')?;
         }
-        Expr::Not(expr) => {
+        &Expr::Not(expr) => {
             w.write_char('!')?;
-            write_expr(w, expr, cx)?;
+            write_expr(w, script, expr, cx)?;
         }
-        Expr::Equal(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Equal(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" == ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::NotEqual(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::NotEqual(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" != ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Greater(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Greater(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" > ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Less(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Less(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" < ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::LessOrEqual(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::LessOrEqual(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" <= ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::GreaterOrEqual(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::GreaterOrEqual(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" >= ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Add(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Add(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" + ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Sub(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Sub(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" - ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Mul(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Mul(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" * ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::Div(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::Div(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" / ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::LogicalAnd(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::LogicalAnd(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" && ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::LogicalOr(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::LogicalOr(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" || ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::BitwiseAnd(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::BitwiseAnd(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" & ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::BitwiseOr(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::BitwiseOr(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" | ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
-        Expr::In(xs) => {
-            write_expr(w, &xs.0, cx)?;
+        &Expr::In(lhs, rhs) => {
+            write_expr(w, script, lhs, cx)?;
             w.write_str(" in ")?;
-            write_expr(w, &xs.1, cx)?;
+            write_expr(w, script, rhs, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {
-            write_generic(w, bytecode, ins, args, cx)?;
+            write_generic(w, script, bytecode, ins, args, cx)?;
         }
         &Expr::DecompileError(offset, ref kind) => {
-            write_decomile_error(w, offset, kind, cx)?;
+            write_decomile_error(w, script, offset, kind, cx)?;
         }
     }
     Ok(())
@@ -617,13 +622,14 @@ fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
 
 fn write_generic(
     w: &mut impl Write,
+    script: &Scripto,
     bytecode: &[u8],
     ins: &GenericIns,
-    args: &[Expr],
+    args: &[ExprId],
     cx: &WriteCx,
 ) -> fmt::Result {
     GenericIns::write_name(w, ins, bytecode)?;
-    for (i, expr) in args.iter().enumerate() {
+    for (i, &expr) in args.iter().enumerate() {
         // XXX: assume ins args are at the end of expr args
         let arg = i
             .checked_sub(args.len() - ins.args.len())
@@ -633,7 +639,7 @@ fn write_generic(
             _ => None,
         };
         w.write_char(' ')?;
-        write_expr_as(w, expr, emit_as, cx)?;
+        write_expr_as(w, script, expr, emit_as, cx)?;
     }
     Ok(())
 }
@@ -714,18 +720,19 @@ fn write_label(w: &mut impl Write, addr: usize) -> fmt::Result {
 
 fn write_decomile_error(
     w: &mut impl Write,
+    script: &Scripto,
     offset: usize,
     kind: &DecompileErrorKind,
     cx: &WriteCx,
 ) -> fmt::Result {
     write!(w, "@DECOMPILE ERROR near 0x{offset:x} ")?;
-    match kind {
+    match *kind {
         DecompileErrorKind::StackUnderflow => {
             w.write_str("stack underflow")?;
         }
         DecompileErrorKind::StackOrphan(expr) => {
             w.write_str("stack orphan ")?;
-            write_expr(w, expr, cx)?;
+            write_expr(w, script, expr, cx)?;
         }
         DecompileErrorKind::WrongBlockExit => {
             w.write_str("wrong block exit")?;

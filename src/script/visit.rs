@@ -1,19 +1,19 @@
 use crate::script::{
-    ast::{CaseCond, Expr, Stmt, StmtBlock},
+    ast::{CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock},
     ins::Variable,
 };
 
 pub trait Visitor: AsVisitor {
-    fn block(&mut self, block: &StmtBlock) {
-        default_visit_block(block, self.as_visit_mut());
+    fn block(&mut self, script: &Scripto, block: &StmtBlock) {
+        default_visit_block(script, block, self.as_visit_mut());
     }
 
-    fn stmt(&mut self, stmt: &Stmt) {
-        default_visit_stmt(stmt, self.as_visit_mut());
+    fn stmt(&mut self, script: &Scripto, stmt: &Stmt) {
+        default_visit_stmt(script, stmt, self.as_visit_mut());
     }
 
-    fn expr(&mut self, expr: &Expr) {
-        default_visit_expr(expr, self.as_visit_mut());
+    fn expr(&mut self, script: &Scripto, id: ExprId) {
+        default_visit_expr(script, id, self.as_visit_mut());
     }
 
     #[allow(unused_variables)]
@@ -30,15 +30,15 @@ impl<V: Visitor> AsVisitor for V {
     }
 }
 
-fn default_visit_block(block: &StmtBlock, visit: &mut dyn Visitor) {
+fn default_visit_block(script: &Scripto, block: &StmtBlock, visit: &mut dyn Visitor) {
     for s in &block.stmts {
-        visit.stmt(s);
+        visit.stmt(script, s);
     }
 }
 
-pub fn default_visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
+pub fn default_visit_stmt(script: &Scripto, stmt: &Stmt, visit: &mut dyn Visitor) {
     #[allow(clippy::match_same_arms)]
-    match stmt {
+    match *stmt {
         Stmt::DimArray {
             var,
             item_size: _,
@@ -48,12 +48,12 @@ pub fn default_visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
             max_x,
             swap,
         } => {
-            visit.var(*var);
-            visit.expr(min_y);
-            visit.expr(max_y);
-            visit.expr(min_x);
-            visit.expr(max_x);
-            visit.expr(swap);
+            visit.var(var);
+            visit.expr(script, min_y);
+            visit.expr(script, max_y);
+            visit.expr(script, min_x);
+            visit.expr(script, max_x);
+            visit.expr(script, swap);
         }
         Stmt::RedimArray {
             var,
@@ -63,118 +63,122 @@ pub fn default_visit_stmt(stmt: &Stmt, visit: &mut dyn Visitor) {
             min_x,
             max_x,
         } => {
-            visit.var(*var);
-            visit.expr(min_y);
-            visit.expr(max_y);
-            visit.expr(min_x);
-            visit.expr(max_x);
+            visit.var(var);
+            visit.expr(script, min_y);
+            visit.expr(script, max_y);
+            visit.expr(script, min_x);
+            visit.expr(script, max_x);
         }
         Stmt::Assign(var, expr) => {
-            visit.var(*var);
-            visit.expr(expr);
+            visit.var(var);
+            visit.expr(script, expr);
         }
         Stmt::SetArrayItem(var, x, value) => {
-            visit.var(*var);
-            visit.expr(x);
-            visit.expr(value);
+            visit.var(var);
+            visit.expr(script, x);
+            visit.expr(script, value);
         }
         Stmt::SetArrayItem2D(var, y, x, value) => {
-            visit.var(*var);
-            visit.expr(y);
-            visit.expr(x);
-            visit.expr(value);
+            visit.var(var);
+            visit.expr(script, y);
+            visit.expr(script, x);
+            visit.expr(script, value);
         }
         Stmt::Inc(var) | Stmt::Dec(var) => {
-            visit.var(*var);
+            visit.var(var);
         }
         Stmt::Label | Stmt::Goto(_) => {}
         Stmt::If {
             condition,
-            true_,
-            false_,
+            ref true_,
+            ref false_,
         } => {
-            visit.expr(condition);
-            visit.block(true_);
-            visit.block(false_);
+            visit.expr(script, condition);
+            visit.block(script, true_);
+            visit.block(script, false_);
         }
-        Stmt::While { condition, body } => {
-            visit.expr(condition);
-            visit.block(body);
+        Stmt::While {
+            condition,
+            ref body,
+        } => {
+            visit.expr(script, condition);
+            visit.block(script, body);
         }
-        Stmt::Do { body, condition } => {
-            visit.block(body);
+        Stmt::Do {
+            ref body,
+            condition,
+        } => {
+            visit.block(script, body);
             if let Some(condition) = condition {
-                visit.expr(condition);
+                visit.expr(script, condition);
             }
         }
-        Stmt::Case { value, cases } => {
-            visit.expr(value);
+        Stmt::Case { value, ref cases } => {
+            visit.expr(script, value);
             for case in cases {
-                match &case.cond {
-                    CaseCond::Eq(x) | CaseCond::In(x) => visit.expr(x),
+                match case.cond {
+                    CaseCond::Eq(x) | CaseCond::In(x) => visit.expr(script, x),
                     CaseCond::Else => {}
                 }
-                visit.block(&case.body);
+                visit.block(script, &case.body);
             }
         }
         Stmt::Generic {
             bytecode: _,
             ins: _,
-            args,
+            ref args,
         } => {
-            for e in args {
-                visit.expr(e);
+            for &e in args {
+                visit.expr(script, e);
             }
         }
         Stmt::DecompileError(_, _) => {}
     }
 }
 
-fn default_visit_expr(expr: &Expr, visit: &mut dyn Visitor) {
-    match expr {
-        &Expr::Variable(var) => {
+fn default_visit_expr(script: &Scripto, id: ExprId, visit: &mut dyn Visitor) {
+    match script.exprs[id] {
+        Expr::Variable(var) => {
             visit.var(var);
         }
-        Expr::List(exprs) => {
-            for expr in exprs {
-                visit.expr(expr);
+        Expr::List(ref exprs) => {
+            for &expr in exprs {
+                visit.expr(script, expr);
             }
         }
         Expr::ArrayIndex(var, x) => {
-            visit.var(*var);
-            visit.expr(x);
+            visit.var(var);
+            visit.expr(script, x);
         }
-        Expr::ArrayIndex2D(var, xs) => {
-            let (y, x) = &**xs;
-            visit.var(*var);
-            visit.expr(y);
-            visit.expr(x);
+        Expr::ArrayIndex2D(var, y, x) => {
+            visit.var(var);
+            visit.expr(script, y);
+            visit.expr(script, x);
         }
         Expr::StackDup(expr) | Expr::Not(expr) => {
-            visit.expr(expr);
+            visit.expr(script, expr);
         }
-        Expr::Equal(xs)
-        | Expr::NotEqual(xs)
-        | Expr::Greater(xs)
-        | Expr::Less(xs)
-        | Expr::LessOrEqual(xs)
-        | Expr::GreaterOrEqual(xs)
-        | Expr::Add(xs)
-        | Expr::Sub(xs)
-        | Expr::Mul(xs)
-        | Expr::Div(xs)
-        | Expr::LogicalAnd(xs)
-        | Expr::LogicalOr(xs)
-        | Expr::BitwiseAnd(xs)
-        | Expr::BitwiseOr(xs)
-        | Expr::In(xs) => {
-            let (lhs, rhs) = &**xs;
-            visit.expr(lhs);
-            visit.expr(rhs);
+        Expr::Equal(lhs, rhs)
+        | Expr::NotEqual(lhs, rhs)
+        | Expr::Greater(lhs, rhs)
+        | Expr::Less(lhs, rhs)
+        | Expr::LessOrEqual(lhs, rhs)
+        | Expr::GreaterOrEqual(lhs, rhs)
+        | Expr::Add(lhs, rhs)
+        | Expr::Sub(lhs, rhs)
+        | Expr::Mul(lhs, rhs)
+        | Expr::Div(lhs, rhs)
+        | Expr::LogicalAnd(lhs, rhs)
+        | Expr::LogicalOr(lhs, rhs)
+        | Expr::BitwiseAnd(lhs, rhs)
+        | Expr::BitwiseOr(lhs, rhs)
+        | Expr::In(lhs, rhs) => {
+            visit.expr(script, lhs);
+            visit.expr(script, rhs);
         }
-        Expr::Call(_bytecode, _ins, args) => {
-            for arg in args {
-                visit.expr(arg);
+        Expr::Call(_, _, ref args) => {
+            for &arg in args {
+                visit.expr(script, arg);
             }
         }
         Expr::Number(_) | Expr::String(_) | Expr::StackUnderflow | Expr::DecompileError(_, _) => {}
