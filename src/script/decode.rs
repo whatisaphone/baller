@@ -493,7 +493,7 @@ fn decode_ins<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x6b => op_6b_cursor(code),
         0x6c => ins!([0x6c], name = "stop-script"),
         0x6d => ins!([0x6d], args = [int, list], retval),
-        0x6e => ins!([0x6e], args = [int, list]),
+        0x6e => ins!([0x6e], name = "put-class", args = [int, list]),
         0x6f => ins!([0x6f], name = "object-get-state", args = [int], retval),
         0x70 => ins!([0x70], name = "object-put-state", args = [int, int]),
         0x73 => op_73_jump(code),
