@@ -132,7 +132,7 @@ fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx:
         None => return,
     };
     // There has got to be a better way to do this
-    if !name.ends_with("-script") {
+    if !(name.ends_with("-script") || name.ends_with("-script-xc3")) {
         return;
     }
     let &script_target_expr = match ins_args.get(0) {
