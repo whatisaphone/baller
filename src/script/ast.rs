@@ -449,9 +449,7 @@ fn write_expr_as(
                 if emit_as == Some(EmitAs::Script) {
                     if let Some(name) = get_script_name(n, cx) {
                         w.write_str(name)?;
-                        w.write_str("/*")?;
-                        write!(w, "{n}")?;
-                        w.write_str("*/")?;
+                        write_aside_value(w, n)?;
                         break 'done;
                     }
                 }
@@ -579,7 +577,8 @@ fn write_expr_as(
         }
         &Expr::EnumConst(enum_id, value) => {
             let name = &cx.config.enums[enum_id].values[&value];
-            write!(w, "{name}/*{value}*/")?;
+            w.write_str(name)?;
+            write_aside_value(w, value)?;
         }
         &Expr::DecompileError(offset, ref kind) => {
             write_decomile_error(w, script, offset, kind, cx)?;
@@ -722,6 +721,13 @@ pub fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
 
 fn write_label(w: &mut impl Write, addr: usize) -> fmt::Result {
     write!(w, "label{addr:04x}")
+}
+
+fn write_aside_value(w: &mut impl Write, value: i32) -> fmt::Result {
+    w.write_char('{')?;
+    write!(w, "{value}")?;
+    w.write_char('}')?;
+    Ok(())
 }
 
 fn write_decomile_error(
