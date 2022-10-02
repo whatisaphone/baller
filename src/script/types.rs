@@ -1,13 +1,14 @@
 use crate::{
-    config::EnumId,
+    config::{EnumId, Script, Var},
     script::{
         ast::{get_script_config, CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock, WriteCx},
-        ins::Variable,
+        ins::{GenericIns, Variable},
         visit::{default_visit_expr, default_visit_stmt, Visitor},
         Scope,
     },
     Config,
 };
+use std::cmp::min;
 
 pub fn spread_types(scripto: &mut Scripto, root: &mut StmtBlock, scope: Scope, config: &Config) {
     let mut typist = Typist {
@@ -75,6 +76,13 @@ impl Visitor for Typist<'_> {
                     }
                 }
             }
+            Stmt::Generic {
+                bytecode: _,
+                ins,
+                ref args,
+            } => {
+                type_generic(script, ins, args, &self.cx);
+            }
             _ => {}
         }
     }
@@ -94,9 +102,82 @@ impl Visitor for Typist<'_> {
                 specify(script, lhs, ty, self.cx.config);
                 specify(script, rhs, ty, self.cx.config);
             }
+            Expr::Call(_, ins, ref args) => {
+                let args = args.clone(); // :(
+                type_generic(script, ins, &args, &self.cx);
+            }
             _ => {}
         }
     }
+}
+
+fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx: &WriteCx) {
+    let name = match &ins.name {
+        Some(name) => name,
+        None => return,
+    };
+    // There has got to be a better way to do this
+    if !name.ends_with("-script") {
+        return;
+    }
+    let &script_target_expr = match ins_args.get(0) {
+        Some(script) => script,
+        None => return,
+    };
+    let &script_args_expr = match ins_args.last() {
+        Some(args) => args,
+        None => return,
+    };
+    let script_args = match &script.exprs[script_args_expr] {
+        Expr::List(xs) => xs,
+        _ => return,
+    };
+    let params = match resolve_script_params(script, script_target_expr, cx) {
+        Some(params) => params,
+        None => return,
+    };
+    let count = min(params.len(), script_args.len());
+
+    // work around borrow checker
+    macro_rules! args {
+        () => {
+            match &script.exprs[script_args_expr] {
+                Expr::List(xs) => xs,
+                _ => unreachable!(),
+            }
+        };
+    }
+
+    #[allow(clippy::needless_range_loop)]
+    for i in 0..count {
+        specify(script, args!()[i], params[i].ty.map(Type::Enum), cx.config);
+    }
+}
+
+fn resolve_script_params<'a>(
+    script: &Scripto,
+    script_ref: ExprId,
+    cx: &'a WriteCx,
+) -> Option<&'a [Var]> {
+    match script.exprs[script_ref] {
+        Expr::Number(number) => {
+            let script = resolve_script(number, cx)?;
+            let end = min(script.locals.len(), script.params?.into());
+            Some(&script.locals[..end])
+        }
+        _ => None,
+    }
+}
+
+pub const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
+
+fn resolve_script<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a Script> {
+    let number: usize = number.try_into().ok()?;
+    if number < 2048 {
+        return cx.config.scripts.get(number);
+    }
+    let room: usize = cx.scope.room()?.try_into().ok()?;
+    cx.config.rooms.get(room)?.scripts.get(number)
 }
 
 fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {

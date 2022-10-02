@@ -3,6 +3,7 @@ use crate::{
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
+        types::LOCAL_SCRIPT_CUTOFF,
     },
     utils::byte_array::ByteArray,
 };
@@ -154,8 +155,6 @@ impl<'a> StmtBlock<'a> {
         self.stmts.remove(index);
     }
 }
-
-const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
 
 pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fmt::Result {
     match cx.scope {
