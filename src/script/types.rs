@@ -116,6 +116,10 @@ impl Visitor for Typist<'_> {
                 let args = args.clone(); // :(
                 type_generic(script, ins, &args, &self.cx);
             }
+            Expr::In(value, list) => {
+                let ty = self.get_ty(value);
+                specify_list_items(script, list, ty, self.cx.config);
+            }
             _ => {}
         }
     }
