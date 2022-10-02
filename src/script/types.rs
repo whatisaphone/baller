@@ -60,7 +60,7 @@ impl Visitor for Typist<'_> {
                         CaseCond::Eq(e) => {
                             ty = unify(ty, self.get_ty(e));
                         }
-                        _ => {}
+                        CaseCond::In(_) | CaseCond::Else => {}
                     }
                 }
                 for case in cases {
@@ -68,7 +68,10 @@ impl Visitor for Typist<'_> {
                         CaseCond::Eq(e) => {
                             specify(script, e, ty, self.cx.config);
                         }
-                        _ => {}
+                        CaseCond::In(e) => {
+                            specify_list_items(script, e, ty, self.cx.config);
+                        }
+                        CaseCond::Else => {}
                     }
                 }
             }
@@ -154,5 +157,21 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) 
             script.exprs[id] = Expr::EnumConst(enum_id, number);
         }
         _ => {}
+    }
+}
+
+fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) {
+    let xs = match &script.exprs[id] {
+        Expr::List(xs) => xs,
+        _ => return,
+    };
+    let len = xs.len();
+    for i in 0..len {
+        let xs = match &script.exprs[id] {
+            Expr::List(xs) => xs,
+            _ => unreachable!(),
+        };
+        let e = xs[i];
+        specify(script, e, ty, config);
     }
 }
