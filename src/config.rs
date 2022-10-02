@@ -3,7 +3,7 @@ use std::{collections::HashMap, error::Error};
 #[derive(Default)]
 pub struct Config {
     pub global_names: Vec<Option<String>>,
-    pub global_types: Vec<Option<EnumId>>,
+    pub global_types: Vec<Option<Type>>,
     pub scripts: Vec<Script>,
     pub rooms: Vec<Room>,
     pub enums: Vec<Enum>,
@@ -27,7 +27,7 @@ pub struct Script {
 #[derive(Default)]
 pub struct Var {
     pub name: Option<String>,
-    pub ty: Option<EnumId>,
+    pub ty: Option<Type>,
 }
 
 pub struct Enum {
@@ -36,6 +36,14 @@ pub struct Enum {
 }
 
 pub type EnumId = usize;
+
+pub enum Type {
+    Simple(SimpleType),
+}
+
+pub enum SimpleType {
+    Enum(EnumId),
+}
 
 impl Config {
     pub fn from_ini(ini: &str) -> Result<Self, Box<dyn Error>> {
@@ -173,6 +181,17 @@ fn handle_enum_key<'a>(
     Ok(())
 }
 
+fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
+    parse_simple_type(s, config, ln).map(Type::Simple)
+}
+
+fn parse_simple_type(s: &str, config: &Config, ln: usize) -> Result<SimpleType, Box<dyn Error>> {
+    if let Some(&enum_id) = config.enum_names.get(s) {
+        return Ok(SimpleType::Enum(enum_id));
+    }
+    return Err(type_err(ln));
+}
+
 fn it_next<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<T, Box<dyn Error>> {
     it.next().ok_or_else(|| parse_err(ln))
 }
@@ -201,19 +220,23 @@ fn parse_err(line_index: usize) -> Box<dyn Error> {
     format!("bad config on line {line_number}").into()
 }
 
+fn type_err(line_index: usize) -> Box<dyn Error> {
+    let line_number = line_index + 1;
+    format!("bad type on line {line_number}").into()
+}
+
 fn parse_var_name_type<'a>(
     s: &'a str,
     config: &Config,
     ln: usize,
-) -> Result<(&'a str, Option<EnumId>), Box<dyn Error>> {
+) -> Result<(&'a str, Option<Type>), Box<dyn Error>> {
     match s.split_once(':') {
         None => Ok((s, None)),
         Some((name, ty)) => {
-            let enum_id = *config
-                .enum_names
-                .get(ty.trim_start())
-                .ok_or_else(|| parse_err(ln))?;
-            Ok((name.trim_end(), Some(enum_id)))
+            let name = name.trim_end();
+            let ty = ty.trim_start();
+            let ty = parse_type(ty, config, ln)?;
+            Ok((name, Some(ty)))
         }
     }
 }

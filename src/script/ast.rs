@@ -1,5 +1,5 @@
 use crate::{
-    config::{Config, EnumId, Script, Var},
+    config::{Config, EnumId, Script, SimpleType, Type, Var},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
@@ -594,13 +594,13 @@ fn write_var_decl(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Resul
     let (named, ty) = resolve_variable(var, cx);
     write!(w, "{named}")?;
     if let Some(ty) = ty {
-        let enum_name = &cx.config.enums[ty].name;
-        write!(w, ": {enum_name}")?;
+        w.write_str(": ")?;
+        write_type(w, ty, cx)?;
     }
     Ok(())
 }
 
-pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Option<EnumId>) {
+pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Option<&'a Type>) {
     let (scope, number) = (var.0 & 0xf000, var.0 & 0x0fff);
     match scope {
         0x0000 => {
@@ -614,7 +614,7 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
                 .config
                 .global_types
                 .get(usize::from(number))
-                .and_then(|&o| o);
+                .and_then(Option::as_ref);
             let named = match name {
                 Some(name) => VarName::Named(name),
                 None => VarName::Numbered("global", number),
@@ -629,7 +629,7 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
                 None => return fallback,
             };
             let (name, ty) = match script.locals.get(usize::from(number)) {
-                Some(var) => (var.name.as_deref(), var.ty),
+                Some(var) => (var.name.as_deref(), var.ty.as_ref()),
                 None => (None, None),
             };
             let params = script.params.unwrap_or(0);
@@ -651,7 +651,7 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
                 Some(name) => VarName::Named(name),
                 None => fallback.0,
             };
-            (named, var.ty)
+            (named, var.ty.as_ref())
         }
         _ => panic!("bad variable scope bits"),
     }
@@ -750,6 +750,16 @@ fn write_aside_value(w: &mut impl Write, value: i32) -> fmt::Result {
     w.write_char('{')?;
     write!(w, "{value}")?;
     w.write_char('}')?;
+    Ok(())
+}
+
+fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
+    match ty {
+        &Type::Simple(SimpleType::Enum(enum_id)) => {
+            let name = &cx.config.enums[enum_id].name;
+            w.write_str(name)?;
+        }
+    }
     Ok(())
 }
 

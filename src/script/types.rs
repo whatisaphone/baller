@@ -1,5 +1,5 @@
 use crate::{
-    config::{EnumId, Var},
+    config::{SimpleType, Type, Var},
     script::{
         ast::{
             resolve_script,
@@ -28,22 +28,17 @@ pub fn spread_types(scripto: &mut Scripto, root: &mut StmtBlock, scope: Scope, c
     typist.block(scripto, root);
 }
 
-#[derive(Copy, Clone)]
-enum Type {
-    Enum(EnumId),
-}
-
 struct Typist<'a> {
-    types: Vec<Option<Type>>,
+    types: Vec<Option<&'a Type>>,
     cx: WriteCx<'a>,
 }
 
-impl Typist<'_> {
-    fn get_ty(&self, id: ExprId) -> Option<Type> {
+impl<'a> Typist<'a> {
+    fn get_ty(&self, id: ExprId) -> Option<&'a Type> {
         *self.types.get(id)?
     }
 
-    fn set_ty(&mut self, id: ExprId, type_: Option<Type>) {
+    fn set_ty(&mut self, id: ExprId, type_: Option<&'a Type>) {
         let type_ = match type_ {
             Some(type_) => type_,
             None => return,
@@ -164,7 +159,7 @@ fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx:
 
     #[allow(clippy::needless_range_loop)]
     for i in 0..count {
-        specify(script, args!()[i], params[i].ty.map(Type::Enum), cx.config);
+        specify(script, args!()[i], params[i].ty.as_ref(), cx.config);
     }
 }
 
@@ -183,7 +178,7 @@ fn resolve_script_params<'a>(
     }
 }
 
-fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {
+fn unify<'a>(lhs: Option<&'a Type>, rhs: Option<&'a Type>) -> Option<&'a Type> {
     match (lhs, rhs) {
         (lhs, None) => lhs,
         (None, rhs) => rhs,
@@ -191,18 +186,18 @@ fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {
     }
 }
 
-fn find_var_type(var: Variable, cx: &WriteCx) -> Option<Type> {
+fn find_var_type<'a>(var: Variable, cx: &WriteCx<'a>) -> Option<&'a Type> {
     let (_, ty) = resolve_variable(var, cx);
-    ty.map(Type::Enum)
+    ty
 }
 
-fn specify(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) {
+fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config) {
     let ty = match ty {
         Some(ty) => ty,
         None => return,
     };
     match (ty, &script.exprs[id]) {
-        (Type::Enum(enum_id), &Expr::Number(number)) => {
+        (&Type::Simple(SimpleType::Enum(enum_id)), &Expr::Number(number)) => {
             if !config.enums[enum_id].values.contains_key(&number) {
                 return;
             }
@@ -212,7 +207,7 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) 
     }
 }
 
-fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) {
+fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config) {
     let xs = match &script.exprs[id] {
         Expr::List(xs) => xs,
         _ => return,
