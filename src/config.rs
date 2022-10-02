@@ -30,8 +30,8 @@ pub struct Var {
     pub ty: Option<EnumId>,
 }
 
-#[derive(Default)]
 pub struct Enum {
+    pub name: String,
     pub values: HashMap<i32, String>,
 }
 
@@ -152,15 +152,23 @@ fn handle_enum_key<'a>(
     value: &str,
     config: &mut Config,
 ) -> Result<(), Box<dyn Error>> {
-    let enum_name = it_next(dots, ln)?.to_string();
+    let enum_name = it_next(dots, ln)?;
     let const_value: i32 = it_final(dots, ln)?.parse().map_err(|_| parse_err(ln))?;
     let const_name = value.to_string();
 
-    let enum_id = *config.enum_names.entry(enum_name).or_insert_with(|| {
-        let id = config.enums.len();
-        config.enums.push(Enum::default());
-        id
-    });
+    let enum_id = config
+        .enum_names
+        .get(enum_name)
+        .copied()
+        .unwrap_or_else(|| {
+            let id = config.enums.len();
+            config.enums.push(Enum {
+                name: enum_name.to_string(),
+                values: HashMap::new(),
+            });
+            config.enum_names.insert(enum_name.to_string(), id);
+            id
+        });
     config.enums[enum_id].values.insert(const_value, const_name);
     Ok(())
 }

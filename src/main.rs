@@ -3,7 +3,8 @@
     clippy::match_on_vec_items,
     clippy::module_name_repetitions,
     clippy::never_loop,
-    clippy::single_match
+    clippy::single_match,
+    clippy::single_match_else
 )]
 #![cfg_attr(feature = "strict", deny(warnings))]
 

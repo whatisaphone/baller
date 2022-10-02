@@ -1,7 +1,17 @@
 use crate::{
-    config::{EnumId, Script, Var},
+    config::{EnumId, Var},
     script::{
-        ast::{get_script_config, CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock, WriteCx},
+        ast::{
+            resolve_script,
+            resolve_variable,
+            CaseCond,
+            Expr,
+            ExprId,
+            Scripto,
+            Stmt,
+            StmtBlock,
+            WriteCx,
+        },
         ins::{GenericIns, Variable},
         visit::{default_visit_expr, default_visit_stmt, Visitor},
         Scope,
@@ -169,17 +179,6 @@ fn resolve_script_params<'a>(
     }
 }
 
-pub const LOCAL_SCRIPT_CUTOFF: i32 = 2048;
-
-fn resolve_script<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a Script> {
-    let number: usize = number.try_into().ok()?;
-    if number < 2048 {
-        return cx.config.scripts.get(number);
-    }
-    let room: usize = cx.scope.room()?.try_into().ok()?;
-    cx.config.rooms.get(room)?.scripts.get(number)
-}
-
 fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {
     match (lhs, rhs) {
         (lhs, None) => lhs,
@@ -189,40 +188,8 @@ fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {
 }
 
 fn find_var_type(var: Variable, cx: &WriteCx) -> Option<Type> {
-    let (scope, number) = (var.0 & 0xf000, var.0 & 0x0fff);
-    match scope {
-        0x0000 => {
-            // global
-            cx.config
-                .global_types
-                .get(usize::from(number))
-                .and_then(|&o| o)
-                .map(Type::Enum)
-        }
-        0x4000 => {
-            // local
-            if let Some(script) = get_script_config(cx) {
-                if let Some(var) = script.locals.get(usize::from(number)) {
-                    return var.ty.map(Type::Enum);
-                }
-            }
-            None
-        }
-        0x8000 => {
-            // room
-            if let Some(room) = cx.scope.room() {
-                if let Ok(room) = usize::try_from(room) {
-                    if let Some(room) = cx.config.rooms.get(room) {
-                        if let Some(var) = room.vars.get(usize::from(number)) {
-                            return var.ty.map(Type::Enum);
-                        }
-                    }
-                }
-            }
-            None
-        }
-        _ => panic!("bad variable scope bits"),
-    }
+    let (_, ty) = resolve_variable(var, cx);
+    ty.map(Type::Enum)
 }
 
 fn specify(script: &mut Scripto, id: ExprId, ty: Option<Type>, config: &Config) {

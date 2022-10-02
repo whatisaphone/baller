@@ -1,9 +1,8 @@
 use crate::{
-    config::{Config, EnumId, Script},
+    config::{Config, EnumId, Script, Var},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
-        types::LOCAL_SCRIPT_CUTOFF,
     },
     utils::byte_array::ByteArray,
 };
@@ -177,7 +176,7 @@ pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fm
     if !vars[..params_end].is_empty() {
         for &var in &vars[..params_end] {
             w.write_str("parameter ")?;
-            write_var(w, var, cx)?;
+            write_var_decl(w, var, cx)?;
             writeln!(w)?;
         }
         writeln!(w)?;
@@ -186,7 +185,7 @@ pub fn write_preamble(w: &mut impl Write, vars: &[Variable], cx: &WriteCx) -> fm
     if !vars[params_end..].is_empty() {
         for &var in &vars[params_end..] {
             w.write_str("local variable ")?;
-            write_var(w, var, cx)?;
+            write_var_decl(w, var, cx)?;
             writeln!(w)?;
         }
         writeln!(w)?;
@@ -587,40 +586,93 @@ fn write_expr_as(
 }
 
 fn write_var(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
+    let (named, _) = resolve_variable(var, cx);
+    write!(w, "{named}")
+}
+
+fn write_var_decl(w: &mut impl Write, var: Variable, cx: &WriteCx) -> fmt::Result {
+    let (named, ty) = resolve_variable(var, cx);
+    write!(w, "{named}")?;
+    if let Some(ty) = ty {
+        let enum_name = &cx.config.enums[ty].name;
+        write!(w, ": {enum_name}")?;
+    }
+    Ok(())
+}
+
+pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Option<EnumId>) {
     let (scope, number) = (var.0 & 0xf000, var.0 & 0x0fff);
     match scope {
         0x0000 => {
             // global
-            if let Some(name) = cx
+            let name = cx
                 .config
                 .global_names
                 .get(usize::from(number))
-                .and_then(Option::as_deref)
-            {
-                return w.write_str(name);
-            }
-            return write!(w, "global{number}");
+                .and_then(Option::as_deref);
+            let ty = cx
+                .config
+                .global_types
+                .get(usize::from(number))
+                .and_then(|&o| o);
+            let named = match name {
+                Some(name) => VarName::Named(name),
+                None => VarName::Numbered("global", number),
+            };
+            (named, ty)
         }
         0x4000 => {
             // local
-            write_local_var_name(w, number, cx)
+            let fallback = (VarName::Numbered("local", number), None);
+            let script = match get_script_config(cx) {
+                Some(script) => script,
+                None => return fallback,
+            };
+            let (name, ty) = match script.locals.get(usize::from(number)) {
+                Some(var) => (var.name.as_deref(), var.ty),
+                None => (None, None),
+            };
+            let params = script.params.unwrap_or(0);
+            let named = match name {
+                Some(name) => VarName::Named(name),
+                None if number < params => VarName::Numbered("arg", number),
+                None => fallback.0,
+            };
+            (named, ty)
         }
         0x8000 => {
-            if let Some(room) = cx.scope.room() {
-                if let Some(name) = cx
-                    .config
-                    .rooms
-                    .get(usize::try_from(room).unwrap())
-                    .and_then(|r| r.vars.get(usize::from(number)))
-                    .and_then(|v| v.name.as_deref())
-                {
-                    return w.write_str(name);
-                }
-            }
             // room
-            return write!(w, "room{number}");
+            let fallback = (VarName::Numbered("room", number), None);
+            let var = match get_room_var(number, cx) {
+                Some(var) => var,
+                None => return fallback,
+            };
+            let named = match &var.name {
+                Some(name) => VarName::Named(name),
+                None => fallback.0,
+            };
+            (named, var.ty)
         }
         _ => panic!("bad variable scope bits"),
+    }
+}
+
+fn get_room_var<'a>(number: u16, cx: &WriteCx<'a>) -> Option<&'a Var> {
+    let room: usize = cx.scope.room()?.try_into().ok()?;
+    cx.config.rooms.get(room)?.vars.get(usize::from(number))
+}
+
+pub enum VarName<'a> {
+    Named(&'a str),
+    Numbered(&'a str, u16),
+}
+
+impl fmt::Display for VarName<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VarName::Named(name) => write!(f, "{name}"),
+            VarName::Numbered(kind, number) => write!(f, "{kind}{number}"),
+        }
     }
 }
 
@@ -659,50 +711,22 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
 }
 
 fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
+    let script = resolve_script(number, cx)?;
+    script.name.as_deref()
+}
+
+const LOCAL_SCRIPT_CUTOFF: usize = 2048;
+
+pub fn resolve_script<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a Script> {
+    let number: usize = number.try_into().ok()?;
     if number < LOCAL_SCRIPT_CUTOFF {
-        // Global script
-        return cx
-            .config
-            .scripts
-            .get(usize::try_from(number).ok()?)?
-            .name
-            .as_deref();
+        return cx.config.scripts.get(number);
     }
-    // Local script
-    cx.config
-        .rooms
-        .get(usize::try_from(cx.scope.room()?).ok()?)?
-        .scripts
-        .get(usize::try_from(number).ok()?)?
-        .name
-        .as_deref()
+    let room: usize = cx.scope.room()?.try_into().ok()?;
+    cx.config.rooms.get(room)?.scripts.get(number)
 }
 
-fn write_local_var_name<'a>(w: &mut impl Write, number: u16, cx: &WriteCx<'a>) -> fmt::Result {
-    'have_script: loop {
-        let script = match get_script_config(cx) {
-            Some(script) => script,
-            None => break 'have_script,
-        };
-        if let Some(name) = script
-            .locals
-            .get(usize::try_from(number).unwrap())
-            .and_then(|v| v.name.as_ref())
-        {
-            w.write_str(name)?;
-            return Ok(());
-        }
-        if number < script.params.unwrap_or(0) {
-            write!(w, "arg{number}")?;
-            return Ok(());
-        }
-        break 'have_script;
-    }
-    write!(w, "local{number}")?;
-    Ok(())
-}
-
-pub fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
+fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
     match cx.scope {
         Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).unwrap()),
         Scope::RoomLocal(room, script) => {
