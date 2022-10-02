@@ -124,6 +124,7 @@ pub struct WriteCx<'a> {
     pub config: &'a Config,
 }
 
+#[derive(Copy, Clone)]
 pub enum Scope {
     Global(i32),
     RoomLocal(i32, i32),
@@ -703,7 +704,7 @@ fn write_local_var_name<'a>(w: &mut impl Write, number: u16, cx: &WriteCx<'a>) -
     Ok(())
 }
 
-fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
+pub fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
     match cx.scope {
         Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).unwrap()),
         Scope::RoomLocal(room, script) => {

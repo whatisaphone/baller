@@ -1,17 +1,18 @@
 use crate::{
     config::EnumId,
     script::{
-        ast::{CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock},
+        ast::{get_script_config, CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock, WriteCx},
         ins::Variable,
         visit::{default_visit_expr, default_visit_stmt, Visitor},
+        Scope,
     },
     Config,
 };
 
-pub fn spread_types(scripto: &mut Scripto, root: &mut StmtBlock, config: &Config) {
+pub fn spread_types(scripto: &mut Scripto, root: &mut StmtBlock, scope: Scope, config: &Config) {
     let mut typist = Typist {
         types: Vec::with_capacity(64),
-        config,
+        cx: WriteCx { scope, config },
     };
     typist.block(scripto, root);
 }
@@ -23,7 +24,7 @@ enum Type {
 
 struct Typist<'a> {
     types: Vec<Option<Type>>,
-    config: &'a Config,
+    cx: WriteCx<'a>,
 }
 
 impl Typist<'_> {
@@ -49,8 +50,8 @@ impl Visitor for Typist<'_> {
 
         match *stmt {
             Stmt::Assign(var, expr) => {
-                let ty = find_var_type(var, self.config);
-                specify(script, expr, ty, self.config);
+                let ty = find_var_type(var, &self.cx);
+                specify(script, expr, ty, self.cx.config);
             }
             Stmt::Case { value, ref cases } => {
                 let mut ty = self.get_ty(value);
@@ -65,7 +66,7 @@ impl Visitor for Typist<'_> {
                 for case in cases {
                     match case.cond {
                         CaseCond::Eq(e) => {
-                            specify(script, e, ty, self.config);
+                            specify(script, e, ty, self.cx.config);
                         }
                         _ => {}
                     }
@@ -80,15 +81,15 @@ impl Visitor for Typist<'_> {
 
         match script.exprs[id] {
             Expr::Variable(var) => {
-                self.set_ty(id, find_var_type(var, self.config));
+                self.set_ty(id, find_var_type(var, &self.cx));
             }
             Expr::StackDup(e) => {
                 self.set_ty(id, self.get_ty(e));
             }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
-                specify(script, lhs, ty, self.config);
-                specify(script, rhs, ty, self.config);
+                specify(script, lhs, ty, self.cx.config);
+                specify(script, rhs, ty, self.cx.config);
             }
             _ => {}
         }
@@ -103,15 +104,40 @@ fn unify(lhs: Option<Type>, rhs: Option<Type>) -> Option<Type> {
     }
 }
 
-fn find_var_type(var: Variable, config: &Config) -> Option<Type> {
+fn find_var_type(var: Variable, cx: &WriteCx) -> Option<Type> {
     let (scope, number) = (var.0 & 0xf000, var.0 & 0x0fff);
     match scope {
         0x0000 => {
             // global
-            let enum_id = (*config.global_types.get(usize::from(number))?)?;
-            Some(Type::Enum(enum_id))
+            cx.config
+                .global_types
+                .get(usize::from(number))
+                .and_then(|&o| o)
+                .map(Type::Enum)
         }
-        _ => None,
+        0x4000 => {
+            // local
+            if let Some(script) = get_script_config(cx) {
+                if let Some(var) = script.locals.get(usize::from(number)) {
+                    return var.ty.map(Type::Enum);
+                }
+            }
+            None
+        }
+        0x8000 => {
+            // room
+            if let Some(room) = cx.scope.room() {
+                if let Ok(room) = usize::try_from(room) {
+                    if let Some(room) = cx.config.rooms.get(room) {
+                        if let Some(var) = room.vars.get(usize::from(number)) {
+                            return var.ty.map(Type::Enum);
+                        }
+                    }
+                }
+            }
+            None
+        }
+        _ => panic!("bad variable scope bits"),
     }
 }
 

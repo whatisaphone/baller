@@ -27,6 +27,7 @@ pub struct Script {
 #[derive(Default)]
 pub struct Var {
     pub name: Option<String>,
+    pub ty: Option<EnumId>,
 }
 
 #[derive(Default)]
@@ -64,23 +65,14 @@ impl Config {
                 Some("global") => {
                     let id = it_final(&mut dots, ln)?;
                     let id: usize = id.parse().map_err(|_| parse_err(ln))?;
-                    let (name, type_) = match value.split_once(':') {
-                        None => (value, None),
-                        Some((name, ty)) => {
-                            let enum_id = *result
-                                .enum_names
-                                .get(ty.trim_start())
-                                .ok_or_else(|| parse_err(ln))?;
-                            (name.trim_end(), Some(enum_id))
-                        }
-                    };
+                    let (name, type_) = parse_var_name_type(value, &result, ln)?;
                     extend(&mut result.global_names, id);
                     result.global_names[id] = Some(name.to_string());
                     extend(&mut result.global_types, id);
                     result.global_types[id] = type_;
                 }
                 Some("script") => {
-                    handle_script_key(ln, &mut dots, value, &mut result.scripts)?;
+                    handle_script_key(ln, &mut dots, value, &mut result, |c| &mut c.scripts)?;
                 }
                 Some("room") => {
                     let room = it_next(&mut dots, ln)?;
@@ -94,12 +86,9 @@ impl Config {
                             result.rooms[room].vars[var].name = Some(value.to_string());
                         }
                         "script" => {
-                            handle_script_key(
-                                ln,
-                                &mut dots,
-                                value,
-                                &mut result.rooms[room].scripts,
-                            )?;
+                            handle_script_key(ln, &mut dots, value, &mut result, |c| {
+                                &mut c.rooms[room].scripts
+                            })?;
                         }
                         _ => {
                             return Err(parse_err(ln));
@@ -119,11 +108,13 @@ fn handle_script_key<'a>(
     ln: usize,
     dots: &mut impl Iterator<Item = &'a str>,
     mut value: &str,
-    scripts: &mut Vec<Script>,
+    config: &mut Config,
+    scripts_vec: impl Fn(&mut Config) -> &mut Vec<Script>,
 ) -> Result<(), Box<dyn Error>> {
     let script = it_next(dots, ln)?;
     let script: usize = script.parse().map_err(|_| parse_err(ln))?;
     // XXX: this wastes a bunch of memory since local scripts start at 2048
+    let scripts = scripts_vec(config);
     extend(scripts, script);
     match dots.next() {
         None => {
@@ -142,8 +133,11 @@ fn handle_script_key<'a>(
         Some("local") => {
             let local = it_final(dots, ln)?;
             let local: usize = local.parse().map_err(|_| parse_err(ln))?;
+            let (name, ty) = parse_var_name_type(value, config, ln)?;
+            let scripts = scripts_vec(config);
             extend(&mut scripts[script].locals, local);
-            scripts[script].locals[local].name = Some(value.to_string());
+            scripts[script].locals[local].name = Some(name.to_string());
+            scripts[script].locals[local].ty = ty;
         }
         Some(_) => {
             return Err(parse_err(ln));
@@ -197,4 +191,21 @@ fn extend<T: Default>(xs: &mut Vec<T>, upto: usize) {
 fn parse_err(line_index: usize) -> Box<dyn Error> {
     let line_number = line_index + 1;
     format!("bad config on line {line_number}").into()
+}
+
+fn parse_var_name_type<'a>(
+    s: &'a str,
+    config: &Config,
+    ln: usize,
+) -> Result<(&'a str, Option<EnumId>), Box<dyn Error>> {
+    match s.split_once(':') {
+        None => Ok((s, None)),
+        Some((name, ty)) => {
+            let enum_id = *config
+                .enum_names
+                .get(ty.trim_start())
+                .ok_or_else(|| parse_err(ln))?;
+            Ok((name.trim_end(), Some(enum_id)))
+        }
+    }
 }
