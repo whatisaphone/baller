@@ -39,9 +39,16 @@ pub type EnumId = usize;
 
 pub enum Type {
     Simple(SimpleType),
+    Array {
+        item: SimpleType,
+        y: SimpleType,
+        x: SimpleType,
+    },
 }
 
+#[derive(Copy, Clone)]
 pub enum SimpleType {
+    Any,
     Enum(EnumId),
 }
 
@@ -182,6 +189,12 @@ fn handle_enum_key<'a>(
 }
 
 fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
+    if let Some((item, y, x)) = parse_array(s) {
+        let item = parse_simple_type_or_empty_any(item, config, ln)?;
+        let y = parse_simple_type_or_empty_any(y.unwrap_or(""), config, ln)?;
+        let x = parse_simple_type_or_empty_any(x, config, ln)?;
+        return Ok(Type::Array { item, y, x });
+    }
     parse_simple_type(s, config, ln).map(Type::Simple)
 }
 
@@ -190,6 +203,35 @@ fn parse_simple_type(s: &str, config: &Config, ln: usize) -> Result<SimpleType, 
         return Ok(SimpleType::Enum(enum_id));
     }
     return Err(type_err(ln));
+}
+
+fn parse_simple_type_or_empty_any(
+    s: &str,
+    config: &Config,
+    ln: usize,
+) -> Result<SimpleType, Box<dyn Error>> {
+    if s.is_empty() {
+        return Ok(SimpleType::Any);
+    }
+    parse_simple_type(s, config, ln)
+}
+
+fn parse_array(s: &str) -> Option<(&str, Option<&str>, &str)> {
+    let (s, x) = parse_array_level(s)?;
+    match parse_array_level(s) {
+        None => Some((s, None, x)),
+        Some((s, y)) => Some((s, Some(y), x)),
+    }
+}
+
+fn parse_array_level(s: &str) -> Option<(&str, &str)> {
+    // This is how we write parsers down south
+    if !s.ends_with(']') {
+        return None;
+    }
+    let s = &s[..s.len() - 1];
+    let (o, i) = s.rsplit_once('[')?;
+    Some((o.trim_end(), i.trim()))
 }
 
 fn it_next<T>(it: &mut impl Iterator<Item = T>, ln: usize) -> Result<T, Box<dyn Error>> {

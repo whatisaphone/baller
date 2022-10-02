@@ -759,6 +759,7 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
             let name = &cx.config.enums[enum_id].name;
             w.write_str(name)?;
         }
+        _ => todo!(),
     }
     Ok(())
 }

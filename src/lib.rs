@@ -1,6 +1,7 @@
 #![warn(clippy::pedantic)]
 #![allow(
     clippy::match_on_vec_items,
+    clippy::match_wildcard_for_single_variants,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::module_name_repetitions,

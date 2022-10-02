@@ -102,6 +102,20 @@ impl Visitor for Typist<'_> {
             Expr::StackDup(e) => {
                 self.set_ty(id, self.get_ty(e));
             }
+            Expr::ArrayIndex2D(var, y_index, x_index) => {
+                let ty = match find_var_type(var, &self.cx) {
+                    Some(ty) => ty,
+                    None => return,
+                };
+                let (y_ty, x_ty) = match *ty {
+                    Type::Array { item: _, y, x } => (y, x),
+                    _ => return,
+                };
+                let y_ty = Type::Simple(y_ty);
+                let x_ty = Type::Simple(x_ty);
+                specify(script, y_index, Some(&y_ty), self.cx.config);
+                specify(script, x_index, Some(&x_ty), self.cx.config);
+            }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
                 specify(script, lhs, ty, self.cx.config);
