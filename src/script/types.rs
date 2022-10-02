@@ -1,7 +1,7 @@
 use crate::{
     config::EnumId,
     script::{
-        ast::{Expr, ExprId, Scripto, Stmt, StmtBlock},
+        ast::{CaseCond, Expr, ExprId, Scripto, Stmt, StmtBlock},
         ins::Variable,
         visit::{default_visit_expr, default_visit_stmt, Visitor},
     },
@@ -47,10 +47,29 @@ impl Visitor for Typist<'_> {
     fn stmt(&mut self, script: &mut Scripto, stmt: &mut Stmt) {
         default_visit_stmt(script, stmt, self);
 
-        match stmt {
-            &mut Stmt::Assign(var, expr) => {
+        match *stmt {
+            Stmt::Assign(var, expr) => {
                 let ty = find_var_type(var, self.config);
                 specify(script, expr, ty, self.config);
+            }
+            Stmt::Case { value, ref cases } => {
+                let mut ty = self.get_ty(value);
+                for case in cases {
+                    match case.cond {
+                        CaseCond::Eq(e) => {
+                            ty = unify(ty, self.get_ty(e));
+                        }
+                        _ => {}
+                    }
+                }
+                for case in cases {
+                    match case.cond {
+                        CaseCond::Eq(e) => {
+                            specify(script, e, ty, self.config);
+                        }
+                        _ => {}
+                    }
+                }
             }
             _ => {}
         }
@@ -62,6 +81,9 @@ impl Visitor for Typist<'_> {
         match script.exprs[id] {
             Expr::Variable(var) => {
                 self.set_ty(id, find_var_type(var, self.config));
+            }
+            Expr::StackDup(e) => {
+                self.set_ty(id, self.get_ty(e));
             }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
