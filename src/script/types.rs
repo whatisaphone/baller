@@ -60,7 +60,7 @@ impl Visitor for Typist<'_> {
                 specify(script, expr, ty, self.cx.config);
             }
             Stmt::SetArrayItem2D(var, y, x, _value) => {
-                specify_array_indices(script, var, y, x, &self.cx);
+                specify_array_indices(script, var, Some(y), x, &self.cx);
             }
             Stmt::Case { value, ref cases } => {
                 let mut ty = self.get_ty(value);
@@ -105,8 +105,11 @@ impl Visitor for Typist<'_> {
             Expr::StackDup(e) => {
                 self.set_ty(id, self.get_ty(e));
             }
+            Expr::ArrayIndex(var, index) => {
+                specify_array_indices(script, var, None, index, &self.cx);
+            }
             Expr::ArrayIndex2D(var, y_index, x_index) => {
-                specify_array_indices(script, var, y_index, x_index, &self.cx);
+                specify_array_indices(script, var, Some(y_index), x_index, &self.cx);
             }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
@@ -232,7 +235,7 @@ fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, confi
 fn specify_array_indices(
     script: &mut Scripto,
     var: Variable,
-    y_index: usize,
+    y_index: Option<usize>,
     x_index: usize,
     cx: &WriteCx,
 ) {
@@ -246,6 +249,8 @@ fn specify_array_indices(
     };
     let y_ty = Type::Simple(y_ty);
     let x_ty = Type::Simple(x_ty);
-    specify(script, y_index, Some(&y_ty), cx.config);
+    if let Some(y_index) = y_index {
+        specify(script, y_index, Some(&y_ty), cx.config);
+    }
     specify(script, x_index, Some(&x_ty), cx.config);
 }
