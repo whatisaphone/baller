@@ -97,8 +97,10 @@ impl Config {
                         "var" => {
                             let var = it_final(&mut dots, ln)?;
                             let var: usize = var.parse().map_err(|_| parse_err(ln))?;
+                            let (name, ty) = parse_var_name_type(value, &result, ln)?;
                             extend(&mut result.rooms[room].vars, var);
-                            result.rooms[room].vars[var].name = Some(value.to_string());
+                            result.rooms[room].vars[var].name = Some(name.to_string());
+                            result.rooms[room].vars[var].ty = ty;
                         }
                         "script" => {
                             handle_script_key(ln, &mut dots, value, &mut result, |c| {
