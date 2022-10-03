@@ -1,5 +1,5 @@
 use crate::{
-    config::{Config, EnumId, Script, SimpleType, Type, Var},
+    config::{Config, EnumId, Script, Type, Var},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
         misc::{write_indent, AnsiStr},
@@ -755,7 +755,7 @@ fn write_aside_value(w: &mut impl Write, value: i32) -> fmt::Result {
 
 fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
     match ty {
-        &Type::Simple(SimpleType::Enum(enum_id)) => {
+        &Type::Enum(enum_id) => {
             let name = &cx.config.enums[enum_id].name;
             w.write_str(name)?;
         }

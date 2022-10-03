@@ -1,5 +1,5 @@
 use crate::{
-    config::{SimpleType, Type, Var},
+    config::{Type, Var},
     script::{
         ast::{
             resolve_script,
@@ -206,7 +206,7 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config)
         None => return,
     };
     match (ty, &script.exprs[id]) {
-        (&Type::Simple(SimpleType::Enum(enum_id)), &Expr::Number(number)) => {
+        (&Type::Enum(enum_id), &Expr::Number(number)) => {
             if !config.enums[enum_id].values.contains_key(&number) {
                 return;
             }
@@ -243,14 +243,12 @@ fn specify_array_indices(
         Some(ty) => ty,
         None => return,
     };
-    let (y_ty, x_ty) = match *ty {
+    let (y_ty, x_ty) = match ty {
         Type::Array { item: _, y, x } => (y, x),
         _ => return,
     };
-    let y_ty = Type::Simple(y_ty);
-    let x_ty = Type::Simple(x_ty);
     if let Some(y_index) = y_index {
-        specify(script, y_index, Some(&y_ty), cx.config);
+        specify(script, y_index, Some(y_ty), cx.config);
     }
-    specify(script, x_index, Some(&x_ty), cx.config);
+    specify(script, x_index, Some(x_ty), cx.config);
 }

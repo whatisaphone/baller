@@ -38,18 +38,13 @@ pub struct Enum {
 pub type EnumId = usize;
 
 pub enum Type {
-    Simple(SimpleType),
-    Array {
-        item: SimpleType,
-        y: SimpleType,
-        x: SimpleType,
-    },
-}
-
-#[derive(Copy, Clone)]
-pub enum SimpleType {
     Any,
     Enum(EnumId),
+    Array {
+        item: Box<Type>,
+        y: Box<Type>,
+        x: Box<Type>,
+    },
 }
 
 impl Config {
@@ -192,30 +187,22 @@ fn handle_enum_key<'a>(
 
 fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
     if let Some((item, y, x)) = parse_array(s) {
-        let item = parse_simple_type_or_empty_any(item, config, ln)?;
-        let y = parse_simple_type_or_empty_any(y.unwrap_or(""), config, ln)?;
-        let x = parse_simple_type_or_empty_any(x, config, ln)?;
+        let item = Box::new(parse_type_or_empty_any(item, config, ln)?);
+        let y = Box::new(parse_type_or_empty_any(y.unwrap_or(""), config, ln)?);
+        let x = Box::new(parse_type_or_empty_any(x, config, ln)?);
         return Ok(Type::Array { item, y, x });
     }
-    parse_simple_type(s, config, ln).map(Type::Simple)
-}
-
-fn parse_simple_type(s: &str, config: &Config, ln: usize) -> Result<SimpleType, Box<dyn Error>> {
     if let Some(&enum_id) = config.enum_names.get(s) {
-        return Ok(SimpleType::Enum(enum_id));
+        return Ok(Type::Enum(enum_id));
     }
     return Err(type_err(ln));
 }
 
-fn parse_simple_type_or_empty_any(
-    s: &str,
-    config: &Config,
-    ln: usize,
-) -> Result<SimpleType, Box<dyn Error>> {
+fn parse_type_or_empty_any(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
     if s.is_empty() {
-        return Ok(SimpleType::Any);
+        return Ok(Type::Any);
     }
-    parse_simple_type(s, config, ln)
+    parse_type(s, config, ln)
 }
 
 fn parse_array(s: &str) -> Option<(&str, Option<&str>, &str)> {
