@@ -107,6 +107,9 @@ impl Visitor for Typist<'_> {
             }
             Expr::ArrayIndex(var, index) => {
                 specify_array_indices(script, var, None, index, &self.cx);
+                if let Some(Type::Array { item, .. }) = resolve_variable(var, &self.cx).1 {
+                    self.set_ty(id, Some(item));
+                }
             }
             Expr::ArrayIndex2D(var, y_index, x_index) => {
                 specify_array_indices(script, var, Some(y_index), x_index, &self.cx);
