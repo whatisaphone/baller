@@ -2,6 +2,7 @@ use crate::{
     config::Config,
     script::{
         ast::{
+            get_script_config,
             write_block,
             write_preamble,
             DecompileErrorKind,
@@ -44,7 +45,7 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
         );
     }
 
-    let locals = collect_locals(&mut script, &mut root);
+    let locals = collect_locals(&mut script, &mut root, scope, config);
 
     let mut output = String::with_capacity(1024);
     let cx = WriteCx { scope, config };
@@ -55,7 +56,12 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     output
 }
 
-fn collect_locals(script: &mut Scripto, block: &mut StmtBlock) -> Vec<Variable> {
+fn collect_locals(
+    script: &mut Scripto,
+    block: &mut StmtBlock,
+    scope: Scope,
+    config: &Config,
+) -> Vec<Variable> {
     struct CollectLocals {
         out: Vec<Variable>,
     }
@@ -73,9 +79,16 @@ fn collect_locals(script: &mut Scripto, block: &mut StmtBlock) -> Vec<Variable> 
         scope == 0x4000
     }
 
-    let mut locals = CollectLocals {
-        out: Vec::with_capacity(16),
-    };
+    let mut out = Vec::with_capacity(16);
+
+    // If there are params, treat them as always used, so they're always emitted
+    if let Some(script) = get_script_config(&WriteCx { scope, config }) {
+        if let Some(params) = script.params {
+            out.extend((0..params).map(|n| Variable(0x4000 | n)));
+        }
+    }
+
+    let mut locals = CollectLocals { out };
     locals.block(script, block);
 
     locals.out.sort_unstable_by_key(|v| v.0);

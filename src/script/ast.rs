@@ -726,7 +726,7 @@ pub fn resolve_script<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a Script> {
     cx.config.rooms.get(room)?.scripts.get(number)
 }
 
-fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
+pub fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
     match cx.scope {
         Scope::Global(script) => cx.config.scripts.get(usize::try_from(script).unwrap()),
         Scope::RoomLocal(room, script) => {
