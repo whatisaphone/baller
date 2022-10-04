@@ -23,6 +23,7 @@ pub struct Index {
     pub lfl_offsets: Vec<i32>,
     pub scripts: Directory,
     pub sounds: Directory,
+    pub talkies: Directory,
 }
 
 pub struct Directory {
@@ -46,6 +47,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         lfl_offsets: None,
         scripts: None,
         sounds: None,
+        talkies: None,
     };
 
     scan_blocks(&mut s, &mut state, handle_index_block, len)?;
@@ -55,6 +57,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         lfl_offsets: state.lfl_offsets.ok_or("index incomplete")?,
         scripts: state.scripts.ok_or("index incomplete")?,
         sounds: state.sounds.ok_or("index incomplete")?,
+        talkies: state.talkies.ok_or("index incomplete")?,
     })
 }
 
@@ -64,6 +67,7 @@ struct IndexState {
     lfl_offsets: Option<Vec<i32>>,
     scripts: Option<Directory>,
     sounds: Option<Directory>,
+    talkies: Option<Directory>,
 }
 
 fn handle_index_block<R: Read>(
@@ -94,6 +98,9 @@ fn handle_index_block<R: Read>(
         }
         b"DIRN" => {
             state.sounds = Some(read_directory(&mut r)?);
+        }
+        b"DIRT" => {
+            state.talkies = Some(read_directory(&mut r)?);
         }
         _ => {
             r.seek(SeekFrom::End(0))?;
@@ -202,6 +209,15 @@ fn extract_recursive<R: Read + Seek>(
                 offset - 8,
             )
             .ok_or("sound not in index")?
+        }
+        b"TLKE" => {
+            find_object_number(
+                state.index,
+                &state.index.talkies,
+                state.disk_number,
+                offset - 8,
+            )
+            .ok_or("talkie not in index")?
         }
         _ => {
             *state
