@@ -675,8 +675,22 @@ fn op_1c_image<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
 
 fn op_24<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
     match read_u8(code)? {
-        0x1c => ins!([0x24, 0x1c], args = [int, int, int, int], retval),
-        0x1d => ins!([0x24, 0x1d], args = [int, int, int, int, int, int], retval),
+        0x1c => {
+            ins!(
+                [0x24, 0x1c],
+                name = "distance-2d",
+                args = [int, int, int, int],
+                retval,
+            )
+        }
+        0x1d => {
+            ins!(
+                [0x24, 0x1d],
+                name = "distance-3d",
+                args = [int, int, int, int, int, int],
+                retval,
+            )
+        }
         _ => None,
     }
 }
@@ -1199,7 +1213,7 @@ fn op_9d_actor<'a>(code: &mut &'a [u8]) -> Option<Ins<'a>> {
         0x54 => ins!([0x9d, 0x54], name = "actor-x54", args = [int]),
         0x56 => ins!([0x9d, 0x56], name = "actor-x56", args = [int, int]),
         0x57 => ins!([0x9d, 0x57], name = "actor-x57", args = [int]),
-        0x5c => ins!([0x9d, 0x5c], name = "actor-x5c", args = [int]),
+        0x5c => ins!([0x9d, 0x5c], name = "actor-set-scale", args = [int]),
         0x5d => ins!([0x9d, 0x5d], name = "actor-x5d"),
         0x5e => ins!([0x9d, 0x5e], name = "actor-x5e", args = [int]),
         0x5f => ins!([0x9d, 0x5f], name = "actor-x5f"),
