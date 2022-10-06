@@ -59,6 +59,9 @@ impl Visitor for Typist<'_> {
                 let ty = find_var_type(var, &self.cx);
                 specify(script, expr, ty, self.cx.config);
             }
+            Stmt::SetArrayItem(var, x, _value) => {
+                specify_array_indices(script, var, None, x, &self.cx);
+            }
             Stmt::SetArrayItem2D(var, y, x, _value) => {
                 specify_array_indices(script, var, Some(y), x, &self.cx);
             }
