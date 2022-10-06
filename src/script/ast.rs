@@ -759,6 +759,20 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
             let name = &cx.config.enums[enum_id].name;
             w.write_str(name)?;
         }
+        Type::Array { item, y, x } => {
+            if !matches!(**item, Type::Any) {
+                write_type(w, item, cx)?;
+            }
+            w.write_char('[')?;
+            if !matches!(**y, Type::Any) {
+                write_type(w, y, cx)?;
+            }
+            w.write_str("][")?;
+            if !matches!(**x, Type::Any) {
+                write_type(w, x, cx)?;
+            }
+            w.write_char(']')?;
+        }
         _ => todo!(),
     }
     Ok(())
