@@ -449,7 +449,7 @@ fn write_expr_as(
     cx: &WriteCx,
 ) -> fmt::Result {
     let expr_prec = expr_precedence(script, id);
-    if expr_prec < outer_prec {
+    if need_parens(outer_prec, expr_prec) {
         w.write_char('(')?;
     }
     match &script.exprs[id] {
@@ -563,7 +563,7 @@ fn write_expr_as(
             write_decomile_error(w, script, offset, kind, cx)?;
         }
     }
-    if expr_prec < outer_prec {
+    if need_parens(outer_prec, expr_prec) {
         w.write_char(')')?;
     }
     Ok(())
@@ -595,6 +595,14 @@ fn expr_precedence(script: &Scripto, id: ExprId) -> Precedence {
         | Expr::EnumConst(..) => Precedence::Atom,
         Expr::StackDup(inner) => expr_precedence(script, inner),
     }
+}
+
+fn need_parens(outer: Precedence, inner: Precedence) -> bool {
+    // Add clarifying parens for spaces since they often look confusing
+    if inner == Precedence::Space && outer >= Precedence::LogOr {
+        return true;
+    }
+    inner < outer
 }
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
