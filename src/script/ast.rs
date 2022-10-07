@@ -234,15 +234,15 @@ fn write_stmt(
             w.write_str(" ")?;
             w.write_str(format_item_size(item_size))?;
             w.write_char('[')?;
-            write_expr(w, script, min_y, cx)?;
+            write_expr(w, script, Precedence::Delimeter, min_y, cx)?;
             w.write_str("...")?;
-            write_expr(w, script, max_y, cx)?;
+            write_expr(w, script, Precedence::Delimeter, max_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, script, min_x, cx)?;
+            write_expr(w, script, Precedence::Delimeter, min_x, cx)?;
             w.write_str("...")?;
-            write_expr(w, script, max_x, cx)?;
+            write_expr(w, script, Precedence::Delimeter, max_x, cx)?;
             w.write_str("] swap=")?;
-            write_expr(w, script, swap, cx)?;
+            write_expr(w, script, Precedence::Space, swap, cx)?;
         }
         Stmt::RedimArray {
             var,
@@ -258,38 +258,38 @@ fn write_stmt(
             w.write_str(" ")?;
             w.write_str(format_item_size(item_size))?;
             w.write_char('[')?;
-            write_expr(w, script, min_y, cx)?;
+            write_expr(w, script, Precedence::Delimeter, min_y, cx)?;
             w.write_str("...")?;
-            write_expr(w, script, max_y, cx)?;
+            write_expr(w, script, Precedence::Delimeter, max_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, script, min_x, cx)?;
+            write_expr(w, script, Precedence::Delimeter, min_x, cx)?;
             w.write_str("...")?;
-            write_expr(w, script, max_x, cx)?;
+            write_expr(w, script, Precedence::Delimeter, max_x, cx)?;
             w.write_char(']')?;
         }
         Stmt::Assign(var, expr) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_str(" = ")?;
-            write_expr(w, script, expr, cx)?;
+            write_expr(w, script, Precedence::Assign, expr, cx)?;
         }
         Stmt::SetArrayItem(var, index, value) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, script, index, cx)?;
+            write_expr(w, script, Precedence::Min, index, cx)?;
             w.write_str("] = ")?;
-            write_expr(w, script, value, cx)?;
+            write_expr(w, script, Precedence::Assign, value, cx)?;
         }
         Stmt::SetArrayItem2D(var, index_y, index_x, value) => {
             write_indent(w, indent)?;
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, script, index_y, cx)?;
+            write_expr(w, script, Precedence::Min, index_y, cx)?;
             w.write_str("][")?;
-            write_expr(w, script, index_x, cx)?;
+            write_expr(w, script, Precedence::Min, index_x, cx)?;
             w.write_str("] = ")?;
-            write_expr(w, script, value, cx)?;
+            write_expr(w, script, Precedence::Assign, value, cx)?;
         }
         Stmt::Inc(var) => {
             write_indent(w, indent)?;
@@ -317,7 +317,7 @@ fn write_stmt(
         } => {
             write_indent(w, indent)?;
             w.write_str("if (")?;
-            write_expr(w, script, condition, cx)?;
+            write_expr(w, script, Precedence::Min, condition, cx)?;
             writeln!(w, ") {{")?;
             write_block(w, script, true_, indent + 1, cx)?;
             write_if_else(w, script, false_, indent, cx)?;
@@ -327,18 +327,18 @@ fn write_stmt(
         Stmt::Case { value, ref cases } => {
             write_indent(w, indent)?;
             w.write_str("case ")?;
-            write_expr(w, script, value, cx)?;
+            write_expr(w, script, Precedence::Min, value, cx)?;
             writeln!(w, " {{")?;
             for case in cases {
                 write_indent(w, indent + 1)?;
                 match case.cond {
                     CaseCond::Eq(value) => {
                         w.write_str("of ")?;
-                        write_expr(w, script, value, cx)?;
+                        write_expr(w, script, Precedence::Min, value, cx)?;
                     }
                     CaseCond::In(list) => {
                         w.write_str("in ")?;
-                        write_expr(w, script, list, cx)?;
+                        write_expr(w, script, Precedence::Min, list, cx)?;
                     }
                     CaseCond::Else => {
                         w.write_str("else")?;
@@ -358,7 +358,7 @@ fn write_stmt(
         } => {
             write_indent(w, indent)?;
             w.write_str("while (")?;
-            write_expr(w, script, condition, cx)?;
+            write_expr(w, script, Precedence::Min, condition, cx)?;
             writeln!(w, ") {{")?;
             write_block(w, script, body, indent + 1, cx)?;
             write_indent(w, indent)?;
@@ -375,7 +375,7 @@ fn write_stmt(
             w.write_char('}')?;
             if let Some(condition) = condition {
                 w.write_str(" until (")?;
-                write_expr(w, script, condition, cx)?;
+                write_expr(w, script, Precedence::Min, condition, cx)?;
                 w.write_char(')')?;
             }
         }
@@ -415,7 +415,7 @@ fn write_if_else(
         {
             write_indent(w, indent)?;
             w.write_str("} else if (")?;
-            write_expr(w, script, condition, cx)?;
+            write_expr(w, script, Precedence::Min, condition, cx)?;
             writeln!(w, ") {{")?;
             write_block(w, script, true_, indent + 1, cx)?;
             write_if_else(w, script, false_, indent, cx)?;
@@ -429,18 +429,29 @@ fn write_if_else(
     Ok(())
 }
 
-fn write_expr(w: &mut impl Write, script: &Scripto, id: ExprId, cx: &WriteCx) -> fmt::Result {
-    write_expr_as(w, script, id, None, cx)
+fn write_expr(
+    w: &mut impl Write,
+    script: &Scripto,
+    outer_prec: Precedence,
+    id: ExprId,
+    cx: &WriteCx,
+) -> fmt::Result {
+    write_expr_as(w, script, outer_prec, id, None, cx)
 }
 
 #[allow(clippy::too_many_lines)]
 fn write_expr_as(
     w: &mut impl Write,
     script: &Scripto,
+    outer_prec: Precedence,
     id: ExprId,
     emit_as: Option<EmitAs>,
     cx: &WriteCx,
 ) -> fmt::Result {
+    let expr_prec = expr_precedence(script, id);
+    if expr_prec < outer_prec {
+        w.write_char('(')?;
+    }
     match &script.exprs[id] {
         &Expr::Number(n) => {
             'done: loop {
@@ -462,7 +473,7 @@ fn write_expr_as(
             write_var(w, var, cx)?;
         }
         &Expr::StackDup(expr) => {
-            write_expr_as(w, script, expr, emit_as, cx)?;
+            write_expr_as(w, script, Precedence::Min, expr, emit_as, cx)?;
         }
         Expr::StackUnderflow => {
             w.write_str("@DECOMPILE ERROR stack underflow")?;
@@ -473,72 +484,72 @@ fn write_expr_as(
                 if i != 0 {
                     w.write_str(", ")?;
                 }
-                write_expr(w, script, expr, cx)?;
+                write_expr(w, script, Precedence::Delimeter, expr, cx)?;
             }
             w.write_char(']')?;
         }
         &Expr::ArrayIndex(var, x) => {
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, script, x, cx)?;
+            write_expr(w, script, Precedence::Min, x, cx)?;
             w.write_char(']')?;
         }
         &Expr::ArrayIndex2D(var, y, x) => {
             write_var(w, var, cx)?;
             w.write_char('[')?;
-            write_expr(w, script, y, cx)?;
+            write_expr(w, script, Precedence::Min, y, cx)?;
             w.write_str("][")?;
-            write_expr(w, script, x, cx)?;
+            write_expr(w, script, Precedence::Min, x, cx)?;
             w.write_char(']')?;
         }
         &Expr::Not(expr) => {
             w.write_char('!')?;
-            write_expr(w, script, expr, cx)?;
+            write_expr(w, script, Precedence::Not, expr, cx)?;
         }
         &Expr::Equal(lhs, rhs) => {
-            write_binop(w, script, "==", lhs, rhs, cx)?;
+            write_binop(w, script, "==", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::NotEqual(lhs, rhs) => {
-            write_binop(w, script, "!=", lhs, rhs, cx)?;
+            write_binop(w, script, "!=", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::Greater(lhs, rhs) => {
-            write_binop(w, script, ">", lhs, rhs, cx)?;
+            write_binop(w, script, ">", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::Less(lhs, rhs) => {
-            write_binop(w, script, "<", lhs, rhs, cx)?;
+            write_binop(w, script, "<", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::LessOrEqual(lhs, rhs) => {
-            write_binop(w, script, "<=", lhs, rhs, cx)?;
+            write_binop(w, script, "<=", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::GreaterOrEqual(lhs, rhs) => {
-            write_binop(w, script, ">=", lhs, rhs, cx)?;
+            write_binop(w, script, ">=", Precedence::Compare, lhs, rhs, cx)?;
         }
         &Expr::Add(lhs, rhs) => {
-            write_binop(w, script, "+", lhs, rhs, cx)?;
+            write_binop(w, script, "+", Precedence::AddSub, lhs, rhs, cx)?;
         }
         &Expr::Sub(lhs, rhs) => {
-            write_binop(w, script, "-", lhs, rhs, cx)?;
+            write_binop(w, script, "-", Precedence::AddSub, lhs, rhs, cx)?;
         }
         &Expr::Mul(lhs, rhs) => {
-            write_binop(w, script, "*", lhs, rhs, cx)?;
+            write_binop(w, script, "*", Precedence::MulDiv, lhs, rhs, cx)?;
         }
         &Expr::Div(lhs, rhs) => {
-            write_binop(w, script, "/", lhs, rhs, cx)?;
+            write_binop(w, script, "/", Precedence::MulDiv, lhs, rhs, cx)?;
         }
         &Expr::LogicalAnd(lhs, rhs) => {
-            write_binop(w, script, "&&", lhs, rhs, cx)?;
+            write_binop(w, script, "&&", Precedence::LogAnd, lhs, rhs, cx)?;
         }
         &Expr::LogicalOr(lhs, rhs) => {
-            write_binop(w, script, "||", lhs, rhs, cx)?;
+            write_binop(w, script, "||", Precedence::LogOr, lhs, rhs, cx)?;
         }
         &Expr::BitwiseAnd(lhs, rhs) => {
-            write_binop(w, script, "&", lhs, rhs, cx)?;
+            write_binop(w, script, "&", Precedence::BitAnd, lhs, rhs, cx)?;
         }
         &Expr::BitwiseOr(lhs, rhs) => {
-            write_binop(w, script, "|", lhs, rhs, cx)?;
+            write_binop(w, script, "|", Precedence::BitOr, lhs, rhs, cx)?;
         }
         &Expr::In(lhs, rhs) => {
-            write_binop(w, script, "in", lhs, rhs, cx)?;
+            write_binop(w, script, "in", Precedence::Space, lhs, rhs, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {
             write_generic(w, script, bytecode, ins, args, cx)?;
@@ -552,20 +563,70 @@ fn write_expr_as(
             write_decomile_error(w, script, offset, kind, cx)?;
         }
     }
+    if expr_prec < outer_prec {
+        w.write_char(')')?;
+    }
     Ok(())
+}
+
+fn expr_precedence(script: &Scripto, id: ExprId) -> Precedence {
+    match script.exprs[id] {
+        Expr::LogicalOr(..) => Precedence::LogOr,
+        Expr::LogicalAnd(..) => Precedence::LogAnd,
+        Expr::Equal(..)
+        | Expr::NotEqual(..)
+        | Expr::Greater(..)
+        | Expr::Less(..)
+        | Expr::LessOrEqual(..)
+        | Expr::GreaterOrEqual(..) => Precedence::Compare,
+        Expr::BitwiseOr(..) => Precedence::BitOr,
+        Expr::BitwiseAnd(..) => Precedence::BitAnd,
+        Expr::Add(..) | Expr::Sub(..) => Precedence::AddSub,
+        Expr::Mul(..) | Expr::Div(..) => Precedence::MulDiv,
+        Expr::Not(..) => Precedence::Not,
+        Expr::In(..) | Expr::Call(..) | Expr::StackUnderflow | Expr::DecompileError(..) => {
+            Precedence::Space
+        }
+        Expr::ArrayIndex(..) | Expr::ArrayIndex2D(..) => Precedence::Indexing,
+        Expr::Number(..)
+        | Expr::String(..)
+        | Expr::Variable(..)
+        | Expr::List(..)
+        | Expr::EnumConst(..) => Precedence::Atom,
+        Expr::StackDup(inner) => expr_precedence(script, inner),
+    }
+}
+
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+enum Precedence {
+    Min,
+    Assign,
+    Delimeter, // such as `,` or `...`
+    LogOr,
+    LogAnd,
+    Compare,
+    BitOr,
+    BitAnd,
+    AddSub,
+    MulDiv,
+    Not,
+    Space,
+    Indexing,
+    Atom,
 }
 
 fn write_binop(
     w: &mut impl Write,
     script: &Scripto,
     op: &str,
+    prec: Precedence,
     lhs: ExprId,
     rhs: ExprId,
     cx: &WriteCx,
 ) -> fmt::Result {
-    write_expr(w, script, lhs, cx)?;
+    write_expr(w, script, prec, lhs, cx)?;
     write!(w, " {op} ")?;
-    write_expr(w, script, rhs, cx)?;
+    write_expr(w, script, prec, rhs, cx)?;
     Ok(())
 }
 
@@ -679,7 +740,7 @@ fn write_generic(
             _ => None,
         };
         w.write_char(' ')?;
-        write_expr_as(w, script, expr, emit_as, cx)?;
+        write_expr_as(w, script, Precedence::Space, expr, emit_as, cx)?;
     }
     Ok(())
 }
@@ -776,7 +837,7 @@ fn write_decomile_error(
         }
         DecompileErrorKind::StackOrphan(expr) => {
             w.write_str("stack orphan ")?;
-            write_expr(w, script, expr, cx)?;
+            write_expr(w, script, Precedence::Space, expr, cx)?;
         }
         DecompileErrorKind::WrongBlockExit => {
             w.write_str("wrong block exit")?;
