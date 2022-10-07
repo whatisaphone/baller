@@ -496,79 +496,49 @@ fn write_expr_as(
             write_expr(w, script, expr, cx)?;
         }
         &Expr::Equal(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" == ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "==", lhs, rhs, cx)?;
         }
         &Expr::NotEqual(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" != ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "!=", lhs, rhs, cx)?;
         }
         &Expr::Greater(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" > ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, ">", lhs, rhs, cx)?;
         }
         &Expr::Less(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" < ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "<", lhs, rhs, cx)?;
         }
         &Expr::LessOrEqual(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" <= ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "<=", lhs, rhs, cx)?;
         }
         &Expr::GreaterOrEqual(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" >= ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, ">=", lhs, rhs, cx)?;
         }
         &Expr::Add(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" + ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "+", lhs, rhs, cx)?;
         }
         &Expr::Sub(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" - ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "-", lhs, rhs, cx)?;
         }
         &Expr::Mul(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" * ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "*", lhs, rhs, cx)?;
         }
         &Expr::Div(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" / ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "/", lhs, rhs, cx)?;
         }
         &Expr::LogicalAnd(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" && ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "&&", lhs, rhs, cx)?;
         }
         &Expr::LogicalOr(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" || ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "||", lhs, rhs, cx)?;
         }
         &Expr::BitwiseAnd(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" & ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "&", lhs, rhs, cx)?;
         }
         &Expr::BitwiseOr(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" | ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "|", lhs, rhs, cx)?;
         }
         &Expr::In(lhs, rhs) => {
-            write_expr(w, script, lhs, cx)?;
-            w.write_str(" in ")?;
-            write_expr(w, script, rhs, cx)?;
+            write_binop(w, script, "in", lhs, rhs, cx)?;
         }
         Expr::Call(bytecode, ins, args) => {
             write_generic(w, script, bytecode, ins, args, cx)?;
@@ -582,6 +552,20 @@ fn write_expr_as(
             write_decomile_error(w, script, offset, kind, cx)?;
         }
     }
+    Ok(())
+}
+
+fn write_binop(
+    w: &mut impl Write,
+    script: &Scripto,
+    op: &str,
+    lhs: ExprId,
+    rhs: ExprId,
+    cx: &WriteCx,
+) -> fmt::Result {
+    write_expr(w, script, lhs, cx)?;
+    write!(w, " {op} ")?;
+    write_expr(w, script, rhs, cx)?;
     Ok(())
 }
 
