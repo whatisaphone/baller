@@ -826,6 +826,18 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
             }
             w.write_char(']')?;
         }
+        Type::AssocArray { assoc: _, y, x } => {
+            // TODO: write assoc name
+            w.write_char('[')?;
+            if !matches!(**y, Type::Any) {
+                write_type(w, y, cx)?;
+            }
+            w.write_str("][")?;
+            if !matches!(**x, Type::Any) {
+                write_type(w, x, cx)?;
+            }
+            w.write_char(']')?;
+        }
         _ => todo!(),
     }
     Ok(())
