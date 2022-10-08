@@ -61,12 +61,13 @@ impl Visitor for Typist<'_> {
             }
             Stmt::SetArrayItem(var, x, value) => {
                 specify_array_indices(script, var, None, x, &self.cx);
-                if let Some(Type::Array { item, .. }) = find_var_type(var, &self.cx) {
-                    specify(script, value, Some(item), self.cx.config);
-                }
+                let item_type = array_item_type(script, var, None, x, &self.cx);
+                specify(script, value, item_type, self.cx.config);
             }
-            Stmt::SetArrayItem2D(var, y, x, _value) => {
+            Stmt::SetArrayItem2D(var, y, x, value) => {
                 specify_array_indices(script, var, Some(y), x, &self.cx);
+                let item_type = array_item_type(script, var, None, x, &self.cx);
+                specify(script, value, item_type, self.cx.config);
             }
             Stmt::Case { value, ref cases } => {
                 let mut ty = self.get_ty(value);
@@ -113,12 +114,13 @@ impl Visitor for Typist<'_> {
             }
             Expr::ArrayIndex(var, index) => {
                 specify_array_indices(script, var, None, index, &self.cx);
-                if let Some(Type::Array { item, .. }) = resolve_variable(var, &self.cx).1 {
-                    self.set_ty(id, Some(item));
-                }
+                let item_type = array_item_type(script, var, None, index, &self.cx);
+                self.set_ty(id, item_type);
             }
             Expr::ArrayIndex2D(var, y_index, x_index) => {
                 specify_array_indices(script, var, Some(y_index), x_index, &self.cx);
+                let item_type = array_item_type(script, var, Some(y_index), x_index, &self.cx);
+                self.set_ty(id, item_type);
             }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
@@ -253,11 +255,32 @@ fn specify_array_indices(
         None => return,
     };
     let (y_ty, x_ty) = match ty {
-        Type::Array { item: _, y, x } => (y, x),
+        Type::Array { item: _, y, x } | Type::AssocArray { assoc: _, y, x } => (y, x),
         _ => return,
     };
     if let Some(y_index) = y_index {
         specify(script, y_index, Some(y_ty), cx.config);
     }
     specify(script, x_index, Some(x_ty), cx.config);
+}
+
+fn array_item_type<'a>(
+    script: &mut Scripto,
+    var: Variable,
+    _y_index: Option<usize>,
+    x_index: usize,
+    cx: &WriteCx<'a>,
+) -> Option<&'a Type> {
+    match find_var_type(var, cx)? {
+        Type::Array { item, .. } => Some(item),
+        &Type::AssocArray { assoc, .. } => {
+            let index = match script.exprs[x_index] {
+                Expr::Number(n) | Expr::EnumConst(_, n) => n,
+                _ => return None,
+            };
+            let index: usize = index.try_into().ok()?;
+            cx.config.assocs[assoc].types.get(index)
+        }
+        _ => None,
+    }
 }

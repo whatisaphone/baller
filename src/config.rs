@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, mem};
 
 #[derive(Default)]
 pub struct Config {
@@ -8,6 +8,9 @@ pub struct Config {
     pub rooms: Vec<Room>,
     pub enums: Vec<Enum>,
     pub enum_names: HashMap<String, EnumId>,
+    pub assocs: Vec<Assoc>,
+    pub assoc_names: HashMap<String, AssocId>,
+    pub assocs_pending_parse: Vec<String>, // temporary
     pub suppress_preamble: bool,
 }
 
@@ -35,13 +38,23 @@ pub struct Enum {
     pub values: HashMap<i32, String>,
 }
 
+pub struct Assoc {
+    pub types: Vec<Type>,
+}
+
 pub type EnumId = usize;
+pub type AssocId = usize;
 
 pub enum Type {
     Any,
     Enum(EnumId),
     Array {
         item: Box<Type>,
+        y: Box<Type>,
+        x: Box<Type>,
+    },
+    AssocArray {
+        assoc: AssocId,
         y: Box<Type>,
         x: Box<Type>,
     },
@@ -56,6 +69,9 @@ impl Config {
             rooms: Vec::with_capacity(64),
             enums: Vec::with_capacity(64),
             enum_names: HashMap::with_capacity(64),
+            assocs: Vec::with_capacity(64),
+            assoc_names: HashMap::with_capacity(64),
+            assocs_pending_parse: Vec::with_capacity(64),
             suppress_preamble: false,
         };
         for (ln, line) in ini.lines().enumerate() {
@@ -71,6 +87,9 @@ impl Config {
             match dots.next() {
                 Some("enum") => {
                     handle_enum_key(ln, &mut dots, value, &mut result)?;
+                }
+                Some("assoc") => {
+                    handle_assoc_key(&mut dots, value, &mut result, ln)?;
                 }
                 Some("global") => {
                     let id = it_final(&mut dots, ln)?;
@@ -112,6 +131,17 @@ impl Config {
                 }
             }
         }
+
+        for comma_sep in mem::take(&mut result.assocs_pending_parse) {
+            let ln = 99998; // TODO
+            let types: Result<Vec<_>, _> = comma_sep
+                .split(',')
+                .map(|s| parse_type_or_empty_any(s.trim(), &result, ln))
+                .collect();
+            let types = types?;
+            result.assocs.push(Assoc { types });
+        }
+
         Ok(result)
     }
 }
@@ -185,11 +215,29 @@ fn handle_enum_key<'a>(
     Ok(())
 }
 
+fn handle_assoc_key<'a>(
+    dots: &mut impl Iterator<Item = &'a str>,
+    value: &str,
+    config: &mut Config,
+    ln: usize,
+) -> Result<(), Box<dyn Error>> {
+    let name = it_next(dots, ln)?;
+    let id = config.assocs_pending_parse.len();
+    config.assocs_pending_parse.push(value.to_string());
+    config.assoc_names.insert(name.to_string(), id);
+    Ok(())
+}
+
 fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
     if let Some((item, y, x)) = parse_array(s) {
-        let item = Box::new(parse_type_or_empty_any(item, config, ln)?);
         let y = Box::new(parse_type_or_empty_any(y.unwrap_or(""), config, ln)?);
         let x = Box::new(parse_type_or_empty_any(x, config, ln)?);
+
+        if let Some(&assoc) = config.assoc_names.get(item) {
+            return Ok(Type::AssocArray { assoc, y, x });
+        }
+
+        let item = Box::new(parse_type_or_empty_any(item, config, ln)?);
         return Ok(Type::Array { item, y, x });
     }
     if let Some(&enum_id) = config.enum_names.get(s) {
