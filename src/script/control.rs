@@ -51,22 +51,28 @@ pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<Con
 
     let mut work = Vec::with_capacity(16);
     work.push(0);
-
     while let Some(index) = work.pop() {
         scan_ctrl(index, basics, &mut controls, &mut work);
     }
+    check_control_invariants(0, &controls, basics);
 
     work.push(0);
-
     while let Some(index) = work.pop() {
         flatten_sequences(index, &mut controls, &mut work);
     }
+    check_control_invariants(0, &controls, basics);
 
     work.push(0);
+    while let Some(index) = work.pop() {
+        scan_elses(index, basics, &mut controls, &mut work);
+    }
+    check_control_invariants(0, &controls, basics);
 
+    work.push(0);
     while let Some(index) = work.pop() {
         scan_loops(index, basics, &mut controls, &mut work);
     }
+    check_control_invariants(0, &controls, basics);
 
     controls
 }
@@ -164,85 +170,7 @@ fn build_if(
     work.push(true_);
     work.push(after);
 
-    build_else(hereafter, here, condition, true_, basics, controls, work);
-
     true
-}
-
-// parent_index points to Sequence(If(cond, true, None), CodeRange).
-fn build_else(
-    parent_index: usize,
-    if_index: usize,
-    cond_index: usize,
-    true_index: usize,
-    basics: &IndexMap<usize, BasicBlock>,
-    controls: &mut Vec<ControlBlock>,
-    work: &mut Vec<usize>,
-) {
-    let parent = &controls[parent_index];
-
-    let cond_ctrl = &controls[cond_index];
-    let cond_block = &basics[&cond_ctrl.start];
-    debug_assert!(
-        cond_block.start == cond_ctrl.start && cond_block.end == cond_ctrl.end,
-        "control block covers exactly one basic block",
-    );
-    debug_assert!(cond_block.exits.len() == 2 && cond_block.exits[0] == cond_block.end);
-
-    let else_start = cond_block.exits[1];
-
-    let true_ctrl = &controls[true_index];
-    let true_end_block_index = basic_blocks_get_index_by_end(basics, true_ctrl.end);
-    let true_end_block = &basics[true_end_block_index];
-    // Require the then block to end at the beginning of the else block, with an
-    // unconditional jump over a range of code which will later form the else block.
-    if !(true_ctrl.end == else_start
-        && true_end_block.exits.len() == 1
-        && true_end_block.exits[0] > true_end_block.end
-        && true_end_block.exits[0] <= parent.end)
-    {
-        return;
-    }
-
-    let else_end = true_end_block.exits[0];
-
-    debug!(
-        then = %AddrRange(true_ctrl.start..true_ctrl.end),
-        "else" = %AddrRange(else_start..else_end),
-        "building else",
-    );
-
-    let children = match &controls[parent_index].control {
-        Control::Sequence(children) => (children),
-        _ => unreachable!(),
-    };
-    debug_assert!(children.len() == 2);
-    let first = children[0];
-    let second = children[1];
-    debug_assert!(first == if_index);
-    debug_assert!(matches!(controls[first].control, Control::If { .. }));
-    debug_assert!(matches!(controls[second].control, Control::CodeRange));
-    debug_assert!(controls[second].start == else_start);
-    debug_assert!(controls[second].end == parent.end);
-
-    // Create the else block with bytes taken from the front of `second`. Then
-    // modify `second` to start after the else block.
-    let else_index = controls.len();
-    controls.push(ControlBlock {
-        start: else_start,
-        end: else_end,
-        control: Control::CodeRange,
-    });
-    let if_ = match &mut controls[if_index].control {
-        Control::If(if_) => if_,
-        _ => unreachable!(),
-    };
-    if_.false_ = Some(else_index);
-
-    controls[if_index].end = else_end;
-    controls[second].start = else_end;
-
-    work.push(else_index);
 }
 
 fn build_while(
@@ -363,6 +291,172 @@ fn flatten_sequence(
             }
         }
     }
+}
+
+fn scan_elses(
+    index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) {
+    match &controls[index].control {
+        Control::CodeRange => {}
+        Control::Sequence(_) => {
+            scan_elses_in_sequence(index, basics, controls, work);
+        }
+        Control::If(b) => {
+            work.push(b.condition);
+            work.push(b.true_);
+            work.extend(b.false_);
+        }
+        Control::While(b) => {
+            work.push(b.condition);
+            work.push(b.body);
+        }
+        Control::Do(b) => {
+            work.push(b.body);
+            work.extend(b.condition);
+        }
+    }
+}
+
+fn scan_elses_in_sequence(
+    parent_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &mut Vec<ControlBlock>,
+    work: &mut Vec<usize>,
+) {
+    let children = match &controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+
+    for i in 0..children.len() {
+        match &controls[children[i]].control {
+            Control::CodeRange => {}
+            Control::Sequence(_) => unreachable!(),
+            Control::If(b) => {
+                if let Some(else_end) = scan_else(parent_index, i, basics, controls) {
+                    build_else(parent_index, i, else_end, controls);
+                    work.push(parent_index); // Come back later for the rest of the elses
+                    return;
+                }
+
+                work.push(b.condition);
+                work.push(b.true_);
+                work.extend(b.false_);
+            }
+            Control::While(b) => {
+                work.push(b.condition);
+                work.push(b.body);
+            }
+            Control::Do(b) => {
+                work.push(b.body);
+                work.extend(b.condition);
+            }
+        }
+    }
+}
+
+fn scan_else(
+    parent_index: usize,
+    if_seq_index: usize,
+    basics: &IndexMap<usize, BasicBlock>,
+    controls: &[ControlBlock],
+) -> Option<usize> {
+    let parent = &controls[parent_index];
+    let parent_blocks = match &controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let if_index = parent_blocks[if_seq_index];
+    let if_ = match &controls[if_index].control {
+        Control::If(b) => b,
+        _ => return None,
+    };
+
+    // An if can only have one else, of course
+    if if_.false_.is_some() {
+        return None;
+    }
+
+    let true_end_index = basic_blocks_get_index_by_end(basics, controls[if_.true_].end);
+    let true_end = &basics[true_end_index];
+
+    // Require an unconditional jump over a code range within the same parent, which
+    // will form the else.
+    if !(true_end.exits.len() == 1
+        && true_end.exits[0] > true_end.end
+        && true_end.exits[0] <= parent.end)
+    {
+        return None;
+    }
+
+    let else_end = true_end.exits[0];
+
+    // Require the end to be on a block boundary or within a splittable block
+    match seq_end_boundary(parent_index, else_end, controls) {
+        (_, SeqBoundary::Exact | SeqBoundary::CanSplit) => {}
+        (_, SeqBoundary::CanNotSplit) => return None,
+    }
+
+    Some(else_end)
+}
+
+fn build_else(
+    parent_index: usize,
+    if_seq_index: usize,
+    else_end: usize,
+    controls: &mut Vec<ControlBlock>,
+) {
+    let children = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let if_index = children[if_seq_index];
+    let if_ctrl = &controls[if_index];
+    let else_start = if_ctrl.end;
+    debug!(
+        if_ = %AddrRange(if_ctrl.start..if_ctrl.end),
+        "else" = %AddrRange(else_start..else_end),
+        "building else, parent=#{parent_index}",
+    );
+
+    // Drain the range of blocks which will form the else.
+
+    let else_seq_start = if_seq_index + 1;
+    let else_seq_end = seq_index_ending_at_addr(parent_index, else_end, controls);
+
+    let seq_blocks = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let else_blocks: Vec<_> = seq_blocks.drain(else_seq_start..=else_seq_end).collect();
+
+    // Combine the list of else blocks into one.
+
+    let else_ = match else_blocks.len() {
+        0 => todo!(),
+        1 => else_blocks[0],
+        _ => {
+            let else_ = controls.len();
+            controls.push(ControlBlock {
+                start: else_start,
+                end: else_end,
+                control: Control::Sequence(else_blocks),
+            });
+            else_
+        }
+    };
+
+    // Grow the if block to contain the new else block.
+
+    controls[if_index].end = else_end;
+    let mut if_ = match &mut controls[if_index].control {
+        Control::If(if_) => if_,
+        _ => unreachable!(),
+    };
+    if_.false_ = Some(else_);
 }
 
 fn scan_loops(
@@ -701,6 +795,85 @@ fn split_seq(parent_index: usize, seq_index: usize, addr: usize, controls: &mut 
         _ => unreachable!(),
     };
     seq_blocks.insert(seq_index + 1, second);
+}
+
+fn check_control_invariants(
+    root: usize,
+    controls: &[ControlBlock],
+    basics: &IndexMap<usize, BasicBlock>,
+) {
+    #[cfg(not(debug_assertions))]
+    return;
+
+    macro_rules! asrt {
+        ($cond:expr) => {
+            assert!($cond, "{} invariant violation in #{}", Dump(controls), root);
+        };
+    }
+
+    let ctrl = &controls[root];
+    asrt!(ctrl.start <= ctrl.end);
+
+    match &ctrl.control {
+        Control::CodeRange => {
+            asrt!(basics[&ctrl.start].start == ctrl.start);
+            let _ = &basics[&ctrl.start]; // Ensure it starts exactly on a basic block
+            // Zero-length starting blocks are okay. All others must have end exactly on
+            // a basic block
+            if !(ctrl.start == 0 && ctrl.end == 0) {
+                let end_index = basic_blocks_get_index_by_end(basics, ctrl.end);
+                asrt!(basics[end_index].end == ctrl.end);
+            }
+        }
+        Control::Sequence(xs) => {
+            asrt!(!xs.is_empty());
+            asrt!(controls[*xs.first().unwrap()].start == ctrl.start);
+            asrt!(controls[*xs.last().unwrap()].end == ctrl.end);
+            for i in 0..xs.len() - 1 {
+                asrt!(controls[xs[i]].end == controls[xs[i + 1]].start);
+            }
+            for &child in xs {
+                check_control_invariants(child, controls, basics);
+            }
+        }
+        Control::If(b) => {
+            asrt!(ctrl.start == controls[b.condition].start);
+            asrt!(controls[b.condition].end == controls[b.true_].start);
+            check_control_invariants(b.condition, controls, basics);
+            check_control_invariants(b.true_, controls, basics);
+            match b.false_ {
+                None => {
+                    asrt!(ctrl.end == controls[b.true_].end);
+                }
+                Some(false_) => {
+                    asrt!(ctrl.end == controls[false_].end);
+                    asrt!(controls[b.true_].end == controls[false_].start);
+                    check_control_invariants(false_, controls, basics);
+                }
+            }
+        }
+        Control::While(b) => {
+            asrt!(ctrl.start == controls[b.condition].start);
+            asrt!(ctrl.end == controls[b.body].end);
+            asrt!(controls[b.condition].end == controls[b.body].start);
+            check_control_invariants(b.condition, controls, basics);
+            check_control_invariants(b.body, controls, basics);
+        }
+        Control::Do(b) => {
+            asrt!(ctrl.start == controls[b.body].start);
+            check_control_invariants(b.body, controls, basics);
+            match b.condition {
+                None => {
+                    asrt!(ctrl.end == controls[b.body].end);
+                }
+                Some(cond) => {
+                    asrt!(ctrl.end == controls[cond].end);
+                    asrt!(controls[b.body].end == controls[cond].start);
+                    check_control_invariants(cond, controls, basics);
+                }
+            }
+        }
+    }
 }
 
 struct AddrRange(Range<usize>);

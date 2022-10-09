@@ -141,7 +141,7 @@ mod tests {
     #[test]
     fn if_with_empty_body() -> Result<(), Box<dyn Error>> {
         let bytecode = read_scrp(19)?;
-        let out = decompile(&bytecode[0x6d..0x73], Scope::Global(1), &Config {
+        let out = decompile(&bytecode[0x6d..0x76], Scope::Global(1), &Config {
             suppress_preamble: true,
             ..<_>::default()
         });

@@ -79,8 +79,8 @@ fn is_case(script: &Scripto, stmt: &Stmt) -> bool {
     }
     // Check for terminal else
     if matches!(
-        &false_.stmts[0],
-        Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow),
+        false_.stmts.get(0),
+        Some(Stmt::DecompileError(_, DecompileErrorKind::StackUnderflow)),
     ) {
         return true;
     }
