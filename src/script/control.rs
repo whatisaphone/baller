@@ -1,6 +1,11 @@
-use crate::script::basic::{basic_blocks_get_index_by_end, BasicBlock};
+use crate::script::basic::{basic_block_get_exact, basic_blocks_get_index_by_end, BasicBlock};
 use indexmap::IndexMap;
-use std::{fmt, mem, ops::Range, slice};
+use std::{
+    fmt,
+    mem,
+    ops::{Range, RangeInclusive},
+    slice,
+};
 use tracing::{debug, instrument, trace};
 
 #[derive(Debug)]
@@ -40,25 +45,40 @@ pub struct Do {
 
 #[instrument(level = "debug", skip(basics))]
 pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<ControlBlock> {
-    let end = basics[basics.len() - 1].end;
+    // Build the initial root block -- a flat sequence with every basic block in
+    // order.
 
-    let mut controls = Vec::with_capacity(16);
+    let mut controls = Vec::with_capacity(basics.len() + 1);
+
     controls.push(ControlBlock {
         start: 0,
-        end,
-        control: Control::CodeRange,
+        end: basics[basics.len() - 1].end,
+        control: Control::Sequence(Vec::new()),
     });
+
+    let mut seq = Vec::with_capacity(basics.len());
+    for basic in basics.values() {
+        let block = controls.len();
+        controls.push(ControlBlock {
+            start: basic.start,
+            end: basic.end,
+            control: Control::CodeRange,
+        });
+        seq.push(block);
+    }
+
+    let root_seq = match &mut controls[0].control {
+        Control::Sequence(root_seq) => root_seq,
+        _ => unreachable!(),
+    };
+    *root_seq = seq;
+
+    // Run structuring passes one by one.
 
     let mut work = Vec::with_capacity(16);
     work.push(0);
     while let Some(index) = work.pop() {
-        scan_ctrl(index, basics, &mut controls, &mut work);
-    }
-    check_control_invariants(0, &controls, basics);
-
-    work.push(0);
-    while let Some(index) = work.pop() {
-        flatten_sequences(index, &mut controls, &mut work);
+        scan_forward_jumps(index, basics, &mut controls, &mut work);
     }
     check_control_invariants(0, &controls, basics);
 
@@ -77,220 +97,276 @@ pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<Con
     controls
 }
 
-fn scan_ctrl(
-    ctrl_index: usize,
+fn scan_forward_jumps(
+    index: usize,
     basics: &IndexMap<usize, BasicBlock>,
     controls: &mut Vec<ControlBlock>,
     work: &mut Vec<usize>,
 ) {
-    let control = &controls[ctrl_index];
-    debug_assert!(matches!(control.control, Control::CodeRange));
-    if control.start == control.end {
-        return; // ignore empty blocks
-    }
-
-    let start_index = basics.get_index_of(&control.start).unwrap();
-    let end_index = basic_blocks_get_index_by_end(basics, control.end) + 1;
-    for i in start_index..end_index {
-        if build_while(ctrl_index, i, basics, controls, work) {
-            return;
+    match &controls[index].control {
+        Control::CodeRange => {}
+        Control::Sequence(_) => {
+            scan_forward_jumps_in_sequence(index, basics, controls, work);
         }
-        if build_if(ctrl_index, i, basics, controls, work) {
-            return;
+        Control::If(b) => {
+            work.push(b.condition);
+            work.push(b.true_);
+            work.extend(b.false_);
+        }
+        Control::While(b) => {
+            work.push(b.condition);
+            work.push(b.body);
+        }
+        Control::Do(b) => {
+            work.push(b.body);
+            work.extend(b.condition);
         }
     }
 }
 
-fn split_ctrl_range(index: usize, mid: usize, controls: &mut Vec<ControlBlock>) -> (usize, usize) {
-    let parent = &controls[index];
-    let start = parent.start;
-    let end = parent.end;
-    debug_assert!(matches!(parent.control, Control::CodeRange));
-    debug_assert!(start <= mid && mid <= end);
-
-    let out1 = controls.len();
-    controls.push(ControlBlock {
-        start,
-        end: mid,
-        control: Control::CodeRange,
-    });
-
-    let out2 = controls.len();
-    controls.push(ControlBlock {
-        start: mid,
-        end,
-        control: Control::CodeRange,
-    });
-
-    trace!("split #{index} into #{out1}+#{out2} 0x{start:x}..0x{mid:x}..0x{end:x}");
-
-    controls[index].control = Control::Sequence(vec![out1, out2]);
-    (out1, out2)
-}
-
-fn build_if(
+fn scan_forward_jumps_in_sequence(
     parent_index: usize,
-    basic_index: usize,
     basics: &IndexMap<usize, BasicBlock>,
     controls: &mut Vec<ControlBlock>,
     work: &mut Vec<usize>,
-) -> bool {
+) {
+    let children = match &controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+
+    for i in 0..children.len() {
+        match &controls[children[i]].control {
+            Control::CodeRange => {
+                macro_rules! done {
+                    () => {
+                        check_control_invariants(parent_index, controls, basics);
+                        work.push(parent_index); // Come back later for the rest
+                        return;
+                    };
+                }
+
+                if let Some(payload) = scan_while(parent_index, i, controls, basics) {
+                    build_while(parent_index, i, payload, controls);
+                    done!();
+                } else if let Some(payload) = scan_if(parent_index, i, controls, basics) {
+                    build_if(parent_index, i, payload, controls);
+                    done!();
+                }
+            }
+            Control::Sequence(_) => unreachable!(),
+            Control::If(b) => {
+                work.push(b.condition);
+                work.push(b.true_);
+                work.extend(b.false_);
+            }
+            Control::While(b) => {
+                work.push(b.condition);
+                work.push(b.body);
+            }
+            Control::Do(b) => {
+                work.push(b.body);
+                work.extend(b.condition);
+            }
+        }
+    }
+}
+
+fn scan_if(
+    parent_index: usize,
+    seq_index: usize,
+    controls: &[ControlBlock],
+    basics: &IndexMap<usize, BasicBlock>,
+) -> Option<usize> {
     let parent = &controls[parent_index];
+    let children = match &parent.control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let cond_ctrl = &controls[children[seq_index]];
+    let cond_block = basic_block_get_exact(basics, cond_ctrl.start, cond_ctrl.end);
 
     // Require conditional forward jump, still within parent block
-    let cond_block = &basics[basic_index];
     if !(cond_block.exits.len() == 2
         && cond_block.exits[0] == cond_block.end
         && cond_block.exits[1] >= cond_block.end
         && cond_block.exits[1] <= parent.end)
     {
-        return false;
+        return None;
     }
 
-    let body_start = cond_block.end;
     let body_end = cond_block.exits[1];
+    Some(body_end)
+}
 
+fn build_if(
+    parent_index: usize,
+    cond_seq: usize,
+    body_end: usize,
+    controls: &mut Vec<ControlBlock>,
+) {
+    let body_seq_end = seq_index_ending_at_addr(parent_index, body_end, controls);
     debug!(
-        parent = %AddrRange(parent.start..parent.end),
-        cond = %AddrRange(cond_block.start..cond_block.end),
-        body = %AddrRange(body_start..body_end),
+        parent = %Block(parent_index, controls),
+        cond = %SeqBlock(parent_index, cond_seq, controls),
+        body = %SeqRange(parent_index, (cond_seq + 1)..=body_seq_end, controls),
         "building if",
     );
 
-    let (_before, hereafter) = split_ctrl_range(parent_index, cond_block.start, controls);
-    let (here, after) = split_ctrl_range(hereafter, body_end, controls);
-    let (condition, true_) = split_ctrl_range(here, body_start, controls);
+    // Drain the range of blocks which will form the body.
 
-    controls[here].control = Control::If(If {
-        condition,
-        true_,
-        false_: None,
+    let seq_blocks = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let mut drain = seq_blocks.drain(cond_seq..=body_seq_end);
+    let condition = drain.next().unwrap();
+    let body_blocks: Vec<_> = drain.collect();
+
+    let cond_start = controls[condition].start;
+    let body_start = controls[condition].end;
+
+    // Combine the list of body blocks into one.
+
+    let body = match body_blocks.len() {
+        0 => {
+            // If there are none, synthesize a zero-length block.
+            let body = controls.len();
+            controls.push(ControlBlock {
+                start: body_start,
+                end: body_start,
+                control: Control::CodeRange,
+            });
+            body
+        }
+        1 => body_blocks[0],
+        _ => {
+            let body = controls.len();
+            controls.push(ControlBlock {
+                start: body_start,
+                end: body_end,
+                control: Control::Sequence(body_blocks),
+            });
+            body
+        }
+    };
+
+    // Create the if block, then insert it back into the parent sequence.
+
+    let result = controls.len();
+    controls.push(ControlBlock {
+        start: cond_start,
+        end: body_end,
+        control: Control::If(If {
+            condition,
+            true_: body,
+            false_: None,
+        }),
     });
 
-    work.push(true_);
-    work.push(after);
-
-    true
+    let seq_blocks = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    seq_blocks.insert(cond_seq, result);
 }
 
-fn build_while(
+fn scan_while(
     parent_index: usize,
-    basic_index: usize,
+    seq_index: usize,
+    controls: &[ControlBlock],
     basics: &IndexMap<usize, BasicBlock>,
-    controls: &mut Vec<ControlBlock>,
-    work: &mut Vec<usize>,
-) -> bool {
+) -> Option<usize> {
     let parent = &controls[parent_index];
+    let children = match &parent.control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let cond_ctrl = &controls[children[seq_index]];
+    let cond_block = basic_block_get_exact(basics, cond_ctrl.start, cond_ctrl.end);
 
     // Require conditional forward jump as the condition
-    let cond_block = &basics[basic_index];
     if !(cond_block.exits.len() == 2
         && cond_block.exits[0] == cond_block.end
         && cond_block.exits[1] > cond_block.end
         && cond_block.exits[1] <= parent.end)
     {
-        return false;
+        return None;
     }
 
-    let body_start = cond_block.end;
     let body_end = cond_block.exits[1];
-
     let body_end_block_index = basic_blocks_get_index_by_end(basics, body_end);
     let body_end_block = &basics[body_end_block_index];
     // Require the end block to jump back to the condition
     if !(body_end_block.exits.len() == 1 && body_end_block.exits[0] == cond_block.start) {
-        return false;
+        return None;
     }
 
+    let body_seq_end = children
+        .iter()
+        .position(|&i| controls[i].end == body_end)
+        .unwrap();
+
+    Some(body_seq_end)
+}
+
+fn build_while(
+    parent_index: usize,
+    cond_seq: usize,
+    body_seq_end: usize,
+    controls: &mut Vec<ControlBlock>,
+) {
     debug!(
-        parent = %AddrRange(parent.start..parent.end),
-        cond = %AddrRange(cond_block.start..cond_block.end),
-        body = %AddrRange(body_start..body_end),
+        parent = %Block(parent_index, controls),
+        cond = %SeqBlock(parent_index, cond_seq, controls),
+        body = %SeqRange(parent_index, (cond_seq + 1)..=body_seq_end, controls),
         "building while",
     );
 
-    let (_before, hereafter) = split_ctrl_range(parent_index, cond_block.start, controls);
-    let (here, after) = split_ctrl_range(hereafter, body_end, controls);
-    let (condition, body) = split_ctrl_range(here, body_start, controls);
+    // Drain the range of blocks which will form the body.
 
-    controls[here].control = Control::While(While { condition, body });
+    let seq_blocks = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    let mut drain = seq_blocks.drain(cond_seq..=body_seq_end);
+    let condition = drain.next().unwrap();
+    let body_blocks: Vec<_> = drain.collect();
 
-    work.push(body);
-    work.push(after);
+    let cond_start = controls[condition].start;
+    let body_start = controls[*body_blocks.first().unwrap()].start;
+    let body_end = controls[*body_blocks.last().unwrap()].end;
 
-    true
-}
+    // Combine the list of body blocks into one.
 
-fn flatten_sequences(index: usize, controls: &mut Vec<ControlBlock>, work: &mut Vec<usize>) {
-    match &mut controls[index].control {
-        Control::CodeRange => {}
-        Control::Sequence(_) => {
-            let mut sink = Vec::new();
-
-            flatten_sequence(index, &mut sink, controls, work);
-
-            match &mut controls[index].control {
-                Control::Sequence(ch) => *ch = sink,
-                _ => unreachable!(),
-            }
+    let body = match body_blocks.len() {
+        0 => todo!(),
+        1 => body_blocks[0],
+        _ => {
+            let body = controls.len();
+            controls.push(ControlBlock {
+                start: body_start,
+                end: body_end,
+                control: Control::Sequence(body_blocks),
+            });
+            body
         }
-        Control::If(b) => {
-            work.push(b.condition);
-            work.push(b.true_);
-            work.extend(b.false_);
-        }
-        Control::While(b) => {
-            work.push(b.condition);
-            work.push(b.body);
-        }
-        Control::Do(b) => {
-            work.push(b.body);
-            if let Some(condition) = b.condition {
-                work.push(condition);
-            }
-        }
-    }
-}
+    };
 
-fn flatten_sequence(
-    index: usize,
-    sink: &mut Vec<usize>,
-    controls: &[ControlBlock],
-    work: &mut Vec<usize>,
-) {
-    // Recurse into sequences
+    // Create the while block, then insert it back into the parent sequence.
 
-    if let Control::Sequence(children) = &controls[index].control {
-        for &child in children {
-            flatten_sequence(child, sink, controls, work);
-        }
-        return;
-    }
+    let result = controls.len();
+    controls.push(ControlBlock {
+        start: cond_start,
+        end: body_end,
+        control: Control::While(While { condition, body }),
+    });
 
-    // All other types are stored in the current sequence, then added to the work
-    // queue.
-
-    sink.push(index);
-
-    match &controls[index].control {
-        Control::Sequence(_) => unreachable!(),
-        Control::CodeRange => {}
-        Control::If(b) => {
-            work.push(b.condition);
-            work.push(b.true_);
-            work.extend(b.false_);
-        }
-        Control::While(b) => {
-            work.push(b.condition);
-            work.push(b.body);
-        }
-        Control::Do(b) => {
-            work.push(b.body);
-            if let Some(condition) = b.condition {
-                work.push(condition);
-            }
-        }
-    }
+    let seq_blocks = match &mut controls[parent_index].control {
+        Control::Sequence(blocks) => blocks,
+        _ => unreachable!(),
+    };
+    seq_blocks.insert(cond_seq, result);
 }
 
 fn scan_elses(
@@ -881,6 +957,56 @@ struct AddrRange(Range<usize>);
 impl fmt::Display for AddrRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "0x{:x}..0x{:x}", self.0.start, self.0.end)
+    }
+}
+
+struct Block<'a>(usize, &'a [ControlBlock]);
+
+impl fmt::Display for Block<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let &Self(index, controls) = self;
+        let block = &controls[index];
+        write!(f, "#{}(0x{:x}..0x{:x})", index, block.start, block.end)
+    }
+}
+
+struct SeqBlock<'a>(usize, usize, &'a [ControlBlock]);
+
+impl fmt::Display for SeqBlock<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let &Self(parent_index, seq_index, controls) = self;
+        let children = match &controls[parent_index].control {
+            Control::Sequence(blocks) => blocks,
+            _ => unreachable!(),
+        };
+        let block = children[seq_index];
+        let ctrl = &controls[block];
+        write!(
+            f,
+            "#{}[{}]->#{}(0x{:x}..0x{:x})",
+            parent_index, seq_index, block, ctrl.start, ctrl.end,
+        )
+    }
+}
+
+struct SeqRange<'a>(usize, RangeInclusive<usize>, &'a [ControlBlock]);
+
+impl fmt::Display for SeqRange<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let &Self(parent_index, ref seq_range, controls) = self;
+        let seq_start = *seq_range.start();
+        let seq_end = *seq_range.end();
+        let children = match &controls[parent_index].control {
+            Control::Sequence(blocks) => blocks,
+            _ => unreachable!(),
+        };
+        let start = controls[children[seq_start]].start;
+        let end = controls[children[seq_end]].end;
+        write!(
+            f,
+            "#{}[{}..={}](0x{:x}..0x{:x})",
+            parent_index, seq_start, seq_end, start, end,
+        )
     }
 }
 

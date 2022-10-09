@@ -68,6 +68,16 @@ fn split_block(blocks: &mut Vec<BasicBlock>, addr: usize) {
     }
 }
 
+pub fn basic_block_get_exact(
+    blocks: &IndexMap<usize, BasicBlock>,
+    start: usize,
+    end: usize,
+) -> &BasicBlock {
+    let block = &blocks[&start];
+    debug_assert!(block.end == end);
+    block
+}
+
 pub fn basic_blocks_get_index_by_end(blocks: &IndexMap<usize, BasicBlock>, addr: usize) -> usize {
     let result = 'result: loop {
         if let Some(index) = blocks.get_index_of(&addr) {
