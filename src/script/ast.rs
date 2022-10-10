@@ -293,13 +293,13 @@ fn write_stmt(
         }
         Stmt::Inc(var) => {
             write_indent(w, indent)?;
-            write_var(w, var, cx)?;
             w.write_str("++")?;
+            write_var(w, var, cx)?;
         }
         Stmt::Dec(var) => {
             write_indent(w, indent)?;
-            write_var(w, var, cx)?;
             w.write_str("--")?;
+            write_var(w, var, cx)?;
         }
         Stmt::Goto(target) => {
             write_indent(w, indent)?;

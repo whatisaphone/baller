@@ -186,7 +186,7 @@ mod tests {
             &out,
             r#"while (local1 <= global105) {
     global220[local1] = local1
-    local1++
+    ++local1
 }
 "#,
         );
@@ -263,7 +263,7 @@ mod tests {
             out,
             "do {
     local13 = local0[local7]
-    local7--
+    --local7
 } until (local13 == 32)
 ",
         );
