@@ -28,8 +28,10 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
         return String::new();
     }
 
+    let cx = WriteCx { scope, config };
+
     let (blocks, decode_extent) = find_basic_blocks(code);
-    let controls = build_control_structures(&blocks);
+    let controls = build_control_structures(&blocks, &cx);
     let (mut script, mut root) = build_ast(&controls, code);
     build_cases(&script, &mut root);
     add_labels_for_gotos(&mut script, &mut root);
@@ -48,7 +50,6 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     let locals = collect_locals(&mut script, &mut root, scope, config);
 
     let mut output = String::with_capacity(1024);
-    let cx = WriteCx { scope, config };
     if !config.suppress_preamble {
         write_preamble(&mut output, &locals, &cx).unwrap();
     }

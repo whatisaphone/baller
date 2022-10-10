@@ -1,4 +1,7 @@
-use crate::script::basic::{basic_block_get_exact, basic_blocks_get_index_by_end, BasicBlock};
+use crate::script::{
+    ast::{get_script_config, WriteCx},
+    basic::{basic_block_get_exact, basic_blocks_get_index_by_end, BasicBlock},
+};
 use indexmap::IndexMap;
 use std::{
     fmt,
@@ -49,8 +52,11 @@ pub enum ConditionKind {
     Until,
 }
 
-#[instrument(level = "debug", skip(basics))]
-pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<ControlBlock> {
+#[instrument(level = "debug", skip(basics, cx))]
+pub fn build_control_structures(
+    basics: &IndexMap<usize, BasicBlock>,
+    cx: &WriteCx,
+) -> Vec<ControlBlock> {
     // Build the initial root block -- a flat sequence with every basic block in
     // order.
 
@@ -88,11 +94,14 @@ pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<Con
     }
     check_control_invariants(0, &controls, basics);
 
-    work.push(0);
-    while let Some(index) = work.pop() {
-        scan_loops(index, basics, &mut controls, &mut work);
+    let skip_do_blocks = get_script_config(cx).map_or(false, |c| c.skip_do_blocks);
+    if !skip_do_blocks {
+        work.push(0);
+        while let Some(index) = work.pop() {
+            scan_loops(index, basics, &mut controls, &mut work);
+        }
+        check_control_invariants(0, &controls, basics);
     }
-    check_control_invariants(0, &controls, basics);
 
     work.push(0);
     while let Some(index) = work.pop() {

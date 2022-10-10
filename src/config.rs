@@ -25,6 +25,7 @@ pub struct Script {
     pub name: Option<String>,
     pub params: Option<u16>,
     pub locals: Vec<Var>,
+    pub skip_do_blocks: bool,
 }
 
 #[derive(Default)]
@@ -180,6 +181,13 @@ fn handle_script_key<'a>(
             extend(&mut scripts[script].locals, local);
             scripts[script].locals[local].name = Some(name.to_string());
             scripts[script].locals[local].ty = ty;
+        }
+        Some("disable_do_blocks") => {
+            it_end(dots, ln)?;
+            if value != "all" {
+                return Err(parse_err(ln));
+            }
+            scripts[script].skip_do_blocks = true;
         }
         Some(_) => {
             return Err(parse_err(ln));
