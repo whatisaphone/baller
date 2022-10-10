@@ -1,6 +1,6 @@
 use crate::script::{
     ast::{DecompileErrorKind, Expr, ExprId, Scripto, Stmt, StmtBlock},
-    control::{Control, ControlBlock},
+    control::{ConditionKind, Control, ControlBlock},
     decode::Decoder,
     ins::{GenericArg, GenericIns, Ins, Operand, Variable},
 };
@@ -143,34 +143,26 @@ fn decompile_block<'a>(
         }
         Control::Do(b) => {
             let mut body_block = StmtBlock::default();
-            let expected_exit = match b.condition {
-                None => BlockExit::Jump(controls[b.body].start),
-                Some(condition) => BlockExit::Jump(controls[condition].start),
-            };
             decompile_block(
                 &controls[b.body],
                 code,
                 controls,
                 script,
                 &mut body_block,
-                expected_exit,
+                BlockExit::Jump(controls[b.condition].start),
             )?;
 
-            let cond_expr = match b.condition {
-                None => None,
-                Some(condition) => {
-                    Some(
-                        decompile_stmts(
-                            code,
-                            &controls[condition],
-                            script,
-                            &mut body_block,
-                            BlockExit::JumpUnless(controls[b.body].start),
-                        )?
-                        .unwrap(),
-                    )
-                }
+            let expected_exit = match b.condition_kind {
+                ConditionKind::Always => BlockExit::Jump(controls[b.body].start),
+                ConditionKind::Until => BlockExit::JumpUnless(controls[b.body].start),
             };
+            let cond_expr = decompile_stmts(
+                code,
+                &controls[b.condition],
+                script,
+                &mut body_block,
+                expected_exit,
+            )?;
 
             out.push(block.start, Stmt::Do {
                 body: body_block,

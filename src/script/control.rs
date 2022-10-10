@@ -2,7 +2,6 @@ use crate::script::basic::{basic_block_get_exact, basic_blocks_get_index_by_end,
 use indexmap::IndexMap;
 use std::{
     fmt,
-    mem,
     ops::{Range, RangeInclusive},
     slice,
 };
@@ -40,7 +39,14 @@ pub struct While {
 #[derive(Debug)]
 pub struct Do {
     pub body: usize,
-    pub condition: Option<usize>,
+    pub condition: usize,
+    pub condition_kind: ConditionKind,
+}
+
+#[derive(Debug)]
+pub enum ConditionKind {
+    Always,
+    Until,
 }
 
 #[instrument(level = "debug", skip(basics))]
@@ -84,13 +90,13 @@ pub fn build_control_structures(basics: &IndexMap<usize, BasicBlock>) -> Vec<Con
 
     work.push(0);
     while let Some(index) = work.pop() {
-        scan_elses(index, basics, &mut controls, &mut work);
+        scan_loops(index, basics, &mut controls, &mut work);
     }
     check_control_invariants(0, &controls, basics);
 
     work.push(0);
     while let Some(index) = work.pop() {
-        scan_loops(index, basics, &mut controls, &mut work);
+        scan_elses(index, basics, &mut controls, &mut work);
     }
     check_control_invariants(0, &controls, basics);
 
@@ -119,7 +125,7 @@ fn scan_forward_jumps(
         }
         Control::Do(b) => {
             work.push(b.body);
-            work.extend(b.condition);
+            work.push(b.condition);
         }
     }
 }
@@ -166,7 +172,7 @@ fn scan_forward_jumps_in_sequence(
             }
             Control::Do(b) => {
                 work.push(b.body);
-                work.extend(b.condition);
+                work.push(b.condition);
             }
         }
     }
@@ -391,7 +397,7 @@ fn scan_elses(
         }
         Control::Do(b) => {
             work.push(b.body);
-            work.extend(b.condition);
+            work.push(b.condition);
         }
     }
 }
@@ -428,7 +434,7 @@ fn scan_elses_in_sequence(
             }
             Control::Do(b) => {
                 work.push(b.body);
-                work.extend(b.condition);
+                work.push(b.condition);
             }
         }
     }
@@ -610,9 +616,9 @@ fn scan_do(
     let parent = &controls[parent_index];
 
     let end_block = &basics[basic_index];
-    let conditional = match end_block.exits.len() {
-        1 => false,
-        2 => true,
+    let condition_kind = match end_block.exits.len() {
+        1 => ConditionKind::Always,
+        2 => ConditionKind::Until,
         _ => unreachable!(),
     };
     let start = *end_block.exits.last().unwrap();
@@ -642,14 +648,14 @@ fn scan_do(
     Some(BuildDo {
         start,
         end,
-        conditional,
+        condition_kind,
     })
 }
 
 struct BuildDo {
     start: usize,
     end: usize,
-    conditional: bool,
+    condition_kind: ConditionKind,
 }
 
 fn build_do(
@@ -657,35 +663,16 @@ fn build_do(
     BuildDo {
         start,
         end,
-        conditional,
+        condition_kind,
     }: BuildDo,
     controls: &mut Vec<ControlBlock>,
 ) {
-    trace!(
+    debug!(
+        parent = %Block(parent_index, controls),
         addr = %AddrRange(start..end),
-        conditional,
-        "building do, parent=#{}",
-        parent_index,
+        ?condition_kind,
+        "building do",
     );
-
-    // This is easier if we can assume the parent is a sequence. If not, make it so.
-
-    match controls[parent_index].control {
-        Control::CodeRange => {
-            // Replace the block with a sequence of length one that contains the old block.
-            // This moves the old block to a new index.
-            let code_index = controls.len();
-            let seq_ctrl = ControlBlock {
-                start: controls[parent_index].start,
-                end: controls[parent_index].end,
-                control: Control::Sequence(vec![code_index]),
-            };
-            let code_ctrl = mem::replace(&mut controls[parent_index], seq_ctrl);
-            controls.push(code_ctrl);
-        }
-        Control::Sequence(_) => {}
-        _ => unreachable!(),
-    };
 
     // Ensure the blocks have boundaries at the start/end addresses
 
@@ -699,25 +686,20 @@ fn build_do(
         _ => unreachable!(),
     };
     let mut drain = seq_blocks.drain(seq_start_index..=seq_end_index);
-    let (body_blocks, condition) = if conditional {
-        let body_blocks: Vec<_> = drain
-            .by_ref()
-            .take(seq_end_index - seq_start_index)
-            .collect();
-        let condition = drain.next().unwrap();
-        debug_assert!(drain.next().is_none());
-        drop(drain);
-        (body_blocks, Some(condition))
-    } else {
-        (drain.collect(), None)
-    };
+    let body_blocks: Vec<_> = drain
+        .by_ref()
+        .take(seq_end_index - seq_start_index)
+        .collect();
+    let condition = drain.next().unwrap();
+    debug_assert!(drain.next().is_none());
+    drop(drain);
 
     // Combine the list of body blocks into one.
 
     let body = match body_blocks.len() {
         0 => {
             // If there are none, synthesize a zero-length block.
-            debug_assert!(start == controls[condition.unwrap()].start);
+            debug_assert!(start == controls[condition].start);
             let body = controls.len();
             controls.push(ControlBlock {
                 start,
@@ -744,7 +726,11 @@ fn build_do(
     controls.push(ControlBlock {
         start,
         end,
-        control: Control::Do(Do { body, condition }),
+        control: Control::Do(Do {
+            body,
+            condition,
+            condition_kind,
+        }),
     });
 
     let seq_blocks = match &mut controls[parent_index].control {
@@ -937,15 +923,21 @@ fn check_control_invariants(
         }
         Control::Do(b) => {
             asrt!(ctrl.start == controls[b.body].start);
+            asrt!(ctrl.end == controls[b.condition].end);
+            asrt!(controls[b.body].end == controls[b.condition].start);
             check_control_invariants(b.body, controls, basics);
-            match b.condition {
-                None => {
-                    asrt!(ctrl.end == controls[b.body].end);
+            check_control_invariants(b.condition, controls, basics);
+
+            let cond_block = &basics[&controls[b.condition].start];
+            match b.condition_kind {
+                ConditionKind::Always => {
+                    asrt!(cond_block.exits.len() == 1);
+                    asrt!(cond_block.exits[0] == ctrl.start);
                 }
-                Some(cond) => {
-                    asrt!(ctrl.end == controls[cond].end);
-                    asrt!(controls[b.body].end == controls[cond].start);
-                    check_control_invariants(cond, controls, basics);
+                ConditionKind::Until => {
+                    asrt!(cond_block.exits.len() == 2);
+                    asrt!(cond_block.exits[0] == ctrl.end);
+                    asrt!(cond_block.exits[1] == ctrl.start);
                 }
             }
         }
