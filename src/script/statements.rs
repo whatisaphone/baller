@@ -41,10 +41,13 @@ fn decompile_block<'a>(
 
     match &block.control {
         Control::CodeRange => {
+            debug_assert!(matches!(expected_exit, BlockExit::Jump(_)));
             decompile_stmts(code, block, script, out, expected_exit)?;
             Ok(())
         }
         Control::Sequence(children) => {
+            debug_assert!(matches!(expected_exit, BlockExit::Jump(_)));
+
             // Skip zero-length blocks since they mess up expected exits. The passed
             // expected exit must be sent to the last block that actually contains
             // instructions.
@@ -73,7 +76,7 @@ fn decompile_block<'a>(
             )
         }
         Control::If(b) => {
-            let condition = decompile_stmts(
+            let (condition_addr, condition) = decompile_stmts(
                 code,
                 &controls[b.condition],
                 script,
@@ -108,7 +111,7 @@ fn decompile_block<'a>(
                 )?;
             }
 
-            out.push(block.start, Stmt::If {
+            out.push(condition_addr, Stmt::If {
                 condition,
                 true_: true_block,
                 false_: false_block,
@@ -130,7 +133,7 @@ fn decompile_block<'a>(
                 ConditionKind::Always => BlockExit::Jump(controls[b.body].start),
                 ConditionKind::Until => BlockExit::JumpUnless(controls[b.body].start),
             };
-            let cond_expr = decompile_stmts(
+            let cond = decompile_stmts(
                 code,
                 &controls[b.condition],
                 script,
@@ -140,7 +143,7 @@ fn decompile_block<'a>(
 
             out.push(block.start, Stmt::Do {
                 body: body_block,
-                condition: cond_expr,
+                condition: cond.map(|(_addr, expr)| expr),
             });
             Ok(())
         }
@@ -154,7 +157,7 @@ fn decompile_stmts<'a>(
     script: &mut Scripto<'a>,
     out: &mut StmtBlock<'a>,
     expected_exit: BlockExit,
-) -> Result<Option<ExprId>, DecompileError> {
+) -> Result<Option<(usize, ExprId)>, DecompileError> {
     debug_assert!(matches!(block.control, Control::CodeRange));
 
     let mut stack = Vec::new();
@@ -526,7 +529,7 @@ fn finish_block<'a>(
     stack: &mut Vec<ExprId>,
     script: &mut Scripto<'a>,
     out: &mut StmtBlock<'a>,
-) -> Option<ExprId> {
+) -> Option<(usize, ExprId)> {
     while let Some(expr) = stack.pop() {
         out.push(
             pos,
@@ -546,12 +549,13 @@ fn finish_block<'a>(
     match expected_exit {
         BlockExit::Jump(_) => None,
         BlockExit::JumpUnless(_) => {
-            Some(expr.unwrap_or_else(|| {
+            let expr = expr.unwrap_or_else(|| {
                 add_expr(
                     script,
                     Expr::DecompileError(pos, DecompileErrorKind::WrongBlockExit),
                 )
-            }))
+            });
+            Some((pos, expr))
         }
     }
 }
