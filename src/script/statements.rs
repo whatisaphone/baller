@@ -115,32 +115,6 @@ fn decompile_block<'a>(
             });
             Ok(())
         }
-        Control::While(b) => {
-            let cond_expr = decompile_stmts(
-                code,
-                &controls[b.condition],
-                script,
-                out,
-                BlockExit::JumpUnless(controls[b.body].end),
-            )?
-            .unwrap();
-
-            let mut body = StmtBlock::default();
-            decompile_block(
-                &controls[b.body],
-                code,
-                controls,
-                script,
-                &mut body,
-                BlockExit::Jump(controls[b.condition].start),
-            )?;
-
-            out.push(block.start, Stmt::While {
-                condition: cond_expr,
-                body,
-            });
-            Ok(())
-        }
         Control::Do(b) => {
             let mut body_block = StmtBlock::default();
             decompile_block(

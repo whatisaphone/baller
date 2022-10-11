@@ -10,6 +10,7 @@ mod decompile;
 mod goto;
 mod ins;
 mod misc;
+mod peep;
 mod statements;
 mod types;
 mod visit;

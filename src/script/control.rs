@@ -22,7 +22,6 @@ pub enum Control {
     CodeRange,
     Sequence(Vec<usize>),
     If(If),
-    While(While),
     Do(Do),
 }
 
@@ -128,10 +127,6 @@ fn scan_forward_jumps(
             work.push(b.true_);
             work.extend(b.false_);
         }
-        Control::While(b) => {
-            work.push(b.condition);
-            work.push(b.body);
-        }
         Control::Do(b) => {
             work.push(b.body);
             work.push(b.condition);
@@ -153,20 +148,11 @@ fn scan_forward_jumps_in_sequence(
     for i in 0..children.len() {
         match &controls[children[i]].control {
             Control::CodeRange => {
-                macro_rules! done {
-                    () => {
-                        check_control_invariants(parent_index, controls, basics);
-                        work.push(parent_index); // Come back later for the rest
-                        return;
-                    };
-                }
-
-                if let Some(payload) = scan_while(parent_index, i, controls, basics) {
-                    build_while(parent_index, i, payload, controls);
-                    done!();
-                } else if let Some(payload) = scan_if(parent_index, i, controls, basics) {
+                if let Some(payload) = scan_if(parent_index, i, controls, basics) {
                     build_if(parent_index, i, payload, controls);
-                    done!();
+                    check_control_invariants(parent_index, controls, basics);
+                    work.push(parent_index); // Come back later for the rest
+                    return;
                 }
             }
             Control::Sequence(_) => unreachable!(),
@@ -174,10 +160,6 @@ fn scan_forward_jumps_in_sequence(
                 work.push(b.condition);
                 work.push(b.true_);
                 work.extend(b.false_);
-            }
-            Control::While(b) => {
-                work.push(b.condition);
-                work.push(b.body);
             }
             Control::Do(b) => {
                 work.push(b.body);
@@ -286,104 +268,6 @@ fn build_if(
     seq_blocks.insert(cond_seq, result);
 }
 
-fn scan_while(
-    parent_index: usize,
-    seq_index: usize,
-    controls: &[ControlBlock],
-    basics: &IndexMap<usize, BasicBlock>,
-) -> Option<usize> {
-    let parent = &controls[parent_index];
-    let children = match &parent.control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
-    let cond_ctrl = &controls[children[seq_index]];
-    let cond_block = basic_block_get_exact(basics, cond_ctrl.start, cond_ctrl.end);
-
-    // Require conditional forward jump as the condition
-    if !(cond_block.exits.len() == 2
-        && cond_block.exits[0] == cond_block.end
-        && cond_block.exits[1] > cond_block.end
-        && cond_block.exits[1] <= parent.end)
-    {
-        return None;
-    }
-
-    let body_end = cond_block.exits[1];
-    let body_end_block_index = basic_blocks_get_index_by_end(basics, body_end);
-    let body_end_block = &basics[body_end_block_index];
-    // Require the end block to jump back to the condition
-    if !(body_end_block.exits.len() == 1 && body_end_block.exits[0] == cond_block.start) {
-        return None;
-    }
-
-    let body_seq_end = children
-        .iter()
-        .position(|&i| controls[i].end == body_end)
-        .unwrap();
-
-    Some(body_seq_end)
-}
-
-fn build_while(
-    parent_index: usize,
-    cond_seq: usize,
-    body_seq_end: usize,
-    controls: &mut Vec<ControlBlock>,
-) {
-    debug!(
-        parent = %Block(parent_index, controls),
-        cond = %SeqBlock(parent_index, cond_seq, controls),
-        body = %SeqRange(parent_index, (cond_seq + 1)..=body_seq_end, controls),
-        "building while",
-    );
-
-    // Drain the range of blocks which will form the body.
-
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
-    let mut drain = seq_blocks.drain(cond_seq..=body_seq_end);
-    let condition = drain.next().unwrap();
-    let body_blocks: Vec<_> = drain.collect();
-
-    let cond_start = controls[condition].start;
-    let body_start = controls[*body_blocks.first().unwrap()].start;
-    let body_end = controls[*body_blocks.last().unwrap()].end;
-
-    // Combine the list of body blocks into one.
-
-    let body = match body_blocks.len() {
-        0 => todo!(),
-        1 => body_blocks[0],
-        _ => {
-            let body = controls.len();
-            controls.push(ControlBlock {
-                start: body_start,
-                end: body_end,
-                control: Control::Sequence(body_blocks),
-            });
-            body
-        }
-    };
-
-    // Create the while block, then insert it back into the parent sequence.
-
-    let result = controls.len();
-    controls.push(ControlBlock {
-        start: cond_start,
-        end: body_end,
-        control: Control::While(While { condition, body }),
-    });
-
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
-    seq_blocks.insert(cond_seq, result);
-}
-
 fn scan_elses(
     index: usize,
     basics: &IndexMap<usize, BasicBlock>,
@@ -399,10 +283,6 @@ fn scan_elses(
             work.push(b.condition);
             work.push(b.true_);
             work.extend(b.false_);
-        }
-        Control::While(b) => {
-            work.push(b.condition);
-            work.push(b.body);
         }
         Control::Do(b) => {
             work.push(b.body);
@@ -436,10 +316,6 @@ fn scan_elses_in_sequence(
                 work.push(b.condition);
                 work.push(b.true_);
                 work.extend(b.false_);
-            }
-            Control::While(b) => {
-                work.push(b.condition);
-                work.push(b.body);
             }
             Control::Do(b) => {
                 work.push(b.body);
@@ -565,10 +441,6 @@ fn scan_loops(
             work.push(b.true_);
             work.extend(b.false_);
         }
-        Control::While(b) => {
-            work.push(b.condition);
-            work.push(b.body);
-        }
         Control::Do(_) => {}
     }
 }
@@ -606,10 +478,6 @@ fn scan_loops_in_sequence(
                 work.push(b.condition);
                 work.push(b.true_);
                 work.extend(b.false_);
-            }
-            Control::While(b) => {
-                work.push(b.condition);
-                work.push(b.body);
             }
             Control::Do(_) => {}
         }
@@ -922,13 +790,6 @@ fn check_control_invariants(
                     check_control_invariants(false_, controls, basics);
                 }
             }
-        }
-        Control::While(b) => {
-            asrt!(ctrl.start == controls[b.condition].start);
-            asrt!(ctrl.end == controls[b.body].end);
-            asrt!(controls[b.condition].end == controls[b.body].start);
-            check_control_invariants(b.condition, controls, basics);
-            check_control_invariants(b.body, controls, basics);
         }
         Control::Do(b) => {
             asrt!(ctrl.start == controls[b.body].start);

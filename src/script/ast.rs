@@ -144,6 +144,11 @@ impl<'a> StmtBlock<'a> {
         self.stmts.push(stmt);
     }
 
+    pub fn pop(&mut self) -> Option<Stmt> {
+        self.addrs.pop();
+        self.stmts.pop()
+    }
+
     pub fn insert(&mut self, index: usize, addr: usize, stmt: Stmt<'a>) {
         self.addrs.insert(index, addr);
         self.stmts.insert(index, stmt);
