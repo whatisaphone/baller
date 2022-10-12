@@ -1,10 +1,10 @@
-use crate::script::ast::{Scripto, Stmt, StmtBlock};
+use crate::script::ast::{Expr, Scripto, Stmt, StmtBlock};
 use std::mem;
 
 pub fn peep(script: &Scripto, root: &mut StmtBlock) {
     let mut i = 0;
     while i < root.stmts.len() {
-        build_while(root, i);
+        build_while(script, root, i);
 
         match &mut root.stmts[i] {
             Stmt::If {
@@ -30,29 +30,40 @@ pub fn peep(script: &Scripto, root: &mut StmtBlock) {
     }
 }
 
-fn build_while(block: &mut StmtBlock, i: usize) {
-    let (&mut condition, true_, false_) = match &mut block.stmts[i] {
-        Stmt::If {
+fn build_while(script: &Scripto, block: &mut StmtBlock, i: usize) {
+    let (body, &mut condition) = match &mut block.stmts[i] {
+        Stmt::Do { body, condition } => (body, condition),
+        _ => return,
+    };
+    if condition.is_some() {
+        return;
+    }
+    let (&mut condition, true_, false_) = match body.stmts.get_mut(0) {
+        Some(Stmt::If {
             condition,
             true_,
             false_,
-        } => (condition, true_, false_),
+        }) => (condition, true_, false_),
         _ => return,
     };
+    let condition = match script.exprs[condition] {
+        Expr::Not(e) => e,
+        _ => return,
+    };
+    let goto = match true_.stmts.as_slice() {
+        &[Stmt::Goto(goto)] => goto,
+        _ => return,
+    };
+    if goto != body.end {
+        return;
+    }
     if !false_.stmts.is_empty() {
         return;
     }
-    let goto = match &true_.stmts.last() {
-        Some(&Stmt::Goto(goto)) => goto,
-        _ => return,
-    };
-    if goto != block.addrs[i] {
-        return;
-    }
 
-    true_.pop();
+    body.remove(0);
     block.stmts[i] = Stmt::While {
         condition,
-        body: mem::take(true_),
+        body: mem::take(body),
     };
 }

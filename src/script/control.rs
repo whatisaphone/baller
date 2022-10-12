@@ -148,8 +148,8 @@ fn scan_forward_jumps_in_sequence(
     for i in 0..children.len() {
         match &controls[children[i]].control {
             Control::CodeRange => {
-                if let Some(payload) = scan_if(parent_index, i, controls, basics) {
-                    build_if(parent_index, i, payload, controls);
+                if let Some(payload) = scan_forward_jump(parent_index, i, controls, basics) {
+                    build_forward_jump(parent_index, i, payload, controls);
                     check_control_invariants(parent_index, controls, basics);
                     work.push(parent_index); // Come back later for the rest
                     return;
@@ -169,12 +169,12 @@ fn scan_forward_jumps_in_sequence(
     }
 }
 
-fn scan_if(
+fn scan_forward_jump(
     parent_index: usize,
     seq_index: usize,
     controls: &[ControlBlock],
     basics: &IndexMap<usize, BasicBlock>,
-) -> Option<usize> {
+) -> Option<BuildForwardJump> {
     let parent = &controls[parent_index];
     let children = match &parent.control {
         Control::Sequence(blocks) => blocks,
@@ -193,7 +193,45 @@ fn scan_if(
     }
 
     let body_end = cond_block.exits[1];
-    Some(body_end)
+    // Check for a paired jump back to the start of the block
+    let is_loop = {
+        let body_end_block_index = basic_blocks_get_index_by_end(basics, body_end);
+        let body_end_block = &basics[body_end_block_index];
+        body_end_block.exits.len() == 1 && body_end_block.exits[0] == cond_block.start
+    };
+    Some(BuildForwardJump {
+        start: cond_block.start,
+        body_end,
+        is_loop,
+    })
+}
+
+#[derive(Copy, Clone)]
+struct BuildForwardJump {
+    start: usize,
+    body_end: usize,
+    is_loop: bool,
+}
+
+fn build_forward_jump(
+    parent_index: usize,
+    cond_seq: usize,
+    build: BuildForwardJump,
+    controls: &mut Vec<ControlBlock>,
+) {
+    if build.is_loop {
+        build_do(
+            parent_index,
+            BuildDo {
+                start: build.start,
+                end: build.body_end,
+                condition_kind: ConditionKind::Always,
+            },
+            controls,
+        );
+    } else {
+        build_if(parent_index, cond_seq, build.body_end, controls);
+    }
 }
 
 fn build_if(
@@ -441,7 +479,10 @@ fn scan_loops(
             work.push(b.true_);
             work.extend(b.false_);
         }
-        Control::Do(_) => {}
+        Control::Do(b) => {
+            work.push(b.body);
+            // Ignore the condition since its jump was already handled.
+        }
     }
 }
 
@@ -479,7 +520,10 @@ fn scan_loops_in_sequence(
                 work.push(b.true_);
                 work.extend(b.false_);
             }
-            Control::Do(_) => {}
+            Control::Do(b) => {
+                work.push(b.body);
+                // Ignore the condition since its jump was already handled.
+            }
         }
     }
 }

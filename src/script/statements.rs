@@ -43,6 +43,9 @@ fn decompile_block<'a>(
         Control::CodeRange => {
             debug_assert!(matches!(expected_exit, BlockExit::Jump(_)));
             decompile_stmts(code, block, script, out, expected_exit)?;
+            debug_assert!(
+                (block.start == block.end && out.stmts.is_empty()) || out.end == block.end
+            );
             Ok(())
         }
         Control::Sequence(children) => {
@@ -73,7 +76,9 @@ fn decompile_block<'a>(
                 script,
                 out,
                 expected_exit,
-            )
+            )?;
+            debug_assert!(out.end == controls[children[last_nonempty_child]].end);
+            Ok(())
         }
         Control::If(b) => {
             let (condition_addr, condition) = decompile_stmts(
@@ -116,6 +121,7 @@ fn decompile_block<'a>(
                 true_: true_block,
                 false_: false_block,
             });
+            out.end = block.end;
             Ok(())
         }
         Control::Do(b) => {
@@ -145,6 +151,7 @@ fn decompile_block<'a>(
                 body: body_block,
                 condition: cond.map(|(_addr, expr)| expr),
             });
+            out.end = block.end;
             Ok(())
         }
     }
@@ -204,6 +211,7 @@ fn decompile_stmts<'a>(
                 return Ok(finish_block(
                     expected_exit,
                     bump_stmt_addr!(),
+                    decoder.pos(),
                     target,
                     expr,
                     &mut stack,
@@ -211,7 +219,7 @@ fn decompile_stmts<'a>(
                     out,
                 ));
             }
-            append_goto(bump_stmt_addr!(), target, expr, script, out);
+            append_goto(bump_stmt_addr!(), decoder.pos(), target, expr, script, out);
         };
     }
 
@@ -497,6 +505,7 @@ fn decompile_stmts<'a>(
         expected_exit,
         bump_stmt_addr!(),
         decoder.pos(),
+        decoder.pos(),
         None,
         &mut stack,
         script,
@@ -521,9 +530,11 @@ fn operand_to_expr<'a>(script: &mut Scripto<'a>, operand: &Operand<'a>) -> ExprI
     add_expr(script, expr)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn finish_block<'a>(
     expected_exit: BlockExit,
     pos: usize,
+    block_end: usize,
     target: usize,
     mut expr: Option<ExprId>,
     stack: &mut Vec<ExprId>,
@@ -543,8 +554,10 @@ fn finish_block<'a>(
     };
 
     if actual_exit != expected_exit {
-        append_goto(pos, target, expr.take(), script, out);
+        append_goto(pos, block_end, target, expr.take(), script, out);
     }
+
+    out.end = block_end;
 
     match expected_exit {
         BlockExit::Jump(_) => None,
@@ -562,6 +575,7 @@ fn finish_block<'a>(
 
 fn append_goto<'a>(
     pos: usize,
+    block_end: usize,
     target: usize,
     expr: Option<ExprId>,
     script: &mut Scripto<'a>,
@@ -578,6 +592,7 @@ fn append_goto<'a>(
                 true_: StmtBlock {
                     addrs: vec![pos],
                     stmts: vec![Stmt::Goto(target)],
+                    end: block_end,
                 },
                 false_: StmtBlock::default(),
             });

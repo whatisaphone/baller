@@ -17,6 +17,7 @@ pub struct Scripto<'a> {
 pub struct StmtBlock<'a> {
     pub addrs: Vec<usize>,
     pub stmts: Vec<Stmt<'a>>,
+    pub end: usize,
 }
 
 pub enum Stmt<'a> {
@@ -144,6 +145,7 @@ impl<'a> StmtBlock<'a> {
         self.stmts.push(stmt);
     }
 
+    #[allow(dead_code)]
     pub fn pop(&mut self) -> Option<Stmt> {
         self.addrs.pop();
         self.stmts.pop()
@@ -206,7 +208,15 @@ pub fn write_block(
     indent: usize,
     cx: &WriteCx,
 ) -> fmt::Result {
+    if block.stmts.is_empty() {
+        return Ok(());
+    }
+
+    // sanity checks
     debug_assert!(block.stmts.len() == block.addrs.len());
+    debug_assert!(block.end != 0);
+    debug_assert!(*block.addrs.last().unwrap() <= block.end);
+
     for i in 0..block.stmts.len() {
         write_stmt(w, script, block.addrs[i], &block.stmts[i], indent, cx)?;
         writeln!(w)?;
