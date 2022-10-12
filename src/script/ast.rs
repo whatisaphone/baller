@@ -57,6 +57,7 @@ pub enum Stmt<'a> {
     Do {
         body: StmtBlock<'a>,
         condition: Option<ExprId>,
+        end: usize,
     },
     Case {
         value: ExprId,
@@ -389,6 +390,7 @@ fn write_stmt(
         Stmt::Do {
             ref body,
             condition,
+            ..
         } => {
             write_indent(w, indent)?;
             writeln!(w, "do {{")?;

@@ -109,6 +109,7 @@ pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn
         Stmt::Do {
             ref mut body,
             condition,
+            ..
         } => {
             visit.block(script, body);
             if let Some(condition) = condition {

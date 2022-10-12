@@ -15,7 +15,7 @@ pub fn add_labels_for_gotos(script: &mut Scripto, ast: &mut StmtBlock) {
     }
 
     targets.sort_unstable_by_key(|n| usize::MAX - n);
-    prepend_label_stmts(ast, &mut targets);
+    prepend_label_stmts(ast, &mut targets, None);
 
     if !targets.is_empty() {
         trace!("failed to label {:04x?}", targets);
@@ -42,19 +42,18 @@ impl Visitor for CollectGotoTargets {
     }
 }
 
-fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>) {
+fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>, skip: Option<usize>) {
     let mut i = 0;
     while i < block.stmts.len() {
-        let &next_target = match targets.last() {
-            Some(target) => target,
-            None => return, // no labels left means nothing more to do
-        };
-
-        if block.addrs[i] == next_target {
-            targets.pop();
-            block.insert(i, next_target, Stmt::Label);
-            continue;
+        if targets.is_empty() {
+            return; // no targets means our work here is done
         }
+
+        if skip != Some(block.addrs[i]) && pop_target(block.addrs[i], targets) {
+            block.insert(i, block.addrs[i], Stmt::Label);
+        }
+
+        let next_skip = block.addrs.get(i + 1).copied().unwrap_or(block.end);
 
         match &mut block.stmts[i] {
             Stmt::If {
@@ -62,16 +61,16 @@ fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>) {
                 true_,
                 false_,
             } => {
-                prepend_label_stmts(true_, targets);
-                prepend_label_stmts(false_, targets);
+                let true_skip = false_.addrs.get(0).copied().unwrap_or(next_skip);
+                prepend_label_stmts(true_, targets, Some(true_skip));
+                prepend_label_stmts(false_, targets, Some(next_skip));
             }
-            Stmt::While { condition: _, body } => prepend_label_stmts(body, targets),
-            Stmt::Do { body, condition: _ } | Stmt::For { body, .. } => {
-                prepend_label_stmts(body, targets);
+            Stmt::While { condition: _, body } | Stmt::Do { body, .. } | Stmt::For { body, .. } => {
+                prepend_label_stmts(body, targets, Some(next_skip));
             }
             Stmt::Case { value: _, cases } => {
                 for case in cases {
-                    prepend_label_stmts(&mut case.body, targets);
+                    prepend_label_stmts(&mut case.body, targets, Some(next_skip));
                 }
             }
             _ => {}
@@ -79,4 +78,16 @@ fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>) {
 
         i += 1;
     }
+
+    if skip != Some(block.end) && pop_target(block.end, targets) {
+        block.push(block.end, Stmt::Label);
+    }
+}
+
+fn pop_target(addr: usize, targets: &mut Vec<usize>) -> bool {
+    if targets.last().copied() != Some(addr) {
+        return false;
+    }
+    targets.pop();
+    true
 }

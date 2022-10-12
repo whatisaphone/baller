@@ -35,7 +35,7 @@ pub fn build_cases(script: &Scripto, block: &mut StmtBlock) {
                 build_cases(script, true_);
                 build_cases(script, false_);
             }
-            Stmt::While { condition: _, body } | Stmt::Do { body, condition: _ } => {
+            Stmt::While { condition: _, body } | Stmt::Do { body, .. } => {
                 build_cases(script, body);
             }
             Stmt::Case { value: _, cases } => {

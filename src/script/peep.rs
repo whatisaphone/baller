@@ -18,9 +18,7 @@ pub fn peep(script: &Scripto, root: &mut StmtBlock) {
                 peep(script, true_);
                 peep(script, false_);
             }
-            Stmt::While { condition: _, body }
-            | Stmt::Do { body, condition: _ }
-            | Stmt::For { body, .. } => {
+            Stmt::While { condition: _, body } | Stmt::Do { body, .. } | Stmt::For { body, .. } => {
                 peep(script, body);
             }
             Stmt::Case { value: _, cases } => {
@@ -36,8 +34,12 @@ pub fn peep(script: &Scripto, root: &mut StmtBlock) {
 }
 
 fn build_while(script: &Scripto, block: &mut StmtBlock, i: usize) -> bool {
-    let (body, &mut condition) = match &mut block.stmts[i] {
-        Stmt::Do { body, condition } => (body, condition),
+    let (body, &mut condition, &mut end) = match &mut block.stmts[i] {
+        Stmt::Do {
+            body,
+            condition,
+            end,
+        } => (body, condition, end),
         _ => return false,
     };
     if condition.is_some() {
@@ -59,7 +61,7 @@ fn build_while(script: &Scripto, block: &mut StmtBlock, i: usize) -> bool {
         &[Stmt::Goto(goto)] => goto,
         _ => return false,
     };
-    if goto != body.end {
+    if goto != end {
         return false;
     }
     if !false_.stmts.is_empty() {
@@ -105,8 +107,10 @@ fn build_for(script: &Scripto, block: &mut StmtBlock, i: usize) {
     }
 
     let mut body = mem::take(body);
+    body.end = *body.addrs.last().unwrap();
     body.pop();
-    block.remove(i);
+
+    block.remove(i + 1);
     block.stmts[i] = Stmt::For {
         var,
         start,

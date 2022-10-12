@@ -43,9 +43,6 @@ fn decompile_block<'a>(
         Control::CodeRange => {
             debug_assert!(matches!(expected_exit, BlockExit::Jump(_)));
             decompile_stmts(code, block, script, out, expected_exit)?;
-            debug_assert!(
-                (block.start == block.end && out.stmts.is_empty()) || out.end == block.end
-            );
             Ok(())
         }
         Control::Sequence(children) => {
@@ -77,7 +74,6 @@ fn decompile_block<'a>(
                 out,
                 expected_exit,
             )?;
-            debug_assert!(out.end == controls[children[last_nonempty_child]].end);
             Ok(())
         }
         Control::If(b) => {
@@ -150,6 +146,7 @@ fn decompile_block<'a>(
             out.push(block.start, Stmt::Do {
                 body: body_block,
                 condition: cond.map(|(_addr, expr)| expr),
+                end: block.end,
             });
             out.end = block.end;
             Ok(())
@@ -557,7 +554,7 @@ fn finish_block<'a>(
         append_goto(pos, block_end, target, expr.take(), script, out);
     }
 
-    out.end = block_end;
+    out.end = pos;
 
     match expected_exit {
         BlockExit::Jump(_) => None,
