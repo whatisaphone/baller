@@ -30,6 +30,12 @@ impl<const CAPACITY: usize> ByteArray<CAPACITY> {
     }
 }
 
+impl<const CAPACITY: usize> PartialEq for ByteArray<CAPACITY> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice() == other.as_slice()
+    }
+}
+
 impl<const CAPACITY: usize> Deref for ByteArray<CAPACITY> {
     type Target = [u8];
 

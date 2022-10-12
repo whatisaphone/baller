@@ -141,6 +141,15 @@ pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn
             visit.expr(script, end);
             visit.block(script, body);
         }
+        Stmt::ForList {
+            var,
+            list,
+            ref mut body,
+        } => {
+            visit.var(var);
+            visit.expr(script, list);
+            visit.block(script, body);
+        }
         Stmt::Generic {
             bytecode: _,
             ins: _,

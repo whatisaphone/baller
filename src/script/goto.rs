@@ -65,7 +65,10 @@ fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>, skip: Op
                 prepend_label_stmts(true_, targets, Some(true_skip));
                 prepend_label_stmts(false_, targets, Some(next_skip));
             }
-            Stmt::While { condition: _, body } | Stmt::Do { body, .. } | Stmt::For { body, .. } => {
+            Stmt::While { condition: _, body }
+            | Stmt::Do { body, .. }
+            | Stmt::For { body, .. }
+            | Stmt::ForList { body, .. } => {
                 prepend_label_stmts(body, targets, Some(next_skip));
             }
             Stmt::Case { value: _, cases } => {

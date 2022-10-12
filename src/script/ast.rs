@@ -70,6 +70,11 @@ pub enum Stmt<'a> {
         step: i32,
         body: StmtBlock<'a>,
     },
+    ForList {
+        var: Variable,
+        list: ExprId,
+        body: StmtBlock<'a>,
+    },
     Generic {
         bytecode: ByteArray<2>,
         ins: &'a GenericIns,
@@ -423,6 +428,21 @@ fn write_stmt(
                 -1 => "--",
                 _ => unreachable!(),
             })?;
+            w.write_str(" {\n")?;
+            write_block(w, script, body, indent + 1, cx)?;
+            write_indent(w, indent)?;
+            w.write_char('}')?;
+        }
+        Stmt::ForList {
+            var,
+            list,
+            ref body,
+        } => {
+            write_indent(w, indent)?;
+            w.write_str("for ")?;
+            write_var(w, var, cx)?;
+            w.write_str(" = ")?;
+            write_expr(w, script, Precedence::Assign, list, cx)?;
             w.write_str(" {\n")?;
             write_block(w, script, body, indent + 1, cx)?;
             write_indent(w, indent)?;
