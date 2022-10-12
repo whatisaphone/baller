@@ -8,7 +8,7 @@ use std::{
     ops::{Range, RangeInclusive},
     slice,
 };
-use tracing::{debug, instrument, trace};
+use tracing::{debug, instrument};
 
 #[derive(Debug)]
 pub struct ControlBlock {
@@ -674,66 +674,23 @@ enum SeqBoundary {
 fn seq_index_starting_at_addr(
     parent_index: usize,
     addr: usize,
-    controls: &mut Vec<ControlBlock>,
+    controls: &[ControlBlock],
 ) -> usize {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
 
     match seq_start_boundary(parent_index, addr, controls) {
         (i, SeqBoundary::Exact) => i,
-        (i, SeqBoundary::CanSplit) => {
-            split_seq(parent_index, i, addr, controls);
-            i + 1
-        }
-        (_, SeqBoundary::CanNotSplit) => unreachable!(),
+        _ => unreachable!(),
     }
 }
 
-fn seq_index_ending_at_addr(
-    parent_index: usize,
-    addr: usize,
-    controls: &mut Vec<ControlBlock>,
-) -> usize {
+fn seq_index_ending_at_addr(parent_index: usize, addr: usize, controls: &[ControlBlock]) -> usize {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
 
     match seq_end_boundary(parent_index, addr, controls) {
         (i, SeqBoundary::Exact) => i,
-        (i, SeqBoundary::CanSplit) => {
-            split_seq(parent_index, i, addr, controls);
-            i
-        }
-        (_, SeqBoundary::CanNotSplit) => unreachable!(),
+        _ => unreachable!(),
     }
-}
-
-fn split_seq(parent_index: usize, seq_index: usize, addr: usize, controls: &mut Vec<ControlBlock>) {
-    let seq_blocks = match &controls[parent_index].control {
-        Control::Sequence(seq_blocks) => seq_blocks,
-        _ => unreachable!(),
-    };
-    let start = controls[seq_blocks[seq_index]].start;
-    let end = controls[seq_blocks[seq_index]].end;
-    trace!("split_seq #{parent_index}[{seq_index}] 0x{start:x}..0x{end:x} at 0x{addr:x}");
-    debug_assert!(start < addr && addr < end);
-    debug_assert!(matches!(
-        controls[seq_blocks[seq_index]].control,
-        Control::CodeRange,
-    ));
-
-    let first = seq_blocks[seq_index];
-    controls[first].end = addr;
-
-    let second = controls.len();
-    controls.push(ControlBlock {
-        start: addr,
-        end,
-        control: Control::CodeRange,
-    });
-
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(seq_blocks) => seq_blocks,
-        _ => unreachable!(),
-    };
-    seq_blocks.insert(seq_index + 1, second);
 }
 
 fn check_control_invariants(
