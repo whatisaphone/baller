@@ -68,7 +68,7 @@ pub enum Operand<'a> {
     String(&'a [u8]),
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Variable(pub u16);
 
 #[derive(Copy, Clone, Debug)]

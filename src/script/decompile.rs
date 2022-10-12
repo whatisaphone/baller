@@ -34,8 +34,8 @@ pub fn decompile(code: &[u8], scope: Scope, config: &Config) -> String {
     let (blocks, decode_extent) = find_basic_blocks(code);
     let controls = build_control_structures(&blocks, &cx);
     let (mut script, mut root) = build_ast(&controls, code);
-    peep(&script, &mut root);
     build_cases(&script, &mut root);
+    peep(&script, &mut root);
     add_labels_for_gotos(&mut script, &mut root);
     spread_types(&mut script, &mut root, scope, config);
 

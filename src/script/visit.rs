@@ -37,6 +37,7 @@ fn default_visit_block(script: &mut Scripto, block: &mut StmtBlock, visit: &mut 
     }
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn Visitor) {
     #[allow(clippy::match_same_arms)]
     match *stmt {
@@ -126,6 +127,18 @@ pub fn default_visit_stmt(script: &mut Scripto, stmt: &mut Stmt, visit: &mut dyn
                 }
                 visit.block(script, &mut case.body);
             }
+        }
+        Stmt::For {
+            var,
+            start,
+            end,
+            step: _,
+            ref mut body,
+        } => {
+            visit.var(var);
+            visit.expr(script, start);
+            visit.expr(script, end);
+            visit.block(script, body);
         }
         Stmt::Generic {
             bytecode: _,

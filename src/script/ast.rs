@@ -62,6 +62,13 @@ pub enum Stmt<'a> {
         value: ExprId,
         cases: Vec<Case<'a>>,
     },
+    For {
+        var: Variable,
+        start: ExprId,
+        end: ExprId,
+        step: i32,
+        body: StmtBlock<'a>,
+    },
     Generic {
         bytecode: ByteArray<2>,
         ins: &'a GenericIns,
@@ -393,6 +400,31 @@ fn write_stmt(
                 write_expr(w, script, Precedence::Min, condition, cx)?;
                 w.write_char(')')?;
             }
+        }
+        Stmt::For {
+            var,
+            start,
+            end,
+            step,
+            ref body,
+        } => {
+            write_indent(w, indent)?;
+            w.write_str("for ")?;
+            write_var(w, var, cx)?;
+            w.write_str(" = ")?;
+            write_expr(w, script, Precedence::Space, start, cx)?;
+            w.write_str(" to ")?;
+            write_expr(w, script, Precedence::Space, end, cx)?;
+            w.write_char(' ')?;
+            w.write_str(match step {
+                1 => "++",
+                -1 => "--",
+                _ => unreachable!(),
+            })?;
+            w.write_str(" {\n")?;
+            write_block(w, script, body, indent + 1, cx)?;
+            write_indent(w, indent)?;
+            w.write_char('}')?;
         }
         Stmt::Generic {
             ref bytecode,
