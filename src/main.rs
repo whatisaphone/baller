@@ -12,7 +12,7 @@
 use crate::{
     build::{build, FsEntry},
     config::Config,
-    extract::{extract, read_index, Index},
+    extract::{dump_index, extract, read_index, Index},
 };
 use clap::Parser;
 use std::{
@@ -120,6 +120,10 @@ impl Extract {
         let mut f = File::open(&input)?;
         let index = read_index(&mut f)?;
         drop(f);
+
+        let mut dump = String::with_capacity(1 << 16);
+        dump_index(&mut dump, &index)?;
+        fs::write(&self.output.join("index.txt"), &dump)?;
 
         input.truncate(input.len() - 3);
 

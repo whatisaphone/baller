@@ -14,7 +14,7 @@
 pub use crate::{
     build::{build, FsEntry},
     config::Config,
-    extract::{extract, read_index},
+    extract::{dump_index, extract, read_index},
 };
 
 #[macro_use]

@@ -122,6 +122,39 @@ fn read_directory(r: &mut impl Read) -> Result<Directory, Box<dyn Error>> {
     Ok(dir)
 }
 
+pub fn dump_index(w: &mut impl Write, index: &Index) -> fmt::Result {
+    w.write_str("lfl_disks:\n")?;
+    for (i, x) in index.lfl_disks.iter().enumerate() {
+        writeln!(w, "\t{i}\t{x}")?;
+    }
+    w.write_str("lfl_offsets:\n")?;
+    for (i, x) in index.lfl_disks.iter().enumerate() {
+        writeln!(w, "\t{i}\t{x}")?;
+    }
+    w.write_str("scripts:\n")?;
+    dump_directory(w, index, &index.scripts)?;
+    w.write_str("sounds:\n")?;
+    dump_directory(w, index, &index.sounds)?;
+    Ok(())
+}
+
+fn dump_directory(w: &mut impl Write, index: &Index, dir: &Directory) -> fmt::Result {
+    for i in 0..dir.room_numbers.len() {
+        let room: usize = dir.room_numbers[i].into();
+        writeln!(
+            w,
+            "\t{}\t{}\t{}\t{}\t{}\t{}",
+            i,
+            dir.room_numbers[i],
+            dir.offsets[i],
+            dir.glob_sizes[i],
+            index.lfl_disks[room],
+            index.lfl_offsets[room] + dir.offsets[i],
+        )?;
+    }
+    Ok(())
+}
+
 pub fn extract(
     index: &Index,
     disk_number: u8,
