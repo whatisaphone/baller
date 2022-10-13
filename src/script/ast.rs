@@ -532,7 +532,13 @@ fn write_expr_as(
             }
         }
         &Expr::Char(ch) => {
-            write!(w, "'{}'", char::from(ch))?;
+            match ch {
+                0 => w.write_str("NUL")?,
+                8 => w.write_str("KEY-BACKSPACE")?,
+                13 => w.write_str("KEY-ENTER")?,
+                32..=126 => write!(w, "'{}'", char::from(ch))?,
+                _ => write!(w, "{}", i32::from(ch))?,
+            }
         }
         Expr::String(s) => {
             write!(w, "{:?}", AnsiStr(s))?;
