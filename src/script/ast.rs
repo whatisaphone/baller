@@ -107,6 +107,7 @@ pub enum Expr<'a> {
     Number(i32),
     Char(u8),
     String(&'a [u8]),
+    Script(i32),
     Variable(Variable),
     StackDup(ExprId),
     StackUnderflow,
@@ -524,16 +525,10 @@ fn write_expr_as(
     }
     match &script.exprs[id] {
         &Expr::Number(n) => {
-            'done: loop {
-                if emit_as == Some(EmitAs::Script) {
-                    if let Some(name) = get_script_name(n, cx) {
-                        w.write_str(name)?;
-                        write_aside_value(w, n, cx)?;
-                        break 'done;
-                    }
-                }
+            if emit_as == Some(EmitAs::Script) {
+                write_script_ref(w, n, cx)?;
+            } else {
                 write!(w, "{n}")?;
-                break 'done;
             }
         }
         &Expr::Char(ch) => {
@@ -541,6 +536,9 @@ fn write_expr_as(
         }
         Expr::String(s) => {
             write!(w, "{:?}", AnsiStr(s))?;
+        }
+        &Expr::Script(n) => {
+            write_script_ref(w, n, cx)?;
         }
         &Expr::Variable(var) => {
             write_var(w, var, cx)?;
@@ -664,6 +662,7 @@ fn expr_precedence(script: &Scripto, id: ExprId) -> Precedence {
         Expr::Number(..)
         | Expr::Char(..)
         | Expr::String(..)
+        | Expr::Script(..)
         | Expr::Variable(..)
         | Expr::List(..)
         | Expr::EnumConst(..) => Precedence::Atom,
@@ -837,9 +836,22 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
     }
 }
 
-fn get_script_name<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a str> {
-    let script = resolve_script(number, cx)?;
-    script.name.as_deref()
+fn write_script_ref(w: &mut impl Write, number: i32, cx: &WriteCx) -> fmt::Result {
+    'have_script: loop {
+        let script = match resolve_script(number, cx) {
+            Some(script) => script,
+            None => break 'have_script,
+        };
+        let name = match &script.name {
+            Some(name) => name,
+            None => break 'have_script,
+        };
+        w.write_str(name)?;
+        write_aside_value(w, number, cx)?;
+        return Ok(());
+    }
+    write!(w, "{number}")?;
+    Ok(())
 }
 
 const LOCAL_SCRIPT_CUTOFF: usize = 2048;
@@ -891,6 +903,9 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
         }
         Type::Char => {
             w.write_str("char")?;
+        }
+        Type::Script => {
+            w.write_str("script")?;
         }
         Type::Array { item, y, x } => {
             if !matches!(**item, Type::Any) {

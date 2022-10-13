@@ -57,17 +57,17 @@ impl Visitor for Typist<'_> {
         match *stmt {
             Stmt::Assign(var, expr) => {
                 let ty = find_var_type(var, &self.cx);
-                specify(script, expr, ty, self.cx.config);
+                specify(script, expr, ty, &self.cx);
             }
             Stmt::SetArrayItem(var, x, value) => {
                 specify_array_indices(script, var, None, x, &self.cx);
                 let item_type = array_item_type(script, var, None, x, &self.cx);
-                specify(script, value, item_type, self.cx.config);
+                specify(script, value, item_type, &self.cx);
             }
             Stmt::SetArrayItem2D(var, y, x, value) => {
                 specify_array_indices(script, var, Some(y), x, &self.cx);
                 let item_type = array_item_type(script, var, None, x, &self.cx);
-                specify(script, value, item_type, self.cx.config);
+                specify(script, value, item_type, &self.cx);
             }
             Stmt::Case { value, ref cases } => {
                 let mut ty = self.get_ty(value);
@@ -82,10 +82,10 @@ impl Visitor for Typist<'_> {
                 for case in cases {
                     match case.cond {
                         CaseCond::Eq(e) => {
-                            specify(script, e, ty, self.cx.config);
+                            specify(script, e, ty, &self.cx);
                         }
                         CaseCond::In(e) => {
-                            specify_list_items(script, e, ty, self.cx.config);
+                            specify_list_items(script, e, ty, &self.cx);
                         }
                         CaseCond::Else => {}
                     }
@@ -124,8 +124,8 @@ impl Visitor for Typist<'_> {
             }
             Expr::Equal(lhs, rhs) | Expr::NotEqual(lhs, rhs) => {
                 let ty = unify(self.get_ty(lhs), self.get_ty(rhs));
-                specify(script, lhs, ty, self.cx.config);
-                specify(script, rhs, ty, self.cx.config);
+                specify(script, lhs, ty, &self.cx);
+                specify(script, rhs, ty, &self.cx);
             }
             Expr::Call(_, ins, ref args) => {
                 let args = args.clone(); // :(
@@ -133,7 +133,7 @@ impl Visitor for Typist<'_> {
             }
             Expr::In(value, list) => {
                 let ty = self.get_ty(value);
-                specify_list_items(script, list, ty, self.cx.config);
+                specify_list_items(script, list, ty, &self.cx);
             }
             _ => {}
         }
@@ -179,7 +179,7 @@ fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx:
 
     #[allow(clippy::needless_range_loop)]
     for i in 0..count {
-        specify(script, args!()[i], params[i].ty.as_ref(), cx.config);
+        specify(script, args!()[i], params[i].ty.as_ref(), cx);
     }
 }
 
@@ -211,14 +211,14 @@ fn find_var_type<'a>(var: Variable, cx: &WriteCx<'a>) -> Option<&'a Type> {
     ty
 }
 
-fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config) {
+fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, cx: &WriteCx) {
     let ty = match ty {
         Some(ty) => ty,
         None => return,
     };
     match (ty, &script.exprs[id]) {
         (&Type::Enum(enum_id), &Expr::Number(number)) => {
-            if !config.enums[enum_id].values.contains_key(&number) {
+            if !cx.config.enums[enum_id].values.contains_key(&number) {
                 return;
             }
             script.exprs[id] = Expr::EnumConst(enum_id, number);
@@ -228,11 +228,14 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config)
                 script.exprs[id] = Expr::Char(number.try_into().unwrap());
             }
         }
+        (&Type::Script, &Expr::Number(number)) => {
+            script.exprs[id] = Expr::Script(number);
+        }
         _ => {}
     }
 }
 
-fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config) {
+fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, cx: &WriteCx) {
     let xs = match &script.exprs[id] {
         Expr::List(xs) => xs,
         _ => return,
@@ -244,7 +247,7 @@ fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, confi
             _ => unreachable!(),
         };
         let e = xs[i];
-        specify(script, e, ty, config);
+        specify(script, e, ty, cx);
     }
 }
 
@@ -264,9 +267,9 @@ fn specify_array_indices(
         _ => return,
     };
     if let Some(y_index) = y_index {
-        specify(script, y_index, Some(y_ty), cx.config);
+        specify(script, y_index, Some(y_ty), cx);
     }
-    specify(script, x_index, Some(x_ty), cx.config);
+    specify(script, x_index, Some(x_ty), cx);
 }
 
 fn array_item_type<'a>(

@@ -223,6 +223,7 @@ pub fn default_visit_expr(script: &mut Scripto, id: ExprId, visit: &mut dyn Visi
         Expr::Number(_)
         | Expr::Char(_)
         | Expr::String(_)
+        | Expr::Script(_)
         | Expr::StackUnderflow
         | Expr::EnumConst(_, _)
         | Expr::DecompileError(_, _) => {}

@@ -51,6 +51,7 @@ pub enum Type {
     Any,
     Char,
     Enum(EnumId),
+    Script,
     Array {
         item: Box<Type>,
         y: Box<Type>,
@@ -249,6 +250,9 @@ fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error
     }
     if s == "char" {
         return Ok(Type::Char);
+    }
+    if s == "script" {
+        return Ok(Type::Script);
     }
     if let Some((item, y, x)) = parse_array(s) {
         let y = Box::new(parse_type_or_empty_any(y.unwrap_or(""), config, ln)?);
