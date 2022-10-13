@@ -301,6 +301,17 @@ mod tests {
         let mut config = Config::from_ini("script.80 = test")?;
         config.suppress_preamble = true;
         let out = decompile(&bytecode[0x5ce..0x5d4], Scope::Global(1), &config);
+        assert_eq!(out, "run-script test []\n");
+        Ok(())
+    }
+
+    #[test]
+    fn call_scripts_by_name_with_aside() -> Result<(), Box<dyn Error>> {
+        let bytecode = read_scrp(1)?;
+        let mut config = Config::from_ini("script.80 = test")?;
+        config.suppress_preamble = true;
+        config.aside = true;
+        let out = decompile(&bytecode[0x5ce..0x5d4], Scope::Global(1), &config);
         assert_eq!(out, "run-script test{80} []\n");
         Ok(())
     }

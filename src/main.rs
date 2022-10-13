@@ -92,18 +92,21 @@ impl Build {
 #[derive(Parser)]
 struct Extract {
     input: PathBuf,
-    #[clap(short)]
+    #[clap(short, long)]
     output: PathBuf,
-    #[clap(short)]
+    #[clap(short, long = "config")]
     config_path: Option<PathBuf>,
+    #[clap(long)]
+    aside: bool,
 }
 
 impl Extract {
     fn run(self) -> Result<(), Box<dyn Error>> {
-        let config = match self.config_path {
+        let mut config = match self.config_path {
             Some(path) => Config::from_ini(&fs::read_to_string(&path)?)?,
             None => Config::default(),
         };
+        config.aside = self.aside;
 
         let mut input = self.input.into_os_string().into_string().unwrap();
         if !input.ends_with("he0") {

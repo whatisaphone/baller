@@ -12,6 +12,7 @@ pub struct Config {
     pub assoc_names: HashMap<String, AssocId>,
     pub assocs_pending_parse: Vec<String>, // temporary
     pub suppress_preamble: bool,
+    pub aside: bool,
 }
 
 #[derive(Default)]
@@ -74,6 +75,7 @@ impl Config {
             assoc_names: HashMap::with_capacity(64),
             assocs_pending_parse: Vec::with_capacity(64),
             suppress_preamble: false,
+            aside: false,
         };
         for (ln, line) in ini.lines().enumerate() {
             let line = line.split_once(';').map_or(line, |(a, _)| a); // Trim comments
