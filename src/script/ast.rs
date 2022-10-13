@@ -105,6 +105,7 @@ pub type ExprId = usize;
 
 pub enum Expr<'a> {
     Number(i32),
+    Char(u8),
     String(&'a [u8]),
     Variable(Variable),
     StackDup(ExprId),
@@ -535,6 +536,9 @@ fn write_expr_as(
                 break 'done;
             }
         }
+        &Expr::Char(ch) => {
+            write!(w, "'{}'", char::from(ch))?;
+        }
         Expr::String(s) => {
             write!(w, "{:?}", AnsiStr(s))?;
         }
@@ -658,6 +662,7 @@ fn expr_precedence(script: &Scripto, id: ExprId) -> Precedence {
         }
         Expr::ArrayIndex(..) | Expr::ArrayIndex2D(..) => Precedence::Indexing,
         Expr::Number(..)
+        | Expr::Char(..)
         | Expr::String(..)
         | Expr::Variable(..)
         | Expr::List(..)
@@ -883,6 +888,9 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
         &Type::Enum(enum_id) => {
             let name = &cx.config.enums[enum_id].name;
             w.write_str(name)?;
+        }
+        Type::Char => {
+            w.write_str("char")?;
         }
         Type::Array { item, y, x } => {
             if !matches!(**item, Type::Any) {

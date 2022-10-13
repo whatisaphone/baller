@@ -223,6 +223,11 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, config: &Config)
             }
             script.exprs[id] = Expr::EnumConst(enum_id, number);
         }
+        (&Type::Char, &Expr::Number(number)) => {
+            if (32..=126).contains(&number) {
+                script.exprs[id] = Expr::Char(number.try_into().unwrap());
+            }
+        }
         _ => {}
     }
 }

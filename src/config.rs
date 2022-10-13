@@ -49,6 +49,7 @@ pub type AssocId = usize;
 
 pub enum Type {
     Any,
+    Char,
     Enum(EnumId),
     Array {
         item: Box<Type>,
@@ -239,6 +240,16 @@ fn handle_assoc_key<'a>(
 }
 
 fn parse_type(s: &str, config: &Config, ln: usize) -> Result<Type, Box<dyn Error>> {
+    if s == "string" {
+        return Ok(Type::Array {
+            item: Box::new(Type::Char),
+            y: Box::new(Type::Any),
+            x: Box::new(Type::Any),
+        });
+    }
+    if s == "char" {
+        return Ok(Type::Char);
+    }
     if let Some((item, y, x)) = parse_array(s) {
         let y = Box::new(parse_type_or_empty_any(y.unwrap_or(""), config, ln)?);
         let x = Box::new(parse_type_or_empty_any(x, config, ln)?);
