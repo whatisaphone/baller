@@ -917,11 +917,12 @@ fn write_type(w: &mut impl Write, ty: &Type, cx: &WriteCx) -> fmt::Result {
             if !matches!(**item, Type::Any) {
                 write_type(w, item, cx)?;
             }
-            w.write_char('[')?;
             if !matches!(**y, Type::Any) {
+                w.write_char('[')?;
                 write_type(w, y, cx)?;
+                w.write_char(']')?;
             }
-            w.write_str("][")?;
+            w.write_char('[')?;
             if !matches!(**x, Type::Any) {
                 write_type(w, x, cx)?;
             }
