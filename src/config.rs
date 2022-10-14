@@ -1,4 +1,9 @@
-use std::{collections::HashMap, error::Error, fmt, mem};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    error::Error,
+    fmt,
+    mem,
+};
 
 #[derive(Default)]
 pub struct Config {
@@ -147,6 +152,8 @@ impl Config {
             let types = types?;
             result.assocs.push(Assoc { types });
         }
+
+        check_conflicting_names(&result)?;
 
         Ok(result)
     }
@@ -366,4 +373,99 @@ fn parse_var_name_type<'a>(
             Ok((name, Some(ty)))
         }
     }
+}
+
+fn check_conflicting_names(config: &Config) -> Result<(), Box<dyn Error>> {
+    let mut parents = Vec::new();
+    let mut global_seen = HashMap::with_capacity(1 << 10);
+    let mut room_seen = HashMap::with_capacity(64);
+    let mut script_seen = HashMap::with_capacity(16);
+
+    for (i, s) in config.scripts.iter().enumerate() {
+        if let Some(name) = &s.name {
+            check_dup(
+                &parents,
+                &mut global_seen,
+                name,
+                Some(i.try_into().unwrap()),
+            )?;
+        }
+    }
+
+    for name in config.global_names.iter().flatten() {
+        check_dup(&parents, &mut global_seen, name, None)?;
+    }
+
+    for enum_ in &config.enums {
+        for (&value, name) in &enum_.values {
+            check_dup(&parents, &mut global_seen, name, Some(value))?;
+        }
+    }
+
+    for script in &config.scripts {
+        script_seen.clear();
+        for var in &script.locals {
+            if let Some(name) = &var.name {
+                check_dup(&parents, &mut script_seen, name, None)?;
+            }
+        }
+    }
+
+    parents.push(&global_seen);
+
+    for room in &config.rooms {
+        room_seen.clear();
+
+        for var in &room.vars {
+            if let Some(name) = &var.name {
+                check_dup(&parents, &mut room_seen, name, None)?;
+            }
+        }
+
+        // Safety: this is popped at the end of the scope before room_seen is used
+        // again.
+        parents.push(unsafe { transmute_lifetime(&room_seen) });
+
+        for script in &room.scripts {
+            script_seen.clear();
+            for var in &script.locals {
+                if let Some(name) = &var.name {
+                    check_dup(&parents, &mut script_seen, name, None)?;
+                }
+            }
+        }
+
+        parents.pop();
+    }
+
+    Ok(())
+}
+
+unsafe fn transmute_lifetime<'a, T>(x: &T) -> &'a T {
+    mem::transmute::<&T, &T>(x)
+}
+
+fn check_dup<'a>(
+    parents: &[&HashMap<&str, Option<i32>>],
+    seen: &mut HashMap<&'a str, Option<i32>>,
+    name: &'a str,
+    value: Option<i32>,
+) -> Result<(), Box<dyn Error>> {
+    for parent in parents {
+        if parent.contains_key(name) {
+            return Err(format!("conflicting name {name:?}").into());
+        }
+    }
+    match seen.entry(name) {
+        Entry::Vacant(e) => {
+            e.insert(value);
+        }
+        Entry::Occupied(e) => {
+            let equal = e.get().is_some() && *e.get() == value;
+            if !equal {
+                return Err(format!("conflicting name {name:?}").into());
+            }
+        }
+    }
+    Ok(())
 }
