@@ -30,6 +30,7 @@ jobs:
       - run: cargo clippy --locked --all-targets --features strict
 
   test:
+    if: 'false' # Disable in CI since it requires a copy of the game files
     runs-on: ubuntu-20.04
     timeout-minutes: 15
     steps:
