@@ -2,6 +2,8 @@
 
 Modding tools for Backyard Baseball 2001.
 
+If you don't want to download anything, you can always [browse the scripts online](https://github.com/whatisaphone/inside-baseball/tree/browse).
+
 ## Getting Started
 
 - [Download the latest release](https://github.com/whatisaphone/inside-baseball/releases)
