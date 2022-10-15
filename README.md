@@ -1,16 +1,20 @@
-# nirvana-rust
+# ⚾ Inside Baseball
 
-An opinionated [Rust] project starter. There are many like it, but this one is mine.
+Modding tools for Backyard Baseball 2001.
 
-[Rust]: https://www.rust-lang.org/
+## Getting Started
 
-## Development
+- [Download the latest release](https://github.com/whatisaphone/inside-baseball/releases)
+- Run `inside-baseball --help`
+
+## Contributing
 
 ### Install prerequisites
 
 - [Rust]
 - [pre-commit]
 
+[Rust]: https://www.rust-lang.org/
 [pre-commit]: https://pre-commit.com/
 
 ### Install the pre-commit hook
