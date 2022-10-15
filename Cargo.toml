@@ -2,10 +2,15 @@
 
 [package]
 name = "inside-baseball"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["John Simon <john@whatisaph.one>"]
 edition = "2021"
-publish = false
+repository = "https://github.com/whatisaphone/inside-baseball"
+license = "AGPL-3.0"
+description = "Modding tools for Backyard Baseball 2001"
+categories = ["command-line-utilities", "compilers", "game-engines"]
+keywords = ["backyard-baseball", "scumm", "sputm"]
+include = ["README.md", "Cargo.toml", "Cargo.lock", "src/**/*.rs"]
 
 [features]
 strict = []

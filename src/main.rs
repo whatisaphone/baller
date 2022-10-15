@@ -1,4 +1,4 @@
-#![warn(clippy::pedantic)]
+#![warn(clippy::pedantic, clippy::cargo)]
 #![allow(
     clippy::match_on_vec_items,
     clippy::match_wildcard_for_single_variants,
