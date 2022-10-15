@@ -1,0 +1,13 @@
+; LSC2 6 2077
+
+local variable local0
+
+sprite-set-range local0 local0
+sprite-x34 (13 + 17)
+sleep 2
+sprite-set-range local0 local0
+sprite-x34 13
+run-script 2107 []
+run-script 2078 [169, room19]
+run-script 2088 []
+free-script

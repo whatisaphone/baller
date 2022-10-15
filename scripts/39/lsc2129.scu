@@ -1,0 +1,28 @@
+; LSC2 39 2129
+
+if (gNoPrinting) {
+    free-running-script 0
+}
+image-select 707
+image-op-create
+image-x20 640
+image-x21 480
+image-xff
+image-select 707
+image-x85 0 0 640 480 5
+image-xff
+image-select 707
+image-op-create
+image-x20 640
+image-x21 480
+image-xff
+image-select 707
+image-x85 0 0 640 480 15
+image-xff
+image-select 703
+image-pos 0 50
+image-render-into 707
+image-x30
+image-xff
+draw-x62 707
+free-script

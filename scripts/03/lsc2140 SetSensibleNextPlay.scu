@@ -1,0 +1,322 @@
+; LSC2 3 2140 SetSensibleNextPlay
+
+parameter fielder: Fielder
+parameter unused
+
+local variable local2
+local variable local3
+local variable i
+local variable j
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable smth_stat_12
+
+if (gNumOuts > 2 || !gNumRunners) {
+    rCurrentPlay = NONE
+    free-running-script 0
+}
+if (g_maybe_play_is_ready_to_end || (gPlayEndedReason in [PE-INFIELD-FLY])) {
+    rCurrentPlay = MOUND
+    free-running-script 0
+}
+if (gDifficulty == EASY && gDefenseControlledBy == CB-USER || gDifficulty == HARD && gDefenseControlledBy == CB-COMPUTER) {
+    local7 = 100
+} else {
+    local7 = call-script smth_about_kid_data_2_and_errors [rFieldingOrder[fielder - 37]]
+}
+if (local7 < 40) {
+    if ((random (local7 * 10)) < 1) {
+        if ((random 100) < 50) {
+            rCurrentPlay = NONE
+        } else if ((random 100) < 70) {
+            rCurrentPlay = FIRST
+        } else if (random 2) {
+            rCurrentPlay = F-HOME
+        } else {
+            rCurrentPlay = random2 2 3
+        }
+        free-running-script 0
+    }
+}
+smth_stat_12 = call-script smth_about_kid_data_12_with_fatigue [rFieldingOrder[fielder - 37]]
+dim array local3 i16[0...3][0...3] swap=2
+xe2 local3
+if (rCaughtFly && r_smth_fly_caught_runners_must_return) {
+    local3[0][0] = 999
+    for i = 1 to 3 ++ {
+        local3[i][0] = 999
+        for j = 0 to 3 ++ {
+            if (rRunnerStartingBases[j] == i) {
+                if (gRunners[j][R-DIRECTION] != 0 && gRunners[j][R-STATE] == R-maybe-returning-after-catch) {
+                    local3[i][0] = j
+                    local3[0][3] = 1
+                    ++local9
+                }
+            }
+        }
+    }
+} else {
+    local3[0][0] = 999
+    for j = 0 to 3 ++ {
+        if (gRunners[j][R-DEST-BASE] == R-HOME) {
+            local3[0][0] = j
+            if (gRunners[j][R-FORCED]) {
+                local3[0][3] = 1
+                ++local9
+            }
+        } else if (rRunnerStartingBases[j] == THIRD && gRunners[j][R-FORCED]) {
+            local3[0][0] = j
+            local3[0][3] = 1
+            ++local9
+        }
+    }
+    for i = 3 to 1 -- {
+        local3[i][0] = 999
+        for j = 0 to 3 ++ {
+            if (gRunners[j][R-DEST-BASE] == i) {
+                if (gRunners[j][R-DIRECTION] == FORWARD) {
+                    if (gRunners[j][R-FORCED]) {
+                        local3[i][0] = j
+                        local3[i][3] = 1
+                        ++local9
+                    } else if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[gRunners[j][R-ENTITY]][X] gWorld[gRunners[j][R-ENTITY]][Z]) < 144 && (distance-2d gWorld[i][X] gWorld[i][Z] gWorld[gRunners[j][R-ENTITY]][X] gWorld[gRunners[j][R-ENTITY]][Z]) > 260) {
+                        local11 = gRunners[j][R-ENTITY]
+                        local6 = 1
+                    } else {
+                        local3[i][0] = j
+                    }
+                } else if (gRunners[j][R-FORCED] && i < 3) {
+                    local3[i + 1][0] = j
+                    local3[i + 1][3] = 1
+                    ++local9
+                } else if ((random2 0 100) < smth_stat_12) {
+                    if (gRunners[j][R-DIRECTION] == BACKWARD) {
+                        if ((distance-2d gWorld[gRunners[j][R-ENTITY]][X] gWorld[gRunners[j][R-ENTITY]][Z] gWorld[i][X] gWorld[i][Z]) < 260 && (distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[gRunners[j][R-ENTITY]][X] gWorld[gRunners[j][R-ENTITY]][Z]) > 120) {
+                            local3[i][0] = j
+                        } else {
+                            local11 = gRunners[j][R-ENTITY]
+                            local6 = 1
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+for i = 0 to 3 ++ {
+    if (local3[i][0] != 999) {
+        ++local6
+        if (local7 > 80) {
+            local3[i][1] = call-script smth_about_baserunner_distance [local3[i][0], gWorld[i][X], gWorld[i][Z], 1]
+        } else {
+            local3[i][1] = call-script smth_about_baserunner_distance [local3[i][0], gWorld[i][X], gWorld[i][Z], 0]
+        }
+        if (rBaseClaims[i] == 0 - fielder) {
+            rCurrentPlay = i
+            free-running-script 0
+        } else if (rBaseClaims[i] == 0) {
+            if (local7 > 60) {
+                local3[i][2] = (50 - smth_stat_12) / 10 + (call-script CalcFielderTimeRunToPoint [fielder, gWorld[i][X], gWorld[i][Z], 1])
+            } else {
+                local3[i][2] = (random2 0 5) - smth_stat_12 / 10 + (call-script CalcFielderTimeRunToPoint [fielder, gWorld[i][X], gWorld[i][Z], 0])
+            }
+        } else if (rBaseClaims[i] == fielder) {
+            if (local3[i][1] < 1) {
+                local3[i][2] = local3[i][1] - 1
+            } else {
+                local3[i][2] = 0
+            }
+        } else if (local7 > 60) {
+            local3[i][2] = (50 - smth_stat_12) / 10 + (call-script smth_distance_concerning_fielding [fielder, gWorld[i][X], gWorld[i][Z]])
+        } else {
+            local3[i][2] = (random2 0 5) - smth_stat_12 / 10 + (call-script smth_distance_concerning_fielding [fielder, gWorld[i][X], gWorld[i][Z]])
+        }
+    } else {
+        local3[i][1] = 999
+        local3[i][2] = 999
+        local3[i][3] = 0
+        if (gBases[i][BASE-RUNNERIDX] != NONE) {
+            local10 = i
+        }
+    }
+}
+if (!local6) {
+    rCurrentPlay = NONE
+    free-running-script 0
+}
+if (rCaughtFly && r_smth_fly_caught_runners_must_return) {
+    local2 = 999
+    local8 = -30
+    for i = 1 to 3 ++ {
+        if (local3[i][0] != 999) {
+            if (local3[i][1] - local3[i][2] > local8) {
+                local8 = local3[i][1] - local3[i][2]
+                local2 = i
+            } else if (local2 == 999) {
+                if (i == 3) {
+                    local2 = 0
+                } else {
+                    local2 = i + 1
+                }
+            }
+        }
+    }
+    if (local2 != 999) {
+        rCurrentPlay = local2
+        free-running-script 0
+    } else {
+        rCurrentPlay = NONE
+        free-running-script 0
+    }
+} else {
+    if (gNumOuts == 2 && (random 60) < local7) {
+        local2 = 999
+        local8 = 0
+        if (local9) {
+            for i = 0 to 3 ++ {
+                if (local3[i][3] == 1) {
+                    if (local3[i][1] - local3[i][2] > local8) {
+                        local8 = local3[i][1] - local3[i][2]
+                        local2 = i
+                    }
+                }
+            }
+        }
+        if (local2 == 999) {
+            local8 = 0
+            for i = 0 to 3 ++ {
+                if (local3[i][1] - local3[i][2] > local8) {
+                    local8 = local3[i][1] - local3[i][2]
+                    local2 = i
+                }
+            }
+        }
+        if (local2 != 999) {
+            rCurrentPlay = local2
+            free-running-script 0
+        }
+    }
+    i = 0
+    do {
+        if (local3[i][2] < local3[i][1]) {
+            if (i == 0) {
+                rCurrentPlay = F-HOME
+                free-running-script 0
+            }
+            if (i == 1) {
+                rCurrentPlay = FIRST
+                free-running-script 0
+            }
+            if (i == 2 && local10 == 3 && local3[i][3] == 0 && (random 150) > smth_stat_12) {
+                if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[SECOND-BASE-CENTER][X] gWorld[SECOND-BASE-CENTER][Z]) > 780) {
+                    if (rBaseClaims[MOUND] == FIELDER-PITCHER) {
+                        local11 = 4
+                    } else {
+                        local11 = 3
+                    }
+                }
+            } else {
+                local2 = 999
+                local8 = local3[i][1] - local3[i][2]
+                if (i > 2) {
+                    if (local3[2][1] - local3[2][2] >= local8) {
+                        local8 = local3[2][1] - local3[2][2]
+                        local2 = 2
+                    }
+                }
+                if (local3[1][1] - local3[1][2] >= local8) {
+                    local8 = local3[1][1] - local3[1][2]
+                    local2 = 1
+                }
+                if (local2 == 999) {
+                    rCurrentPlay = i
+                    free-running-script 0
+                }
+                if (local3[i][2] < local3[local2][2]) {
+                    rCurrentPlay = i
+                    free-running-script 0
+                }
+                if (local3[i][2] + local3[local2][2] + 10 < local3[i][1]) {
+                    rCurrentPlay = local2
+                    free-running-script 0
+                }
+                rCurrentPlay = i
+                free-running-script 0
+            }
+        }
+        --i
+        if (i < 0) {
+            i = 3
+        }
+    } until (i == 0)
+    if (local9) {
+        if (local3[0][3]) {
+            rCurrentPlay = F-HOME
+            free-running-script 0
+        }
+        for i = 3 to 1 -- {
+            if (local3[i][3] == 1) {
+                if (i >= local10) {
+                    rCurrentPlay = i
+                    free-running-script 0
+                } else if ((random smth_stat_12) > 50 + (random local7)) {
+                    rCurrentPlay = i
+                    free-running-script 0
+                }
+            }
+        }
+    }
+    case local11 {
+        in [46, 47, 48, 49] {
+            if (gDefenseControlledBy == CB-COMPUTER) {
+                if (gUserSelectedPlay == NONE) {
+                    gUserSelectedPlay = local11
+                }
+                rCurrentPlay = gUserSelectedPlay
+                free-running-script 0
+            }
+        }
+        of 3 {
+            rCurrentPlay = THIRD
+            free-running-script 0
+        }
+        of 4 {
+            rCurrentPlay = MOUND
+            free-running-script 0
+        }
+    }
+    for i = 4 to 1 -- {
+        for j = 0 to 3 ++ {
+            if (gRunners[j][R-DEST-BASE] == i) {
+                if (gRunners[j][R-DIRECTION] == BACKWARD) {
+                    if ((random 100) > smth_stat_12) {
+                        ++i
+                    }
+                } else if ((random 100) > smth_stat_12) {
+                    if (i < 4) {
+                        ++i
+                    } else if (local10) {
+                        i = local10 + 1
+                    }
+                }
+                if (i > 3) {
+                    rCurrentPlay = F-HOME
+                } else {
+                    rCurrentPlay = i
+                }
+                free-running-script 0
+            }
+        }
+        if (local10 == i) {
+            rCurrentPlay = i
+            free-running-script 0
+        }
+    }
+    rCurrentPlay = NONE
+    free-running-script 0
+}
+free-script

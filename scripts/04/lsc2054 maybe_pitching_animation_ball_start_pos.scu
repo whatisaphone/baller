@@ -1,0 +1,309 @@
+; LSC2 4 2054 maybe_pitching_animation_ball_start_pos
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+case rPitcherKid {
+    of ACHMED-KHAN {
+        local4 = 320
+        local5 = 49
+        local1 = 331
+        local2 = 88
+    }
+    of AMIR-KHAN {
+        local4 = 317
+        local5 = 55
+        local1 = 331
+        local2 = 64
+    }
+    of ANGELA-DELVECCHIO {
+        local4 = 317
+        local5 = 53
+        local1 = 329
+        local2 = 76
+    }
+    of ANNIE-FRAZIER {
+        local4 = 320
+        local5 = 55
+        local1 = 306
+        local2 = 60
+    }
+    in [ASHLEY-WEBBER, SIDNEY-WEBBER] {
+        local4 = 307
+        local5 = 65
+        local1 = 332
+        local2 = 74
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        local4 = 317
+        local5 = 43
+        local1 = 335
+        local2 = 49
+    }
+    of DANTE-ROBINSON {
+        local4 = 331
+        local5 = 79
+        local1 = 292
+        local2 = 81
+    }
+    of DMITRI-PETROVICH {
+        local4 = 321
+        local5 = 45
+        local1 = 333
+        local2 = 54
+    }
+    of ERNIE-STEELE {
+        local4 = 318
+        local5 = 46
+        local1 = 333
+        local2 = 59
+    }
+    of GRETCHEN-HASSELHOFF {
+        local4 = 330
+        local5 = 72
+        local1 = 302
+        local2 = 95
+    }
+    of JOCINDA-SMITH {
+        local4 = 310
+        local5 = 69
+        local1 = 334
+        local2 = 70
+    }
+    of JORGE-GARCIA {
+        local4 = 302
+        local5 = 52
+        local1 = 334
+        local2 = 79
+    }
+    of KENNY-KAWAGUCHI {
+        local4 = 300
+        local5 = 81
+        local1 = 333
+        local2 = 74
+    }
+    of KIESHA-PHILLIPS {
+        local4 = 300
+        local5 = 57
+        local1 = 332
+        local2 = 71
+    }
+    of KIMMY-ECKMAN {
+        local4 = 316
+        local5 = 60
+        local1 = 336
+        local2 = 89
+    }
+    of LISA-CROCKET {
+        local4 = 320
+        local5 = 44
+        local1 = 332
+        local2 = 56
+    }
+    of LUANNE-LUI {
+        local4 = 310
+        local5 = 62
+        local1 = 307
+        local2 = 93
+    }
+    of MARIA-LUNA {
+        local4 = 323
+        local5 = 67
+        local1 = 331
+        local2 = 87
+    }
+    of MARKY-DUBOIS {
+        local4 = 321
+        local5 = 57
+        local1 = 311
+        local2 = 62
+    }
+    of MIKEY-THOMAS {
+        local4 = 324
+        local5 = 57
+        local1 = 337
+        local2 = 66
+    }
+    of PABLO-SANCHEZ {
+        local4 = 308
+        local5 = 65
+        local1 = 331
+        local2 = 84
+    }
+    of PETE-WHEELER {
+        local4 = 330
+        local5 = 60
+        local1 = 308
+        local2 = 57
+    }
+    of REESE-WORTHINGTON {
+        local4 = 311
+        local5 = 76
+        local1 = 320
+        local2 = 108
+    }
+    of RICKY-JOHNSON {
+        local4 = 321
+        local5 = 68
+        local1 = 317
+        local2 = 52
+    }
+    of RONNY-DOBBS {
+        local4 = 313
+        local5 = 77
+        local1 = 327
+        local2 = 69
+    }
+    of SALLY-DOBBS {
+        local4 = 310
+        local5 = 56
+        local1 = 327
+        local2 = 64
+    }
+    of STEPHANIE-MORGAN {
+        local4 = 318
+        local5 = 60
+        local1 = 334
+        local2 = 76
+    }
+    of TONY-DELVECCHIO {
+        local4 = 321
+        local5 = 63
+        local1 = 330
+        local2 = 75
+    }
+    of VICKI-KAWAGUCHI {
+        local4 = 314
+        local5 = 82
+        local1 = 338
+        local2 = 83
+    }
+    in [JOSE-CANSECO, MARK-MCGWIRE] {
+        local4 = 315
+        local5 = 80
+        local1 = 338
+        local2 = 45
+    }
+    of RANDY-JOHNSON {
+        local4 = 365
+        local5 = 72
+        local1 = 307
+        local2 = 66
+    }
+    in [SAMMY-SOSA, JEFF-BAGWELL, LARRY-WALKER] {
+        local4 = 308
+        local5 = 81
+        local1 = 329
+        local2 = 85
+    }
+    of FRANK-THOMAS {
+        local4 = 303
+        local5 = 71
+        local1 = 344
+        local2 = 57
+    }
+    of IVAN-RODRIGUEZ {
+        local4 = 295
+        local5 = 80
+        local1 = 335
+        local2 = 70
+    }
+    of MR-CLANKY {
+        local4 = 324
+        local5 = 49
+        local1 = 288
+        local2 = 61
+    }
+    of JEROMY-BURNITZ {
+        local4 = 315
+        local5 = 73
+        local1 = 339
+        local2 = 72
+    }
+    in [ALEX-GONZALEZ, ALEX-RODRIGUEZ, CARLOS-BELTRAN, MARTY-CORDOVA, NOMAR-GARCIAPARRA, DEREK-JETER] {
+        local4 = 308
+        local5 = 76
+        local1 = 331
+        local2 = 81
+    }
+    in [KENNY-LOFTON, SHAWN-GREEN] {
+        local4 = 337
+        local5 = 65
+        local1 = 307
+        local2 = 79
+    }
+    of JASON-GIAMBI {
+        local4 = 308
+        local5 = 71
+        local1 = 335
+        local2 = 67
+    }
+    of TONY-GWYNN {
+        local4 = 332
+        local5 = 70
+        local1 = 304
+        local2 = 65
+    }
+    in [BARRY-BONDS, KEN-GRIFFEY-JR] {
+        local4 = 333
+        local5 = 74
+        local1 = 300
+        local2 = 73
+    }
+    in [VLADIMIR-GUERRERO, BARRY-LARKIN, JASON-KENDALL, MIKE-PIAZZA, CAL-RIPKEN-JR] {
+        local4 = 309
+        local5 = 75
+        local1 = 342
+        local2 = 76
+    }
+    in [JUAN-GONZALEZ, RAUL-MONDESI, CURT-SCHILLING] {
+        local4 = 304
+        local5 = 74
+        local1 = 328
+        local2 = 85
+    }
+    of MO-VAUGHN {
+        local4 = 312
+        local5 = 54
+        local1 = 330
+        local2 = 74
+    }
+    of CHIPPER-JONES {
+        local4 = 307
+        local5 = 70
+        local1 = 329
+        local2 = 78
+    }
+    else {
+        if (rPitcherKid > 61) {
+            if (gKidData[rPitcherKid][13] & 3 == 2) {
+                local4 = 326
+                local5 = 63
+                local1 = 314
+                local2 = 82
+            } else {
+                local4 = 304
+                local5 = 56
+                local1 = 325
+                local2 = 75
+            }
+        } else {
+            local4 = 308
+            local5 = 76
+            local1 = 331
+            local2 = 81
+        }
+    }
+}
+if (arg0) {
+    local3 = local1 * 1000 + local2
+} else {
+    local3 = local4 * 1000 + local5
+}
+return local3
+free-script

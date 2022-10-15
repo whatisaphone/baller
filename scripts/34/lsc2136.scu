@@ -1,0 +1,10 @@
+; LSC2 34 2136
+
+gMouseHandlerScript = HandleMouse
+gMouseHookScript = 0
+gHoverScript = 0
+run-script 2127 []
+run-script 2125 []
+run-script 2097 []
+run-script FreeNavButtons []
+free-script

@@ -1,0 +1,23 @@
+; SCRP 245
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!local1) {
+    local4 = gBackupKidData
+} else {
+    local4 = gKidData
+}
+local2 = local4[local0][14] + local4[local0][15] + local4[local0][16] + local4[local0][17]
+local2 = local2 / 4
+local2 = 3 * local2 + local4[local0][1]
+local2 = local2 / 4
+local3 = (local2 - 20) * 100 / 50
+local3 = local3 * 10
+local3 = local3 / 100
+local3 = max 1 (min local3 10)
+return local3
+free-script

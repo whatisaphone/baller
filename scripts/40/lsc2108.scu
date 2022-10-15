@@ -1,0 +1,15 @@
+; LSC2 40 2108
+
+local variable local0
+
+for local0 = 0 to (room7 - 1) ++ {
+    run-script-xc3 2112 [46, local0]
+    if (room23 != 0) {
+        sprite-set-range room1[46] room1[46]
+        sprite-clear
+        sprite-x2a 0 2
+        free-running-script 0
+    }
+    stop-script
+}
+free-script

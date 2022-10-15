@@ -1,0 +1,31 @@
+; LSC2 34 2110
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local4 = 510
+local3 = call-script AllocScratchImage []
+for local1 = [54, 58, 60] {
+    sprintf local2 "%d" [room17[room19[local0][0]][local1]]
+    temp = call-script smth_draw_text_image [local2, 1029, local3, 37, 32, 0, 0, room3]
+    free-array local2
+    image-select local3
+    image-pos local4 47
+    image-render-into room14
+    image-x30
+    image-xff
+    sprintf local2 "%d" [room17[room19[local0][0]][local1 + 1]]
+    temp = call-script smth_draw_text_image [local2, 1029, local3, 37, 32, 0, 0, room3]
+    free-array local2
+    image-select local3
+    image-pos local4 84
+    image-render-into room14
+    image-x30
+    image-xff
+    local4 = local4 + 42
+}
+run-script FreeScratchImage [local3]
+free-script

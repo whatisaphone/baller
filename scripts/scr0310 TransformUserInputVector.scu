@@ -1,0 +1,56 @@
+; SCRP 310 TransformUserInputVector
+
+parameter input_x
+parameter input_y
+parameter arg2
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+
+local10 = gCameraTransform[7][gCurrentRoom]
+input_x = input_x - 320
+input_y = 460 - input_y
+local6 = gView[55][X] - gView[54][X]
+local7 = gView[55][Y] - gView[54][Y]
+local8 = gView[55][Z] - gView[54][Z]
+local9 = local6 * gView[54][X] + local7 * gView[54][Y] + local8 * gView[54][Z]
+local5 = local9 / (local6 * input_x / local10 + local7 * input_y / local10 + local8)
+local3 = local5 * input_x / local10
+local4 = local5 * input_y / local10
+local11 = gCameraTransform[3][gCurrentRoom]
+if (local11) {
+    local12 = local3
+    local13 = ((cos local11) * local4 - (sin local11) * local5) / 100000
+    local14 = ((sin local11) * local4 + (cos local11) * local5) / 100000
+} else {
+    local12 = local3
+    local13 = local4
+    local14 = local5
+}
+local12 = local12 + gCameraPosX
+local13 = local13 + gCameraPosY
+local14 = local14 + gCameraPosZ
+if (arg2 == 1) {
+    gWorld[LAST-HOVER-FIELDING][X] = local12
+    gWorld[LAST-HOVER-FIELDING][Y] = 0
+    gWorld[LAST-HOVER-FIELDING][Z] = local14
+} else if (arg2 == 2) {
+    gWorld[LAST-CLICK-RUNNING][X] = local12
+    gWorld[LAST-CLICK-RUNNING][Y] = 0
+    gWorld[LAST-CLICK-RUNNING][Z] = local14
+} else {
+    gWorld[LAST-CLICK-FIELDING][X] = local12
+    gWorld[LAST-CLICK-FIELDING][Y] = 0
+    gWorld[LAST-CLICK-FIELDING][Z] = local14
+}
+free-script

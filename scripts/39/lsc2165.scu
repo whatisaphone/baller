@@ -1,0 +1,16 @@
+; LSC2 39 2165
+
+run-script FreePalette [room11]
+run-script FreePalette [room10]
+run-script FreePalette [room12]
+run-script FreePalette [room26]
+run-script FreePalette [room27]
+run-script FreePalette [room13]
+run-script FreePalette [room14]
+run-script FreePalette [room15]
+run-script FreePalette [room16]
+run-script FreePalette [room17]
+run-script FreePalette [room19]
+run-script FreePalette [room20]
+run-script 2049 []
+free-script

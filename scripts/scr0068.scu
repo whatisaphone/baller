@@ -1,0 +1,23 @@
+; SCRP 68
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!local0) {
+    local0 = 16
+}
+if (local1) {
+    local2 = local1
+} else {
+    local2 = (random2 0 9) * 100000 + 1000000
+}
+local3 = local2 + local0 - 1
+local4 = abs (local3 - local2)
+global604 = local4 + 1
+dim array global603 i32[0...0][0...local4] swap=2
+array-fill-values global603 0 0 0 local4 local2 local3
+dim array global605 byte[0...0][local2...local3] swap=2
+free-script

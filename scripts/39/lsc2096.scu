@@ -1,0 +1,13 @@
+; LSC2 39 2096
+
+local variable local0
+
+for local0 = 0 to 29 ++ {
+    run-script ReleaseSprite [room28[local0]]
+}
+free-array room28
+for local0 = 0 to 9 ++ {
+    run-script FreeScratchImage [room29[local0]]
+}
+free-array room29
+free-script

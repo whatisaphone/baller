@@ -1,0 +1,11 @@
+; SCRP 311 smth_he9_draw_unused
+
+local variable local0
+local variable local1
+
+for local1 = gMinTransformEntity to 61 ++ {
+    if (g_smth_he9_unused[local1][0] == 1) {
+        xe0-x42 gScreen[g_smth_he9_unused[local1][1]][X] gScreen[g_smth_he9_unused[local1][1]][Y] gScreen[g_smth_he9_unused[local1][2]][X] gScreen[g_smth_he9_unused[local1][2]][Y] local0 1
+    }
+}
+free-script

@@ -1,0 +1,10 @@
+; LSC2 40 2129
+
+do {
+    if (2630) {
+        sound-select 2630
+        sound-play
+    }
+    sleep 36
+}
+free-script

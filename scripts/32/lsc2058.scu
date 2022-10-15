@@ -1,0 +1,41 @@
+; LSC2 32 2058
+
+local variable local0
+local variable local1
+
+local0 = 4
+local1 = "Choose Your Coach Or Create A New One"
+run-script 2092 [-1, 166, 1104, local0, local1]
+free-array local1
+palette-select room0
+palette-load 1375 0
+palette-unselect
+palette-select room1
+palette-load 1373 0
+palette-unselect
+palette-select room2
+palette-load 1374 0
+palette-unselect
+sprite-set-range room7[0] room7[0]
+sprite-set-hotspot 320 240
+sprite-set-image 1373
+sprite-x2b -30
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room1
+sprite-set-range room7[1] room7[1]
+sprite-set-hotspot 320 240
+sprite-set-image 1375
+sprite-x2b 10
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room0
+sprite-set-range room7[2] room7[2]
+sprite-set-hotspot 320 240
+sprite-set-image 1374
+sprite-x2b 20
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room2
+gSpriteCursorTargets[room7[2]][TARGET-CLICK-SCRIPT] = 2067
+free-script

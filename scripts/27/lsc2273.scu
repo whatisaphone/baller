@@ -1,0 +1,24 @@
+; LSC2 27 2273
+
+local variable local0
+
+if (!room119) {
+    room119 = call-script FindFreeSprite []
+    room127 = call-script FindFreeSprite []
+    room128 = call-script FindFreeSprite []
+    room129 = call-script FindFreeSprite []
+    room130 = call-script FindFreeSprite []
+    room93 = call-script FindFreeSprite []
+    room95 = call-script FindFreeSprite []
+    for local0 = 0 to 7 ++ {
+        room120[local0] = call-script FindFreeSprite []
+        room124[local0] = call-script FindFreeSprite []
+        room126[local0] = call-script FindFreeSprite []
+        room131[local0] = call-script FindFreeSprite []
+        room121[local0] = call-script AllocScratchImage []
+        room125[local0] = call-script AllocScratchImage []
+        room134[local0] = call-script AllocScratchImage []
+        room132[local0] = call-script AllocScratchImage []
+    }
+}
+free-script

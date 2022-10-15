@@ -1,0 +1,5 @@
+; ENCD 29
+
+gHoverScript = HandleHover
+run-script 2106 []
+finish-script

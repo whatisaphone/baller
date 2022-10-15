@@ -1,0 +1,115 @@
+; LSC2 8 2090
+
+local variable local0
+local variable local1
+
+if (global451) {
+    free-running-script 0
+}
+queue-room 4
+local0 = 288 + gField
+local1 = 485 + gField
+kludge [714, 19, local0, 1]
+kludge [714, 19, local1, 1]
+queue-image local0
+queue-image local1
+lock-image local1
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+cutscene-start 115 250
+sleep 10
+if (gGameMode == MODE-SEASON) {
+    temp = gSeasonGameNumber
+    case temp {
+        of 1 {
+            run-script BeginCast [10]
+        }
+        of 14 - 1 {
+            run-script BeginCast [11]
+        }
+        in [14, 15, 16] {
+            run-script BeginCast [12]
+        }
+        in [17, 18, 19] {
+            run-script BeginCast [13]
+        }
+        in [20, 21, 22, 23, 24] {
+            run-script BeginCast [14]
+        }
+        else {
+            run-script BeginCast [8]
+        }
+    }
+} else {
+    run-script BeginCast [8]
+}
+while (!(gCurrentMatchupCastScript == 0)) {
+    stop-script
+}
+if (room2 != 2) {
+    actor-select 1
+    actor-set-costume 0
+    actor-select 2
+    actor-set-costume 0
+    run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+    x9c-xd5 0
+    kludge [23]
+    run-script 2087 []
+    room2 = 2
+}
+run-script BeginCast [9]
+if (g_maybe_skipped_cutscene) {
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+    if (gCurrentMatchupCastScript) {
+        free-running-script gCurrentMatchupCastScript
+    }
+    if (room2 == 1) {
+        if (room2 != 2) {
+            actor-select 1
+            actor-set-costume 0
+            actor-select 2
+            actor-set-costume 0
+            run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+            x9c-xd5 0
+            kludge [23]
+            run-script 2087 []
+            room2 = 2
+        }
+    }
+} else {
+    cutscene-end
+}
+global451 = 1
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

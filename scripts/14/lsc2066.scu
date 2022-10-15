@@ -1,0 +1,16 @@
+; LSC2 14 2066
+
+run-script 2065 []
+run-script 281 []
+if (global653) {
+    run-script ReleaseSprite [global653]
+    global653 = 0
+}
+if (global671) {
+    run-script ReleaseSprite [global671]
+    global671 = 0
+    run-script ReleaseSprite [global672]
+    global672 = 0
+    run-script FreeScratchImage [global673]
+}
+free-script

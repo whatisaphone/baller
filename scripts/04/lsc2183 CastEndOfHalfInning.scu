@@ -1,0 +1,502 @@
+; LSC2 4 2183 CastEndOfHalfInning
+
+local variable caster_bias
+local variable hero_noun
+local variable halfway
+local variable inning
+local variable hero_score
+local variable villian_score
+
+gCurrentSpeechScript = CastEndOfHalfInning
+if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+    caster_bias = gVisitorInfoIndex
+} else {
+    caster_bias = gHomeInfoIndex
+}
+hero_noun = gTeamInfo[caster_bias][TI-TEAM-NOUN]
+hero_score = gTeamInfo[caster_bias][TI-RUNS]
+villian_score = gTeamInfo[1 - caster_bias][TI-RUNS]
+if (mod (gCurrentHalfInning + 1) 2) {
+    halfway = 1
+}
+run-script maybe_play_generic_music [hero_score < villian_score]
+inning = (gCurrentHalfInning + 1) / 2
+if (halfway) {
+    if (!(random 2)) {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT43534419,18472\x7f Half way through the inning now."
+    }
+} else if (!(random 3) || inning > 12) {
+    case random 2 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43552891,18536\x7f      And this inning is over."
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43571427,19496\x7f      And that's gonna end the inning"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43590923,16040\x7f      That'll end the inning "
+        }
+    }
+} else {
+    case inning {
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43606963,20137\x7f      And that'll do it in the first inning"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43627100,20408\x7f      And that'll close up the second"
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43647508,16745\x7f      That's it for the third inning"
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43664253,18856\x7f      And the fourth inning's over"
+        }
+        of 5 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43683109,18408\x7f      That's the end of the fifth"
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43701517,24264\x7f      And that'll do it in the sixth inning "
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43725781,21481\x7f      And that'll close up the seventh"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43747262,16424\x7f      That's it for the eigth inning"
+        }
+        of 9 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43763686,19624\x7f      And the ninth inning's over"
+        }
+        of 10 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43783310,15464\x7f      That's the end of the tenth"
+        }
+        of 11 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43798774,24296\x7f      And that'll do it in the eleventh inning "
+        }
+        of 12 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43823070,21896\x7f      And that'll close up the twelfth"
+        }
+    }
+}
+xa9-xa9
+sleep 3
+case gRunnersDecimask {
+    of 1 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43844966,13224\x7f     one left on  "
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43858190,14792\x7f     left one on first "
+        }
+    }
+    of 10 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43844966,13224\x7f     one left on  "
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43872982,13576\x7f     left one on second"
+        }
+    }
+    of 100 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43844966,13224\x7f     one left on  "
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43886558,21544\x7f     left one on third"
+        }
+    }
+    of 11 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT43908102,9506\x7f     two left on"
+    }
+    of 101 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43908102,9506\x7f     two left on"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43917608,19688\x7f     runners left at the corners"
+        }
+    }
+    of 110 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43908102,9506\x7f     two left on"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT43937296,20968\x7f     runners left on second and third"
+        }
+    }
+    of 111 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT43958264,11592\x7f     three left on"
+    }
+}
+xa9-xa9
+sleep 3
+if (inning < 2) {
+    gCurrentSpeechScript = 0
+    free-running-script 0
+}
+if (hero_score > villian_score) {
+    run-script CastScoreTeamWinning [hero_noun, hero_score, villian_score, inning]
+    while (!!(is-script-running CastScoreTeamWinning)) {
+        stop-script
+    }
+} else if (hero_score < villian_score) {
+    run-script CastScoreTeamLosing [hero_noun, hero_score, villian_score, inning]
+    while (!!(is-script-running CastScoreTeamLosing)) {
+        stop-script
+    }
+} else {
+    run-script CastScoreTied [hero_noun, hero_score, villian_score, inning]
+    while (!!(is-script-running CastScoreTied)) {
+        stop-script
+    }
+}
+if (gCurrentHalfInning == 7 && !gNoGooch && !gNetplayActive) {
+} else {
+    gCurrentSpeechScript = 0
+    free-running-script 0
+}
+if (gGameMode == MODE-SEASON && gSeasonGameNumber != 0) {
+    gCurrentSpeechScript = 0
+    free-running-script 0
+}
+if (hero_noun >= 122 && hero_noun <= 151) {
+    if (random 10) {
+        exec-script CastVinnieRandomFact [hero_noun]
+    }
+}
+case hero_noun {
+    of 104 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT43969856,40141\x7f    The Melonheads... I always thought that was a weird name."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44009997,36355\x7f    I mean, is a melonhead anything related to a pumpkinhead? "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44046352,31656\x7f      A pumpkinhead?  Like that Halloween guy?  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44078008,13424\x7f      I don't think so.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44091432,34976\x7f      Everyone knows melons are summer fruits, Vinnie."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44126408,63911\x7f    Ok, so they say you're supposed to thump a melon to see if it's ripe...what is that all about?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44190319,43101\x7f    I never did figure out what exactly you're supposed to hear, anyway."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44233420,35128\x7f      I'm not really sure.  I could ask my dad.  Why do you wanna know?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44268548,11447\x7f    Just curious.  "
+    }
+    of 106 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44279995,30956\x7f    I'll bet you're all wondering... just what is a wombat?  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44310951,49500\x7f    Well, they are furry little marsupials from Australia and Tansania.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44360451,32883\x7f    So the next obvious question is what's a marsupial?  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44393334,63250\x7f    Well, they are a kind of mammal, usually distinguished by their pouches which are for carrying their young.           "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44456584,13536\x7f     I'm impressed, Vinnie!            "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44470120,22158\x7f    Yo, I been around, you know?"
+    }
+    of 101 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44492278,63755\x7f    So, I remember back in my youth... uh...last year... the Bombers had a tremendous season.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44556033,18714\x7f    This kid, Martha Smalley, "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44574747,3592\x7f     who? "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44578339,17155\x7f     she moved to Pittsburg last fall. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44595494,18358\x7f    You're too young to remember her, kid. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44613852,19232\x7f      Vinnie, I'm older than you! "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44633084,44212\x7f       Anyways, Smalley pitched six straight shutouts.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44677296,29779\x7f    Even Pablo Sanchez couldn't get anything off her.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44707075,24108\x7f    (Pablo was playing with the Giants at the time.) "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44731183,26656\x7f    Anyway, they called her Firearm.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44757839,47092\x7f    I heard she was the great great great granddaughter of Walter Johnson!  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44804931,33389\x7f    Six straight shutouts <sigh>.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44838320,68939\x7f    Yeah, those were the glory days for the Bombers, I tell ya.  Back in the days of Firearm       "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44907259,17736\x7f      Wow. <ala Putt>"
+    }
+    of 103 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT44924995,111350\x7f    I remember this kid, Jon 'Bang' McDurgle.. he played for the Hornets until he retired a few months back, but man, did he ever have a couple 'a hot seasons. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45036345,8424\x7f      Retired?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45044769,15889\x7f    It was an early retirement."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45060658,128194\x7f    Anyways, he was the craziest hitter I've ever seen, sometimes even held his bat upside down until the pitcher released, but 'POW,' outta the ballpark EVERY SINGLE TIME! "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45188852,118310\x7f    Some people said he was a ringer, someone's pet orang-utan or something wearing a baseball cap, and TRUE, he was a little hairy, didn't say much and had opposable toes, but I don't believe it. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45307162,19947\x7f    Best hitter I've ever seen."
+    }
+    of 102 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45327109,156678\x7f    Remember that Fishes game way back in early '97 when the whole playing field collapsed in a giant sinkhole and filled with water, "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45483787,7720\x7f     No."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45491507,17009\x7f    I'm pretty sure you were there."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45508516,9756\x7f     No. I wasn't."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45518272,78377\x7f    Yeah, you were. You had a pair of water wings too, and got a bad sunburn, and wouldn't share your popcorn."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45596649,15136\x7f     Oh, that game."
+    }
+    of 105 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45611785,43621\x7f     There was a Monsters game almost three seasons ago, over at the Dirt Yards.  "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45655406,15357\x7f    I'll never forget that game. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45670763,36536\x7f    The strangest thing happened at the bottom of the sixth inning. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45707299,30524\x7f    I'll never forget the look on the face of that pitcher...."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45737823,13464\x7f     Well what happened?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45751287,17339\x7f    ... ya know, I'm not sure. "
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45768626,40695\x7f    But I'll never forget the look on the face of that batter at the bottom of the fifth."
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45809321,14592\x7f     Uh, Vinnie?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45823913,5954\x7f    Yeah?"
+        xa9-xa9
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT45829867,11872\x7f     Never mind."
+    }
+    else {
+        case random 2 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT45841739,52363\x7f    Speaking of spitballs, I remember one All-Stars game two seasons ago: "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT45894102,56169\x7f    This kid, Freddie Jackson, threw a spitball that went wild and hit the batter.  "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT45950271,34984\x7f    The batter dropped the bat and cried all the way home.  "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT45985255,42201\x7f    Not because it hurt, he was just mad that he was covered in spit! "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46027456,19185\x7f      Who was talking about spitballs?    "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46046641,27241\x7f     Nobody, I just wanted to tell the story."
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46073882,40200\x7f    There was a team a half-year ago or something, the 'Wheedling Stinkbugs.'"
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46114082,46020\x7f    They couldn't play ball for anything, but they managed to win a few games anyways. "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46160102,132306\x7f    Their shtick was, they wouldn't bathe all week before a game, and whenever they were fielding, "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46292408,24436\x7f    Crazy strategy, but it worked!  "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46316844,53449\x7f    Dmitri Petrovich usta play for that team... he's never been a big fan of bathing."
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46370293,33814\x7f    Remember that two-handed batter a coupla seasons ago? "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46404107,19048\x7f    Laura Hudson, I think her name was..."
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46423155,78559\x7f    She usta hold a bat in each hand, and if she didn't hit the pitch with the first hand, he'd give it another try with the other. "
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46501714,34946\x7f    The pitchers loved her - you could strike her out with two throws."
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT46536660,83776\x7f     Yeah, I think I remember her.   I heard she was ambidextrous and could never decide which hand she wanted to bat with."
+            }
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

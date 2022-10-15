@@ -1,0 +1,177 @@
+; LSC2 27 2056 PlayerSayCustom
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+
+local2 = actor-get-var g_maybe_selected_actor 3
+local3 = actor-get-var g_maybe_selected_actor 4
+if (local2) {
+    actor-do-anim g_maybe_selected_actor local2
+}
+run-script-xc3 2050 [arg0]
+if (gKidData[arg0][KD-gender] == GIRL) {
+    case iif room144[arg0] (xe3 room143 [1, 2, 3, 4]) 0 {
+        of 0 {
+            case gKidData[arg0][36] {
+                of 1 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT86961556,20474\x7fHi, my name's Boom Boom."
+                }
+                of 2 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT86982030,24992\x7fSpaz ... I'm Spaz. Spaz Spaz Spaz."
+                }
+                of 3 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87007022,27144\x7fHi there.  You can call me Sparkles!"
+                }
+                of 4 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87034166,38552\x7fThey call me Pickles. You can call me Pickles, too."
+                }
+                of 5 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87072718,49888\x7fI'm Dizzy.  (pause) No, that's my name ...Dizzy!"
+                }
+                of 6 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87122606,33870\x7fCall me Superstar.  (pause) C'mon ... please?"
+                }
+                of 7 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87156476,18044\x7fHiya.  My name's Ace."
+                }
+                of 8 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87174520,46382\x7fThe name's Cobra. That's right - Cobra."
+                }
+                of 9 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87220902,29710\x7fHey there little buddy, my name's Lucky."
+                }
+                of 10 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87250612,21128\x7fYou can call me T-bone!"
+                }
+            }
+        }
+        of 1 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT87271740,93536\x7fYou know, humans have, like, 23 pairs of chromosome and that's like the same number of seams on a baseball.  Freaky, huh?"
+        }
+        of 2 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT87365276,111098\x7fThere was this one kid on our team that was so bad at catching fly balls, that they had to wear their batting helmet in the outfield.  (pause)  O.K., it was me."
+        }
+        of 3 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT87476374,91446\x7fI think my all-time favorite baseball player is 'Shoeless' Joe Jackson, 'cuz he was so fast he ran out of his shoes once.  "
+        }
+        of 4 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT87567820,66012\x7fI wish my dog could be on my team.  He's really good at fetching stuff.  I don't know how good a hitter he is."
+        }
+    }
+} else {
+    case iif room144[arg0] (xe3 room143 [1, 2, 3, 4]) 0 {
+        of 0 {
+            case gKidData[arg0][36] {
+                of 1 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87633832,21672\x7fHello there, my name's Boom Boom."
+                }
+                of 2 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87655504,36576\x7fSpaz ... I'm Spaz. Yep, that's me, Spaz."
+                }
+                of 3 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87692080,19710\x7fHi there. Call me Sparkles!"
+                }
+                of 4 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87711790,18646\x7fHi. My name is Pickles."
+                }
+                of 5 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87730436,49888\x7fI'm Dizzy.  (pause) No, that's my name ...Dizzy!"
+                }
+                of 6 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87780324,43566\x7fYou can call me Superstar.  (pause) C'mon ... please?"
+                }
+                of 7 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87823890,27120\x7fHiya, the name's Ace."
+                }
+                of 8 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87851010,21438\x7fMy name is Cobra. Ssssssss."
+                }
+                of 9 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87872448,20556\x7fHey there, my name's Lucky."
+                }
+                of 10 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT87893004,19610\x7fYou can call me T-bone!"
+                }
+            }
+        }
+        of 1 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT87912614,93862\x7fI read somewhere that people been playin' baseball since the Civil War.  That's like, a long time ago.  That's like before my dad was born, I think."
+        }
+        of 2 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT88006476,80324\x7fWe only use 100% pure wooden bats made out of wood in the Backyard Baseball League.  Aluminum bats are for babies!"
+        }
+        of 3 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT88086800,243478\x7fMe and my sister used to play one-on-one baseball in the backyard, but it's too tough!  I'd pitch and she'd hit this fly ball and then I'd have to run after it and by the time I found it she already made it home!  The scores would be, like, 135-127.  That's why I joined the Backyard Baseball league.  At least this way, you got enough kids to have outfielders!"
+        }
+        of 4 {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT88330278,100348\x7fUm, one of my favorite all-time baseball players is Rollie Fingers, 'cuz he's got a funny mustache, and a funny name, and he's funny."
+        }
+    }
+}
+xa9-xa9
+if (!room144[arg0]) {
+    room144[arg0] = 1
+}
+if (local3) {
+    actor-do-anim g_maybe_selected_actor local3
+}
+free-script

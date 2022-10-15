@@ -1,0 +1,19 @@
+; LSC2 39 2113
+
+local variable local0
+
+if (local0) {
+    --room41
+    if (!room41) {
+        room41 = 10
+    }
+} else {
+    ++room41
+    if (room41 > 10) {
+        room41 = 1
+    }
+}
+room40 = call-script 383 [room40, 6, room41]
+run-script 347 [0, 0, 1, room41]
+run-script-xc3 2114 [20]
+free-script

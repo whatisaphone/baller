@@ -1,0 +1,76 @@
+; LSC2 34 2069
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (room32 == 4 && gNumStrikes != 2) {
+    if (random 10) {
+        return 0
+        free-running-script 0
+    }
+}
+local4 = local2 / 10 + 1
+if (local4 > 10) {
+    local4 = 10
+}
+case local0 {
+    of 0 {
+        if (local1 < local2) {
+            if (!(random 20)) {
+                local3 = 1
+            }
+        } else if (!(random local4)) {
+            local3 = 1
+        }
+    }
+    of 1 {
+        if (local1 < local2) {
+            if (!(random 10)) {
+                local3 = 1
+            }
+        } else if (!(random (2 + local4 / 2))) {
+            local3 = 1
+        }
+    }
+    of 2 {
+        if (local1 < local2) {
+            if (!(random 6)) {
+                local3 = 1
+            }
+        } else if (!(random (local4 / 2))) {
+            local3 = 1
+        }
+    }
+    of 3 {
+        if (local1 < local2) {
+            if (random 4) {
+                local3 = 1
+            }
+        } else if (random 1) {
+            local3 = 1
+        }
+    }
+    of 4 {
+        if (local1 < local2) {
+            if (random 6) {
+                local3 = 1
+            }
+        } else if (random 2) {
+            local3 = 1
+        }
+    }
+    of 5 {
+        if (local1 < local2) {
+            if (random 20) {
+                local3 = 1
+            }
+        } else if (random 10) {
+            local3 = 1
+        }
+    }
+}
+return local3
+free-script

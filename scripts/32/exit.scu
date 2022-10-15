@@ -1,0 +1,15 @@
+; EXCD 32
+
+gMouseHookScript = 0
+run-script 2053 []
+run-script 2055 []
+run-script 2086 []
+run-script FreeNavButtons []
+global43 = 32
+gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER] = gPickOrder2
+gTeamInfo[gVisitorInfoIndex][TI-FIELDING-ORDER] = gPickOrder1
+gTeamInfo[gHomeInfoIndex][TI-BATTING-ORDER-KIDS] = gPickOrder2
+gTeamInfo[gVisitorInfoIndex][TI-BATTING-ORDER-KIDS] = gPickOrder1
+gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = CB-COMPUTER
+gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = CB-USER
+finish-script

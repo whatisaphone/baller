@@ -1,0 +1,30 @@
+; SCRP 230 AddStat
+
+parameter kid: Kid
+parameter stat: Stat
+parameter amount
+
+if (gTeeBall) {
+    if (stat >= 16) {
+        if (stat <= 22) {
+            free-running-script 0
+        }
+    }
+}
+if (gGameMode == MODE-SEASON) {
+    if (gSeasonGameNumber >= 14) {
+        gPlayoffStats[kid][stat] = gPlayoffStats[kid][stat] + amount
+    } else {
+        gSeasonStats[kid][stat] = gSeasonStats[kid][stat] + amount
+    }
+}
+if (stat < 23) {
+    gGameStats[kid][stat] = gGameStats[kid][stat] + amount
+    if (gStatsAudit) {
+        run-script WriteStatsAuditFile [kid, stat, amount]
+    }
+    if (gStatsAuditWindow) {
+        run-script UpdateStatsAuditWindow [kid, stat, amount]
+    }
+}
+free-script

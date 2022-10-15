@@ -1,0 +1,12 @@
+; SCRP 403
+
+local variable local0
+local variable local1
+local variable local2
+
+for local1 = 1 to 18 ++ {
+    local2 = local0[local1][0]
+    array-copy-range gKidData local0 local2 local2 1 10 local1 local1 1 10
+}
+free-array local0
+free-script

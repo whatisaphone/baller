@@ -1,0 +1,25 @@
+; LSC2 27 2185
+
+local variable local0
+
+local0 = iif room66 6 5
+case 1 {
+    of r_smth_game_mode == 1 || r_smth_game_mode == 2 {
+        xb6-xfe
+        xb6-x4b "SINGLE GAME"
+        room70 = iif (local0 == 5) 1264 1260
+        room71 = iif (local0 == 5) 1027 1259
+        room69 = 0
+        room77 = iif (local0 == 5) 4 0
+    }
+    of r_smth_game_mode == 3 || r_smth_game_mode == 4 {
+        xb6-xfe
+        xb6-x4b "SEASON GAME"
+        room69 = 0
+        room77 = iif (local0 == 5) 6 4
+        room70 = iif (local0 == 5) 1022 1025
+        room71 = iif (local0 == 5) 1028 1027
+    }
+}
+return 1
+free-script

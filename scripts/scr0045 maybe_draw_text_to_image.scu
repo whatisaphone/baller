@@ -1,0 +1,61 @@
+; SCRP 45 maybe_draw_text_to_image
+
+parameter text
+parameter image1
+parameter image2
+parameter palette
+parameter arg4
+parameter arg5
+
+local variable local7
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+
+if (!palette) {
+    palette = 1
+}
+local9 = 0
+local12 = (strlen text) - 1
+local13 = max 1 (image-get-height image1 0)
+local14 = max 1 (image-get-width image1 (iif arg5 arg5 87))
+local10 = max 1 (local13 * 2)
+local11 = max 1 (local14 * local12 + arg4 * local12 + local14)
+image-select image2
+image-op-create
+image-x20 local11
+image-x21 local10
+image-xff
+local15 = palette-x42 1 5
+image-select image2
+image-x85 0 0 local11 local10 local15
+image-xff
+if (local12 >= 0) {
+    for local7 = 0 to local12 ++ {
+        if (arg5) {
+            local16 = (local14 - (image-get-width image1 text[local7])) / 2
+        }
+        image-select image1
+        image-x34 text[local7]
+        image-pos (local9 + local16) (local13 - (image-get-hotspot-y image1 text[local7]) - local13 / 3 + 2)
+        image-render-into image2
+        image-palette palette
+        image-x30
+        image-xff
+        if (arg5) {
+            local9 = local9 + local14 + arg4
+        } else {
+            local9 = iif (text[local7] == 32) (local9 + local14 / 3) (local9 + (image-get-width image1 text[local7]) + arg4)
+            if (text[local7] in [87]) {
+                local9 = local9 - 1
+            }
+        }
+    }
+}
+return local9
+free-script

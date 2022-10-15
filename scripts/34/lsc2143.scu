@@ -1,0 +1,10 @@
+; LSC2 34 2143
+
+room65 = call-script AllocPalette []
+palette-select room65
+palette-load 1272 0
+palette-unselect
+room66 = call-script FindFreeSprite []
+room67 = call-script FindFreeSprite []
+room68 = call-script AllocScratchImage []
+free-script

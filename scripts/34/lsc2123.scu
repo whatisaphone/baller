@@ -1,0 +1,9 @@
+; LSC2 34 2123
+
+local variable local0
+
+sprintf local0 "Summary for all games played in week %d" [gSeasonGameNumber]
+run-script 2102 [-1, 1268, 1104, 0, local0]
+free-array local0
+run-script 2122 []
+free-script

@@ -1,0 +1,9 @@
+; SCRP 317
+
+local variable local0
+
+if (gNetplayActive || local0) {
+    kludge [2001, 2201]
+}
+global571 = 0
+free-script

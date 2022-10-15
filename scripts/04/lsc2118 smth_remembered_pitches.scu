@@ -1,0 +1,22 @@
+; LSC2 4 2118 smth_remembered_pitches
+
+local variable local0
+local variable result
+local variable local2
+
+result = 0
+if (gKidData[gBatterKid][2] > (random 200)) {
+    result = 1
+} else if (gKidData[gBatterKid][2] > (random 101)) {
+    local0 = random 2
+    if (gKidData[gBatterKid][2] > (random 101)) {
+        local0 = local0 + (random 7)
+    }
+    for local2 = 0 to local0 ++ {
+        if (gRememberedPitches[local2][0] == rPitchKind) {
+            return 1
+        }
+    }
+}
+return result
+free-script

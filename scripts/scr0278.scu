@@ -1,0 +1,18 @@
+; SCRP 278
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+--local4
+for local5 = 0 to local4 ++ {
+    local6 = palette-x42 local1 (local3 + local5)
+    palette-select local0
+    palette-set-16bit (local2 + local5) (local2 + local5) local6
+    palette-unselect
+}
+free-script

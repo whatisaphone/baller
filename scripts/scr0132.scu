@@ -1,0 +1,29 @@
+; SCRP 132
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = call-script smth_find_season_team [local0]
+case 1 {
+    of local2 < 4 {
+        local1 = 0
+    }
+    of local2 < 8 {
+        local1 = 1
+    }
+    of local2 < 12 {
+        local1 = 2
+    }
+    of local2 < 16 {
+        local1 = 3
+    }
+    of local2 < 20 {
+        local1 = 4
+    }
+    else {
+        local1 = 5
+    }
+}
+return local1
+free-script

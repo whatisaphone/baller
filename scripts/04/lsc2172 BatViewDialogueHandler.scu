@@ -1,0 +1,57 @@
+; LSC2 4 2172 BatViewDialogueHandler
+
+parameter dialogue: Dialogue
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+
+case dialogue {
+    of DIALOGUE-WHOS-PITCHING {
+        run-script CastWhosPitching [arg1, arg2]
+    }
+    of DIALOGUE-WHOS-BATTING {
+        run-script CastWhosBatting [arg1, arg2]
+    }
+    of DIALOGUE-WHOS-BATTING-LEADING-OFF {
+        run-script CastWhosBattingLeadingOff [arg1, arg2]
+    }
+    of DIALOGUE-PITCH-STRIKE {
+        run-script CastPitchStrike [arg1, arg2, arg3, arg4, arg5, arg6]
+    }
+    of DIALOGUE-BATTER-SWINGS {
+        run-script CastBatterSwings [arg1]
+    }
+    of 7 {
+        run-script 2178 [arg1]
+    }
+    of DIALOGUE-PITCH {
+        run-script CastPitch [arg1, arg2]
+    }
+    of DIALOGUE-RUNNERS-ON-BASE {
+        run-script CastRunnersOnBase []
+    }
+    of DIALOGUE-CURRENT-BALLS-STRIKES {
+        run-script CastCurrentBallsStrikes []
+    }
+    of DIALOGUE-END-OF-HALF-INNING {
+        run-script CastEndOfHalfInning []
+    }
+    of DIALOGUE-BAT-VIEW-BANTER {
+        run-script BatViewBanter [1095, arg1]
+    }
+    of DIALOGUE-WILD-PITCH {
+        run-script CastWildPitch [arg1]
+    }
+    else {
+        xb7-xfe
+        xb7-xc2 "Incorrect bv-dialog-handler message (%d)!!!" dialogue []
+        pop-discard 0
+    }
+}
+free-script

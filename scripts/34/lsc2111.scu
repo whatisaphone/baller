@@ -1,0 +1,63 @@
+; LSC2 34 2111
+
+local variable local0
+local variable local1
+local variable local2
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+if (gGameLength == 12) {
+    local4 = 249
+} else {
+    local4 = 157
+}
+local2 = call-script AllocScratchImage []
+local7 = call-script smth_find_season_team [room17[room19[local0][0]][52]]
+if (gGameLength == 12) {
+    local8 = gSeasonRosterArray[local7][10]
+    local5 = call-script GetTeamPrefixString [local8, 1]
+    local6 = call-script GetTeamNameString [room17[room19[local0][0]][52], 1]
+    sprintf local1 "%s %s" [local5, local6]
+    free-array local5
+    free-array local6
+} else {
+    local1 = call-script GetTeamNameString [room17[room19[local0][0]][52], 1]
+}
+local9 = gSeasonRosterArray[local7][12]
+local10 = gSeasonRosterArray[local7][13]
+run-script-xc3 2119 [room17[room19[local0][0]][52], local9, local10, 24, 47, room14]
+temp = call-script smth_draw_text_image [local1, 1240, local2, local4, 32, 0, 0, room5]
+image-select local2
+image-pos 65 47
+image-render-into room14
+image-x30
+image-xff
+free-array local1
+local7 = call-script smth_find_season_team [room17[room19[local0][0]][53]]
+if (gGameLength == 12) {
+    local8 = gSeasonRosterArray[local7][10]
+    local5 = call-script GetTeamPrefixString [local8, 1]
+    local6 = call-script GetTeamNameString [room17[room19[local0][0]][53], 1]
+    sprintf local1 "%s %s" [local5, local6]
+    free-array local5
+    free-array local6
+} else {
+    local1 = call-script GetTeamNameString [room17[room19[local0][0]][53], 1]
+}
+temp = call-script smth_draw_text_image [local1, 1240, local2, local4, 32, 0, 0, room5]
+image-select local2
+image-pos 65 84
+image-render-into room14
+image-x30
+image-xff
+free-array local1
+local9 = gSeasonRosterArray[local7][12]
+local10 = gSeasonRosterArray[local7][13]
+run-script-xc3 2119 [room17[room19[local0][0]][53], local9, local10, 24, 84, room14]
+run-script FreeScratchImage [local2]
+free-script

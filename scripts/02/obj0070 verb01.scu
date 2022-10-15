@@ -1,0 +1,17 @@
+; VERB 2 70
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script PlayClickySound []
+stop-script
+gGameMode = MODE-maybe-cards
+go-to-room 5
+finish-script

@@ -1,0 +1,102 @@
+; SCRP 388 maybe_smth_net_yell_ui
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+
+local variable local9
+local variable local10
+local variable local11
+local variable local14
+
+if (!arg5) {
+    arg5 = 53
+}
+if (arg5 < 0) {
+    arg5 = 5
+}
+if (!arg6) {
+    arg6 = 4999
+}
+arg5 = palette-x42 1 arg5
+image-select arg4
+image-op-create
+image-x20 40
+image-x21 48
+image-xff
+image-select arg4
+image-x85 0 0 40 48 arg5
+image-xff
+if (!(gCurrentRoom in [40, 39])) {
+    local9 = 855
+} else {
+    local9 = 782
+}
+local14 = call-script AllocPalette []
+palette-select local14
+palette-load local9 0
+palette-unselect
+local10 = ((shr arg0 30) & 3) * 4 + ((shr arg0 24) & 3)
+image-select local9
+image-pos (20 - (image-get-hotspot-x local9 local10)) (24 - (image-get-hotspot-y local9 local10))
+image-x34 local10
+image-render-into arg4
+image-palette local14
+image-x30
+image-xff
+local11 = call-script 391 [arg0, 3, 1]
+local9 = ((shr arg0 30) & 3) * 3 + local11
+local10 = (shr arg0 16) & 255 & 31
+image-select local9
+image-pos (20 - (image-get-hotspot-x local9 local10)) (24 - (image-get-hotspot-y local9 local10))
+image-x34 local10
+image-render-into arg4
+image-palette local14
+image-x30
+image-xff
+free-image local9
+local11 = call-script 391 [arg0, 5, 1]
+local9 = ((shr arg0 30) & 3) * 3 + local11
+local10 = arg0 & 31
+image-select local9
+image-pos (20 - (image-get-hotspot-x local9 local10)) (24 - (image-get-hotspot-y local9 local10))
+image-x34 local10
+image-render-into arg4
+image-palette local14
+image-x30
+image-xff
+free-image local9
+local11 = call-script 391 [arg0, 4, 1]
+local9 = ((shr arg0 30) & 3) * 3 + local11
+local10 = (shr arg0 8) & 255 & 31
+image-select local9
+image-pos (20 - (image-get-hotspot-x local9 local10)) (24 - (image-get-hotspot-y local9 local10))
+image-x34 local10
+image-render-into arg4
+image-palette local14
+image-x30
+image-xff
+free-image local9
+if (!arg7) {
+    arg1 = arg1 - 20
+    arg2 = arg2 - 24
+}
+sprite-set-range arg3 arg3
+sprite-clear
+sprite-set-image arg4
+sprite-set-hotspot arg1 arg2
+sprite-x2b arg6
+sprite-x52 0
+sprite-x7c 0
+if (arg8) {
+    sprite-set-range arg3 arg3
+    sprite-x25 arg8
+}
+run-script FreePalette [local14]
+free-script

@@ -1,0 +1,19 @@
+; LSC2 27 2120
+
+if (room31) {
+    run-script FreePalette [room31]
+    room31 = 0
+}
+if (room41) {
+    run-script FreePalette [room41]
+    room41 = 0
+}
+if (room40) {
+    run-script FreePalette [room40]
+    room40 = 0
+}
+if (room37) {
+    run-script FreePalette [room37]
+    room37 = 0
+}
+free-script

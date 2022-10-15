@@ -1,0 +1,12 @@
+; LSC2 4 2125 GoToOverheadViewForStealingBase
+
+if (gStealArray[0] + gStealArray[1] + gStealArray[2]) {
+    gHitPosPhysX = 0
+    gHitPosPhysY = 40000
+    gHitPosPhysZ = 317000
+    gHitVelPhysX = 0
+    gHitVelPhysY = 15000
+    gHitVelPhysZ = -100000
+    run-script TransitionToOverheadView []
+}
+free-script

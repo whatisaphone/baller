@@ -1,0 +1,21 @@
+; LSC2 7 2071
+
+if (!room2) {
+    dim array room2 i16[0...14][0...2] swap=2
+}
+array-set-row room2 0 [287, 190]
+array-set-row room2 1 [431, 168]
+array-set-row room2 2 [575, 190]
+array-set-row room2 3 [320, 242]
+array-set-row room2 4 [485, 220]
+array-set-row room2 5 [538, 242]
+array-set-row room2 6 [375, 220]
+array-set-row room2 7 [431, 350]
+array-set-row room2 8 [431, 286]
+array-set-row room2 9 [431, 340]
+array-set-row room2 10 [302, 340]
+array-set-row room2 11 [558, 340]
+array-set-row room2 12 [538, 280]
+array-set-row room2 13 [431, 238]
+array-set-row room2 14 [320, 280]
+free-script

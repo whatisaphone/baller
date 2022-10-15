@@ -1,0 +1,34 @@
+; LSC2 6 2066 GetFieldFromChoice
+
+parameter choice: FieldChoice
+
+local variable result: Field
+
+case choice {
+    of FC-STEELE-STADIUM {
+        result = STEELE-STADIUM
+    }
+    of FC-PARKS-DEPARTMENT {
+        result = PARKS-DEPARTMENT
+    }
+    of FC-TIN-CAN-ALLEY {
+        result = TIN-CAN-ALLEY
+    }
+    of FC-ECKMAN-ACRES {
+        result = ECKMAN-ACRES
+    }
+    of FC-CEMENT-GARDENS {
+        result = CEMENT-GARDENS
+    }
+    of FC-DIRT-YARDS {
+        result = DIRT-YARDS
+    }
+    of FC-PLAYGROUND-COMMONS {
+        result = PLAYGROUND-COMMONS
+    }
+    of FC-SANDY-FLATS {
+        result = SANDY-FLATS
+    }
+}
+return result
+free-script

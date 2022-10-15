@@ -1,0 +1,13 @@
+; SCRP 141 PrintSCUMMTime
+
+local variable local0
+local variable local1
+
+local0 = gMaxCharset
+cursor-charset 6
+local1 = palette-xd9 255 255 255
+xa6 (320 - 24) 0 (320 + 24) 16 (local1 + 32768)
+xb5-xfe
+xb5-x41 (320 - 24) 4
+xb5-xc2 " %d : %d" global97 [global96]
+free-script

@@ -1,0 +1,77 @@
+; LSC2 27 2155 DumpSeasonScheduleToFile
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+
+if (arg0) {
+    local4 = arg0
+    local5 = arg0
+} else {
+    local4 = 0
+    local5 = 13
+}
+local8 = "c:\Windows\Desktop\Season.txt"
+local9 = file-open local8 2
+if (!local9) {
+    xb6-xfe
+    xb6-xc2 "Error %d in opening file %s" gIOError [local8]
+    pop-discard 0
+}
+local17 = "vs"
+local10 = "These are the teams this season:"
+sprintf local12 "%c%c" [13, 10]
+file-write-array 4 local9 local10
+for local2 = 0 to 23 ++ {
+    if ((mod local2 4) == 0) {
+        file-write-array 4 local9 local12
+    }
+    local6 = call-script ReadSeasonTeams [local2]
+    local16 = call-script GetTeamNameString [local6]
+    file-write-array 4 local9 local16
+    free-array local16
+}
+local11 = "Here is the schedule for the first 13 games:"
+file-write-array 4 local9 local12
+file-write-array 4 local9 local12
+file-write-array 4 local9 local11
+file-write-array 4 local9 local12
+for local1 = local4 to local5 ++ {
+    sprintf local15 "Game %d:" [local1]
+    file-write-array 4 local9 local15
+    file-write-array 4 local9 local12
+    for local2 = 0 to 23 ++ {
+        local6 = call-script ReadSeasonTeams [local2]
+        local7 = call-script ReadSeasonSchedule [local2, local1, 0]
+        local13 = call-script GetTeamNameString [local6]
+        local14 = call-script GetTeamNameString [local7]
+        file-write-array 4 local9 local13
+        file-write-array 4 local9 local17
+        file-write-array 4 local9 local14
+        file-write-array 4 local9 local12
+        free-array local13
+        free-array local14
+    }
+}
+file-close local9
+free-array local8
+free-array local10
+free-array local11
+free-array local12
+free-array local17
+free-script

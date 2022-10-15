@@ -1,0 +1,50 @@
+; LSC2 4 2140 BatViewBanter
+
+parameter dialogue: Dialogue
+parameter kid: Kid
+
+if (gNoPlayerTalking) {
+    free-running-script 0
+}
+if ((get-room g_maybe_selected_actor) != gCurrentRoom) {
+    actor-select g_maybe_selected_actor
+    actor-xd9
+    actor-set-costume 0
+    put-actor g_maybe_selected_actor 0 0 gCurrentRoom
+}
+actor-select g_maybe_selected_actor
+actor-x63 0 250
+actor-x57 245
+if (kid >= 31 && kid <= 61) {
+    exec-script 2139 [dialogue, kid]
+}
+if (kid >= 264 && kid <= 264 - 1 + 10) {
+    exec-script 2138 [dialogue, kid]
+}
+case dialogue {
+    of DIALOGUE-BANTER-BATTER {
+        run-script BanterBatter [kid]
+    }
+    of DIALOGUE-BANTER-PICTHER {
+        run-script BanterPitcher [kid]
+    }
+    of DIALOGUE-BANTER-PITCHER-STRIKE-OUT {
+        run-script BanterPitcherStrikeOut [kid]
+    }
+    of DIALOGUE-BANTER-BATTER-STRIKE-OUT {
+        run-script BanterBatterStrikeOut [kid]
+    }
+    of DIALOGUE-BANTER-PITCHER-STAMINA {
+        run-script BanterPitcherStamina [kid]
+    }
+    of DIALOGUE-BANTER-BATTER-SWING-MISS {
+        run-script BanterBatterSwingMiss [kid]
+    }
+    of 1094 {
+        run-script 2136 [kid]
+    }
+    of 1095 {
+        run-script 2137 [kid]
+    }
+}
+free-script

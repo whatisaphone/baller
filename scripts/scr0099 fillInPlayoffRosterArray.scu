@@ -1,0 +1,22 @@
+; SCRP 99 fillInPlayoffRosterArray
+
+local variable local0
+local variable local1
+local variable local3
+local variable local4
+
+local3 = array-width gPlayoffRosterArray
+for local0 = 0 to 7 ++ {
+    local1 = gPlayoffTeamsArray[local0]
+    local4 = call-script smth_find_season_team [local1]
+    array-copy-range gPlayoffRosterArray gSeasonRosterArray local0 local0 0 (local3 - 1) local4 local4 0 (local3 - 1)
+    gPlayoffRosterArray[local0][14] = 0
+    gPlayoffRosterArray[local0][15] = 0
+}
+xb6-xfe
+xb6-x4b "done with fillInPlayoffRosterArray -- here's part of the new array"
+for temp = 0 to (local3 - 1) ++ {
+    xb6-xfe
+    xb6-xc2 "%d" gPlayoffRosterArray[0][temp] []
+}
+free-script

@@ -1,0 +1,5 @@
+; LSC2 3 2179
+
+run-script FreePalette [room35]
+run-script FreePalette [room36]
+free-script

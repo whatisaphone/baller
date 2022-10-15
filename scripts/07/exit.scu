@@ -1,0 +1,26 @@
+; EXCD 7
+
+if (gGameMode == MODE-SEASON) {
+    room0 = iif (gTeamInfo[0][TI-CONTROLLED-BY] == CB-USER) 0 1
+    temp = gTeamInfo[room0][TI-FIELDING-ORDER]
+    array-copy-range gSeasonRosterArray temp gSeasonDivision gSeasonDivision 0 8 0 0 0 8
+    temp = gTeamInfo[room0][TI-BATTING-ORDER-KIDS]
+    array-copy-range gSeasonRosterArray temp gSeasonDivision gSeasonDivision 16 (16 + 8) 0 0 0 8
+    if (gSeasonGameNumber >= 14) {
+        temp2 = call-script smth_find_playoffs_cur_division []
+        array-copy-range gPlayoffRosterArray gSeasonRosterArray temp2 temp2 0 8 gSeasonDivision gSeasonDivision 0 8
+        array-copy-range gPlayoffRosterArray gSeasonRosterArray temp2 temp2 16 (16 + 8) gSeasonDivision gSeasonDivision 16 (16 + 8)
+    }
+}
+run-script 2079 []
+run-script 2083 []
+run-script ReleaseSprite [room9]
+free-array room2
+run-script CursorLoop []
+run-script FreeNavButtons []
+run-script 2059 []
+for temp = 0 to 20 ++ {
+    run-script FreeScratchImage [room8[temp]]
+}
+free-array room8
+finish-script

@@ -1,0 +1,40 @@
+; LSC2 8 2101 CollectLastGameTotals
+
+local variable local0
+local variable local1
+local variable local2
+
+if (gLastGameTotals) {
+    free-array gLastGameTotals
+}
+dim array gLastGameTotals i16[0...0][0...9] swap=2
+gLastGameTotals[0] = call-script TeamStatTotal [room0, STAT-RUNS-SCORED]
+gLastGameTotals[1] = call-script TeamStatTotal [room0, STAT-RUNS-AGAINST]
+gLastGameTotals[2] = call-script TeamStatTotal [room0, STAT-HITS]
+gLastGameTotals[3] = call-script TeamStatTotal [room0, STAT-HOME-RUNS]
+local1 = gTeamInfo[room0][TI-FIELDING-ORDER]
+local2 = -1
+for local0 = 0 to 8 ++ {
+    if (gGameStats[local1[local0]][STAT-HOME-RUNS] > local2) {
+        local2 = gGameStats[local1[local0]][STAT-HOME-RUNS]
+        gLastGameTotals[4] = local2
+        gLastGameTotals[5] = local1[local0]
+    }
+}
+local2 = -1
+for local0 = 0 to 8 ++ {
+    if (gGameStats[local1[local0]][STAT-STRIKE-OUTS-PITCHED] > local2) {
+        local2 = gGameStats[local1[local0]][STAT-STRIKE-OUTS-PITCHED]
+        gLastGameTotals[6] = local2
+        gLastGameTotals[7] = local1[local0]
+    }
+}
+local2 = -1
+for local0 = 0 to 8 ++ {
+    if (gGameStats[local1[local0]][STAT-RBIS] > local2) {
+        local2 = gGameStats[local1[local0]][STAT-RBIS]
+        gLastGameTotals[8] = local2
+        gLastGameTotals[9] = local1[local0]
+    }
+}
+free-script

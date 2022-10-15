@@ -1,0 +1,21 @@
+; SCRP 234 TeamStatTotal
+
+parameter arg0
+parameter stat: Stat
+
+local variable local2
+local variable local3
+local variable local4
+
+local3 = gTeamInfo[arg0][TI-FIELDING-ORDER]
+if (!local3) {
+    xb6-xfe
+    xb6-x4b "BAD TEAM VALUE PASSED TO TEAM-STAT-TOTAL"
+    return 0
+    free-running-script 0
+}
+for local2 = 0 to 9 ++ {
+    local4 = local4 + gGameStats[local3[local2]][stat]
+}
+return local4
+free-script

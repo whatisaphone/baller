@@ -1,0 +1,13 @@
+; SCRP 370 RosterStatTotal
+
+parameter arg0
+parameter stat: Stat
+
+local variable local2
+local variable local3
+
+for local2 = 0 to 8 ++ {
+    local3 = local3 + gGameStats[arg0[local2]][stat]
+}
+return local3
+free-script

@@ -1,0 +1,25 @@
+; LSC2 4 2149 HandleFieldersSkewChanged
+
+local variable local0
+local variable local1
+
+if (gFieldersSkew < -1) {
+    local0 = 364
+    local1 = 4 + gFieldersSkew
+} else if (gFieldersSkew < 2) {
+    local0 = 363
+    local1 = 1 + gFieldersSkew
+} else {
+    local0 = 362
+    local1 = -2 + gFieldersSkew
+}
+sprite-set-range 25 25
+sprite-set-image local0
+sprite-x34 local1
+sprite-x52 0
+sprite-x7c 2
+run-script SendBatViewMessage [MSG-SET-FIELDER-START-POSITIONS, gFieldersSkew]
+stop-script
+sprite-set-range 25 25
+sprite-x7c 1
+free-script

@@ -1,0 +1,4 @@
+; LSC2 37 2070 InitNavButtons
+
+run-script SetNavButtons [HandleNavClick, 0, 0]
+free-script

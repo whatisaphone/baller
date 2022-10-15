@@ -1,0 +1,20 @@
+; SCRP 244
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!local1) {
+    local4 = gBackupKidData
+} else {
+    local4 = gKidData
+}
+local2 = local4[local0][4]
+if (100 == local2) {
+    local2 = 99
+}
+local3 = local2 / 10 + 1
+return local3
+free-script

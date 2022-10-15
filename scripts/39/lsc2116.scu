@@ -1,0 +1,7 @@
+; LSC2 39 2116
+
+run-script 2118 []
+stop-sound g_maybe_net_yell_sound
+gHoverScript = 0
+run-script 2179 []
+free-script

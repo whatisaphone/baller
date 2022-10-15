@@ -1,0 +1,12 @@
+; SCRP 303 CleanupRunners
+
+put-actor (46 - 30) 0 0 0
+put-actor (47 - 30) 0 0 0
+put-actor (48 - 30) 0 0 0
+put-actor (49 - 30) 0 0 0
+free-array gRunners
+free-array gBases
+gRunners = 0
+gBases = 0
+gNumRunners = 0
+free-script

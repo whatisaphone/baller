@@ -1,0 +1,82 @@
+; LSC2 4 2165 maybe_gamepad_batting_loop
+
+local variable local0
+local variable local2
+local variable local3
+
+do {
+    if (gCursorInputEnabled && room51) {
+        local2 = call-script GetInputButtons [BUTTONS-GAME-PAD]
+        case 1 {
+            of 16 & local2 > 0 {
+                if (get-class 88 [32]) {
+                    if (gTeeBall) {
+                        run-script SendBatViewMessage [MSG-TEE-SWING, gCurrentSwing]
+                    } else {
+                        run-script SendBatViewMessage [MSG-SWING, gCurrentSwing]
+                    }
+                }
+            }
+            of 32 & local2 > 0 {
+                if (is-script-running smth_ui_sprites) {
+                    goto label020f
+                }
+                local0 = rSelectedPitchOrSwingSprite
+                do {
+                    ++local0
+                    if (local0 > 10) {
+                        local0 = 1
+                    }
+                } until ((sprite-get-image local0) != 0)
+                run-script SelectSwingOrPitch [local0, sprite-get-xc6 local0 1, true]
+            }
+            of 64 & local2 > 0 {
+                case 1 {
+                    of 4 & local2 > 0 {
+                        if ((get-class 89 [32]) && (get-class 89 [18])) {
+                            run-script SendBatViewMessage [MSG-TOGGLE-STEAL, 2]
+                        }
+                    }
+                    of 1 & local2 > 0 {
+                        if ((get-class 90 [32]) && (get-class 90 [18])) {
+                            run-script SendBatViewMessage [MSG-TOGGLE-STEAL, 3]
+                        }
+                    }
+                    of 8 & local2 > 0 {
+                        if ((get-class 91 [32]) && (get-class 91 [18])) {
+                            run-script SendBatViewMessage [MSG-TOGGLE-STEAL, 4]
+                        }
+                    }
+                }
+            }
+            of 128 & local2 > 0 {
+                if ((get-class 95 [32]) && (get-class 95 [18]) && !r_smth_maybe_current_phase) {
+                    run-script SendBatViewMessage [7609]
+                }
+            }
+            of 1 & local2 > 0 {
+                if ((shr (gKidData[gBatterKid][13] & 48) 4) == 1) {
+                    local3 = -1
+                } else {
+                    local3 = 1
+                }
+                run-script SendBatViewMessage [MSG-TOGGLE-STANCE, local3]
+            }
+            of 2 & local2 > 0 {
+                if ((shr (gKidData[gBatterKid][13] & 48) 4) == 1) {
+                    local3 = 1
+                } else {
+                    local3 = -1
+                }
+                run-script SendBatViewMessage [MSG-TOGGLE-STANCE, local3]
+            }
+            else {
+                goto label020f
+            }
+        }
+        sleep (6 * 2 / gMinJiffies)
+    }
+label020f:
+    stop-script
+}
+free-script

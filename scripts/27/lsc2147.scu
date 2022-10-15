@@ -1,0 +1,43 @@
+; LSC2 27 2147
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+local3 = 1
+if (0 == local2) {
+    local5 = 1
+} else {
+    local5 = 0
+}
+local6 = 0
+local4 = local1
+do {
+    if (local3) {
+        if (local6 == 1) {
+            local6 = 0
+        } else {
+            local6 = 1
+        }
+        local3 = 0
+    } else {
+        local8 = call-script ReadSeasonSchedule [local4, local0 + local6, 0]
+        local4 = call-script smth_find_season_team [local8]
+        local3 = 1
+    }
+    if (local5) {
+        run-script WriteSeasonSchedule [local4, local0 + local6, SS-HOME-OR-AWAY, 0]
+        local5 = 0
+    } else {
+        run-script WriteSeasonSchedule [local4, local0 + local6, SS-HOME-OR-AWAY, 1]
+        local5 = 1
+    }
+    ++local7
+} until (local4 == local1 && local7 > 1)
+free-script

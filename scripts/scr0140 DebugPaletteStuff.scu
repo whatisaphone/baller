@@ -1,0 +1,69 @@
+; SCRP 140 DebugPaletteStuff
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+
+case arg1 {
+    of 101 {
+        local10 = global613[2] / 16
+        local11 = global613[1] / 16
+        local12 = arg2 / local10 * 16 + arg3 / local11
+        local13 = palette-x42 global613[3] local12
+        sprintf local14 "Palette %d slot %d color %d" [global613[3], local12, local13]
+        window-select global613[0]
+        window-set-text local14
+        window-xff
+        free-array local14
+    }
+    of 106 {
+        window-select global613[0]
+        window-set-image 0
+        window-xff
+    }
+    of 107 {
+        case arg2 {
+            of 43 {
+                inc-array-item global613 3
+                if (global613[3] > gNumPalettes) {
+                    global613[3] = 1
+                }
+                run-script DebugShowPalette []
+            }
+            of 45 {
+                dec-array-item global613 3
+                if (global613[3] < 1) {
+                    global613[3] = gNumPalettes
+                }
+                run-script DebugShowPalette []
+            }
+            of 112 {
+                local15 = input-dialog "Enter palette number to display"
+                local16 = atoi local15
+                free-array local15
+                if (local16 >= 1 && local16 <= gNumPalettes) {
+                    global613[3] = local16
+                    run-script DebugShowPalette []
+                }
+            }
+            of 113 {
+                window-select global613[0]
+                window-set-image 0
+                window-xff
+            }
+            of 114 {
+                run-script DebugShowPalette []
+            }
+        }
+    }
+}
+free-script

@@ -1,0 +1,53 @@
+; LSC2 27 2102
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (14 == gCurrentRoom) {
+    local2 = 240
+    local3 = 148
+} else {
+    local2 = 228
+    local3 = 132
+}
+case local1 {
+    of 1 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (local2 + 44 + 5) (local3 + 160)
+    }
+    of 3 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (local2 + 120 + 5) (local3 + 160)
+    }
+    of 0 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (local2 + 196 + 5) (local3 + 160)
+    }
+    of 4 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (local2 + 272 + 5) (local3 + 160)
+    }
+    of 2 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (local2 + 354 + 5) (local3 + 160)
+    }
+    of 7 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (136 + local2 + 5) (local3 + 170)
+    }
+    of 5 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (216 + local2 + 5) (local3 + 170)
+    }
+    of 8 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (304 + local2 + 5) (local3 + 170)
+    }
+    of 6 {
+        sprite-set-range local0 local0
+        sprite-set-hotspot (384 + local2 + 5) (local3 + 170)
+    }
+}
+free-script

@@ -1,0 +1,43 @@
+; LSC2 6 2083
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (!room2) {
+    room2 = call-script FindFreeSprite []
+}
+if (room1 == 3) {
+    local0 = 0
+    local1 = 0
+    local2 = 0
+    local3 = 0
+} else if (room1 == 4) {
+    local0 = 330 - 374
+    local1 = 355 - 164
+    local2 = 571 - 570
+    local3 = 355 - 164
+} else {
+    pop-discard 0
+}
+sprite-set-range room2 room2
+sprite-set-image 135
+sprite-x34 0
+sprite-x7c 1
+sprite-x52 0
+sprite-palette room13
+sprite-set-hotspot local0 local1
+gSpriteCursorTargets[room2][TARGET-CLICK-SCRIPT] = 2082
+if (!room3) {
+    room3 = call-script FindFreeSprite []
+}
+sprite-set-range room3 room3
+sprite-set-image 135
+sprite-x34 2
+sprite-x7c 1
+sprite-x52 0
+sprite-palette room13
+sprite-set-hotspot local2 local3
+gSpriteCursorTargets[room3][TARGET-CLICK-SCRIPT] = 2082
+free-script

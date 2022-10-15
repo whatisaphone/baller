@@ -1,0 +1,46 @@
+; LSC2 34 2059
+
+local variable local0
+local variable local1
+local variable local2
+
+case local0 {
+    of 1 {
+        local1 = random2 20 45
+    }
+    of 2 {
+        local1 = random2 10 30
+    }
+    of 3 {
+        local1 = -1 * (random2 0 20)
+    }
+    of 4 {
+        local1 = random2 -25 -5
+    }
+}
+if (gCurrentSwing > 4) {
+    return local1
+    free-running-script 0
+}
+case room34 {
+    of 1 {
+        local2 = random 180
+    }
+    of 2 {
+        local2 = random 60
+    }
+    of 3 {
+        local2 = 0
+    }
+}
+if (room23 > 35 || room23 == -3) {
+    local1 = local1 - local2
+} else if (room23 < 15) {
+    local1 = local1 + local2
+} else if (random 1) {
+    local1 = local1 + local2
+} else {
+    local1 = local1 - local2
+}
+return local1
+free-script

@@ -1,0 +1,197 @@
+; LSC2 3 2082 RunRunnerToSideline
+
+parameter runneridx
+parameter facing
+parameter ghost: [][RunnerField]
+
+local variable actor
+local variable angle
+local variable vel_x
+local variable vel_y
+local variable new_facing
+local variable runner: Entity
+local variable local10
+local variable dist
+local variable path: [EntityField]
+local variable segment
+local variable speed
+local variable done
+local variable local16
+
+if (gNetplayActive) {
+}
+if (ghost[R-CUR-BASE] == NONE) {
+} else {
+    dim array path i32[0...3][0...1] swap=2
+    xe2 path
+    xe2 ghost
+    runner = ghost[R-ENTITY]
+    actor = gRunners[runneridx][R-ENTITY] - 30
+    if ((actor-get-var actor 2) == 1) {
+        while (!!((actor-get-var actor 2) == 1)) {
+            stop-script
+        }
+    }
+    if (ghost[11]) {
+        while (!(actor-get-var actor 25)) {
+            stop-script
+        }
+        actor-do-anim actor 12
+        actor-select actor
+        actor-set-var 0 0
+        actor-select actor
+        actor-set-var 25 0
+        while (!(actor-get-var actor 25)) {
+            stop-script
+        }
+        ghost[11] = 0
+    }
+    actor-select actor
+    actor-set-conditons [1]
+    actor-select actor
+    actor-set-conditons [2]
+    actor-select actor
+    actor-set-conditons [3]
+    actor-select actor
+    actor-set-conditons [4]
+    actor-select actor
+    actor-set-conditons [5]
+    actor-select actor
+    actor-set-conditons [6]
+    actor-select actor
+    actor-set-conditons [7]
+    actor-select actor
+    actor-set-conditons [8]
+    actor-do-anim actor 10
+    actor-select actor
+    actor-set-var 1 1
+    temp = mod gCurrentHalfInning 2
+    if (temp) {
+        case ghost[R-ORDER] {
+            of 0 {
+                array-set-row path 0 [-188, 386]
+            }
+            of 1 {
+                array-set-row path 0 [-264, 471]
+            }
+            of 2 {
+                array-set-row path 0 [-347, 519]
+            }
+            of 3 {
+                array-set-row path 0 [-430, 635]
+            }
+        }
+        if (gWorld[runner][Z] >= gWorld[MOUND-CENTER][Z]) {
+            if (gWorld[runner][X] >= gWorld[MOUND-CENTER][X]) {
+                array-set-row path 1 [0, 225]
+                array-set-row path 2 [676, 842]
+                segment = 2
+            } else {
+                array-set-row path 1 [-646, 842]
+                array-set-row path 2 [0, 0]
+                segment = 1
+            }
+        } else if (gWorld[runner][X] >= gWorld[MOUND-CENTER][X]) {
+            array-set-row path 1 [0, 255]
+            array-set-row path 2 [0, 0]
+            segment = 1
+        } else {
+            array-set-row path 1 [0, 0]
+            array-set-row path 2 [0, 0]
+            segment = 0
+        }
+    } else {
+        case ghost[R-ORDER] {
+            of 0 {
+                array-set-row path 0 [188, 386]
+            }
+            of 1 {
+                array-set-row path 0 [264, 471]
+            }
+            of 2 {
+                array-set-row path 0 [347, 519]
+            }
+            of 3 {
+                array-set-row path 0 [430, 635]
+            }
+        }
+        if (gWorld[runner][Z] >= gWorld[MOUND-CENTER][Z]) {
+            if (gWorld[runner][X] >= gWorld[MOUND-CENTER][X]) {
+                array-set-row path 1 [646, 842]
+                array-set-row path 2 [0, 0]
+                segment = 1
+            } else {
+                array-set-row path 1 [0, 225]
+                array-set-row path 2 [-676, 842]
+                segment = 2
+            }
+        } else if (gWorld[runner][X] >= gWorld[MOUND-CENTER][X]) {
+            array-set-row path 1 [0, 0]
+            array-set-row path 2 [0, 0]
+            segment = 0
+        } else {
+            array-set-row path 1 [0, 255]
+            array-set-row path 2 [0, 0]
+            segment = 1
+        }
+    }
+    speed = ghost[R-SPEED]
+    done = 0
+    do {
+        ghost[R-SPEED] = speed
+        do {
+            if (!gNumRunners) {
+                if (segment > 0) {
+                    segment = 0
+                }
+            }
+            ghost[R-DEST-X] = path[segment][X]
+            ghost[R-DEST-Z] = path[segment][Y]
+            dist = distance-2d gWorld[runner][X] gWorld[runner][Z] ghost[R-DEST-X] ghost[R-DEST-Z]
+            if (dist < ghost[R-SPEED]) {
+                ghost[R-SPEED] = dist
+            }
+            vel_x = ghost[R-SPEED] * (cos angle) / 100000
+            vel_y = ghost[R-SPEED] * (sin angle) / 100000
+            angle = atan4 gWorld[runner][X] gWorld[runner][Z] ghost[R-DEST-X] ghost[R-DEST-Z]
+            new_facing = call-script ConvertAngleToFacing [angle]
+            new_facing = call-script TurnFacingStep [new_facing, facing]
+            run-script-xc3 SetActorFacing [actor, new_facing, facing]
+            facing = new_facing
+            gWorld[runner][X] = gWorld[runner][X] + vel_x
+            gWorld[runner][Z] = gWorld[runner][Z] + vel_y
+            stop-script
+            local10 = 5000 - gWorld[runner][Z]
+            actor-select actor
+            actor-x54 local10
+            actor-set-scale (call-script CalcActorScale [runner])
+            put-actor actor gScreen[runner][X] (gScreen[runner][Y] + local10) gCurrentRoom
+            dist = distance-2d gWorld[runner][X] gWorld[runner][Z] ghost[R-DEST-X] ghost[R-DEST-Z]
+        } until (dist <= 12)
+        if (segment) {
+            --segment
+        } else {
+            done = 1
+        }
+    } until (done)
+    free-array ghost
+    free-array path
+    array-set-row gWorld runner [0, 0, 0]
+    if (mod gCurrentHalfInning 2) {
+        angle = 45
+    } else {
+        angle = 135
+    }
+    do {
+        new_facing = call-script ConvertAngleToFacing [angle]
+        local16 = new_facing
+        new_facing = call-script TurnFacingStep [new_facing, facing]
+        run-script-xc3 SetActorFacing [actor, new_facing, facing]
+        facing = new_facing
+        stop-script
+    } until (facing == local16)
+    actor-do-anim actor 6
+    actor-select actor
+    actor-set-var 1 0
+}
+free-script

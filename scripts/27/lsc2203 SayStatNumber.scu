@@ -1,0 +1,183 @@
+; LSC2 27 2203 SayStatNumber
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+if (arg0 == 0) {
+    xbb "\x7fT172142576,5128\x7f no"
+    xa9-xa9
+    free-running-script 0
+}
+if (r_smth_game_mode == 3 || r_smth_game_mode == 4) {
+    if (arg1 == 23) {
+        if (arg0 == 1000) {
+            run-script SayStatNumberThousands [1]
+            while (!!(is-script-running SayStatNumberThousands)) {
+                stop-script
+            }
+            free-running-script 0
+        }
+        if (arg0 > 99) {
+            local3 = arg0 / 100
+            if (local3 * 100 == arg0) {
+                run-script SayStatNumberHundreds [local3]
+                while (!!(is-script-running SayStatNumberHundreds)) {
+                    stop-script
+                }
+                free-running-script 0
+            } else {
+                run-script SayStatNumberOnes [local3]
+                while (!!(is-script-running SayStatNumberOnes)) {
+                    stop-script
+                }
+            }
+            local4 = (arg0 - local3 * 100) / 10
+            if (local4 != 0) {
+                run-script SayStatNumberTens [arg0 - local3 * 100]
+                while (!!(is-script-running SayStatNumberTens)) {
+                    stop-script
+                }
+                free-running-script 0
+            } else {
+                run-script SayStatNumberOnes [0]
+                while (!!(is-script-running SayStatNumberOnes)) {
+                    stop-script
+                }
+            }
+            local5 = arg0 - local3 * 100
+            run-script SayStatNumberOnes [local5]
+            while (!!(is-script-running SayStatNumberOnes)) {
+                stop-script
+            }
+            free-running-script 0
+        } else {
+            run-script SayStatNumberOnes [0]
+            while (!!(is-script-running SayStatNumberOnes)) {
+                stop-script
+            }
+            local4 = arg0 / 10
+            if (local4 != 0) {
+                run-script SayStatNumberTens [arg0]
+                while (!!(is-script-running SayStatNumberTens)) {
+                    stop-script
+                }
+            } else {
+                run-script SayStatNumberOnes [0]
+                while (!!(is-script-running SayStatNumberOnes)) {
+                    stop-script
+                }
+                run-script SayStatNumberOnes [arg0]
+                while (!!(is-script-running SayStatNumberOnes)) {
+                    stop-script
+                }
+            }
+            free-running-script 0
+        }
+    } else if (arg1 == 24) {
+        if (arg0 > 999) {
+            local2 = arg0 / 1000
+            if (local2 * 1000 == arg0) {
+                run-script SayStatNumberThousands [local2]
+                while (!!(is-script-running SayStatNumberThousands)) {
+                    stop-script
+                }
+                free-running-script 0
+            }
+            run-script SayStatNumberOnes [local2]
+            while (!!(is-script-running SayStatNumberOnes)) {
+                stop-script
+            }
+        }
+        xbb "\x7fT172147704,4712\x7f point"
+        local3 = (arg0 - local2 * 1000) / 100
+        xa9-xa9
+        run-script SayStatNumberOnes [local3]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+        local4 = (arg0 - local2 * 1000 + local3 * 100) / 10
+        run-script SayStatNumberOnes [local4]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+        local5 = arg0 - local2 * 1000 + local3 * 100 + local4 * 10
+        run-script SayStatNumberOnes [local5]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+        free-running-script 0
+    } else if (arg1 == 26) {
+        local2 = arg0 / 1000
+        local3 = arg0 / 100
+        if (local2 != 0) {
+            run-script SayStatNumberTens [local3]
+            while (!!(is-script-running SayStatNumberTens)) {
+                stop-script
+            }
+        } else {
+            run-script SayStatNumberOnes [local3]
+            while (!!(is-script-running SayStatNumberOnes)) {
+                stop-script
+            }
+        }
+        local3 = (arg0 - local2 * 1000) / 100
+        xbb "\x7fT172147704,4712\x7f point"
+        xa9-xa9
+        local4 = (arg0 - local2 * 1000 + local3 * 100) / 10
+        run-script SayStatNumberOnes [local4]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+        xb6-xfe
+        xb6-xc2 "digit 10 %d" local4 []
+        local5 = arg0 - local2 * 1000 + local3 * 100 + local4 * 10
+        run-script SayStatNumberOnes [local5]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+        free-running-script 0
+    }
+}
+if (arg0 > 999) {
+    local2 = arg0 / 1000
+    run-script SayStatNumberThousands [local2]
+    while (!!(is-script-running SayStatNumberThousands)) {
+        stop-script
+    }
+    if (local2 * 1000 == arg0) {
+        free-running-script 0
+    }
+}
+local3 = (arg0 - local2 * 1000) / 100
+if (local3) {
+    run-script SayStatNumberHundreds [local3]
+    while (!!(is-script-running SayStatNumberHundreds)) {
+        stop-script
+    }
+    if (local2 * 1000 + local3 * 100 == arg0) {
+        free-running-script 0
+    }
+}
+local4 = arg0 - local2 * 1000 + local3 * 100
+if (local4 > 9) {
+    run-script SayStatNumberTens [local4]
+    while (!!(is-script-running SayStatNumberTens)) {
+        stop-script
+    }
+    free-running-script 0
+} else {
+    local5 = arg0 - local2 * 1000 + local3 * 100
+    if (local5) {
+        run-script SayStatNumberOnes [local5]
+        while (!!(is-script-running SayStatNumberOnes)) {
+            stop-script
+        }
+    }
+}
+free-running-script 0
+free-script

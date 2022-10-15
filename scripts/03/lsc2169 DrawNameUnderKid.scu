@@ -1,0 +1,56 @@
+; LSC2 3 2169 DrawNameUnderKid
+
+parameter kid: Kid
+parameter actor
+parameter smth_image
+parameter arg3
+
+local variable sprite
+local variable x_offset
+local variable y_offset
+local variable local8
+local variable local9
+local variable local10
+
+for local10 = 10 to 32 ++ {
+    if ((sprite-get-image local10) == 0) {
+        sprite = local10
+        local10 = 32 + 1
+    }
+}
+sprite-set-range sprite sprite
+sprite-clear
+sprite-x52 0
+sprite-set-image smth_image
+sprite-x7c 0
+y_offset = 8
+if (smth_image in [114, 113]) {
+    y_offset = -64
+    x_offset = (image-get-width smth_image 0) / 2
+    sprite-set-range sprite sprite
+    sprite-x2b 10
+} else {
+    run-script GetKidName [kid, 1]
+    sprintf local8 "%s" [gKidName]
+    xe2 local8
+    local9 = call-script maybe_draw_text_to_image [local8, 435, smth_image, 0, 1]
+    x_offset = local9 / 2
+    sprite-set-range sprite sprite
+    sprite-x2b -1
+}
+if (smth_image in [114, 113]) {
+    while (room26 != -1) {
+        sprite-set-range sprite sprite
+        sprite-set-hotspot ((get-x actor) - x_offset) ((get-y actor) + y_offset - (xa2 actor))
+        stop-script
+    }
+} else {
+    while (room23 == arg3 || room6 == arg3) {
+        sprite-set-range sprite sprite
+        sprite-set-hotspot ((get-x actor) - x_offset) ((get-y actor) + y_offset - (xa2 actor))
+        stop-script
+    }
+}
+sprite-set-range sprite sprite
+sprite-clear
+free-script

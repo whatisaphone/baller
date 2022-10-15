@@ -1,0 +1,22 @@
+; LSC2 29 2098
+
+local variable local0
+local variable local1
+
+local1 = sprite-get-xc6 local0 1
+case local1 {
+    of 27 {
+        local1 = 8
+    }
+    of 26 {
+        local1 = 45
+    }
+    of 28 {
+        local1 = 32
+    }
+    else {
+        local1 = local1 + 65
+    }
+}
+exec-script HandleKey [local1]
+free-script

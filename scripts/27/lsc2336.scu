@@ -1,0 +1,428 @@
+; LSC2 27 2336
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+local variable local22
+
+local3 = call-script AllocScratchImage []
+local4 = call-script AllocScratchImage []
+local16 = call-script AllocPalette []
+palette-select local16
+palette-load 1538 0
+palette-unselect
+local17 = call-script AllocPalette []
+palette-select local17
+palette-load 1272 0
+palette-unselect
+image-select local3
+image-op-create
+image-x20 640
+image-x21 480
+image-xff
+image-select 1538
+image-palette local16
+image-pos 0 0
+image-render-into local3
+image-x30
+image-xff
+local7 = call-script 2335 [gTeamInfo[0][TI-TEAM-ADJECTIVE], gTeamInfo[0][TI-TEAM-NOUN]]
+local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+free-array local7
+local10 = 30
+image-select local4
+image-pos 35 local10
+image-render-into local3
+image-x30
+image-xff
+local10 = local10 + 12
+if (MODE-SEASON == gGameMode) {
+    sprintf local7 "COACHED BY %s" [gCoachName]
+    local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+    free-array local7
+    image-select local4
+    image-pos 35 local10
+    image-render-into local3
+    image-x30
+    image-xff
+    local10 = local10 + 12
+}
+local10 = local10 + 12
+if (r_smth_game_mode == 4 || r_smth_game_mode == 3) {
+    if (r_smth_game_mode == 4) {
+        local21 = gPlayoffTeamsArray[room59]
+        local22 = call-script smth_find_season_team [local21]
+    } else {
+        local22 = room59
+    }
+    local20 = call-script ReadActiveRoster [local22, 10]
+    local21 = call-script ReadActiveRoster [local22, 11]
+    local7 = "SEASON STATISTICS FOR:"
+} else {
+    local20 = gTeamInfo[room59][TI-TEAM-ADJECTIVE]
+    local21 = gTeamInfo[room59][TI-TEAM-NOUN]
+    local7 = "GAME STATISTICS FOR:"
+}
+local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+free-array local7
+image-select local4
+image-pos 35 local10
+image-render-into local3
+image-x30
+image-xff
+local10 = local10 + 12
+local7 = call-script 2335 [local20, local21]
+local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+free-array local7
+image-select local4
+image-pos 35 local10
+image-render-into local3
+image-x30
+image-xff
+local10 = local10 + 12
+local18 = 176
+local7 = "BATTING"
+local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+free-array local7
+image-select local4
+image-pos (86 - local2 / 2) 110
+image-render-into local3
+image-x30
+image-xff
+local7 = "PITCHING"
+local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+free-array local7
+image-select local4
+image-pos (86 - local2 / 2) (110 + 176)
+image-render-into local3
+image-x30
+image-xff
+if (r_smth_game_mode == 1 || r_smth_game_mode == 2 || r_smth_game_mode == 0) {
+    local11 = gGameStats
+    array-set local14 [0, 1, 7, 8, 9, 10, 15, 12, 5, 2, 11, 14] 0
+    array-set local15 [22, 6, 21, 17, 18, 16, 20, 19] 0
+    local12 = (array-width local14) - 1
+    local13 = (array-width local15) - 1
+} else {
+    array-set local14 [23, 0, 1, 7, 8, 9, 10, 15, 12, 5, 2, 11, 14, 24] 0
+    array-set local15 [26, 28, 29, 25, 22, 6, 21, 17, 18, 16, 20, 19] 0
+    if (r_smth_game_mode == 3) {
+        local11 = gSeasonStats
+    } else {
+        local11 = gPlayoffStats
+    }
+    local12 = (array-width local14) - 1
+    local13 = (array-width local15) - 1
+}
+dim array local19 i16[0...0][0...30] swap=2
+local10 = -1
+for local0 = -1 to 9 ++ {
+    local5 = local0 * 14 + 140
+    if (local0 == -1) {
+        local7 = "NAME"
+    } else if (local0 == 9) {
+        local7 = "TOTALS"
+    } else {
+        local1 = call-script 2197 [local0]
+        run-script GetKidName [local1]
+        temp2 = (strlen gKidName) - 1
+        for temp = 0 to temp2 ++ {
+            if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+                gKidName[temp] = gKidName[temp] - 32
+            }
+        }
+        sprintf local7 "%s" [gKidName]
+    }
+    local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+    free-array local7
+    image-select local4
+    image-pos (86 - local2 / 2) local5
+    image-render-into local3
+    image-x36 1
+    image-x30
+    image-xff
+    local8 = 86 + 60 + 14
+    for local9 = 0 to local12 ++ {
+        if (local0 == -1) {
+            case local14[local9] {
+                of 23 {
+                    local7 = "AVG"
+                }
+                of 24 {
+                    sprintf local7 "SLG%c" [37]
+                }
+                of 26 {
+                    local7 = "ERA"
+                }
+                of 0 {
+                    local7 = "AB"
+                }
+                of 1 {
+                    local7 = "H"
+                }
+                of 7 {
+                    local7 = "1B"
+                }
+                of 8 {
+                    local7 = "2B"
+                }
+                of 9 {
+                    local7 = "3B"
+                }
+                of 10 {
+                    local7 = "HR"
+                }
+                of 15 {
+                    local7 = "RBI"
+                }
+                of 12 {
+                    local7 = "R"
+                }
+                of 5 {
+                    local7 = "BB"
+                }
+                of 2 {
+                    local7 = "SO"
+                }
+                of 11 {
+                    local7 = "SB"
+                }
+                of 14 {
+                    local7 = "E"
+                }
+                of 28 {
+                    local7 = "W"
+                }
+                of 29 {
+                    local7 = "L"
+                }
+                of 25 {
+                    local7 = "IP"
+                }
+                of 22 {
+                    local7 = "BF"
+                }
+                of 6 {
+                    local7 = "HA"
+                }
+                of 21 {
+                    local7 = "RA"
+                }
+                of 17 {
+                    local7 = "SO"
+                }
+                of 18 {
+                    local7 = "BB"
+                }
+                of 16 {
+                    local7 = "PT"
+                }
+                of 20 {
+                    local7 = "B"
+                }
+                of 19 {
+                    local7 = "S"
+                }
+                else {
+                    local7 = "UNKNOWN STAT"
+                }
+            }
+        } else {
+            if (local0 == 9) {
+                if (local14[local9] == 23) {
+                    if (local19[0]) {
+                        local6 = local19[1] * 1000 / local19[0]
+                    } else {
+                        local6 = 0
+                    }
+                } else if (local14[local9] == 24) {
+                    if (local19[0]) {
+                        temp = local19[7] + 2 * local19[8] + 3 * local19[9] + 4 * local19[10]
+                        local6 = temp * 1000 / local19[0]
+                    } else {
+                        local6 = 0
+                    }
+                } else {
+                    local6 = local19[local14[local9]]
+                }
+            } else {
+                local6 = local11[local1][local14[local9]]
+                local19[local14[local9]] = local19[local14[local9]] + local6
+            }
+            local7 = call-script 2208 [local14[local9], local6, 10]
+        }
+        local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+        free-array local7
+        image-select local4
+        image-pos (local8 + 33 * local9 - local2 / 2) local5
+        image-render-into local3
+        image-x36 1
+        image-x30
+        image-xff
+    }
+    if (local0 == -1) {
+        local7 = "NAME"
+        goto label08a2
+    } else if (local0 == 9) {
+        local10 = 9
+        local7 = "TOTALS"
+        goto label08a2
+    }
+    if (local11[local1][16]) {
+        sprintf local7 "%s" [gKidName]
+label08a2:
+        local5 = local10 * 14 + 140 + local18
+        ++local10
+        local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+        free-array local7
+        image-select local4
+        image-pos (86 - local2 / 2) local5
+        image-render-into local3
+        image-x36 1
+        image-x30
+        image-xff
+        local8 = 86 + 60 + 14
+        for local9 = 0 to local13 ++ {
+            if (local0 == -1) {
+                case local15[local9] {
+                    of 23 {
+                        local7 = "AVG"
+                    }
+                    of 24 {
+                        sprintf local7 "SLG%c" [37]
+                    }
+                    of 26 {
+                        local7 = "ERA"
+                    }
+                    of 0 {
+                        local7 = "AB"
+                    }
+                    of 1 {
+                        local7 = "H"
+                    }
+                    of 7 {
+                        local7 = "1B"
+                    }
+                    of 8 {
+                        local7 = "2B"
+                    }
+                    of 9 {
+                        local7 = "3B"
+                    }
+                    of 10 {
+                        local7 = "HR"
+                    }
+                    of 15 {
+                        local7 = "RBI"
+                    }
+                    of 12 {
+                        local7 = "R"
+                    }
+                    of 5 {
+                        local7 = "BB"
+                    }
+                    of 2 {
+                        local7 = "SO"
+                    }
+                    of 11 {
+                        local7 = "SB"
+                    }
+                    of 14 {
+                        local7 = "E"
+                    }
+                    of 28 {
+                        local7 = "W"
+                    }
+                    of 29 {
+                        local7 = "L"
+                    }
+                    of 25 {
+                        local7 = "IP"
+                    }
+                    of 22 {
+                        local7 = "BF"
+                    }
+                    of 6 {
+                        local7 = "HA"
+                    }
+                    of 21 {
+                        local7 = "RA"
+                    }
+                    of 17 {
+                        local7 = "SO"
+                    }
+                    of 18 {
+                        local7 = "BB"
+                    }
+                    of 16 {
+                        local7 = "PT"
+                    }
+                    of 20 {
+                        local7 = "B"
+                    }
+                    of 19 {
+                        local7 = "S"
+                    }
+                    else {
+                        local7 = "UNKNOWN STAT"
+                    }
+                }
+            } else {
+                if (local0 == 9) {
+                    if (local15[local9] == 26) {
+                        if (local19[30] > 0) {
+                            local6 = local19[21] * room55 / local19[30]
+                        } else {
+                            local6 = local19[21] * room55
+                        }
+                    } else {
+                        local6 = local19[local15[local9]]
+                    }
+                } else {
+                    local6 = local11[local1][local15[local9]]
+                    local19[local15[local9]] = local19[local15[local9]] + local6
+                }
+                local7 = call-script 2208 [local15[local9], local6, 10]
+            }
+            local2 = call-script maybe_draw_text_to_image [local7, 1525, local4, local17, 1]
+            free-array local7
+            image-select local4
+            image-pos (local8 + 33 * local9 - local2 / 2) local5
+            image-render-into local3
+            image-x36 1
+            image-x30
+            image-xff
+        }
+        if (local11 == gSeasonStats || local11 == gPlayoffStats) {
+            local19[30] = local19[30] + local11[local1][30]
+        }
+    }
+}
+draw-x62 local3
+run-script FreePalette [local16]
+run-script FreePalette [local17]
+run-script FreeScratchImage [local3]
+run-script FreeScratchImage [local4]
+free-array local19
+free-array local14
+free-array local15
+free-script

@@ -1,0 +1,199 @@
+; SCRP 352 NetHandleMessageGameplay
+
+parameter message: NetMessage
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+
+local variable local11
+local variable local12
+
+local11 = kludge-retval [2001, 1508]
+if (g_net_smth_master == local11) {
+    pop-discard 0
+}
+if (arg10) {
+    local11 = g_net_smth_master
+} else {
+    global540 = 10
+}
+if (gNetworkAuditTrail) {
+    run-script NetWriteAudit [local11, global509, message, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+}
+case message {
+    of NET-DIALOGUE {
+        run-script CastGameplay [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+    }
+    of NET-SETROOM {
+        if (arg1 == 27) {
+            x50
+        }
+        go-to-room arg1
+    }
+    of NET-ASK-WHO-IS-MASTER {
+        if (g_net_smth_me == g_net_smth_master) {
+            run-script-xc3 maybe_net_send_message [30, 1, NET-I-AM-MASTER, g_net_smth_master]
+            g_net_smth_slave = arg1
+        }
+    }
+    of NET-I-AM-MASTER {
+        g_net_smth_me = arg1
+    }
+    of NET-BATVIEW-MESSAGE {
+        if (!arg10) {
+            if (arg1 in [7607, 7606]) {
+                if (!g_smth_net_pause_flag) {
+                    g_smth_net_pause_flag = 1
+                    run-script maybe_net_handle_batview_message [message, local11, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+                }
+                run-script-xc3 maybe_net_send_message [10, 1, NET-smth-pause-flag]
+            } else {
+                run-script maybe_net_handle_batview_message [message, local11, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+            }
+        } else {
+            run-script maybe_net_handle_batview_message [message, local11, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+        }
+    }
+    of NET-WAITFLAG {
+        ++gNetWaitFlag
+    }
+    of NET-TEAMS-INFO {
+        gTeamInfo[1][3] = arg1
+        gTeamInfo[1][8] = arg2
+        gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg3
+        gTeamInfo[1][TI-TEAM-NOUN] = arg4
+        gTeamInfo[0][3] = arg5
+        gTeamInfo[0][8] = arg6
+        gTeamInfo[0][TI-TEAM-ADJECTIVE] = arg7
+        gTeamInfo[0][TI-TEAM-NOUN] = arg8
+    }
+    of NET-PING {
+        if (arg1 == 13) {
+            run-script-xc3 maybe_net_send_message [10, 1, NET-PONG, arg2]
+        }
+    }
+    of NET-PONG {
+        if (arg1 == 13) {
+            gNetLag = timer-x0a 1
+        }
+    }
+    in [NET-PICK-FIRST, NET-PICKED-KID] {
+        g_maybe_net_who_picks_next = arg1
+    }
+    of NET-ZPLANE-ON {
+        run-script smth_he9_zplane [arg1, arg2]
+    }
+    in [NET-RUNNER-SCORED, NET-RUNNER-OUT, NET-RUNNER-CLICK] {
+        run-script NetHandleRunnerMessage [message, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+    }
+    of NET-SET-RUNNER-VARS {
+        gRunnerCursorIndex = arg1
+        gRunnerCursorDestinationBase = arg2
+    }
+    of NET-OV-PLAY-OVER {
+        gNetOvPlayOver = 1
+    }
+    of NET-CALL-TIMEOUT {
+        gNetTimeout = 1
+    }
+    of NET-BACK-FROM-TIMEOUT {
+        gNetTimeout = 0
+    }
+    of NET-SEND-STAT {
+        run-script AddStat [arg1, arg2, arg3, 1]
+    }
+    of NET-CHECK-TEAM-SELECTION {
+        if (arg1 == 33) {
+            local12 = iif (arg2 == global517 || arg2 == global514) 2 1
+        }
+        if (arg1 == 31) {
+            local12 = iif (arg2 == global515 || arg2 == global512) 2 1
+        }
+        if (arg1 == 32) {
+            local12 = iif (arg2 == global516 || arg2 == global513) 2 1
+        }
+        run-script-xc3 maybe_net_send_message [30, 1, NET-PICK-FIRST, local12]
+    }
+    of 37 {
+        if (arg2) {
+            global541 = 1
+        } else {
+            run-script smth_draft_lots_of_sprite_image_actor_stuff [arg1]
+        }
+    }
+    of NET-TEAM-INFO {
+        gTeamInfo[1][3] = arg1
+        gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg2
+        gTeamInfo[1][TI-TEAM-NOUN] = arg3
+    }
+    of NET-REDUCE-FATIGUE {
+        run-script smth_reduce_fatigue [arg1, arg2, 1]
+    }
+    of NET-SET-PLAYER-FATIGUE {
+        gKidData[arg1][KD-fatigue] = arg2
+    }
+    of NET-DRAW-BALL-DISTANCE-DECAL {
+        if (gCurrentRoom == 3) {
+            run-script DrawBallDistanceDecal [arg1]
+        }
+    }
+    of NET-YELL {
+        run-script-xc3 maybe_net_handle_yell [6, arg1]
+    }
+    of NET-YELL-THUMB {
+        if (local11 != g_net_smth_master) {
+            run-script-xc3 maybe_net_handle_yell [arg1, arg2]
+        } else {
+            run-script maybe_net_smth_yell_sound [local11 == g_net_smth_master, arg1, arg2]
+        }
+    }
+    of 9911 {
+        run-script NetHandleMessageLobby [9911, arg1, arg2]
+    }
+    of NET-smth-pause-flag {
+        g_smth_net_pause_flag = 1
+    }
+    of NET-maybe-abort-game {
+        if (!(is-script-running smth_net_abort_game)) {
+            run-script smth_net_abort_game [arg1]
+        }
+    }
+    of 52 {
+        if (arg1 < 0) {
+            run-script-xc3 maybe_net_send_message [30, 1, 52, global515, global516, global517, global678]
+        } else {
+            if (global512 != arg1) {
+                global512 = arg1
+            }
+            if (global513 != arg2) {
+                global513 = arg2
+            }
+            if (global514 != arg3) {
+                global514 = arg3
+            }
+            if (global663 != arg4) {
+                global663 = arg4
+            }
+        }
+    }
+    of NET-maybe-skip-picking-team {
+        gSkipPickingTeam = arg1
+    }
+    of NET-smth-powerup {
+        gGivePowerup = arg1
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "Error!  net-message-code = %d" message []
+        pop-discard 0
+    }
+}
+return 1
+free-script

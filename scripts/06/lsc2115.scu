@@ -1,0 +1,46 @@
+; LSC2 6 2115
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+for local1 = 0 to 18 ++ {
+    if (local0 == room17[0][local1]) {
+        local2 = room17[room1][local1]
+        local1 = 999
+    }
+}
+if (local2 > 0) {
+    local5 = call-script GetTeamPrefixString [local2 - 100]
+    local6 = call-script GetTeamNameString [local2]
+    sprintf local3 "%s %s" [local5, local6]
+    free-array local5
+    free-array local6
+    if (g_underwater_array[local2][1] == 1) {
+        local5 = "American League"
+    } else {
+        local5 = "National League"
+    }
+    case g_underwater_array[local2][2] {
+        of 1 {
+            local6 = "West"
+        }
+        of 2 {
+            local6 = "Central"
+        }
+        of 3 {
+            local6 = "East"
+        }
+    }
+    sprintf local4 "%s %s" [local5, local6]
+    free-array local5
+    free-array local6
+    run-script UpdateNavText [local3, local4]
+    free-array local3
+    free-array local4
+}
+free-script

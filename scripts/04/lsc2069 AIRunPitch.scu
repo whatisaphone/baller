@@ -1,0 +1,66 @@
+; LSC2 4 2069 AIRunPitch
+
+stop-script
+run-script AIDecideWhetherChangePicther []
+while (!!(is-script-running AIDecideWhetherChangePicther)) {
+    stop-script
+}
+label0014:
+rAIDelay = 3 * 60 / gMinJiffies
+while (!room25) {
+    stop-script
+}
+do {
+    --rAIDelay
+    stop-script
+    if (room5) {
+        goto label0014
+    }
+} until (rAIDelay <= 0)
+if (!r_maybe_smth_idle_ready_for_pitch) {
+    goto label0014
+}
+if (is-script-running PreviewHit) {
+    free-running-script 0
+}
+while (gCurrentSpeechScript) {
+    stop-script
+}
+if (MODE-BATTING-PRACTICE == gGameMode) {
+    if (!gBattingPracticeEnabledPitches) {
+        goto label0014
+    }
+    rPitchKind = 0
+    do {
+        case random 3 {
+            of 0 {
+                if (gBattingPracticeEnabledPitches & 1) {
+                    rPitchKind = PITCH-HEAT
+                }
+            }
+            of 1 {
+                if (gBattingPracticeEnabledPitches & 2) {
+                    rPitchKind = PITCH-SLOWBALL
+                }
+            }
+            of 2 {
+                if (gBattingPracticeEnabledPitches & 4) {
+                    rPitchKind = PITCH-LEFT-HOOK
+                }
+            }
+            of 3 {
+                if (gBattingPracticeEnabledPitches & 8) {
+                    rPitchKind = PITCH-RIGHT-HOOK
+                }
+            }
+        }
+    } until (rPitchKind)
+    run-script BattingPracticeSetPitchParameters []
+} else {
+    if (gPitcherPitches[1 - gBattingTeamInfoIndex][1] == 0) {
+        run-script FillPitcherPitches []
+    }
+    run-script AISetPitchParameters []
+}
+run-script SendBatViewMessage [MSG-CHOOSE-PITCH-LOCATION, rClickedPitchLocationX, rClickedPitchLocationY]
+free-script

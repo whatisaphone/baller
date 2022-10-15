@@ -1,0 +1,45 @@
+; LSC2 2 2059
+
+local variable local2
+
+if (call-script NetIsRouteAvailable []) {
+label0009:
+    run-script 331 []
+    while (!!(is-script-running 331)) {
+        stop-script
+    }
+    cursor-input-disable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-hide
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    stop-script
+    go-to-room 37
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    if (read-ini-int "OverrideNoRouteAvailable") {
+        goto label0009
+    }
+    free-running-script 2051
+    local2 = "You must connect to the internet before you can play online."
+    run-script ShowPopup [local2, 2, 5]
+    while (!gPopupResult) {
+        stop-script
+    }
+    run-script 2051 []
+}
+free-script

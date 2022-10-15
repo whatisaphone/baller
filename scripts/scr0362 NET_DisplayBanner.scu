@@ -1,0 +1,112 @@
+; SCRP 362 NET_DisplayBanner
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+if (global542) {
+    xb7-xfe
+    xb7-x4b "Error - NET_DisplayBanner called again - old not cleared"
+    free-array global542
+}
+dim array global542 i32[0...10][0...4] swap=2
+if (gBatViewCursorLoopScript) {
+    free-running-script gBatViewCursorLoopScript
+}
+local5 = gCurrentRoom
+if (!arg1) {
+    arg1 = 600
+}
+global534 = 1
+case arg0 {
+    of 9910 {
+        local2 = 4
+        array-fill-list global542 0 3 2 2 [436]
+        array-fill-list global542 0 3 3 3 [0, 2, 2, 1]
+        global542[1][4] = 1
+        global542[2][4] = 1
+        local4 = 363
+    }
+    of 9911 {
+        local2 = 2
+        array-fill-list global542 0 1 2 2 [434]
+        array-fill-list global542 0 1 3 3 [0, 0]
+        global542[0][4] = 0
+    }
+}
+global542[0][0] = local2 - 1
+for local3 = 0 to (local2 - 1) ++ {
+    global542[local3][1] = call-script FindFreeSprite []
+    sprite-set-range global542[local3][1] global542[local3][1]
+    sprite-clear
+    sprite-set-image global542[local3][2]
+    sprite-x34 global542[local3][3]
+    sprite-x52 0
+    sprite-x7c 0
+    sprite-x2b (1000 + local3 * 5)
+    sprite-set-hotspot 320 240
+    if (global542[local3][4]) {
+        sprite-set-range global542[local3][1] global542[local3][1]
+        sprite-xc6 1 global542[local3][1]
+    }
+}
+if (arg0 == 9911) {
+    local8 = call-script DrawString [gNetRemoteCoachName, 557, 934]
+    free-array local6
+    local9 = call-script FindFreeSprite []
+    sprite-set-range local9 local9
+    sprite-clear
+    sprite-set-image 934
+    sprite-set-hotspot 246 217
+    sprite-x2b 6000
+    sprite-x7c 0
+    local7 = call-script FindFreeSprite []
+    run-script maybe_smth_net_yell_ui [global552, 220, 220, local7, 935, 202]
+}
+if (arg0 == 9910) {
+    sprintf local6 "COACH %s CALLS   " [gNetRemoteCoachName]
+    local7 = call-script FindFreeSprite []
+    local8 = call-script DrawString [local6, 651, 935]
+    free-array local6
+    sprite-set-range local7 local7
+    sprite-clear
+    sprite-set-image 935
+    sprite-set-hotspot 249 162
+    sprite-x2b 1050
+    local9 = call-script FindFreeSprite []
+    run-script maybe_smth_net_yell_ui [global552, 214, 160, local9, 934, 179]
+}
+if (local4) {
+    run-script local4 []
+    while (!!(is-script-running local4)) {
+        stop-script
+    }
+} else if (arg1 > 0) {
+    sleep arg1
+} else {
+    while (!!global534) {
+        stop-script
+    }
+}
+run-script ReleaseSprite [local7]
+local7 = 0
+run-script ReleaseSprite [local9]
+local9 = 0
+for local3 = 0 to (local2 - 1) ++ {
+    run-script ReleaseSprite [global542[local3][1]]
+    global542[local3][1] = 0
+}
+free-array global542
+if (local5 == gCurrentRoom) {
+    run-script gBatViewCursorLoopScript []
+}
+global534 = 0
+free-script

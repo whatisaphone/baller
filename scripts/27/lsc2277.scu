@@ -1,0 +1,37 @@
+; LSC2 27 2277
+
+local variable local0
+
+if (room120) {
+    for local0 = 0 to 7 ++ {
+        run-script ReleaseSprite [room120[local0]]
+        room120[local0] = 0
+        run-script ReleaseSprite [room124[local0]]
+        room124[local0] = 0
+        run-script ReleaseSprite [room131[local0]]
+        room131[local0] = 0
+        run-script ReleaseSprite [room126[local0]]
+        room126[local0] = 0
+        run-script FreeScratchImage [room121[local0]]
+        run-script FreeScratchImage [room125[local0]]
+        run-script FreeScratchImage [room132[local0]]
+        if (room134[local0]) {
+            run-script FreeScratchImage [room134[local0]]
+        }
+    }
+    run-script ReleaseSprite [room119]
+    room119 = 0
+    run-script ReleaseSprite [room127]
+    room127 = 0
+    run-script ReleaseSprite [room128]
+    room128 = 0
+    run-script ReleaseSprite [room129]
+    room129 = 0
+    run-script ReleaseSprite [room130]
+    room130 = 0
+    run-script ReleaseSprite [room93]
+    room93 = 0
+    run-script ReleaseSprite [room95]
+    room95 = 0
+}
+free-script

@@ -1,0 +1,118 @@
+; LSC2 37 2085
+
+local variable local0
+local variable local2
+local variable local3
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local14
+
+local9 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+local11 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+if (local11 > 284) {
+    if (room26 < room18) {
+        ++room25
+        ++room26
+        local14 = 5
+    } else {
+        local12 = 1
+    }
+} else if (room25 > 1) {
+    --room25
+    --room26
+    local14 = 4
+} else {
+    local12 = 1
+}
+if (!local12 && !room23) {
+    sprite-set-range room15[8] room15[8]
+    sprite-set-hotspot 316 240
+    sprite-set-image 1374
+    sprite-x34 local14
+    sprite-x2b 20
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-palette room9
+    stop-script
+    sprite-set-range room15[8] room15[8]
+    sprite-clear
+    sprite-x2a 0 2
+    local7 = palette-x42 room11 5
+    image-select room16[1]
+    image-op-create
+    image-x20 360
+    image-x21 200
+    image-xff
+    image-select room16[1]
+    image-x85 0 0 360 200 local7
+    image-xff
+    image-select room16[3]
+    image-op-create
+    image-x20 152
+    image-x21 200
+    image-xff
+    image-select room16[3]
+    image-x85 0 0 152 200 local7
+    image-xff
+    local8 = 1
+    for local2 = room25 to room26 ++ {
+        local0 = call-script smth_string [room17, 44, local2, 1]
+        local3 = call-script maybe_draw_text_to_image [local0, 1239, room16[0], room11]
+        image-select room16[0]
+        image-pos 2 local10
+        image-render-into room16[1]
+        image-x30
+        image-xff
+        sprintf local5 "%d" [read-ini-int room34 local0 "_Wins"]
+        sprintf local6 "%d" [read-ini-int room34 local0 "_Losses"]
+        local3 = call-script maybe_draw_text_to_image [local5, 1031, room16[0], room13]
+        local3 = local3 / 2
+        image-select room16[0]
+        image-pos (18 - local3) local10
+        image-render-into room16[3]
+        image-x30
+        image-xff
+        local3 = call-script maybe_draw_text_to_image [local6, 1031, room16[0], room13]
+        local3 = local3 / 2
+        image-select room16[0]
+        image-pos (62 - local3) local10
+        image-render-into room16[3]
+        image-x30
+        image-xff
+        free-array local0
+        free-array local5
+        free-array local6
+        local10 = local8 * 34 + local8
+        ++local8
+    }
+    sprite-set-range room15[4] room15[4]
+    sprite-clear
+    sprite-set-hotspot 116 198
+    sprite-set-image room16[1]
+    sprite-x2b 50
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-set-range room15[5] room15[5]
+    sprite-clear
+    sprite-set-hotspot 396 198
+    sprite-set-image room16[3]
+    sprite-x2b 20
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-set-range room15[6] room15[6]
+    sprite-clear
+    sprite-x2a 0 2
+    if (gNetUsername) {
+        free-array gNetUsername
+    }
+    if (gNetPassword) {
+        free-array gNetPassword
+    }
+}
+free-script

@@ -1,0 +1,18 @@
+; LSC2 27 2174
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+local6 = call-script 2208 [local4, local0, 3]
+local7 = call-script maybe_draw_text_to_image [local6, local1, local3, room62, 1]
+free-array local6
+local7 = local7 / 2
+local5 = local2 - local7
+return local5
+free-script

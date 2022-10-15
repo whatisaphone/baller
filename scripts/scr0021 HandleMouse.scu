@@ -1,0 +1,60 @@
+; SCRP 21 HandleMouse
+
+parameter arg0
+parameter x
+parameter y
+parameter arg3
+
+local variable local5
+local variable local6
+
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD && global75) {
+    gUIInputDevice = INPUT-DEVICE-MOUSE
+    run-script HideGamePadCursor []
+} else {
+    if (x == -1 && y == -1) {
+        x = gMouseX
+        y = gMouseY
+    }
+    gLastMouseX = x
+    gLastMouseY = y
+    if (arg3 == 10) {
+        local6 = arg0
+    } else {
+        local6 = sprite-get-x2d x y 0 0 [32, 18]
+    }
+    if (local6) {
+        if (gSpriteCursorTargets[local6][TARGET-ALTERNATE-CLICK-SCRIPT_unused] && gAlternateInput_always_false && (sprite-has-class local6 [18, 32])) {
+            xd1
+            exec-script-xc3 gSpriteCursorTargets[local6][TARGET-ALTERNATE-CLICK-SCRIPT_unused] [local6]
+        } else {
+            if (gAlternateInput_always_false) {
+                xd1
+            }
+            if (gSpriteCursorTargets[local6][TARGET-CLICK-SCRIPT] && (sprite-has-class local6 [18, 32])) {
+                xd1
+                exec-script-xc3 gSpriteCursorTargets[local6][TARGET-CLICK-SCRIPT] [local6]
+            } else {
+                arg0 = 0
+            }
+        }
+    }
+    if (arg0 > 0 && arg0 <= 60) {
+        local5 = arg0
+    } else {
+        local5 = x9f x y
+    }
+    if (local5) {
+        if (gActorCursorTargets[local5][TARGET-ALTERNATE-CLICK-SCRIPT_unused] && gAlternateInput_always_false && (get-class local5 [18])) {
+            xd1
+            exec-script gActorCursorTargets[local5][TARGET-ALTERNATE-CLICK-SCRIPT_unused] [local5]
+        } else if (gActorCursorTargets[local5][TARGET-CLICK-SCRIPT] && (get-class local5 [18])) {
+            xd1
+            if (gAlternateInput_always_false) {
+            }
+            exec-script gActorCursorTargets[local5][TARGET-CLICK-SCRIPT] [local5]
+        }
+    }
+    run-script 19 [arg0, 3, x, y]
+}
+free-script

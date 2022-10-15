@@ -1,0 +1,216 @@
+; LSC2 4 2131 BanterPitcher
+
+parameter kid: Kid
+
+gCurrentSpeechScript = BanterPitcher
+case kid {
+    of KIMMY-ECKMAN {
+        if (random 1) {
+            xba "\x7fT18152274,23623\x7f  I'm going to blow this one right by!" 11
+        } else {
+            xba "\x7fT18175897,11887\x7f  Watch this pitch!" 11
+        }
+    }
+    of MARIA-LUNA {
+        if (random 1) {
+            xba "\x7fT18187784,32491\x7f  I'm gonna smoke this one by you!" 11
+        } else {
+            xba "\x7fT18220275,34796\x7f  Hokay, I throw this one good!" 11
+        }
+    }
+    of ANGELA-DELVECCHIO {
+        if (random 1) {
+            xba "\x7fT18255071,34514\x7f  Watch out for this one, kid, because I throw pretty fast, ya know." 11
+        } else {
+            xba "\x7fT18289585,28145\x7f  This next one's a strike, guaranteed." 11
+        }
+    }
+    of VICKI-KAWAGUCHI {
+        if (random 1) {
+            xba "\x7fT18317730,21729\x7f  Graceful as a swan." 11
+        } else {
+            xba "\x7fT18339459,22083\x7f  Okay, here goes..." 11
+        }
+    }
+    of GRETCHEN-HASSELHOFF {
+        if (random 1) {
+            xba "\x7fT18361542,11373\x7f  Okay, um, okay." 11
+        } else {
+            xba "\x7fT18372915,16510\x7f  Hnnn, I like pitching!" 11
+        }
+    }
+    of SALLY-DOBBS {
+        if (random 1) {
+            xba "\x7fT18389425,29256\x7f  Okay, I'm going to throw this one right by." 11
+        } else {
+            xba "\x7fT18418681,42645\x7f  Don't even bother swinging, because I'm not going to let you hit it." 11
+        }
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        if (random 1) {
+            xba "\x7fT18461326,33717\x7f  Don't take yer eyes off the ball, cuz I throw perty fast!" 11
+        } else {
+            xba "\x7fT18495043,16752\x7f  I'm gonna strike y'all out!" 11
+        }
+    }
+    in [ASHLEY-WEBBER, SIDNEY-WEBBER] {
+        if (random 1) {
+            xba "\x7fT18511795,15871\x7f  I'm gonna ace this one!" 11
+        } else {
+            xba "\x7fT18527666,22977\x7f  I'm going to try really hard this time!" 11
+        }
+    }
+    of KIESHA-PHILLIPS {
+        if (random 1) {
+            xba "\x7fT18550643,20158\x7f  Hey, you've got some 'updoc' in your hair." 11
+        } else {
+            xba "\x7fT18570801,33437\x7f  My heat is so fast it'll give you a rash." 11
+        }
+    }
+    of STEPHANIE-MORGAN {
+        if (random 1) {
+            xba "\x7fT18604238,13256\x7f        I'm gonna ice 'em!" 11
+        } else {
+            xba "\x7fT18617494,31263\x7f        Watch my release.  I've modeled it after Randy Johnson." 11
+        }
+    }
+    of LUANNE-LUI {
+        if (random 1) {
+            xba "\x7fT18648757,32637\x7f  Neenew neenew, battew wattew!" 11
+        } else {
+            xba "\x7fT18681394,27686\x7f  I wub pwaying baseball!" 11
+        }
+    }
+    of ANNIE-FRAZIER {
+        if (random 1) {
+            xba "\x7fT18709080,28422\x7f  \x09\x09All right, my arm is feelin good!" 11
+        } else {
+            xba "\x7fT18737502,13964\x7f  \x09\x09I'm on a roll now!" 11
+        }
+    }
+    of JOCINDA-SMITH {
+        if (random 1) {
+            xba "\x7fT18751466,17602\x7f  I've got the skills!" 11
+        } else {
+            xba "\x7fT18769068,19577\x7f  These batter don't have a chance..." 11
+        }
+    }
+    of LISA-CROCKET {
+        if (random 1) {
+            xba "\x7fT18788645,12523\x7f       Here goes nothing." 11
+        } else {
+            xba "\x7fT18801168,19892\x7f       Watch me now, hey." 11
+        }
+    }
+    of RONNY-DOBBS {
+        if (random 1) {
+            xba "\x7fT18821060,24821\x7f  I'm gonna throw the ball like a rocket!" 11
+        } else {
+            xba "\x7fT18845881,43217\x7f  Watch out, here comes my super duper rocket pitch!" 11
+        }
+    }
+    of ACHMED-KHAN {
+        if (random 1) {
+            xba "\x7fT18889098,10107\x7f  Watch this!" 11
+        } else {
+            xba "\x7fT18899205,18039\x7f  I'm gonna strike you out!" 11
+        }
+    }
+    of AMIR-KHAN {
+        if (random 1) {
+            xba "\x7fT18917244,9104\x7f  Watch this!" 11
+        } else {
+            xba "\x7fT18926348,17990\x7f  This one's gonna be a strike!" 11
+        }
+    }
+    of KENNY-KAWAGUCHI {
+        if (random 1) {
+            xba "\x7fT18944338,18209\x7f  I'm going to strike them all out!" 11
+        } else {
+            xba "\x7fT18962547,17574\x7f  I'm going to get you batter!" 11
+        }
+    }
+    of PETE-WHEELER {
+        if (random 1) {
+            xba "\x7fT18980121,44811\x7f  Umm okay, I should throw the ball now, right?" 11
+        } else {
+            xba "\x7fT19024932,12077\x7f  I'm the pitcher." 11
+        }
+    }
+    of DMITRI-PETROVICH {
+        if (random 1) {
+            xba "\x7fT19037009,39529\x7f  Perhaps a flick of the wrist will provide the correct ball spin I require." 11
+        } else {
+            xba "\x7fT19076538,31351\x7f  I have practiced this next pitch, as you will soon see." 11
+        }
+    }
+    of RICKY-JOHNSON {
+        if (random 1) {
+            xba "\x7fT19107889,8409\x7f  Oh wow." 11
+        } else {
+            xba "\x7fT19116298,25740\x7f  Okay, I hope I don't hit anyone..." 11
+        }
+    }
+    of MARKY-DUBOIS {
+        if (random 1) {
+            xba "\x7fT19142038,52244\x7f  I'm a gonna smoke this one by like a bossy cow in a turnip field!" 11
+        } else {
+            xba "\x7fT19194282,39782\x7f  Don't you go blinkin now, else you'll miss my next pitch!" 11
+        }
+    }
+    of REESE-WORTHINGTON {
+        if (random 1) {
+            xba "\x7fT19234064,38704\x7f  I've read lots of books on pitching, and I've figured it out!" 11
+        } else {
+            xba "\x7fT19272768,37828\x7f  My arm is a mighty cannon." 11
+        }
+    }
+    of PABLO-SANCHEZ {
+        if (random 1) {
+            xba "\x7fT19310596,20483\x7f  No vas a saber que paso." 11
+        } else {
+            xba "\x7fT19331079,16079\x7f  Te voy a mandar fuego" 11
+        }
+    }
+    of TONY-DELVECCHIO {
+        if (random 1) {
+            xba "\x7fT19347158,23569\x7f       Hey Slick, why don't you just give up now." 11
+        } else {
+            xba "\x7fT19370727,29709\x7f       I'm sorry Slick, but I'm gonna have to strike you out." 11
+        }
+    }
+    of JORGE-GARCIA {
+        if (random 1) {
+            xba "\x7fT19400436,20324\x7f  I will show no mercy!" 11
+        } else {
+            xba "\x7fT19420760,24225\x7f  Batter, prepare for a drubbing." 11
+        }
+    }
+    of DANTE-ROBINSON {
+        if (random 1) {
+            xba "\x7fT19444985,13200\x7f   Here's comes the heat." 11
+        } else {
+            xba "\x7fT19458185,10159\x7f   Eat this!" 11
+        }
+    }
+    of ERNIE-STEELE {
+        if (random 1) {
+            xba "\x7fT19468344,17808\x7f \x09Don't blink!\x09 Huh huh." 11
+        } else {
+            xba "\x7fT19486152,31628\x7f \x09Ready to walk back to the bench?  Huh huh." 11
+        }
+    }
+    of MIKEY-THOMAS {
+        if (random 1) {
+            xba "\x7fT19517780,23758\x7f  I'm gonna throw the ball real fast!" 11
+        } else {
+            xba "\x7fT19541538,18952\x7f  Should I throw a spit ball?" 11
+        }
+    }
+    of MR-CLANKY {
+        xbb "\x7fT19560490,18639\x7f"
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

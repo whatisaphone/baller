@@ -1,0 +1,21 @@
+; SCRP 280
+
+local variable local0
+local variable local1
+
+if (local0 in [1108, 1109, 1110, 1119, 1105]) {
+    palette-select local1
+    palette-set-16bit 239 239 0
+    palette-unselect
+    palette-select local1
+    palette-set-16bit 244 244 0
+    palette-unselect
+} else {
+    palette-select local1
+    palette-set-16bit 239 239 (palette-xd9 255 255 255)
+    palette-unselect
+    palette-select local1
+    palette-set-16bit 244 244 (palette-xd9 255 255 255)
+    palette-unselect
+}
+free-script

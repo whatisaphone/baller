@@ -1,0 +1,145 @@
+; LSC2 39 2156
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script PlayClickySound []
+stop-script
+room53 = 0
+if (global109) {
+    global109 = 0
+}
+room50 = 0
+free-running-script 2154
+sprite-set-range room47[1] room47[1]
+sprite-clear
+sprite-set-image 930
+sprite-x2a 0 2
+gBypassJsnMap = 0
+for local2 = [4, 3, 5, 8] {
+    sprite-set-range room47[local2] room47[local2]
+    sprite-clear
+    sprite-x2a 0 2
+}
+write-ini-string room36 gNetUsername "_LastCoachSearchedFor" room49
+run-script 330 [room49]
+while (!!(is-script-running 330)) {
+    stop-script
+}
+while (!global108) {
+    stop-script
+}
+run-script 2157 []
+while (!!(is-script-running 2157)) {
+    stop-script
+}
+case global110 {
+    of 0 {
+        sprintf local0 "%s is not logged in." [room49]
+        local1 = "Did you type the name correctly?"
+    }
+    of 1 {
+        room53 = 1
+        sprintf local0 "Found %s." [room49]
+        sprintf local1 "Location: %s" [global109]
+        free-array global109
+        gBypassJsnMap = global111
+        xb6-xfe
+        xb6-xc2 "g_BypassJsnMap IS %d" gBypassJsnMap []
+    }
+    of 2 {
+        sprintf local0 "%s is in a game." [room49]
+    }
+    of 3 {
+        sprintf local0 "%s is in a game." [room49]
+    }
+    of 4 {
+        sprintf local0 "%s is logged in." [room49]
+    }
+    of 5 {
+        sprintf local0 "%s is an invalid coach." [room49]
+    }
+    of 6 {
+        sprintf local0 "%s is logged in." [room49]
+    }
+    else {
+        local3 = "Unknown location code."
+    }
+}
+if (!local0) {
+    sprintf local0 "Failed To Locate %s" [room49]
+}
+temp2 = (strlen local0) - 1
+for temp = 0 to temp2 ++ {
+    if (local0[temp] >= 97 && local0[temp] <= 122) {
+        local0[temp] = local0[temp] - 32
+    }
+}
+local2 = call-script maybe_draw_text_to_image [local0, 1239, 660, room13]
+free-array local0
+if (!local1) {
+    local1 = "  "
+}
+temp2 = (strlen local1) - 1
+for temp = 0 to temp2 ++ {
+    if (local1[temp] >= 97 && local1[temp] <= 122) {
+        local1[temp] = local1[temp] - 32
+    }
+}
+local2 = call-script smth_draw_text_image [local1, 1239, 662, 218, 152, 3, 0, room13, 1]
+free-array local1
+if (!local3) {
+    local3 = "  "
+}
+temp2 = (strlen local3) - 1
+for temp = 0 to temp2 ++ {
+    if (local3[temp] >= 97 && local3[temp] <= 122) {
+        local3[temp] = local3[temp] - 32
+    }
+}
+local2 = call-script maybe_draw_text_to_image [local3, 1239, 661, room13]
+free-array local3
+sprite-set-range room47[4] room47[4]
+sprite-clear
+sprite-set-image 660
+sprite-set-hotspot 332 267
+sprite-x2b (1000 + 1)
+sprite-x7c 0
+sprite-set-range room47[3] room47[3]
+sprite-clear
+sprite-set-image 662
+sprite-set-hotspot 330 290
+sprite-x2b (1000 + 1)
+sprite-x7c 0
+sprite-set-range room47[5] room47[5]
+sprite-clear
+sprite-set-image 661
+sprite-set-hotspot 332 356
+sprite-x2b (1000 + 1)
+sprite-x7c 0
+room50 = 1
+run-script 2154 []
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+stop-script
+free-script

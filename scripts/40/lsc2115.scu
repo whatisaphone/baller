@@ -1,0 +1,51 @@
+; LSC2 40 2115
+
+room3 = call-script AllocPalette []
+room5 = call-script AllocPalette []
+room10 = call-script AllocPalette []
+room4 = call-script AllocPalette []
+room8 = call-script AllocPalette []
+room9 = call-script AllocPalette []
+room15 = call-script AllocPalette []
+room16 = call-script AllocPalette []
+room19 = call-script AllocPalette []
+room21 = call-script AllocPalette []
+room18 = call-script AllocPalette []
+room22 = call-script AllocPalette []
+room24 = call-script AllocPalette []
+room26 = call-script AllocPalette []
+room30 = call-script AllocPalette []
+run-script 2048 []
+palette-select room21
+palette-load 1555 0
+palette-unselect
+palette-select room5
+palette-load 1239 0
+palette-unselect
+palette-select room4
+palette-load 667 0
+palette-unselect
+palette-select room8
+palette-load 1540 0
+palette-unselect
+palette-select room9
+palette-load 1539 0
+palette-unselect
+palette-select room18
+palette-load 1031 0
+palette-unselect
+palette-select room22
+palette-load 1563 0
+palette-unselect
+palette-select room24
+palette-load 1565 0
+palette-unselect
+palette-select room26
+palette-load 1562 0
+palette-unselect
+palette-select room30
+palette-load 1574 0
+palette-unselect
+xb6-xfe
+xb6-xc2 "Free Palettes %d" (call-script GetPaletteStackPointer []) []
+free-script

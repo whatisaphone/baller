@@ -1,0 +1,5 @@
+; LSC2 39 2185
+
+xb6-xfe
+xb6-xc2 "Banner Clicked is (%d) banner State (%d)" room21 [sprite-get-wiz room7[1]]
+free-script

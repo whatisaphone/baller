@@ -1,0 +1,81 @@
+; SCRP 165 CastRunnerTaggedOut
+
+parameter arg0
+parameter arg1
+
+gCurrentSpeechScript = CastRunnerTaggedOut
+if (arg1) {
+    case random 3 {
+        of 0 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5005868,18088\x7f No!  tagged her"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5023956,21096\x7f No!  tagged him"
+            }
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT5045052,22632\x7f Oh!... makes the tag!"
+        }
+        of 2 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5067684,5128\x7f got her"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5072812,16488\x7f and tags him out!"
+            }
+        }
+        of 3 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5089300,20520\x7f Ooh!  She was tagged"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5109820,14312\x7f and he got tagged."
+            }
+        }
+    }
+} else {
+    case random 2 {
+        of 0 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5124132,13448\x7f    and tags her"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5137580,11048\x7f    and they got him!"
+            }
+        }
+        of 1 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5148628,13640\x7f    tags her!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT5162268,17576\x7f    Got him!    Nice play!"
+            }
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT5179844,13128\x7f    makes the tag!"
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

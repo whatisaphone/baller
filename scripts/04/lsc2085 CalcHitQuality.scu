@@ -1,0 +1,118 @@
+; LSC2 4 2085 CalcHitQuality
+
+local variable result
+local variable zone: Zone
+
+zone = rPitchZone
+if (rBatterHandedness == RIGHT-HANDED && gBatterStance == CLOSED || rBatterHandedness == LEFT-HANDED && gBatterStance == OPEN) {
+    if (!(rPitchZone in [1, 8, 15, 22, 29, 36, 43])) {
+        zone = zone - 1
+    }
+} else if (rBatterHandedness == RIGHT-HANDED && gBatterStance == OPEN || rBatterHandedness == LEFT-HANDED && gBatterStance == CLOSED) {
+    if (!(rPitchZone in [7, 14, 21, 28, 35, 42, 49])) {
+        zone = zone + 1
+    }
+}
+case zone {
+    in [0, 1, 7, 43, 49, 50] {
+        result = -2
+    }
+    in [2, 8, 36, 44] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = -2
+        } else {
+            result = -1
+        }
+    }
+    in [6, 14, 42, 48] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = -1
+        } else {
+            result = -2
+        }
+    }
+    in [3, 9, 15, 22, 29, 37, 45] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = -1
+        } else {
+            result = 0
+        }
+    }
+    in [5, 13, 21, 28, 35, 41, 47] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 0
+        } else {
+            result = -1
+        }
+    }
+    in [4, 46] {
+        result = 0
+    }
+    in [10, 16, 30, 38] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 0
+        } else {
+            result = 1
+        }
+    }
+    in [11, 18, 32, 39] {
+        result = 1
+    }
+    in [12, 20, 34, 40] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 1
+        } else {
+            result = 0
+        }
+    }
+    in [17, 31] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 1
+        } else {
+            result = 2
+        }
+    }
+    in [19, 33] {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 2
+        } else {
+            result = 1
+        }
+    }
+    of 23 {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 0
+        } else {
+            result = 2
+        }
+    }
+    of 24 {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 1
+        } else {
+            result = 3
+        }
+    }
+    of 25 {
+        result = 2
+    }
+    of 26 {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 3
+        } else {
+            result = 1
+        }
+    }
+    of 27 {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = 2
+        } else {
+            result = 0
+        }
+    }
+    else {
+        result = -4
+    }
+}
+return result
+free-script

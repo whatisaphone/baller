@@ -1,0 +1,13 @@
+; SCRP 52
+
+local variable local0
+local variable local1
+
+if (local0[0] > 0) {
+    local1 = local0[local0[0]]
+    dec-array-item local0 0
+} else {
+    local1 = -1616928865
+}
+return local1
+free-script

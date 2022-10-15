@@ -1,0 +1,13 @@
+; LSC2 7 2058
+
+if (global648) {
+    run-script ReleaseSprite [global648]
+    global648 = 0
+    run-script ReleaseSprite [global649]
+    global649 = 0
+    run-script ReleaseSprite [global646]
+    global646 = 0
+    run-script ReleaseSprite [global647]
+    global647 = 0
+}
+free-script

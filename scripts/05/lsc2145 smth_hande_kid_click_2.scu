@@ -1,0 +1,134 @@
+; LSC2 5 2145 smth_hande_kid_click_2
+
+parameter actor: Actor
+
+local variable kid: Kid
+local variable entry
+local variable local5
+
+if (is-script-running smth_online_kid_pick_1) {
+    cursor-input-disable
+    sprintf local5 "Waiting for Coach %s" [gNetRemoteCoachName]
+    run-script HandleHover [0, 0, local5]
+    room69 = 1
+    sleep 5
+    room69 = 0
+    cursor-input-enable
+    free-running-script 0
+}
+rDraftChoice = 0
+if (actor == 0) {
+    kid = CUSTOM-KID-0
+    entry = call-script FindBleachersEntry [gBleachersEntries, kid, BI-KID]
+    actor = gBleachersEntries[entry][BI-ACTOR]
+    stop-script
+} else {
+    run-script smth_mouse_sprites_2 [3]
+    while (!!(is-script-running smth_mouse_sprites_2)) {
+        stop-script
+    }
+    if (room47) {
+        run-script 2168 [room44, 1]
+    }
+    entry = call-script FindBleachersEntry [gBleachersEntries, actor, BI-ACTOR]
+    if (entry == -2) {
+        xb6-xfe
+        xb6-x4b "ERROR:  clicked on an unknown kid!"
+        free-running-script 0
+    }
+    kid = gBleachersEntries[entry][BI-KID]
+    if (kid > 263) {
+        array-fill-values gBleachersEntries 1 (call-script GetArrayHeight [gBleachersEntries]) 2 2 0 0
+        go-to-room 29
+    }
+}
+run-script maybe_show_kid_dialog [kid]
+while (!!(is-script-running maybe_show_kid_dialog)) {
+    stop-script
+}
+if (rDraftChoice == DRAFT-REJECT) {
+    if (CUSTOM-KID-0 == kid) {
+        run-script maybe_reset_custom_kid_data [264]
+    }
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    free-running-script 0
+}
+run-script smth_mouse_sprites_1 [1]
+gBleachersLineup[actor - 1] = 0
+if (gDraftRound <= 9) {
+    if (!g_maybe_who_picks_first) {
+        ++gDraftRound
+    }
+    case gGameMode {
+        of MODE-SEASON {
+            run-script 2069 [0, gDraftRound - 1, kid, 1]
+            gPickOrder1[gDraftRound - 1] = kid
+        }
+        of MODE-BATTING-PRACTICE {
+            gBattingPracticeKid = kid
+            sleep 10
+            run-script ReadHE9 []
+            go-to-room 4
+            free-running-script 0
+        }
+        else {
+            run-script 2069 [0, gDraftRound - 1, kid, 1]
+            gPickOrder1[gDraftRound - 1] = kid
+        }
+    }
+}
+put-actor actor 0 0 0
+gBleachersEntries[entry][BI-KID] = 0
+gBleachersEntries[entry][BI-ACTOR] = 0
+gLastPickedKid = kid
+if (kid >= 263) {
+    gBleachersKids[60 + kid - 263 + 1] = false
+} else {
+    gBleachersKids[kid] = false
+}
+run-script smth_after_draft_kid [kid]
+if ((g_maybe_who_picks_first || gGameMode != MODE-PICKUP) && gDraftRound == 9) {
+    if (gNetplayActive) {
+        run-script 2141 []
+        while (!(gBattingOrder2[0] != 0)) {
+            stop-script
+        }
+    }
+    sleep 10
+    go-to-room 27
+    free-running-script 0
+}
+if (gGameMode != MODE-SEASON) {
+    sleep 20
+    if (gNetplayActive) {
+        run-script smth_online_kid_pick_1 []
+    } else {
+        run-script maybe_ai_pick_kid []
+    }
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    while (!!(is-script-running smth_mouse_sprites_1)) {
+        stop-script
+    }
+    sleep-seconds 1
+}
+run-script smth_mouse_sprites_2 [1]
+free-script

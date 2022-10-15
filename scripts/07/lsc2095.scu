@@ -1,0 +1,53 @@
+; LSC2 7 2095
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local9 = iif (gSavedGameLength > 12) 158 252
+image-select room8[2]
+image-op-create
+image-x20 local9
+image-x21 70
+image-xff
+image-select room8[2]
+image-x85 0 0 local9 70 room12
+image-xff
+local9 = local9 / 2
+for local2 = 0 to 1 ++ {
+    local3 = iif local2 gVisitorInfoIndex gHomeInfoIndex
+    local4 = iif local2 0 38
+    local7 = gTeamInfo[local3][TI-TEAM-ADJECTIVE]
+    local8 = gTeamInfo[local3][TI-TEAM-NOUN]
+    if (gSavedGameLength > 12) {
+        local5 = call-script GetTeamNameString [local8, 1]
+    } else {
+        local0 = call-script GetTeamPrefixString [local7, 1]
+        local1 = call-script GetTeamNameString [local8, 1]
+        sprintf local5 "%s %s" [local0, local1]
+        free-array local0
+        free-array local1
+    }
+    local6 = call-script maybe_draw_text_to_image [local5, 1244, room8[3], room30, 1]
+    free-array local5
+    image-select room8[3]
+    image-pos (local9 - local6 / 2) local4
+    image-render-into room8[2]
+    image-x36 1
+    image-x30
+    image-xff
+}
+sprite-set-range room6[26] room6[26]
+sprite-clear
+sprite-set-image room8[2]
+sprite-x7c 0
+sprite-x2b -800
+sprite-set-hotspot 65 195
+free-script

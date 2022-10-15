@@ -1,0 +1,72 @@
+; LSC2 7 2089 HandleNavClick
+
+parameter arg0
+
+case arg0 {
+    of 193 {
+        if (gNetplayActive) {
+            run-script NetPromptQuit []
+        } else {
+            go-to-room 27
+        }
+    }
+    of 192 {
+        if (gGameEnded) {
+            go-to-room 27
+        } else if (-1 == gCurrentHalfInning) {
+            go-to-room 8
+        } else {
+            if (gNetWaitFlag == 0) {
+                run-script smth_nav407 []
+                cursor-input-enable
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-show
+                } else if (gCursorInputEnabled == 0) {
+                    free-running-script GamePadCursorLoop
+                    run-script ReleaseSprite [gGamePadCursorSprite]
+                    gGamePadCursorSprite = 0
+                } else {
+                    run-script ShowGamePadCursor []
+                }
+            }
+            if (gNetplayActive && room31) {
+                if (gNetplayActive) {
+                    global207 = 0
+                    dim array global207 i16[0...0][0...10] swap=2
+                    global207[0] = 998
+                    for temp2 = 0 to 8 ++ {
+                        global207[temp2 + 1] = gPickOrder1[temp2]
+                    }
+                    run-script-xc3 maybe_smth_net_send_array [40, 1, global207]
+                    free-array global207
+                }
+            }
+            global248 = 0
+            if (gNetplayActive) {
+                global248 = 72
+                run-script-xc3 maybe_net_send_message [30, 1, NET-WAITFLAG, global510, global248]
+                do {
+                    stop-script
+                } until (gNetWaitFlag)
+                --gNetWaitFlag
+            }
+            cursor-input-disable
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-hide
+            } else if (gCursorInputEnabled == 0) {
+                free-running-script GamePadCursorLoop
+                run-script ReleaseSprite [gGamePadCursorSprite]
+                gGamePadCursorSprite = 0
+            } else {
+                run-script ShowGamePadCursor []
+            }
+            run-script PlayMusicPool [0]
+            run-script AddSongsToPool [-1]
+            go-to-room 4
+        }
+    }
+    of 194 {
+        go-to-room 7
+    }
+}
+free-script

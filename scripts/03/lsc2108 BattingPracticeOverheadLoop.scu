@@ -1,0 +1,31 @@
+; LSC2 3 2108 BattingPracticeOverheadLoop
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+run-script FlightEngine []
+while (!!(is-script-running FlightEngine)) {
+    stop-script
+}
+run-script DrawBallDistanceDecal []
+stop-script
+local3 = get-x 6
+local4 = get-y 6
+local5 = get-x 7
+local6 = get-y 7
+put-actor 6 600 600 255
+put-actor 7 600 600 255
+free-image 551
+kludge [714, 19, 551, 1]
+lock-image 551
+image-select 551
+image-x33 1 0 0 639 479
+image-xff
+put-actor 6 local3 local4 255
+put-actor 7 local5 local6 255
+sleep-seconds 1
+gMinJiffies = 6
+go-to-room 4
+free-script

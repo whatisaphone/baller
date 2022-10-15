@@ -1,0 +1,92 @@
+; LSC2 4 2153 GetBatterStatsOneLiner
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+
+if (gGameMode == MODE-SEASON) {
+    local10 = call-script CalculateBattingStat [gBatterKid, STAT-BATTING-AVERAGE, gSeasonGameNumber]
+    sprintf local2 "%d" [local10]
+    local11 = call-script PadString [local2, 4, '0', 1]
+    free-array local2
+    if (local11[0] == 48) {
+        sprintf local3 ".%c%c%c" [local11[1], local11[2], local11[3]]
+    } else {
+        sprintf local3 "%c.%c%c%c" [local11[0], local11[1], local11[2], local11[3]]
+    }
+    free-array local11
+}
+local0 = gGameStats[gBatterKid][STAT-AT-BATS]
+local1 = gGameStats[gBatterKid][STAT-HITS]
+if (gGameMode == MODE-SEASON) {
+    sprintf local2 "%s    %d for %d today" [local3, local1, local0]
+    free-array local3
+} else {
+    sprintf local2 "%d for %d today" [local1, local0]
+}
+if (local0 > 0) {
+    local4 = gGameStats[gBatterKid][STAT-HOME-RUNS]
+    local5 = gGameStats[gBatterKid][STAT-TRIPLES]
+    local6 = gGameStats[gBatterKid][STAT-DOUBLES]
+    local7 = gGameStats[gBatterKid][STAT-SINGLES]
+    local8 = gGameStats[gBatterKid][STAT-STRUCK-OUT]
+    local9 = gGameStats[gBatterKid][STAT-WALKED]
+    if (local1 > 0) {
+        if (local4 > 0) {
+            sprintf local3 "%s, %d HR" [local2, local4]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+        if (local5 > 0 && (strlen local2) < 40) {
+            sprintf local3 "%s, %d 3B" [local2, local5]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+        if (local6 > 0 && (strlen local2) < 40) {
+            sprintf local3 "%s, %d 2B" [local2, local6]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+        if (local7 > 0 && (strlen local2) < 40) {
+            sprintf local3 "%s, %d 1B" [local2, local7]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+    } else {
+        if (local8 > 0) {
+            sprintf local3 "%s, %d SO" [local2, local8]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+        if (local9 > 0) {
+            sprintf local3 "%s, %d BB" [local2, local9]
+            free-array local2
+            sprintf local2 "%s" [local3]
+            free-array local3
+        }
+    }
+} else {
+    local9 = gGameStats[gBatterKid][STAT-WALKED]
+    if (local9 > 0) {
+        sprintf local3 "%s, %d BB" [local2, local9]
+        free-array local2
+        sprintf local2 "%s" [local3]
+        free-array local3
+    }
+}
+return local2
+free-script

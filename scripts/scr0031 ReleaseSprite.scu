@@ -1,0 +1,10 @@
+; SCRP 31 ReleaseSprite
+
+parameter arg0
+
+if (arg0 < 1) {
+} else {
+    run-script FreeSprite [arg0]
+    array-fill-list gSpriteCursorTargets arg0 arg0 1 4 [0]
+}
+free-script

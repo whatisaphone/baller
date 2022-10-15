@@ -1,0 +1,17 @@
+; ENCD 8
+
+if (gGameInputDevice == 0) {
+    gGameInputDevice = INPUT-DEVICE-MOUSE
+}
+run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+gHoverScript = 2094
+run-script PlayMusicPool [0]
+run-script AddSongsToPool [-1]
+run-script maybe_alloc_or_free_costumes [0]
+run-script maybe_alloc_or_free_chatter_sounds [0]
+run-script 2095 []
+run-script 2093 []
+if (gAutoplaySeason) {
+    run-script 2103 []
+}
+finish-script

@@ -1,0 +1,116 @@
+; SCRP 158 CastHitLineDrive
+
+parameter arg0
+parameter arg1
+
+gCurrentSpeechScript = CastHitLineDrive
+case arg1 {
+    of 152 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT2488683,17831\x7f hammered down the middle"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT2506514,20336\x7f laced one, right up the middle!"
+        }
+    }
+    of 153 {
+        case random 2 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2526850,17459\x7f lined it to left field"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2544309,20532\x7f drilled it into left field"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2564841,12808\x7f... smacks it down the line."
+            }
+        }
+    }
+    of 154 {
+        case random 2 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2577649,19345\x7f ... and drove one into right field"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2596994,21097\x7f drove it down the right field line"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2564841,12808\x7f... smacks it down the line."
+            }
+        }
+    }
+    of 155 {
+        case random 5 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2618091,7838\x7f ...hit hard"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2625929,10463\x7f lined back"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2636392,6888\x7f...line drive."
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2643280,6552\x7f... tags one."
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2649832,7256\x7f... spanks one."
+            }
+            of 5 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2657088,10888\x7f... tattoos that one."
+            }
+        }
+    }
+}
+xa9-xa9
+if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
+    if (gUserOnOffense) {
+        case random 2 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2667976,23773\x7f You coulda hung laundry on that one."
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2691749,35063\x7f  It's fun to watch a kid who knows how to hit the ball like that."
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2726812,36775\x7f Solid one.  I wouldn't want to be in the path of that hit."
+            }
+        }
+        xa9-xa9
+    }
+}
+gCurrentSpeechScript = 0
+free-script

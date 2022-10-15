@@ -1,0 +1,13 @@
+; LSC2 37 2071
+
+local variable local0
+
+dim array room15 i32[0...0][0...29] swap=2
+for local0 = 0 to 29 ++ {
+    room15[local0] = call-script FindFreeSprite []
+}
+dim array room16 i16[0...0][0...3] swap=2
+for local0 = 0 to 3 ++ {
+    room16[local0] = call-script AllocScratchImage []
+}
+free-script

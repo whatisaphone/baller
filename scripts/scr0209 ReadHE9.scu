@@ -1,0 +1,32 @@
+; SCRP 209 ReadHE9
+
+local variable local3
+local variable local6
+
+dim array g_he9_array i32[0...0][0...64] swap=2
+if (g_maybe_operating_system == 2) {
+    gHE9File = file-open "BaseBall 2001 (9)" 1
+} else {
+    gHE9File = file-open "Baseball 2001.he9" 1
+}
+if (gHE9File == -1) {
+    xb7-xfe
+    xb7-x4b "Error!  Cannot locate file BASEBALL 2001.HE9."
+}
+local6 = gField * 9218
+file-seek gHE9File local6 1
+g_maybe_he9_count = file-read-i16 gHE9File
+local6 = local6 + 2
+for local3 = 1 to g_maybe_he9_count ++ {
+    file-seek gHE9File local6 1
+    g_he9_cur_row = file-read-array 4 gHE9File 127
+    redim 6 g_he9_cur_row 0 31
+    local6 = local6 + 128
+    g_he9_array[local3] = g_he9_cur_row
+    g_he9_cur_row = 0
+}
+file-seek gHE9File ((gField + 1) * 9218 - 1024) 1
+g_smth_he9_final_array = file-read-array 4 gHE9File 1023
+redim 6 g_smth_he9_final_array 15 15
+file-close gHE9File
+free-script

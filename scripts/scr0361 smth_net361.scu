@@ -1,0 +1,28 @@
+; SCRP 361 smth_net361
+
+local variable local0
+
+gNetLag = 0
+gNoGooch = 0
+global44 = 27
+free-running-script smth_net_waiting_for_other_user
+free-array gNetRemoteCoachName
+g_net_smth_master = 0
+g_net_smth_me = 0
+g_net_smth_slave = 0
+gSkipPickingTeam = 0
+global675 = 0
+global674 = 0
+if (!global706) {
+    global706 = 1
+    local0 = kludge-retval [2001, 1505]
+    if (local0) {
+        local0 = kludge-retval [2001, 1500]
+        if (local0) {
+        }
+    }
+}
+if (global571) {
+    kludge [2001, 2223]
+}
+free-script

@@ -1,0 +1,144 @@
+; LSC2 8 2048 CastFirstGameOfTheSeason
+
+local variable local0
+
+gCurrentMatchupCastScript = CastFirstGameOfTheSeason
+if ((actor-get-var 1 3) == 1) {
+    actor-do-anim 1 2
+} else {
+    actor-do-anim 1 5
+}
+actor-select 1
+actor-set-var 3 0
+local0 = random 9
+case local0 {
+    of 0 {
+        xba "\x7fT94457174,60011\x7f     Just a reminder, folks, we're having a spitting contest for all you fans during the 4th inning stretch." 2
+        xa9-xa9
+        xba "\x7fT94517185,43752\x7f     Practice up, just be careful not to hit the people sitting below you!" 2
+    }
+    of 1 {
+        xba "\x7fT94560937,32902\x7f     Hey, kiddos, don't forget to buy your raffle tickets..." 2
+        xa9-xa9
+        xba "\x7fT94593839,39922\x7f     we've got a humdinger of a grand prize this season..." 2
+        xa9-xa9
+        xba "\x7fT94633761,34970\x7f     a year's supply of Bubble Gum Chew!" 2
+        xa9-xa9
+        xba "\x7fT94668731,53518\x7f     Just think of it... you could chew for a whole year without ever stopping!" 2
+    }
+    of 2 {
+        xba "\x7fT94722249,81654\x7f     Folks, when the sun gets too hot for ya, don't forget about the refreshments at Laughing Lucy's Lemonade Stand!" 2
+        xa9-xa9
+        xba "\x7fT94803903,39964\x7f     She's running a special today... two for a dollar!" 2
+        xa9-xa9
+        xba "\x7fT94843867,41636\x7f     That's two of anything behind the counter, except Lucy, of course!" 2
+    }
+    of 3 {
+        xba "\x7fT94885503,76067\x7f     Fans, don't forget to eat WAY too much cotton candy today so that you're not hungry at dinner time tonight." 2
+        xa9-xa9
+        xba "\x7fT94961570,45345\x7f     Your parents will think it's the funniest thing since your last report card!" 2
+    }
+    of 4 {
+        xba "\x7fT95006915,66311\x7f     Brand new this season, we've got Pablo Sanchez dolls on sale at the concession stand." 2
+        xa9-xa9
+        xba "\x7fT95073226,59887\x7f     Take home a miniature version of everybody's favorite, 'the secret weapon!'" 2
+        xa9-xa9
+        xba "\x7fT95133113,44492\x7f     I'm hopin' next season they'll come out with a 'Vinnie the Gooch' doll!" 2
+    }
+    of 5 {
+        xba "\x7fT95177605,40401\x7f     A word of advice if you're looking to catch a home run, today..." 2
+        xa9-xa9
+        xba "\x7fT95218006,26107\x7f     stay away from the spitballs!!" 2
+    }
+    of 6 {
+        xba "\x7fT95244113,30995\x7f     You all seem like a rowdy bunch of fans..." 2
+        xa9-xa9
+        xba "\x7fT95275108,63242\x7f     I expect to see plenty of waves, signs, and stupid looking hats outta you people." 2
+    }
+    of 7 {
+        xba "\x7fT95338350,38708\x7f     We're gonna try something new out here in the stands today." 2
+        xa9-xa9
+        xba "\x7fT95377058,105764\x7f     Every time they call a time out, I want everybody to get up, do the wave, and then sit down in the seat next to yours." 2
+        xa9-xa9
+        xba "\x7fT95482822,57038\x7f     By the end of the game, maybe we'll make it all the way around to where we started!" 2
+        xa9-xa9
+        xba "\x7fT95539860,17616\x7f     Are you all with me on this?" 2
+    }
+    of 8 {
+        xba "\x7fT95557476,75330\x7f     I hope you fans have been practicing your cheers and taunts, because I'm tired of the same old stuff." 2
+        xa9-xa9
+        xba "\x7fT95632806,29800\x7f     I'm counting on you kids to keep me entertained, here." 2
+        xa9-xa9
+        xba "\x7fT95662606,56150\x7f     I mean, don't even THINK about that Hey batta batta baloney." 2
+        xa9-xa9
+        xba "\x7fT95718756,31059\x7f     It's been done... Ya know what I'm sayin'?" 2
+    }
+    of 9 {
+        xba "\x7fT95749815,99442\x7f     If any of you younger kids out there are feeling inspired by the skill of these finely honed athletes, you should think about trying it out yourself next season." 2
+        xa9-xa9
+        xba "\x7fT95849257,65642\x7f     We're always looking for new players, and the requirements are easy to meet... you gotta have a pulse!" 2
+    }
+    of 10 {
+        xba "\x7fT95914899,219292\x7fBefore we start the game, Sunny, I'd like to read an excerpt from my new book 'I Love The Baseball' by Vinnious T. Gooch.  Chapter One.  (Ehem!) I love the baseball.  What I love most about baseball is it's 100 percent American, 'cept for the parts that were taken from other countries." 2
+        sleep 40
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        xa9-xa9
+        xba "\x7fT96134191,16730\x7fThat's great Vinnie." 1
+        xa9-xa9
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT96150921,91744\x7fThat's from my new book 'I Love The Baseball' by Vinnious T. Gooch, available at fine bookstores and gas stations across the world." 2
+    }
+    of 11 {
+        xba "\x7fT96242665,89456\x7fToday, The Fabulous Gooch predicts, that at one point in the game, at least one of these two teams will get a hit." 2
+    }
+    of 12 {
+        xba "\x7fT96332121,108296\x7fYou know, Baseball is all about the love of the game. I mean why else would anyone stand in the outfield for hours, waiting for a ball to drop into their mitt?  " 2
+    }
+    of 13 {
+        xba "\x7fT96440417,27922\x7fAnd now, a woid from our sponsor..." 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT96468339,33586\x7fVinnie!  There aren't any commercials in Backyard Baseball!" 1
+        sleep 2
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT96501925,63452\x7fNo commercials?!  Good! They drive me bananas! Except for the good ones. Those are funny. " 2
+    }
+}
+xa9-xa9
+sleep 10
+gCurrentMatchupCastScript = 0
+free-script

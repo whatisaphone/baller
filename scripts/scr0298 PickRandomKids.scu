@@ -1,0 +1,47 @@
+; SCRP 298 PickRandomKids
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+dim array local3 byte[0...0][0...gMaxUniqueKid] swap=2
+if (!arg0) {
+    for local2 = 0 to 8 ++ {
+        if (gPickOrder1[local2] <= gMaxUniqueKid) {
+            local3[gPickOrder1[local2]] = 1
+        }
+        if (gPickOrder2[local2] <= gMaxUniqueKid) {
+            local3[gPickOrder2[local2]] = 1
+        }
+    }
+}
+local1 = 0
+do {
+    if (gPickOrder1[local1] == 0 || arg0) {
+        do {
+            local2 = random2 1 gMaxUniqueKid
+        } until (local3[local2] == 0)
+        gPickOrder1[local1] = local2
+        local3[local2] = 1
+    }
+    ++local1
+} until (local1 == 9)
+array-copy-range gBattingOrder1 gPickOrder1 0 0 0 8 0 0 0 8
+local1 = 0
+do {
+    if (gPickOrder2[local1] == 0 || arg0) {
+        do {
+            local2 = random2 1 gMaxUniqueKid
+        } until (local3[local2] == 0)
+        gPickOrder2[local1] = local2
+        local3[local2] = 1
+    }
+    ++local1
+} until (local1 == 9)
+array-copy-range gBattingOrder2 gPickOrder2 0 0 0 8 0 0 0 8
+gTeamInfo[0][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+gTeamInfo[1][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+free-array local3
+free-script

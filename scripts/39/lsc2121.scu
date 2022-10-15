@@ -1,0 +1,126 @@
+; LSC2 39 2121
+
+local variable local0
+local variable local1
+
+temp = 0
+temp2 = 0
+global207 = 0
+sprintf local1 "_Page_%d" [room33]
+local0 = read-ini-int room35 local1 "_LayoutType"
+image-select 703
+image-op-create
+image-x20 640
+image-x21 480
+image-xff
+image-select 703
+image-x85 0 0 640 480 5
+image-xff
+case local0 {
+    of 1 {
+        temp = 0
+        if (temp2) {
+            free-array temp2
+        }
+        sprintf temp "_Element_%d" [1]
+        if (0) {
+            temp2 = read-ini-int room35 local1 temp
+            free-array temp
+            temp = temp2
+            temp2 = 0
+        } else {
+            temp2 = read-ini-string room35 local1 temp
+            free-array temp
+        }
+        temp = call-script smth_draw_text_image [temp2, 1239, 704, 640, 40, 2, 0, room27]
+        free-array temp2
+        global207 = call-script 2120 [1]
+        temp = 0
+        if (temp2) {
+            free-array temp2
+        }
+        sprintf temp "_Element_%d" [2]
+        if (1) {
+            temp2 = read-ini-int room35 local1 temp
+            free-array temp
+            temp = temp2
+            temp2 = 0
+        } else {
+            temp2 = read-ini-string room35 local1 temp
+            free-array temp
+        }
+        run-script 387 [temp, 0, 0, room7[3], 704, 0, room26]
+        global207 = iif (read-ini-int room35 local1 "_PictureAlign") 6 5
+        global207 = call-script 2120 [global207]
+        temp = 0
+        if (temp2) {
+            free-array temp2
+        }
+        sprintf temp "_Element_%d" [3]
+        if (0) {
+            temp2 = read-ini-int room35 local1 temp
+            free-array temp
+            temp = temp2
+            temp2 = 0
+        } else {
+            temp2 = read-ini-string room35 local1 temp
+            free-array temp
+        }
+        temp = call-script 51 [temp2, 1239, 704, 640 / 2, 2, room27, 0, 2]
+        free-array temp2
+        global207 = iif (read-ini-int room35 local1 "_PictureAlign") 3 4
+        global207 = call-script 2120 [global207]
+    }
+    of 2 {
+        temp = 0
+        if (temp2) {
+            free-array temp2
+        }
+        sprintf temp "_Element_%d" [1]
+        if (0) {
+            temp2 = read-ini-int room35 local1 temp
+            free-array temp
+            temp = temp2
+            temp2 = 0
+        } else {
+            temp2 = read-ini-string room35 local1 temp
+            free-array temp
+        }
+        temp = call-script smth_draw_text_image [temp2, 1239, 704, 640, 40, 2, 0, room27]
+        free-array temp2
+        global207 = call-script 2120 [1]
+        temp = 0
+        if (temp2) {
+            free-array temp2
+        }
+        sprintf temp "_Element_%d" [2]
+        if (0) {
+            temp2 = read-ini-int room35 local1 temp
+            free-array temp
+            temp = temp2
+            temp2 = 0
+        } else {
+            temp2 = read-ini-string room35 local1 temp
+            free-array temp
+        }
+        temp = call-script 51 [temp2, 1239, 704, 640 - 120, 2, room27, 0, 2]
+        free-array temp2
+        global207 = call-script 2120 [10]
+    }
+}
+sprintf temp2 "Page %d" [room33]
+temp = call-script smth_draw_text_image [temp2, 1239, 704, 640, 40, 2, 0, room27]
+free-array temp2
+global207 = call-script 2120 [9]
+free-array temp2
+image-select 704
+image-op-create
+image-x20 1
+image-x21 1
+image-xff
+image-select 704
+image-x85 0 0 1 1 5
+image-xff
+free-array local1
+run-script-xc3 2135 [1]
+free-script

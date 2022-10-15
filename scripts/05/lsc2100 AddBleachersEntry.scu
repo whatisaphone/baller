@@ -1,0 +1,38 @@
+; LSC2 5 2100 AddBleachersEntry
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+parameter arg11
+parameter arg12
+parameter arg13
+parameter arg14
+parameter arg15
+parameter arg16
+parameter arg17
+parameter arg18
+parameter arg19
+parameter arg20
+parameter arg21
+
+local variable local22
+
+if (arg1 <= 0) {
+    return -3
+}
+if (arg1 > (call-script GetArrayHeight [arg0])) {
+    return -3
+}
+array-set local22 [arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, arg21] 0
+array-copy-range arg0 local22 arg1 arg1 1 (1 + (call-script GetArrayWidth [arg0]) - 1) 0 0 0 ((call-script GetArrayWidth [arg0]) - 1)
+free-array local22
+return arg1
+free-script

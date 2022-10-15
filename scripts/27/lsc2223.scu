@@ -1,0 +1,25 @@
+; LSC2 27 2223
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+dim array local1 i32[0...0][0...5] swap=2
+for local0 = 23 to 0 -- {
+    local5 = call-script 132 [room78[local0][5]]
+    local2 = 4 * local5 + local1[local5]
+    array-copy-range room82 room78 local2 local2 0 5 local0 local0 0 5
+    local3 = room82[4 * local5][0]
+    local4 = room82[4 * local5][1]
+    room82[local2][3] = (local3 - room82[local2][0] + room82[local2][1] - local4) * 10 / 2
+    local6 = call-script 2221 [room82, local2]
+    local1[local5] = local1[local5] + 1
+}
+free-array local1
+local6 = call-script 2226 [2]
+return 1
+free-script

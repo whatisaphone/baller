@@ -1,0 +1,99 @@
+; SCRP 249 DebugFormatStat
+
+parameter kid: Kid
+parameter stat: Stat
+parameter amount
+
+local variable kid_name
+local variable stat_name
+local variable local5
+
+if (kid > 0) {
+    run-script GetKidName [kid, 2]
+    sprintf kid_name "%s" [gKidName]
+    case stat {
+        of STAT-AT-BATS {
+            stat_name = "AT-BAT-STAT"
+        }
+        of STAT-HITS {
+            stat_name = "HITS-STAT"
+        }
+        of STAT-STRUCK-OUT {
+            stat_name = "STUCK-OUT-STAT"
+        }
+        of STAT-POPPED-OUT {
+            stat_name = "POPPED-OUT-STAT"
+        }
+        of STAT-FORCED-OUT {
+            stat_name = "FORCED-OUT-STAT"
+        }
+        of STAT-WALKED {
+            stat_name = "WALKED-STAT"
+        }
+        of STAT-HITS-ALLOWED {
+            stat_name = "HITS-ALLOWED-STAT"
+        }
+        of STAT-SINGLES {
+            stat_name = "SINGLES-STAT"
+        }
+        of STAT-DOUBLES {
+            stat_name = "DOUBLES-STAT"
+        }
+        of STAT-TRIPLES {
+            stat_name = "TRIPLES-STAT"
+        }
+        of STAT-HOME-RUNS {
+            stat_name = "HOME-RUNS-STAT"
+        }
+        of STAT-STEALS {
+            stat_name = "STEALS-STAT"
+        }
+        of STAT-RUNS-SCORED {
+            stat_name = "RUNS-STAT"
+        }
+        of STAT-THROWN-OUT {
+            stat_name = "THROWN-OUT-STAT"
+        }
+        of STAT-ERRORS {
+            stat_name = "ERRORS-STAT"
+        }
+        of STAT-RBIS {
+            stat_name = "RBIS-STAT"
+        }
+        of STAT-PITCHES-THROWN {
+            stat_name = "PITCHES-THROWN-STAT"
+        }
+        of STAT-STRIKE-OUTS-PITCHED {
+            stat_name = "STRIKE-OUTS-PITCHED-STAT"
+        }
+        of STAT-WALKS-ALLOWED {
+            stat_name = "WALKS-PITCHED-STAT"
+        }
+        of STAT-STRIKES-THROWN {
+            stat_name = "STRIKES-THROWN-STAT"
+        }
+        of STAT-BALLS-THROWN {
+            stat_name = "BALLS-THROWN-STAT"
+        }
+        of STAT-RUNS-AGAINST {
+            stat_name = "RUNS-AGAINST-STAT"
+        }
+        of STAT-BATTERS-FACED {
+            stat_name = "BATTERS-FACED-STAT"
+        }
+        else {
+            stat_name = "Unknown Stat!"
+        }
+    }
+    sprintf local5 "%s : %s - %d (%d)%c%c" [kid_name, stat_name, amount, gGameStats[kid][stat], 13, 10]
+    free-array kid_name
+    free-array stat_name
+} else if (kid == -1) {
+    sprintf local5 "-GAME OVER- %c%c" [13, 10]
+} else if (kid == -2) {
+    sprintf local5 "-INNING OVER- %c%c" [13, 10]
+} else {
+    sprintf local5 "-BAD KID %d- %c%c" [kid, 13, 10]
+}
+return local5
+free-script

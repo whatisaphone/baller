@@ -1,0 +1,9 @@
+; LSC2 14 2077
+
+local variable local0
+local variable local1
+local variable local3
+
+local3 = 49 * local1
+return gRecordBook[local0][local3 + 42]
+free-script

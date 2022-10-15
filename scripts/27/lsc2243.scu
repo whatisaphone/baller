@@ -1,0 +1,22 @@
+; LSC2 27 2243
+
+local variable local0
+local variable local1
+
+local0 = call-script FindFreeSprite []
+room92[room92[0]] = local0
+inc-array-item room92 0
+if (gSeasonGameNumber < 14) {
+    local1 = 1544
+} else {
+    local1 = 1245
+}
+sprite-set-range local0 local0
+sprite-clear
+sprite-set-image local1
+sprite-set-hotspot 320 240
+sprite-x2b -800
+sprite-palette room46
+sprite-x52 0
+sprite-x7c 2
+free-script

@@ -1,0 +1,8 @@
+; LSC2 14 2059
+
+if (gGameMode != MODE-SPECTATE) {
+    return (iif (CB-USER == gTeamInfo[0][TI-CONTROLLED-BY]) 0 1)
+} else {
+    return gHomeInfoIndex
+}
+free-script

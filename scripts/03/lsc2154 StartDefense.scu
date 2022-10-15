@@ -1,0 +1,99 @@
+; LSC2 3 2154 StartDefense
+
+if (gEnableHumongousVision) {
+} else {
+    put-class 73 [160]
+}
+rDefenseSentiment = 0
+gWorld[FIELDER-LF][TARGET] = NONE
+gWorld[FIELDER-CF][TARGET] = NONE
+gWorld[FIELDER-RF][TARGET] = NONE
+gWorld[FIELDER-3B][TARGET] = NONE
+gWorld[FIELDER-2B][TARGET] = NONE
+gWorld[FIELDER-1B][TARGET] = NONE
+gWorld[FIELDER-SS][TARGET] = NONE
+gWorld[FIELDER-CACTHER][TARGET] = NONE
+gWorld[FIELDER-PITCHER][TARGET] = NONE
+rFieldingOrder = gTeamInfo[abs (gBattingTeamInfoIndex - 1)][TI-FIELDING-ORDER]
+gUserSelectedPlay = NONE
+if (gDefenseControlledBy == CB-USER) {
+    if (g_smth_play_may_continue) {
+        free-running-script CursorLoop
+        gInputHandlerScript = HandleInputDefense
+        if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+            run-script MouseCursorLoopDefense []
+            gCursorLoopScript = MouseCursorLoopDefense
+            run-script smth_mouse_user_defense []
+        } else if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+            run-script GamepadCursorLoopDefense []
+            gCursorLoopScript = GamepadCursorLoopDefense
+        }
+    }
+    cursor-input-enable
+    cursor-hide
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+}
+run-script smth_actor_until_play_ends []
+if (rBaseClaims) {
+    free-array rBaseClaims
+}
+dim array rBaseClaims i16[0...0][0...4] swap=2
+run-script SetBaseCorners [1]
+gFielderWithBall = 0
+rBallFetcher = 0
+g_maybe_smth_play_is_alive = 1
+room6 = 0
+g_maybe_last_fielder_to_touch_ball = 0
+rCurrentPlay = NONE
+run-script smth_turns_loop []
+if (gDefenseControlledBy != CB-NETWORK) {
+    if (g_smth_play_may_continue) {
+        if (gBallWasHit) {
+            run-script StartFieldingAfterHit []
+        } else {
+            run-script StartFieldingWithoutHit []
+        }
+    }
+}
+while (!(gRanWorldTransform == true)) {
+    stop-script
+}
+if (gDefenseControlledBy != CB-NETWORK) {
+    run-script-xc3 DoFielderLoop [FIELDER-3B]
+    run-script-xc3 DoFielderLoop [FIELDER-2B]
+    run-script-xc3 DoFielderLoop [FIELDER-1B]
+    run-script-xc3 DoFielderLoop [FIELDER-SS]
+    run-script-xc3 DoFielderLoop [FIELDER-CACTHER]
+    run-script-xc3 DoFielderLoop [FIELDER-PITCHER]
+    run-script-xc3 DoFielderLoop [FIELDER-LF]
+    run-script-xc3 DoFielderLoop [FIELDER-CF]
+    run-script-xc3 DoFielderLoop [FIELDER-RF]
+}
+if (gDefenseControlledBy != CB-NETWORK) {
+    if (g_smth_play_may_continue) {
+        run-script CountDownAutoFieldingDelay []
+        run-script FielderCollisionLoop []
+        run-script WatchForFielderTaggingRunnerOut []
+        run-script WatchForFoulBall []
+        if (rBallWasHitHigh) {
+            if (gDefenseControlledBy == CB-USER) {
+                run-script DrawBallLandingCircle []
+            }
+            run-script WatchForInfieldFly []
+        }
+    }
+}
+run-script CommentaryLoop []
+run-script maybe_record_replay_then_wait_to_cast_end_of_play []
+run-script smth_wait_for_play_ended []
+free-script

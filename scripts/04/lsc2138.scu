@@ -1,0 +1,66 @@
+; LSC2 4 2138
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+gCurrentSpeechScript = 2138
+case local0 {
+    of 1088 {
+        local3 = 12
+        local2 = 652 + (random 1)
+        local4 = 2
+    }
+    of 1089 {
+        local3 = 11
+        local2 = 672 + (random 1)
+        local4 = 2
+    }
+    of 1090 {
+        local3 = 11
+        local2 = 680 + (random 1)
+        local4 = 2
+    }
+    of 1091 {
+        local3 = 12
+        local2 = 664 + (random 1)
+        local4 = 2
+    }
+    of 1092 {
+        local3 = 11
+        local2 = 676 + (random 1)
+        local4 = 2
+    }
+    of 1093 {
+        local3 = 12
+        local2 = 656
+        local4 = 1
+    }
+    of 1094 {
+        local3 = 12
+        local2 = 658 + (random 1)
+        local4 = 2
+    }
+    of 1095 {
+        local3 = 12
+        local2 = 662
+        local4 = 1
+    }
+}
+if (gKidData[local1][KD-gender] == GIRL) {
+    local2 = local2 + local4
+}
+if (local3 == 12) {
+    xb8-xfe 12
+    xb8-xf9 [244]
+    xb8-xe1 local2
+} else {
+    xb8-xfe 11
+    xb8-xf9 [0]
+    xb8-xe1 local2
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

@@ -1,0 +1,24 @@
+; LSC2 34 2121
+
+local variable local0
+local variable local1
+local variable local2
+
+room12 = call-script FindFreeSprite []
+dim array room15 i16[0...0][0...50] swap=2
+room15[0] = 1
+for local0 = 0 to 3 ++ {
+    for local1 = 0 to 2 ++ {
+        local2 = room19[local0 * 3 + local1][0]
+        run-script 2120 [local2, local0, local1]
+    }
+}
+run-script ReleaseSprite [room12]
+stop-script
+for local0 = 1 to 50 ++ {
+    if (room15[local0]) {
+        run-script FreeScratchImage [room15[local0]]
+    }
+}
+free-array room15
+free-script

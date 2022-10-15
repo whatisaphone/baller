@@ -1,0 +1,50 @@
+; SCRP 346 maybe_net_handle_yell
+
+parameter arg0
+parameter arg1
+
+local variable local3
+local variable local4
+
+if (!global705) {
+    dim array global705 i16[0...0][0...3] swap=2
+}
+global705[3] = global705[3] + 1
+local3 = 8
+local4 = -1
+if (!global705[1]) {
+    global705[1] = call-script AllocPalette []
+}
+palette-select global705[1]
+palette-load 553 0
+palette-unselect
+run-script smth_actor_palette_team_color [0 - global705[1], 0, 0, 1]
+run-script smth_actor_palette_team_color [0 - global705[1], 1, 16, 1]
+if (!global705[0]) {
+    global705[0] = call-script FindFreeSprite []
+}
+sprite-set-range global705[0] global705[0]
+sprite-clear
+sprite-set-image 553
+sprite-x34 local3
+sprite-set-hotspot 320 240
+sprite-palette global705[1]
+sprite-x2b 5000
+sprite-x52 0
+if (!global705[2]) {
+    global705[2] = call-script FindFreeSprite []
+}
+run-script maybe_smth_net_yell_ui [global552, 48, 102, global705[2], 935, local4, 5001]
+run-script maybe_net_smth_yell_sound [0, arg0, arg1]
+while (!!(is-script-running maybe_net_smth_yell_sound)) {
+    stop-script
+}
+global705[3] = global705[3] - 1
+if (global705[3] == 0) {
+    run-script FreePalette [global705[1]]
+    run-script ReleaseSprite [global705[0]]
+    run-script ReleaseSprite [global705[2]]
+    free-array global705
+    global705 = 0
+}
+free-script

@@ -1,0 +1,9 @@
+; LSC2 14 2120
+
+local variable local0
+local variable local1
+
+run-script 282 [room12, room13, local0[local1][0], 360, 237]
+run-script 401 [room24, room5, local0[local1][0], 360, 237 + 3]
+run-script 418 [local0[local1][3], local0[local1][2] + 1, local0[local1][4] + 1900, room37, room38, 1239, room17, 60, 333]
+free-script

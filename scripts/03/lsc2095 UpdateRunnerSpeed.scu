@@ -1,0 +1,92 @@
+; LSC2 3 2095 UpdateRunnerSpeed
+
+parameter runneridx
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable speed
+
+if (gNetplayActive) {
+}
+speed = call-script GetKidRunningSpeed [gRunners[runneridx][R-KID]]
+if (gRunners[runneridx][R-KID] != gBatterKid) {
+    if (rBallWasHitHigh) {
+        if (room37) {
+            if (gNumOuts < 2) {
+                if (!gBallHasBounced) {
+                    if (!gFielderWithBall) {
+                        if (speed > 3) {
+                            speed = speed / 2
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+gRunners[runneridx][R-SPEED] = speed
+for local1 = 0 to 3 ++ {
+    if (local1 != runneridx) {
+        if (gRunners[local1][R-DIRECTION] == FORWARD) {
+            if (gRunners[local1][R-DEST-BASE] == gRunners[runneridx][R-DEST-BASE]) {
+                if (gRunners[local1][R-ORDER] > gRunners[runneridx][R-ORDER]) {
+                    local2 = call-script GetKidRunningSpeed [gRunners[local1][R-KID]]
+                    if (local2 < gRunners[runneridx][R-SPEED]) {
+                        gRunners[runneridx][R-SPEED] = local2
+                        if (gRunnersExtra[runneridx][RE-SPRINT] > 1) {
+                            gRunnersExtra[runneridx][RE-SPRINT] = 1
+                        }
+                    }
+                    local3 = gRunners[local1][R-ENTITY] - 30
+                    if ((actor-get-var local3 2) == 1) {
+                        gRunners[runneridx][R-SPEED] = 0
+                        if (gRunnersExtra[runneridx][RE-SPRINT] > 1) {
+                            gRunnersExtra[runneridx][RE-SPRINT] = 1
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+local3 = gRunners[runneridx][R-ENTITY] - 30
+if (!(gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-BASE-ON-BALLS, 4, PE-OUT-OF-PLAY, 6, 7])) {
+    if (gTeamInfo[gBattingTeamInfoIndex][TI-CONTROLLED-BY] == CB-COMPUTER) {
+        if (rCurrentPlay == gRunners[runneridx][R-DEST-BASE]) {
+            if (!((actor-get-var local3 2) == 1)) {
+                if (gKidData[gRunners[runneridx][R-KID]][KD-fatigue] < 95) {
+                    gRunnersExtra[runneridx][RE-SPRINT] = gRunnersExtra[runneridx][RE-SPRINT] + 1
+                    if (gRunnersExtra[runneridx][RE-SPRINT] == 6) {
+                        run-script AddFatigue [gRunners[runneridx][R-KID], 37]
+                        gRunnersExtra[runneridx][RE-SPRINT] = 0
+                    }
+                    local4 = 1
+                    gRunners[runneridx][R-SPEED] = gRunners[runneridx][R-SPEED] + local4
+                }
+            }
+        }
+    } else if (!((actor-get-var local3 2) == 1)) {
+        if (gRunnersExtra[runneridx][RE-SPRINT] > 1) {
+            if (gKidData[gRunners[runneridx][R-KID]][KD-fatigue] < 95) {
+                if (gRunnersExtra[runneridx][RE-SPRINT] == 6) {
+                    run-script AddFatigue [gRunners[runneridx][R-KID], 37]
+                }
+                if (gRunnersExtra[runneridx][RE-SPRINT] >= 9) {
+                    local4 = 2
+                } else {
+                    local4 = 1
+                }
+                gRunners[runneridx][R-SPEED] = gRunners[runneridx][R-SPEED] + local4
+            }
+            gRunnersExtra[runneridx][RE-SPRINT] = gRunnersExtra[runneridx][RE-SPRINT] - 1
+        }
+    }
+} else {
+    gRunners[runneridx][R-SPEED] = 6
+    if (gRunnersExtra[runneridx][RE-SPRINT] > 1) {
+        gRunnersExtra[runneridx][RE-SPRINT] = 1
+    }
+}
+free-script

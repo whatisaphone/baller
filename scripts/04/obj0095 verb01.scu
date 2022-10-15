@@ -1,0 +1,6 @@
+; VERB 4 95
+
+if (!r_smth_maybe_current_phase) {
+    run-script SendBatViewMessage [7609, g_net_smth_master]
+}
+finish-script

@@ -1,0 +1,39 @@
+; LSC2 14 2118
+
+local variable local0
+
+if (room3) {
+    run-script ReleaseSprite [room3]
+    room3 = 0
+    run-script ReleaseSprite [room9]
+    room9 = 0
+    run-script ReleaseSprite [room12]
+    room12 = 0
+    run-script ReleaseSprite [room14]
+    room14 = 0
+    run-script ReleaseSprite [room18]
+    room18 = 0
+    run-script ReleaseSprite [room20]
+    room20 = 0
+    run-script ReleaseSprite [room24]
+    room24 = 0
+    run-script ReleaseSprite [room25]
+    room25 = 0
+    run-script ReleaseSprite [room26]
+    room26 = 0
+    run-script ReleaseSprite [room27]
+    room27 = 0
+    run-script ReleaseSprite [room28]
+    room28 = 0
+    run-script ReleaseSprite [room29]
+    room29 = 0
+    run-script ReleaseSprite [room37]
+    room37 = 0
+    for local0 = 0 to (9 - 1) ++ {
+        run-script ReleaseSprite [room7[local0]]
+        room7[local0] = 0
+        run-script ReleaseSprite [room8[local0]]
+        room8[local0] = 0
+    }
+}
+free-script

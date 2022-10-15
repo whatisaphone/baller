@@ -1,0 +1,12 @@
+; LSC2 5 2104 smth_sort_array
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+if (arg2 == 1) {
+    array-sort arg0 -1 -1 arg1 arg1 -1
+} else {
+    array-sort arg0 -1 -1 arg1 arg1 1
+}
+free-script

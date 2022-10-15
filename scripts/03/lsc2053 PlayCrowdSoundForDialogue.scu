@@ -1,0 +1,64 @@
+; LSC2 3 2053 PlayCrowdSoundForDialogue
+
+parameter dialogue: Dialogue
+
+local variable sound
+
+if (gUserOnOffense) {
+    case dialogue {
+        in [DIALOGUE-HIT-LINE-DRIVE-CENTER-FIELD, DIALOGUE-HIT-LINE-DRIVE-LEFT-FIELD, DIALOGUE-HIT-LINE-DRIVE-RIGHT-FIELD, DIALOGUE-HIT-LINE-DRIVE-GENERAL, DIALOGUE-LINE-DRIVE-GAP, DIALOGUE-FIELDER-RUNNING-TO-CATCH-FLY, DIALOGUE-HIT-BUNT, DIALOGUE-GROUNDER-GENERAL, DIALOGUE-POP-FLY] {
+            sound = 1518
+        }
+        in [DIALOGUE-BALL-OUT-OF-PLAY, DIALOGUE-RUNNER-SAFE, DIALOGUE-RUNNER-SAFE-AT-FIRST, DIALOGUE-RUNNER-SAFE-AT-SECOND, DIALOGUE-RUNNER-SAFE-AT-THIRD, DIALOGUE-STOLEN-BASE, DIALOGUE-CATCH-HIGH-HIT-ERROR] {
+            sound = 1517
+        }
+        in [DIALOGUE-HIT-HOME-RUN, DIALOGUE-HIT-GRAND-SLAM, DIALOGUE-GROUND-RULE-DOUBLE, DIALOGUE-STOLEN-HOME, DIALOGUE-SCORED-RUN] {
+            sound = 1516
+        }
+        in [DIALOGUE-HIT-WITH-POWERUP, DIALOGUE-HIT-TO-OUTFIELD] {
+            sound = 1519
+        }
+        in [DIALOGUE-INFIELD-FLY, DIALOGUE-RUNNER-OUT, DIALOGUE-RUNNER-TAGGED-OUT, DIALOGUE-THIRD-OUT] {
+            sound = 1520
+        }
+        in [DIALOGUE-CATCH-HIGH-HIT-ERROR, DIALOGUE-FIELDER-COLLISION] {
+            sound = 1521
+        }
+    }
+} else {
+    case dialogue {
+        in [DIALOGUE-CATCH-LOW-HIT, DIALOGUE-CATCH-GENERAL] {
+            sound = 1518
+        }
+        in [DIALOGUE-CATCH-HIGH-HIT, DIALOGUE-RUNNER-TAGGED-OUT, DIALOGUE-RUNNER-OUT] {
+            sound = 1517
+        }
+        in [DIALOGUE-DOUBLE-PLAY, DIALOGUE-THIRD-OUT, DIALOGUE-TRIPLE-PLAY] {
+            sound = 1516
+        }
+        in [DIALOGUE-HIT-WITH-POWERUP, DIALOGUE-HIT-TO-OUTFIELD] {
+            sound = 1519
+        }
+        in [DIALOGUE-CATCH-HIGH-HIT-ERROR, DIALOGUE-HIT-HOME-RUN, DIALOGUE-HIT-GRAND-SLAM, DIALOGUE-RUNNER-TAGGED-SAFE, DIALOGUE-RUNNER-SAFE, DIALOGUE-RUNNER-SAFE-AT-FIRST, DIALOGUE-RUNNER-SAFE-AT-SECOND, DIALOGUE-RUNNER-SAFE-AT-THIRD, DIALOGUE-SCORED-RUN, DIALOGUE-CATCH-GENERAL-ERROR, DIALOGUE-BALL-OUT-OF-PLAY, DIALOGUE-STOLEN-HOME, DIALOGUE-GROUND-RULE-DOUBLE] {
+            sound = 1520
+        }
+        of DIALOGUE-TRIP {
+            sound = 1521
+        }
+    }
+}
+if (sound) {
+    if (gField == BIG-CITY-STADIUM) {
+        sound = sound + 7
+    } else if (gField == SUPER-COLOSSAL-DOME) {
+        sound = sound + 14
+    }
+    if (is-sound-playing sound) {
+        free-running-script 0
+    }
+    if (gNetplayActive) {
+        run-script NetSendSound [sound, 0, 1]
+    }
+    run-script PlaySound [sound, 0, 1]
+}
+free-script

@@ -1,0 +1,12 @@
+; LSC2 4 2216 smth_next_half_inning
+
+++gCurrentHalfInning
+if (gCurrentHalfInning != 0) {
+    gGameInfo[gCurrentHalfInning - 1] = gTeamInfo[gBattingTeamInfoIndex][TI-RUNS] - gGameInfo[51]
+    gGameInfo[51] = gTeamInfo[1 - gBattingTeamInfoIndex][TI-RUNS]
+}
+run-script CleanupRunners []
+gNumOuts = 0
+gNumBalls = 0
+gNumStrikes = 0
+free-script

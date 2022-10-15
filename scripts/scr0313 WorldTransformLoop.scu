@@ -1,0 +1,64 @@
+; SCRP 313 WorldTransformLoop
+
+local variable local1
+local variable old_min
+local variable old_max
+local variable room
+
+local1 = 16
+old_min = gMinTransformEntity
+old_max = gMaxTransformEntity
+run-script SetCameraVars [4]
+gMinTransformEntity = HIT-CONTACT
+gMaxTransformEntity = HIT-CONTACT
+run-script TransformWorldToView []
+run-script TransformViewToScreen []
+run-script SetCameraVars [3]
+gMinTransformEntity = HOME-PLATE-BACK-CORNER
+gMaxTransformEntity = LAST-CLICK-RUNNING
+run-script TransformWorldToView []
+run-script TransformViewToScreen []
+run-script SetCameraVars []
+gMaxTransformEntity = old_max
+gMinTransformEntity = old_min
+case gCurrentRoom {
+    in [3] {
+        gMinTransformEntity = BALL
+        gMaxTransformEntity = LAST-HOVER-FIELDING
+    }
+    of 4 {
+        gMinTransformEntity = PREVIEW-BALL
+        gMaxTransformEntity = HIT-CONTACT
+    }
+}
+global348 = 1
+gRanWorldTransform = true
+stop-script
+room = gCurrentRoom
+do {
+    pop-discard-2 0 "no trace"
+    run-script TransformWorldToView []
+    run-script TransformViewToScreen []
+    gRanWorldTransform = true
+    pop-discard-2 0 "trace on"
+    stop-script
+    if (gCurrentRoom != room) {
+        if (gCurrentRoom in [3, 4]) {
+            case gCurrentRoom {
+                in [3] {
+                    gMinTransformEntity = BALL
+                    gMaxTransformEntity = LAST-HOVER-FIELDING
+                }
+                of 4 {
+                    gMinTransformEntity = PREVIEW-BALL
+                    gMaxTransformEntity = HIT-CONTACT
+                }
+            }
+            run-script SetCameraVars []
+            room = gCurrentRoom
+        } else {
+            room = gCurrentRoom
+        }
+    }
+}
+free-script

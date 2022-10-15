@@ -1,0 +1,19 @@
+; LSC2 39 2134
+
+local variable local0
+
+case local0 {
+    of room46[2] {
+        run-script 2122 [1]
+        run-script-xc3 2135 [4, 1]
+    }
+    of room46[3] {
+        run-script 2122 []
+        run-script-xc3 2135 [4, 3]
+    }
+}
+stop-script
+sprite-set-range room46[4] room46[4]
+sprite-clear
+sprite-x2a 0 2
+free-script

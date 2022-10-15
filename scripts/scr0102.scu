@@ -1,0 +1,19 @@
+; SCRP 102
+
+local variable local0
+local variable local1
+local variable local2
+
+run-script WritePlayoffSchedule [local0, local2, 0, gPlayoffTeamsArray[local1]]
+run-script WritePlayoffSchedule [local0, local2 + 1, 0, gPlayoffTeamsArray[local1]]
+run-script WritePlayoffSchedule [local0, local2 + 2, 0, gPlayoffTeamsArray[local1]]
+run-script WritePlayoffSchedule [local1, local2, 0, gPlayoffTeamsArray[local0]]
+run-script WritePlayoffSchedule [local1, local2 + 1, 0, gPlayoffTeamsArray[local0]]
+run-script WritePlayoffSchedule [local1, local2 + 2, 0, gPlayoffTeamsArray[local0]]
+run-script WritePlayoffSchedule [local0, local2, 6, 0]
+run-script WritePlayoffSchedule [local0, local2 + 1, 6, 1]
+run-script WritePlayoffSchedule [local0, local2 + 2, 6, 0]
+run-script WritePlayoffSchedule [local1, local2, 6, 1]
+run-script WritePlayoffSchedule [local1, local2 + 1, 6, 0]
+run-script WritePlayoffSchedule [local1, local2 + 2, 6, 1]
+free-script

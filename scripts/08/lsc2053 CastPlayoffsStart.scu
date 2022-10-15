@@ -1,0 +1,40 @@
+; LSC2 8 2053 CastPlayoffsStart
+
+gCurrentMatchupCastScript = CastPlayoffsStart
+if ((actor-get-var 1 3) == 1) {
+    actor-do-anim 1 2
+} else {
+    actor-do-anim 1 5
+}
+actor-select 1
+actor-set-var 3 0
+case gSeasonGameNumber {
+    of 14 {
+        if (random 1) {
+            xba "\x7fT99016317,75316\x7fNow that we're in the Playoffs, the competition is a little rougher, and you can bet these kids'll be playin' their hearts out." 2
+        } else {
+            xba "\x7fT99091633,62282\x7fEvery player out there has their eye on the league title. I tell ya it's gonna be a tough fight for the pennant." 2
+        }
+    }
+    of 15 {
+        if ((call-script ReadActiveSchedule [gSeasonDivision, 14, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 14, 4])) {
+            xba "\x7fT99153915,45922\x7fThe score is 1-0 in this playoff round, and folks, this could be it..." 2
+            xa9-xa9
+            xba "\x7fT99199837,62826\x7fIf these kids perform well today, it's on to the League Championship - the race for the pennant." 2
+            xa9-xa9
+            xba "\x7fT99262663,34898\x7fIf not, they'll be battling out the tie-breaker." 2
+        } else {
+            xba "\x7fT99297561,70000\x7fWith a score of 0-1 in the playoffs, this has proven to be a tough series for these young players." 2
+            xa9-xa9
+            xba "\x7fT99367561,46650\x7fThey haven't lost sight of the title, but it's gonna take two consecutive wins to nab it." 2
+        }
+    }
+    of 16 {
+        xba "\x7fT99414211,44237\x7f     Well, fans, this is it ...     this is the deciding game." 2
+        xa9-xa9
+        xba "\x7fT99458448,65401\x7f     The score is 1 to 1 in these playoffs, and these kids know it's all or nothing out there today." 2
+    }
+}
+xa9-xa9
+gCurrentMatchupCastScript = 0
+free-script

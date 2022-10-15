@@ -1,0 +1,64 @@
+; LSC2 27 2207 SayStatSentence
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+free-running-script 2192
+if (room44) {
+    sprite-set-range room44[8] room44[8]
+    sprite-clear
+    sprite-x2a 0 2
+}
+if ((get-room 1) != gCurrentRoom) {
+    actor-select 1
+    actor-set-costume 0
+    put-actor 1 -500 -500 gCurrentRoom
+}
+local3 = room65[arg0]
+cutscene-start 115 148
+if (arg1 > 8) {
+    local5 = room64[arg0]
+} else {
+    run-script SayKidName [room60[arg1]]
+    xa9-xa9
+    xbb "\x7fT172563744,7208\x7f has"
+    xa9-xa9
+    local2 = room60[arg1]
+    if (r_smth_game_mode == 1 || r_smth_game_mode == 2) {
+        local4 = gGameStats
+    } else {
+        local4 = iif (r_smth_game_mode == 3) gSeasonStats gPlayoffStats
+    }
+    local5 = local4[local2][local3]
+}
+run-script SayStatNumber [local5, local3]
+stop-script
+while (!!(is-script-running SayStatNumber)) {
+    stop-script
+}
+if (g_maybe_skipped_cutscene) {
+    free-running-script SayStatNumber
+} else {
+    cutscene-end
+    run-script SayStatName [room65[arg0]]
+    while (!!(is-script-running SayStatName)) {
+        stop-script
+    }
+}
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script 2192 []
+free-script

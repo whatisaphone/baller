@@ -1,0 +1,594 @@
+; LSC2 5 2053 PlayerSay24To30And263
+
+parameter arg0
+parameter arg1
+
+local variable local3
+local variable local4
+
+local3 = actor-get-var g_maybe_selected_actor 3
+local4 = actor-get-var g_maybe_selected_actor 4
+if (local3) {
+    actor-do-anim g_maybe_selected_actor local3
+}
+run-script-xc3 2050 [arg0]
+case arg0 {
+    of 24 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68195763,30004\x7f  My name is Reese Worthington."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68225767,46188\x7f  I have asthmar, you know, and I can't leave home without my medicine."
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68271955,66575\x7f  I'm allergic to grass and my mom won't let me play outside when someone is mowing their lawn."
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68338530,229502\x7f  Sometimes, when the pollen count gets high, I have an allergic reaction and my eyes get puffy and red so I have to take a histamine blocker, which invariably makes me feel drowsy to the point"
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68568032,68595\x7f  My mom told me I was lactose intolerant, but I think she just doesn't want me to eat too much ice cream."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68636627,39936\x7f  Cheese is okay, thank goodness, because I like cheese."
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68676563,82573\x7f  My name is Reese Worthington and I could take college courses because I'm smarter than all the kids my age."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68759136,34484\x7f  I tested into the 99th percentile."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68793620,38203\x7f  I think I'm could to be a doctor like Doogie Howser someday."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68831823,28297\x7f  Young child prodigy.  That's me."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68860120,37250\x7f  But really, I'm just like any other normal kid."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68897370,22542\x7f  I just use big words."
+                xa9-xa9
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68919912,48720\x7f  I remember one year, I was placed in the gifted program at school."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT68968632,98233\x7f  However, in order to attend, I had to miss half of the lunch recess, which of course we all know is when all the best ball games are played."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69066865,64638\x7f  As if that wasn't bad enough, we spent all our time studying pendulum movement."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69131503,129175\x7f  Needless to say, I quickly asked permission to withdraw from the gifted program, because I believe that it is healthier for my psyche to enjoy being a kid and that is why I am here today."
+                xa9-xa9
+            }
+        }
+    }
+    of 25 {
+        if (arg1) {
+            xb8-xfe g_maybe_selected_actor
+            xb8-xf9 [244]
+            xb8-x4b "\x7fT69260678,57104\x7f Don't tell anyone, okay, but I'm studying Spanish in school.  I speak english too."
+        } else {
+            case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2]) 0 {
+                of 0 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT69317782,19284\x7f  Soy Pablo quieres jugar?"
+                }
+                of 1 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT69337066,9438\x7f  Vamos a jugar."
+                }
+                of 2 {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT69346504,39163\x7f  Me gusta el baseball mas que las tareas de la escuela."
+                }
+            }
+        }
+    }
+    of 26 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [0, 2, 3, 4, 5]) 1 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69385667,26907\x7f       I've got a goofy kid sister who follows me around.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69412574,11828\x7f       Her name's Angela.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69424402,24099\x7f       You be nice to her, or else!"
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69448501,17400\x7f       The kids around here call me 'Vec.'  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69465901,16120\x7f       I think it's short for Delvecchio.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69482021,6505\x7f       That my name.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69488526,10283\x7f       Delvecchio I mean.  "
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69498809,33484\x7f       I can trow the ball farther than any a dese other kids, you'll see."
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69532293,52046\x7f       I'm da best ball player in dis neighborhood and don't let anyone tell ya otherwise."
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69584339,15137\x7f       Okay, check dis out.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69599476,68153\x7f       That sister of mine, you know, Angela, she's been going around tellin everyone that she's some kinda rocket scientist or something.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69667629,61018\x7f       Well look here Slick, I don't know rocket scientology from nuttin', but that Angela, she ain't all that.   "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69728647,75014\x7f       Hey, don't get me wrong, she's family and all that, but still I don't like her talkin like she's some hotsy totsy Alfred Einstein or anything, you know Slick?  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69803661,35387\x7f       So you take it from Tony, Angela ain't all that."
+                xa9-xa9
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69839048,113004\x7f       Yo, just the other day, I was riding my bike around minding my own business when this goofus Pete Wheeler comes up to me and starts talking to me about helpin him work on  fixin' his dad's car.  "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT69952052,117738\x7f       Well I don't know working on cars from nuttin, but I figure what the hey, this guy might be a few sockets short of a full set if you know what I mean, but I can maybe give my bike a tune-up with his tools while I'm at it "
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70069790,118019\x7f       so I go with him to his house and when I get there, turns out his dad don't even own a car or tools so what did I get outa the deal, a big fat nuttin!"
+                xa9-xa9
+            }
+        }
+    }
+    of 27 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70187809,53650\x7f My name is Jorge Garcia and I like to read books about economics and the stock market."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70241459,66300\x7f If you want a bit of sound financial advice, let me just tell you this:  buy low and sell high."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70307759,50281\x7f That's what I always do, you know, and I've done quiet well for a nine-year-old."
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70358040,30397\x7f I don't like to sweat and I don't like to get dirty."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70388437,55802\x7f My nanny, she always wants me to change into play clothes, but I don't really like to play."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70444239,53160\x7f Sometimes I get worried that I might catch some disease from all these dirty kids."
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70497399,41721\x7f My eyes are not so good and so I have to wear glasses all the time."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70539120,29884\x7f But don't you go calling me 'Four-eyes' or else."
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70569004,28810\x7f My father buys me anything I want, you know."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70597814,31641\x7f And if he won't, I ask my grandfather."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70629455,20837\x7f He's got a lot of money too."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70650292,20523\x7f I always get what I want."
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70670815,50550\x7f These other little kids don't know how lucky they are to be playing baseball with me."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70721365,60982\x7f Normally, I do not like to fraternize with other children, as I have little patience for their antics."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70782347,51710\x7f Perhaps, though, I can be an inspiration for these children, a role-model as it were."
+                xa9-xa9
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70834057,17889\x7f I am used to winning of course."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70851946,24264\x7f I always win at whatever I do."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70876210,49805\x7f Next time I come, maybe I'll bring some of my trophies and ribbons so you can see."
+                xa9-xa9
+            }
+        }
+    }
+    of 28 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [0, 1, 3, 4]) 2 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70926015,24596\x7f  One time, I ate a whole turkey."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70950611,13772\x7f  Bet you didn't know that."
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70964383,32976\x7f  When I pitch, I like to throw all fast balls."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT70997359,40572\x7f  It gets the game over with faster, so I can go home and eat!"
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71037931,37089\x7f  My name's Dante, but the kids call me 'Stretch'."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71075020,21621\x7f  I guess that's supposed to be a joke."
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71096641,49001\x7f  My momma says I've got a bottomless stomach and a hollow leg."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71145642,60371\x7f  Now I don't know much about anatomy because I'm just a kid, but that doesn't sound right."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71206013,37546\x7f  But whenever I ask my doctor about it, she just laughs."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71243559,83381\x7f  So do me a favor:  the next time you go to your doctor, ask if it's possible for a kid to have a bottomless stomach or a hollow leg."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71326940,49572\x7f  Cuz I've got a feelin I'm the victim of some kinda conspiracy or somethin..."
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71376512,33749\x7f  My momma says good things come in little packages."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71410261,25389\x7f  I think she says that cuz I'm so short."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71435650,39365\x7f  But you can keep growing up until you're 21 or something like that."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71475015,15624\x7f  But I like being short."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71490639,49709\x7f  It's harder for pitchers to throw strikes against me because my strike zone is so low."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71540348,48182\x7f  Oh yeah, I got this great shirt that says 'Up with Short People.'"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71588530,3918\x7f  Get it?"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71592448,13187\x7f  That's pretty good, huh?"
+                xa9-xa9
+            }
+        }
+    }
+    of 29 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71605635,18825\x7f \x09Hi, I'm Ernie, huh huh huh."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71624460,40080\x7f \x09Sometimes I like to jump up and touch the ceiling of my living room."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71664540,14293\x7f \x09I can do that ya'know."
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71678833,47122\x7f \x09My mom says one of these days I'm going to stop growing, although I don't know..."
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71725955,50863\x7f \x09I don't run too fast because my legs are so big, but I do everything else pretty well."
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71776818,134796\x7f \x09I heard this good joke the other day about this, um, oh yeah, what the invisible man's girlfriend was saying about not seeing him, or no wait, ya see, he was heartbroken because his girlfriend"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71911614,7676\x7f \x09Huh huh huh."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71919290,13082\x7f \x09Should I tell it again?"
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71932372,46838\x7f\x09My granny says I should be a stand up comedian when I get older because I'm so funny."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71979210,20237\x7f \x09And I can do impersonations too."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT71999447,41457\x7f \x09Listen to this:  Well howdy, pilgrim."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72040904,23746\x7f \x09Yeah that's right, Clint Eastwood."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72064650,8267\x7f \x09Pretty good, huh?"
+                xa9-xa9
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72072917,11383\x7f \x09Okay, here's a good one:"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72084300,7082\x7f \x09Knock Knock."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72091382,8781\x7f \x09Who's there?"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72100163,5933\x7f \x09Who."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72106096,8174\x7f \x09Who who?"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72114270,14269\x7f \x09What are you, an owl?"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72128539,8000\x7f \x09Ha ha ha."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72136539,22386\x7f \x09That one gets me every time."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72158925,7131\x7f \x09An owl."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72166056,4796\x7f \x09Get it?"
+                xa9-xa9
+            }
+        }
+    }
+    of 30 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [0, 2, 3, 4, 5]) 1 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72170852,18944\x7f  Let's be friends, okay?"
+                xa9-xa9
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72189796,51792\x7f  The kids call me Nugget but my real name's Michael  Rhett Thomas."
+                xa9-xa9
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72241588,23747\x7f  I've got a cold but I feel okay."
+                xa9-xa9
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72265335,47553\x7f  I like playing in the outfield because I don't have to pay attention as much."
+                xa9-xa9
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72312888,59172\x7f  My grandma calls me her little joybell but don't tell anyone because they'll give me the business."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72372060,90266\x7f  My big sister always calls me a snot-nosed little brat and all, but my mom says that I can't help it because I've got allergies and all."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72462326,91167\x7f  She took me to an allergy doctor one time and they stuck me with all these needles to see what I was 'lergic to, but I didn't cry or anything."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72553493,10801\x7f  But it hurt though."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72564294,70128\x7f  And I guess I'm 'lergic to most everything around cuz where they stuck me turned all red and swollen and stuff."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72634422,19205\x7f  I just thought you might like to know that."
+                xa9-xa9
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72653627,5331\x7f  Know what?"
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72658958,10076\x7f  I've got a bike."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72669034,10414\x7f  It's at home."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72679448,22558\x7f  You can ride it if you want someday."
+                xa9-xa9
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72702006,23497\x7f  I'll ask my mom if you can come over."
+                xa9-xa9
+            }
+        }
+    }
+    of 263 {
+        case random 2 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72725503,15378\x7f"
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72740881,18574\x7f"
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT72759455,19599\x7f"
+            }
+        }
+    }
+}
+xa9-xa9
+if (!rSaidFirstQuote[arg0]) {
+    rSaidFirstQuote[arg0] = true
+}
+if (local4) {
+    actor-do-anim g_maybe_selected_actor local4
+}
+free-script

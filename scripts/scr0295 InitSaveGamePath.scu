@@ -1,0 +1,79 @@
+; SCRP 295 InitSaveGamePath
+
+local variable local0
+local variable local3
+local variable local4
+local variable local5
+
+free-array gSaveGamePath
+if (g_maybe_operating_system == 2) {
+    gSaveGamePath = read-ini-string "SaveGamePath"
+    local4 = strlen gSaveGamePath
+    if (local4 > 0) {
+        if (gSaveGamePath[local4 - 1] != 58) {
+            local5 = 0
+            dim array local5 byte[0...0][0...local4 + 1] swap=2
+            array-copy-range local5 gSaveGamePath 0 0 0 local4 0 0 0 local4
+            local5[local4] = 58
+            free-array gSaveGamePath
+            gSaveGamePath = local5
+            local5 = 0
+        }
+        create-directory gSaveGamePath
+        sprintf local3 "%stest" [gSaveGamePath]
+        xe2 local3
+        local0 = file-open local3 2
+        if (local0 == -1) {
+            goto label00c0
+        } else {
+            file-close local0
+            file-delete local3
+        }
+    } else {
+label00c0:
+        xb7-xfe
+        xb7-x4b "No valid Save/Load folder is set! Please use the 'Choose Save Folder' menu to select one."
+    }
+} else {
+    gSaveGamePath = read-ini-string "SaveGamePath"
+    local4 = strlen gSaveGamePath
+    if (local4 > 0) {
+        if (gSaveGamePath[local4 - 1] != 92) {
+            dim array local5 byte[0...0][0...local4 + 1] swap=2
+            array-copy-range local5 gSaveGamePath 0 0 0 local4 0 0 0 local4
+            local5[local4] = 92
+            free-array gSaveGamePath
+            gSaveGamePath = local5
+            local5 = 0
+        }
+        create-directory gSaveGamePath
+        sprintf local3 "%stest" [gSaveGamePath]
+        xe2 local3
+        local0 = file-open local3 2
+        if (local0 == -1) {
+            goto label01cf
+        } else {
+            file-close local0
+            file-delete local3
+        }
+    } else {
+label01cf:
+        gSaveGamePath = "c:\hegames\Baseball2001"
+        create-directory gSaveGamePath
+        sprintf local3 "%stest" [gSaveGamePath]
+        xe2 local3
+        local0 = file-open local3 2
+        if (local0 == -1) {
+            gSaveGamePath = "c:\windows\"
+        } else {
+            file-close local0
+            file-delete local3
+        }
+        write-ini-string "SaveGamePath" gSaveGamePath
+        if (gDebug || gDebugMode) {
+            xb6-xfe
+            xb6-xc2 "SaveGamePath doesn't exist. Save-Load directory set to %s" gSaveGamePath []
+        }
+    }
+}
+free-script

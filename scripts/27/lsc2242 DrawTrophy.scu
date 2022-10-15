@@ -1,0 +1,65 @@
+; LSC2 27 2242 DrawTrophy
+
+parameter arg0
+
+local variable local1
+local variable local2
+
+case arg0 {
+    of 4 {
+        room101 = 3
+    }
+    of 3 {
+        room101 = 3
+    }
+    of 2 {
+        room101 = 2
+    }
+    of 1 {
+        room101 = 1
+    }
+    of 0 {
+        room101 = 0
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "Error: bad state for DrawTrophy: %d" arg0 []
+        pop-discard 0
+    }
+}
+if (gSeasonGameNumber < 14 || gSeasonGameNumber == 14 && gSeasonOver) {
+    local1 = 1
+}
+if (gSeasonGameNumber >= 14 && gSeasonGameNumber <= 16) {
+    local2 = call-script smth_find_playoffs_cur_division []
+    if (6 == local2 || 7 == local2) {
+        local1 = 1
+    }
+}
+if (local1) {
+    sprite-set-range room93 room93
+    sprite-clear
+    sprite-set-image 1258
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-palette room94
+    sprite-x2b -200
+    sprite-x34 arg0
+    sprite-x62 global652
+    sprite-set-hotspot 320 240
+} else {
+    sprite-set-range room93 room93
+    sprite-clear
+    sprite-set-image 1258
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-palette room94
+    sprite-x2b -200
+    sprite-x34 arg0
+    sprite-set-hotspot 320 240
+}
+run-script 401 [room95, room46, arg0, 320, 240]
+if (gSeasonGameNumber >= 14) {
+    run-script 2342 [arg0]
+}
+free-script

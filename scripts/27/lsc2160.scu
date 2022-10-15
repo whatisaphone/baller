@@ -1,0 +1,61 @@
+; LSC2 27 2160
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+for local4 = local1 to local2 ++ {
+    if (local3[local4 - local1 + 1] == 0) {
+        case local0 {
+            of 31 {
+                local5 = 3 * (call-script maybe_score_check [630, local4])
+                local5 = local5 + 2 * (call-script maybe_score_check [638, local4])
+            }
+            of 32 {
+                local5 = call-script maybe_score_check [637, local4]
+            }
+            of 33 {
+                local5 = call-script maybe_score_check [636, local4]
+            }
+            of 34 {
+                local5 = call-script maybe_score_check [631, local4]
+            }
+            of 35 {
+                local5 = 2 * (call-script maybe_score_check [630, local4])
+                local5 = local5 + 2 * (call-script maybe_score_check [637, local4])
+                local5 = local5 + (call-script maybe_score_check [638, local4])
+            }
+            of 37 {
+                local5 = call-script maybe_score_check [633, local4]
+            }
+            of 38 {
+                local5 = call-script maybe_score_check [635, local4]
+            }
+            of 39 {
+                local5 = call-script maybe_score_check [632, local4]
+            }
+            of 40 {
+                local5 = call-script maybe_score_check [634, local4]
+            }
+        }
+        local5 = local5 + (random2 -25 25)
+        if (local5 > local7 && (random 1)) {
+            local7 = local5
+            local6 = local4
+        }
+    }
+}
+if (!local6) {
+    xb6-xfe
+    xb6-x4b "Whoops! didn't pick a kid!  Picking a random one."
+    do {
+        local6 = random2 local1 local2
+    } until (local3[local6 - local1 + 1] == 0)
+}
+return local6
+free-script

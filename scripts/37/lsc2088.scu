@@ -1,0 +1,8 @@
+; LSC2 37 2088
+
+local variable local0
+
+room31 = local0
+sleep 5
+room31 = 0
+free-script

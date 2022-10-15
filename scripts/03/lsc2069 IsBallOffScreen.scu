@@ -1,0 +1,15 @@
+; LSC2 3 2069 IsBallOffScreen
+
+local variable local0
+
+if (g_maybe_last_fielder_to_touch_ball == 0 && !gBallHasBounced) {
+    local0 = 0
+} else if (gScreen[BALL-SHADOW][X] > 640 || gScreen[BALL-SHADOW][X] < 0) {
+    local0 = 1
+} else if (gScreen[BALL-SHADOW][Y] > 480 || gScreen[BALL-SHADOW][Y] < 0) {
+    local0 = 1
+} else {
+    local0 = 0
+}
+return local0
+free-script

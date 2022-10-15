@@ -1,0 +1,34 @@
+; LSC2 7 2102
+
+room0 = call-script 2052 []
+if (room0 == 0) {
+    room0 = 1
+} else {
+    room0 = 0
+}
+polygon-xf7 10000 10033
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script 2086 []
+run-script 2087 []
+run-script 2085 []
+run-script 2072 []
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

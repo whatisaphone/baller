@@ -1,0 +1,122 @@
+; SCRP 116 DumpPlayoffRosterFile
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+
+if (arg0) {
+    global656 = 0
+}
+sprintf local2 "c:\Windows\Desktop\seasonrosterfolder\PlayoffRoster%d.txt" [global656]
+++global656
+local3 = file-open local2 2
+if (!local3) {
+    xb6-xfe
+    xb6-xc2 "Error %d in opening file %s" gIOError [local2]
+    pop-discard 0
+}
+local4 = "This file contains the contents of the gPlayoffRosterArray:"
+sprintf local5 "%c%c" [13, 10]
+file-write-array 4 local3 local4
+file-write-array 4 local3 local5
+for local1 = 0 to 7 ++ {
+    local18 = call-script GetTeamPrefixString [gPlayoffRosterArray[local1][10]]
+    local19 = call-script GetTeamNameString [gPlayoffRosterArray[local1][11]]
+    file-write-array 4 local3 local18
+    file-write-array 4 local3 local19
+    file-write-array 4 local3 local5
+    run-script GetKidName [gPlayoffRosterArray[local1][0]]
+    local6 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][1]]
+    local7 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][2]]
+    local8 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][3]]
+    local9 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][4]]
+    local10 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][5]]
+    local11 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][6]]
+    local12 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][7]]
+    local13 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][8]]
+    local14 = strcpy gKidName
+    sprintf local15 "     kids: %s %s %s %s %s %s %s %s %s" [local6, local7, local8, local9, local10, local11, local12, local13, local14]
+    file-write-array 4 local3 local15
+    file-write-array 4 local3 local5
+    sprintf local16 "     colors: %d %d     wins: %d  losses: %d   Coach: %d" [gPlayoffRosterArray[local1][12], gPlayoffRosterArray[local1][13], gPlayoffRosterArray[local1][14], gPlayoffRosterArray[local1][15], gPlayoffRosterArray[local1][9]]
+    file-write-array 4 local3 local16
+    file-write-array 4 local3 local5
+    free-array local6
+    free-array local7
+    free-array local8
+    free-array local9
+    free-array local10
+    free-array local11
+    free-array local12
+    free-array local13
+    free-array local14
+    run-script GetKidName [gPlayoffRosterArray[local1][0 + 16]]
+    local6 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][1 + 16]]
+    local7 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][2 + 16]]
+    local8 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][3 + 16]]
+    local9 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][4 + 16]]
+    local10 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][5 + 16]]
+    local11 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][6 + 16]]
+    local12 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][7 + 16]]
+    local13 = strcpy gKidName
+    run-script GetKidName [gPlayoffRosterArray[local1][8 + 16]]
+    local14 = strcpy gKidName
+    sprintf local17 "     bat-order: %s %s %s %s %s %s %s %s %s" [local6, local7, local8, local9, local10, local11, local12, local13, local14]
+    file-write-array 4 local3 local17
+    file-write-array 4 local3 local5
+    file-write-array 4 local3 local5
+    free-array local18
+    free-array local19
+    free-array local15
+    free-array local16
+    free-array local17
+    free-array local6
+    free-array local7
+    free-array local8
+    free-array local9
+    free-array local10
+    free-array local11
+    free-array local12
+    free-array local13
+    free-array local14
+}
+file-close local3
+free-array local2
+free-array local4
+free-array local5
+xb6-xfe
+xb6-xc2 "Created file PlayoffRoster%d.txt" (global656 - 1) []
+free-script

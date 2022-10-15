@@ -1,0 +1,52 @@
+; LSC2 39 2157
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local2 = (strlen room49) - 1
+if (local2 < 7) {
+    local5 = 10
+} else {
+    local5 = 5
+}
+dim array local1 byte[0...0][0...local2] swap=2
+sprintf local0 "%s" [room49]
+array-fill-list local1 0 0 local2 local2 [0]
+do {
+    for local4 = 0 to local2 ++ {
+        if (local1[local4]) {
+            local0[local4] = room49[local4]
+        } else {
+            local0[local4] = random2 65 90
+        }
+    }
+    if (!(mod local3 local5)) {
+label008c:
+        local4 = random2 0 local2
+        if (local1[local4]) {
+            goto label008c
+        } else {
+            local1[local4] = 1
+        }
+    }
+    local4 = call-script maybe_draw_text_to_image [local0, 1239, 659, room13]
+    sprite-set-range room47[2] room47[2]
+    sprite-clear
+    sprite-set-image 659
+    sprite-set-hotspot 332 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+    stop-script
+    if (!(strcmp local0 room49) || local3 > 300) {
+        goto label00ff
+    }
+    ++local3
+}
+label00ff:
+free-array local0
+free-array local1
+free-script

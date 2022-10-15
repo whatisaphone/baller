@@ -1,0 +1,13 @@
+; LSC2 40 2125
+
+if (room29) {
+    free-array room29
+}
+run-script FreePopup []
+run-script 2118 []
+run-script FreeNavButtons []
+run-script 2116 []
+run-script 2059 []
+gInputHandlerScript = HandleInput
+gGamePadInputHandlerScript = gInputHandlerScript
+free-script

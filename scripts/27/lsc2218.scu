@@ -1,0 +1,23 @@
+; LSC2 27 2218
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local1 = local0 / 1000
+local0 = local0 - local1 * 1000
+local2 = local0 / 100
+local0 = local0 - local2 * 100
+local3 = local0 / 10
+local0 = local0 - local3 * 10
+local4 = local0
+if (local1) {
+    sprintf local5 "%d.%d%d" [local1, local2, local3]
+} else {
+    sprintf local5 ".%d%d%d" [local2, local3, local4]
+}
+return local5
+free-script

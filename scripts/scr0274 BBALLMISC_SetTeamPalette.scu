@@ -1,0 +1,117 @@
+; SCRP 274 BBALLMISC_SetTeamPalette
+
+parameter arg0
+
+local variable local1
+
+case arg0 {
+    of 9 {
+        local1 = 16
+    }
+    of 2 {
+        local1 = 20
+    }
+    of 4 {
+        local1 = 24
+    }
+    of 3 {
+        local1 = 28
+    }
+    of 6 {
+        local1 = 32
+    }
+    of 1 {
+        local1 = 36
+    }
+    of 5 {
+        local1 = 40
+    }
+    of 7 {
+        local1 = 44
+    }
+    of 8 {
+        local1 = 48
+    }
+    of 101 {
+        local1 = 1016
+    }
+    of 102 {
+        local1 = 1020
+    }
+    of 103 {
+        local1 = 1024
+    }
+    of 104 {
+        local1 = 1028
+    }
+    of 105 {
+        local1 = 1032
+    }
+    of 106 {
+        local1 = 1036
+    }
+    of 107 {
+        local1 = 1040
+    }
+    of 108 {
+        local1 = 1044
+    }
+    of 109 {
+        local1 = 1048
+    }
+    of 110 {
+        local1 = 1052
+    }
+    of 111 {
+        local1 = 1056
+    }
+    of 112 {
+        local1 = 1060
+    }
+    of 113 {
+        local1 = 1064
+    }
+    of 114 {
+        local1 = 1068
+    }
+    of 115 {
+        local1 = 1072
+    }
+    of 116 {
+        local1 = 1076
+    }
+    of 117 {
+        local1 = 1080
+    }
+    of 118 {
+        local1 = 1084
+    }
+    of 119 {
+        local1 = 1088
+    }
+    of 120 {
+        local1 = 1092
+    }
+    of 121 {
+        local1 = 1096
+    }
+    of 122 {
+        local1 = 1100
+    }
+    of 123 {
+        local1 = 1104
+    }
+    of 124 {
+        local1 = 1108
+    }
+    of 125 {
+        local1 = 1112
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "Error! BBALLMISC_SetTeamPalette found bad color %d! (probably MLB - using default)" arg0 []
+        local1 = 40
+    }
+}
+return local1
+free-script

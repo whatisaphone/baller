@@ -1,0 +1,12 @@
+; LSC2 3 2103 StealBaseCommentary
+
+parameter arg0
+parameter arg1
+
+sleep 3
+if (arg0 == 3) {
+    run-script EnqueueComment [DIALOGUE-STEALING-HOME, gRunners[arg1][R-KID]]
+} else {
+    run-script EnqueueComment [DIALOGUE-STEALING-BASE, gRunners[arg1][R-KID]]
+}
+free-script

@@ -1,0 +1,175 @@
+; LSC2 4 2048 HandleBatViewMessage
+
+parameter message: BatViewMessage
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+
+case message {
+    of MSG-TOGGLE-STANCE {
+        if (!r_maybe_smth_idle_ready_for_pitch) {
+            free-running-script 0
+        }
+        if (arg2) {
+            if (gBatterStance + arg2 > 3 || gBatterStance + arg2 < 1) {
+                free-running-script 0
+            }
+            rStanceChangeDirection = arg2
+        } else {
+            if (gBatterStance == CLOSED) {
+                rStanceChangeDirection = -1
+            }
+            if (gBatterStance == OPEN) {
+                rStanceChangeDirection = 1
+            }
+        }
+        gBatterStance = gBatterStance + rStanceChangeDirection
+        sprite-set-range 13 13
+        sprite-x34 (gBatterStance - 1 + 3 * (rBatterHandedness == LEFT-HANDED))
+        if (gDefenseControlledBy == CB-COMPUTER) {
+            run-script DecideAIFieldersSkew []
+            run-script SendBatViewMessage [MSG-SET-FIELDER-START-POSITIONS, gFieldersSkew]
+            run-script CopyFielderPositionsToWorld []
+        }
+        run-script SendBatViewMessage [MSG-SET-STANCE, gBatterStance]
+    }
+    of MSG-SET-STANCE {
+        gBatterStance = arg2
+        if (r_maybe_smth_idle_ready_for_pitch) {
+            case gBatterStance {
+                of OPEN {
+                    actor-do-anim 2 1
+                }
+                of SQUARE {
+                    actor-do-anim 2 2
+                }
+                of CLOSED {
+                    actor-do-anim 2 3
+                }
+            }
+        }
+    }
+    of 7609 {
+        r_smth_maybe_current_phase = 3
+        r_maybe_calling_timeout = true
+        if (gNetplayActive) {
+            if (g_net_smth_master == arg2) {
+                run-script-xc3 maybe_net_send_message [30, 1, NET-CALL-TIMEOUT]
+                run-script TimeOut []
+            } else {
+                gNetTimeout = 1
+                run-script NetPause []
+            }
+        } else {
+            run-script TimeOut []
+        }
+    }
+    of MSG-SWING {
+        if (is-script-running ResetBatter) {
+        }
+        gCurrentSwing = arg2
+        run-script RunSwing [arg3]
+    }
+    of MSG-TOGGLE-STEAL {
+        run-script UpdateStealBase [arg2]
+        run-script SendBatViewMessage [MSG-SET-STEAL-ARRAY, gStealing, gStealArray[0], gStealArray[1], gStealArray[2]]
+    }
+    of MSG-FIELDERS-SKEW-CHANGED {
+        run-script HandleFieldersSkewChanged []
+    }
+    of MSG-SET-FIELDER-START-POSITIONS {
+        run-script SetFielderStartPositions [arg2]
+    }
+    of MSG-CHOOSE-PITCH-LOCATION {
+        run-script HandleChoosePitchLocation [arg2, arg3]
+    }
+    of MSG-RUN-PITCH {
+        r_smth_maybe_current_phase = 2
+        if (MODE-BATTING-PRACTICE == gGameMode) {
+            run-script RunBattingPracticePitch [arg2, arg3, arg4, arg5, arg6]
+        } else {
+            run-script RunGamePitch [arg2, arg3, arg4, arg5, arg6]
+        }
+    }
+    of MSG-PITCH-RESULT {
+        run-script HandlePitchResult [arg2]
+        if (gNetplayActive) {
+            run-script ReturnBallToPitcher []
+        }
+    }
+    of MSG-RESET-BATTER {
+        run-script ResetBatter [arg2]
+    }
+    of MSG-BATTER-CONTACT {
+        if (MODE-BATTING-PRACTICE == gGameMode) {
+            ++gBattingPracticeNumHits
+        }
+        g_smth_net_pause_flag = 1
+        if (g_net_smth_slave == g_net_smth_master) {
+            if (gNetWaitFlag) {
+                gNetWaitFlag = 0
+            }
+        }
+        gHitPosPhysX = arg2
+        gHitPosPhysY = arg3
+        gHitPosPhysZ = arg4
+        gHitVelPhysX = arg5
+        gHitVelPhysY = arg6
+        gHitVelPhysZ = arg7
+        gHitAngleXZ = arg8
+        global504 = 0
+        run-script HandleBatterContact []
+    }
+    of MSG-SET-STEAL-ARRAY {
+        gStealing = arg2
+        gStealArray[0] = arg3
+        gStealArray[1] = arg4
+        gStealArray[2] = arg5
+    }
+    of MSG-maybe-pitcher-head-animation {
+        run-script maybe_pitcher_head_animation [arg2]
+    }
+    of MSG-RETURN-BALL-TO-PITCHER {
+        run-script ReturnBallToPitcher []
+    }
+    of 7613 {
+        if (gNetplayActive) {
+            if (!room32) {
+                r_smth_maybe_current_phase = 3
+            }
+            if (!r_smth_maybe_current_phase) {
+                r_smth_maybe_current_phase = 1
+            }
+            if (g_net_smth_master != arg2) {
+                if (r_smth_maybe_current_phase == 1) {
+                    run-script-xc3 maybe_net_send_message [30, 1, NET-BATVIEW-MESSAGE, 7614, 1, g_net_smth_master]
+                } else {
+                    run-script-xc3 maybe_net_send_message [30, 1, NET-BATVIEW-MESSAGE, 7614, 0, g_net_smth_master]
+                }
+            }
+        } else {
+            r_smth_maybe_current_phase = 2
+        }
+    }
+    of 7614 {
+        if (arg2) {
+            r_smth_maybe_current_phase = 2
+        } else {
+            r_smth_maybe_current_phase = 3
+        }
+    }
+    of MSG-TEE-SWING {
+        run-script RunTeeSwing [arg2]
+    }
+    else {
+        pop-discard 0
+    }
+}
+free-script

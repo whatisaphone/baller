@@ -1,0 +1,28 @@
+; LSC2 34 2108
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local2 = local1 - local0 + 4
+local2 = min local2 13
+if (local0 == 6) {
+    local4 = 335 - 2 - 9
+} else {
+    local4 = 242 - 2 - 9
+}
+for local3 = 0 to (local0 - 1) ++ {
+    image-select 1265
+    image-x34 local2
+    image-pos (local4 + local3 * 31) 24
+    image-palette room0
+    image-render-into room14
+    image-x30
+    image-xff
+    if (local2 < 13) {
+        ++local2
+    }
+}
+free-script

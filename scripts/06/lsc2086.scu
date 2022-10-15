@@ -1,0 +1,23 @@
+; LSC2 6 2086
+
+image-select 132
+image-x34 1
+image-pos (0 - (image-get-hotspot-x 132 1)) (0 - (image-get-hotspot-y 132 1))
+image-palette room12
+image-x30
+image-xff
+run-script 2083 []
+image-select 133
+image-x34 (room4 - 1)
+image-pos (0 - (image-get-hotspot-x 133 (room4 - 1))) (0 - (image-get-hotspot-y 133 (room4 - 1)))
+image-palette room12
+image-x30
+image-xff
+run-script 2078 [153, room14]
+sprite-set-range room29 room29
+sprite-set-hotspot 0 0
+sprite-set-range room30 room30
+sprite-set-hotspot 0 0
+run-script 2093 []
+run-script DrawColorSelection []
+free-script

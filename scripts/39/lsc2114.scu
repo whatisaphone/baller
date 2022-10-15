@@ -1,0 +1,93 @@
+; LSC2 39 2114
+
+local variable local0
+local variable local1
+local variable local3
+local variable local4
+
+case 1 {
+    of local0 == 18 {
+        palette-select room10
+        palette-load 1505 0
+        palette-unselect
+        sprite-set-range room37[18] room37[18]
+        sprite-set-image 1505
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b 1000
+        sprite-palette room10
+    }
+    of local0 == 19 {
+        run-script 387 [global555, 24, 156, room37[19], room38[0], 0, room26]
+    }
+    of local0 >= 0 && local0 <= 16 {
+        sprite-set-range room37[local0] room37[local0]
+        sprite-set-image 1520
+        sprite-set-hotspot 320 240
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+        gSpriteCursorTargets[room37[local0]][TARGET-CLICK-SCRIPT] = 2112
+    }
+    of local0 == 17 {
+        sprite-set-range room37[17] room37[17]
+        sprite-set-image 1520
+        sprite-set-hotspot 320 240
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 100)
+        sprite-palette room16
+    }
+    of local0 == 20 {
+        palette-select room13
+        palette-load 1239 0
+        palette-unselect
+        sprintf local3 "VOICE %d" [room41]
+        local4 = call-script maybe_draw_text_to_image [local3, 1239, 442, room13]
+        free-array local3
+        sprite-set-range room37[20] room37[20]
+        sprite-set-image 442
+        sprite-set-hotspot (441 - local4 / 2) 326
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room13
+    }
+    of local0 == 24 {
+        if (room42 == 1) {
+            local3 = "MOUSE"
+        } else {
+            local3 = "GAMEPAD"
+        }
+        local4 = call-script maybe_draw_text_to_image [local3, 1239, room38[1], room13]
+        free-array local3
+        sprite-set-range room37[24] room37[24]
+        sprite-set-image room38[1]
+        sprite-set-hotspot (448 - local4 / 2) 356
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room13
+    }
+    of local0 == 21 {
+        sprite-set-range room37[21] room37[21]
+        sprite-set-image 1520
+        sprite-x34 (iif (room42 == 1) 35 34)
+        sprite-set-hotspot 320 240
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+    }
+    of local0 == 23 {
+        sprite-set-range room37[23] room37[23]
+        sprite-set-hotspot 236 221
+        sprite-set-image 1539
+        sprite-x2b (1000 + 1)
+        sprite-x52 0
+        sprite-x7c 1
+        sprite-palette room15
+    }
+}
+free-script

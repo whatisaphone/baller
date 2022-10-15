@@ -1,0 +1,14 @@
+; LSC2 5 2084
+
+local variable local0
+local variable local1
+
+if (local0 == 263) {
+    local1 = 1411
+} else if (local0 >= 1 && local0 <= 30) {
+    local1 = 1381 + local0 - 1
+} else {
+    local1 = 1411
+}
+return local1
+free-script

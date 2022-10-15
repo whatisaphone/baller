@@ -1,0 +1,21 @@
+; SCRP 386
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+case local1 {
+    of 3 {
+        local2 = (shr local0 16) & 255
+    }
+    of 4 {
+        local2 = (shr local0 8) & 255
+    }
+    of 5 {
+        local2 = local0 & 255
+    }
+}
+local3 = shr local2 5
+return local3
+free-script

@@ -1,0 +1,39 @@
+; LSC2 6 2090
+
+image-select 168
+image-x34 1
+image-pos (0 - (image-get-hotspot-x 168 1)) (0 - (image-get-hotspot-y 168 1))
+image-palette room18
+image-x30
+image-xff
+if (MODE-SEASON == gGameMode) {
+    image-select 168
+    image-x34 3
+    image-pos (0 - (image-get-hotspot-x 168 3)) (0 - (image-get-hotspot-y 168 3))
+    image-palette room18
+    image-x30
+    image-xff
+} else {
+    image-select 168
+    image-x34 2
+    image-pos (0 - (image-get-hotspot-x 168 2)) (0 - (image-get-hotspot-y 168 2))
+    image-palette room18
+    image-x30
+    image-xff
+}
+run-script 2078 [169, room19]
+run-script 2088 []
+sprite-set-range room34 room34
+sprite-set-hotspot 0 0
+sprite-set-range room33 room33
+sprite-set-hotspot 0 0
+run-script 2083 []
+run-script 2089 []
+if (gNetplayActive) {
+    sprite-set-range room2 room2
+    sprite-x7d [146]
+    sprite-set-range room3 room3
+    sprite-x7d [146]
+}
+gMouseHookScript = 2112
+free-script

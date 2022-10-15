@@ -1,0 +1,142 @@
+; SCRP 163 CastHitHomeRun
+
+parameter arg0
+
+gCurrentSpeechScript = CastHitHomeRun
+case random 8 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3313231,38245\x7f Goodbye, baseball!"
+    }
+    of 1 {
+        if (random 1) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3351476,50608\x7f ... and crushes one towards South Africa!"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3313231,38245\x7f Goodbye, baseball!"
+        }
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3402084,42928\x7f That ball is outta here and there's nothing left but a vapor trail!"
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3445012,52784\x7f It is back.... way back.... out of the ballpark!!  A home run!"
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3497796,56496\x7f Lick a stamp and slap it on that puppy cause that ball is outta here!!"
+    }
+    of 5 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3554292,68777\x7f Going ..... Going..... Say goodye, cause this ball is GONE!"
+    }
+    of 6 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3623069,41648\x7f There it goes... that ball is outta here!"
+    }
+    of 7 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3664717,49577\x7f  Move over Sputnick, this puppy's headed for orbit!!"
+    }
+    of 8 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT3714294,57392\x7f  Better take a picture now cuz this ball is outta here and it ain't comin' back!"
+    }
+}
+xa9-xa9
+if (gUserOnOffense && !gNoGooch) {
+    case random 9 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3771686,35447\x7f That outfielder's gonna need a plane ticket to catch this one!"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3807133,20037\x7f Hope that one had a passport"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3827170,45586\x7f Say goodbye, ma, looks like this one's gonna be raised by wolves."
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT3872756,31698\x7f the pitcher just turned to watch it go outta the park."
+        }
+        of 4 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT3904454,131664\x7f  I remember once, back in the old days... Last season, I think it was... she hit the ball so hard she broke the bat in two!  <s\he> rounded the bases, holding the bat handle in the air like the Olympic torch!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4036118,49933\x7f Blast off!  A rocket launched off his bat and zoomed right outta the park!!"
+            }
+        }
+        of 5 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4086051,77789\x7f  Man, that kid can hit. One time I saw her knock a ball clear outta the park and into a passing convertible.  Boy, was the driver surprised!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4163840,47183\x7f  Time for his victory tour of the bases!  Wave to all the nice fans!"
+            }
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT4211023,48200\x7f  Whoever finds that ball is gonna see a tattoo on it, that's for sure."
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT4259223,49346\x7f  I don't know what kinda pitch that was, but it tasted just like chicken!"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT4308569,27353\x7f  Aloha means goodbye, baby."
+        }
+        of 9 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4308569,27353\x7f  Aloha means goodbye, baby."
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4335922,29925\x7f  They just don't make hitters like that anymore!"
+                xa9-xa9
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT4365847,37801\x7f Vinnie, what are you talking about?  He's just a kid!!"
+            }
+        }
+    }
+    xa9-xa9
+}
+if (arg0 <= gMaxUniqueKid) {
+    run-script 202 [arg0]
+    free-running-script 0
+}
+gCurrentSpeechScript = 0
+free-script

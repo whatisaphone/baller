@@ -1,0 +1,27 @@
+; LSC2 4 2189 BattingPracticeFlashMessage
+
+parameter message: BattingPracticeMessage
+
+local variable local1
+local variable local2
+
+if (message == BPM-NICE-HIT) {
+    local1 = random2 3 5
+    local2 = 6
+} else if (message == BPM-SELECT-PITCH) {
+    local1 = 2
+    local2 = -1
+}
+if (local1) {
+    do {
+        draw-object-x3f 308 local1
+        if (local2 > 0) {
+            --local2
+        }
+        sleep 5
+        draw-object-x3f 308 6
+        sleep 5
+    } until (local2 == 0)
+    draw-object-x3f 308 1
+}
+free-script

@@ -1,0 +1,58 @@
+; LSC2 3 2078 maybe_handle_esc_skip_play
+
+local variable x
+local variable z
+local variable i
+local variable local4
+
+if (!((gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-BASE-ON-BALLS, 4, PE-OUT-OF-PLAY, 6, 7]) || r_smth_fly_caught_runners_must_return && gBallIsFoul)) {
+    xb6-xfe
+    xb6-x4b "Cut it out!"
+    free-running-script 0
+}
+if (gNetplayActive) {
+    free-running-script 0
+}
+room30 = 1
+if (!gRunnerSpecialDestinations) {
+    free-running-script 0
+}
+if (gRunnerSpecialDestinations[0] == NONE && gRunnerSpecialDestinations[1] == NONE && gRunnerSpecialDestinations[2] == NONE && gRunnerSpecialDestinations[3] == NONE) {
+    free-running-script 0
+}
+free-running-script smth_watch_runners_near_same_base
+for i = 0 to 3 ++ {
+    if (gRunners[i][R-CUR-BASE] != NONE) {
+        if (gRunners[i][R-CUR-BASE] == gRunnerSpecialDestinations[i] && gRunners[i][R-DEST-BASE] == NONE) {
+        } else {
+            gRunners[i][R-CUR-BASE] = gRunnerSpecialDestinations[i]
+            gRunners[i][R-DEST-BASE] = gRunnerSpecialDestinations[i]
+            case gRunners[i][R-CUR-BASE] {
+                of FIRST {
+                    x = gWorld[FIRST-BASE-CENTER][X]
+                    z = gWorld[FIRST-BASE-CENTER][Z]
+                }
+                of SECOND {
+                    x = gWorld[SECOND-BASE-CENTER][X]
+                    z = gWorld[SECOND-BASE-CENTER][Z]
+                }
+                of THIRD {
+                    x = gWorld[THIRD-BASE-CENTER][X]
+                    z = gWorld[THIRD-BASE-CENTER][Z]
+                }
+                in [0, R-HOME] {
+                    x = gWorld[HOME-PLATE-CENTER][X]
+                    z = gWorld[HOME-PLATE-CENTER][Z]
+                }
+                else {
+                    xb6-xfe
+                    xb6-xc2 "r%d: Aak!" i []
+                }
+            }
+            local4 = gRunners[i][R-ENTITY]
+            gWorld[local4][X] = x
+            gWorld[local4][Z] = z
+        }
+    }
+}
+free-script

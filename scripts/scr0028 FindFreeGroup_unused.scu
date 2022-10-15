@@ -1,0 +1,22 @@
+; SCRP 28 FindFreeGroup_unused
+
+local variable local0
+
+if (gSpriteGroupStackPointer_unused <= gMaxSpriteGroup) {
+    local0 = gSpriteGroupStack_unused[gSpriteGroupStackPointer_unused]
+    ++gSpriteGroupStackPointer_unused
+} else {
+    xb6-xfe
+    xb6-xc2 "Error in find-free-group! Sprite Group stack %d is empty! Pointer = %d" gSpriteGroupStack_unused [gSpriteGroupStackPointer_unused]
+    local0 = -1
+}
+if (local0 < gSpriteGroupStackMin_unused) {
+    --gSpriteGroupStackPointer_unused
+    xb6-xfe
+    xb6-xc2 "failed to find a free sprite group (%d), pointer %d " local0 [gSpriteGroupStackPointer_unused]
+    if (local0 == gSpriteGroupStackMin_unused - 1) {
+        local0 = gSpriteGroupStackMin_unused
+    }
+}
+return local0
+free-script

@@ -1,0 +1,54 @@
+; LSC2 27 2286
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+if (6 == local0 || 7 == local0) {
+    local9 = "W"
+    local10 = -3
+} else {
+    local6 = call-script ReadPlayoffSchedule [local0, 14, 0]
+    local5 = call-script smth_find_playoff_team [local6]
+    if (6 == local5 || 7 == local5) {
+        local9 = "1"
+    } else {
+        local7 = call-script smth_find_season_team [gPlayoffTeamsArray[local0]]
+        local8 = call-script smth_find_season_team [local6]
+        local2 = gSeasonRosterArray[local7][14]
+        local3 = gSeasonRosterArray[local8][14]
+        case 1 {
+            of local2 > local3 {
+                local9 = "2"
+            }
+            of local3 > local2 {
+                local9 = "3"
+            }
+            else {
+                if (local0 > local5) {
+                    local9 = "3"
+                } else {
+                    local9 = "2"
+                }
+            }
+        }
+    }
+}
+temp = call-script maybe_draw_text_to_image [local9, 651, room134[local0], room141]
+sprite-set-range room126[local0] room126[local0]
+sprite-clear
+sprite-set-image room134[local0]
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-palette room141
+sprite-set-hotspot (room122[local1] - 19 + local10) (room123[local1] + 12)
+free-array local9
+free-script

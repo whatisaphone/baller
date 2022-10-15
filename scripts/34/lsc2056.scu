@@ -1,0 +1,57 @@
+; LSC2 34 2056
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+if (global397 == 0) {
+    run-script 2054 []
+}
+if (!global398) {
+    run-script 2052 []
+}
+if (gNumStrikes == 2) {
+    if (!(random 4)) {
+        local0 = 2
+    } else {
+        local0 = 1
+    }
+}
+case gNumBalls {
+    of 3 {
+        if (random 10) {
+            if (random 1) {
+                local0 = 1
+            } else {
+                local0 = 3
+            }
+        } else {
+            local0 = 2
+        }
+    }
+    of 2 {
+        if (random 8) {
+            local0 = 1
+        } else {
+            local0 = 2
+        }
+    }
+}
+if (!local0) {
+    if (random 6) {
+        local0 = 1
+    } else {
+        local0 = 2
+    }
+}
+local3 = call-script 2055 [local0]
+local5 = (local3 - 1) / 7
+local4 = local3 - 1 - local5 * 7
+local1 = 16 * (local4 - 1) + 280 + (random 16)
+local2 = room29 * (local5 - 1) + room27 + (random room29)
+global204 = local1
+global205 = local2
+free-script

@@ -1,0 +1,21 @@
+; SCRP 268
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (local1 >= 122) {
+    local3 = 1377
+    local2 = local1 - 122
+    local4 = 1
+} else {
+    local3 = 1378
+    local2 = local1 - 101
+}
+sprite-set-range local0 local0
+sprite-set-image local3
+sprite-x34 local2
+return local4
+free-script

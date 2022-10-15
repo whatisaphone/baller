@@ -1,0 +1,21 @@
+; SCRP 37 smth_vector_math_gravity_angle
+
+parameter x1
+parameter z1
+parameter x2
+parameter z2
+
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+local5 = (distance-2d x1 z1 x2 z2) * 384000 * gGravity / 60 / 100 / 10
+local6 = local4 * local4 * 2
+if (local5 > local6) {
+    local7 = 45
+} else {
+    local7 = atan2 local6 local5
+}
+return local7
+free-script

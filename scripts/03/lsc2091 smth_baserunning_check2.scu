@@ -1,0 +1,65 @@
+; LSC2 3 2091 smth_baserunning_check2
+
+parameter runneridx
+parameter arg1
+parameter runner_is_batter
+
+local variable result
+local variable i
+local variable local5
+
+result = 1
+if ((gPlayEndedReason in [PE-BASE-ON-BALLS, PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9]) || (gRunners[runneridx][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch])) {
+    local5 = gRunners[runneridx][R-CUR-BASE]
+    if (local5 in [0, 1, 2, 3]) {
+        r_runners_zeta[local5] = result
+    }
+    return result
+}
+if (runner_is_batter && gBallWasHit == false) {
+    result = 0
+} else if (gPlayEndedReason in [4, PE-OUT-OF-PLAY, 6, 7]) {
+    local5 = gRunners[runneridx][R-CUR-BASE]
+    if (local5 in [0, 1, 2, 3]) {
+        r_runners_zeta[local5] = result
+    }
+    return result
+}
+if (result) {
+    if ((gRunners[runneridx][R-STATE] == R-maybe-returning-after-infield-fly || gPlayEndedReason == PE-INFIELD-FLY) && gRunners[runneridx][R-DEST-BASE] == NONE) {
+        result = 0
+    }
+}
+if (result) {
+    if (r_maybe_pitcher_is_standing_on_the_mound && g_maybe_play_is_ready_to_end) {
+        result = 0
+        xb6-xfe
+        xb6-xc2 "r%d: play is dead ???? <- PAT AND GREG???." runneridx []
+    }
+}
+if (result) {
+    if (g_maybe_play_is_ready_to_end && rCurrentPlay == MOUND && rBaseClaims[MOUND] == FIELDER-PITCHER) {
+        if (gFielderWithBall) {
+            if ((distance-2d gWorld[MOUND-CENTER][X] gWorld[MOUND-CENTER][Z] gWorld[gFielderWithBall][X] gWorld[gFielderWithBall][Z]) < 600) {
+                result = 0
+            }
+        } else if ((distance-2d gWorld[MOUND-CENTER][X] gWorld[MOUND-CENTER][Z] gWorld[BALL][X] gWorld[BALL][Z]) < 600) {
+            result = 0
+        }
+    }
+}
+if (result) {
+    for i = 0 to 3 ++ {
+        if (gRunners[i][R-CUR-BASE] != NONE && gRunners[i][R-DEST-BASE] == NONE) {
+            if (gRunners[i][R-ORDER] > gRunners[runneridx][R-ORDER] && gRunners[i][R-CUR-BASE] <= gRunners[runneridx][R-CUR-BASE]) {
+                result = 0
+            }
+        }
+    }
+}
+local5 = gRunners[runneridx][R-CUR-BASE]
+if (local5 in [0, 1, 2, 3]) {
+    r_runners_zeta[local5] = result
+}
+return result
+free-script

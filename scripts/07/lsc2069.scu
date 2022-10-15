@@ -1,0 +1,110 @@
+; LSC2 7 2069
+
+local variable local0
+local variable local1
+local variable local2
+local variable local5
+local variable local6
+local variable local9
+local variable local11
+local variable local12
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+
+image-select 703
+image-op-create
+image-x20 555
+image-x21 61
+image-xff
+image-select 703
+image-x85 0 0 555 61 room12
+image-xff
+if (gGameEnded || gCurrentHalfInning == 999) {
+    free-running-script 0
+}
+local0 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-ORDER-KIDS]
+local1 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION]
+if (local1 > 8) {
+    local1 = 0
+}
+local1 = max 0 local1
+if (gBattingTeamInfoIndex == gHomeInfoIndex) {
+    local2 = 0
+} else {
+    local2 = 1
+}
+local17 = gTeamInfo[gBattingTeamInfoIndex][TI-TEAM-NOUN]
+if (local17 >= 122 && local17 <= 151) {
+    local18 = g_underwater_array[local17][7]
+    local19 = g_underwater_array[local17][8]
+    local20 = g_underwater_array[local17][9]
+} else {
+    local18 = gTeamInfo[gBattingTeamInfoIndex][3]
+    local19 = gTeamInfo[gBattingTeamInfoIndex][8]
+    local20 = gTeamInfo[gBattingTeamInfoIndex][3]
+}
+for local5 = local1 to (local1 + 2) ++ {
+    local11 = local0[mod local5 9]
+    local9 = 12 + local6
+    local16 = local9 + 3
+    actor-select local9
+    actor-xd9
+    actor-select local16
+    actor-xd9
+    local21 = 0
+    if (gKidData[local11][33] != 0) {
+        if (gKidData[local11][33] > 128) {
+            local21 = 1
+        } else if (gKidData[local11][33] < 128) {
+            local21 = -1
+        }
+    }
+    run-script smth_kid_actor_pair_anim [local11, local16, local9, local18, local19, local20, 164 + 208 * local6, 341, local21]
+    run-script GetKidName [local11, 1]
+    temp2 = (strlen gKidName) - 1
+    for temp = 0 to temp2 ++ {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] = gKidName[temp] - 32
+        }
+    }
+    local12 = call-script maybe_draw_text_to_image [gKidName, 1244, 705, room30, 1]
+    image-select 705
+    image-pos (local6 * 208) 2
+    image-render-into 703
+    image-x36 1
+    image-x30
+    image-xff
+    sprintf local15 "%s" [gKidName]
+    run-script GetKidName [local11, 2]
+    temp2 = (strlen gKidName) - 1
+    for temp = 0 to temp2 ++ {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] = gKidName[temp] - 32
+        }
+    }
+    if (!(strcmp local15 gKidName)) {
+        free-array gKidName
+        gKidName = " "
+    }
+    free-array local15
+    local12 = call-script maybe_draw_text_to_image [gKidName, 1244, 705, room30, 1]
+    image-select 705
+    image-pos (local6 * 208) 34
+    image-render-into 703
+    image-x36 1
+    image-x30
+    image-xff
+    ++local6
+}
+sprite-set-range room6[4] room6[4]
+sprite-clear
+sprite-set-image 703
+sprite-x7c 0
+sprite-x2b -800
+sprite-set-hotspot 28 338
+free-script

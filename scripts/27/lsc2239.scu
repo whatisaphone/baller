@@ -1,0 +1,66 @@
+; LSC2 27 2239
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local8
+local variable local9
+
+local3 = call-script ReadSeasonTeams [room89]
+if (local3 <= 106) {
+    local0 = 1061
+    local2 = 1062
+    local1 = local3 - 101
+} else if (local3 > 151) {
+    case local3 {
+        of 160 {
+            local0 = 1063
+            local2 = 1064
+            local1 = 30
+        }
+        of 161 {
+            local0 = 1063
+            local2 = 1064
+            local1 = 31
+        }
+        of 162 {
+            local0 = 1063
+            local2 = 1064
+            local1 = 32
+        }
+    }
+} else {
+    local0 = 1063
+    local2 = 1064
+    local1 = local3 - 122
+}
+palette-select room90
+palette-load local0 0
+palette-unselect
+local4 = iif (room89 == gSeasonDivision) g_some_palette_655 room90
+if (local3 <= 106) {
+    local8 = call-script ReadActiveRoster [room89, 12]
+    local9 = call-script ReadActiveRoster [room89, 13]
+    run-script 279 [room90, local8, local9]
+}
+sprite-set-range room86[8] room86[8]
+sprite-clear
+sprite-set-image local2
+sprite-x52 0
+sprite-x7c 2
+sprite-x34 local1
+sprite-x62 257
+sprite-palette local4
+sprite-set-hotspot 360 390
+sprite-set-range room86[2] room86[2]
+sprite-clear
+sprite-set-image local0
+sprite-x52 0
+sprite-x7c 2
+sprite-x34 local1
+sprite-palette local4
+sprite-set-hotspot 360 390
+run-script 2238 []
+free-script

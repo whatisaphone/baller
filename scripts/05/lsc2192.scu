@@ -1,0 +1,17 @@
+; LSC2 5 2192
+
+local variable local0
+
+do {
+    sleep-seconds 5
+    if ((sprite-get-image gNavButtons[4][0]) == 0) {
+        if (is-script-running smth_online_kid_pick_1) {
+            sprintf local0 "Waiting for Coach %s" [gNetRemoteCoachName]
+        } else {
+            local0 = "Your turn to pick"
+        }
+        run-script HandleHover [0, 0, local0]
+        free-array local0
+    }
+}
+free-script

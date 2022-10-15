@@ -1,0 +1,65 @@
+; LSC2 39 2145
+
+local variable local0
+local variable local1
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+image-select room44[1]
+image-op-create
+image-x20 256
+image-x21 130
+image-xff
+image-select room44[1]
+image-x85 0 0 256 130 (palette-x42 1 5)
+image-xff
+palette-select room13
+palette-load 1239 0
+palette-unselect
+if (global575) {
+    free-array global575
+}
+local4 = 59
+sprintf local6 "%sdownloads\poll.ini" [gSaveGamePath]
+global575 = read-ini-string local6 "POLL" "QUES"
+free-array local6
+if (!global575) {
+    free-running-script 0
+}
+if ((strlen global575) > 0) {
+    local5 = call-script smth_string [global575, local4, 8]
+    local0 = call-script smth_string [global575, local4, 7, 1]
+    temp2 = (strlen local0) - 1
+    for temp = 0 to temp2 ++ {
+        if (local0[temp] >= 97 && local0[temp] <= 122) {
+            local0[temp] = local0[temp] - 32
+        }
+    }
+    local1 = call-script smth_draw_text_image [local0, 1244, room44[0], 265, 54, 3, 0, room13, 1]
+    free-array local0
+    run-script-xc3 2144 [8]
+    for local3 = 0 to 5 ++ {
+        local0 = call-script smth_string [global575, local4, local3 + 1, 1]
+        local1 = call-script maybe_draw_text_to_image [local0, 1239, room44[2], room13]
+        free-array local0
+        image-select room44[2]
+        image-pos 2 (2 + 21 * local3)
+        image-render-into room44[1]
+        image-x30
+        image-xff
+        run-script-xc3 2144 [9]
+    }
+    temp = read-ini-int room36 gNetUsername "_Poll"
+    if (temp == local5) {
+        global576 = global561[29]
+        room45 = global576
+    }
+    if (global576 && global575) {
+        local7 = global576 + 6 - 1
+        run-script-xc3 2144 [6, local7]
+    }
+}
+free-script

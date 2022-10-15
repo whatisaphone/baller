@@ -1,0 +1,27 @@
+; LSC2 40 2082
+
+local variable local0
+
+run-script 2068 [1]
+case local0 {
+    of 1 {
+        run-script 2081 []
+        while (!!(is-script-running 2081)) {
+            stop-script
+        }
+    }
+    of 2 {
+        run-script AddFriend []
+        while (!!(is-script-running AddFriend)) {
+            stop-script
+        }
+    }
+    of 3 {
+        run-script 2079 []
+        while (!!(is-script-running 2079)) {
+            stop-script
+        }
+    }
+}
+run-script 2068 [0]
+free-script

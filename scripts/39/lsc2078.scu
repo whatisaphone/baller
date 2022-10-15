@@ -1,0 +1,82 @@
+; LSC2 39 2078
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+temp = 0
+temp = "baseball2001"
+sprintf local2 "%s%s.net" [gSaveGamePath, temp]
+free-array temp
+local4 = read-ini-string local2 gNetUsername "_Friends"
+for local5 = 0 to (strlen local4) ++ {
+    if (local4[local5] == 59) {
+        ++local1
+    }
+}
+if (local1) {
+    if (local0) {
+        sprintf local7 "%s" [local0]
+    } else {
+        local7 = substr global681 5 (strlen global681)
+    }
+    for local5 = 1 to local1 ++ {
+        local3 = call-script smth_string [local4, 59, local5, 1]
+        if (!(strcmp local3 local7)) {
+            local8 = 1
+            local6 = call-script smth_string [local4, 59, local5, 1, 1]
+            if (local6[0] == 59) {
+                local6[0] = 92
+            }
+            write-ini-string local2 gNetUsername "_Friends" local6
+            free-array local6
+            sprintf local6 "COACH (%s) WAS DELETED FROM YOUR FRIENDS LIST!" [local7]
+            run-script ShowPopup [local6, 2, 5]
+            while (!gPopupResult) {
+                stop-script
+            }
+        }
+        free-array local3
+    }
+    if (!local8) {
+        sprintf local6 "COACH (%s) WAS NOT FOUND IN YOUR LIST OF COACHES!" [local7]
+        run-script ShowPopup [local6, 2, 5]
+        while (!gPopupResult) {
+            stop-script
+        }
+    }
+    free-array local7
+} else {
+    local6 = "THERE ARE NO COACHES TO DELETE."
+    run-script ShowPopup [local6, 2, 5]
+    while (!gPopupResult) {
+        stop-script
+    }
+}
+free-array local4
+free-array local2
+if (local7) {
+    free-array local7
+}
+if (local0) {
+    free-running-script 0
+}
+global680[16] = 0
+free-array global681
+global681 = " "
+global680[14] = call-script maybe_draw_text_to_image [global681, global680[7], global680[3], global680[9], 1]
+sprite-set-range global680[12] global680[12]
+sprite-set-image global680[3]
+temp = (sprite-get-translated-hotspot-x global680[12]) + 2
+temp2 = sprite-get-translated-hotspot-y global680[12]
+sprite-set-range global680[10] global680[10]
+image-select global680[11]
+image-pos (temp + global680[14] + 2) temp2
+image-xff
+free-script

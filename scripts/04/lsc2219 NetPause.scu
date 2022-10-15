@@ -1,0 +1,33 @@
+; LSC2 4 2219 NetPause
+
+local variable local0
+
+if (gStealing) {
+    gStealing = 0
+    array-set gStealArray [0, 0, 0] 0
+    room39 = 0
+    run-script UpdateStealBase []
+}
+if (is-script-running TimeOut) {
+    free-running-script 0
+}
+gNetPitchTimer = 0
+run-script TimeOut []
+free-running-script 0
+room32 = 0
+put-class 95 [160]
+free-running-script RunPitch
+run-script NET_DisplayBanner [9910]
+while (!!(is-script-running NET_DisplayBanner)) {
+    stop-script
+}
+run-script 2150 []
+local0 = gTeamInfo[1 - gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+if (rPitcherKid != local0[8]) {
+    run-script ChangePitcher [true]
+    while (!!(is-script-running ChangePitcher)) {
+        stop-script
+    }
+}
+run-script RunPitch []
+free-script

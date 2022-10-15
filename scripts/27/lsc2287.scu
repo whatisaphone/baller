@@ -1,0 +1,40 @@
+; LSC2 27 2287
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+if (local2 > local3) {
+    local6 = call-script GetTeamNameString [gPlayoffTeamsArray[local0], 1]
+    if (2 == local2) {
+        sprintf local5 "%s WON [%d - %d]" [local6, local2, local3]
+    } else {
+        sprintf local5 "%s [%d - %d]" [local6, local2, local3]
+    }
+    free-array local6
+} else if (local3 > local2) {
+    local6 = call-script GetTeamNameString [gPlayoffTeamsArray[local1], 1]
+    if (2 == local3) {
+        sprintf local5 "%s WON [%d - %d]" [local6, local3, local2]
+    } else {
+        sprintf local5 "%s [%d - %d]" [local6, local3, local2]
+    }
+    free-array local6
+} else {
+    sprintf local5 "SERIES TIED [%d - %d]" [local2, local3]
+}
+temp = call-script smth_draw_text_image [local5, 1031, room132[local0], 201, 25, 0, 0, room141, 0]
+sprite-set-range room131[local0] room131[local0]
+sprite-clear
+sprite-set-image room132[local0]
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-palette room141
+sprite-set-hotspot (room122[local4] + 2) (room123[local4] + 60)
+free-array local5
+free-script

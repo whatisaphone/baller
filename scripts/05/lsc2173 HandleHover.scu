@@ -1,0 +1,205 @@
+; LSC2 5 2173 HandleHover
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+if (room69) {
+    free-running-script 0
+}
+if (arg2) {
+    sprintf local3 "%s" [arg2]
+    free-array arg2
+}
+label0023:
+case arg1 {
+    of 2 {
+        case arg0 {
+            of gNavButtons[1][0] {
+                if (sprite-get-image room60) {
+                    arg0 = room68
+                    goto label0023
+                }
+                if (gCursorLoopScript != CursorLoop) {
+                    if (MODE-maybe-cards != gGameMode) {
+                        arg0 = room16
+                    } else {
+                        arg0 = room67
+                    }
+                    goto label0023
+                }
+                if (gNetplayActive) {
+                    local3 = "Quit Game"
+                    local4 = "click here to quit this network game."
+                } else {
+                    local3 = "The club house"
+                    local4 = "click here to return to THE CLUB HOUSE."
+                }
+            }
+            of gNavButtons[3][0] {
+                if (MODE-maybe-cards == gGameMode) {
+                    local3 = "The club house"
+                    local4 = "click here to return to the club house."
+                } else if (MODE-BATTING-PRACTICE == gGameMode) {
+                    local3 = "Hit some balls"
+                    local4 = "Click here to pick a random kid for batting practice."
+                } else {
+                    local3 = "Team page"
+                    if (gNetplayActive) {
+                        local4 = "When you are done picking your teams, you will automatically move ahead."
+                    } else {
+                        local4 = "Click here to fill up your roster with randomly selected kids."
+                    }
+                }
+            }
+            of room44 {
+                local3 = "Player Finder"
+                if (room47 == 0) {
+                    local4 = "Bring up an alphabetical list of all the kids."
+                } else {
+                    local4 = "Hide the Player Finder."
+                }
+            }
+            in [room46, room45, room65, room66] {
+                local3 = "Scroll Through Kids"
+                local4 = "There are a lot of kids here you know."
+            }
+            of room50 {
+                local5 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+                local6 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+                local5 = local5 - 320 - (image-get-hotspot-x 122 3)
+                local6 = local6 - 240 - (image-get-hotspot-y 122 3)
+                case image-get-x42 122 3 local5 local6 {
+                    of 16 {
+                        arg0 = room45
+                    }
+                    of 17 {
+                        arg0 = room59
+                    }
+                    of 18 {
+                        arg0 = room46
+                    }
+                    else {
+                        arg0 = 0
+                    }
+                }
+                goto label0023
+            }
+            of room15 {
+                if (random 1) {
+                    local3 = "Yes!"
+                } else if (gKidData[rCurrentKid][KD-gender] == GIRL) {
+                    local3 = "I'll take her!"
+                } else {
+                    local3 = "I'll take him!"
+                }
+                local4 = "Click here to pick this kid."
+            }
+            of room16 {
+                case random 2 {
+                    of 0 {
+                        local3 = "No"
+                    }
+                    of 1 {
+                        local3 = "I don't think so"
+                    }
+                    of 2 {
+                        local3 = "Sorry kid"
+                    }
+                }
+                local4 = "Click here to turn this kid down."
+            }
+            of room67 {
+                local3 = "Done"
+                local4 = "Click here to go back to the bench."
+            }
+            of room68 {
+                if (sprite-get-image room60) {
+                    local3 = "Done"
+                    local4 = "Click here to go back to the Backyard Cards."
+                } else {
+                    local3 = "Genuine official pro card"
+                    local4 = "Click here to see this player's real Pro card."
+                }
+            }
+            of room24 {
+                local3 = "Team Clipboard"
+                if (room22 == 1) {
+                    local4 = "Click here to lower this clipboard"
+                } else {
+                    local4 = "Click here to raise this clipboard and check out the team so far."
+                }
+            }
+            of room25 {
+                local3 = "Team Clipboard"
+                if (room23 == 1) {
+                    local4 = "Click here to lower this clipboard"
+                } else {
+                    local4 = "Click here to raise this clipboard and check out the team so far."
+                }
+            }
+            else {
+                if (g_some_sprite_array) {
+                    if (arg0 in [g_some_sprite_array[0], g_some_sprite_array[1], g_some_sprite_array[2]]) {
+                        case random 2 {
+                            of 0 {
+                                local3 = "Talk to me"
+                            }
+                            of 1 {
+                                local3 = "Say Something"
+                            }
+                            of 2 {
+                                local3 = "Talk"
+                            }
+                        }
+                        case random 2 {
+                            of 0 {
+                                local4 = "Click here to hear a little story."
+                            }
+                            of 1 {
+                                local4 = "This kid has something to say to you."
+                            }
+                            of 2 {
+                                local4 = "Click here to hear the kid talk."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    of 1 {
+        if (actor-get-var arg0 10) {
+            sprintf local3 "&9%d" [actor-get-var arg0 10]
+        }
+    }
+    of 6 {
+        case arg0 {
+            in [116, 118] {
+                local3 = "Scroll Through Kids"
+                local4 = "There are a lot of kids here you know."
+            }
+            of 117 {
+                local3 = "Check out this kid"
+                local4 = "Click here to look at this kid."
+            }
+        }
+    }
+}
+if (local3 || local4) {
+    run-script UpdateNavText [local3, local4]
+    if (local3) {
+        free-array local3
+    }
+    if (local4) {
+        free-array local4
+    }
+} else {
+    run-script maybe_HideNavHoverText []
+}
+free-script

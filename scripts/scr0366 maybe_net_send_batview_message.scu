@@ -1,0 +1,14 @@
+; SCRP 366 maybe_net_send_batview_message
+
+parameter message: BatViewMessage
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+
+g_smth_net_pause_flag = 0
+run-script-xc3 maybe_net_send_message [30, 1, NET-BATVIEW-MESSAGE, message, arg1, arg2, arg3, arg4, arg5, arg6, arg7]
+free-script

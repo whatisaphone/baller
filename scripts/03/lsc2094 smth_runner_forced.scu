@@ -1,0 +1,67 @@
+; LSC2 3 2094 smth_runner_forced
+
+parameter runneridx
+
+local variable base: RunningBase
+
+if (gRunners == 0) {
+    free-running-script 0
+}
+if (gRunnerSpecialDestinations == 0) {
+    free-running-script 0
+}
+gRunners[runneridx][R-FORCED] = true
+base = gRunners[runneridx][R-CUR-BASE] * 2
+if (gRunners[runneridx][R-DEST-BASE] != NONE) {
+    if (gRunners[runneridx][R-DEST-BASE] > gRunners[runneridx][R-CUR-BASE]) {
+        ++base
+    }
+    if (gRunners[runneridx][R-DEST-BASE] < gRunners[runneridx][R-CUR-BASE]) {
+        --base
+    }
+}
+if (base >= gRunnerSpecialDestinations[runneridx] * 2) {
+    gRunners[runneridx][R-DIRECTION] = BACKWARD
+    if (gRunners[runneridx][R-DEST-BASE] == NONE || gRunners[runneridx][R-DEST-BASE] < gRunners[runneridx][R-CUR-BASE]) {
+        base = gRunners[runneridx][R-CUR-BASE] - 1
+    } else {
+        base = gRunners[runneridx][R-CUR-BASE]
+    }
+} else {
+    gRunners[runneridx][R-DIRECTION] = FORWARD
+    if (gRunners[runneridx][R-DEST-BASE] == NONE || gRunners[runneridx][R-DEST-BASE] > gRunners[runneridx][R-CUR-BASE]) {
+        base = gRunners[runneridx][R-CUR-BASE] + 1
+    } else {
+        base = gRunners[runneridx][R-CUR-BASE]
+    }
+}
+g_maybe_play_is_ready_to_end = 0
+if (base != NONE) {
+    base = max 0 (min 4 base)
+}
+if (gPlayEndedReason == PE-OUT-OF-PLAY) {
+    if (gRunners[runneridx][R-DEST-BASE] == gRunners[runneridx][R-CUR-BASE]) {
+        base = base + 1
+        gRunners[runneridx][R-DIRECTION] = FORWARD
+    }
+}
+gRunners[runneridx][R-DEST-BASE] = base
+case base {
+    of FIRST {
+        gRunners[runneridx][R-DEST-X] = gWorld[FIRST-BASE-CENTER][X]
+        gRunners[runneridx][R-DEST-Z] = gWorld[FIRST-BASE-CENTER][Z]
+    }
+    of SECOND {
+        gRunners[runneridx][R-DEST-X] = gWorld[SECOND-BASE-CENTER][X]
+        gRunners[runneridx][R-DEST-Z] = gWorld[SECOND-BASE-CENTER][Z]
+    }
+    of THIRD {
+        gRunners[runneridx][R-DEST-X] = gWorld[THIRD-BASE-CENTER][X]
+        gRunners[runneridx][R-DEST-Z] = gWorld[THIRD-BASE-CENTER][Z]
+    }
+    in [0, R-HOME] {
+        gRunners[runneridx][R-DEST-X] = gWorld[HOME-PLATE-CENTER][X]
+        gRunners[runneridx][R-DEST-Z] = gWorld[HOME-PLATE-CENTER][Z]
+    }
+}
+free-script

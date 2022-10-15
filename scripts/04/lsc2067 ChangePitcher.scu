@@ -1,0 +1,118 @@
+; LSC2 4 2067 ChangePitcher
+
+parameter use_existing_pitcher: bool
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-visible-decrement
+} else {
+    cursor-hide
+}
+room51 = 0
+while (!!(is-script-running ReturnBallToPitcher)) {
+    stop-script
+}
+put-actor 3 0 0 0
+local1 = gTeamInfo[1 - gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+if (!use_existing_pitcher) {
+    if (gDifficulty == HARD || gDifficulty == MEDIUM && !(random 3)) {
+        for local6 = 0 to 7 ++ {
+            local8 = local1[local6]
+            local9 = gKidData[local8][14] + gKidData[local8][15] + gKidData[local8][16] + gKidData[local8][17]
+            local9 = local9 - gKidData[local8][KD-fatigue] * 10
+            if (local9 > local7) {
+                local7 = local9
+                local2 = local6
+            }
+        }
+    } else {
+        for local6 = 1 to 10 ++ {
+            local2 = random 7
+            if (gKidData[local1[local2]][KD-fatigue] < 50) {
+                local6 = 20
+            }
+        }
+    }
+    local1[8] = local1[local2]
+    local1[local2] = rPitcherKid
+}
+rPitcherKid = local1[8]
+local16 = call-script AllocScratchImage []
+local17 = image-get-width 353 0
+local18 = image-get-height 353 0
+image-select local16
+image-op-create
+image-x20 local17
+image-x21 local18
+image-xff
+image-select local16
+image-x85 0 0 local17 local18 5
+image-xff
+image-select 353
+image-pos 0 0
+image-render-into local16
+image-x30
+image-xff
+local10 = call-script FindFreeActor []
+local15 = call-script FindFreeActor []
+actor-select local10
+actor-xd9
+actor-x2b -10
+actor-select local15
+actor-xd9
+actor-x2b -9
+actor-x50 0 0
+actor-select 2
+actor-x2b -200
+run-script smth_kid_actor_pair_animation [rPitcherKid, local10, local15, 1 - gBattingTeamInfoIndex, 231, 79]
+actor-select local15
+actor-x61 (6 / gMinJiffies)
+run-script GetKidName [rPitcherKid]
+dim array local3 byte[0...0][0...20] swap=2
+dim array local4 byte[0...0][0...20] swap=2
+run-script SplitKidNameFirstLast [local3, local4]
+run-script DrawString2 [290 - 216, 90 - 0, 554, local3, local16]
+run-script DrawString2 [290 - 216, 114 - 0, 554, local4, local16]
+free-array local3
+free-array local4
+sprite-set-range 12 12
+sprite-clear
+sprite-set-image local16
+sprite-x2b 1
+sprite-x25 10
+sprite-set-hotspot 216 0
+run-script InitPitcher []
+sleep-seconds 3
+run-script 2150 []
+sprite-set-range 12 12
+sprite-clear
+put-actor local10 0 0 0
+put-actor local15 0 0 0
+actor-select 2
+actor-x2b 15
+run-script FreeScratchImage [local16]
+run-script 2157 []
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    if (gCursorVisible <= 0) {
+        cursor-visible-increment
+    }
+} else {
+    cursor-show
+}
+if (gCursorVisible > 0) {
+    room51 = 1
+}
+free-script

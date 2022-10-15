@@ -1,0 +1,15 @@
+; SCRP 326 NetCreateGame
+
+global111 = 0
+kludge [2001, 2208]
+while (!(global111 != 0)) {
+    stop-script
+}
+if (global111 != 99) {
+    xb7-xfe
+    xb7-x4b "Error creating a TCP/IP game - I bet you don't have DirectX 6 installed.  Please remind Rich to put a better error message here."
+} else {
+    sleep 10
+    run-script smth_net359 [0, 1]
+}
+free-script

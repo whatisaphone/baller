@@ -1,0 +1,60 @@
+; LSC2 40 2106
+
+local variable local0
+
+run-script PlayClickySound []
+if (local0 == room1[57]) {
+    ++gField
+    if (gField == SUPER-COLOSSAL-DOME) {
+        ++gField
+    }
+    if (gField > 9) {
+        gField = DIRT-YARDS
+    }
+    local0 = 57
+} else {
+    --gField
+    if (gField == SUPER-COLOSSAL-DOME) {
+        --gField
+    }
+    if (gField < 0) {
+        gField = SANDY-FLATS
+    }
+    local0 = 56
+}
+run-script-xc3 2112 [local0, 1]
+run-script 2090 [gField]
+if (room13) {
+    cursor-input-disable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-hide
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    run-script 425 []
+    while (!!(is-script-running 425)) {
+        stop-script
+    }
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    if (gField == room28) {
+        run-script 424 [14, 0]
+    } else {
+        run-script 424 [12, 0]
+    }
+}
+stop-script
+run-script-xc3 2112 [local0]
+free-script

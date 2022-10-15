@@ -1,0 +1,10 @@
+; VERB 4 110
+
+run-script PlaySound [1706]
+if (gFieldersSkew in [-2, 1, 4]) {
+    gFieldersSkew = gFieldersSkew - 1
+} else {
+    gFieldersSkew = gFieldersSkew + 1
+}
+run-script SendBatViewMessage [MSG-FIELDERS-SKEW-CHANGED, gFieldersSkew]
+finish-script

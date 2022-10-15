@@ -1,0 +1,56 @@
+; LSC2 34 2049
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+room21 = min (96 - 10) room21
+if ((random 100) < 4) {
+    if (random 1) {
+        if (local0 < 280 + 2 * 16 || local0 > 360 - 2 * 16) {
+            room25 = 318 + (random2 (-1 * 16) 16)
+        } else if (random 1) {
+            room25 = 280 - (random 2) * 16
+        } else {
+            room25 = 360 + (random 2) * 16
+        }
+        room26 = 307 + (random2 (-1 * room29) room29)
+    } else {
+        if (local1 < room27 + 2 * room29 || local1 > room28 - 2 * room29) {
+            room26 = (room28 - room27) / 2 + room27 + (random2 (-1 * room29) room29)
+        } else if (random 1) {
+            room26 = room27 - (random 2) * room29
+        } else {
+            room26 = room28 + (random 2) * room29
+        }
+        room25 = 318 + (random2 (-1 * 16) 16)
+    }
+    free-running-script 0
+}
+local6 = random 130
+if (local6 < 86) {
+    local2 = 0
+    local3 = room21 / 2
+} else if (local6 < 96) {
+    local2 = room21 / 2
+    local3 = room21 / 4 * 3
+} else if (local6 < 100) {
+    local2 = room21 / 4 * 3
+    local3 = room21
+} else {
+    local2 = room21 + 1
+    local3 = room21 + 100
+}
+local4 = random2 local2 local3
+local5 = random 360
+room25 = local4 * (cos local5) / 100000 + local0
+room26 = 0 - local4 * (sin local5) / 100000 + local1
+room25 = min 386 room25
+room25 = max 250 room25
+room26 = min 380 room26
+room26 = max 234 room26
+free-script

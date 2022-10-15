@@ -1,0 +1,80 @@
+; LSC2 27 2315 PlayerSay
+
+parameter arg0
+
+local variable local1
+local variable script: script
+
+if (gKeyState & 16) {
+    local1 = 1
+}
+if (arg0 != room144[0]) {
+    free-array room143
+}
+room144[0] = arg0
+if (arg0 >= 1 && arg0 <= 30) {
+    if (gKidData[arg0][KD-gender] == GIRL) {
+        script = PlayerSay1To15
+    } else if (arg0 < 24) {
+        script = PlayerSay16To23
+    } else {
+        script = PlayerSay24To30And263
+    }
+} else if (arg0 == 263) {
+    script = PlayerSay24To30And263
+} else if (arg0 <= 45) {
+    script = PlayerSay31To45
+} else if (arg0 <= 61) {
+    script = PlayerSay46To61
+} else if (arg0 >= 264 && arg0 <= 264 - 1 + 10) {
+    script = PlayerSayCustom
+}
+if (script == 0) {
+    free-running-script 0
+}
+actor-select g_maybe_selected_actor
+actor-set-var 0 0
+xd1
+if ((is-script-running PlayerSay1To15) || (is-script-running PlayerSay16To23) || (is-script-running PlayerSay24To30And263)) {
+    if (actor-get-var g_maybe_selected_actor 4) {
+        actor-do-anim g_maybe_selected_actor (actor-get-var g_maybe_selected_actor 4)
+    }
+}
+free-running-script PlayerSay1To15
+free-running-script PlayerSay16To23
+free-running-script PlayerSay24To30And263
+free-running-script PlayerSay31To45
+free-running-script PlayerSay46To61
+free-running-script PlayerSayCustom
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+cutscene-start 115 25
+run-script script [arg0, local1]
+while (!!(is-script-running script)) {
+    stop-script
+}
+if (g_maybe_skipped_cutscene) {
+    free-running-script script
+    xd1
+} else {
+    cutscene-end
+}
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

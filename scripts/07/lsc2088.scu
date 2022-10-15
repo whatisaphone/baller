@@ -1,0 +1,207 @@
+; LSC2 7 2088
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+if (is-script-running 2073) {
+    local6 = 1
+}
+if (local0 >= 10000) {
+    if (local0 < 10020) {
+        local4 = room1
+        local5 = 10000
+    } else if (local0 < 10029) {
+        local4 = room3
+        local5 = 10020
+        local8 = local0 - 10020
+    } else {
+        local4 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-ORDER-KIDS]
+        case local0 {
+            of 10029 {
+                local3 = local4[gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION]]
+            }
+            of 10029 + 1 {
+                local7 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION]
+                ++local7
+                local7 = mod local7 9
+                local3 = local4[local7]
+            }
+            of 10029 + 2 {
+                local3 = gRunners[gBases[FIRST][BASE-RUNNERIDX]][R-KID]
+            }
+            of 10029 + 3 {
+                local3 = gRunners[gBases[SECOND][BASE-RUNNERIDX]][R-KID]
+            }
+            of 10029 + 4 {
+                local3 = gRunners[gBases[THIRD][BASE-RUNNERIDX]][R-KID]
+            }
+        }
+        local4 = gTeamInfo[gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+        while (local4[local8] != local3) {
+            ++local8
+        }
+    }
+    if (!local3) {
+        local3 = local4[local0 - local5]
+    }
+    run-script GetKidName [local3]
+    temp2 = (strlen gKidName) - 1
+    for temp = 0 to temp2 ++ {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] = gKidName[temp] - 32
+        }
+    }
+}
+case local0 {
+    of 87 {
+        if (room4) {
+            local1 = "Match Up"
+            local2 = "Click here to see a preview of the up-coming game."
+        } else {
+            local1 = "Play ball!"
+            local2 = "Click here to Play Ball!"
+        }
+    }
+    of 86 {
+        local1 = "Print This Puppy"
+    }
+    of 85 {
+        local1 = "Team Page"
+        local2 = "Click here to return to your team page."
+    }
+    of 2000 {
+        local1 = "Current Status"
+        local2 = "This shows the current game status"
+    }
+    of 2001 {
+        local1 = "ScoreBoard"
+        local2 = "View the current game's scoreboard."
+    }
+    of 2002 {
+        local1 = "Roster Of Your Players"
+        local2 = "Manage your team."
+    }
+    of 2003 {
+        local1 = "Roster Of Their Players"
+        local2 = "Scout out the opposition."
+    }
+    of 10000 {
+        if (local6) {
+            local1 = "Move To 1st In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 1st In The Rotation."
+        }
+    }
+    of 10001 {
+        if (local6) {
+            local1 = "Move To 2nd In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 2nd In The Rotation."
+        }
+    }
+    of 10002 {
+        if (local6) {
+            local1 = "Move To 3rd In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 3rd In The Rotation."
+        }
+    }
+    of 10003 {
+        if (local6) {
+            local1 = "Move To 4th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 4th In The Rotation."
+        }
+    }
+    of 10004 {
+        if (local6) {
+            local1 = "Move To 5th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 5th In The Rotation."
+        }
+    }
+    of 10005 {
+        if (local6) {
+            local1 = "Move To 6th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 6th In The Rotation."
+        }
+    }
+    of 10006 {
+        if (local6) {
+            local1 = "Move To 7th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 7th In The Rotation."
+        }
+    }
+    of 10007 {
+        if (local6) {
+            local1 = "Move To 8th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 8th In The Rotation."
+        }
+    }
+    of 10008 {
+        if (local6) {
+            local1 = "Move To 9th In Rotation?"
+        } else {
+            sprintf local1 "%s" [gKidName]
+            local2 = "Batting 9th In The Rotation."
+        }
+    }
+    of gNavButtons[1][0] {
+        if (gNetplayActive) {
+            local1 = "Leave game"
+            local2 = "Click here to return to your last online neighborhood.  You will be charged with a loss."
+        } else {
+            local1 = "Team Page"
+            local2 = "Click here to return to your team page"
+        }
+    }
+    of gNavButtons[3][0] {
+        if (gGameEnded) {
+            local1 = "Team Page"
+            local2 = "Click here to return to your team page"
+        } else if (room4) {
+            local1 = "Match Up"
+            local2 = "Click here to see a preview of the up-coming game."
+        } else {
+            local1 = "Play ball!"
+            local2 = "Click here to Play Ball!"
+        }
+    }
+    of gNavButtons[2][0] {
+        local1 = "Hurry Up!"
+        local2 = "Click here to tease your slow opponent."
+    }
+    else {
+        if (local0 >= 10020 && local0 <= 10033) {
+            sprintf local1 "&%d%d" [local8, local3]
+        }
+    }
+}
+if (local1 || local2) {
+    run-script UpdateNavText [local1, local2]
+    if (local1) {
+        free-array local1
+    }
+    if (local2) {
+        free-array local2
+    }
+}
+free-script

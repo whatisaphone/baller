@@ -1,0 +1,26 @@
+; LSC2 37 2075
+
+local variable local0
+local variable local1
+
+sprite-set-range room15[9] room15[9]
+sprite-set-image 1035
+sprite-x52 0
+sprite-x7c 1
+sprite-x2b 0
+sprite-palette 2
+local1 = sprite-get-x24 room15[9]
+local0 = sprite-get-wiz room15[9]
+if (local1 - 1 == local0) {
+    local0 = 0
+} else {
+    ++local0
+}
+while (local0 < local1) {
+    sprite-set-range room15[9] room15[9]
+    sprite-x34 local0
+    sprite-set-hotspot 320 240
+    ++local0
+    stop-script
+}
+free-script

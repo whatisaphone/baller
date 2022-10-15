@@ -1,0 +1,51 @@
+; LSC2 7 2094
+
+local variable local0
+local variable local1
+local variable local3
+local variable local4
+local variable local5
+
+image-select room8[0]
+image-op-create
+image-x20 112
+image-x21 70
+image-xff
+image-select room8[0]
+image-x85 0 0 112 70 room12
+image-xff
+for local3 = 0 to 1 ++ {
+    local4 = iif local3 gVisitorInfoIndex gHomeInfoIndex
+    local5 = iif local3 0 38
+    local0 = gTeamInfo[local4][TI-RUNS]
+    local1 = call-script 2092 [local0, 1029, 20, room8[1], room26]
+    image-select room8[1]
+    image-pos local1 local5
+    image-render-into room8[0]
+    image-x36 1
+    image-x30
+    image-xff
+    local0 = call-script TeamStatTotal [local4, STAT-HITS]
+    local1 = call-script 2092 [local0, 1029, 61, room8[1], room26]
+    image-select room8[1]
+    image-pos local1 local5
+    image-render-into room8[0]
+    image-x36 1
+    image-x30
+    image-xff
+    local0 = call-script TeamStatTotal [local4, STAT-ERRORS]
+    local1 = call-script 2092 [local0, 1029, 103, room8[1], room26]
+    image-select room8[1]
+    image-pos local1 local5
+    image-render-into room8[0]
+    image-x36 1
+    image-x30
+    image-xff
+}
+sprite-set-range room6[25] room6[25]
+sprite-clear
+sprite-set-image room8[0]
+sprite-x7c 0
+sprite-x2b -800
+sprite-set-hotspot 510 195
+free-script

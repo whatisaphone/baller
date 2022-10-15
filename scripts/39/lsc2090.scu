@@ -1,0 +1,165 @@
+; LSC2 39 2090
+
+local variable local2
+
+local2 = palette-x42 room13 5
+do {
+    case global694 {
+        of 0 {
+            run-script 2089 [-232, 24, room29[5]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [-240, 24, room29[6]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [-248, 24, room29[7]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            image-select room29[4]
+            image-op-create
+            image-x20 328
+            image-x21 202
+            image-xff
+            image-select room29[4]
+            image-x85 0 0 328 202 local2
+            image-xff
+            image-select room29[5]
+            image-pos 84 178
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[6]
+            image-pos 229 67
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[7]
+            image-pos 16 62
+            image-render-into room29[4]
+            image-x30
+            image-xff
+        }
+        of 1 {
+            run-script 2089 [24, -1, room29[5]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [26, -1, room29[6]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [25, -1, room29[7]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            image-select room29[4]
+            image-op-create
+            image-x20 328
+            image-x21 202
+            image-xff
+            image-select room29[4]
+            image-x85 0 0 328 202 local2
+            image-xff
+            image-select room29[5]
+            image-pos 30 148
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[6]
+            image-pos 229 123
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[7]
+            image-pos 90 56
+            image-render-into room29[4]
+            image-x30
+            image-xff
+        }
+        of 2 {
+            run-script 2089 [16, -1, room29[5]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [17, -1, room29[6]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [18, -1, room29[7]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [19, -1, room29[8]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            image-select room29[4]
+            image-op-create
+            image-x20 328
+            image-x21 202
+            image-xff
+            image-select room29[4]
+            image-x85 0 0 328 202 local2
+            image-xff
+            image-select room29[5]
+            image-pos 13 64
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[6]
+            image-pos 45 135
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[7]
+            image-pos 216 41
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[8]
+            image-pos 206 165
+            image-render-into room29[4]
+            image-x30
+            image-xff
+        }
+        of 3 {
+            run-script 2089 [8, -1, room29[5]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            run-script 2089 [9, -1, room29[6]]
+            while (!!(is-script-running 2089)) {
+                stop-script
+            }
+            image-select room29[4]
+            image-op-create
+            image-x20 328
+            image-x21 202
+            image-xff
+            image-select room29[4]
+            image-x85 0 0 328 202 local2
+            image-xff
+            image-select room29[5]
+            image-pos 228 108
+            image-render-into room29[4]
+            image-x30
+            image-xff
+            image-select room29[6]
+            image-pos 27 83
+            image-render-into room29[4]
+            image-x30
+            image-xff
+        }
+    }
+    sprite-set-range room28[11] room28[11]
+    sprite-set-image room29[4]
+    sprite-set-hotspot 293 142
+    sprite-x52 0
+    sprite-x2b (1000 + 5)
+    sprite-palette room27
+    sprite-x7d [160]
+}
+free-script

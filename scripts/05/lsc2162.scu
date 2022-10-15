@@ -1,0 +1,39 @@
+; LSC2 5 2162
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+local7 = sprite-group-get-x local0
+local8 = sprite-group-get-y local0
+if (local3) {
+    local5 = mod (local1 - local7) local3
+}
+if (local4) {
+    local6 = mod (local2 - local8) local4
+}
+if (local5 || local6) {
+    local8 = local8 + local6
+    local7 = local7 + local5
+    sprite-group-select local0
+    sprite-group-x41 local7 local8
+    stop-script
+}
+while (local7 != local1 || local8 != local2) {
+    if (local7 != local1) {
+        local7 = local7 + local3
+    }
+    if (local8 != local2) {
+        local8 = local8 + local4
+    }
+    sprite-group-select local0
+    sprite-group-x41 local7 local8
+    sleep (6 / gMinJiffies)
+}
+free-script

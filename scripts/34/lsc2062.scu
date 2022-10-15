@@ -1,0 +1,52 @@
+; LSC2 34 2062
+
+local variable local0
+local variable local1
+local variable local2
+
+local1 = call-script 2060 []
+local0 = gKidData[gBatterKid][KD-BATTING-CONTACT]
+local2 = random 100
+if (local2 > local0) {
+    if ((random 1) || gTeeBall) {
+        if (random 1) {
+            local1 = local1 + 23 + (random2 -23 23)
+        } else {
+            local1 = local1 - 23 + (random2 -23 23)
+        }
+    } else {
+        local1 = local1 + 180
+    }
+}
+case room34 {
+    of 3 {
+        local1 = local1 + (random 12)
+    }
+    of 2 {
+        local1 = local1 + (random 23)
+    }
+    of 1 {
+        local1 = local1 + (random 45)
+    }
+    of 0 {
+        pop-discard 0
+        return -1
+    }
+}
+local1 = local1 + (call-script 2061 [])
+if (gCurrentSwing > 4) {
+    local1 = max 46 local1
+    local1 = min 134 local1
+}
+if (room35 == 1) {
+    local1 = max 15 local1
+    local1 = min 345 local1
+} else if (room35 == 2) {
+    if (local1 >= 165 && local1 <= 180) {
+        local1 = 165
+    } else if (local1 >= 180 && local1 <= 195) {
+        local1 = 195
+    }
+}
+return local1
+free-script

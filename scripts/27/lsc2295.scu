@@ -1,0 +1,13 @@
+; LSC2 27 2295
+
+sprite-set-range room138 room138
+sprite-clear
+sprite-set-image 1257
+sprite-x34 2
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-palette room20
+sprite-set-hotspot 320 240
+gSpriteCursorTargets[room138][TARGET-CLICK-SCRIPT] = 2293
+free-script

@@ -1,0 +1,35 @@
+; SCRP 6 AddSongToPool
+
+parameter arg0
+parameter arg1
+
+local variable local2
+
+if (arg0 == 0) {
+    free-running-script 0
+}
+if (arg0 < 8000) {
+    free-running-script 0
+}
+if (gMusicPool == 0) {
+    dim array gMusicPool i16[0...0][0...100] swap=2
+    gMusicPool[0] = 0
+}
+if (gMusicPool[0]) {
+    for local2 = 1 to gMusicPool[0] ++ {
+        if (arg0 == gMusicPool[local2]) {
+            free-running-script 0
+        }
+    }
+}
+if (arg1 == 0) {
+    arg1 = 1
+}
+for local2 = 1 to arg1 ++ {
+    gMusicPool[0] = gMusicPool[0] + 1
+    if (gMusicPool[0] >= 100) {
+        free-running-script 0
+    }
+    gMusicPool[gMusicPool[0]] = arg0
+}
+free-script

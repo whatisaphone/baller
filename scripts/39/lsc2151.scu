@@ -1,0 +1,31 @@
+; LSC2 39 2151
+
+local variable local0
+
+case local0 {
+    of room47[6] {
+        if (room52) {
+            run-script-xc3 2152 [9]
+            run-script 2156 []
+            stop-script
+            sprite-set-range room47[9] room47[9]
+            sprite-clear
+            sprite-x2a 0 2
+        }
+    }
+    of room47[7] {
+        if (room53) {
+            run-script-xc3 2152 [8]
+            stop-script
+            sprite-set-range room47[8] room47[8]
+            sprite-clear
+            sprite-x2a 0 2
+            if (gBypassJsnMap == 33) {
+                run-script 2170 [room8[4]]
+            } else {
+                exec-script 2088 [gBypassJsnMap]
+            }
+        }
+    }
+}
+free-script

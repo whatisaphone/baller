@@ -1,0 +1,36 @@
+; LSC2 8 2054 CastPlayoffsMiddle
+
+gCurrentMatchupCastScript = CastPlayoffsMiddle
+if ((actor-get-var 1 3) == 1) {
+    actor-do-anim 1 2
+} else {
+    actor-do-anim 1 5
+}
+actor-select 1
+actor-set-var 3 0
+case gSeasonGameNumber {
+    of 17 {
+        if (random 1) {
+            xba "\x7fT99523849,101100\x7fEverybody out here today wants their team to be the one to take the league title and go on to the Backyard World Series, but only one team will make it." 2
+        } else {
+            xba "\x7fT99624949,79486\x7fOur favorite kids are up against some pretty tough competition now, but we all know they have what it takes to win the League pennant." 2
+        }
+    }
+    of 18 {
+        if ((call-script ReadActiveSchedule [gSeasonDivision, 17, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 17, 4])) {
+            xba "\x7fT99704435,94988\x7fThe score is one nothing, and these kids have a good chance of making it to the Backyard World Series if they can just produce another win today." 2
+        } else {
+            xba "\x7fT99799423,81158\x7f     The score is 0 to 1, and take it from the Gooch, these kids are gonna keep on fighting till the end." 2
+            xa9-xa9
+            xba "\x7fT99880581,55470\x7f     They're just gonna have to fight harder if they wanna make it to the final championship round." 2
+        }
+    }
+    of 19 {
+        xba "\x7fT99936051,113192\x7fThe score is tied at one, and these kids are gonna be workin' their tails off out there today with one thing in mind: making it to the Backyard World Series." 2
+        xa9-xa9
+        xba "\x7fT100049243,54229\x7f     Today's winners will go on to battle it out for the world title." 2
+    }
+}
+xa9-xa9
+gCurrentMatchupCastScript = 0
+free-script

@@ -1,0 +1,62 @@
+; SCRP 137 RefreshTeams
+
+local variable local0
+local variable ai_pos
+local variable user_pos
+local variable local5
+local variable local6
+local variable local7
+
+if (gSeasonOver && gSeasonGameNumber == 14) {
+    gSeasonGameNumber = 14 - 1
+}
+if (gSeasonGameNumber > 24) {
+    gSeasonGameNumber = 24
+}
+local5 = call-script ReadActiveSchedule [gSeasonDivision, gSeasonGameNumber, 6]
+if (0 == local5) {
+    gVisitorInfoIndex = 1
+    ai_pos = gVisitorInfoIndex
+    gHomeInfoIndex = 0
+    user_pos = gHomeInfoIndex
+} else {
+    gHomeInfoIndex = 1
+    ai_pos = gHomeInfoIndex
+    gVisitorInfoIndex = 0
+    user_pos = gVisitorInfoIndex
+}
+gTeamInfo[user_pos][TI-CONTROLLED-BY] = CB-USER
+gTeamInfo[user_pos][TI-BATTING-POSITION] = 1
+gTeamInfo[user_pos][TI-RUNS] = 0
+gTeamInfo[user_pos][TI-TEAM-ADJECTIVE] = call-script ReadActiveRoster [gSeasonDivision, 10]
+gTeamInfo[user_pos][TI-TEAM-NOUN] = call-script ReadActiveRoster [gSeasonDivision, 11]
+gTeamInfo[user_pos][3] = call-script ReadActiveRoster [gSeasonDivision, 12]
+gTeamInfo[user_pos][8] = call-script ReadActiveRoster [gSeasonDivision, 13]
+gTeamInfo[user_pos][TI-FIELDING-ORDER] = gPickOrder1
+gTeamInfo[user_pos][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+for local0 = 0 to (9 - 1) ++ {
+    gPickOrder1[local0] = call-script ReadActiveRoster [gSeasonDivision, local0]
+    gBattingOrder1[local0] = call-script ReadActiveRoster [gSeasonDivision, local0 + 16]
+}
+gTeamInfo[ai_pos][TI-CONTROLLED-BY] = CB-COMPUTER
+gTeamInfo[ai_pos][TI-BATTING-POSITION] = 1
+gTeamInfo[ai_pos][TI-RUNS] = 0
+local7 = call-script ReadActiveSchedule [gSeasonDivision, gSeasonGameNumber, 0]
+if (local7) {
+    local6 = call-script smth_find_season_team [local7]
+    gTeamInfo[ai_pos][TI-TEAM-ADJECTIVE] = call-script ReadActiveRoster [local6, 10]
+    gTeamInfo[ai_pos][TI-TEAM-NOUN] = call-script ReadActiveRoster [local6, 11]
+    gTeamInfo[ai_pos][3] = call-script ReadActiveRoster [local6, 12]
+    gTeamInfo[ai_pos][8] = call-script ReadActiveRoster [local6, 13]
+    gTeamInfo[ai_pos][TI-FIELDING-ORDER] = gPickOrder2
+    gTeamInfo[ai_pos][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+    for local0 = 0 to (9 - 1) ++ {
+        gPickOrder2[local0] = call-script ReadActiveRoster [local6, local0]
+        gBattingOrder2[local0] = call-script ReadActiveRoster [local6, local0 + 16]
+    }
+    run-script SetFieldForSeasonGame []
+} else {
+    xb6-xfe
+    xb6-x4b "RefreshTeams found no T2 -- didn't fill in opponent info"
+}
+free-script

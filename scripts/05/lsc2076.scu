@@ -1,0 +1,13 @@
+; LSC2 5 2076
+
+local variable local0
+
+sprite-set-range local0 local0
+sprite-x61 1
+while (local0 == gLastHoverNumber && 2 == gLastHoverType) {
+    stop-script
+}
+sleep 6
+sprite-set-range local0 local0
+sprite-x61 2
+free-script

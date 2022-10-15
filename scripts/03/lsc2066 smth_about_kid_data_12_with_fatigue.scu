@@ -1,0 +1,16 @@
+; LSC2 3 2066 smth_about_kid_data_12_with_fatigue
+
+parameter kid: Kid
+
+local variable local1
+local variable local2
+local variable local3
+
+local1 = gKidData[kid][12]
+local2 = gKidData[kid][KD-fatigue] / 2
+local3 = local1 - local2
+if (local3 < 1) {
+    local3 = 1
+}
+return local3
+free-script

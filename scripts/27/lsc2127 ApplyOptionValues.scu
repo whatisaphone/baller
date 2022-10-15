@@ -1,0 +1,20 @@
+; LSC2 27 2127 ApplyOptionValues
+
+local variable local0
+
+gNoCommentary = rOptionsValues[5 - 5]
+gNoGooch = rOptionsValues[6 - 5]
+gNoMusic = rOptionsValues[7 - 5]
+gNoBackgroundSound = rOptionsValues[8 - 5]
+gNoPlayerTalking = rOptionsValues[9 - 5]
+gNoPlayerChatter = rOptionsValues[10 - 5]
+local0 = rOptionsValues[11 - 5]
+if (local0) {
+    gGameInputDevice = INPUT-DEVICE-GAME-PAD
+} else {
+    gGameInputDevice = INPUT-DEVICE-MOUSE
+}
+if (MODE-SEASON == gGameMode) {
+    run-script WriteOptionsToCoachINI []
+}
+free-script

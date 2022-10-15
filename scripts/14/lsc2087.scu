@@ -1,0 +1,25 @@
+; LSC2 14 2087
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = iif room61 5 3
+for local0 = 1 to local2 ++ {
+    for local1 = 1 to 10 ++ {
+        run-script ReleaseSprite [room56[local1][local0]]
+        run-script FreeScratchImage [room57[local1][local0]]
+        room56[local1][local0] = 0
+        room57[local1][local0] = 0
+    }
+}
+free-array smth_stats
+free-array room56
+free-array room57
+run-script FreePalette [room58]
+room58 = 0
+run-script FreePalette [room59]
+room59 = 0
+run-script FreePalette [room60]
+room60 = 0
+free-script

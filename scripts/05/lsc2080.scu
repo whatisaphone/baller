@@ -1,0 +1,11 @@
+; LSC2 5 2080
+
+run-script FreePalette [g_some_palette_1]
+g_some_palette_1 = 0
+run-script FreePalette [g_some_palette_2]
+g_some_palette_2 = 0
+run-script FreePalette [g_some_palette_3]
+g_some_palette_3 = 0
+run-script FreePalette [g_some_palette_4]
+g_some_palette_4 = 0
+free-script

@@ -1,0 +1,10 @@
+; SCRP 71
+
+local variable local0
+
+global606[global607] = local0
+++global607
+window-select local0
+window-destroy
+window-xff
+free-script

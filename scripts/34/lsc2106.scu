@@ -1,0 +1,25 @@
+; LSC2 34 2106
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+local4 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+local5 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+if (room13) {
+    run-script HandleMouse [local0, local1, local2, local3]
+} else {
+    local6 = image-get-x42 1265 14 local4 local5
+    if (local6 != 15) {
+        local7 = local6 - 208
+        run-script 2104 [local7]
+    } else {
+        run-script HandleMouse [local0, local1, local2, local3]
+    }
+}
+free-script

@@ -1,0 +1,77 @@
+; SCRP 324 NetHandleMessageLobby
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+
+case arg0 {
+    of 9919 {
+        run-script 327 []
+    }
+    of 9920 {
+        run-script 393 [arg0, arg1, arg2, arg3, arg4]
+    }
+    of 9921 {
+        run-script 393 [arg0, arg1, arg2, arg3, arg4]
+    }
+    of 9922 {
+        run-script 393 [arg0, arg1, arg2, arg3, arg4]
+    }
+    of 9923 {
+        run-script 393 [arg0, arg1]
+    }
+    of 9924 {
+        run-script 393 [arg0, arg1, arg2, arg3, arg4]
+    }
+    of 9925 {
+        run-script 393 [arg0, arg1, arg2, arg3, arg4]
+    }
+    of 9926 {
+        run-script 393 [arg0, arg1]
+    }
+    of 9911 {
+        run-script 325 [arg1, arg2]
+    }
+    of 9927 {
+        run-script 393 [arg0, arg1]
+    }
+    of 9928 {
+        image-select 707
+        image-x33 0 0 0 639 479
+        image-xff
+        image-select 706
+        image-x33 0 410 435 (410 + 48) (435 + 18)
+        image-xff
+        image-select 706
+        image-pos 410 435
+        image-render-into 707
+        image-x30
+        image-xff
+        arg7 = call-script AllocPalette []
+        palette-select arg7
+        palette-load 632 0
+        palette-unselect
+        sprintf arg5 "PERCENT %d%" [arg1]
+        arg6 = call-script maybe_draw_text_to_image [arg5, 632, 706, arg7, 1]
+        free-array arg5
+        run-script FreePalette [arg7]
+        image-select 706
+        image-pos 410 435
+        image-render-into 707
+        image-x30
+        image-x36 1
+        image-xff
+        image-x38 707 0 0 0 0
+        paint
+    }
+}
+return 1
+free-script

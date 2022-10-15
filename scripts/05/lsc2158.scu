@@ -1,0 +1,19 @@
+; LSC2 5 2158
+
+global664 = 1
+while (global664 != global666) {
+    run-script GetKidName [global665[global664][0]]
+    temp2 = (strlen gKidName) - 1
+    for temp = 0 to temp2 ++ {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] = gKidName[temp] - 32
+        }
+    }
+    if ((strcmp rSearchString gKidName) > 0) {
+        ++global664
+    } else {
+        goto label0078
+    }
+}
+label0078:
+free-script

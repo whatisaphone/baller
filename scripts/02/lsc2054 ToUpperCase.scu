@@ -1,0 +1,14 @@
+; LSC2 2 2054 ToUpperCase
+
+parameter arg0
+
+local variable local1
+local variable local2
+
+local2 = (strlen arg0) - 1
+for local1 = 0 to local2 ++ {
+    if (arg0[local1] >= 97 && arg0[local1] <= 122) {
+        arg0[local1] = arg0[local1] - 32
+    }
+}
+free-script

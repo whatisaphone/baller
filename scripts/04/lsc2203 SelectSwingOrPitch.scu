@@ -1,0 +1,58 @@
+; LSC2 4 2203 SelectSwingOrPitch
+
+parameter sprite
+parameter selection
+parameter selecting_swing: bool
+parameter arg3
+
+local variable local4
+local variable local5
+local variable local6
+
+if (is-script-running smth_ui_sprites) {
+    free-running-script 0
+}
+run-script PlaySound [1706]
+if (selecting_swing) {
+    if (r_maybe_pitch_phase == 2) {
+        free-running-script 0
+    }
+    gCurrentSwing = selection
+    run-script SetSwingSounds []
+} else {
+    if (r_maybe_pitch_phase) {
+        free-running-script 0
+    }
+    rPitchKind = selection
+    if (rPitchKind == PITCH-maybe-more-juice) {
+        if (!arg3) {
+            gKidData[rPitcherKid][KD-fatigue] = 0
+            if (gNetplayActive) {
+                run-script-xc3 maybe_net_send_message [30, 1, NET-SET-PLAYER-FATIGUE, rPitcherKid, 0]
+            }
+            run-script smth_pitcher_fatigue_ui []
+            rPitchKind = 0
+            for local4 = 1 to 10 ++ {
+                if (gPitcherPitches[1 - gBattingTeamInfoIndex][local4] / 10 == 26) {
+                    for local5 = local4 to (10 - 1) ++ {
+                        gPitcherPitches[1 - gBattingTeamInfoIndex][local5] = gPitcherPitches[1 - gBattingTeamInfoIndex][local5 + 1]
+                    }
+                    gPitcherPitches[1 - gBattingTeamInfoIndex][10] = 0
+                    run-script RefreshPitchButtons []
+                    exec-script smth_ui_sprites [3]
+                }
+            }
+            pop-discard 0
+        }
+    } else {
+        local6 = random2 2 3
+        run-script SendBatViewMessage [MSG-maybe-pitcher-head-animation, local6]
+        run-script UpdatePitchLocationVariance []
+    }
+}
+sprite-set-range rSelectedPitchOrSwingSprite rSelectedPitchOrSwingSprite
+sprite-x34 0
+sprite-set-range sprite sprite
+sprite-x34 1
+rSelectedPitchOrSwingSprite = sprite
+free-script

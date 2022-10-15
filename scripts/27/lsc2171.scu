@@ -1,0 +1,35 @@
+; LSC2 27 2171
+
+local variable local0
+local variable local1
+local variable local2
+
+if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+    local2 = gVisitorInfoIndex
+} else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+    local2 = gHomeInfoIndex
+} else {
+    xb6-xfe
+    xb6-x4b "No player!"
+    free-running-script 0
+}
+if (global474) {
+    run-script 294 []
+}
+if (global472) {
+    free-array global472
+}
+if (global473) {
+    free-array global473
+}
+gGameMode = MODE-SEASON
+now
+gCoachID = (gNowMonth + 1) * 100000000 + gNowDay * 1000000 + gNowYear * 10000 + gNowHour * 100 + gNowMinute
+run-script ResetSeasonRosterArray []
+run-script 2157 [local0, local1]
+run-script 2168 [local0]
+run-script 2169 []
+run-script 2170 []
+run-script 2333 []
+gSeasonGameNumber = 0
+free-script

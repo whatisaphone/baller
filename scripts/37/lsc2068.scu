@@ -1,0 +1,112 @@
+; LSC2 37 2068
+
+local variable local1
+local variable local6
+local variable local7
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script 2091 []
+while (!!(is-script-running 2091)) {
+    stop-script
+}
+global43 = 32
+local1 = "Verifying Name And Password"
+run-script UpdateNavText [local1]
+free-array local1
+sleep 10
+run-script NetLogin [gNetUsername, gNetPassword]
+global110 = -1
+do {
+    if (local6 != global110) {
+        local6 = global110
+        case global110 {
+            of 3 {
+                local1 = "Establishing Contact"
+                run-script UpdateNavText [local1]
+                free-array local1
+            }
+            of 7 {
+                local1 = "Verifying Clearance"
+                run-script UpdateNavText [local1]
+                free-array local1
+            }
+        }
+    }
+    stop-script
+} until (!(is-script-running NetLogin))
+if (global108 == -99) {
+    local7 = "Login Failed"
+    if (global568) {
+        sprintf local1 "%s." [global568]
+    }
+    run-script UpdateNavText [local7, local1]
+    if (local1) {
+        free-array local1
+    }
+    free-array local7
+    run-script 317 [1]
+    sleep-seconds 4
+    run-script maybe_HideNavHoverText []
+    run-script 2089 [4, 27]
+    write-ini-int "EnterRoomOnStartUp" 0
+    write-ini-string "Pswd" ""
+    write-ini-string "Name" ""
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    if (!(call-script NetIsRouteAvailable [])) {
+        exec-script 334 []
+    }
+} else {
+    local7 = "HEADS UP!"
+    local1 = "UPDATING THE NEWS AND POLL QUESTION"
+    run-script UpdateNavText [local7, local1]
+    free-array local1
+    free-array local7
+    run-script 414 []
+    while (!!(is-script-running 414)) {
+        stop-script
+    }
+    stop-script
+    local7 = "Login Successful"
+    local1 = "Connecting to the network page."
+    run-script UpdateNavText [local7, local1]
+    free-array local1
+    free-array local7
+    if (global561) {
+        free-array global561
+    }
+    dim array global561 i32[0...0][0...30] swap=2
+    run-script 323 []
+    while (!!(is-script-running 323)) {
+        stop-script
+    }
+    global555 = global561[0]
+    global576 = global561[29]
+    global557 = call-script 385 [global555, 6]
+    if (!global557) {
+        global557 = 1
+    }
+    write-ini-int room34 gNetUsername "_Wins" global561[1]
+    write-ini-int room34 gNetUsername "_Losses" global561[2]
+    write-ini-int room34 gNetUsername "_CoachID" global555
+    stop-script
+    go-to-room 39
+}
+free-script

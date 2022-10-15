@@ -1,0 +1,65 @@
+; LSC2 5 2137 smth_move_bleacher_actors
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+local2 = call-script GetArrayHeight [gBleachersEntries]
+for local1 = 1 to local2 ++ {
+    gBleachersEntries[local1][BI-X] = gBleachersEntries[local1][BI-X] + -1000
+}
+local3 = 0 * 65 + 200
+for local1 = 1 to local2 ++ {
+    if (gBleachersEntries[local1][BI-ACTOR]) {
+        if (gBleachersEntries[local1][BI-Y] == local3) {
+            if (arg0 == 1) {
+            }
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-xda
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-move gBleachersEntries[local1][BI-X] gBleachersEntries[local1][BI-Y]
+        }
+    }
+}
+local3 = 1 * 65 + 200
+for local1 = 1 to local2 ++ {
+    if (gBleachersEntries[local1][BI-ACTOR]) {
+        if (gBleachersEntries[local1][BI-Y] == local3) {
+            if (arg0 == 1) {
+            }
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-xda
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-move gBleachersEntries[local1][BI-X] gBleachersEntries[local1][BI-Y]
+        }
+    }
+}
+local3 = 2 * 65 + 200
+for local1 = 1 to local2 ++ {
+    if (gBleachersEntries[local1][BI-ACTOR]) {
+        if (gBleachersEntries[local1][BI-Y] == local3) {
+            if (arg0 == 1) {
+            }
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-xda
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-move gBleachersEntries[local1][BI-X] gBleachersEntries[local1][BI-Y]
+        }
+    }
+}
+local3 = 3 * 65 + 200
+for local1 = 1 to local2 ++ {
+    if (gBleachersEntries[local1][BI-ACTOR]) {
+        if (gBleachersEntries[local1][BI-Y] == local3) {
+            if (arg0 == 1) {
+            }
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-xda
+            actor-select gBleachersEntries[local1][BI-ACTOR]
+            actor-move gBleachersEntries[local1][BI-X] gBleachersEntries[local1][BI-Y]
+        }
+    }
+}
+free-script

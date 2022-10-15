@@ -1,0 +1,37 @@
+; LSC2 32 2063
+
+if (!room15) {
+    if (gCoachName) {
+        free-array gCoachName
+    }
+    if (gCoachINIPath) {
+        free-array gCoachINIPath
+    }
+    room15 = 1
+    room14 = 0
+    global43 = 0
+    gInputHandlerScript = 2072
+    gGamePadInputHandlerScript = gInputHandlerScript
+    run-script 2061 []
+    run-script 2059 []
+    sprite-set-range room7[6] room7[6]
+    sprite-clear
+    sprite-x2a 0 2
+    sprite-set-range room7[21] room7[21]
+    sprite-clear
+    sprite-set-image 1379
+    sprite-set-hotspot (320 + 1) (240 - 4)
+    sprite-x2b (999 - 1)
+    sprite-palette room20
+    sprite-set-range room7[22] room7[22]
+    sprite-clear
+    sprite-set-image 1380
+    sprite-set-hotspot 321 232
+    sprite-x2b 999
+    sprite-x34 0
+    sprite-palette room21
+    sprite-x52 0
+    gSpriteCursorTargets[room7[22]][TARGET-CLICK-SCRIPT] = 2068
+    g_smth_season_mode = 1
+}
+free-script

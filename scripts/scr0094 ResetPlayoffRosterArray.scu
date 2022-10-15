@@ -1,0 +1,7 @@
+; SCRP 94 ResetPlayoffRosterArray
+
+if (gPlayoffRosterArray) {
+    free-array gPlayoffRosterArray
+}
+dim array gPlayoffRosterArray i16[0...7][0...16 + 8] swap=2
+free-script

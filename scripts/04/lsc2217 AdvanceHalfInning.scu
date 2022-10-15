@@ -1,0 +1,199 @@
+; LSC2 4 2217 AdvanceHalfInning
+
+parameter arg0
+
+local variable local2
+local variable local3
+local variable local4
+
+free-running-script ReturnBallToPitcher
+gGivePowerup = 0
+room25 = 0
+g_smth_ai_bat_strategy = 0
+free-running-script HeyBatterChatterLoop
+if (g_maybe_operating_system == 2) {
+    cursor-set-image-color (1 + 2)
+    gCursorImage = 1 + 2
+} else if (1 <= 76 || (1 in [82, 85, 91, 88, 79, 95])) {
+    cursor-set-image-bw (1 + 1)
+    gCursorImage = 1 + 1
+} else if (gBlackAndWhiteCursors || 1 == 1) {
+    cursor-set-image-bw (1 + 1)
+    gCursorImage = 1 + 1
+} else {
+    cursor-set-image-color 1
+    gCursorImage = 1
+}
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else {
+    cursor-hide
+}
+room51 = 0
+if (gStatsAudit) {
+    run-script WriteStatsAuditFile [-2]
+}
+free-array gRememberedPitches
+if (!arg0) {
+    sleep 3
+    while (!!rCommentaryActive) {
+        stop-script
+    }
+}
+run-script HideBallSprite []
+put-actor 8 0 0 0
+put-actor 9 0 0 0
+put-actor 2 0 0 0
+put-actor 3 0 0 0
+put-actor 4 0 0 0
+put-actor 11 0 0 0
+put-actor 6 0 0 0
+actor-select 12
+actor-set-costume 0
+actor-select 7
+actor-set-costume 0
+put-actor 13 0 0 0
+put-actor 14 0 0 0
+put-actor 15 0 0 0
+put-actor 16 0 0 0
+put-actor 10 0 0 0
+run-script 343 [1]
+free-running-script DrawPitcherHUDTextLoop
+run-script 2224 []
+run-script 273 []
+r_maybe_smth_idle_ready_for_pitch = false
+run-script smth_next_half_inning []
+free-running-script 2147
+run-script 2148 []
+run-script SetOffenseDefenseVars []
+if (gNetplayActive) {
+    if (g_net_smth_master == g_net_smth_me) {
+        run-script AddNetStat [rPitcherKid, STAT-INNINGS-PITCHED, 1]
+        run-script AddStat [rPitcherKid, STAT-INNINGS-PITCHED, 1]
+    }
+} else if (MODE-BATTING-PRACTICE != gGameMode) {
+    run-script AddStat [rPitcherKid, STAT-INNINGS-PITCHED, 1]
+}
+if (gNetplayActive) {
+    if (g_net_smth_master == g_net_smth_me) {
+        run-script AddNetStat [rPitcherKid, STAT-RUNS-AGAINST, gGameInfo[gCurrentHalfInning]]
+        run-script AddStat [rPitcherKid, STAT-RUNS-AGAINST, gGameInfo[gCurrentHalfInning]]
+    }
+} else if (MODE-BATTING-PRACTICE != gGameMode) {
+    run-script AddStat [rPitcherKid, STAT-RUNS-AGAINST, gGameInfo[gCurrentHalfInning]]
+}
+if (gNetplayActive) {
+    run-script FlushNetStats []
+}
+if (gCurrentHalfInning == gGameLength - 1) {
+    if (gTeamInfo[gHomeInfoIndex][TI-RUNS] > gTeamInfo[gVisitorInfoIndex][TI-RUNS]) {
+        exec-script EndTheGame []
+    }
+}
+if (gCurrentHalfInning == gGameLength) {
+    if (gTeamInfo[gHomeInfoIndex][TI-RUNS] == gTeamInfo[gVisitorInfoIndex][TI-RUNS]) {
+        gGameLength = gGameLength + 2
+    } else {
+        exec-script EndTheGame []
+    }
+}
+run-script AddToCommentQueue [DIALOGUE-END-OF-HALF-INNING]
+--gCurrentHalfInning
+run-script maybe_draw_scoreboard []
+run-script smth_reduce_fatigue [1 - gBattingTeamInfoIndex, 10]
+run-script 2147 []
+rPitchKind = 0
+gCurrentSwing = 0
+global477 = 0
+load-image (288 + gField)
+stop-script
+cutscene-start 115 139
+local2 = global17
+local3 = global18
+local4 = 0
+do {
+    stop-script
+    ++local4
+    if (local2 != global17 || local3 != global18) {
+        local4 = 900
+    }
+} until (local4 > 80 * 2 / gMinJiffies)
+if (local4 == 900) {
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+}
+while (!!gCurrentSpeechScript) {
+    stop-script
+}
+if (g_maybe_skipped_cutscene) {
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+    stop-sound 10000
+    local4 = 900
+} else {
+    cutscene-end
+}
+++gCurrentHalfInning
+if (room26 != 1) {
+    room26 = -1
+}
+while (!(room26 == 1)) {
+    stop-script
+}
+room26 = 0
+gFieldersSkew = 0
+if (local4 == 900) {
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+}
+while (!!(is-sound-playing 10000)) {
+    stop-script
+}
+run-script 273 []
+if (!arg0) {
+    run-script InitPitcher []
+    run-script smth_update_various_ui [1]
+    run-script BetweenPitches []
+    actor-select 17
+    actor-set-costume 0
+}
+free-script

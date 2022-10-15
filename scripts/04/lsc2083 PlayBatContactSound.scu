@@ -1,0 +1,55 @@
+; LSC2 4 2083 PlayBatContactSound
+
+stop-sound 10001
+if (gCurrentSwing > 3) {
+    case gCurrentSwing {
+        of SWING-BUNT {
+            run-script PlaySound [1430]
+        }
+        of SWING-ALUMINUM-POWER {
+            run-script PlaySound [1431]
+        }
+        of SWING-SCREAMING-LINE-DRIVE {
+            run-script PlaySound [1432]
+        }
+        of SWING-CRAZY-BUNT {
+            run-script PlaySound [2014]
+        }
+        else {
+            goto label006a
+        }
+    }
+    free-running-script 0
+} else {
+label006a:
+    if (rHitPower > 160) {
+        if (gHitAngleXZ < 35 || gHitAngleXZ > 145) {
+            run-script PlaySound [1428]
+        } else if (rHitAngleY > 60) {
+            run-script PlaySound [1423]
+        } else if (rHitAngleY > 30) {
+            if (random 5) {
+                run-script PlaySound [1424]
+            } else {
+                run-script PlaySound [1425]
+            }
+        } else if (rHitAngleY > 0) {
+            run-script PlaySound [1426]
+        } else {
+            run-script PlaySound [1423]
+        }
+    } else if (rHitPower > 80) {
+        if (gHitAngleXZ < 35 || gHitAngleXZ > 145) {
+            run-script PlaySound [1429]
+        } else if (rHitAngleY > 0) {
+            run-script PlaySound [1423]
+        } else {
+            run-script PlaySound [1427]
+        }
+    } else if (gHitAngleXZ < 35 || gHitAngleXZ > 145) {
+        run-script PlaySound [1429]
+    } else {
+        run-script PlaySound [1427]
+    }
+}
+free-script

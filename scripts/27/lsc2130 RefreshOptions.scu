@@ -1,0 +1,47 @@
+; LSC2 27 2130 RefreshOptions
+
+local variable local0
+local variable local1
+local variable local3
+
+sprite-set-range room29 room29
+sprite-clear
+sprite-set-image 1093
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -905
+sprite-x25 18
+sprite-palette room31
+sprite-set-hotspot 320 240
+gSpriteCursorTargets[room29][TARGET-CLICK-SCRIPT] = HandleOptionClick
+for local3 = 0 to (11 - 5) ++ {
+    gSpriteCursorTargets[room34[local3]][TARGET-CLICK-SCRIPT] = HandleOptionClick
+}
+gSpriteCursorTargets[room38][TARGET-CLICK-SCRIPT] = HandleOptionClick
+run-script GetCurrentOptionValues []
+array-set local0 [5, 6, 7, 8, 9, 10, 11] 0
+for local1 = 0 to (11 - 5) ++ {
+    if (1 == rOptionsValues[local1]) {
+        run-script ToggleOptionValue [local0[local1], 2]
+    } else {
+        run-script ToggleOptionValue [local0[local1], 1]
+    }
+}
+if (1 == rOptionsValues[11 - 5]) {
+    run-script 2328 [2]
+} else {
+    run-script 2328 [1]
+}
+free-array local0
+sprite-set-range room39 room39
+sprite-clear
+sprite-set-image 1501
+sprite-x34 0
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-x25 18
+sprite-palette room41
+sprite-set-hotspot 321 118
+gSpriteCursorTargets[room39][TARGET-CLICK-SCRIPT] = 2329
+free-script

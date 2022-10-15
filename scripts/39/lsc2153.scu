@@ -1,0 +1,27 @@
+; LSC2 39 2153
+
+if (room49) {
+    free-array room49
+}
+room49 = read-ini-string room36 gNetUsername "_LastCoachSearchedFor"
+if (strlen room49) {
+    room52 = strlen room49
+    room51 = call-script maybe_draw_text_to_image [room49, 1239, 659, room13]
+    sprite-set-range room47[2] room47[2]
+    sprite-clear
+    sprite-set-image 659
+    sprite-set-hotspot 332 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+    sprite-set-range room47[1] room47[1]
+    sprite-clear
+    sprite-set-image 930
+    sprite-set-hotspot (332 + room51 + 2) 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+} else if (room49) {
+    free-array room49
+}
+room50 = 1
+run-script 2154 []
+free-script

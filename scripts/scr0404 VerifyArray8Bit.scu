@@ -1,0 +1,20 @@
+; SCRP 404 VerifyArray8Bit
+
+parameter arg0
+
+local variable local1
+
+if (!arg0) {
+    xb6-xfe
+    xb6-x4b "Tried to verify 8-bit status of non-existant array."
+    free-running-script 0
+}
+local1 = arg0[0]
+arg0[0] = 257
+if (257 == arg0[0]) {
+    xb6-xfe
+    xb6-xc2 "Erro: Array %d is not 8-bit!" arg0 []
+    pop-discard 0
+}
+arg0[0] = local1
+free-script

@@ -1,0 +1,72 @@
+; LSC2 27 2125 ToggleOptionValue
+
+parameter arg0
+parameter arg1
+
+case arg1 {
+    of 1 {
+        rOptionsValues[arg0 - 5] = 0
+        sprite-set-range room34[arg0 - 5] room34[arg0 - 5]
+        sprite-set-image room35[arg0 - 5]
+        sprite-x52 0
+        sprite-x7c 2
+        sprite-x2b -900
+        sprite-x25 18
+        sprite-palette room37
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        if (6 == arg0) {
+            run-script-xc3 ToggleOptionValue [5, 1]
+        }
+    }
+    of 2 {
+        rOptionsValues[arg0 - 5] = 1
+        sprite-set-range room34[arg0 - 5] room34[arg0 - 5]
+        sprite-set-image room35[arg0 - 5]
+        sprite-x52 0
+        sprite-x7c 2
+        sprite-x2b -900
+        sprite-x25 18
+        sprite-palette room37
+        sprite-set-hotspot 320 240
+        sprite-x34 1
+        if (5 == arg0) {
+            run-script-xc3 ToggleOptionValue [6, 2]
+        }
+    }
+    of 0 {
+        if (rOptionsValues[arg0 - 5]) {
+            rOptionsValues[arg0 - 5] = 0
+            sprite-set-range room34[arg0 - 5] room34[arg0 - 5]
+            sprite-set-image room35[arg0 - 5]
+            sprite-x52 0
+            sprite-x7c 2
+            sprite-x2b -900
+            sprite-x25 18
+            sprite-palette room37
+            sprite-set-hotspot 320 240
+            sprite-x34 0
+            if (6 == arg0) {
+                run-script-xc3 ToggleOptionValue [5, 1]
+            }
+        } else {
+            rOptionsValues[arg0 - 5] = 1
+            sprite-set-range room34[arg0 - 5] room34[arg0 - 5]
+            sprite-set-image room35[arg0 - 5]
+            sprite-x52 0
+            sprite-x7c 2
+            sprite-x2b -900
+            sprite-x25 18
+            sprite-palette room37
+            sprite-set-hotspot 320 240
+            sprite-x34 1
+            if (5 == arg0) {
+                run-script-xc3 ToggleOptionValue [6, 2]
+            }
+        }
+    }
+    else {
+        pop-discard 0
+    }
+}
+free-script

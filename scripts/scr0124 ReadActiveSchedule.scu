@@ -1,0 +1,17 @@
+; SCRP 124 ReadActiveSchedule
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+
+if (arg1 >= 14) {
+    local3 = call-script smth_find_playoffs [arg0]
+    local4 = call-script ReadPlayoffSchedule [local3, arg1, arg2]
+} else {
+    local4 = call-script ReadSeasonSchedule [arg0, arg1, arg2]
+}
+return local4
+free-script

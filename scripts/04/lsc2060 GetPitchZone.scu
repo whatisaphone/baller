@@ -1,0 +1,44 @@
+; LSC2 4 2060 GetPitchZone
+
+parameter x
+parameter y
+
+local variable result
+local variable zx
+local variable zh
+local variable local5
+local variable local6
+
+zx = x - 277 - 16
+zh = y - rStrikeZoneMinY - rStrikeZoneZoneHeight
+if (zx > 0 && zh > 0) {
+    zx = zx / 16
+    zh = zh / rStrikeZoneZoneHeight
+    if (zx < 7 && zh < 7) {
+        result = zh * 7 + zx + 1
+    }
+} else {
+    if (x > 357) {
+        local5 = x - 357
+    } else {
+        local5 = x - 277
+    }
+    if (y > rStrikeZoneMaxY) {
+        local6 = y - rStrikeZoneMaxY
+    } else {
+        local6 = y - rStrikeZoneMinY
+    }
+    if ((abs local5) > (abs local6)) {
+        if (local5 > 0) {
+            result = -2
+        } else {
+            result = -4
+        }
+    } else if (local6 > 0) {
+        result = -3
+    } else {
+        result = -1
+    }
+}
+return result
+free-script

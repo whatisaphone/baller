@@ -1,0 +1,24 @@
+; SCRP 258
+
+local variable local0
+local variable local1
+local variable local2
+
+if (local0 >= 1 && local0 <= 30) {
+    if (gKidData[local0][KD-gender] == GIRL) {
+        if (local0 < 8 || local0 > 30) {
+            local1 = 29
+        } else {
+            local1 = 31
+        }
+        local2 = local0 - 1 + 1
+    } else {
+        local1 = 30
+        local2 = local0 - 16 + 1
+    }
+} else {
+    local1 = 32
+    local2 = gKidData[local0][11]
+}
+return (local1 * 1000 + local2)
+free-script

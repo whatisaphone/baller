@@ -1,0 +1,24 @@
+; LSC2 39 2142
+
+local variable local0
+
+run-script PlayClickySound []
+if (room45 != global576) {
+    run-script-xc3 2144 [12, 1]
+    stop-script
+    sprite-set-range room43[12] room43[12]
+    sprite-clear
+    sprite-x2a 0 2
+    global576 = room45
+    kludge [2001, 2228, global576]
+    run-script 2178 []
+    if (room45) {
+        local0 = 6 + room45 - 1
+        run-script-xc3 2144 [6, local0]
+    } else {
+        sprite-set-range room43[6] room43[6]
+        sprite-clear
+        sprite-x2a 0 2
+    }
+}
+free-script

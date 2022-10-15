@@ -1,0 +1,44 @@
+; SCRP 18
+
+local variable local0
+local variable local1
+local variable local2
+
+if (!local1) {
+    free-running-script 0
+}
+case local0 {
+    of 1 {
+        if (get-class local1 [18]) {
+            if (xa3 local1 1) {
+                if (get-class local1 [135]) {
+                    start-script-xc3 local1 local0 [local2, local0]
+                } else {
+                    start-script local1 local0 [local2, local0]
+                }
+            }
+        }
+    }
+    of 2 {
+        if (xa3 local1 2) {
+            if (local2) {
+                if (get-class local2 [18]) {
+                    if (get-class local1 [135]) {
+                        start-script-xc3 local1 local0 [local2, local0]
+                    } else {
+                        start-script local1 local0 [local2, local0]
+                    }
+                } else {
+                    start-script local1 9 [local2, 9]
+                }
+            } else if (get-class local1 [18]) {
+                if (get-class local1 [135]) {
+                    start-script-xc3 local1 local0 [0, local0]
+                } else {
+                    start-script local1 local0 [0, local0]
+                }
+            }
+        }
+    }
+}
+free-script

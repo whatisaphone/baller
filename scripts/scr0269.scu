@@ -1,0 +1,44 @@
+; SCRP 269
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+local6 = call-script AllocPalette []
+if (local0 >= 122) {
+    local4 = 1377
+    local3 = local0 - 122
+    palette-select local6
+    palette-load local4 0
+    palette-unselect
+} else {
+    local4 = 1378
+    local3 = local0 - 101
+    palette-select local6
+    palette-load local4 0
+    palette-unselect
+    run-script 279 [local6, local1, local2]
+}
+local5 = call-script AllocScratchImage []
+image-select local5
+image-op-create
+image-x20 (image-get-width local4 local3)
+image-x21 (image-get-height local4 local3)
+image-xff
+image-select local5
+image-x85 0 0 (image-get-width local4 local3) (image-get-height local4 local3) 5
+image-xff
+image-select local4
+image-x34 local3
+image-palette local6
+image-pos 0 0
+image-render-into local5
+image-x30
+image-xff
+run-script FreePalette [local6]
+return local5
+free-script

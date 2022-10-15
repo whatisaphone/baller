@@ -1,0 +1,5 @@
+; LSC2 39 2108
+
+run-script 387 [room40, 410, 160, room37[22], room38[0], 0, room26]
+run-script-xc3 2114 [23]
+free-script

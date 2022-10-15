@@ -1,0 +1,32 @@
+; LSC2 29 2083
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local1 = sprite-get-xc6 local0 1
+local2 = local1 / 10
+local3 = mod local1 10
+local5 = local1 - local3
+case local2 {
+    of 0 {
+        local4 = call-script 243 [264]
+        run-script-xc3 2094 [2089, 243, local5 + local4 - 1, local1, local5, room16[15]]
+    }
+    of 1 {
+        local4 = call-script 244 [264]
+        run-script-xc3 2094 [2090, 244, local5 + local4 - 1, local1, local5, room16[16]]
+    }
+    of 2 {
+        local4 = call-script 245 [264]
+        run-script-xc3 2094 [2091, 245, local5 + local4 - 1, local1, local5, room16[17]]
+    }
+    of 3 {
+        local4 = call-script 246 [264]
+        run-script-xc3 2094 [2092, 246, local5 + local4 - 1, local1, local5, room16[18]]
+    }
+}
+free-script

@@ -1,0 +1,28 @@
+; SCRP 374
+
+local variable local0
+
+if (gNoPrinting) {
+    free-running-script 0
+}
+if (local0 > 0) {
+} else if (local0 == -1) {
+    local0 = 374
+    image-select local0
+    image-x33 0 0 0 639 405
+    image-xff
+} else if (local0 == -2) {
+    local0 = 374
+    image-select local0
+    image-x33 0 0 0 639 479
+    image-xff
+} else {
+    local0 = 0
+}
+if (local0) {
+    draw-x62 local0
+}
+if (local0 == 374) {
+    free-image local0
+}
+free-script

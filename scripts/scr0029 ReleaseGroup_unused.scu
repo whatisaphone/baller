@@ -1,0 +1,25 @@
+; SCRP 29 ReleaseGroup_unused
+
+parameter arg0
+
+if (arg0 < gSpriteGroupStackMin_unused) {
+    xb6-xfe
+    xb6-xc2 "Error! Tried to put group %d onto stack (minimum is 1)!!" arg0 []
+    pop-discard 0
+    free-running-script 0
+}
+if (gSpriteGroupStackPointer_unused <= gSpriteGroupStackMin_unused) {
+    xb6-xfe
+    xb6-xc2 "Error! Tried to put group %d onto full stack - pointer= %d!!" arg0 [gSpriteGroupStackPointer_unused]
+    free-running-script 0
+}
+if (gSpriteGroupStackPointer_unused <= gMaxSpriteGroup + 1) {
+    --gSpriteGroupStackPointer_unused
+    gSpriteGroupStack_unused[gSpriteGroupStackPointer_unused] = arg0
+} else {
+    xb6-xfe
+    xb6-xc2 "Error! Group stack pointer is %d (limit is 1 to %d)" gSpriteGroupStackPointer_unused [gMaxSpriteGroup]
+}
+sprite-group-select arg0
+sprite-group-clear
+free-script

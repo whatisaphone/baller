@@ -1,0 +1,13 @@
+; LSC2 40 2073
+
+if (!(call-script 2069 [])) {
+    free-running-script 0
+}
+run-script 2068 [0]
+global680[18] = 1
+run-script 2085 []
+global133 = 0
+run-script 2075 []
+global43 = 0
+global45 = 0
+free-script

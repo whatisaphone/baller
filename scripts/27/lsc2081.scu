@@ -1,0 +1,8 @@
+; LSC2 27 2081
+
+if (global423) {
+    global652 = global423
+} else {
+    global652 = 257
+}
+free-script

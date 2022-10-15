@@ -1,0 +1,234 @@
+; LSC2 5 2115 PlayerBeg1To15
+
+local variable local0
+local variable local1
+local variable local2
+
+local1 = actor-get-var g_maybe_selected_actor 3
+local2 = actor-get-var g_maybe_selected_actor 4
+if (local1) {
+    actor-do-anim g_maybe_selected_actor local1
+}
+case rCurrentKid {
+    of KIMMY-ECKMAN {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT88430626,22063\x7f  Hi, my name's Kimmy and I like candy."
+            }
+            of 1 {
+                xbb "\x7fT88452689,17595\x7f  Hey, kid, pick me."
+            }
+            of 2 {
+                xbb "\x7fT88470284,18291\x7f  If you want to win, pick me."
+            }
+        }
+    }
+    of MARIA-LUNA {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT88488575,30370\x7f  You're crazy if you don't pick me!"
+            }
+            of 1 {
+                xbb "\x7fT88518945,44212\x7f  I'll play on your team but I won't slide or dive or anything."
+            }
+            of 2 {
+                xbb "\x7fT88563157,26728\x7f  I can play baseball pretty good."
+            }
+        }
+    }
+    of ANGELA-DELVECCHIO {
+        local0 = random 3
+        case local0 {
+            of 0 {
+                xbb "\x7fT88589885,35145\x7f  Hey, the name's Angela, Angela Delvecchio."
+            }
+            of 1 {
+                xbb "\x7fT88625030,37455\x7f  Hey kid, pick me, I'll win it for ya, fer sure."
+            }
+            of 2 {
+                xbb "\x7fT88662485,30807\x7f  If ya want to win, you'll pick me to be on your team."
+            }
+            of 3 {
+                xbb "\x7fT88693292,34923\x7f  Lissen here, I'll show ya how to play ball, fer sure."
+            }
+        }
+    }
+    of VICKI-KAWAGUCHI {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT88728215,38774\x7f Pick me pick me, oh please pick me!"
+            }
+            of 1 {
+                xbb "\x7fT88766989,34909\x7f I wanna play, please pick me!"
+            }
+            of 2 {
+                xbb "\x7fT88801898,31392\x7f Pick me because I'm a graceful ballerina!"
+            }
+        }
+    }
+    of GRETCHEN-HASSELHOFF {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT88833290,9447\x7f  Pick me, hnnnn."
+            }
+            of 1 {
+                xbb "\x7fT88842737,47700\x7f  I can't throw so good because my mom saysihaveacongenitalbirthdefectwhat -preventsmyarmfromgrowinganymuscle, hnnnn."
+            }
+            of 2 {
+                xbb "\x7fT88890437,39129\x7f  I like to playbaseballbecauseitisfunandstuffandIgettorunaroundandaround, hnnnn."
+            }
+        }
+    }
+    of SALLY-DOBBS {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT88929566,54610\x7f  You should pick me to be on your team, since I think you need a bit of maturity in your line-up."
+            }
+            of 1 {
+                xbb "\x7fT88984176,56815\x7f  The kids all look up to me, so I'd be a good person to have on your team."
+            }
+            of 2 {
+                xbb "\x7fT89040991,40097\x7f  You'll see how good I am once you pick me for your team."
+            }
+        }
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89081088,30874\x7f Y'all should pick me cuz I'm tre chic!"
+            }
+            of 1 {
+                xbb "\x7fT89111962,55276\x7f If'n y'all need someone who's handy with a bat, just pick me for y'all's team!"
+            }
+            of 2 {
+                xbb "\x7fT89167238,29833\x7f Just say 'oui' to me, y'hear, sugar?"
+            }
+        }
+    }
+    of ASHLEY-WEBBER {
+        local0 = random 3
+        case local0 {
+            of 0 {
+                xbb "\x7fT89197071,25888\x7f  Sidney and I are pretty good baseball players."
+            }
+            of 1 {
+                xbb "\x7fT89222959,46774\x7f  Baseball is a nice change of pace for me, since I play tennis all day long."
+            }
+            of 2 {
+                xbb "\x7fT89269733,31179\x7f  I've got tennis lessons later on this afternoon, you know."
+            }
+            of 3 {
+                xbb "\x7fT89300912,36045\x7f  My dad says I should play infield so I don't throw my arm out."
+            }
+        }
+    }
+    of SIDNEY-WEBBER {
+        local0 = random 3
+        case local0 {
+            of 0 {
+                xbb "\x7fT89336957,26660\x7f  Ashley and I are pretty good baseball players."
+            }
+            of 1 {
+                xbb "\x7fT89222959,46774\x7f  Baseball is a nice change of pace for me, since I play tennis all day long."
+            }
+            of 2 {
+                xbb "\x7fT89269733,31179\x7f  I've got tennis lessons later on this afternoon, you know."
+            }
+            of 3 {
+                xbb "\x7fT89300912,36045\x7f  My dad says I should play infield so I don't throw my arm out."
+            }
+        }
+    }
+    of KIESHA-PHILLIPS {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89363617,27853\x7f You'd be crazy not to pick me for your team!"
+            }
+            of 1 {
+                xbb "\x7fT89391470,16785\x7f Hey junior, gimme a shot!"
+            }
+            of 2 {
+                xbb "\x7fT89408255,50501\x7f I've got a mean heat pitch, but you'll find that out once you pick me for your team!"
+            }
+        }
+    }
+    of STEPHANIE-MORGAN {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89458756,91725\x7f        My name is Stephanie Morgan and I can name every player who played in the '96 World Series, and their lifetime stats, and their single season records and the type of car they drive."
+            }
+            of 1 {
+                xbb "\x7fT89550481,39411\x7f        Pick me, pick me, cuz I know everything there is to know about baseball."
+            }
+            of 2 {
+                xbb "\x7fT89589892,95394\x7f        My dad played in the Minors, you know, and he was real good until he got injured because he hit so many home runs and got shin splints from running the bases"
+            }
+        }
+    }
+    of LUANNE-LUI {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89685286,23056\x7f Teddy wants to pway on your team."
+            }
+            of 1 {
+                xbb "\x7fT89708342,54125\x7f I asked Teddy and he says you should pick me for youw team."
+            }
+            of 2 {
+                xbb "\x7fT89762467,49110\x7f I wanna pway with you, pwease?  I can wun weal fast!"
+            }
+        }
+    }
+    of ANNIE-FRAZIER {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89811577,50886\x7f  \x09Hi, I'm Annie Frazier.  Pick me and you won't regret it."
+            }
+            of 1 {
+                xbb "\x7fT89862463,55097\x7f  \x09Hey you, I know you're thinking about picking me, so go ahead, you won't regret it."
+            }
+            of 2 {
+                xbb "\x7fT89917560,37074\x7f  \x09I'd like to play on your team.  You seem like a good kid."
+            }
+        }
+    }
+    of JOCINDA-SMITH {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT89954634,25816\x7f  My name is Jocinda.  Pick me!"
+            }
+            of 1 {
+                xbb "\x7fT89980450,19904\x7f  Hi, pick me for your team."
+            }
+            of 2 {
+                xbb "\x7fT90000354,20615\x7f  I want to play on your team."
+            }
+        }
+    }
+    of LISA-CROCKET {
+        local0 = random 2
+        case local0 {
+            of 0 {
+                xbb "\x7fT90020969,24012\x7f         Um, pick me please."
+            }
+            of 1 {
+                xbb "\x7fT90044981,22239\x7f       I'd be honored to be on your team."
+            }
+            of 2 {
+                xbb "\x7fT90067220,26462\x7f       I really want to play, so pick me."
+            }
+        }
+    }
+}
+xa9-xa9
+free-script

@@ -1,0 +1,19 @@
+; LSC2 39 2111
+
+local variable local0
+
+local0 = "Are you sure you would like to cancel changes and reset?"
+run-script ShowPopup [local0, 0, 5]
+while (!gPopupResult) {
+    stop-script
+}
+if (gPopupResult == 1) {
+    room40 = global555
+    room41 = global557
+    room42 = room39
+    run-script 2108 []
+    run-script-xc3 2114 [20]
+    run-script-xc3 2114 [21]
+    run-script-xc3 2114 [24]
+}
+free-script

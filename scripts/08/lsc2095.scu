@@ -1,0 +1,27 @@
+; LSC2 8 2095
+
+room3 = call-script AllocPalette []
+palette-select room3
+palette-load 298 0
+palette-unselect
+room4 = call-script AllocPalette []
+room5 = call-script AllocPalette []
+room6 = call-script AllocPalette []
+palette-select room6
+palette-load 153 0
+palette-unselect
+run-script 279 [room6, gTeamInfo[gVisitorInfoIndex][3], gTeamInfo[gVisitorInfoIndex][8]]
+room7 = call-script AllocPalette []
+palette-select room7
+palette-load 153 0
+palette-unselect
+run-script 279 [room7, gTeamInfo[gHomeInfoIndex][3], gTeamInfo[gHomeInfoIndex][8]]
+room8 = call-script AllocPalette []
+palette-select room8
+palette-load 321 0
+palette-unselect
+room9 = call-script AllocPalette []
+palette-select room9
+palette-load 325 0
+palette-unselect
+free-script

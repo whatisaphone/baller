@@ -1,0 +1,16 @@
+; LSC2 14 2051
+
+if (room42) {
+    run-script FreeScratchImage [room42]
+    run-script FreeScratchImage [room40]
+    run-script FreeScratchImage [room44]
+    run-script ReleaseSprite [room39]
+    room39 = 0
+    run-script ReleaseSprite [room43]
+    room43 = 0
+}
+gMinJiffies = room47
+run-script AddSongsToPool [-1]
+run-script AddSongsToPool [8078]
+run-script PlayMusicPool [8078]
+free-script

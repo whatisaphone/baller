@@ -1,0 +1,50 @@
+; LSC2 3 2110 SimulateBallStopPosition
+
+parameter set_fielding_target: bool
+
+local variable local1
+local variable prev_vel_y
+local variable pos_x
+local variable pos_y
+local variable pos_z
+local variable vel_x
+local variable vel_y
+local variable vel_z
+
+pos_x = gBallPosPhysX
+pos_y = gBallPosPhysY
+pos_z = gBallPosPhysZ
+vel_x = gBallVelPhysX
+vel_y = gBallVelPhysY
+vel_z = gBallVelPhysZ
+local1 = gCameraTransform[1][gCurrentRoom]
+do {
+    prev_vel_y = vel_y
+    if (pos_y != 0) {
+        vel_y = vel_y - 384000 * gGravity / 60 * gVectorScaleNum / gVectorScaleDen
+    }
+    pos_x = pos_x + vel_x * gVectorScaleNum / gVectorScaleDen
+    pos_y = pos_y + vel_y * gVectorScaleNum / gVectorScaleDen
+    pos_z = pos_z + vel_z * gVectorScaleNum / gVectorScaleDen
+    if (pos_y <= 0) {
+        pos_y = 0
+        vel_x = vel_x * gFieldHorizontalBounciness / 100
+        if (vel_y) {
+            vel_y = abs (vel_y * gFieldVerticalBounciness / 100)
+            if ((abs vel_y) > (abs prev_vel_y)) {
+                vel_y = 0
+            }
+        }
+        vel_z = vel_z * gFieldHorizontalBounciness / 100
+    }
+    if (vel_x == 0 && vel_y == 0 && vel_z == 0) {
+        if (set_fielding_target) {
+            gFieldingTargetX = pos_x / 1000
+            gFieldingTargetZ = pos_z / 1000
+        }
+        gBallPath[100][0] = pos_x / 1000
+        gBallPath[100][1] = pos_z / 1000
+        free-running-script 0
+    }
+}
+free-script

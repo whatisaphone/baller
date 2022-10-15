@@ -1,0 +1,96 @@
+; LSC2 4 2081 BatViewBattingCursorLoop
+
+local variable x
+local variable y
+local variable local2
+local variable local3
+
+gBatViewCursorLoopScript = BatViewBattingCursorLoop
+gCursorLoopScript = BatViewBattingCursorLoop
+global214 = 0
+do {
+    if (gCursorVisible > 0) {
+        x = gMouseX
+        y = gMouseY
+        local2 = 0
+        local2 = sprite-get-x2d x y 0 0 []
+        if (local2) {
+            if (local2 >= 1 && local2 <= 10) {
+                local2 = local2 + 99000
+            } else if (local2 == 13) {
+                local2 = local2 + 99000
+            } else if ((sprite-get-xc6 local2 1) == 344) {
+                local2 = 99001
+            } else {
+                local2 = 0
+                goto label009d
+            }
+        } else {
+label009d:
+            local2 = xa0 x y
+            if (local2) {
+                if ((get-class local2 [146]) || (get-class local2 [4])) {
+                    local2 = 0
+                }
+            }
+        }
+        if (local2 < 99000) {
+            if (x > 200 && x < 440) {
+                if (y > 150 && y < 400) {
+                    local2 = 88
+                }
+            }
+        }
+        if (local2 != global214) {
+            global214 = local2
+            if (local2) {
+                local3 = 0
+                if (local2 <= 60) {
+                    local3 = 4
+                } else if (local2 > 99000) {
+                    local3 = 4
+                } else if (xa3 local2 1) {
+                    if (local2 == 88) {
+                        local3 = 79
+                    } else {
+                        local3 = 4
+                    }
+                } else if (local2 == 12) {
+                    local3 = 4
+                } else {
+                    local3 = 1
+                }
+                if (local3) {
+                    if (g_maybe_operating_system == 2) {
+                        cursor-set-image-color (local3 + 2)
+                        gCursorImage = local3 + 2
+                    } else if (local3 <= 76 || (local3 in [82, 85, 91, 88, 79, 95])) {
+                        cursor-set-image-bw (local3 + 1)
+                        gCursorImage = local3 + 1
+                    } else if (gBlackAndWhiteCursors || local3 == 1) {
+                        cursor-set-image-bw (local3 + 1)
+                        gCursorImage = local3 + 1
+                    } else {
+                        cursor-set-image-color local3
+                        gCursorImage = local3
+                    }
+                }
+            } else if (g_maybe_operating_system == 2) {
+                cursor-set-image-color (1 + 2)
+                gCursorImage = 1 + 2
+            } else if (1 <= 76 || (1 in [82, 85, 91, 88, 79, 95])) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else if (gBlackAndWhiteCursors || 1 == 1) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else {
+                cursor-set-image-color 1
+                gCursorImage = 1
+            }
+        }
+    }
+    temp = random 1
+    stop-script
+}
+free-script

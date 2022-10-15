@@ -1,0 +1,35 @@
+; LSC2 14 2131
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script PlayClickySound []
+sprite-set-range room29 room29
+sprite-x34 1
+sleep 2
+if (is-script-running 2050) {
+    room46 = 1
+} else {
+    room46 = 0
+    run-script 2050 []
+}
+sprite-set-range room29 room29
+sprite-x34 0
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

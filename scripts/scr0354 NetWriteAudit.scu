@@ -1,0 +1,136 @@
+; SCRP 354 NetWriteAudit
+
+parameter arg0
+parameter arg1
+parameter message: NetMessage
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+parameter arg11
+
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+
+if (gNetAuditFile == 0) {
+    local12 = "netmess.out"
+    gNetAuditFile = file-open local12 2
+    free-array local12
+    sprintf local16 "I AM (%d)    " [g_net_smth_master]
+    local17 = array-width local16
+    local16[local17 - 2] = 13
+    local16[local17 - 1] = 10
+    file-write-array 4 gNetAuditFile local16
+    free-array local16
+}
+if (gNetAuditFile != -1) {
+    if (message == NET-PING) {
+        free-running-script 0
+    }
+    local13 = timer-x0a 1
+    sprintf local14 "%d" [local13]
+    local15 = call-script PadString [local14, 8]
+    free-array local14
+    case message {
+        of NET-DIALOGUE {
+            local14 = "NET-DIALOG"
+        }
+        of NET-SETROOM {
+            local14 = "NET-SETROOM"
+        }
+        of NET-ASK-WHO-IS-MASTER {
+            local14 = "NET-ASK-WHO-IS-MASTER"
+        }
+        of NET-I-AM-MASTER {
+            local14 = "NET-I-AM-MASTER"
+        }
+        of NET-YELL {
+            local14 = "NET_YELL"
+        }
+        of NET-BATVIEW-MESSAGE {
+            local14 = "NET_BATVIEW_MESSAGE"
+        }
+        of NET-WAITFLAG {
+            local14 = "NET-WAITFLAG"
+        }
+        of NET-TEAMS-INFO {
+            local14 = "NET-TEAM-INFO"
+        }
+        of NET-PING {
+            local14 = "NET-PING"
+        }
+        of NET-PONG {
+            local14 = "NET-PONG"
+        }
+        of NET-PICK-FIRST {
+            local14 = "NET-PICK-FIRST"
+        }
+        of NET-PICKED-KID {
+            local14 = "NET-PICKED-KID"
+        }
+        of NET-ZPLANE-ON {
+            local14 = "NET-ZPLANE-ON"
+        }
+        of NET-RUNNER-SCORED {
+            local14 = "NET-RUNNER-SCORED"
+        }
+        of NET-RUNNER-OUT {
+            local14 = "NET-RUNNER-OUT"
+        }
+        of NET-RUNNER-CLICK {
+            local14 = "NET-RUNNER-CLICK"
+        }
+        of NET-SET-RUNNER-VARS {
+            local14 = "NET-SET-RUNNER-VARS"
+        }
+        of NET-OV-PLAY-OVER {
+            local14 = "NET_OV_PLAY_OVER"
+        }
+        of NET-CALL-TIMEOUT {
+            local14 = "NET_CALL_TIMEOUT"
+        }
+        of NET-BACK-FROM-TIMEOUT {
+            local14 = "NET_BACK_FROM_TIMEOUT"
+        }
+        of NET-SEND-STAT {
+            local14 = "NET_SEND_STAT"
+        }
+        of NET-OV-SFX {
+            local14 = "NET_OV_SFX"
+        }
+        of NET-CHECK-TEAM-SELECTION {
+            local14 = "NET_CHECK_TEAM_SELECTION"
+        }
+        of NET-TEAM-INFO {
+            local14 = "NET_TEAM_INFO"
+        }
+        of NET-REDUCE-FATIGUE {
+            local14 = "NET_REDUCE_FATIGUE"
+        }
+        of NET-SET-PLAYER-FATIGUE {
+            local14 = "NET_SET_PLAYER_FATIGUE"
+        }
+        else {
+            sprintf local14 "%d" [message]
+        }
+    }
+    sprintf local16 "(%d) %d [%s] %d (%s) %d %d %d %d   " [arg1, arg0, local15, message, local14, arg3, arg4, arg5, arg6]
+    local17 = array-width local16
+    local16[local17 - 2] = 13
+    local16[local17 - 1] = 10
+    if (message != 0) {
+        file-write-array 4 gNetAuditFile local16
+    }
+    free-array local16
+    free-array local14
+    free-array local15
+}
+free-script

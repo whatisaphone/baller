@@ -1,0 +1,30 @@
+; SCRP 84 FreeNavButtons
+
+free-running-script HandleNavButtonHover
+if (!gNavButtons) {
+    free-running-script 0
+}
+if (gNavButtons[5][0]) {
+    gMouseHookScript = gNavButtons[5][0]
+}
+if (gNavButtons[5][1]) {
+    gInputHandlerScript = gNavButtons[5][1]
+}
+free-running-script 88
+free-running-script 89
+free-running-script smth_nav407
+free-running-script smth_nav408
+if (gNavButtons[0][0]) {
+    run-script ReleaseSprite [gNavButtons[0][0]]
+    gNavButtons[0][0] = 0
+    run-script ReleaseSprite [gNavButtons[1][0]]
+    gNavButtons[1][0] = 0
+    run-script ReleaseSprite [gNavButtons[2][0]]
+    gNavButtons[2][0] = 0
+    run-script ReleaseSprite [gNavButtons[3][0]]
+    gNavButtons[3][0] = 0
+    run-script ReleaseSprite [gNavButtons[4][0]]
+    gNavButtons[4][0] = 0
+}
+free-array gNavButtons
+free-script

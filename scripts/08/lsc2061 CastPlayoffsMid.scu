@@ -1,0 +1,25 @@
+; LSC2 8 2061 CastPlayoffsMid
+
+gCurrentMatchupCastScript = CastPlayoffsMid
+case gSeasonGameNumber {
+    of 17 {
+        xba "\x7fT105584611,34044\x7fWelcome to the first game in the race for the pennant!" 1
+        xa9-xa9
+        xba "\x7fT105618655,43502\x7fEvery player out there is excited to have made it this far." 1
+    }
+    of 18 {
+        xba "\x7fT105662157,35373\x7f     Hello there, all you crazy fans!" 1
+        xa9-xa9
+        xba "\x7fT105697530,36746\x7fWelcome to another game in the race for the pennant." 1
+        xa9-xa9
+        xba "\x7fT105734276,16666\x7fThis could be the big one!" 1
+    }
+    of 19 {
+        xba "\x7fT105750942,39448\x7fThis is it, folks... the final game in the race for the pennant!" 1
+        xa9-xa9
+        xba "\x7fT105790390,67998\x7fYou can bet everyone's got one thing on their minds out there, and it sure isn't losing!" 1
+    }
+}
+xa9-xa9
+run-script CastStartOfGame []
+free-script

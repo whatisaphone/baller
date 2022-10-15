@@ -1,0 +1,18 @@
+; SCRP 290 popup_smth_handler
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+
+local3 = sprite-get-x2d (iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX) (iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY) 0 0 [32]
+if (local3 == gPopupState[2] || local3 == gPopupState[3]) {
+    gMouseHookFlags = 32
+    local2 = 1
+} else {
+    gMouseHookFlags = 134217728
+    local2 = -1
+}
+return local2
+free-script

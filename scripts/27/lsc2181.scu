@@ -1,0 +1,95 @@
+; LSC2 27 2181
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+for local8 = 0 to 25 ++ {
+    room48[local8] = 0
+    room49[local8] = 0
+    room51[local8] = 0
+    room52[local8] = 0
+    room53[local8] = 0
+    room54[local8] = 0
+}
+local11 = iif (r_smth_game_mode == 4) gPlayoffStats gSeasonStats
+for local0 = 0 to 273 ++ {
+    local1 = local11[local0][0]
+    if (local1) {
+        local2 = local11[local0][1]
+        local5 = local2 * 1000 / local1
+        local11[local0][23] = local5
+        local2 = local11[local0][7]
+        local2 = local2 + 2 * local11[local0][8]
+        local2 = local2 + 3 * local11[local0][9]
+        local2 = local2 + 4 * local11[local0][10]
+        local5 = local2 * 1000 / local1
+        local11[local0][24] = local5
+    } else {
+        local11[local0][23] = 0
+    }
+    local1 = local11[local0][22]
+    if (local1 == 0) {
+        local11[local0][25] = 0
+        local11[local0][26] = 0
+    } else {
+        local2 = local11[local0][6]
+        local10 = local11[local0][18]
+        local3 = local1 - local2 - local10
+        local11[local0][30] = local3
+        if (local3 == 0) {
+            local3 = 1
+            local11[local0][25] = 1
+        } else {
+            local11[local0][25] = (local3 + 2) / 3
+        }
+        local4 = local11[local0][21]
+        local5 = local4 * room55 / local3
+        local11[local0][26] = local5
+    }
+}
+if (gGameMode == MODE-SEASON) {
+    if (r_smth_game_mode == 4) {
+        local12 = 7
+    } else {
+        local12 = 23
+    }
+} else {
+    local12 = 1
+}
+for local6 = 0 to local12 ++ {
+    for local8 = 0 to 8 ++ {
+        if (gGameMode == MODE-SEASON) {
+            if (r_smth_game_mode == 4) {
+                local9 = gPlayoffRosterArray[local6][16 + local8]
+            } else {
+                local9 = gSeasonRosterArray[local6][16 + local8]
+            }
+        } else {
+            local7 = gTeamInfo[local6][TI-FIELDING-ORDER]
+            local9 = local7[local8]
+        }
+        if (local11[local9][0] > 0) {
+            room48[local6] = room48[local6] + local11[local9][0]
+            room51[local6] = room51[local6] + local11[local9][1]
+            room52[local6] = room52[local6] + local11[local9][7]
+            room52[local6] = room52[local6] + 2 * local11[local9][8]
+            room52[local6] = room52[local6] + 3 * local11[local9][9]
+            room52[local6] = room52[local6] + 4 * local11[local9][10]
+        }
+        room49[local6] = room49[local6] + local11[local9][25]
+        room53[local6] = room53[local6] + local11[local9][21]
+        room54[local6] = room54[local6] + local11[local9][30]
+    }
+}
+free-script

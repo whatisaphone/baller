@@ -1,0 +1,13 @@
+; LSC2 27 2265
+
+gHoverScript = room67
+run-script ReleaseActor [room117]
+run-script ReleaseSprite [room103]
+run-script ReleaseSprite [room104]
+run-script ReleaseSprite [room105]
+run-script ReleaseSprite [room118]
+run-script FreePalette [room106]
+run-script FreePalette [room107]
+run-script 2264 []
+run-script 89 []
+free-script

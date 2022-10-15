@@ -1,0 +1,10 @@
+; VERB 4 88
+
+if (gTeeBall) {
+    if (get-class 95 [32]) {
+        run-script SendBatViewMessage [MSG-TEE-SWING, gCurrentSwing]
+    }
+} else {
+    run-script SendBatViewMessage [MSG-SWING, gCurrentSwing]
+}
+finish-script

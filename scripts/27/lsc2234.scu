@@ -1,0 +1,17 @@
+; LSC2 27 2234
+
+local variable local0
+
+if (!room86) {
+    dim array room86 i32[0...0][0...11] swap=2
+    for local0 = 0 to 11 ++ {
+        room86[local0] = call-script FindFreeSprite []
+    }
+}
+if (!room87) {
+    dim array room87 i16[0...0][0...4] swap=2
+    for local0 = 0 to 4 ++ {
+        room87[local0] = call-script AllocScratchImage []
+    }
+}
+free-script

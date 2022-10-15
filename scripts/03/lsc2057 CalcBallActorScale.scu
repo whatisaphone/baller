@@ -1,0 +1,30 @@
+; LSC2 3 2057 CalcBallActorScale
+
+parameter shadow
+
+local variable local1
+local variable local2
+local variable local3
+
+pop-discard-2 0 "no trace"
+if (shadow) {
+    local1 = distance-3d gWorld[BALL-SHADOW][X] 0 gWorld[BALL-SHADOW][Z] gCameraTransform[0][3] gCameraTransform[1][3] gCameraTransform[2][3]
+} else {
+    local1 = distance-3d gWorld[BALL][X] gWorld[BALL][Y] gWorld[BALL][Z] gCameraTransform[0][3] gCameraTransform[1][3] gCameraTransform[2][3]
+}
+if (local1 > 300) {
+    local1 = local1 - 300
+    local3 = 175 * local1 / 5000
+    local2 = 255 - local3
+} else {
+    local2 = 255
+}
+if (local2 < 80) {
+    local2 = 80
+}
+if (local2 > 255) {
+    local2 = 255
+}
+pop-discard-2 0 "trace on"
+return local2
+free-script

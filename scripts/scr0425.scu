@@ -1,0 +1,28 @@
+; SCRP 425
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (!gNavButtons) {
+    free-running-script 0
+}
+local3 = gNavButtons[6][1]
+gLastHoverNumber = 0
+if ((sprite-get-hotspot-y gNavButtons[3][0]) != 240) {
+    free-running-script 0
+}
+if (!local0) {
+    stop-script
+    local2 = (image-get-height 642 local3) / 5
+    for local1 = 1 to 5 ++ {
+        sprite-set-range gNavButtons[3][0] gNavButtons[3][0]
+        sprite-move-hotspot 0 local2
+        stop-script
+    }
+}
+sprite-set-range gNavButtons[3][0] gNavButtons[3][0]
+sprite-set-hotspot 320 (240 + (image-get-height 642 local3))
+gNavButtons[6][1] = 0
+free-script

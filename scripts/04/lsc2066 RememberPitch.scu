@@ -1,0 +1,17 @@
+; LSC2 4 2066 RememberPitch
+
+parameter kind: PitchKind
+parameter zone: Zone
+
+local variable local2
+
+if (gRememberedPitches == 0) {
+    dim array gRememberedPitches byte[0...10][0...1] swap=2
+}
+for local2 = 9 to 1 -- {
+    gRememberedPitches[local2][0] = gRememberedPitches[local2 - 1][0]
+    gRememberedPitches[local2][1] = gRememberedPitches[local2 - 1][1]
+}
+gRememberedPitches[0][0] = kind
+gRememberedPitches[0][1] = zone
+free-script

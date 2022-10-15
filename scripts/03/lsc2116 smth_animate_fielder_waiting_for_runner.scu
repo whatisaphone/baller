@@ -1,0 +1,17 @@
+; LSC2 3 2116 smth_animate_fielder_waiting_for_runner
+
+parameter fielder_actor: Actor
+parameter runneridx
+
+while (!(gRunners[runneridx][11] || fielder_actor != gFielderWithBall - 30)) {
+    stop-script
+}
+actor-select fielder_actor
+actor-set-var 3 0
+actor-do-anim fielder_actor 27
+while (!(gRunners[runneridx][R-STATE] == R-LEAVE-FIELD-WITH-OUT || fielder_actor != gFielderWithBall - 30 || gRunners[runneridx][R-DEST-BASE] != rCurrentPlay)) {
+    stop-script
+}
+actor-select fielder_actor
+actor-set-var 3 1
+free-script

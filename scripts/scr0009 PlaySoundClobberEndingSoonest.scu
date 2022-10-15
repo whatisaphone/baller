@@ -1,0 +1,28 @@
+; SCRP 9 PlaySoundClobberEndingSoonest
+
+parameter arg0
+parameter arg1
+
+local variable local3
+local variable local4
+local variable local5
+
+local3 = 4
+local4 = (get-sound-size gPlayingSound1) - (sound-samples-remaining gPlayingSound1)
+local5 = (get-sound-size gPlayingSound2) - (sound-samples-remaining gPlayingSound2)
+if (local5 < local4) {
+    local4 = local5
+    local3 = 5
+}
+local5 = (get-sound-size gPlayingSound3) - (sound-samples-remaining gPlayingSound3)
+if (local5 < local4) {
+    local4 = local5
+    local3 = 6
+}
+local5 = (get-sound-size gPlayingSound4) - (sound-samples-remaining gPlayingSound4)
+if (local5 < local4) {
+    local4 = local5
+    local3 = 7
+}
+run-script-xc3 PlaySoundOnChannel [arg0, local3, arg1]
+free-script

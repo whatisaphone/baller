@@ -1,0 +1,26 @@
+; SCRP 223 smth_he9_calc_powers
+
+parameter arg0
+parameter arg1
+
+local variable result
+
+case 1 {
+    of arg0 == 1 {
+        result = arg1
+    }
+    of arg0 == 2 {
+        result = arg1 * 64 * 2
+    }
+    of arg0 == 3 {
+        result = arg1 * 64 * 64 * 2
+    }
+    of arg0 == 4 {
+        result = arg1 * 64 * 64 * 64 * 2
+    }
+    of arg0 == 5 {
+        result = arg1 * 64 * 64 * 64 * 64 * 2
+    }
+}
+return result
+free-script

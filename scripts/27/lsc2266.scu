@@ -1,0 +1,57 @@
+; LSC2 27 2266
+
+local variable local0
+local variable local1
+local variable local2
+local variable local5
+local variable local6
+
+local5 = iif room116 5 3
+dim array room111 i16[1...10][1...local5] swap=2
+dim array room112 i16[1...10][1...local5] swap=2
+room113 = call-script AllocPalette []
+room114 = call-script AllocPalette []
+room115 = call-script AllocPalette []
+palette-select room113
+palette-load 1239 0
+palette-unselect
+palette-select room114
+palette-load 1031 0
+palette-unselect
+palette-select room115
+palette-load 1029 0
+palette-unselect
+for local1 = 1 to local5 ++ {
+    for local2 = 1 to 10 ++ {
+        room111[local2][local1] = call-script FindFreeSprite []
+        room112[local2][local1] = call-script AllocScratchImage []
+        sprite-set-range room111[local2][local1] room111[local2][local1]
+        sprite-clear
+        sprite-set-image 0
+        sprite-x2b (-800 + 1)
+        sprite-palette 0
+        sprite-x7c 2
+        sprite-x52 0
+    }
+}
+if (room116) {
+    run-script 2263 []
+} else {
+    local0 = gSeasonStats
+    dim array room110 i32[0...273][0...30 + 1] swap=2
+    array-copy-range room110 local0 0 273 0 30 0 273 0 30
+    for local1 = 0 to 273 ++ {
+        local6 = call-script 2344 [local1]
+        room110[local1][26] = call-script maybe_calculate_era [local1]
+        room110[local1][23] = call-script CalculateBattingStat [local1, STAT-BATTING-AVERAGE]
+        room110[local1][24] = call-script CalculateBattingStat [local1, STAT-SLUGGING-PERCENTAGE]
+        for local5 = 0 to 30 ++ {
+            room110[local1][local5] = room110[local1][local5] * 10
+            room110[local1][local5] = room110[local1][local5] + local6
+        }
+        room110[local1][26] = room110[local1][26] - local6 * 2
+        room110[local1][30 + 1] = local1
+    }
+    run-script 2262 []
+}
+free-script

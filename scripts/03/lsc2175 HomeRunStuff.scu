@@ -1,0 +1,80 @@
+; LSC2 3 2175 HomeRunStuff
+
+local variable local1
+local variable local3
+local variable local4
+local variable local5
+
+local5 = call-script AllocPalette []
+palette-select local5
+palette-load 1550 0
+palette-unselect
+run-script smth_actor_palette_team_color [0 - local5, gBattingTeamInfoIndex, 0, 1]
+local4 = call-script FindFreeSprite []
+sprite-set-range local4 local4
+sprite-clear
+sprite-set-image 1550
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b 10000
+sprite-palette local5
+sprite-x25 11
+sprite-set-hotspot 800 240
+local4 = call-script FindFreeSprite []
+sprite-set-range local4 local4
+sprite-clear
+sprite-set-image 1551
+sprite-x52 1
+sprite-x61 2
+sprite-x7c 2
+sprite-x2b 10001
+sprite-palette local5
+sprite-x25 11
+sprite-set-hotspot 800 240
+local4 = call-script FindFreeSprite []
+sprite-set-range local4 local4
+sprite-clear
+sprite-set-image 1552
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b 10000
+sprite-palette local5
+sprite-x25 11
+sprite-x62 global423
+sprite-set-hotspot 800 240
+stop-script
+for local3 = 0 to 3 ++ {
+    if (gRunners[local3][R-ORDER] == 3) {
+        room21 = 1
+    }
+}
+run-script PlayKidMusic [gBatterKid, 2]
+stop-script
+if (room21) {
+    run-script EnqueueComment [DIALOGUE-HIT-GRAND-SLAM, gBatterKid]
+} else {
+    run-script EnqueueComment [DIALOGUE-HIT-HOME-RUN, gBatterKid]
+}
+for local1 = 1 to 470 ++ {
+    sprite-group-select 11
+    sprite-group-x41 (-2 * local1) 0
+    if (g_maybe_skipped_cutscene) {
+        local1 = 500
+    }
+    stop-script
+}
+local4 = sprite-group-get-x08 11
+if (local4) {
+    for local1 = 1 to local4[0] ++ {
+        run-script ReleaseSprite [local4[local1]]
+        local4[local1] = 0
+    }
+    free-array local4
+    sprite-group-select 11
+    sprite-group-clear
+}
+run-script FreePalette [local5]
+while (!!(is-sound-playing 10000)) {
+    stop-script
+}
+free-script

@@ -1,0 +1,201 @@
+; LSC2 4 2206 SetBatterSounds
+
+case gBatterKid {
+    of KIMMY-ECKMAN {
+        actor-select 2
+        actor-set-sounds [1438, 1438, 1439, 1536, 1477]
+    }
+    of GRETCHEN-HASSELHOFF {
+        actor-select 2
+        actor-set-sounds [1723, 1723, 1725]
+    }
+    of ANGELA-DELVECCHIO {
+        actor-select 2
+        actor-set-sounds [1472, 1472]
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        actor-select 2
+        actor-set-sounds [1473, 1473]
+    }
+    of DANTE-ROBINSON {
+        actor-select 2
+        actor-set-sounds [1474, 1474, 1475, 1476, 1477]
+    }
+    of ERNIE-STEELE {
+        actor-select 2
+        actor-set-sounds [1478, 1478, 1479]
+    }
+    of JOCINDA-SMITH {
+        actor-select 2
+        actor-set-sounds [1480, 1480, 1481]
+    }
+    of JORGE-GARCIA {
+        actor-select 2
+        actor-set-sounds [1482, 1482]
+    }
+    of KENNY-KAWAGUCHI {
+        actor-select 2
+        actor-set-sounds [1483, 1483]
+    }
+    of MARKY-DUBOIS {
+        actor-select 2
+        actor-set-sounds [1485, 1485, 1498, 1499]
+    }
+    of PABLO-SANCHEZ {
+        actor-select 2
+        actor-set-sounds [1480, 1480, 1500, 1500]
+    }
+    of PETE-WHEELER {
+        actor-select 2
+        actor-set-sounds [1486, 1486, 1487, 1488, 1489, 1501]
+    }
+    of REESE-WORTHINGTON {
+        actor-select 2
+        actor-set-sounds [1490, 1490, 1491, 1492, 1493]
+    }
+    of STEPHANIE-MORGAN {
+        actor-select 2
+        actor-set-sounds [1494, 1494, 1495, 1496]
+    }
+    of TONY-DELVECCHIO {
+        actor-select 2
+        actor-set-sounds [1497, 1497]
+    }
+    of LISA-CROCKET {
+        actor-select 2
+        actor-set-sounds [1484, 1484]
+    }
+    of VICKI-KAWAGUCHI {
+        actor-select 2
+        actor-set-sounds [1502, 1502, 1503, 1504]
+    }
+    of RONNY-DOBBS {
+        actor-select 2
+        actor-set-sounds [1505, 1505, 1506]
+    }
+    of ACHMED-KHAN {
+        actor-select 2
+        actor-set-sounds [1507, 1507, 1508, 1509]
+    }
+    of AMIR-KHAN {
+        actor-select 2
+        actor-set-sounds [1510, 1510, 1511]
+    }
+    of DMITRI-PETROVICH {
+        actor-select 2
+        actor-set-sounds [1512, 1512, 1513]
+    }
+    of RICKY-JOHNSON {
+        actor-select 2
+        actor-set-sounds [1514, 1514]
+    }
+    of MIKEY-THOMAS {
+        actor-select 2
+        actor-set-sounds [1537, 1537, 1538]
+    }
+    of MARIA-LUNA {
+        actor-select 2
+        actor-set-sounds [4255, 4255, 4256]
+    }
+    of ALEX-GONZALEZ {
+        actor-select 2
+        actor-set-sounds [4246, 4246]
+    }
+    of ALEX-RODRIGUEZ {
+        actor-select 2
+        actor-set-sounds [4245, 4245]
+    }
+    of JEFF-BAGWELL {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+    of BARRY-BONDS {
+        actor-select 2
+        actor-set-sounds [4244, 4244]
+    }
+    of JOSE-CANSECO {
+        actor-select 2
+        actor-set-sounds [4242, 4242]
+    }
+    of MARTY-CORDOVA {
+        actor-select 2
+        actor-set-sounds [4246, 4246]
+    }
+    of NOMAR-GARCIAPARRA {
+        actor-select 2
+        actor-set-sounds [4250, 4250, 4243]
+    }
+    of JASON-GIAMBI {
+        actor-select 2
+        actor-set-sounds [4240, 4240]
+    }
+    of SHAWN-GREEN {
+        actor-select 2
+        actor-set-sounds [4246, 4246]
+    }
+    of TONY-GWYNN {
+        actor-select 2
+        actor-set-sounds [4240, 4240]
+    }
+    of DEREK-JETER {
+        actor-select 2
+        actor-set-sounds [4246, 4246]
+    }
+    of JUAN-GONZALEZ {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+    of RANDY-JOHNSON {
+        actor-select 2
+        actor-set-sounds [4247, 4247]
+    }
+    of KEN-GRIFFEY-JR {
+        actor-select 2
+        actor-set-sounds [4249, 4249]
+    }
+    of VLADIMIR-GUERRERO {
+        actor-select 2
+        actor-set-sounds [4248, 4248]
+    }
+    of CHIPPER-JONES {
+        actor-select 2
+        actor-set-sounds [4251, 4251]
+    }
+    of KENNY-LOFTON {
+        actor-select 2
+        actor-set-sounds [4246, 4246]
+    }
+    of MARK-MCGWIRE {
+        actor-select 2
+        actor-set-sounds [4242, 4242]
+    }
+    of RAUL-MONDESI {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+    of MIKE-PIAZZA {
+        actor-select 2
+        actor-set-sounds [4257, 4257, 4258]
+    }
+    of CURT-SCHILLING {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+    of SAMMY-SOSA {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+    of FRANK-THOMAS {
+        actor-select 2
+        actor-set-sounds [4242, 4242]
+    }
+    of MO-VAUGHN {
+        actor-select 2
+        actor-set-sounds [4252, 4252, 4254]
+    }
+    of LARRY-WALKER {
+        actor-select 2
+        actor-set-sounds [4241, 4241, 4250, 4253]
+    }
+}
+free-script

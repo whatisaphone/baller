@@ -1,0 +1,6 @@
+; SCRP 369 maybe_net_send_abort_game_unused
+
+if (gNetplayActive) {
+    run-script-xc3 maybe_net_send_message [30, 1, NET-maybe-abort-game, 48]
+}
+free-script

@@ -1,0 +1,12 @@
+; VERB 4 91
+
+if (gNetplayActive) {
+    if (room32) {
+        run-script PlaySound [1706]
+        run-script SendBatViewMessage [MSG-TOGGLE-STEAL, 4]
+    }
+} else {
+    run-script PlaySound [1706]
+    run-script SendBatViewMessage [MSG-TOGGLE-STEAL, 4]
+}
+finish-script

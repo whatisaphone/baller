@@ -1,0 +1,56 @@
+; SCRP 279
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local3 = call-script BBALLMISC_GetLogoSrcPalette [2, local1]
+case 1 {
+    of local3 < 256 {
+        local5 = 164
+    }
+    of local3 < 512 {
+        local5 = 165
+        local3 = local3 - 256
+    }
+    of local3 < 1024 {
+        local5 = 1417
+        local3 = local3 - 512
+    }
+    of local3 < 2048 {
+        local5 = 1418
+        local3 = local3 - 1024
+    }
+    else {
+        local5 = 1419
+        local3 = local3 - 2048
+    }
+}
+local4 = call-script AllocPalette []
+palette-select local4
+palette-load local5 0
+palette-unselect
+run-script 278 [local0, local4, 86, local3, 33]
+local3 = call-script BBALLMISC_GetLogoSrcPalette [1, local2]
+case 1 {
+    of local3 < 256 {
+        local5 = 163
+    }
+    of local3 < 512 {
+        local5 = 1420
+        local3 = local3 - 256
+    }
+    else {
+        local5 = 1421
+        local3 = local3 - 512
+    }
+}
+palette-select local4
+palette-load local5 0
+palette-unselect
+run-script 278 [local0, local4, 154, local3, 23]
+run-script FreePalette [local4]
+free-script

@@ -1,0 +1,35 @@
+; ENCD 37
+
+local variable local0
+
+if (!(is-sound-playing 8137)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8137]
+    run-script PlayMusicPool [-1]
+}
+local0 = "baseball2001"
+sprintf room34 "%s%s.net" [gSaveGamePath, local0]
+free-array local0
+gGameMode = MODE-PICKUP
+gNetMessageHandlerScript = NetHandleMessageLobby
+gHoverScript = 2090
+gInputHandlerScript = 2089
+gGamePadInputHandlerScript = gInputHandlerScript
+run-script 2050 []
+for temp = 487 to 492 ++ {
+    put-class temp [160]
+}
+if (gNetUsername) {
+    free-array gNetUsername
+}
+if (gNetPassword) {
+    free-array gNetPassword
+}
+if (gWindowsVersion == 40 || gWindowsVersion == 31) {
+    room19 = 30
+} else {
+    room19 = 20
+}
+run-script OnEnterRoom []
+gMouseHookScript = 2095
+finish-script

@@ -1,0 +1,121 @@
+; SCRP 202
+
+local variable local0
+local variable local1
+local variable local2
+
+gCurrentSpeechScript = 202
+local2 = random 1
+case local0 {
+    of 1 {
+        local1 = 1
+    }
+    of 2 {
+        local1 = 3
+    }
+    of 3 {
+        local1 = 5
+    }
+    of 4 {
+        local1 = 7
+    }
+    of 5 {
+        local1 = 9
+    }
+    of 6 {
+        local1 = 11
+    }
+    of 7 {
+        local1 = 13
+    }
+    of 8 {
+        local1 = 15
+    }
+    of 9 {
+        local1 = 15
+    }
+    of 10 {
+        local1 = 17
+    }
+    of 11 {
+        local1 = 19
+    }
+    of 12 {
+        local1 = 21
+    }
+    of 13 {
+        local1 = 23
+    }
+    of 14 {
+        local1 = 25
+    }
+    of 15 {
+        local1 = 27
+    }
+    of 16 {
+        local1 = 29
+    }
+    of 17 {
+        local1 = 31
+    }
+    of 18 {
+        local1 = 33
+    }
+    of 19 {
+        local1 = 35
+    }
+    of 20 {
+        local1 = 37
+    }
+    of 21 {
+        local1 = 39
+    }
+    of 22 {
+        local1 = 41
+    }
+    of 23 {
+        local1 = 43
+    }
+    of 24 {
+        local1 = 45
+    }
+    of 25 {
+        local1 = 47
+    }
+    of 26 {
+        local1 = 49
+    }
+    of 27 {
+        local1 = 51
+    }
+    of 28 {
+        local1 = 53
+    }
+    of 29 {
+        local1 = 55
+    }
+    of 30 {
+        local1 = 57
+    }
+    else {
+        if (local0 >= 31 && local0 <= 61) {
+            local1 = (local0 - 31) * 2 + 214
+        } else if (local0 >= 264 && local0 <= 264 - 1 + 10) {
+            if (gKidData[local0][KD-gender] == GIRL) {
+                local1 = 670 + (random 1)
+            } else {
+                local1 = 668 + (random 1)
+            }
+        } else {
+            local1 = 0
+        }
+    }
+}
+if (local1) {
+    xb8-xfe 1
+    xb8-x41 0 0
+    xb8-xe1 (local1 + local2)
+    xa9-xa9
+}
+gCurrentSpeechScript = 0
+free-script

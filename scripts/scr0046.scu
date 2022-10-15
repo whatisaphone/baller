@@ -1,0 +1,69 @@
+; SCRP 46
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+
+if (!local5) {
+    local5 = 1
+}
+local11 = strlen local0
+local15 = 1
+local17 = max 1 (image-get-height local1 0)
+local16 = max 1 (image-get-width local1 0)
+local9 = max 1 ((local17 + local4) * local11 / local3 * 3)
+local10 = max 1 (local16 * local3 + 2 * local3 + local16)
+local19 = palette-x42 1 5
+image-select local2
+image-op-create
+image-x20 local10
+image-x21 local9
+image-xff
+image-select local2
+image-x85 0 0 local10 local9 local19
+image-xff
+if (local11 > local3) {
+    local20 = call-script AllocScratchImage []
+    while (local7 < local11) {
+        local7 = iif (local3 + local14 > local11) local11 (local3 + local14)
+        do {
+            local13 = local0[local7]
+            --local7
+        } until (local13 == 32)
+        ++local15
+        if (local3 + local14 > local11) {
+            local7 = local11
+        }
+        local12 = substr local0 local14 local7
+        local18 = call-script maybe_draw_text_to_image [local12, local1, local20, local5, local6]
+        image-select local20
+        image-pos 0 ((local17 + local17 / 2 + local4) * (local15 - 2))
+        image-render-into local2
+        image-x30
+        image-xff
+        free-array local12
+        local14 = local7 + 2
+    }
+    run-script FreeScratchImage [local20]
+} else {
+    local18 = call-script maybe_draw_text_to_image [local0, local1, local2, local5]
+}
+return local18
+free-script

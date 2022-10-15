@@ -1,0 +1,72 @@
+; LSC2 5 2064 smth_mouse_sprites_1
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+if (arg0 == 3) {
+    run-script-xc3 smth_mouse_sprites_1 [1]
+    arg0 = 2
+}
+local2 = sprite-group-get-x 23
+local3 = sprite-group-get-x 24
+if (arg0 & 1) {
+    if (room22 == 1) {
+        arg0 = arg0 - 1
+    }
+}
+if (arg0 & 2) {
+    if (room23 == 1) {
+        arg0 = arg0 - 2
+    }
+}
+if (!arg0) {
+    free-running-script 0
+}
+if (!gMouseHookScript) {
+    gMouseHookScript = 2063
+}
+local1 = 370
+if (arg0 == 1) {
+    local5 = room20
+} else {
+    local5 = room21
+}
+local4 = 100
+while (local1 > local5) {
+    if (arg0 & 1) {
+        sprite-group-select 23
+        sprite-group-x41 local2 local1
+    }
+    if (arg0 & 2) {
+        sprite-group-select 24
+        sprite-group-x41 local3 local1
+    }
+    local4 = local4 - local4 / 4
+    local4 = max 3 local4
+    local1 = local1 - local4
+    sleep (6 / gMinJiffies)
+}
+if (arg0 & 1) {
+    sprite-group-select 23
+    sprite-group-x41 local2 room20
+    room22 = 1
+}
+if (arg0 & 2) {
+    sprite-group-select 24
+    sprite-group-x41 local3 room21
+    room23 = 1
+}
+if (arg0 & 1) {
+    sprite-set-range room24 room24
+    sprite-x34 2
+}
+if (arg0 & 2) {
+    sprite-set-range room25 room25
+    sprite-x34 2
+}
+free-script

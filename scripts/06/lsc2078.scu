@@ -1,0 +1,20 @@
+; LSC2 6 2078
+
+local variable local0
+local variable local1
+local variable local2
+
+for local2 = 0 to 18 ++ {
+    if (room17[room1][local2]) {
+        sprite-set-range room17[0][local2] room17[0][local2]
+        sprite-set-image local0
+        sprite-palette local1
+        sprite-x7c 1
+        sprite-x52 0
+        sprite-x34 local2
+    } else {
+        sprite-set-range room17[0][local2] room17[0][local2]
+        sprite-set-image 0
+    }
+}
+free-script

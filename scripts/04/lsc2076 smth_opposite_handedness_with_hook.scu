@@ -1,0 +1,18 @@
+; LSC2 4 2076 smth_opposite_handedness_with_hook
+
+local variable local0
+local variable local1
+
+local0 = 0
+if (call-script BatterAndPitcherDifferentHandedness []) {
+    local1 = gKidData[rPitcherKid][13] & 3
+    if (local1 == 1) {
+        if (rPitchKind == PITCH-RIGHT-HOOK) {
+            local0 = 1
+        }
+    } else if (rPitchKind == PITCH-LEFT-HOOK) {
+        local0 = 1
+    }
+}
+return local0
+free-script

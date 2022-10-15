@@ -1,0 +1,10 @@
+; SCRP 13 PlayClickySound
+
+local variable local0
+
+local0 = xe3 global455 [1996, 1706, 1423, 1427, 1428, 1429, 1430]
+run-script PlaySound [local0]
+while (!!(is-sound-playing local0)) {
+    stop-script
+}
+free-script

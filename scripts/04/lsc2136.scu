@@ -1,0 +1,108 @@
+; LSC2 4 2136
+
+local variable local0
+local variable local1
+local variable local2
+
+gCurrentSpeechScript = 2136
+local2 = random 1
+case local0 {
+    of 1 {
+        local1 = 276
+    }
+    of 2 {
+        local1 = 278
+    }
+    of 3 {
+        local1 = 280
+    }
+    of 4 {
+        local1 = 282
+    }
+    of 5 {
+        local1 = 284
+    }
+    of 6 {
+        local1 = 286
+    }
+    of 7 {
+        local1 = 288
+    }
+    of 8 {
+        local1 = 290
+    }
+    of 9 {
+        local1 = 290
+    }
+    of 10 {
+        local1 = 292
+    }
+    of 11 {
+        local1 = 294
+    }
+    of 12 {
+        local1 = 296
+    }
+    of 13 {
+        local1 = 298
+    }
+    of 14 {
+        local1 = 300
+    }
+    of 15 {
+        local1 = 302
+    }
+    of 16 {
+        local1 = 304
+    }
+    of 17 {
+        local1 = 306
+    }
+    of 18 {
+        local1 = 308
+    }
+    of 19 {
+        local1 = 310
+    }
+    of 20 {
+        local1 = 312
+    }
+    of 21 {
+        local1 = 314
+    }
+    of 22 {
+        local1 = 316
+    }
+    of 23 {
+        local1 = 318
+    }
+    of 24 {
+        local1 = 320
+    }
+    of 25 {
+        local1 = 322
+    }
+    of 26 {
+        local1 = 324
+    }
+    of 27 {
+        local1 = 326
+    }
+    of 28 {
+        local1 = 328
+    }
+    of 29 {
+        local1 = 330
+    }
+    of 30 {
+        local1 = 332
+    }
+}
+if (local1) {
+    xb8-xfe 12
+    xb8-xf9 [244]
+    xb8-xe1 (local1 + local2)
+    xa9-xa9
+}
+gCurrentSpeechScript = 0
+free-script

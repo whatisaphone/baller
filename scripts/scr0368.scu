@@ -1,0 +1,24 @@
+; SCRP 368
+
+local variable local0
+local variable local1
+local variable local2
+
+local1 = 10
+do {
+    local0 = 0
+    sprintf local2 "Hello?  Are you still there?  Click OK or you will be disconnected in %d seconds." [local1]
+    run-script smth_message_popup [local2, 0, 0, 0]
+    local2 = 0
+    do {
+        local0 = local0 + gMinJiffies
+        stop-script
+    } until (local0 >= 60 || global577)
+    if (global577) {
+        free-running-script 0
+    }
+    --local1
+} until (local1 == 0)
+global577 = -99
+stop-script
+free-script

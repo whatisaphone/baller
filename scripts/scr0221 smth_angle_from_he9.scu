@@ -1,0 +1,119 @@
+; SCRP 221 smth_angle_from_he9
+
+parameter x1
+parameter y1
+parameter x2
+parameter y2
+
+local variable result
+local variable local5
+local variable local7
+local variable local8
+local variable ax1
+local variable ax2
+local variable ay1
+local variable ay2
+local variable local13
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+local variable local22
+
+pop-discard-2 0 "no trace"
+result = 0
+x2 = x2 * 10
+x1 = x1 * 10
+y2 = y2 * 10
+y1 = y1 * 10
+x2 = x2 + 23200
+x1 = x1 + 23200
+local15 = x2 / 2900
+local16 = y2 / 2900
+if (local15 < 16) {
+    if (local15 > -1) {
+        if (local16 < 16) {
+            if (local16 > -1) {
+                local5 = g_smth_he9_final_array[local15][local16]
+                if (local5) {
+                    local17 = 0
+                    if (local5 & 2113929216) {
+                        local17 = 5
+                    } else if (local5 & 33030144) {
+                        local17 = 4
+                    } else if (local5 & 516096) {
+                        local17 = 3
+                    } else if (local5 & 8064) {
+                        local17 = 2
+                    } else {
+                        local17 = 1
+                    }
+                    for local7 = 1 to local17 ++ {
+                        local8 = call-script smth_he9_flags [local7, local5]
+                        local13 = g_he9_array[local8]
+                        for local22 = 1 to 4 ++ {
+                            case local22 {
+                                of 1 {
+                                    ax1 = local13[0]
+                                    ay1 = local13[2]
+                                    ax2 = local13[7]
+                                    ay2 = local13[9]
+                                }
+                                of 2 {
+                                    ax1 = local13[0]
+                                    ay1 = local13[2]
+                                    ax2 = local13[4]
+                                    ay2 = local13[6]
+                                }
+                                of 3 {
+                                    ax1 = local13[7]
+                                    ay1 = local13[9]
+                                    ax2 = local13[10]
+                                    ay2 = local13[12]
+                                }
+                                of 4 {
+                                    ax1 = local13[4]
+                                    ay1 = local13[6]
+                                    ax2 = local13[10]
+                                    ay2 = local13[12]
+                                }
+                            }
+                            local18 = (ax2 - ax1) * (y2 - ay1) - (ay2 - ay1) * (x2 - ax1)
+                            local20 = (ay2 - ay1) * (x1 - x2) - (ax2 - ax1) * (y1 - y2)
+                            local19 = (x1 - x2) * (y2 - ay1) - (y1 - y2) * (x2 - ax1)
+                            local21 = local20
+                            if (local20 != 0) {
+                                if (local21 < 0 && local19 < 0) {
+                                    local21 = abs local21
+                                    local19 = abs local19
+                                }
+                                if (local20 < 0 && local18 < 0) {
+                                    local20 = abs local20
+                                    local18 = abs local18
+                                }
+                                if (local20 > local18 && local21 > local19 && !(local18 < 0) && !(local20 < 0) && !(local19 < 0) && !(local21 < 0)) {
+                                    if ((distance-2d ax1 ay1 2320 852) <= (distance-2d ax2 ay2 2320 852)) {
+                                        result = atan4 ax2 ay2 ax1 ay1
+                                    } else {
+                                        result = atan4 ax1 ay1 ax2 ay2
+                                    }
+                                    if (result == 0) {
+                                        result = 360
+                                    }
+                                    goto label0319
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+label0319:
+pop-discard-2 0 "trace on"
+return result
+free-script

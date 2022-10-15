@@ -1,0 +1,25 @@
+; LSC2 4 2126 SplitKidNameFirstLast
+
+parameter out_first
+parameter out_last
+
+local variable local2
+local variable local3
+local variable local4
+
+local4 = (array-width gKidName) - 1
+for local2 = local4 to 0 -- {
+    if (gKidName[local2] == 32) {
+        local3 = local2
+        local2 = -1
+    }
+}
+for local2 = 0 to (local3 - 1) ++ {
+    out_first[local2] = gKidName[local2]
+}
+out_first[local3] = 0
+++local3
+for local2 = local3 to local4 ++ {
+    out_last[local2 - local3] = gKidName[local2]
+}
+free-script

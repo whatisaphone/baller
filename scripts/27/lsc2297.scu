@@ -1,0 +1,16 @@
+; LSC2 27 2297
+
+if (gDebug == 101) {
+    run-script DumpPlayoffRosterFile []
+    run-script DumpPlayoffScheduleFile []
+}
+room142 = 1
+run-script 2270 []
+run-script 2271 []
+run-script 2273 []
+run-script 2272 []
+run-script 2295 []
+run-script 2294 []
+run-script initPlayoffsPage [gSeasonGameNumber]
+gHoverScript = 2345
+free-script

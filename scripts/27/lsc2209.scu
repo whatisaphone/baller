@@ -1,0 +1,51 @@
+; LSC2 27 2209
+
+room67 = gHoverScript
+gHoverScript = 2339
+run-script 2214 []
+room46 = call-script AllocPalette []
+room47 = call-script AllocPalette []
+room62 = call-script AllocPalette []
+room83 = call-script AllocPalette []
+room90 = call-script AllocPalette []
+room0 = call-script AllocPalette []
+palette-select room46
+palette-load 1237 0
+palette-unselect
+palette-select room47
+palette-load 1238 0
+palette-unselect
+palette-select room62
+palette-load 1031 0
+palette-unselect
+palette-select room83
+palette-load 1239 0
+palette-unselect
+palette-select room90
+palette-load 1377 0
+palette-unselect
+palette-select room0
+palette-load 1378 0
+palette-unselect
+room74 = call-script 132 [gSeasonRosterArray[gSeasonDivision][11]]
+if (gSeasonGameNumber > 14 / 2) {
+    room76 = 1
+}
+if (room76) {
+    room77 = 7
+} else {
+    room77 = 5
+}
+case room74 {
+    in [0, 1, 2, 7] {
+        room75 = 0
+    }
+    else {
+        room75 = 1
+    }
+}
+run-script 2217 []
+run-script 2211 []
+run-script 2213 []
+run-script 88 []
+free-script

@@ -1,0 +1,9 @@
+; SCRP 62 AllocSpriteGroup
+
+if (gSpriteGroupStackPointer) {
+    --gSpriteGroupStackPointer
+    return gSpriteGroupStack[gSpriteGroupStackPointer]
+} else {
+    return 0
+}
+free-script

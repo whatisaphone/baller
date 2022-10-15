@@ -1,0 +1,61 @@
+; LSC2 3 2105 AddRunnerForBatter
+
+local variable local0
+local variable local1
+
+if (gNetplayActive) {
+}
+if (gNumRunners > 3 + 1) {
+    xb6-xfe
+    xb6-x4b "Too many runners!"
+    free-running-script 0
+}
+for local1 = 0 to 3 ++ {
+    if (gRunners[local1][R-CUR-BASE] == 0) {
+        gRunners[local1][R-CUR-BASE] = NONE
+        gRunners[local1][R-DEST-BASE] = NONE
+        gRunners[local1][R-ORDER] = 999
+        gRunners[local1][R-SPEED] = 0
+        gRunners[local1][R-DEST-X] = 0
+        gRunners[local1][R-DEST-Z] = 0
+        gRunners[local1][R-KID] = 0
+        gRunners[local1][R-STATE] = 0
+        gRunners[local1][R-VELOCITY-X] = 0
+        gRunners[local1][R-VELOCITY-Y] = 0
+        gRunners[local1][16] = 0
+        gRunners[local1][17] = 0
+        gRunners[local1][19] = 0
+        gRunners[local1][18] = 0
+        gRunners[local1][20] = 0
+        gRunners[local1][R-DIRECTION] = 0
+        gRunners[local1][11] = 0
+        gRunners[local1][R-FORCED] = false
+        gBases[0][BASE-RUNNERIDX] = NONE
+    }
+}
+gNumRunners = 0
+for local1 = 0 to 3 ++ {
+    if (gRunners[local1][R-CUR-BASE] != NONE) {
+        ++gNumRunners
+    }
+}
+++gNumRunners
+while (gRunners[local0][R-CUR-BASE] != NONE) {
+    ++local0
+    if (local0 > 3) {
+        xb6-xfe
+        xb6-x4b "Programmer failure!"
+        free-running-script 0
+    }
+}
+gRunners[local0][R-CUR-BASE] = 0
+array-set-row gWorld gRunners[local0][R-ENTITY] [0, 0, 300]
+gRunners[local0][R-KID] = gBatterKid
+gRunners[local0][R-DIRECTION] = FORWARD
+gRunners[local0][15] = 400
+if (gOffenseControlledBy == CB-USER) {
+    gRunnerCursorIndex = local0
+    run-script DrawNameUnderRunner [gRunnerCursorIndex]
+}
+run-script UpdateBasesWithRunners []
+free-script

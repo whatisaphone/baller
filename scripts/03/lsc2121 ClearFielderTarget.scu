@@ -1,0 +1,15 @@
+; LSC2 3 2121 ClearFielderTarget
+
+parameter idx: Entity
+
+local variable target: FieldingTarget
+
+target = gWorld[idx][TARGET]
+if (target in [NONE, BALL-SHADOW]) {
+    free-running-script 0
+}
+if (target >= 0 && target <= 4) {
+    rBaseClaims[target] = 0
+}
+gWorld[idx][TARGET] = NONE
+free-script

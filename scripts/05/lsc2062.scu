@@ -1,0 +1,11 @@
+; LSC2 5 2062
+
+local variable local0
+local variable local1
+
+sprite-set-range local0 local0
+sprite-x34 (local1 + 1)
+sleep-frames 2
+sprite-set-range local0 local0
+sprite-x34 local1
+free-script

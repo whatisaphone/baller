@@ -1,0 +1,8 @@
+; LSC2 4 2196 BattingPracticeDoAnotherPitch
+
+gNumBalls = 0
+gNumOuts = 0
+gNumStrikes = 0
+run-script BattingPracticeDrawCounters []
+run-script BattingPracticeDoPitch []
+free-script

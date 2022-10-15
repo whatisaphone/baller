@@ -1,0 +1,10 @@
+; LSC2 4 2100 maybe_do_swing_tee_ball
+
+rBatterSwung = true
+while (!((actor-get-var 2 2) == 2)) {
+    stop-script
+}
+r_maybe_swing_time = pick (random 4) [5, 4, 3, 2, 1]
+run-script SetHitAngles []
+run-script SendBatViewMessage [MSG-BATTER-CONTACT, gHitPosPhysX, gHitPosPhysY, gHitPosPhysZ, gHitVelPhysX, gHitVelPhysY, gHitVelPhysZ, gHitAngleXZ]
+free-script

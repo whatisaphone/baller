@@ -1,0 +1,7 @@
+; LSC2 27 2244
+
+dim array room92 i16[0...0][0...25] swap=2
+room92[0] = 1
+dim array room91 i16[0...0][0...25] swap=2
+room91[0] = 1
+free-script

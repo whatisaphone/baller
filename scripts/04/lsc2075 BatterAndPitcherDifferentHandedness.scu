@@ -1,0 +1,9 @@
+; LSC2 4 2075 BatterAndPitcherDifferentHandedness
+
+local variable local0
+local variable local1
+
+local0 = shr (gKidData[gBatterKid][13] & 48) 4
+local1 = gKidData[rPitcherKid][13] & 3
+return (local0 != local1)
+free-script

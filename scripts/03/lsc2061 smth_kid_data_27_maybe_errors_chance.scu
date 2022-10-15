@@ -1,0 +1,28 @@
+; LSC2 3 2061 smth_kid_data_27_maybe_errors_chance
+
+parameter kid: Kid
+
+local variable local1
+
+local1 = 51
+if (!gNoErrors) {
+    case gKidData[kid][KD-maybe-height] {
+        of 1 {
+            local1 = 17
+        }
+        of 2 {
+            local1 = 25
+        }
+        of 3 {
+            local1 = 34
+        }
+        of 4 {
+            local1 = 42
+        }
+        of 5 {
+            local1 = 51
+        }
+    }
+}
+return local1
+free-script

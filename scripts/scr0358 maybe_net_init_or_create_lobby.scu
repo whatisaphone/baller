@@ -1,0 +1,4 @@
+; SCRP 358 maybe_net_init_or_create_lobby
+
+g_maybe_directplay_initted = kludge-retval [2001, 1513]
+free-script

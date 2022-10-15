@@ -1,0 +1,31 @@
+; SCRP 418
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+local10 = mod local2 100
+if (local10 < 10) {
+    sprintf local9 "Date Won: %d/%d/0%d" [local1, local0, local10]
+} else {
+    sprintf local9 "Date Won: %d/%d/%d" [local1, local0, local10]
+}
+temp = call-script smth_draw_text_image [local9, local5, local4, 145, 28, 0, 0, local6]
+sprite-set-range local3 local3
+sprite-clear
+sprite-set-image local4
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -200
+sprite-palette local6
+sprite-set-hotspot local7 local8
+free-array local9
+free-script

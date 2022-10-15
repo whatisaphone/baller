@@ -1,0 +1,61 @@
+; LSC2 4 2074 maybe_pitcher_head_animation
+
+parameter arg0
+
+if (!room25) {
+    free-running-script 0
+}
+if (gMinJiffies != 2) {
+    gMinJiffies = 2
+    for temp = 1 to gActorPoolMax ++ {
+        actor-select temp
+        actor-x61 (6 / gMinJiffies)
+    }
+}
+if (!arg0) {
+    if (random 1) {
+        arg0 = 2
+    } else {
+        arg0 = 3
+    }
+}
+if (rPitcherKid == TONY-DELVECCHIO) {
+    actor-select 3
+    actor-set-var 0 0
+    if (arg0 == 2) {
+        actor-do-anim 3 7
+    } else {
+        actor-do-anim 3 11
+    }
+    while (!(actor-get-var 3 0)) {
+        stop-script
+    }
+    if (!(is-script-running RunGamePitch) && !(is-script-running smth_do_a_pitch) && room25) {
+        actor-do-anim 3 1
+    }
+} else {
+    actor-select 3
+    actor-set-conditons [1]
+    actor-select 3
+    actor-set-conditons [2]
+    actor-select 3
+    actor-set-conditons [3]
+    if (arg0 == 2) {
+        actor-select 3
+        actor-set-conditons [131]
+    } else if (arg0 == 3) {
+        actor-select 3
+        actor-set-conditons [130]
+    } else {
+        actor-select 3
+        actor-set-conditons [129]
+    }
+    sleep 30
+    actor-select 3
+    actor-set-conditons [129]
+    actor-select 3
+    actor-set-conditons [2]
+    actor-select 3
+    actor-set-conditons [3]
+}
+free-script

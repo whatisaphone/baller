@@ -1,0 +1,13 @@
+; LSC2 8 2097 smth_pregame_stuff
+
+if (gKidData[0][33] == 0) {
+    gKidData[0][33] = 1
+    run-script maybe_kid_bonuses []
+    run-script maybe_stat_ups_downs []
+    run-script maybe_check_kid_birthdays []
+    run-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders []
+    if (MODE-SEASON != gGameMode) {
+        run-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders [1]
+    }
+}
+free-script

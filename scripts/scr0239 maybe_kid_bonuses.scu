@@ -1,0 +1,175 @@
+; SCRP 239 maybe_kid_bonuses
+
+local variable kids: Kid[]
+local variable i
+local variable j
+local variable local3
+local variable local4
+local variable local5
+
+for local3 = [gVisitorInfoIndex, gHomeInfoIndex] {
+    kids = gTeamInfo[local3][TI-FIELDING-ORDER]
+    local4 = gTeamInfo[1 - local3][TI-FIELDING-ORDER]
+    for i = 0 to 8 ++ {
+        if (kids[i] == SIDNEY-WEBBER) {
+            for j = 0 to 8 ++ {
+                if (kids[j] == ASHLEY-WEBBER) {
+                    array-set-row gKidData 8 [0, 94, 88, 58, 72, 85, 78, 64, 82, 95, 70, 81, 76, 1, 66, 51, 68, 0, 0, 81, 0, 88, 80, 0, 0, 71]
+                    array-set-row gKidData 9 [0, 94, 88, 58, 72, 85, 78, 64, 82, 95, 70, 81, 76, 1, 66, 51, 68, 0, 0, 81, 0, 88, 80, 0, 0, 71]
+                    if (gKidData[ASHLEY-WEBBER][33] == 0) {
+                        gKidData[ASHLEY-WEBBER][33] = 128
+                    }
+                    gKidData[ASHLEY-WEBBER][33] = gKidData[ASHLEY-WEBBER][33] + 2
+                    if (gKidData[SIDNEY-WEBBER][33] == 0) {
+                        gKidData[SIDNEY-WEBBER][33] = 128
+                    }
+                    gKidData[SIDNEY-WEBBER][33] = gKidData[SIDNEY-WEBBER][33] + 2
+                    j = 999
+                    i = 999
+                }
+            }
+        }
+    }
+    for i = 0 to 8 ++ {
+        if (kids[i] == RONNY-DOBBS) {
+            for j = 0 to 8 ++ {
+                if (kids[j] == SALLY-DOBBS) {
+                    array-set-row gKidData 16 [0, 42, 50, 15, 20, 48, 38, 56, 14, 15, 15, 19, 41, 1, 62, 26, 44, 38, 39, 0, 65, 0, 70, 73, 0, 0]
+                    array-set-row gKidData 6 [0, 82, 62, 83, 67, 96, 94, 74, 51, 71, 70, 97, 72, 1, 80, 91, 65, 78, 97, 0, 97, 0, 0, 0, 80, 90]
+                    if (gKidData[RONNY-DOBBS][33] == 0) {
+                        gKidData[RONNY-DOBBS][33] = 128
+                    }
+                    gKidData[RONNY-DOBBS][33] = gKidData[RONNY-DOBBS][33] + -2
+                    if (gKidData[SALLY-DOBBS][33] == 0) {
+                        gKidData[SALLY-DOBBS][33] = 128
+                    }
+                    gKidData[SALLY-DOBBS][33] = gKidData[SALLY-DOBBS][33] + 2
+                    j = 999
+                    i = 999
+                }
+            }
+        }
+    }
+    for i = 0 to 8 ++ {
+        if (kids[i] == AMIR-KHAN) {
+            for j = 0 to 8 ++ {
+                if (kids[j] == ACHMED-KHAN) {
+                    array-set-row gKidData 18 [0, 37, 95, 63, 69, 39, 54, 90, 75, 30, 88, 68, 50, 1, 56, 38, 0, 90, 100, 0, 0, 0, 80, 84, 96, 86]
+                    if (gKidData[AMIR-KHAN][33] == 0) {
+                        gKidData[AMIR-KHAN][33] = 128
+                    }
+                    gKidData[AMIR-KHAN][33] = gKidData[AMIR-KHAN][33] + 2
+                    i = 999
+                    j = 999
+                }
+            }
+        }
+    }
+    for i = 0 to 8 ++ {
+        if (kids[i] == MARKY-DUBOIS) {
+            for j = 0 to 8 ++ {
+                if (kids[j] == BILLY-JEAN-BLACKWOOD) {
+                    array-set-row gKidData 23 [0, 92, 61, 81, 67, 77, 71, 57, 79, 69, 39, 88, 98, 2, 72, 60, 68, 77, 18, 0, 38, 76, 0, 78, 57, 21]
+                    array-set-row gKidData 7 [0, 25, 28, 24, 43, 34, 42, 29, 45, 31, 45, 46, 41, 1, 10, 34, 47, 86, 0, 89, 0, 31, 0, 41, 0, 0]
+                    if (gKidData[MARKY-DUBOIS][33] == 0) {
+                        gKidData[MARKY-DUBOIS][33] = 128
+                    }
+                    gKidData[MARKY-DUBOIS][33] = gKidData[MARKY-DUBOIS][33] + 2
+                    if (gKidData[BILLY-JEAN-BLACKWOOD][33] == 0) {
+                        gKidData[BILLY-JEAN-BLACKWOOD][33] = 128
+                    }
+                    gKidData[BILLY-JEAN-BLACKWOOD][33] = gKidData[BILLY-JEAN-BLACKWOOD][33] + -2
+                    i = 999
+                    j = 999
+                }
+            }
+        }
+    }
+    for i = 0 to 8 ++ {
+        if (kids[i] == TONY-DELVECCHIO) {
+            for j = 0 to 8 ++ {
+                if (local4[j] == 3) {
+                    array-set-row gKidData 26 [0, 71, 82, 73, 83, 100, 80, 84, 86, 85, 87, 12, 1, 1, 60, 49, 20, 84, 0, 43, 0, 33, 100, 56, 0, 0]
+                    array-set-row gKidData 3 [0, 93, 87, 51, 84, 75, 82, 89, 80, 63, 44, 78, 100, 1, 59, 66, 74, 72, 0, 0, 0, 57, 75, 67, 28, 0]
+                    if (gKidData[TONY-DELVECCHIO][33] == 0) {
+                        gKidData[TONY-DELVECCHIO][33] = 128
+                    }
+                    gKidData[TONY-DELVECCHIO][33] = gKidData[TONY-DELVECCHIO][33] + 2
+                    if (gKidData[ANGELA-DELVECCHIO][33] == 0) {
+                        gKidData[ANGELA-DELVECCHIO][33] = 128
+                    }
+                    gKidData[ANGELA-DELVECCHIO][33] = gKidData[ANGELA-DELVECCHIO][33] + 2
+                    i = 999
+                    j = 999
+                }
+            }
+        }
+    }
+    if (gTeamInfo[local3][3] == 7 || gTeamInfo[local3][8] == 7) {
+        for i = 0 to 8 ++ {
+            if (kids[i] == MARIA-LUNA) {
+                array-set-row gKidData 2 [0, 64, 16, 87, 80, 73, 73, 87, 75, 80, 64, 15, 21, 2, 56, 80, 73, 77, 0, 67, 0, 0, 0, 28, 31, 86]
+                if (gKidData[MARIA-LUNA][33] == 0) {
+                    gKidData[MARIA-LUNA][33] = 128
+                }
+                gKidData[MARIA-LUNA][33] = gKidData[MARIA-LUNA][33] + 2
+            }
+            i = 999
+        }
+    }
+    if (gTeamInfo[local3][TI-TEAM-NOUN] == 128 || gTeamInfo[local3][TI-TEAM-NOUN] == 126) {
+        for i = 0 to 8 ++ {
+            if (local4[i] == 23) {
+                array-set-row gKidData 23 [0, 92, 51, 81, 67, 77, 81, 77, 69, 69, 79, 88, 48]
+                if (gKidData[MARKY-DUBOIS][33] == 0) {
+                    gKidData[MARKY-DUBOIS][33] = 128
+                }
+                gKidData[MARKY-DUBOIS][33] = gKidData[MARKY-DUBOIS][33] + 2
+                i = 999
+            }
+            if (i != 999) {
+                if (kids[i] == MARKY-DUBOIS) {
+                    array-set-row gKidData 23 [0, 50, 11, 40, 37, 57, 35, 57, 30, 30, 30, 88, 48]
+                    if (gKidData[MARKY-DUBOIS][33] == 0) {
+                        gKidData[MARKY-DUBOIS][33] = 128
+                    }
+                    gKidData[MARKY-DUBOIS][33] = gKidData[MARKY-DUBOIS][33] + -2
+                    i = 999
+                }
+            }
+        }
+    }
+    for i = 0 to 8 ++ {
+        if (kids[i] == CAL-RIPKEN-JR) {
+            for j = 0 to 8 ++ {
+                local5 = gKidData[kids[j]][1]
+                local5 = local5 + 10
+                local5 = min local5 100
+                gKidData[kids[j]][1] = local5
+            }
+        }
+    }
+    if (gField == ECKMAN-ACRES) {
+        for i = 0 to 8 ++ {
+            if (kids[i] == KIMMY-ECKMAN) {
+                array-set-row gKidData 1 [0, 71, 82, 73, 68, 75, 75, 72, 84, 85, 56, 57]
+                if (gKidData[KIMMY-ECKMAN][33] == 0) {
+                    gKidData[KIMMY-ECKMAN][33] = 128
+                }
+                gKidData[KIMMY-ECKMAN][33] = gKidData[KIMMY-ECKMAN][33] + 2
+            }
+        }
+    }
+    if (gField == STEELE-STADIUM) {
+        for i = 0 to 8 ++ {
+            if (kids[i] == ERNIE-STEELE) {
+                array-set-row gKidData 29 [0, 85, 82, 98, 68, 75, 85, 72, 84, 85, 56, 23]
+                if (gKidData[ERNIE-STEELE][33] == 0) {
+                    gKidData[ERNIE-STEELE][33] = 128
+                }
+                gKidData[ERNIE-STEELE][33] = gKidData[ERNIE-STEELE][33] + 2
+            }
+        }
+    }
+}
+free-script

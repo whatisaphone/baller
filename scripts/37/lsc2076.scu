@@ -1,0 +1,70 @@
+; LSC2 37 2076
+
+local variable local0
+local variable local1
+
+local0 = 7
+local1 = "Choose a coach or register a new one"
+run-script 2065 [-1, 166, 1104, local0, local1]
+free-array local1
+palette-select room7
+palette-load 1494 0
+palette-unselect
+palette-select room8
+palette-load 1373 0
+palette-unselect
+palette-select room9
+palette-load 1374 0
+palette-unselect
+palette-select room14
+palette-load 1539 0
+palette-unselect
+sprite-set-range room15[0] room15[0]
+sprite-set-hotspot 320 240
+sprite-set-image 1373
+sprite-x2b -30
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room8
+sprite-set-range room15[1] room15[1]
+sprite-set-hotspot 320 240
+sprite-set-image 1494
+sprite-x2b 10
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room7
+sprite-set-range room15[2] room15[2]
+sprite-set-hotspot 320 240
+sprite-set-image 1374
+sprite-x2b 20
+sprite-x52 0
+sprite-x7c 1
+sprite-x34 6
+sprite-palette room9
+gSpriteCursorTargets[room15[2]][TARGET-CLICK-SCRIPT] = 2083
+sprite-set-range room15[25] room15[25]
+sprite-set-hotspot 320 240
+sprite-set-image 1539
+sprite-x2b 20
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room14
+sprite-set-range room15[26] room15[26]
+sprite-set-hotspot 320 (240 + 50)
+sprite-set-image 1571
+sprite-x2b 20
+sprite-x52 0
+sprite-x34 0
+sprite-x7c 1
+sprite-palette room9
+gSpriteCursorTargets[room15[26]][TARGET-CLICK-SCRIPT] = 2094
+sprite-set-range room15[27] room15[27]
+sprite-set-hotspot 320 (240 + 50)
+sprite-set-image 1571
+sprite-x2b 20
+sprite-x52 0
+sprite-x34 2
+sprite-x7c 1
+sprite-palette room9
+gSpriteCursorTargets[room15[27]][TARGET-CLICK-SCRIPT] = 2094
+free-script

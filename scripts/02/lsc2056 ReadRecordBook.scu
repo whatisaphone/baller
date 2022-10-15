@@ -1,0 +1,24 @@
+; LSC2 2 2056 ReadRecordBook
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = "baseball2001"
+sprintf local0 "%s%s.rec" [gSaveGamePath, local2]
+free-array local2
+local1 = file-open local0 1
+if (local1 != -1) {
+    gRecordBook = file-read-array 4 local1 ((23 + 1) * (489 + 1) - 1)
+    if ((array-width gRecordBook) != 11760) {
+        xb7-xfe
+        xb7-xc2 "Sorry!  Your record book, %s, has been corrupted.\nA new one has been created for you." local0 []
+        run-script WriteRecordBook []
+    }
+    redim 4 gRecordBook 23 489
+} else {
+    run-script WriteRecordBook []
+}
+file-close local1
+free-array local0
+free-script

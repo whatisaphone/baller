@@ -1,0 +1,6 @@
+; LSC2 14 2112
+
+room15 = call-script AllocScratchImage []
+room19 = call-script AllocScratchImage []
+room38 = call-script AllocScratchImage []
+free-script

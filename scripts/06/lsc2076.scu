@@ -1,0 +1,12 @@
+; LSC2 6 2076
+
+local variable local0
+local variable local1
+
+run-script PlayClickySound []
+local1 = sprite-get-xc6 local0 1
+if (is-script-running 2075) {
+    free-running-script 2075
+}
+run-script 2094 [local1]
+free-script

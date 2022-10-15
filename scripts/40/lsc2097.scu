@@ -1,0 +1,49 @@
+; LSC2 40 2097
+
+do {
+    while (!global115) {
+        stop-script
+    }
+    case global115 {
+        of 1 {
+            if (global114 == global553) {
+                free-running-script 2095
+                stop-sound 2634
+                sprite-set-range room1[63] room1[63]
+                sprite-clear
+                sprite-x2a 0 2
+                if (is-script-running 2128) {
+                    free-running-script 2128
+                    stop-sound 2628
+                }
+                free-running-script 2129
+                stop-sound 2630
+                run-script 2096 []
+                stop-script
+            }
+            --room11
+            room11 = max 4 room11
+            run-script 321 [room11 - 4, room11]
+            if (room13 || room12) {
+            } else {
+                run-script 2123 []
+            }
+        }
+        of 2 {
+            if (room13 || room12) {
+            } else {
+                room11 = 4
+                run-script 2123 []
+            }
+        }
+        of 3 {
+            if (room13 || room12) {
+            } else {
+                run-script 2123 []
+            }
+        }
+    }
+    global114 = 0
+    global115 = 0
+}
+free-script

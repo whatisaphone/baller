@@ -1,0 +1,14 @@
+; LSC2 3 2173 DrawNameUnderFielder
+
+parameter arg0
+
+if (gDefenseControlledBy != CB-USER) {
+    free-running-script 0
+}
+if (arg0 != room6) {
+    room6 = arg0
+    if (arg0) {
+        run-script-xc3 DrawNameUnderKid [rFieldingOrder[arg0 - 37], arg0 - 30, 111, room6]
+    }
+}
+free-script

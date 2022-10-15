@@ -1,0 +1,9 @@
+; LSC2 39 2088
+
+local variable local0
+
+run-script PlayClickySound []
+gBypassJsnMap = local0
+run-script 2168 [room31]
+go-to-room 40
+free-script

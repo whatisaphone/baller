@@ -1,0 +1,196 @@
+; LSC2 8 2089
+
+local variable local0
+local variable local1
+
+global451 = 0
+if (gNoCommentary || gNetplayActive) {
+} else {
+    cursor-input-disable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-hide
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    cutscene-start 115 800
+    sleep 10
+    if (gTeamInfo[room0][TI-RUNS] > gTeamInfo[1 - room0][TI-RUNS]) {
+        local1 = 1
+    }
+    if (gSeasonGameNumber > 14) {
+        if (gSeasonGameNumber in [17, 20, 21]) {
+            if (local1) {
+                run-script BeginCast [1]
+            } else {
+                run-script BeginCast [2]
+            }
+        } else {
+            case gSeasonGameNumber {
+                of 15 {
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 14, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 14, 4])) {
+                        if (local1) {
+                            run-script BeginCast [3]
+                        } else {
+                            run-script BeginCast [2]
+                        }
+                    } else if (local1) {
+                        run-script BeginCast [1]
+                    } else {
+                        run-script BeginCast [6]
+                    }
+                }
+                of 16 {
+                    if (local1) {
+                        run-script BeginCast [3]
+                    } else {
+                        run-script BeginCast [6]
+                    }
+                }
+                of 18 {
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 17, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 17, 4])) {
+                        if (local1) {
+                            run-script BeginCast [4]
+                        } else {
+                            run-script BeginCast [2]
+                        }
+                    } else if (local1) {
+                        run-script BeginCast [1]
+                    } else {
+                        run-script BeginCast [6]
+                    }
+                }
+                of 19 {
+                    if (local1) {
+                        run-script BeginCast [4]
+                    } else {
+                        run-script BeginCast [6]
+                    }
+                }
+                of 22 {
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 20, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 20, 4])) {
+                        ++local0
+                    }
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 21, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 21, 4])) {
+                        ++local0
+                    }
+                    if (local1) {
+                        ++local0
+                    }
+                    if (local0 == 3) {
+                        run-script BeginCast [5]
+                    } else if (local0 == 0) {
+                        run-script BeginCast [6]
+                    } else if (local1) {
+                        run-script BeginCast [1]
+                    } else {
+                        run-script BeginCast [2]
+                    }
+                }
+                of 23 {
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 20, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 20, 4])) {
+                        ++local0
+                    }
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 21, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 21, 4])) {
+                        ++local0
+                    }
+                    if ((call-script ReadActiveSchedule [gSeasonDivision, 22, 3]) > (call-script ReadActiveSchedule [gSeasonDivision, 22, 4])) {
+                        ++local0
+                    }
+                    if (local1) {
+                        ++local0
+                    }
+                    if (local0 == 3) {
+                        run-script BeginCast [5]
+                    } else if (local0 <= 1) {
+                        run-script BeginCast [6]
+                    } else if (local1) {
+                        run-script BeginCast [1]
+                    } else {
+                        run-script BeginCast [2]
+                    }
+                }
+                of 24 {
+                    if (local1) {
+                        run-script BeginCast [5]
+                    } else {
+                        run-script BeginCast [6]
+                    }
+                }
+            }
+        }
+    } else if (local1) {
+        run-script BeginCast [1]
+    } else {
+        run-script BeginCast [2]
+    }
+    while (!(gCurrentMatchupCastScript == 0)) {
+        stop-script
+    }
+    if (!room1) {
+        run-script BeginCast [7]
+        while (!(gCurrentMatchupCastScript == 0)) {
+            stop-script
+        }
+    }
+}
+run-script smth_he9_free_all []
+if (g_maybe_skipped_cutscene) {
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+} else {
+    cutscene-end
+}
+if (gNoCommentary || gNetplayActive) {
+} else if (room2 != 2) {
+    actor-select 1
+    actor-set-costume 0
+    actor-select 2
+    actor-set-costume 0
+    run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+    x9c-xd5 0
+    kludge [23]
+    run-script 2087 []
+    room2 = 2
+}
+if (gGameMode == MODE-SEASON) {
+    free-array global465
+    if (gSeasonGameNumber < 14) {
+        global461 = 1
+    } else {
+        global461 = 0
+    }
+    if (gPreviousRoom == 4) {
+        run-script 2072 []
+    }
+} else {
+    global461 = 0
+}
+gGameLength = gSavedGameLength
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

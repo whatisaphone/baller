@@ -1,0 +1,19 @@
+; LSC2 29 2105 HandleNavClick
+
+parameter arg0
+
+run-script PlayClickySound []
+case arg0 {
+    of 193 {
+        run-script 2086 []
+        go-to-room 5
+    }
+    of 192 {
+        run-script 2086 []
+        go-to-room 5
+    }
+    of 194 {
+        go-to-room 7
+    }
+}
+free-script

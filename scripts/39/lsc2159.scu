@@ -1,0 +1,68 @@
+; LSC2 39 2159
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+case local0 {
+    of 1 {
+        palette-select room12
+        palette-load local2 0
+        palette-unselect
+        sprite-set-range room7[1] room7[1]
+        sprite-clear
+        sprite-set-image local2
+        sprite-set-hotspot 320 240
+        sprite-x34 local1
+        sprite-x2b 10000
+        sprite-x52 0
+        sprite-x7c 0
+        sprite-palette room12
+    }
+    of 2 {
+        sprite-set-range room7[2] room7[2]
+        sprite-clear
+        sprite-set-image 703
+        sprite-set-hotspot 320 240
+        sprite-x2b (1000 + 1)
+        sprite-x7c 0
+    }
+    of 4 {
+        sprite-set-range room7[4] room7[4]
+        sprite-clear
+        sprite-set-image room9[3]
+        sprite-set-hotspot 30 140
+        sprite-x2b (1000 + 2)
+        sprite-x52 0
+        sprite-x7c 0
+        sprite-palette room27
+    }
+    of 6 {
+        sprintf local3 "%s" [gNetUsername]
+        local4 = call-script maybe_draw_text_to_image [local3, 1244, room9[2], room27, 1]
+        free-array local3
+        sprite-set-range room7[6] room7[6]
+        sprite-clear
+        sprite-set-image room9[2]
+        sprite-set-hotspot (144 - local4 / 2) 340
+        sprite-x2b (1000 + 2)
+        sprite-x52 0
+        sprite-x7c 0
+        sprite-palette room27
+    }
+    of 5 {
+        palette-select room15
+        palette-load 1539 0
+        palette-unselect
+        sprite-set-range room7[5] room7[5]
+        sprite-set-hotspot -148 217
+        sprite-set-image 1539
+        sprite-x2b (1000 + 1)
+        sprite-x52 0
+        sprite-x7c 1
+        sprite-palette room15
+    }
+}
+free-script

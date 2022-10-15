@@ -1,0 +1,126 @@
+; LSC2 8 2065 CastPlayoffWinPennant
+
+local variable local0
+local variable local1
+
+gCurrentMatchupCastScript = CastPlayoffWinPennant
+if (gSeasonDivision >= 12) {
+    local1 = 1
+} else {
+    local1 = 0
+}
+case gTeamInfo[room0][TI-TEAM-NOUN] {
+    of 103 {
+        if (local1) {
+            xba "\x7fT108187188,39272\x7fThe  Hornets are the American League champs!" 1
+        } else {
+            xba "\x7fT108226460,35496\x7fThe  Hornets are the National League champs!" 1
+        }
+    }
+    of 101 {
+        if (local1) {
+            xba "\x7fT108261956,35176\x7fThe  Bombers are the American League champs!" 1
+        } else {
+            xba "\x7fT108297132,36968\x7fThe  Bombers are the National League champs!" 1
+        }
+    }
+    of 104 {
+        if (local1) {
+            xba "\x7fT108334100,37352\x7fThe Melonheads are the American League champs!" 1
+        } else {
+            xba "\x7fT108371452,40680\x7fThe Melonheads are the National League champs!" 1
+        }
+    }
+    of 105 {
+        if (local1) {
+            xba "\x7fT108412132,45352\x7fThe Monsters have won the American League pennant!!!" 1
+        } else {
+            xba "\x7fT108457484,44904\x7fThe Monsters have won the National League pennant!!!" 1
+        }
+    }
+    of 106 {
+        if (local1) {
+            xba "\x7fT108502388,46824\x7fThe Wombats have won the American League pennant!!!" 1
+        } else {
+            xba "\x7fT108549212,44456\x7fThe Wombats have won the National League pennant!!!" 1
+        }
+    }
+    of 102 {
+        if (local1) {
+            xba "\x7fT108593668,43176\x7fThe Fishes have won the American League pennant!!!" 1
+        } else {
+            xba "\x7fT108636844,40040\x7fThe Fishes have won the National League pennant!!!" 1
+        }
+    }
+    else {
+        local0 = gTeamInfo[room0][TI-TEAM-NOUN] - 122 + 1707
+        xb8-xfe 1
+        xb8-xf9 [0]
+        xb8-xe1 local0
+        xa9-xa9
+    }
+}
+xa9-xa9
+run-script CastNumber [gTeamInfo[room0][TI-RUNS], 1]
+xa9-xa9
+run-script CastNumber [gTeamInfo[1 - room0][TI-RUNS]]
+xa9-xa9
+if (!gNoGooch) {
+    if (room2 != 1) {
+        image-select 286
+        image-pos 0 0
+        image-x30
+        image-x36 1
+        image-xff
+        run-script 273 []
+        room2 = 1
+        run-script FreeNavButtons []
+        if (gGameEnded) {
+            image-select 287
+            image-x34 2
+            image-pos 280 400
+            image-x30
+            image-xff
+        } else {
+            image-select 287
+            image-x34 0
+            image-pos 280 400
+            image-x30
+            image-xff
+        }
+        actor-select 1
+        actor-xd9
+        actor-set-costume 430
+        actor-x50 0 0
+        put-actor 1 320 240 gCurrentRoom
+        actor-select 2
+        actor-xd9
+        actor-set-costume 431
+        actor-x50 0 0
+        put-actor 2 320 240 gCurrentRoom
+        run-script smth_team_color_palette [0, 2]
+    }
+    if (random 1) {
+        xba "\x7fT108676884,29508\x7f     WHAT A DAY!  THIS IS UNBELIEVABLE!  " 2
+        xa9-xa9
+        xba "\x7fT108706392,47028\x7fToday's victory will carry them on to the Backyard World series!" 2
+    } else {
+        xba "\x7fT108753420,58654\x7f     WHAT A DAY!  THAT WAS INCREDIBLE!  Today is huge day for these kids!  " 2
+        xa9-xa9
+        xba "\x7fT108812074,60438\x7fThey are the League champs, ready to go on to compete for the Backyard World Series title!" 2
+    }
+    xa9-xa9
+    if (room2 != 2) {
+        actor-select 1
+        actor-set-costume 0
+        actor-select 2
+        actor-set-costume 0
+        run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+        x9c-xd5 0
+        kludge [23]
+        run-script 2087 []
+        room2 = 2
+    }
+}
+gCurrentMatchupCastScript = 0
+free-script

@@ -1,0 +1,7 @@
+; SCRP 35 HideGamePadCursor
+
+free-running-script GamePadCursorLoop
+run-script ReleaseSprite [gGamePadCursorSprite]
+gGamePadCursorSprite = 0
+cursor-show
+free-script

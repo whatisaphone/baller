@@ -1,0 +1,117 @@
+; SCRP 216 smth_scan_he9
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+
+g_smth_he9_flag = 0
+local12 = 0
+if (g_smth_he9_final_array[arg0][arg1] & 2113929216) {
+    local12 = 5
+} else if (g_smth_he9_final_array[arg0][arg1] & 33030144) {
+    local12 = 4
+} else if (g_smth_he9_final_array[arg0][arg1] & 516096) {
+    local12 = 3
+} else if (g_smth_he9_final_array[arg0][arg1] & 8064) {
+    local12 = 2
+} else {
+    local12 = 1
+}
+dim array local11 i32[0...local12][0...5] swap=2
+for local13 = 1 to local12 ++ {
+    local15 = call-script smth_he9_flags [local13, g_smth_he9_final_array[arg0][arg1]]
+    local17 = 0
+    local8 = 0
+    local9 = 0
+    for local14 = 1 to 5 ++ {
+        run-script smth_he9_vector_math [local15, local14, arg0, arg1]
+        if (g_nitrogen_vector_is_set) {
+            local21 = call-script smth_he9_nitrogen [local14, local15]
+            if (local21) {
+                if (!local8) {
+                    local2 = g_nitrogen_x
+                    local3 = g_nitrogen_y
+                    local4 = g_nitrogen_z
+                    local8 = distance-3d g_nitrogen_x g_nitrogen_y g_nitrogen_z g_helium_x g_helium_y g_helium_z
+                    local19 = local14
+                } else {
+                    local5 = g_nitrogen_x
+                    local6 = g_nitrogen_y
+                    local7 = g_nitrogen_z
+                    local9 = distance-3d g_nitrogen_x g_nitrogen_y g_nitrogen_z g_helium_x g_helium_y g_helium_z
+                    local20 = local14
+                }
+            } else {
+                local9 = 0
+            }
+        }
+        if (local8 || local9) {
+            if (local9) {
+                if (local8 < local9) {
+                    g_nitrogen_x = local2
+                    g_nitrogen_y = local3
+                    g_nitrogen_z = local4
+                    local17 = local8
+                    local16 = local19
+                } else {
+                    g_nitrogen_x = local5
+                    g_nitrogen_y = local6
+                    g_nitrogen_z = local7
+                    local17 = local9
+                    local16 = local20
+                }
+            } else {
+                g_nitrogen_x = local2
+                g_nitrogen_y = local3
+                g_nitrogen_z = local4
+                local17 = local8
+                local16 = local19
+            }
+        } else {
+            g_nitrogen_x = 0
+            g_nitrogen_y = 0
+            g_nitrogen_z = 0
+            g_nitrogen_vector_is_set = 0
+            local17 = 0
+            local16 = 0
+        }
+    }
+    if (local17) {
+        local11[local13][0] = local17
+        local11[local13][1] = g_nitrogen_x
+        local11[local13][2] = g_nitrogen_y
+        local11[local13][3] = g_nitrogen_z
+        local11[local13][4] = local15
+        local11[local13][5] = local16
+    } else if (g_smth_he9_flag) {
+        local18 = g_he9_array[local15]
+        if (local18[31] == 1) {
+            run-script smth_he9_end_play []
+        }
+    }
+}
+if (local12 > 1) {
+    array-sort local11 1 local12 0 0 -1
+}
+run-script smth_he9_bounce [local11]
+free-array local11
+free-script

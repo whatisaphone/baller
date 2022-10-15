@@ -1,0 +1,45 @@
+; LSC2 4 2156 DrawPitcherHUDText
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+sprite-set-range 27 27
+sprite-clear
+image-select 365
+image-pos 472 0
+image-x30
+image-xff
+if (gBattingTeamInfoIndex == gHomeInfoIndex) {
+    local1 = 1
+} else {
+    local1 = 0
+}
+run-script GetKidName [rPitcherKid]
+run-script DrawString2 [481, 26, 554, gKidName]
+local2 = gGameStats[rPitcherKid][STAT-PITCHES-THROWN]
+local3 = gGameStats[rPitcherKid][STAT-STRIKE-OUTS-PITCHED]
+local4 = gGameStats[rPitcherKid][STAT-WALKS-ALLOWED]
+if (gDebug == 13) {
+    if (gUserOnOffense) {
+        sprintf local0 "%d PT, %d K, %d BB" [local2, local3, local4]
+    } else {
+        sprintf local0 "%d PT, %d K, %d BB !" [local2, local3, local4]
+    }
+} else {
+    sprintf local0 "%d PT, %d K, %d BB" [local2, local3, local4]
+}
+run-script DrawString2 [481, 45, 555, local0]
+free-array local0
+stop-script
+image-select 368
+image-x33 0 472 4 607 60
+image-xff
+sprite-set-range 27 27
+sprite-clear
+sprite-set-image 368
+sprite-x2b 2
+sprite-set-hotspot 472 4
+free-script

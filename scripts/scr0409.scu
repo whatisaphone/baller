@@ -1,0 +1,9 @@
+; SCRP 409
+
+local variable local0
+
+if (g_maybe_net_yell_sound == 0) {
+    local0 = random 7
+    run-script-xc3 maybe_net_send_message [20, 1, NET-YELL-THUMB, 6, local0]
+}
+free-script

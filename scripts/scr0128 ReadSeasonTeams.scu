@@ -1,0 +1,10 @@
+; SCRP 128 ReadSeasonTeams
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+arg1 = arg0 / 4
+arg2 = mod arg0 4
+return gSeasonTeamsArray[arg1][arg2]
+free-script

@@ -1,0 +1,61 @@
+; LSC2 37 2089
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+if (local0 == 4) {
+    if (local1 == 27) {
+        if (gNetUsername) {
+            free-array gNetUsername
+        }
+        if (gNetPassword) {
+            free-array gNetPassword
+        }
+        run-script 2093 []
+        room30 = 0
+        room23 = 0
+        room22 = 0
+        room24 = 0
+        global43 = 32
+        run-script 2086 []
+        run-script maybe_HideNavHoverText []
+        free-running-script 0
+    }
+    if (local1 >= 65 && local1 <= 90) {
+        local1 = local1 + 32
+    }
+    if ((local1 >= 97 && local1 <= 122 || (local1 in [8, 13]) || local1 >= 48 && local1 <= 57 || local1 == 32) && room23) {
+        if (local1 >= 97 && local1 <= 122) {
+            ++room22
+            local1 = local1 - 32
+        } else {
+            if (local1 >= 48 && local1 <= 57) {
+                ++room22
+            }
+            if (local1 == 32 && room22) {
+                ++room22
+            }
+        }
+        if (room22) {
+            run-script 2078 [local1]
+        }
+    }
+} else {
+    local5 = xa0 local3 local4
+    if ((is-script-running 2088) && local5 == room31 && local5 != 0) {
+        if (xa3 local5 6) {
+            start-script local5 6 []
+            free-running-script 0
+        }
+    } else if (local5) {
+        run-script 2088 [local5]
+    }
+    if (gMouseHandlerScript != 0) {
+        run-script gMouseHandlerScript [local1, local3, local4, local2]
+    }
+}
+free-script

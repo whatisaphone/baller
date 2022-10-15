@@ -1,0 +1,47 @@
+; LSC2 1 2049 PlayLogoCutscene
+
+local variable palette
+
+queue-room 2
+cutscene-start 115 121
+if (1751) {
+    sound-select 1751
+    sound-play
+}
+while (!!(is-sound-playing 1751)) {
+    stop-script
+}
+if (1750) {
+    sound-select 1750
+    sound-play
+}
+image-select 94
+image-pos 0 0
+image-x36 1
+image-x30
+image-xff
+global257 = 1
+while (!!(is-sound-playing 1750)) {
+    stop-script
+}
+palette = call-script AllocPalette []
+palette-select palette
+palette-load 99 0
+palette-unselect
+image-select 99
+image-pos 0 0
+image-palette palette
+image-x30
+image-xff
+global257 = 1
+sleep 20
+if (!g_maybe_skipped_cutscene) {
+    cutscene-end
+} else {
+    stop-sound 10001
+}
+if (palette) {
+    run-script FreePalette [palette]
+}
+gLogoCutsceneInProgress = 0
+free-script

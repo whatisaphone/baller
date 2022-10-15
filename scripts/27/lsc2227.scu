@@ -1,0 +1,14 @@
+; LSC2 27 2227
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+dim array local3 i32[0...0][0...5] swap=2
+array-copy-range local3 local0 0 0 0 5 local1 local1 0 5
+array-copy-range local0 local0 local1 local1 0 5 local2 local2 0 5
+array-copy-range local0 local3 local2 local2 0 5 0 0 0 5
+free-array local3
+return 1
+free-script

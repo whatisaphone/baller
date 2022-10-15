@@ -1,0 +1,11 @@
+; LSC2 29 2089
+
+local variable local0
+local variable local1
+
+sound-select (iif (local1 > 0) 4236 4237)
+sound-channel 2
+sound-play
+gBackupKidData[local0][KD-BATTING-CONTACT] = min (max (gBackupKidData[local0][KD-BATTING-CONTACT] + local1) 0) 100
+gBackupKidData[local0][KD-BATTING-POWER] = min (max (gBackupKidData[local0][KD-BATTING-POWER] + local1) 0) 100
+free-script

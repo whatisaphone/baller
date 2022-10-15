@@ -1,0 +1,555 @@
+; LSC2 5 2055 PlayerSay46To61
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+
+local2 = actor-get-var g_maybe_selected_actor 3
+local3 = actor-get-var g_maybe_selected_actor 4
+if (local2) {
+    actor-do-anim g_maybe_selected_actor local2
+}
+run-script-xc3 2050 [arg0]
+case arg0 {
+    of 46 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79228191,52914\x7fHey there!  I'm Jeromy Burnitz.  That's spelled B-U-R-N-I-T-Z."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79281105,51114\x7fCoach said I reminded him of George Brett.  Is that good?  "
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79332219,101908\x7fI got a pretty sweet swing.  Check it out.  Okay, wait, you can't see it from here but here's what it sounds like ...whoosh!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79434127,86682\x7fWhen I get older, I gonna grow big ol' sideburns like Elvis.  Sweet, huh?"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79520809,32474\x7fI like to play right field ... 'case you were wonderin'."
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79553283,108610\x7fI can spell my name.  Wanna heart it?  B-U-R-N-I-T-Z.  I can spell spell Mississippi, wanna hear?  M-I-S-S-I-S-S-I-P-P-I.  (I said PP)"
+                if (arg1) {
+                    xa9-xa9
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT79661893,20392\x7fI can spell my name.  Wanna heart it?  B-U-R-N-I-T-Z.  I can spell spell Mississippi, wanna hear?  M-I-S-S-I-S-S-I-P-P-I.  (I said PP)"
+                }
+            }
+        }
+    }
+    of 47 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79682285,23350\x7fHiya!  I'm Marty Cordova."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79705635,94306\x7fI throw right-handed, I bat right-handed, and I can play right field.  But they usually put me in left!  Go figure."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79799941,73372\x7fI'm from Las Vegas.  Viva Las Vegas, I say.  Whatever that means.  I think it's Latin."
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79873313,39780\x7fI play basketball and football, but I like baseball the best."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT79913093,135588\x7fI love Las Vegas, 'cause it's always warm.  I wouldn't want to live somewhere cold like Antarctica or Minnesota.  Ya warm weather is better than cold I think because then I don't get cold or anything."
+            }
+        }
+    }
+    of 48 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80048681,24586\x7fHey there!  My name is Vladimir Guerrero."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80073267,144032\x7fI was born in Nizao Bani.  That's in The Dominican Republic!  Lots of people from the Dominican Republic play baseball.  Just look in the big leagues - there are a lot of pros coming from our little country."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80217299,46494\x7fMy brothers play baseball too.  They're not as good as me, though!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80263793,114312\x7fI've got a really strong arm, so you should put me in right field.  That way I can keep guys from getting extra bases by gunning the ball in when they hit it out to me."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80378105,51172\x7fI can hit the ball, like, ten miles or something. Really far."
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT0,0\x7fBut I have to bring my magic pillow with me wherever I go 'cuz it protects me from the little green men that live in."
+            }
+        }
+    }
+    of 49 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80429277,23862\x7fHey, dudes.  I'm Mike Piazza."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80453139,83358\x7fYeah man, I'm totally into Heavy Metal. (sings guitar) DUH-DUH-DEE-DEE-DEE, DUH-DUH!  "
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80536497,82830\x7fYou know Achmed and Amir?  They said I could play in their heavy-rockin' band.  Cool, huh?"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80619327,108272\x7fYeah Achmed and Amir are pretty cool little dudes.  They let me borrow their 'Hard Rockin' 80's' tape.  It totally rocks, dude."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80727599,107700\x7fMy name is Piazza not pizza, but I like pizza okay, I guess.  But don't call me pizza or anything. I mean it's not like I haven't heard THAT one before."
+            }
+            of 5 {
+                if (gDebug == 13 && arg1) {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT80835299,12104\x7fI have a mullet."
+                } else {
+                    xb8-xfe g_maybe_selected_actor
+                    xb8-xf9 [244]
+                    xb8-x4b "\x7fT80847403,152104\x7fMe and my friend Bogey, were like totally rocking out and I heard this loud thump and I'm like Dude that's my skull.  It was pretty cool."
+                }
+            }
+        }
+    }
+    of 50 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT80999507,20396\x7fHey!  I'm Derek Jeter."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81019903,92372\x7fEveryone says I'm one of the best shortstops around.  I don't know.  I think I could still be better.   But I'm still young."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81112275,78022\x7fMy favorite baseball player is Dave Winfield.  Someday I wanna play for the Yankees, just like him!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81190297,103252\x7fUmmmm, my favorite food is probably Chicken Parmigiana.  I don't know what Parmigiana means, but it's got cheese all over it!"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81293549,72250\x7fOne of my favorite books is 'Pride of the Yankees' by Patrick Giles.  You should read it sometime.  Yankees rule!"
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81365799,231208\x7fThis one kid on my team, during the games, he was always watching airplanes fly over his head.  And one time, while he was watching an airplane, a pop fly landed right on top of his head.  Whammo!  It really hurt.  I mean he said it really hurt."
+            }
+        }
+    }
+    of 51 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5, 6]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81597007,29992\x7fHey there!  I'm Jason Giambi.  "
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81626999,54916\x7fThat's 'Giambi', not 'Gumby'.  (under his breath) Wise guy."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81681915,88404\x7fI was born in West Covina, California.  Lot's of people go surfin' and stuff out here, but I like baseball better!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81770319,31100\x7fSomeday I wanna play baseball in the Olympics."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81801419,71154\x7fI usually play first base.  Man, there's a lot of first basemen in this game!  I hope I get to play!"
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81872573,75176\x7f I got a dog.  His name's Mr. Jenmkins.  Mr. Jenkins likes chicken pot pies."
+            }
+            of 6 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT81947749,149800\x7f My friend and I were fighting about who we'd rather have on our team: Popeye or Superman.  I said Popeye cuz all you'd have to do w/ superman is throw him a kryptonite fastball and it'd be curtains for him, man."
+            }
+        }
+    }
+    of 52 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82097549,30966\x7fHiya folks, I'm Curt Schilling. "
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82128515,56870\x7fI was born in Anchorage, Alaska.  Man, it's cold up there!"
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82185385,93878\x7fHey, where's that Reese kid?  He said he'd help with my math if I taught him how to throw a split-finger fastball!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82279263,344430\x7fOkay, so I'm from Alaska, right?  Alaska is the biggest state in the US but most of it is like woods and stuff.  It snows there a lot, so in the winter it's hard to play baseball because you hit the ball into the snow and it's hard to find it.  Because it's white, see?  Hey maybe I could paint the ball blue or something?  Why didn't I think of that sooner?"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82623693,254028\x7fSometime in the future, I'm gonna be on TV and I'm gonna have..."
+            }
+        }
+    }
+    of 53 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82877721,21352\x7fHowdy.  I'm Jason Kendall."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82899073,56478\x7fI'm one of the fastest catchers ever.  Of course, that's not saying much I guess."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT82955551,141966\x7fI used to lean over the plate when I was at bat so I could see the pitch better, but I'd get hit by the ball a lot.  Now sometimes I wear a big protective thingy on my arm so I can get hit by pitches all the time!  But luckily I never get hit playing here with these kids."
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83097517,33432\x7fMy dad was a catcher in the majors for 12 years."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83130949,225166\x7fOne day this pitcher was pitching to me, and he said 'Hey Ken Doll, where's Barbie?'  I didn't get mad or nothing.  I just took a deep breath and hit his next pitch outta the park.  I guess that taught him a lesson.  Remember: don't let anyone shake you up.  Just play your best. "
+            }
+        }
+    }
+    of 54 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83356115,27240\x7fHello there.  I'm Tony Gwynn."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83383355,84534\x7fI'd rather hit singles consistently, than be a power hitter.  Because you gotta hit the ball before you can score runs, you know."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83467889,290204\x7fI'm pretty good at basketball, but I like baseball better 'cause you get to wear these cool hats!  I'm not sure why we wear them, though.  Maybe it's to keep the sun out of our eyes.  'Course, we could wear sunglasses for that.  And it's not to keep dry in the rain cuz we don't play when it rains.  Hey can I take my hat off?  Is that legal?"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83758093,40422\x7fMy brother plays baseball too.  Did you know that?"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83798515,67364\x7fI think bat speed is more important than power.  Of course, it'd sure be nice to have both."
+            }
+        }
+    }
+    of 55 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83865879,36690\x7fHey there!  My name's Bonds.  Barry Bonds."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT83902569,97644\x7fYou know, a lot of people think I'm the greatest player of all-time.  I wouldn't go that far.  But I'm better than that Reese kid, that's for sure!"
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84000213,85875\x7fI've got a lot of famous athletes in my family.  My aunt Rosie was in the Olympics and Reggie Jackson is my mother's cousin."
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84086088,64958\x7fMy dad played for the San Francisco Giants a long time ago.  Way back in the 70's!"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84151046,37244\x7fMy godfather is Willie Mays!  Neat, huh?"
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84188290,152872\x7fWhen the ice cream man comes to my neighborhood my dog always goes nuts."
+            }
+        }
+    }
+    of 56 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84341162,61128\x7fHiya folks!  I'm Ken Griffey Jr..  You can just call me 'Junior' if ya wanna.  "
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84402290,68566\x7fMy real name is George Kenneth Griffey Jr. ... but don't tell anyone, O.K.?"
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84470856,166164\x7fI got all sorts of nicknames, like 'The Natural', 'The Kid', 'Junior'...but you can just call me 'Kenny'.  If you call me 'the Kid,' everyone here will think you're talking to them because we're all kids."
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84637020,161100\x7fMy grandpa 'Buddy' played baseball with Stan 'The Man' Musial in high school.  Did you know that?  That was probably before your time.  I wasn't alive back then, when my grandpa was in high school I mean.  Neither was my dad."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84798120,74496\x7fMy dad plays in the majors.  Maybe someday we can play on the same team!  Wouldn't that be cool?"
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84872616,100166\x7fI'm allergic to chocolate, so don't gimme any, O.K.?   Just give all chocolates to Kimmy.  (She told me to say that)."
+            }
+        }
+    }
+    of 57 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84972782,19208\x7fHi there, I'm Mark McGwire. "
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT84991990,81360\x7fMy nickname's 'Big Red'.  I don't know why they call me that.  Could it have something to do with my red hair?  Hmmm, I think I'm on to them."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85073350,50098\x7fI wonder who'll hit the most homeruns this year: Me, or that Sosa kid?"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85123448,41806\x7fI'm gonna lift weights and eat my spinach so that I can have big arms like Popeye!"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85165254,70922\x7fMy brother plays football, but I like baseball better.  You don't get hit as much.  And you get to play a lot more too."
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85236176,35894\x7fSomeday I want to be a first baseman on the Olympic team."
+            }
+        }
+    }
+    of 58 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85272070,22454\x7fHey!  I'm Jose Canseco. "
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85294524,35076\x7fI was born in Havana, Cuba.  I live in Miami now, though."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85329600,55238\x7fCheck out these biceps!  I got the biggest muscles here ...except for Kiesha Philips!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85384838,132882\x7fMy twin brother plays baseball too.  It's true.  Actually, how do I you know?"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85517720,65772\x7fMe and Mark McGwire used to play on the same team.  They called us 'The Bash Brothers'!  We're not related though."
+            }
+        }
+    }
+    of 59 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85583492,27986\x7fHi.  My name's Ivan Rodriguez."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85611478,34868\x7fI was born in Vega Baja.  That's in Puerto Rico."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85646346,31520\x7fKid's call me 'Pudge'.  I don't know why, though.  "
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85677866,140322\x7fCoach always makes me play catcher cause he says I'm the closest to the ground.   I like playing catcher, though, and I'm good at it.  I like it when kids try to steal and I throw them out.  Yeah, that's fun. "
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85818188,53762\x7fI'm kinda short, but I can hit like a big kid.  You watch!"
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT85871950,229690\x7fOh, one time a bird flew down our chmney and into our house.  Yeah, it was flying all over the place and my dad was chasing after it but he couldn't catch it cuz we've got these really high ceilings so then my mom opened up a window and it flew out and I was sad cuz i wanted the birdie to live w/ us."
+            }
+        }
+    }
+    of 60 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86101640,21174\x7fHi.  My name's Shawn Green."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86122814,56242\x7fFor a skinny kid, I sure hit a lot of homers. You know why?  Clean livin'."
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86179056,50746\x7fBesides being a good hitter, I'm fast too.  Wanna race?  C'mon ..."
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86229802,112690\x7fSome days, I hit up to 200 baseballs in practice.  And I don't even get tired, because I'm pretty tough.  Tougher'n you, I think.  Wanna race?  C'mon..."
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86342492,63216\x7fMy all-time favorite baseball player is Ted Williams.  Someday, I wanna hit .400, just like him."
+            }
+        }
+    }
+    of 61 {
+        case iif rSaidFirstQuote[arg0] (xe3 room70 [1, 2, 3, 4, 5]) 0 {
+            of 0 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86405708,37148\x7f\x09Hi! I'm Alex.  Uh...Alex Rodriguez."
+            }
+            of 1 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86442856,126232\x7f\x09Kids call me A-Rod.   You know ...Alex Rodriguez ...A-Rod?  I think we should call Reese Worthington 'Ree-Wo.  And  Ronny Dobbs could be 'Ro-Do'!"
+            }
+            of 2 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86569088,63096\x7f\x09My friend Derek Jeter is supposed to be here today.  I wonder where he is?  He plays shortstop too.  He's almost as good as me!"
+            }
+            of 3 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86632184,168012\x7f\x09I'm really good at shortstop.  I might be the best shortstop here.  'Cept maybe that Ripken kid.  He's pretty good.  Jeter's good too.  (pause) Yeah, so is Garciapara.  (pause) And Larkin.  Man, there's a lot of shortstops in this game!"
+            }
+            of 4 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86800196,92448\x7f\x09When I grow up, I think I want to be a teacher.  Maybe I can teach Civics.  I like Civics.  Civics is about, like, people and stuff."
+            }
+            of 5 {
+                xb8-xfe g_maybe_selected_actor
+                xb8-xf9 [244]
+                xb8-x4b "\x7fT86892644,68912\x7f\x09My mom taught me everything I know 'bout baseball, and a whole lotta other stuff too.  She's my best friend in the whole world!"
+            }
+        }
+    }
+}
+xa9-xa9
+if (!rSaidFirstQuote[arg0]) {
+    rSaidFirstQuote[arg0] = true
+}
+if (local3) {
+    actor-do-anim g_maybe_selected_actor local3
+}
+free-script

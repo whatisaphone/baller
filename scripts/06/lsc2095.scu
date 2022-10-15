@@ -1,0 +1,14 @@
+; LSC2 6 2095
+
+local variable local0
+
+if (MODE-SEASON == gGameMode) {
+    local0 = 4
+} else if (gNetplayActive) {
+    local0 = 7
+} else {
+    local0 = 2
+}
+run-script 2065 [-1, 166, 1104, local0, room35]
+run-script 2094 [-1]
+free-script

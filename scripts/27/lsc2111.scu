@@ -1,0 +1,15 @@
+; LSC2 27 2111
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = -1
+for local1 = 0 to (9 - 1) ++ {
+    if (local0 == room8[local1]) {
+        local2 = local1
+    }
+}
+room23 = local2
+run-script 2075 [r_smth_pick_order[room23]]
+free-script

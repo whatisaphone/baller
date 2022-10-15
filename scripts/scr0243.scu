@@ -1,0 +1,22 @@
+; SCRP 243
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!local1) {
+    local4 = gBackupKidData
+} else {
+    local4 = gKidData
+}
+if (local4[local0][8] > local4[local0][7]) {
+    local2 = local4[local0][8] + local4[local0][7] * 2 / 5 - 20
+} else {
+    local2 = local4[local0][7] + local4[local0][8] * 2 / 5 - 20
+}
+local2 = local2 / 10
+local3 = max 1 (min local2 10)
+return local3
+free-script

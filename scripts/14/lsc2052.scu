@@ -1,0 +1,89 @@
+; LSC2 14 2052
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+
+local6 = "baseball2001"
+sprintf local0 "%s%s.hof" [gSaveGamePath, local6]
+free-array local6
+local1 = file-open local0 1
+if (local1 != -1) {
+    local2 = file-get-size local0
+    local3 = local2 / 33
+} else {
+    local3 = 0
+}
+if (0 == local3) {
+    run-script 2107 []
+} else {
+    dim array local5 byte[0...local3 - 1][0...33] swap=2
+    for local4 = 0 to (local3 - 1) ++ {
+        local13 = file-read-array 4 local1 (33 - 1)
+        if (32 == local13[0]) {
+            local13[0] = 0
+        }
+        for local14 = 5 to (5 + 15 - 1) ++ {
+        }
+        local11 = call-script 2105 [local13]
+        if (local11) {
+            ++local12
+        } else {
+            array-copy-range local5 local13 local15 local15 0 (33 - 1) 0 0 0 (33 - 1)
+            case local5[local15][0] {
+                of 0 {
+                    ++local7
+                }
+                of 1 {
+                    ++local8
+                }
+                of 2 {
+                    ++local9
+                }
+                of 3 {
+                    ++local10
+                }
+            }
+            ++local15
+        }
+        free-array local13
+    }
+    if (local12 > 0) {
+        file-close local1
+        local1 = file-open local0 2
+        if (local1 != -1) {
+            dim array local13 byte[0...0][0...33 - 1] swap=2
+            for local14 = 0 to (local3 - local12 - 1) ++ {
+                array-copy-range local13 local5 0 0 0 (33 - 1) local14 local14 0 (33 - 1)
+                file-write-array 4 local1 local13
+            }
+            free-array local13
+            file-close local1
+            free-array local5
+            free-array local0
+            run-script 2052 []
+            free-running-script 0
+        } else {
+            run-script 2109 [local5, local7, local8, local9, local10]
+        }
+    } else {
+        run-script 2109 [local5, local7, local8, local9, local10]
+    }
+    free-array local5
+}
+file-close local1
+free-array local0
+free-script

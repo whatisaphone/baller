@@ -1,0 +1,106 @@
+; SCRP 277 BBALLMISC_GetLogoSrcPalette
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+
+if (arg0 == 1) {
+    case arg1 {
+        of 9 {
+            local2 = 16
+        }
+        of 2 {
+            local2 = 40
+        }
+        of 4 {
+            local2 = 64
+        }
+        of 3 {
+            local2 = 88
+        }
+        of 6 {
+            local2 = 112
+        }
+        of 1 {
+            local2 = 136
+        }
+        of 5 {
+            local2 = 160
+        }
+        of 7 {
+            local2 = 184
+        }
+        of 8 {
+            local2 = 208
+        }
+        else {
+            if (arg1 >= 37 && arg1 <= 56) {
+                if (arg1 >= 47) {
+                    arg1 = arg1 - 47
+                    local3 = 512
+                } else {
+                    arg1 = arg1 - 37
+                    local3 = 256
+                }
+                local2 = local3 + arg1 * 23 + 16
+            } else {
+                xb6-xfe
+                xb6-xc2 "Bad color %d in BBALLMISC_GetLogoSrcPalette" arg1 []
+                local2 = 16
+            }
+        }
+    }
+} else {
+    case arg1 {
+        of 9 {
+            local2 = 16
+        }
+        of 2 {
+            local2 = 51
+        }
+        of 4 {
+            local2 = 86
+        }
+        of 3 {
+            local2 = 121
+        }
+        of 6 {
+            local2 = 156
+        }
+        of 1 {
+            local2 = 191
+        }
+        of 5 {
+            local2 = 256 + 16
+        }
+        of 7 {
+            local2 = 256 + 51
+        }
+        of 8 {
+            local2 = 256 + 86
+        }
+        else {
+            if (arg1 >= 19 && arg1 <= 36) {
+                if (arg1 >= 33) {
+                    arg1 = arg1 - 33
+                    local3 = 2048
+                } else if (arg1 >= 26) {
+                    arg1 = arg1 - 26
+                    local3 = 1024
+                } else {
+                    arg1 = arg1 - 19
+                    local3 = 512
+                }
+                local2 = local3 + arg1 * 34 + 16
+            } else {
+                xb6-xfe
+                xb6-xc2 "Bad color %d in BBALLMISC_GetLogoSrcPalette" arg1 []
+                local2 = 16
+            }
+        }
+    }
+}
+return local2
+free-script

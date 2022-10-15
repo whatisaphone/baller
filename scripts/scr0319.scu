@@ -1,0 +1,7 @@
+; SCRP 319
+
+local variable local0
+
+kludge [2001, 2204, local0]
+global559 = local0
+free-script

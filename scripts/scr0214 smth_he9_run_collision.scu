@@ -1,0 +1,71 @@
+; SCRP 214 smth_he9_run_collision
+
+local variable local0
+local variable vel_y
+
+g_hydrogen_x = gBallVelPhysX / 100
+g_hydrogen_y = gBallVelPhysY / 100
+g_hydrogen_z = gBallVelPhysZ / 100
+g_helium_x = gBallPosPhysX / 100
+g_helium_y = gBallPosPhysY / 100
+g_helium_z = gBallPosPhysZ / 100
+g_helium_x = g_helium_x + 23200
+if (g_helium_x > 0 && g_helium_x < 46350 && g_helium_y > 0 && g_helium_y < 80000 && g_helium_z > 0 && g_helium_z < 46399) {
+    g_nitrogen_x = 0
+    g_nitrogen_y = 0
+    g_nitrogen_z = 0
+    local0 = 0
+    g_nitrogen_vector_is_set = 0
+    global369 = 0
+    vel_y = 384000 * gGravity / 60
+    if (gBallPosPhysY != 0) {
+        vel_y = gBallVelPhysY - 384000 * gGravity / 60 * gVectorScaleNum / gVectorScaleDen
+    } else {
+        vel_y = gBallVelPhysY
+    }
+    g_carbon_x = (gBallPosPhysX + gBallVelPhysX * gVectorScaleNum / gVectorScaleDen) / 100 + 23200
+    g_carbon_y = (gBallPosPhysY + vel_y * gVectorScaleNum / gVectorScaleDen) / 100
+    g_carbon_z = (gBallPosPhysZ + gBallVelPhysZ * gVectorScaleNum / gVectorScaleDen) / 100
+    g_oxygen_x = g_helium_x / 2900
+    g_oxygen_z = g_helium_z / 2900
+    run-script smth_he9_scan []
+}
+if (!g_nitrogen_vector_is_set) {
+    gBallVelPhysX = g_hydrogen_x * 100
+    gBallVelPhysY = g_hydrogen_y * 100
+    gBallVelPhysZ = g_hydrogen_z * 100
+} else {
+    gBallVelPhysX = g_hydrogen_x
+    gBallVelPhysY = g_hydrogen_y
+    gBallVelPhysZ = g_hydrogen_z
+    g_helium_x = g_helium_x - 23200
+    if (g_helium_y < 0) {
+        g_helium_y = 0
+        if (g_helium_x) {
+            g_helium_x = g_helium_x + g_hydrogen_x * 2 / (abs g_hydrogen_x)
+        }
+        if (g_helium_z) {
+            g_helium_z = g_helium_z + g_hydrogen_z * 2 / (abs g_hydrogen_z)
+        }
+    }
+    gBallPosPhysX = g_helium_x * 100
+    gBallPosX = gBallPosPhysX / 1000
+    gBallPosPhysY = g_helium_y * 100
+    gBallPosY = gBallPosPhysY / 1000
+    gBallPosPhysZ = g_helium_z * 100
+    gBallPosZ = gBallPosPhysZ / 1000
+    if (!gBallIsFair) {
+        if (call-script IsFoulTerritory [gBallPosX, gBallPosZ]) {
+            gBallIsFoul = true
+        } else {
+            gBallIsFair = true
+        }
+    }
+    if (gBallHasBounced == 0) {
+        gBallHasBounced = 2
+        if (gCurrentSwing == SWING-ALUMINUM-POWER) {
+            stop-sound 2020
+        }
+    }
+}
+free-script

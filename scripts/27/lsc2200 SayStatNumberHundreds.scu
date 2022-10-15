@@ -1,0 +1,35 @@
+; LSC2 27 2200 SayStatNumberHundreds
+
+parameter arg0
+
+case arg0 {
+    of 1 {
+        xbb "\x7fT171260647,9288\x7f\x091 hundred"
+    }
+    of 2 {
+        xbb "\x7fT171269935,8488\x7f\x092 hundred"
+    }
+    of 3 {
+        xbb "\x7fT171278423,9048\x7f\x093 hundred"
+    }
+    of 4 {
+        xbb "\x7fT171287471,8232\x7f\x094 hundred"
+    }
+    of 5 {
+        xbb "\x7fT171295703,8792\x7f\x095 hundred"
+    }
+    of 6 {
+        xbb "\x7fT171304495,9240\x7f\x096 hundred"
+    }
+    of 7 {
+        xbb "\x7fT171313735,10312\x7f\x097 hundred"
+    }
+    of 8 {
+        xbb "\x7fT171324047,7848\x7f\x098 hundred"
+    }
+    of 9 {
+        xbb "\x7fT171331895,8936\x7f\x099 hundred"
+    }
+}
+xa9-xa9
+free-script

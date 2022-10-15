@@ -1,0 +1,18 @@
+; LSC2 27 2142 smth_find_in_season_schedule_2
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+
+arg2 = 1
+for local3 = 0 to 23 ++ {
+    local4 = call-script ReadSeasonSchedule [local3, arg1, 0]
+    if (arg0 == local4) {
+        arg2 = 0
+    }
+}
+return arg2
+free-script

@@ -1,0 +1,60 @@
+; SCRP 262 maybe_alloc_or_free_chatter_sounds
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (global545) {
+    free-running-script 0
+}
+if (arg0) {
+    for local1 = 0 to 8 ++ {
+        local3 = gPickOrder1[local1]
+        for local2 = 1 to 4 ++ {
+            local4 = call-script GetPlayerSound [local3, 1, local2]
+            kludge [714, 4, local4, arg0]
+        }
+        if (gPickOrder2[local1] <= gMaxUniqueKid) {
+            local3 = gPickOrder2[local1]
+            for local2 = 1 to 4 ++ {
+                local4 = call-script GetPlayerSound [local3, 1, local2]
+                kludge [714, 4, local4, arg0]
+            }
+        }
+    }
+    if (gPickOrder2[1] > gMaxUniqueKid) {
+        for local1 = [1541, 1540, 1579, 1592, 1545, 1560, 1555, 4190, 4191, 4192] {
+            kludge [714, 4, local1, arg0]
+        }
+        for local1 = [4182, 4202, 4162, 4166, 4195, 4211, 4217, 4188, 1614, 4153] {
+            kludge [714, 4, local1, arg0]
+        }
+    }
+} else {
+    for local1 = 0 to 8 ++ {
+        local3 = gPickOrder1[local1]
+        for local2 = 1 to 4 ++ {
+            local4 = call-script GetPlayerSound [local3, 1, local2]
+            free-sound local4
+        }
+        if (gPickOrder2[local1] <= gMaxUniqueKid) {
+            local3 = gPickOrder2[local1]
+            for local2 = 1 to 4 ++ {
+                local4 = call-script GetPlayerSound [local3, 1, local2]
+                free-sound local4
+            }
+        }
+    }
+    if (gPickOrder2[1] > gMaxUniqueKid) {
+        for local1 = [1541, 1540, 1579, 1592, 1545, 1560, 1555, 4190, 4191, 4192] {
+            free-sound local1
+        }
+        for local1 = [4182, 4202, 4162, 4166, 4195, 4211, 4217, 4188, 1614, 4153] {
+            free-sound local1
+        }
+    }
+}
+free-script

@@ -1,0 +1,26 @@
+; LSC2 34 2068
+
+local variable local0
+
+case room23 {
+    in [0, -1, -2, -3, -4] {
+        local0 = 0
+    }
+    in [1, 2, 8, 6, 7, 14, 36, 43, 44, 42, 48, 49] {
+        local0 = 1
+    }
+    in [3, 4, 5, 15, 22, 29, 21, 28, 35, 45, 46, 47] {
+        local0 = 2
+    }
+    in [9, 13, 37, 41] {
+        local0 = 3
+    }
+    in [10, 11, 12, 20, 27, 34, 40, 39, 38, 16, 23, 30] {
+        local0 = 4
+    }
+    else {
+        local0 = 5
+    }
+}
+return local0
+free-script

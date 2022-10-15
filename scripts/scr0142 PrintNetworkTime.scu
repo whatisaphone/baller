@@ -1,0 +1,15 @@
+; SCRP 142 PrintNetworkTime
+
+local variable local0
+
+local0 = gMaxCharset
+cursor-charset 6
+xa6 (320 - 50) 0 (320 + 50) 16 (15 + 32768)
+xb5-xfe
+xb5-x45
+xb5-x41 320 4
+xb5-xc2 " %d " global136 []
+if (local0) {
+    cursor-charset local0
+}
+free-script

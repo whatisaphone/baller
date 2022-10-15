@@ -1,0 +1,12 @@
+; SCRP 143 CastPlaySound
+
+parameter arg0
+
+if (arg0 < 98000) {
+    if (!(is-sound-playing 10002)) {
+        sound-select arg0
+        sound-channel global51
+        sound-play
+    }
+}
+free-script

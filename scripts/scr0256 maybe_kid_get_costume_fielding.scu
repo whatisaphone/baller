@@ -1,0 +1,234 @@
+; SCRP 256 maybe_kid_get_costume_fielding
+
+parameter kid: Kid
+
+local variable local1
+
+case 1 {
+    of kid > 262 {
+        goto label049e
+    }
+    of kid >= 232 {
+        goto label048e
+    }
+    of kid >= 62 {
+        goto label047e
+    }
+    of kid >= 31 {
+        goto label0267
+    }
+    of kid >= 1 {
+        goto label0061
+    }
+    else {
+        return 0
+    }
+}
+label0061:
+case kid {
+    of KIMMY-ECKMAN {
+        local1 = 289
+    }
+    of MARIA-LUNA {
+        local1 = 290
+    }
+    of ANGELA-DELVECCHIO {
+        local1 = 291
+    }
+    of VICKI-KAWAGUCHI {
+        local1 = 292
+    }
+    of GRETCHEN-HASSELHOFF {
+        local1 = 293
+    }
+    of SALLY-DOBBS {
+        local1 = 294
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        local1 = 295
+    }
+    of ASHLEY-WEBBER {
+        local1 = 296
+    }
+    of SIDNEY-WEBBER {
+        local1 = 297
+    }
+    of KIESHA-PHILLIPS {
+        local1 = 298
+    }
+    of STEPHANIE-MORGAN {
+        local1 = 299
+    }
+    of LUANNE-LUI {
+        local1 = 300
+    }
+    of ANNIE-FRAZIER {
+        local1 = 301
+    }
+    of JOCINDA-SMITH {
+        local1 = 302
+    }
+    of LISA-CROCKET {
+        local1 = 303
+    }
+    of RONNY-DOBBS {
+        local1 = 304
+    }
+    of ACHMED-KHAN {
+        local1 = 305
+    }
+    of AMIR-KHAN {
+        local1 = 306
+    }
+    of KENNY-KAWAGUCHI {
+        local1 = 307
+    }
+    of PETE-WHEELER {
+        local1 = 308
+    }
+    of DMITRI-PETROVICH {
+        local1 = 309
+    }
+    of RICKY-JOHNSON {
+        local1 = 310
+    }
+    of MARKY-DUBOIS {
+        local1 = 311
+    }
+    of REESE-WORTHINGTON {
+        local1 = 312
+    }
+    of PABLO-SANCHEZ {
+        local1 = 313
+    }
+    of TONY-DELVECCHIO {
+        local1 = 314
+    }
+    of JORGE-GARCIA {
+        local1 = 315
+    }
+    of DANTE-ROBINSON {
+        local1 = 316
+    }
+    of ERNIE-STEELE {
+        local1 = 317
+    }
+    of MIKEY-THOMAS {
+        local1 = 318
+    }
+}
+return local1
+label0267:
+case kid {
+    of MO-VAUGHN {
+        local1 = 319
+    }
+    of RANDY-JOHNSON {
+        local1 = 320
+    }
+    of CHIPPER-JONES {
+        local1 = 321
+    }
+    of CAL-RIPKEN-JR {
+        local1 = 322
+    }
+    of NOMAR-GARCIAPARRA {
+        local1 = 323
+    }
+    of SAMMY-SOSA {
+        local1 = 324
+    }
+    of FRANK-THOMAS {
+        local1 = 325
+    }
+    of BARRY-LARKIN {
+        local1 = 326
+    }
+    of KENNY-LOFTON {
+        local1 = 327
+    }
+    of LARRY-WALKER {
+        local1 = 328
+    }
+    of JUAN-GONZALEZ {
+        local1 = 329
+    }
+    of ALEX-GONZALEZ {
+        local1 = 330
+    }
+    of JEFF-BAGWELL {
+        local1 = 331
+    }
+    of CARLOS-BELTRAN {
+        local1 = 332
+    }
+    of RAUL-MONDESI {
+        local1 = 333
+    }
+    of JEROMY-BURNITZ {
+        local1 = 334
+    }
+    of MARTY-CORDOVA {
+        local1 = 335
+    }
+    of VLADIMIR-GUERRERO {
+        local1 = 336
+    }
+    of MIKE-PIAZZA {
+        local1 = 337
+    }
+    of DEREK-JETER {
+        local1 = 338
+    }
+    of JASON-GIAMBI {
+        local1 = 339
+    }
+    of CURT-SCHILLING {
+        local1 = 340
+    }
+    of JASON-KENDALL {
+        local1 = 341
+    }
+    of TONY-GWYNN {
+        local1 = 342
+    }
+    of BARRY-BONDS {
+        local1 = 343
+    }
+    of KEN-GRIFFEY-JR {
+        local1 = 344
+    }
+    of MARK-MCGWIRE {
+        local1 = 345
+    }
+    of JOSE-CANSECO {
+        local1 = 346
+    }
+    of IVAN-RODRIGUEZ {
+        local1 = 347
+    }
+    of SHAWN-GREEN {
+        local1 = 348
+    }
+    of ALEX-RODRIGUEZ {
+        local1 = 349
+    }
+}
+return local1
+label047e:
+local1 = call-script smth_lookup_kid_giant_array [kid]
+return local1
+label048e:
+local1 = call-script smth_lookup_kid_giant_array [kid]
+return local1
+label049e:
+case kid {
+    of MR-CLANKY {
+        local1 = 362
+    }
+    else {
+        local1 = call-script smth_lookup_kid_giant_array [kid]
+    }
+}
+return local1
+free-script

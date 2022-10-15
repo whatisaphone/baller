@@ -1,0 +1,25 @@
+; SCRP 323
+
+local variable local0
+
+global111 = 0
+if (local0) {
+    kludge [2001, 2214, local0]
+} else {
+    kludge [2001, 2214]
+}
+while (!(global111 != 0)) {
+    stop-script
+}
+if (global111 == -99) {
+} else {
+    if (local0) {
+        array-copy-range global562 global108 0 0 0 30 0 0 0 30
+    } else {
+        array-copy-range global561 global108 0 0 0 30 0 0 0 30
+        if (global561[30]) {
+        }
+    }
+    free-array global108
+}
+free-script

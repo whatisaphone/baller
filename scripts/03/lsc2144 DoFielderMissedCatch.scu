@@ -1,0 +1,65 @@
+; LSC2 3 2144 DoFielderMissedCatch
+
+parameter fielder: Fielder
+parameter smth_height
+parameter smth_diving
+
+rBallThrownToFielder = 0
+if (gBallIsFair == false) {
+    if (call-script IsFoulTerritory [gWorld[fielder][X], gWorld[fielder][Z]]) {
+        gBallIsFoul = true
+    } else {
+        gBallIsFair = true
+    }
+}
+if (gBallPosPhysY > 48000) {
+    if (!(random 5)) {
+        if (gNetplayActive) {
+            gNetStateBuffer[1][4] = 1997
+        }
+        sound-select 1997
+        sound-play
+        gBallVelPhysY = (random2 10 25) * ((abs gBallVelPhysX) + (abs gBallVelPhysZ)) / 100
+    } else {
+        if (gNetplayActive) {
+            gNetStateBuffer[1][4] = 1998
+        }
+        sound-select 1998
+        sound-play
+        gBallVelPhysY = (random2 -10 10) * ((abs gBallVelPhysX) + (abs gBallVelPhysZ)) / 200
+    }
+    gBallPosPhysY = smth_height * 1000
+    gBallPosY = gBallPosPhysY / 1000
+} else {
+    if (gNetplayActive) {
+        gNetStateBuffer[1][4] = 1998
+    }
+    sound-select 1998
+    sound-play
+    gBallVelPhysY = (random2 -20 20) * ((abs gBallVelPhysX) + (abs gBallVelPhysZ)) / 200
+}
+gBallVelPhysX = (random2 -45 45) * (0 - gBallVelPhysX) / 100
+gBallVelPhysZ = (random2 -45 45) * (0 - gBallVelPhysZ) / 100
+if (g_maybe_last_fielder_to_touch_ball == 0) {
+    if (gBallHasBounced) {
+        if (smth_diving) {
+            run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT-ERROR, rFieldingOrder[fielder - 37]]
+        } else {
+            run-script EnqueueComment [DIALOGUE-CATCH-LOW-HIT-ERROR, rFieldingOrder[fielder - 37]]
+        }
+    } else {
+        run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT-ERROR, rFieldingOrder[fielder - 37]]
+    }
+} else if (gBallHasBounced) {
+    if (g_maybe_last_fielder_to_touch_ball != fielder) {
+        run-script EnqueueComment [DIALOGUE-DROP, rFieldingOrder[fielder - 37]]
+    }
+} else if (smth_diving) {
+    run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT-ERROR, rFieldingOrder[fielder - 37]]
+}
+g_maybe_last_fielder_to_touch_ball = fielder
+run-script SimulateBallStopPosition [true]
+run-script SetBaseCorners []
+run-script-xc3 WatchAwardErrorAfterMissedCatch [fielder]
+run-script-xc3 SendClosestFielderToTarget [true]
+free-script

@@ -1,0 +1,839 @@
+; LSC2 4 2174 CastWhosBatting
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+
+gCurrentSpeechScript = CastWhosBatting
+if (arg0 <= 61) {
+    local3 = arg0 - 1 + 1029
+    xb8-xfe 1
+    xb8-x41 0 0
+    xb8-xe1 local3
+} else if (arg0 >= 264 && arg0 <= 264 - 1 + 10) {
+    local3 = gKidData[arg0][36] - 1 + 1090
+    xb8-xfe 1
+    xb8-x41 0 0
+    xb8-xe1 local3
+} else if (arg0 == 263) {
+    xb8-xfe 1
+    xb8-x41 0 0
+    xb8-xe1 1100
+} else {
+    run-script maybe_say_kid_name [arg0]
+    xa9-xa9
+    case random 2 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT27395551,5517\x7f steps up"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT27401068,11469\x7f comes to the plate"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT27412537,11392\x7f steps up to bat"
+        }
+    }
+}
+xa9-xa9
+if ((random 1) || gNoGooch || gNetplayActive) {
+} else {
+    if (gGameStats[arg0][STAT-AT-BATS] > 2 && gGameStats[arg0][STAT-HITS] == 0) {
+    } else {
+        if (!(random 2) || arg0 > gMaxUniqueKid && arg0 < 263) {
+            case random 20 {
+                of 0 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27423929,24276\x7f trying to get something for the team."
+                }
+                of 1 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27448205,29235\x7f I think this young hitter can get the job done."
+                }
+                of 2 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27477440,24015\x7f This young batter means business!"
+                }
+                of 3 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27501455,27512\x7f  This young batter eats left hooks for breakfast."
+                }
+                of 4 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27528967,21065\x7f this kid wants a piece of that ball."
+                }
+                of 5 {
+                    if (gKidData[arg0][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27550032,33512\x7f  This slugger's ready to show us what she's made of!"
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27583544,36063\x7f Now, that's a look of pure determination on his face."
+                    }
+                }
+                of 6 {
+                    if (gKidData[arg0][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27619607,37025\x7f This girl's a scrapper... look at that determination..."
+                    } else if (gKidData[arg0][KD-maybe-speed] > 65) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27656632,56488\x7f This kid has stolen so many bases, he makes Al Capone look like an angel!"
+                    }
+                }
+                of 7 {
+                    if (gKidData[arg0][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27713120,51527\x7f that's the kind of hitter she is, digging in and determined every time."
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT27764647,35928\x7f  He's the kinda kid who's just waiting for the heat."
+                    }
+                }
+                of 8 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27800575,71464\x7fI wouldn't wanna meet this kid in a dark alley.  I wouldn't wanna meet 'em in a light alley, neither!  Alleys are scary!"
+                }
+                of 9 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27872039,33000\x7fThat kid's waving that bat around like it was a toothpick!"
+                }
+                of 10 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27905039,27336\x7fThis kid's gotta be pretty nervous out there.  "
+                }
+                of 11 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27932375,39336\x7fI like this kid's batting stance.  Strong, but not too flashy."
+                }
+                of 12 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27971711,27912\x7fI got a bad feeling about this."
+                }
+                of 13 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT27999623,15304\x7fLet's see what this kid can do."
+                }
+                of 14 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT28014927,22280\x7fThis kid's one tough cookie, Sunny."
+                }
+                of 15 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT28037207,26984\x7fThis kid's lookin' to make a name for themselves."
+                }
+                of 16 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT28064191,22280\x7fNow this kid's got style!"
+                }
+                of 17 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT28086471,46184\x7fI gave this kid some pointers in batting practice.  Let's see if it pays off."
+                }
+                of 18 {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT28132655,37224\x7fThe Fabulous Gooch predicts this kid is going places."
+                }
+                of 19 {
+                    if (gKidData[arg0][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT28169879,41768\x7fThis girl can walk the walk.  But can she hit the ball?"
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT28211647,37736\x7fThis kid can walk the walk.  But can he hit the ball?"
+                    }
+                }
+                of 20 {
+                    if (gKidData[arg0][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT28249383,27880\x7fThis girl looks like she's all business out there."
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT28277263,25288\x7fThis kids looks like he's all business out there."
+                    }
+                }
+                else {
+                    xb6-xfe
+                    xb6-x4b "don't say anything, Vinnie"
+                    goto label3acc
+                }
+            }
+        } else {
+            case arg0 {
+                of 1 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28302551,50840\x7f  Kimmy is known for her sweet tooth.  Yessir, she loves those candy bars."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28353391,46552\x7f  Kimmy's not the fastest runner on the team, but has a pretty good throw."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28399943,65038\x7f  Everybody likes Kimmy cause she's a one of a kind original.  Nobody else like her."
+                        }
+                    }
+                }
+                of 5 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28464981,62504\x7f  Jabberjaw is an enthusiastic kid who has lots to say.  We can't understand a word of it."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28527485,48872\x7f  Jabberjaw is a fairly strong runner, and doesn't get tired very easily,"
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28576357,40992\x7f  In a clutch situation, Jabbberjaw knows how to keep her cool."
+                        }
+                    }
+                }
+                of 2 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28617349,64760\x7f  Maria loves pink, and when it's her team color, she's a terror out there!"
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28682109,46688\x7f  Maria has a cat named La Roux who she loves to dress up for tea parties."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28728797,71856\x7f  Maria's can throw the ball really hard... Unfortunately, never where she wants to."
+                        }
+                    }
+                }
+                of 3 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28800653,66572\x7f  Sugar Pop may be a bit accident prone, but lemme tell ya... she can hit the ball!"
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28867225,52568\x7f  Sugar Pop shares with her brother Tony a very self confident attitude."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28919793,42408\x7f  When the pressure's on, nobody's cooler than Sugar Pop."
+                        }
+                    }
+                }
+                of 7 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT28962201,73872\x7f  Billy Jean dreams of living in Paris, 'scuse me... 'Par-ee.', as a high glam super model."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29036073,60736\x7f  Billy Jean has astounding accuracy, she just can't get much power behind the hit."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29096809,50088\x7f  Billy Jean can put that ball just where she wants to, throwing or hitting."
+                        }
+                    }
+                }
+                of 9 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29146897,71128\x7f  Little Smoky Sid is a strong player, but on her sister's team...we're talkin power twins!"
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29218025,54776\x7f  All that tennis has developed Little Smoky Sid's eye so she's a pretty good catch."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29272801,44012\x7f  Seems like Little Smoky Sid can play all day and never get tired."
+                        }
+                    }
+                }
+                of 8 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29316813,54988\x7f  Little Smoky Ash is a good ball player... when she can escape tennis lessons, that is."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29371801,36640\x7f  Little Smoky Ash is in great shape from all that tennis conditioning."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29408441,47012\x7f  The only player I know of who has an eye as good as Ashley is her sister Sidney!"
+                        }
+                    }
+                }
+                of 4 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29455453,50460\x7f  Vicki's TRUE passion is ballet, and she never misses a chance to practice her moves."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29505913,58016\x7f  All that ballet Vicki does makes her one of the most coordinated kids on the field."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29563929,51760\x7f  Vicki's a pretty fast runner, and it seems like she can go all day without getting tired."
+                        }
+                    }
+                }
+                of 6 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29615689,37735\x7f  The boss is kinda like a forty year old in a kid's body."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29653424,52144\x7f  The boss isn't much of a hitter, but she's a good fielder because of her strong throws."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29705568,46504\x7f  The boss loves to talk about the importance of high fiber cereals."
+                        }
+                    }
+                }
+                of 10 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29752072,59127\x7f  Flash can really swing that lumber.  Just hearing her name makes pitchers sweat."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29811199,59296\x7f  Not only can she whale on the ball, Flash can also out run most players on the team."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29870495,50760\x7f  Flash is the funniest kid on the team, and everybody loves being around her."
+                        }
+                    }
+                }
+                of 11 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29921255,55632\x7f  Bubbles is the most enthusiastic baseball enthusiast I've ever run across."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT29976887,44071\x7f  Bubbles is a good ball player when you can get her to quit yappin'."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30020958,53504\x7f  Bubbles knows everything about baseball.  If you let her, she'll tell you all of it."
+                        }
+                    }
+                }
+                of 12 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30074462,54104\x7f  Lulu is one of the fastest runners on the team, and doesn't tire easily."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30128566,53737\x7f  Lulu has good hitting accuracy, but her little arms don't offer much power."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30182303,50710\x7f  Teddy gets in the way when Lulu throws, which can be a problem in the field."
+                        }
+                    }
+                }
+                of 13 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30233013,53488\x7f  Annie has fantastic hitting accuracy, but doesn't get much power behind a hit."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30286501,59559\x7f  Because her parents taught her peaceful values, Annie's not a very competitive player."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30346060,56305\x7f  Annie has the best attention span on the team... must be her daily meditation."
+                        }
+                    }
+                }
+                of 14 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30402365,44071\x7f  Jocinda can smack the heck outta the ball, there's no doubt about that."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30446436,49470\x7f  Jocie is known for her great decisions when base running and fielding."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30495906,50960\x7f  Although Jocie is among the best players on the team, her TRUE passion is painting."
+                        }
+                    }
+                }
+                of 15 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30546866,27180\x7f  Nobody knows much about Mad Dog."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30574046,38640\x7f  Mad Dog has a powerful swing, but not much accuracy."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30612686,52634\x7f  Mad Dog is very calm until she pops a wheelie. Then she almost foams at the mouth."
+                        }
+                    }
+                }
+                of 16 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30665320,68440\x7f  If there's one thing Spud can't stand, it's his big sister Sally bossing him around."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30733760,46304\x7f  Spud has a powerful swing, but lacks control."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30780064,33112\x7f  Spud is great to have in the field because he throws so well."
+                        }
+                    }
+                }
+                of 17 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30813176,35408\x7f  Axeman is one of the best hitters on the team."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30848584,57336\x7f  On the field, Axeman is usually too busy playing air guitar to pay attention to the game."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30905920,72912\x7f  Axeman is a fast base runner, but he can't hear any coaching 'cause his walkman's too loud."
+                        }
+                    }
+                }
+                of 18 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT30978832,53688\x7f  Sticks is Axeman's little brother, who still has training wheels on his air guitar."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31032520,51429\x7f  Sticks is still pretty young, so he can't hit or throw as hard as his big brother."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31083949,66816\x7f  For such a young kid, Sticks has a good attention span.  He'll be a great player one day."
+                        }
+                    }
+                }
+                of 19 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31150765,52568\x7f  Ironsides is a fast basewheeler, and he can play all day without getting tired."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31203333,49880\x7f  Ironsides' chair gets in his way when batting, so his swing doesn't have a lot of power."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31253213,33508\x7f  Ironsides is a natural athlete and has the best eye on the team."
+                        }
+                    }
+                }
+                of 20 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31286721,34116\x7f  Wheely is a really strong kid with a powerful swing."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31320837,44728\x7f  Wheely's older than your average first grader 'cause he's stayed back four times already."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31365565,50790\x7f  Wheely is the fastest runner out there, which is great as long as he's headed the right way."
+                        }
+                    }
+                }
+                of 21 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31416355,55064\x7f  Dmitri is super smart and knows the stats for everything that has ever happened in baseball."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31471419,38304\x7f  Dmitri's a pretty good hitter and runner, but he gets tired easily."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31509723,54498\x7f  Dmitri loves his computer almost as much as baseball.   And he's better at it, too."
+                        }
+                    }
+                }
+                of 22 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31564221,60024\x7f  Ricky J is really shy, but he keeps coming back to play so we think he likes us."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31624245,50904\x7f  Ricky's really coordinated, but he doesn't practice enough to be a good hitter."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31675149,53880\x7f  Ricky plays a lot of soccer, so he's in really good shape and doesn't get tired easily."
+                        }
+                    }
+                }
+                of 23 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31729029,52400\x7f  Cootie tells me he's not tender-footed, which is why he always plays in bare feet."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31781429,44272\x7f  Two things you can say for Cootie, he can play all day and rarely loses his cool."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31825701,39320\x7f  Cootie's a pretty good hitter, but he's not the fastest runner out there."
+                        }
+                    }
+                }
+                of 24 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31865021,60792\x7f  Reese is really funny and he's always in detention at school for disrupting class."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31925813,52528\x7f Reese is a below average hitter, but he's great at strategy 'cause he's really smart."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT31978341,50672\x7f  Reese is a pretty fast runner, but his stamina's not great 'cause of his asthma."
+                        }
+                    }
+                }
+                of 25 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32029013,58272\x7f Even thought the Secret Weapon doesn't speak any English, we all know he's a rad dude."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32087285,48584\x7f  The Secret Weapon always looks like he's ready to belt one outta the park."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32135869,48612\x7f  Nobody can power hit like the weapon, and pitchers get nervous when he steps up to bat"
+                        }
+                    }
+                }
+                of 26 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32184481,61096\x7f  Slick is usually a good hitter, but when the pressure's on,  he turns to pudding."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32245577,70080\x7f  Slick thinks he's the coolest guy around, but we all know that's impossible while the Gooch is here."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32315657,41272\x7f  Slick's got a great arm and all that, but he just can't take the heat."
+                        }
+                    }
+                }
+                of 27 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32356929,56064\x7f  Jorge doesn't like to get dirty, which makes it difficult for him to play very aggressively."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32412993,33512\x7f Jorge's a really fast runner and doesn't tire easily."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32446505,39351\x7f Jorge's eyesight is terrible, which means he usually misses the catch."
+                        }
+                    }
+                }
+                of 28 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32485856,56968\x7f  Dante eats a lot for a kid his size.  My mom says that cause he's gonna have a growth spurt."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32542824,50448\x7f Dante's a so-so hitter, but he can get on base 'cause he runs pretty fast."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32593272,50192\x7f  Dante has a really strong throw, which makes him a good guy to have in the field."
+                        }
+                    }
+                }
+                of 29 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32643464,48944\x7f  Ernie thinks everything is funny and never stops laughing.  Even when he messes up."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32692408,42496\x7f  Ernie can hit the ball hard, but it doesn't always go where he wants it to."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32734904,49576\x7f  Ernie's kind of a slow runner 'cause his legs just grew a lot and he's not used to them."
+                        }
+                    }
+                }
+                of 30 {
+                    case random 2 {
+                        of 0 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32784480,53616\x7f  Seems like Nugget has an endless supply of boogers, 'cause he's always picking for them."
+                        }
+                        of 1 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32838096,41920\x7f  Nugget runs slightly faster than your average garden snail."
+                        }
+                        of 2 {
+                            xb8-xfe 1
+                            xb8-x41 0 0
+                            xb8-x4b "\x7fT32880016,53304\x7f Though Nugget has a strong arm, he gets tired quickly.  Must be all that pickin'."
+                        }
+                    }
+                }
+                else {
+                    if (arg0 >= 31 && arg0 <= 61) {
+                        local3 = (arg0 - 31) * 3 + 1767
+                        local3 = local3 + (random 2)
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-xe1 local3
+                    } else if (arg0 >= 264 && arg0 <= 264 - 1 + 10) {
+                        local3 = (gKidData[arg0][36] - 1) * 3 + 1860
+                        local3 = local3 + (random 2)
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-xe1 local3
+                    } else if (arg0 == 263) {
+                        local3 = 1890 + (random 2)
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-xe1 local3
+                    }
+                }
+            }
+        }
+        xa9-xa9
+        goto label3acc
+    }
+    local2 = random 5
+    case local2 {
+        of 0 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT32933320,13319\x7f she's  hitless today."
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT32946639,28832\x7f  I don't think he's touched the ball yet in this game!"
+            }
+        }
+        of 1 {
+            if (gKidData[arg0][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT32975471,26840\x7f looks like she's in a batting slump, today!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT33002311,44736\x7f  Doin' his best to get to first.  He hasn't had much luck up to now."
+            }
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT33047047,21740\x7f  Still tryin' to get on base!"
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT33068787,37488\x7f  Getting to first seems to be an uphill battle for this young hitter."
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT33106275,35031\x7f  In the pitcher/batter war, this kid is losing."
+        }
+        of 5 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT33141306,28968\x7f  Still hitless, and tryin' to do something about it."
+        }
+    }
+    xa9-xa9
+}
+label3acc:
+gCurrentSpeechScript = 0
+free-script

@@ -1,0 +1,7 @@
+; LSC2 5 2059 RunPlayerSay2
+
+local variable local1
+
+local1 = actor-get-var g_maybe_kid_video_actor 10
+run-script PlayerSay [local1]
+free-script

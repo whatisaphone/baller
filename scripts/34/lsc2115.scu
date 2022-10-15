@@ -1,0 +1,21 @@
+; LSC2 34 2115
+
+local variable local0
+local variable local1
+
+if (!local0) {
+    sound-select 4272
+    sound-play
+    sprite-group-select room11
+    sprite-group-x41 0 0
+    local1 = 640 / 8
+    while ((sprite-group-get-x room11) < 640) {
+        sprite-group-select room11
+        sprite-group-x2c local1 0
+        stop-script
+    }
+}
+sprite-group-select room11
+sprite-group-x41 640 0
+room56 = 0
+free-script

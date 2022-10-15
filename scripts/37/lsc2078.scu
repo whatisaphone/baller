@@ -1,0 +1,156 @@
+; LSC2 37 2078
+
+local variable local0
+local variable local3
+local variable local4
+
+if (local0 == 13) {
+    if (room23) {
+        exec-script HandleNavClick [192]
+    }
+} else {
+    run-script maybe_HideNavHoverText []
+    if (room22 == 1 && local0 != 32) {
+        if (room23 == 1) {
+            if (gNetUsername) {
+                free-array gNetUsername
+            }
+            gNetUsername = ""
+        } else if (room23 == 2) {
+            if (gNetPassword) {
+                free-array gNetPassword
+            }
+            gNetPassword = ""
+        }
+    }
+    if (room22 <= 15) {
+        if (room23) {
+            if (room23 == 1) {
+                sprintf local3 "%s" [gNetUsername]
+                if (gNetUsername) {
+                    free-array gNetUsername
+                }
+            } else {
+                sprintf local3 "%s" [gNetPassword]
+                if (gNetPassword) {
+                    free-array gNetPassword
+                }
+            }
+        }
+        if (local0 == 8) {
+            run-script PlaySound [1733]
+            local4 = substr local3 0 ((strlen local3) - 2)
+            --room22
+        } else {
+            sound-select (random2 1730 1732)
+            sound-play
+            sprintf local4 "%s%c" [local3, local0]
+        }
+        free-array local3
+        if (room23 == 1) {
+            sprintf gNetUsername "%s" [local4]
+        } else {
+            sprintf gNetPassword "%s" [local4]
+            if (room32) {
+                free-array room32
+            }
+            if (room33) {
+                sprintf room32 "%s" [gNetPassword]
+            } else {
+                case strlen gNetPassword {
+                    of 1 {
+                        room32 = "*"
+                    }
+                    of 2 {
+                        room32 = "**"
+                    }
+                    of 3 {
+                        room32 = "***"
+                    }
+                    of 4 {
+                        room32 = "****"
+                    }
+                    of 5 {
+                        room32 = "*****"
+                    }
+                    of 6 {
+                        room32 = "******"
+                    }
+                    of 7 {
+                        room32 = "*******"
+                    }
+                    of 8 {
+                        room32 = "********"
+                    }
+                    of 9 {
+                        room32 = "*********"
+                    }
+                    of 10 {
+                        room32 = "**********"
+                    }
+                    of 11 {
+                        room32 = "***********"
+                    }
+                    of 12 {
+                        room32 = "************"
+                    }
+                    of 13 {
+                        room32 = "*************"
+                    }
+                    of 14 {
+                        room32 = "**************"
+                    }
+                    of 15 {
+                        room32 = "***************"
+                    }
+                    else {
+                        room32 = ""
+                    }
+                }
+            }
+            free-array local4
+            sprintf local4 "%s" [room32]
+        }
+        room24 = call-script maybe_draw_text_to_image [local4, 1244, room16[0], room12]
+        free-array local4
+        sprite-set-range room15[24] room15[24]
+        sprite-clear
+        sprite-set-image room16[0]
+        sprite-set-hotspot 211 (226 - 4)
+        sprite-x2b 999
+        sprite-x7c 0
+        sprite-set-range room15[7] room15[7]
+        sprite-clear
+        sprite-set-image 930
+        sprite-set-hotspot (211 + room24 + 2) (226 - 4)
+        sprite-x2b 999
+        sprite-x7c 0
+        if (!room22) {
+            if (room23 == 1) {
+                if (gNetUsername) {
+                    free-array gNetUsername
+                }
+                gNetUsername = 0
+            } else {
+                if (gNetPassword) {
+                    free-array gNetPassword
+                }
+                gNetPassword = 0
+            }
+        }
+    }
+    if (room22 >= 15) {
+        room22 = 15
+        free-running-script 2077
+        sprite-set-range room15[7] room15[7]
+        sprite-clear
+        sprite-set-image 930
+        sprite-x2a 0 2
+    }
+    if (room22 < 15) {
+        if (!(is-script-running 2077)) {
+            run-script 2077 []
+        }
+    }
+}
+free-script

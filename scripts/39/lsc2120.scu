@@ -1,0 +1,57 @@
+; LSC2 39 2120
+
+local variable local0
+
+case local0 {
+    of 1 {
+        image-select 704
+        image-pos 30 80
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 10 {
+        image-select 704
+        image-pos 70 116
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 4 {
+        image-select 704
+        image-pos 70 152
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 3 {
+        image-select 704
+        image-pos (70 + 200) 152
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 6 {
+        image-select 704
+        image-pos 80 104
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 5 {
+        image-select 704
+        image-pos (80 + 350) 104
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+    of 9 {
+        image-select 704
+        image-pos 0 270
+        image-render-into 703
+        image-x30
+        image-xff
+    }
+}
+return 1
+free-script

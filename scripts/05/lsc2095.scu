@@ -1,0 +1,52 @@
+; LSC2 5 2095
+
+local variable local0
+local variable local1
+local variable local2
+
+run-script 2073 []
+sprite-set-range global634[0] global634[0]
+sprite-clear
+sprite-set-image 1055
+sprite-x52 0
+sprite-x2b -905
+sprite-x7c 2
+sprite-x7d [160]
+sprite-set-hotspot (global622 + 80) (global623 - 51)
+sprite-palette g_some_palette_1
+run-script 2093 [local0]
+run-script 2083 [local0]
+run-script 2085 [local0]
+local1 = gKidData[local0][13] & 3
+local2 = shr (gBackupKidData[local0][13] & 12) 2
+if (!local2) {
+    local2 = local1
+}
+sprite-set-range global634[3] global634[3]
+sprite-clear
+sprite-set-image 1053
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-x7d [160]
+sprite-x34 (local2 - 1)
+sprite-set-hotspot (global622 + 80) (global623 - 51)
+sprite-palette g_some_palette_1
+sprite-set-range global634[2] global634[2]
+sprite-clear
+sprite-set-image 1054
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-x7d [160]
+sprite-x34 (local1 - 1)
+sprite-set-hotspot (global622 + 80) (global623 - 51)
+sprite-palette g_some_palette_1
+run-script 2078 [local0]
+run-script 2094 [local0]
+run-script 2081 []
+run-script 2091 [local0]
+if (MODE-maybe-cards == gGameMode) {
+    run-script PlayKidMusic [local0, 1]
+}
+free-script

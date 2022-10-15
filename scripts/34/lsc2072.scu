@@ -1,0 +1,127 @@
+; LSC2 34 2072
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local6
+local variable local7
+local variable local8
+
+local8 = call-script smth_find_season_team [room42]
+local0 = call-script ReadActiveRoster [local8, 7]
+local2 = call-script ReadActiveRoster [local8, 3]
+if (local0 == room20) {
+    local0 = call-script ReadActiveRoster [local8, 8]
+}
+if (local1 == room20) {
+    local1 = call-script ReadActiveRoster [local8, 8]
+}
+if (local2 == room20) {
+    local2 = call-script ReadActiveRoster [local8, 8]
+}
+if (gKidData[room38][KD-maybe-speed] > gKidData[room39][KD-maybe-speed]) {
+    local3 = room38
+    local4 = room39
+} else {
+    local3 = room39
+    local4 = room38
+}
+if (room38) {
+    if (room39) {
+        if ((random 100) < gKidData[local0][2]) {
+            local6 = local3
+        } else if (random 1) {
+            local6 = local3
+        } else {
+            local6 = local4
+        }
+    } else {
+        local6 = room38
+    }
+} else if (room39) {
+    local6 = room39
+}
+if (local6) {
+    if ((random 100) < 50 + gKidData[local0][6] - gKidData[local6][KD-maybe-speed]) {
+        if ((random 100) < 2 + (100 - gKidData[local0][6]) / 20) {
+            local7 = local0
+        }
+        if (local6 == room39) {
+            if ((random 100) < 2 + (100 - gKidData[local1][3]) / 20) {
+                local7 = local1
+            }
+        } else if ((random 100) < 2 + (100 - gKidData[local2][3]) / 20) {
+            local7 = local2
+        }
+        if (local7) {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [local7, STAT-ERRORS, 1]
+                    run-script AddStat [local7, STAT-ERRORS, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [local7, STAT-ERRORS, 1]
+            }
+            ++room55
+        } else {
+            ++gNumOuts
+            if (local6 == room39) {
+                if (room38) {
+                    if (gNetplayActive) {
+                        if (g_net_smth_master == g_net_smth_me) {
+                            run-script AddNetStat [room38, STAT-STEALS, 1]
+                            run-script AddStat [room38, STAT-STEALS, 1]
+                        }
+                    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                        run-script AddStat [room38, STAT-STEALS, 1]
+                    }
+                    room39 = room38
+                    room38 = 0
+                }
+            } else if (local6 == room38) {
+                if (room39) {
+                    if (gNetplayActive) {
+                        if (g_net_smth_master == g_net_smth_me) {
+                            run-script AddNetStat [room39, STAT-STEALS, 1]
+                            run-script AddStat [room39, STAT-STEALS, 1]
+                        }
+                    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                        run-script AddStat [room39, STAT-STEALS, 1]
+                    }
+                    room40 = room39
+                    room39 = 0
+                }
+            }
+            goto label0331
+        }
+    } else {
+        if (room39) {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room39, STAT-STEALS, 1]
+                    run-script AddStat [room39, STAT-STEALS, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room39, STAT-STEALS, 1]
+            }
+            room40 = room39
+            room39 = 0
+        }
+        if (room38) {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room38, STAT-STEALS, 1]
+                    run-script AddStat [room38, STAT-STEALS, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room38, STAT-STEALS, 1]
+            }
+            room39 = room38
+            room38 = 0
+        }
+    }
+}
+label0331:
+free-script

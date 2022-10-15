@@ -1,0 +1,15 @@
+; LSC2 7 2084
+
+local variable local0
+
+sprite-set-range room6[1] room6[1]
+sprite-clear
+sprite-set-image 990
+sprite-x34 (local0 - 1)
+sprite-x52 0
+sprite-x7c 0
+sprite-x2b -800
+sprite-set-hotspot 320 240
+sprite-set-range room6[1] room6[1]
+sprite-palette room18
+free-script

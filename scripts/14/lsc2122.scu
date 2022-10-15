@@ -1,0 +1,57 @@
+; LSC2 14 2122
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+dim array local3 byte[0...0][0...15] swap=2
+for local7 = 0 to (15 - 1) ++ {
+    local3[local7] = local0[local1][5 + local7]
+}
+local3[15] = 0
+local7 = 15 - 1
+do {
+    if (local3[local7] == 32) {
+        local3[local7] = 0
+        --local7
+    } else {
+        local7 = 0
+    }
+} until (local7 == 0)
+sprintf local2 "COACH %s" [local3]
+local8 = local0[local1][22]
+local9 = local0[local1][23]
+local4 = call-script GetTeamPrefixString [local8, 1]
+local5 = call-script GetTeamNameString [local9, 1]
+sprintf local6 "%s %s" [local4, local5]
+temp = call-script smth_draw_text_image [local6, 1240, room15, 186, 23, 0, 0, room16]
+sprite-set-range room14 room14
+sprite-clear
+sprite-set-image room15
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -650
+sprite-palette room16
+sprite-set-hotspot 371 375
+temp = call-script smth_draw_text_image [local2, 1239, room19, 186, 23, 0, 0, room17]
+sprite-set-range room18 room18
+sprite-clear
+sprite-set-image room19
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -650
+sprite-palette room17
+sprite-set-hotspot 353 128
+free-array local4
+free-array local5
+free-array local6
+free-array local2
+free-array local3
+free-script

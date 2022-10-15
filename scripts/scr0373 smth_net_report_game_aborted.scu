@@ -1,0 +1,64 @@
+; SCRP 373 smth_net_report_game_aborted
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+
+x50
+sprintf local3 "%s Scores will be reported." [arg0]
+free-array arg0
+x50
+for local4 = 1 to 3000 ++ {
+    if (local4 != 373 && local4 != 352) {
+        if (!(local4 in [324, 352, 353])) {
+            free-running-script local4
+        }
+    }
+}
+if (global705) {
+    run-script FreeSprite [global705[0]]
+    run-script FreeSprite [global705[2]]
+    run-script FreePalette [global705[1]]
+    free-array global705
+    global705 = 0
+}
+case arg1 {
+    of 46 {
+        run-script-xc3 maybe_net_send_message [30, 1, NET-maybe-abort-game, 51]
+    }
+    of 47 {
+        run-script-xc3 maybe_net_send_message [30, 1, NET-maybe-abort-game, 49]
+    }
+    of 50 {
+        run-script-xc3 maybe_net_send_message [30, 1, NET-maybe-abort-game, 45]
+    }
+}
+stop-script
+run-script smth_message_popup [local3, 0, 0, 0, 0]
+while (!!(is-script-running smth_message_popup)) {
+    stop-script
+}
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+gGameEnded = 1
+if (arg2) {
+    run-script smth_net_stats_kludge [1]
+    while (!!(is-script-running smth_net_stats_kludge)) {
+        stop-script
+    }
+    exec-script smth_net_connection []
+} else {
+    go-to-room 8
+}
+free-script

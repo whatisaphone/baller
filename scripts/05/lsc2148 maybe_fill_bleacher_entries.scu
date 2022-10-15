@@ -1,0 +1,49 @@
+; LSC2 5 2148 maybe_fill_bleacher_entries
+
+local variable column
+local variable kid: Kid
+local variable local2
+local variable local3
+local variable local5
+local variable row_offset
+local variable local7
+local variable local8
+local variable local9
+local variable row
+
+for row = 0 to 3 ++ {
+    local5 = 0
+    local7 = 0
+    local3 = row * 65 + 200
+    for column = 1 to 18 ++ {
+        kid = gBleachersLineup[row_offset + column]
+        local9 = 0
+        if (kid) {
+            if (kid >= 263) {
+                local8 = 283 + kid - 263
+                if (kid > 263) {
+                    local9 = 257
+                }
+            } else {
+                local8 = 222 + kid - 1
+            }
+            temp = call-script AddBleachersEntry [gBleachersEntries, row_offset + column, kid, 0, local8, local9, local5, local3]
+            if (kid >= 263) {
+                kid = 61 + kid - 263 + 1
+            }
+            local5 = local5 + room1[kid]
+            local5 = local5 + (random2 12 15)
+            gBleachersKids[kid] = true
+            kludge [714, 3, local8, 1]
+        }
+    }
+    local2 = 320 - local5 / 2 + 30
+    for column = (row_offset + 1) to (row_offset + 18) ++ {
+        if (gBleachersEntries[column][BI-KID] != 0) {
+            gBleachersEntries[column][BI-X] = gBleachersEntries[column][BI-X] + local2
+        }
+    }
+    row_offset = row_offset + 18
+}
+run-script smth_sort_array [gBleachersEntries, 5, 1]
+free-script

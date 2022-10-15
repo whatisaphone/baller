@@ -1,0 +1,40 @@
+; LSC2 27 2320
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+case gBackupKidData[local0][11] {
+    in [1, 2, 7, 8] {
+        local2 = 34
+        local3 = 33
+        local4 = 32
+    }
+    in [3, 4, 9] {
+        local2 = 37
+        local3 = 36
+        local4 = 35
+    }
+    in [5, 6, 11, 12] {
+        local2 = 40
+        local3 = 39
+        local4 = 38
+    }
+    in [10] {
+        local2 = 43
+        local3 = 42
+        local4 = 41
+    }
+    else {
+        local2 = 12
+        local3 = 12
+        local4 = 12
+    }
+}
+actor-select local1
+actor-x56 230 (palette-x42 g_some_palette_4 local2)
+actor-x56 229 (palette-x42 g_some_palette_4 local3)
+actor-x56 228 (palette-x42 g_some_palette_4 local4)
+free-script

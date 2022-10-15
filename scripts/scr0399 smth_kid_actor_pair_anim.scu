@@ -1,0 +1,38 @@
+; SCRP 399 smth_kid_actor_pair_anim
+
+parameter kid
+parameter actor1
+parameter actor2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter x
+parameter y
+parameter arg8
+
+local variable local9
+local variable local10
+
+if (arg8 == 0) {
+    if (kid >= 31 && kid <= 61) {
+        local10 = 2
+    } else {
+        local10 = 1
+    }
+} else if (arg8 > 0) {
+    local10 = 3
+} else {
+    local10 = 4
+}
+actor-select actor1
+actor-set-costume 599
+put-actor actor1 x y gCurrentRoom
+actor-do-anim actor1 local10
+local9 = call-script smth_kid_lookup_costume [kid]
+actor-select actor2
+actor-set-costume local9
+actor-x2b ((actor-get-property actor1 0 5) + 1)
+put-actor actor2 x (y + 1) gCurrentRoom
+run-script smth_team_color_palette [-1, actor2, 0, arg3, arg4, arg5]
+actor-do-anim actor2 1
+free-script

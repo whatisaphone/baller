@@ -1,0 +1,132 @@
+; LSC2 5 2171
+
+room50 = call-script FindFreeSprite []
+room44 = call-script FindFreeSprite []
+room45 = call-script FindFreeSprite []
+room46 = call-script FindFreeSprite []
+room53 = call-script AllocScratchImage []
+room54 = call-script AllocScratchImage []
+room55 = call-script AllocScratchImage []
+room56 = call-script FindFreeSprite []
+room57 = call-script FindFreeSprite []
+room58 = call-script FindFreeSprite []
+room59 = call-script FindFreeSprite []
+room48 = call-script AllocPalette []
+room49 = call-script AllocPalette []
+room14 = call-script AllocPalette []
+palette-select room48
+palette-load 1240 0
+palette-unselect
+palette-select room14
+palette-load 556 0
+palette-unselect
+if (gPreviousRoom != 29) {
+    global666 = 61
+    global664 = random2 1 global666
+    dim array global665 byte[1...global666][0...0] swap=2
+    array-fill-list global665 1 global666 0 0 [17, 42, 61, 18, 3, 13, 8, 55, 38, 7, 34, 44, 33, 52, 28, 50, 21, 29, 37, 5, 59, 51, 53, 43, 46, 14, 27, 58, 41, 56, 19, 39, 10, 1, 40, 15, 12, 2, 57, 23, 47, 49, 30, 31, 35, 25, 20, 32, 45, 24, 22, 16, 6, 36, 60, 9, 11, 26, 54, 4, 48]
+}
+sprite-set-range room50 room50
+sprite-clear
+sprite-set-image 122
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-palette room37
+sprite-x34 2
+sprite-set-hotspot 320 240
+sprite-x2b 100
+gSpriteCursorTargets[room50][TARGET-CLICK-SCRIPT] = 0
+sprite-set-range room44 room44
+sprite-clear
+sprite-set-image 125
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-palette room38
+sprite-x34 4
+sprite-set-hotspot 320 240
+sprite-x2b 101
+sprite-set-range room44 room44
+sprite-xc6 1 4
+gSpriteCursorTargets[room44][TARGET-CLICK-SCRIPT] = 2169
+sprite-set-range room45 room45
+sprite-clear
+sprite-set-image 125
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-palette room38
+sprite-x34 8
+sprite-set-hotspot 320 240
+sprite-x2b 101
+sprite-set-range room45 room45
+sprite-xc6 1 8
+gSpriteCursorTargets[room45][TARGET-CLICK-SCRIPT] = 2169
+sprite-set-range room46 room46
+sprite-clear
+sprite-set-image 125
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-palette room38
+sprite-x34 10
+sprite-set-hotspot 320 240
+sprite-x2b 101
+sprite-set-range room46 room46
+sprite-xc6 1 10
+gSpriteCursorTargets[room46][TARGET-CLICK-SCRIPT] = 2169
+sprite-set-range room56 room56
+sprite-clear
+sprite-set-image 0
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-set-hotspot (320 - 36) (240 + 68)
+sprite-x7d [160]
+sprite-x2b 101
+sprite-set-range room57 room57
+sprite-clear
+sprite-set-image 0
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-set-hotspot (320 - 36) (240 + 99)
+sprite-x7d [160]
+sprite-x2b 101
+sprite-set-range room58 room58
+sprite-clear
+sprite-set-image 0
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 26
+sprite-set-hotspot (320 - 36) (240 + 132)
+sprite-x7d [160]
+sprite-x2b 101
+put-actor 3 320 240 gCurrentRoom
+actor-select 3
+actor-xd9
+actor-set-costume 0
+actor-move (320 - 97) (240 + 88 + 109 + 200)
+actor-x54 200
+actor-x2b 12
+gActorCursorTargets[3][TARGET-CLICK-SCRIPT] = 2166
+gActorCursorTargets[3][TARGET-HOVER-SCRIPT] = 2164
+gActorCursorTargets[3][TARGET-HOVER-DELAY] = 0
+put-actor 4 320 240 gCurrentRoom
+actor-select 4
+actor-xd9
+actor-set-costume 599
+actor-move (320 - 97) (240 + 88 + 109 + 200)
+actor-x54 200
+actor-x2b 10
+gActorCursorTargets[4][TARGET-CLICK-SCRIPT] = 2166
+gSpriteCursorTargets[room59][TARGET-CLICK-SCRIPT] = 2169
+sprite-group-select 26
+sprite-group-x41 0 109
+run-script 2159 []
+if (is-script-running maybe_setup_two_player_draft) {
+    sprite-group-select 26
+    sprite-group-x2c 0 30
+}
+free-script

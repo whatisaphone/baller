@@ -1,0 +1,41 @@
+; LSC2 40 2103
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+case local0 {
+    of 10 {
+        if (local3[8]) {
+            local6 = local3[9] * 1000 / local3[8]
+            local7 = local6 / 1000
+            local6 = mod local6 1000
+            local8 = local6 / 100
+            local6 = mod local6 100
+            local9 = local6 / 10
+            local6 = mod local6 10
+            sprintf local4 "%d.%d%d%d" [local7, local8, local9, local6]
+        } else {
+            local4 = "0.000"
+        }
+    }
+    else {
+        sprintf local4 "%d" [local3[local0]]
+    }
+}
+local5 = call-script maybe_draw_text_to_image [local4, 1031, room2[3], room18, 1]
+free-array local4
+image-select room2[3]
+image-pos (108 - local5 / 2) (39 * local2 + 14)
+image-render-into local1
+image-x30
+image-xff
+return 1
+free-script

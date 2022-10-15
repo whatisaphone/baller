@@ -1,0 +1,75 @@
+; LSC2 3 2150 CastHitNotHighFly
+
+if (gSimFirstBounceFoul) {
+    run-script EnqueueComment [DIALOGUE-FOUL-OUTFIELD, gBatterKid]
+    free-running-script 0
+}
+if ((distance-2d gSimFirstBounceX gSimFirstBounceZ 0 300) > 1500) {
+    if (random 1) {
+        if (gSimFirstBounceX == 0) {
+            run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-CENTER-FIELD, gBatterKid]
+            free-running-script 0
+        }
+        if ((abs (gSimFirstBounceZ / gSimFirstBounceX)) > 6) {
+            run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-CENTER-FIELD, gBatterKid]
+            free-running-script 0
+        } else if (gSimFirstBounceX < 0) {
+            run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-LEFT-FIELD, gBatterKid]
+            free-running-script 0
+        } else {
+            run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-RIGHT-FIELD, gBatterKid]
+            free-running-script 0
+        }
+    } else {
+        run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-GENERAL, gBatterKid]
+        free-running-script 0
+    }
+}
+if ((distance-2d gSimFirstBounceX gSimFirstBounceZ 0 300) > 1100) {
+    run-script EnqueueComment [DIALOGUE-HIT-LINE-DRIVE-GENERAL, gBatterKid]
+    free-running-script 0
+}
+if (gCurrentSwing == SWING-BUNT) {
+    run-script EnqueueComment [DIALOGUE-HIT-BUNT, gBatterKid]
+    free-running-script 0
+}
+do {
+    stop-script
+    if (gBallHasBounced) {
+        if ((distance-2d gBallPosX gBallPosZ 0 300) < 1500) {
+            if (gBallPosPhysX == 0) {
+                run-script EnqueueComment [DIALOGUE-GROUNDER-GENERAL, gBatterKid]
+                free-running-script 0
+            }
+            if ((abs (gBallPosPhysZ / gBallPosPhysX)) < 6) {
+                if ((abs (gBallPosPhysZ / gBallPosPhysX)) < 4) {
+                    if (gBallPosPhysX < 0) {
+                        run-script EnqueueComment [DIALOGUE-GROUNDER-LEFT, gBatterKid]
+                        free-running-script 0
+                    } else {
+                        run-script EnqueueComment [DIALOGUE-GROUNDER-RIGHT, gBatterKid]
+                        free-running-script 0
+                    }
+                } else {
+                    run-script EnqueueComment [DIALOGUE-GROUNDER-GENERAL, gBatterKid]
+                    free-running-script 0
+                }
+            } else if ((distance-2d gBallPosX gBallPosZ 0 300) > 652) {
+                if (gBallPosPhysX < 0) {
+                    run-script EnqueueComment [DIALOGUE-GROUNDER-SHORTSTOP, gBatterKid]
+                    free-running-script 0
+                } else {
+                    run-script EnqueueComment [DIALOGUE-GROUNDER-CENTER, gBatterKid]
+                    free-running-script 0
+                }
+            } else {
+                run-script EnqueueComment [DIALOGUE-GROUNDER-GENERAL, gBatterKid]
+                free-running-script 0
+            }
+        } else {
+            run-script EnqueueComment [DIALOGUE-LINE-DRIVE-GAP, gBatterKid]
+            free-running-script 0
+        }
+    }
+} until (g_maybe_last_fielder_to_touch_ball)
+free-script

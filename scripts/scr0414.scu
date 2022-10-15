@@ -1,0 +1,39 @@
+; SCRP 414
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+local2 = 10
+sprintf local0 "%sdownloads\" [gSaveGamePath]
+local1 = "news.ini"
+kludge [2001, 2122, local0, 1]
+stop-script
+kludge [2001, 2238, local0, local1]
+do {
+    ++local3
+    sleep-seconds 1
+} until (global135 || local3 > local2)
+free-array local1
+global135 = 0
+local3 = 0
+local1 = "poll.ini"
+kludge [2001, 2238, local0, local1]
+do {
+    ++local3
+    sleep-seconds 1
+} until (global135 || local3 > local2)
+free-array local1
+global135 = 0
+local3 = 0
+local1 = "banners.ini"
+kludge [2001, 2238, local0, local1]
+do {
+    ++local3
+    sleep-seconds 1
+} until (global135 || local3 > local2)
+global135 = 0
+free-array local1
+free-array local0
+free-script

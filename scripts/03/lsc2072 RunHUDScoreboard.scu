@@ -1,0 +1,188 @@
+; LSC2 3 2072 RunHUDScoreboard
+
+local variable local0
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+pop-discard-2 0 "no trace"
+draw-object-x3f 78 1
+if (gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN] >= 122) {
+    palette-select room36
+    palette-load 644 0
+    palette-unselect
+    sprite-set-range 32 32
+    sprite-clear
+    sprite-set-image 644
+    sprite-x34 (gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN] - 122)
+    sprite-set-hotspot 300 240
+    sprite-palette room36
+    sprite-x52 0
+    sprite-x7c 0
+    sprite-x2b 255
+} else {
+    palette-select room36
+    palette-load 1507 0
+    palette-unselect
+    run-script 279 [room36, gTeamInfo[gVisitorInfoIndex][3], gTeamInfo[gVisitorInfoIndex][8]]
+    sprite-set-range 32 32
+    sprite-clear
+    sprite-set-image 1507
+    sprite-x34 (gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN] - 101)
+    sprite-set-hotspot 300 240
+    sprite-palette room36
+    sprite-x52 0
+    sprite-x7c 0
+    sprite-x2b 255
+}
+if (gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN] >= 122) {
+    palette-select room35
+    palette-load 644 0
+    palette-unselect
+    sprite-set-range 31 31
+    sprite-clear
+    sprite-set-image 644
+    sprite-x34 (gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN] - 122)
+    sprite-set-hotspot 300 274
+    sprite-palette room35
+    sprite-x52 0
+    sprite-x7c 0
+    sprite-x2b 255
+} else {
+    palette-select room35
+    palette-load 1507 0
+    palette-unselect
+    run-script 279 [room35, gTeamInfo[gHomeInfoIndex][3], gTeamInfo[gHomeInfoIndex][8]]
+    sprite-set-range 31 31
+    sprite-clear
+    sprite-set-image 1507
+    sprite-x34 (gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN] - 101)
+    sprite-set-hotspot 300 274
+    sprite-palette room35
+    sprite-x52 0
+    sprite-x7c 0
+    sprite-x2b 255
+}
+if (gBattingTeamInfoIndex == gHomeInfoIndex) {
+    draw-object-x3f 82 2
+} else {
+    draw-object-x3f 82 1
+}
+local4 = gTeamInfo[gHomeInfoIndex][TI-RUNS]
+local2 = local4 / 10
+local2 = mod local2 10
+local3 = mod local4 10
+if (local2 == 0) {
+    local2 = 10
+}
+if (local3 == 0) {
+    local3 = 10
+}
+if (local4 < 10) {
+    local2 = 11
+}
+draw-object-x3f 84 local2
+draw-object-x3f 86 local3
+if (gBattingTeamInfoIndex == gHomeInfoIndex) {
+    local5 = local4
+}
+local4 = gTeamInfo[gVisitorInfoIndex][TI-RUNS]
+local2 = local4 / 10
+local2 = mod local2 10
+local3 = mod local4 10
+if (local2 == 0) {
+    local2 = 10
+}
+if (local3 == 0) {
+    local3 = 10
+}
+if (local4 < 10) {
+    local2 = 11
+}
+draw-object-x3f 83 local2
+draw-object-x3f 85 local3
+if (gBattingTeamInfoIndex == gVisitorInfoIndex) {
+    local5 = local4
+}
+if (gNumOuts < 4 && gNumOuts > -1) {
+    draw-object-x3f 79 (gNumOuts + 1)
+}
+lock-image 502
+stop-script
+image-select 502
+image-x33 1 0 400 160 480
+image-x36 8
+image-xff
+sprite-set-range 2 2
+sprite-clear
+sprite-set-image 502
+sprite-set-hotspot 0 400
+sprite-x2b 254
+do {
+    sleep 5
+    if (local0 != gNumOuts) {
+        if (gNumOuts < 4 && gNumOuts > -1) {
+            draw-object-x3f 79 (gNumOuts + 1)
+        } else {
+            draw-object-x3f 79 4
+        }
+        stop-script
+        image-select 502
+        image-x33 1 0 400 160 480
+        image-x36 8
+        image-xff
+        sprite-set-range 2 2
+        sprite-clear
+        sprite-set-image 502
+        sprite-set-hotspot 0 400
+        sprite-x2b 254
+    }
+    if (gTeamInfo[gBattingTeamInfoIndex][TI-RUNS] != local5) {
+        if (gBattingTeamInfoIndex == gHomeInfoIndex) {
+            local4 = gTeamInfo[gHomeInfoIndex][TI-RUNS]
+            local2 = local4 / 10
+            local2 = mod local2 10
+            local3 = mod local4 10
+            if (local2 == 0) {
+                local2 = 10
+            }
+            if (local3 == 0) {
+                local3 = 10
+            }
+            if (local4 < 10) {
+                local2 = 11
+            }
+            draw-object-x3f 84 local2
+            draw-object-x3f 86 local3
+        } else {
+            local4 = gTeamInfo[gVisitorInfoIndex][TI-RUNS]
+            local2 = local4 / 10
+            local2 = mod local2 10
+            local3 = mod local4 10
+            if (local2 == 0) {
+                local2 = 10
+            }
+            if (local3 == 0) {
+                local3 = 10
+            }
+            if (local4 < 10) {
+                local2 = 11
+            }
+            draw-object-x3f 83 local2
+            draw-object-x3f 85 local3
+        }
+        stop-script
+        image-select 502
+        image-x33 1 0 400 160 480
+        image-x36 8
+        image-xff
+        sprite-set-range 2 2
+        sprite-clear
+        sprite-set-image 502
+        sprite-set-hotspot 0 400
+        sprite-x2b 254
+    }
+}
+pop-discard-2 0 "trace on"
+free-script

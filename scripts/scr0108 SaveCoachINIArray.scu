@@ -1,0 +1,29 @@
+; SCRP 108 SaveCoachINIArray
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local5 = array-height arg0
+local6 = array-width arg0
+dim array local3 i16[0...0][0...local6 - 1] swap=2
+for local7 = 0 to (local5 - 1) ++ {
+    for local8 = 0 to (local6 - 1) ++ {
+        local3[local8] = arg0[local7][local8]
+    }
+    local9 = call-script 106 [local3]
+    sprintf local4 "%s%d" [arg1, local7]
+    write-ini-string gCoachINIPath arg2 local4 local9
+    free-array local9
+    free-array local4
+}
+free-array local3
+free-script

@@ -1,0 +1,59 @@
+; LSC2 2 2051
+
+local variable local0
+local variable local1
+local variable local2
+
+while (!!global508) {
+    stop-script
+}
+if (!room1) {
+    room1 = call-script FindFreeSprite []
+}
+sprite-set-range room1 room1
+sprite-clear
+sprite-set-image 108
+sprite-set-hotspot -500 -500
+sprite-x52 0
+do {
+    if (gCursorInputEnabled) {
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            local0 = xa0 gMouseX gMouseY
+        } else {
+            local0 = xa0 gGamePadX gGamePadY
+        }
+        if (local0 != local1) {
+            case local0 {
+                of 70 {
+                    local2 = 3
+                }
+                of 72 {
+                    local2 = 1
+                }
+                of 391 {
+                    local2 = 2
+                }
+                of 68 {
+                    local2 = 0
+                }
+                of 67 {
+                    local2 = 4
+                }
+                else {
+                    local2 = -1
+                }
+            }
+            local1 = local0
+            if (local2 != -1) {
+                sprite-set-range room1 room1
+                sprite-x34 local2
+                sprite-set-hotspot 320 240
+            } else {
+                sprite-set-range room1 room1
+                sprite-set-hotspot -500 -500
+            }
+        }
+    }
+    stop-script
+}
+free-script

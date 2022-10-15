@@ -1,0 +1,77 @@
+; LSC2 4 2163 UpdateStealBase
+
+parameter toggle
+
+if (room39) {
+    free-running-script 0
+}
+if (toggle) {
+    gStealArray[toggle - 2] = 1 - gStealArray[toggle - 2]
+    if (gBases[SECOND][BASE-RUNNERIDX] != NONE) {
+        if (gStealArray[0]) {
+            gStealArray[1] = 1
+        }
+    }
+    if (gBases[THIRD][BASE-RUNNERIDX] != NONE) {
+        if (gStealArray[1]) {
+            gStealArray[2] = 1
+        }
+    }
+}
+gStealing = 0
+if (gStealArray[0]) {
+    gStealing = 1
+    sprite-set-range 19 19
+    sprite-set-image 359
+    sprite-x34 0
+    sprite-x2b 2
+    sprite-x52 0
+    sprite-set-hotspot 8 0
+} else {
+    sprite-set-range 19 19
+    sprite-set-image 0
+}
+if (gStealArray[1]) {
+    gStealing = 1
+    sprite-set-range 20 20
+    sprite-set-image 359
+    sprite-x34 1
+    sprite-x2b 2
+    sprite-x52 0
+    sprite-set-hotspot 8 0
+} else {
+    sprite-set-range 20 20
+    sprite-set-image 0
+}
+if (gStealArray[2]) {
+    gStealing = 1
+    sprite-set-range 21 21
+    sprite-set-image 359
+    sprite-x34 2
+    sprite-x2b 2
+    sprite-x52 0
+    sprite-set-hotspot 8 0
+} else {
+    sprite-set-range 21 21
+    sprite-set-image 0
+}
+if (rUserCurrentlyControlling == CONTROLLING-PITCHER) {
+    sprite-set-range 19 19
+    sprite-set-image 0
+    sprite-set-range 20 20
+    sprite-set-image 0
+    sprite-set-range 21 21
+    sprite-set-image 0
+    sprite-set-range 18 18
+    sprite-set-image 0
+} else if (gStealing) {
+    sprite-set-range 18 18
+    sprite-set-image 358
+    sprite-x2b 4
+    sprite-set-hotspot 8 0
+} else {
+    sprite-set-range 18 18
+    sprite-set-image 0
+}
+run-script smth_update_baserunner_ui []
+free-script

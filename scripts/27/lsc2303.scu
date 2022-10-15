@@ -1,0 +1,21 @@
+; LSC2 27 2303
+
+local variable local0
+
+if (!room10) {
+    do {
+        room10 = call-script FindFreeSprite []
+        if (!room10) {
+            stop-script
+        }
+    } until (room10)
+}
+sprite-set-range room10 room10
+sprite-set-image 1048
+sprite-x2b -910
+sprite-x34 local0
+sprite-x52 0
+sprite-x7c 2
+sprite-palette room25
+sprite-set-hotspot 320 240
+free-script

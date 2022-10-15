@@ -1,0 +1,38 @@
+; SCRP 172 CastFielderCollision
+
+parameter arg0
+
+if (gNoGooch) {
+    free-running-script 0
+}
+gCurrentSpeechScript = CastFielderCollision
+case random 4 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6524667,20777\x7f    Ooh!    That's gotta hurt."
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6545444,30062\x7f    Ouch.    Gotta where they're goin' out there!"
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6575506,26889\x7f    Pig pile!    Everybody jump on!"
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6602395,26509\x7f    Now that's what I call togetherness!"
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6628904,18343\x7f    Thanks for that lesson on gravity."
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

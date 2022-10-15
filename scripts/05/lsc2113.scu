@@ -1,0 +1,15 @@
+; LSC2 5 2113
+
+sprite-set-range room60 room60
+sprite-set-image 0
+sprite-set-range room62 room62
+sprite-set-image 0
+sprite-set-range room65 room65
+sprite-set-image 0
+sprite-set-range room66 room66
+sprite-set-image 0
+sprite-set-range room67 room67
+sprite-set-image 0
+sprite-set-range room68 room68
+sprite-set-image 0
+free-script

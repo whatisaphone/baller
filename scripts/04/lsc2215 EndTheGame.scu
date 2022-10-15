@@ -1,0 +1,28 @@
+; LSC2 4 2215 EndTheGame
+
+if (gSeasonSpectatorMode) {
+    gSeasonSpectatorMode = false
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+}
+if (gCurrentHalfInning != 0) {
+    gGameInfo[gCurrentHalfInning - 1] = gTeamInfo[gBattingTeamInfoIndex][TI-RUNS] - gGameInfo[51]
+    gGameInfo[51] = gTeamInfo[1 - gBattingTeamInfoIndex][TI-RUNS]
+}
+free-running-script ContinueGame
+gGameEnded = 1
+run-script 260 []
+run-script UpdateStatsForGameEnd []
+if (gNetplayActive) {
+    run-script FlushNetStats []
+}
+gGameInfo[54] = gTeamInfo[gVisitorInfoIndex][TI-RUNS]
+gGameInfo[55] = gTeamInfo[gHomeInfoIndex][TI-RUNS]
+gGameInfo[52] = gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN]
+gGameInfo[53] = gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN]
+gGameInfo[62] = gCurrentHalfInning / 2
+gGameInfo[58] = call-script TeamStatTotal [gVisitorInfoIndex, STAT-HITS]
+gGameInfo[59] = call-script TeamStatTotal [gHomeInfoIndex, STAT-HITS]
+gGameInfo[60] = call-script TeamStatTotal [gVisitorInfoIndex, STAT-ERRORS]
+gGameInfo[61] = call-script TeamStatTotal [gHomeInfoIndex, STAT-ERRORS]
+go-to-room 8
+free-script

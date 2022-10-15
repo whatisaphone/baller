@@ -1,0 +1,71 @@
+; SCRP 400
+
+local variable local0
+
+case random 20 {
+    of 0 {
+        local0 = "UPDOC          "
+    }
+    of 1 {
+        local0 = "TORTUGA        "
+    }
+    of 2 {
+        local0 = "TACO LARRY     "
+    }
+    of 3 {
+        local0 = "STRIPEY        "
+    }
+    of 4 {
+        local0 = "SLAPPY SAM     "
+    }
+    of 5 {
+        local0 = "QUACKY LOU     "
+    }
+    of 6 {
+        local0 = "POPS           "
+    }
+    of 7 {
+        local0 = "PAMMY SUE      "
+    }
+    of 8 {
+        local0 = "MR PAPPAS      "
+    }
+    of 9 {
+        local0 = "MONKEYBOY      "
+    }
+    of 10 {
+        local0 = "MISTER HAM     "
+    }
+    of 11 {
+        local0 = "MEALYBUGGY     "
+    }
+    of 12 {
+        local0 = "LIL NICKY      "
+    }
+    of 13 {
+        local0 = "LEFTY RITE     "
+    }
+    of 14 {
+        local0 = "JOHNNY NOG     "
+    }
+    of 15 {
+        local0 = "ICKY YUCK      "
+    }
+    of 16 {
+        local0 = "FLINDER        "
+    }
+    of 17 {
+        local0 = "FLAPJACK       "
+    }
+    of 18 {
+        local0 = "DIZZY LIZ      "
+    }
+    of 19 {
+        local0 = "BOB DOG        "
+    }
+    of 20 {
+        local0 = "MICKEY TOE     "
+    }
+}
+return local0
+free-script

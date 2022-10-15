@@ -1,0 +1,35 @@
+; LSC2 29 2082
+
+local variable local0
+local variable local1
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+run-script GetKidName [local1]
+if (local1 > 263) {
+    free-array gKidName
+    gKidName = "Custom"
+}
+local5 = gKidName[0] + gKidName[2] + gColorRandom1
+local6 = gKidName[1] + gKidName[3] + gColorRandom2
+local7 = 9 - 1
+if (local1 == 2) {
+    if (random 1) {
+        local3 = 7
+    }
+    if (local3 != 7) {
+        local4 = 7
+    } else {
+        local4 = (mod local6 local7) + 1
+    }
+} else {
+    local3 = (mod local5 local7) + 1
+    local4 = (mod local6 local7) + 1
+}
+xb6-xfe
+xb6-xc2 "color1: %d    color2: %d   max: %d" local3 [local4, 9]
+run-script smth_team_color_palette [0, local0, 0, local3, local4, local3]
+free-script

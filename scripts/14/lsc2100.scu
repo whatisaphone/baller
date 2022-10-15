@@ -1,0 +1,10 @@
+; LSC2 14 2100
+
+local variable local0
+local variable local1
+
+if (!global692) {
+    global692 = call-script AllocPalette []
+}
+run-script 2091 [local0, local1]
+free-script

@@ -1,0 +1,13 @@
+; LSC2 5 2107
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+for local1 = local1 to 1 -- {
+    run-script local2 [local0, local1, local3, local4, local5]
+}
+free-script

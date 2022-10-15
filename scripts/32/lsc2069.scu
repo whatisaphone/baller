@@ -1,0 +1,210 @@
+; LSC2 32 2069
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+local variable local22
+local variable local23
+
+local12 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+local14 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+if (local14 > 284) {
+    if (room18 < room10) {
+        ++room17
+        ++room18
+        local17 = 5
+    } else {
+        local15 = 1
+    }
+} else if (room17 > 1) {
+    --room17
+    --room18
+    local17 = 4
+} else {
+    local15 = 1
+}
+if (!local15 && !room15) {
+    sprite-set-range room7[8] room7[8]
+    sprite-set-hotspot 316 240
+    sprite-set-image 1374
+    sprite-x34 local17
+    sprite-x2b 20
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-palette room2
+    stop-script
+    sprite-set-range room7[8] room7[8]
+    sprite-clear
+    sprite-x2a 0 2
+    image-select room8[1]
+    image-op-create
+    image-x20 360
+    image-x21 200
+    image-xff
+    image-select room8[1]
+    image-x85 0 0 360 200 (palette-x42 room4 5)
+    image-xff
+    image-select room8[2]
+    image-op-create
+    image-x20 152
+    image-x21 200
+    image-xff
+    image-select room8[2]
+    image-x85 0 0 152 200 (palette-x42 room4 5)
+    image-xff
+    local11 = 1
+    for local2 = room17 to room18 ++ {
+        dim array local7 byte[0...0][0...16 + 8] swap=2
+        local0 = call-script smth_string [room9, 44, local2, 1]
+        local16 = call-script smth_string [room19, 44, local2]
+        local23 = "baseball2001"
+        if (local16 < 10) {
+            sprintf room12 "%s%s.c0%d" [gSaveGamePath, local23, local16]
+        } else {
+            sprintf room12 "%s%s.c%d" [gSaveGamePath, local23, local16]
+        }
+        free-array local23
+        if ((file-get-size room12) == -1) {
+            xb7-xfe
+            xb7-xc2 "File (%s) Does not exist for coach (%s)." room12 [local0]
+        } else {
+            local1 = read-ini-string room12 "general" "coach"
+            if (strcmp local1 local0) {
+                xb7-xfe
+                xb7-xc2 "Coach (%s) does not match coach (%s) from File (%s)" local0 [local1, room12]
+            }
+            local3 = call-script maybe_draw_text_to_image [local0, 1239, room8[0], room4]
+            image-select room8[0]
+            image-pos 2 local13
+            image-render-into room8[1]
+            image-x30
+            image-xff
+            put-class (487 + local11 - 1) [32]
+            local10 = read-ini-int room12 "general" "game"
+            temp = read-ini-string room12 "general" "SavedGameVersion"
+            if (temp[0]) {
+                local18 = 1
+            } else {
+                local18 = 0
+            }
+            free-array temp
+            if (local18) {
+                local19 = 4
+            } else if (local10 < 14) {
+                local19 = 3
+            } else {
+                case 1 {
+                    of local10 >= 20 {
+                        local19 = 2
+                    }
+                    of local10 >= 17 {
+                        local19 = 1
+                    }
+                    of local10 >= 14 {
+                        local19 = 0
+                    }
+                }
+            }
+            local20 = read-ini-int room12 "player" "TEAM-NAME-2"
+            local4 = call-script GetTeamNameString [local20, 1]
+            local3 = call-script maybe_draw_text_to_image [local4, 1239, room8[0], room4]
+            local3 = local3 / 2
+            image-select room8[0]
+            image-pos (290 - local3) local13
+            image-render-into room8[1]
+            image-x30
+            image-xff
+            if (local11 <= 6) {
+                local21 = read-ini-int room12 "player" "TEAM-COLOR-1"
+                local22 = read-ini-int room12 "player" "TEAM-COLOR-2"
+                if (room23[local11 - 1]) {
+                    run-script FreeScratchImage [room23[local11 - 1]]
+                }
+                room23[local11 - 1] = call-script 269 [local20, local21, local22]
+                sprite-set-range room7[15 + local11 - 1] room7[15 + local11 - 1]
+                sprite-set-image room23[local11 - 1]
+                sprite-set-hotspot 304 (local13 + 192)
+                sprite-x2b 500
+                sprite-x7c 0
+                sprite-x52 0
+            }
+            temp = read-ini-int room12 "AllTime" "Wins"
+            sprintf local8 "%d" [temp]
+            temp = read-ini-int room12 "AllTime" "Losses"
+            sprintf local9 "%d" [temp]
+            local3 = call-script maybe_draw_text_to_image [local8, 1031, room8[0], room3]
+            local3 = local3 / 2
+            image-select room8[0]
+            image-pos (18 - local3) local13
+            image-render-into room8[2]
+            image-x30
+            image-xff
+            local3 = call-script maybe_draw_text_to_image [local9, 1031, room8[0], room3]
+            local3 = local3 / 2
+            image-select room8[0]
+            image-pos (62 - local3) local13
+            image-render-into room8[2]
+            image-x30
+            image-xff
+            image-select 1458
+            image-x34 local19
+            image-palette room22
+            image-pos 85 local13
+            image-render-into room8[2]
+            image-x30
+            image-xff
+            free-array local6
+            free-array local4
+            free-array local1
+            free-array local8
+            free-array local9
+            local13 = local11 * 34 + local11
+            ++local11
+        }
+        free-array local0
+        free-array room12
+        free-array local7
+    }
+    sprite-set-range room7[4] room7[4]
+    sprite-clear
+    sprite-set-hotspot 116 198
+    sprite-set-image room8[1]
+    sprite-x2b 50
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-set-range room7[5] room7[5]
+    sprite-clear
+    sprite-set-hotspot 478 198
+    sprite-set-image room8[2]
+    sprite-x2b 20
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-set-range room7[6] room7[6]
+    sprite-clear
+    sprite-x2a 0 2
+    if (gCoachINIPath) {
+        free-array gCoachINIPath
+    }
+    if (gCoachName) {
+        free-array gCoachName
+    }
+}
+free-script

@@ -1,0 +1,32 @@
+; LSC2 3 2162 maybe_smth_gamepad_defense
+
+parameter arg0
+parameter x
+parameter y
+
+local variable local3
+
+if (arg0 != -1) {
+    gUserSelectedPlay = arg0
+} else {
+    run-script TransformUserInputVector [x, y]
+    if (gFielderWithBall) {
+        local3 = call-script LastClickedBaseOrRunner [100]
+        if (local3 < 0 || local3 > 4) {
+            local3 = -1
+        }
+        if (local3 != -1) {
+            if (local3 == gWorld[gFielderWithBall][TARGET]) {
+            } else {
+                gWorld[gFielderWithBall][TARGET] = local3
+            }
+        } else {
+            gWorld[gFielderWithBall][TARGET] = NONE
+        }
+    }
+    gUserSelectedPlay = LAST-CLICK-FIELDING
+    gFieldingTargetX = gWorld[LAST-CLICK-FIELDING][X]
+    gFieldingTargetZ = gWorld[LAST-CLICK-FIELDING][Z]
+    run-script-xc3 SendClosestFielderToTarget []
+}
+free-script

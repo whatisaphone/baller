@@ -1,0 +1,164 @@
+; LSC2 34 2073
+
+local variable local0
+local variable local1
+local variable local2
+
+if (room41 == room43) {
+    local1 = room44
+} else {
+    local1 = room48
+}
+if (room40) {
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room40, STAT-RUNS-SCORED, 1]
+            run-script AddStat [room40, STAT-RUNS-SCORED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room40, STAT-RUNS-SCORED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room31, STAT-RBIS, 1]
+            run-script AddStat [room31, STAT-RBIS, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room31, STAT-RBIS, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room20, STAT-RUNS-AGAINST, 1]
+            run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+    }
+    if (room41 == room43) {
+        ++room44
+    } else {
+        ++room48
+    }
+}
+local2 = random 100
+if (room39 && local0 > 1 || room39 && local2 < gKidData[room31][KD-maybe-speed] / 2 + 25) {
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room39, STAT-RUNS-SCORED, 1]
+            run-script AddStat [room39, STAT-RUNS-SCORED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room39, STAT-RUNS-SCORED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room31, STAT-RBIS, 1]
+            run-script AddStat [room31, STAT-RBIS, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room31, STAT-RBIS, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room20, STAT-RUNS-AGAINST, 1]
+            run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+    }
+    if (room41 == room43) {
+        ++room44
+    } else {
+        ++room48
+    }
+}
+if (room38 && local0 > 2) {
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room38, STAT-RUNS-SCORED, 1]
+            run-script AddStat [room38, STAT-RUNS-SCORED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room38, STAT-RUNS-SCORED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room31, STAT-RBIS, 1]
+            run-script AddStat [room31, STAT-RBIS, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room31, STAT-RBIS, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room20, STAT-RUNS-AGAINST, 1]
+            run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+    }
+    if (room41 == room43) {
+        ++room44
+    } else {
+        ++room48
+    }
+}
+if (local0 > 3) {
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room31, STAT-RUNS-SCORED, 1]
+            run-script AddStat [room31, STAT-RUNS-SCORED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room31, STAT-RUNS-SCORED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room31, STAT-RBIS, 1]
+            run-script AddStat [room31, STAT-RBIS, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room31, STAT-RBIS, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [room20, STAT-RUNS-AGAINST, 1]
+            run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [room20, STAT-RUNS-AGAINST, 1]
+    }
+    if (room41 == room43) {
+        ++room44
+    } else {
+        ++room48
+    }
+}
+local2 = random 100
+case local0 {
+    of 1 {
+        room40 = room39
+        if (!room40 && local2 < gKidData[room31][KD-maybe-speed] / 2 + 25) {
+            room40 = room38
+        } else {
+            room39 = room38
+        }
+        room38 = room31
+    }
+    of 2 {
+        room40 = room38
+        room39 = room31
+        room38 = 0
+    }
+    of 3 {
+        room40 = room31
+        room39 = 0
+        room38 = 0
+    }
+    of 4 {
+        room40 = 0
+        room39 = 0
+        room38 = 0
+    }
+}
+free-script

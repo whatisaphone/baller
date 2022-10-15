@@ -1,0 +1,9 @@
+; SCRP 281
+
+if (global651) {
+    run-script ReleaseSprite [global651]
+    global651 = 0
+    run-script ReleaseSprite [global650]
+    global650 = 0
+}
+free-script

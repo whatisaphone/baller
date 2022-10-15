@@ -1,0 +1,15 @@
+; LSC2 27 2238
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+local2 = call-script ReadActiveRoster [room89, 10]
+local3 = call-script ReadActiveRoster [room89, 11]
+local0 = call-script ReadActiveRoster [room89, 12]
+local1 = call-script ReadActiveRoster [room89, 13]
+run-script 279 [room0, local0, local1]
+run-script 270 [local2, room86[11], 90, 282, room0]
+run-script 270 [local3, room86[10], 90, 314, room0]
+free-script

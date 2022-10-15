@@ -1,0 +1,7 @@
+; LSC2 34 2127
+
+run-script ReleaseSprite [room8]
+run-script ReleaseSprite [room9]
+run-script ReleaseSprite [room10]
+run-script FreeSpriteGroup [room11]
+free-script

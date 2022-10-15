@@ -1,0 +1,141 @@
+; LSC2 5 2071
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (gGameMode == MODE-SEASON) {
+    local2 = 429
+    local3 = 429
+} else {
+    local2 = 0
+    local3 = 0
+}
+room37 = call-script AllocPalette []
+room38 = call-script AllocPalette []
+room39 = call-script AllocPalette []
+room42 = call-script AllocPalette []
+room43 = call-script AllocPalette []
+palette-select room37
+palette-load 122 0
+palette-unselect
+palette-select room38
+palette-load 125 0
+palette-unselect
+palette-select room39
+palette-load 1239 0
+palette-unselect
+palette-select room42
+palette-load 153 0
+palette-unselect
+palette-select room43
+palette-load 153 0
+palette-unselect
+local0 = (image-get-width 122 0) + 1
+local1 = (image-get-height 122 0) + 1
+image-select 126
+image-op-create
+image-x20 local0
+image-x21 local1
+image-xff
+image-select 126
+image-x85 0 0 local0 local1 5
+image-xff
+image-select 122
+image-x34 0
+image-palette room37
+image-render-into 126
+image-x30
+image-xff
+local0 = (image-get-width 122 1) + 1
+local1 = (image-get-height 122 1) + 1
+image-select 131
+image-op-create
+image-x20 local0
+image-x21 local1
+image-xff
+image-select 131
+image-x85 0 0 local0 local1 5
+image-xff
+image-select 122
+image-x34 1
+image-palette room37
+image-render-into 131
+image-x30
+image-xff
+room34 = call-script FindFreeSprite []
+sprite-set-range room34 room34
+sprite-clear
+sprite-set-image 126
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 23
+sprite-palette room37
+sprite-x2b 100
+sprite-set-range room34 room34
+sprite-set-hotspot 0 0
+sprite-set-range room34 room34
+sprite-x7d [32, 18]
+gSpriteCursorTargets[room34][TARGET-CLICK-SCRIPT] = 2164
+sprite-group-select 23
+sprite-group-clear
+sprite-group-x41 (4 + local2) 370
+room33 = call-script FindFreeSprite []
+sprite-set-range room33 room33
+sprite-clear
+sprite-set-image 131
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 24
+sprite-palette room37
+sprite-x2b 100
+sprite-set-range room33 room33
+sprite-set-hotspot 0 0
+sprite-set-range room33 room33
+sprite-x7d [32, 18]
+gSpriteCursorTargets[room33][TARGET-CLICK-SCRIPT] = 2164
+sprite-group-select 24
+sprite-group-clear
+sprite-group-x41 (429 + local3) 370
+room24 = call-script FindFreeSprite []
+sprite-set-range room24 room24
+sprite-clear
+sprite-set-image 125
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 23
+sprite-x34 0
+sprite-palette room38
+sprite-x2b 101
+sprite-set-range room24 room24
+sprite-set-hotspot 320 -132
+sprite-set-range room24 room24
+sprite-x7d [32, 18]
+room25 = call-script FindFreeSprite []
+sprite-set-range room25 room25
+sprite-clear
+sprite-set-image 125
+sprite-x52 0
+sprite-x7c 2
+sprite-x25 24
+sprite-x34 0
+sprite-palette room38
+sprite-x2b 101
+sprite-set-range room25 room25
+sprite-set-hotspot 320 -132
+sprite-set-range room25 room25
+sprite-x7d [32, 18]
+gSpriteCursorTargets[room24][TARGET-CLICK-SCRIPT] = 2070
+gSpriteCursorTargets[room25][TARGET-CLICK-SCRIPT] = 2070
+run-script 2068 [1]
+run-script 2068 [2]
+room20 = 154
+room21 = 154
+if (is-script-running maybe_setup_two_player_draft) {
+    sprite-group-select 23
+    sprite-group-x2c 0 30
+    sprite-group-select 24
+    sprite-group-x2c 0 30
+}
+free-script

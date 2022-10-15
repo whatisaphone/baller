@@ -1,0 +1,64 @@
+; LSC2 34 2065
+
+local variable local0
+local variable local5
+
+gHitAngleXZ = 0
+room33 = 0
+if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+    local5 = max local5 room30
+    if (room30) {
+        room33 = 0
+        case room22 {
+            of 21 {
+                if (!(local0 - room30)) {
+                    room33 = 2
+                }
+            }
+            of 24 {
+                case (local0 - room30) / 3 {
+                    of -2 {
+                        room33 = 1
+                    }
+                    in [-1, 0, 1] {
+                        room33 = 2
+                    }
+                    of 2 {
+                        room33 = 3
+                    }
+                }
+            }
+            else {
+                case local0 {
+                    of -2 {
+                        room33 = 1
+                    }
+                    in [-1, 0, 1] {
+                        room33 = 2
+                    }
+                    of 2 {
+                        room33 = 3
+                    }
+                }
+            }
+        }
+        if (room33 == 0) {
+        } else {
+label00e2:
+            if (gHitAngleXZ != -1) {
+                run-script 2064 []
+            }
+            if (gHitAngleXZ >= 0) {
+                if (room22 > 17) {
+                    gGivePowerup = 1
+                }
+                gBallWasHit = true
+                free-running-script 0
+            }
+        }
+    }
+} else if (room30) {
+    room33 = 2
+    goto label00e2
+}
+free-script

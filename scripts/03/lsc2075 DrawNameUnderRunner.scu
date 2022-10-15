@@ -1,0 +1,25 @@
+; LSC2 3 2075 DrawNameUnderRunner
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+if (gOffenseControlledBy != CB-USER) {
+    free-running-script 0
+}
+if (gRunnerCursorIndex != NONE) {
+    local1 = gRunners[gRunnerCursorIndex][R-ENTITY]
+} else {
+    local1 = 999
+}
+if (local1 != room23) {
+    room23 = local1
+    if (local1 != 999) {
+        local3 = gRunners[gRunnerCursorIndex][R-KID]
+        local2 = local1 - 30
+        run-script-xc3 DrawNameUnderKid [local3, local2, 112, room23]
+    }
+}
+free-script

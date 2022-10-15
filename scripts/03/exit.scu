@@ -1,0 +1,62 @@
+; EXCD 3
+
+run-script 2179 []
+room26 = -1
+free-running-script 2168
+if (gField == CEMENT-GARDENS) {
+    put-actor global381 0 0 0
+}
+gMinJiffies = rSavedMinJiffies
+global95 = 0
+free-array gBallPath
+free-array rBaseClaims
+free-array rBaseCorners
+free-array rCommentQueue
+free-array rRunnerStartingBases
+free-array rRunnersWhenBallLastThrown
+free-array r_runners_zeta
+free-array gRunnerSpecialDestinations
+free-array gRunnersExtra
+free-array r_maybe_net_fatigue_dirty
+free-array room28
+free-array room29
+global504 = 0
+global565 = 0
+g_maybe_net_fielders_dirty_mask = 0
+gPlayEndedReason = 0
+array-set-row gWorld 35 [0, 0, 0, 0, 0]
+array-set-row gWorld 36 [0, 0, 0, 0, 0]
+gHitPosPhysX = 0
+gHitPosPhysY = 0
+gHitPosPhysZ = 0
+x50
+global43 = 32
+if (gNetplayActive) {
+    if (g_net_smth_me == g_net_smth_master && gNumOuts < 3) {
+        gBases[0][BASE-RUNNERIDX] = gBases[0][BASE-RUNNERIDX] + 8000
+        run-script-xc3 maybe_smth_net_send_array [40, 1, gBases]
+        gBases[0][BASE-RUNNERIDX] = gBases[0][BASE-RUNNERIDX] - 8000
+        gRunners[0][R-CUR-BASE] = gRunners[0][R-CUR-BASE] + 9000
+        run-script-xc3 maybe_smth_net_send_array [40, 1, gRunners]
+        gRunners[0][R-CUR-BASE] = gRunners[0][R-CUR-BASE] - 9000
+    }
+    free-array gNetStateBuffer
+    free-array global551
+}
+run-script 343 [1]
+if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+    run-script GamePadInputLoop []
+    run-script ShowGamePadCursor []
+}
+put-class 323 [160]
+put-class 324 [160]
+run-script 2176 []
+if (global384) {
+    run-script ReleaseActor [global384]
+    global384 = 0
+}
+g_smth_play_may_continue = 0
+if (!(gNextRoom in [4, 3])) {
+    run-script SetAmbientSound [0]
+}
+finish-script

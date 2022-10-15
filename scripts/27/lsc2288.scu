@@ -1,0 +1,18 @@
+; LSC2 27 2288
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+for local5 = 14 to local1 ++ {
+    local2 = call-script ReadPlayoffSchedule [local0, local5, 3]
+    local3 = call-script ReadPlayoffSchedule [local0, local5, 4]
+    if (local2 > local3) {
+        ++local4
+    }
+}
+return local4
+free-script

@@ -1,0 +1,36 @@
+; LSC2 4 2114 smth_batting_ai_stance
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable result
+local variable local4
+
+if (gTeeBall || gDifficulty == EASY) {
+    local4 = 100
+} else {
+    local4 = random 100
+}
+if (gKidData[gBatterKid][2] > local4) {
+    if (arg2 != 0) {
+        result = 5
+    } else if (arg0 != 0) {
+        result = 4
+    } else {
+        result = 0
+    }
+    if (!result) {
+        if (gField == CEMENT-GARDENS) {
+            if (!(random 3)) {
+                result = 4
+            }
+        }
+    }
+} else if (!(random 9)) {
+    result = random2 1 6
+} else {
+    result = 0
+}
+return result
+free-script

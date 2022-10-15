@@ -1,0 +1,10 @@
+; LSC2 8 2096
+
+run-script FreePalette [room3]
+run-script FreePalette [room4]
+run-script FreePalette [room5]
+run-script FreePalette [room6]
+run-script FreePalette [room7]
+run-script FreePalette [room8]
+run-script FreePalette [room9]
+free-script

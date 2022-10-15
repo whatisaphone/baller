@@ -1,0 +1,21 @@
+; LSC2 5 2122
+
+local variable local0
+local variable local1
+local variable local2
+
+if (gKidData[local0][KD-gender] == GIRL) {
+    local1 = 2505
+} else {
+    local1 = 2501
+}
+local1 = local1 + (random 3)
+local2 = actor-get-var g_maybe_selected_actor 3
+if (local2) {
+    actor-do-anim g_maybe_selected_actor local2
+}
+xb8-xfe g_maybe_selected_actor
+xb8-xf9 [0]
+xb8-xe1 local1
+xa9-xa9
+free-script

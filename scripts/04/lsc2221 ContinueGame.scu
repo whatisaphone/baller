@@ -1,0 +1,95 @@
+; LSC2 4 2221 ContinueGame
+
+local variable local0
+local variable local1
+local variable local2
+local variable local4
+local variable local5
+local variable local6
+
+if (gCurrentHalfInning == gGameLength - 1) {
+    if (gTeamInfo[gHomeInfoIndex][TI-RUNS] > gTeamInfo[gVisitorInfoIndex][TI-RUNS]) {
+        exec-script EndTheGame []
+    }
+}
+if (gCurrentHalfInning == 49) {
+    gDifficulty = EASY
+}
+if (gGivePowerup > 1) {
+    if (gGivePowerup & 32) {
+        run-script IncrementPowerup []
+    } else if (gGivePowerup & 64) {
+        run-script IncrementPowerup [true]
+    } else {
+        pop-discard 0
+    }
+}
+local1 = 1
+if (gNumOutsBeforePitch != gNumOuts || global477) {
+    if (!gStealing || global477) {
+        g_maybe_batter_strikeout_costume = 0
+    }
+    if (gNumOuts > 2) {
+        if (gStealing && !gBallWasHit) {
+            local5 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION]
+            --local5
+            if (local5 < 0) {
+                local5 = 8
+            }
+            gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION] = local5
+        }
+        local2 = 1
+        local4 = 1
+        gStealing = 0
+        array-set gStealArray [0, 0, 0] 0
+        run-script AdvanceHalfInning [1]
+        while (!!(is-script-running AdvanceHalfInning)) {
+            stop-script
+        }
+    }
+    if (gStealing && !gBallWasHit) {
+    } else {
+        gNumBalls = 0
+        gNumStrikes = 0
+    }
+} else if (gBallIsFoul) {
+    if (gNumStrikes < 2) {
+        ++gNumStrikes
+    }
+} else if (gPreviousRoom == 3) {
+    if (gBallWasHit || gNumBalls == 4) {
+        gStealing = 0
+        local0 = 1
+        gNumBalls = 0
+        gNumStrikes = 0
+    }
+} else {
+    room45 = 1
+}
+run-script SetOffenseDefenseVars []
+if (!local2) {
+    run-script 2147 []
+}
+if (gNumOutsBeforePitch != gNumOuts || local0 || global477) {
+    gNumOutsBeforePitch = gNumOuts
+    if (!gStealing || global477) {
+        local1 = 0
+    }
+}
+gGivePowerup = 0
+global477 = 0
+gStealing = 0
+run-script InitPitcher []
+run-script smth_update_various_ui [local4]
+run-script 273 []
+actor-select 17
+actor-set-costume 0
+if (gPreviousRoom in [27, 7]) {
+    local6 = 1
+} else {
+    local6 = 0
+}
+run-script InitBatter [local1, local6]
+run-script BetweenPitches [local6]
+gBallWasHit = false
+free-script

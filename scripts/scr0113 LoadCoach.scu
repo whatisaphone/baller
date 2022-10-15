@@ -1,0 +1,198 @@
+; SCRP 113 LoadCoach
+
+local variable local2
+local variable local3
+local variable local4
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+
+if (!gCoachINIPath) {
+    goto label002c
+}
+if (!(read-ini-int gCoachINIPath "general" "complete")) {
+label002c:
+    xb6-xfe
+    xb6-x4b "No/Invalid INI file!!!"
+    xb7-xfe
+    xb7-x4b "Sorry, but the coach file you selected is missing data, and cannot be used. Please erase it in the sign-in screen."
+    gSeasonGameNumber = 0
+    if (gSeasonScheduleArray) {
+        free-array gSeasonScheduleArray
+    }
+    if (gSeasonRosterArray) {
+        free-array gSeasonRosterArray
+    }
+    if (gSeasonTeamsArray) {
+        free-array gSeasonTeamsArray
+    }
+    if (gPlayoffScheduleArray) {
+        free-array gPlayoffScheduleArray
+    }
+    if (gPlayoffRosterArray) {
+        free-array gPlayoffRosterArray
+    }
+    if (gPlayoffTeamsArray) {
+        free-array gPlayoffTeamsArray
+    }
+    return 0
+    free-running-script 0
+}
+gSeasonGameNumber = read-ini-int gCoachINIPath "general" "game"
+run-script LoadCoachINIOptions []
+if ((read-ini-int gCoachINIPath "general" "over") == 1) {
+    gSeasonOver = 1
+}
+if ((read-ini-int gCoachINIPath "general" "gloriousvictory") == 1) {
+    gGloriousVictory = 1
+}
+if (gSeasonGameNumber > 24 || gSeasonOver == 1) {
+    global485 = 1
+    if (gGloriousVictory == 1) {
+        gSeasonOver = 1
+    } else {
+        gSeasonOver = 1
+    }
+}
+gCoachHomeField = read-ini-int gCoachINIPath "general" "field"
+gField = gCoachHomeField
+gGameLength = read-ini-int gCoachINIPath "general" "innings"
+gCoachID = read-ini-int gCoachINIPath "general" "ID"
+gDifficulty = read-ini-int gCoachINIPath "general" "skill"
+gNoBatCircle = read-ini-int gCoachINIPath "general" "nobatcircle"
+gPitchBallIndicator = read-ini-int gCoachINIPath "general" "pitchx"
+gNoErrors = read-ini-int gCoachINIPath "general" "noerrors"
+local8 = read-ini-string gCoachINIPath "general" "coach"
+if (gCoachName) {
+    free-array gCoachName
+}
+if (local8) {
+    gCoachName = substr local8 0 (min 15 ((strlen local8) - 1))
+    free-array local8
+}
+if (gCustomKidNames) {
+    free-array gCustomKidNames
+}
+dim array gCustomKidNames byte[0...10][0...20] swap=2
+local11 = "names"
+local12 = "custom"
+if (1) {
+    dim array local16 byte[0...0][0...20] swap=2
+    run-script LoadCoachINIArray [local16, local11, local12]
+    array-copy-range gCustomKidNames local16 1 1 0 20 0 0 0 20
+    free-array local16
+} else {
+    run-script LoadCoachINIArray [gCustomKidNames, local11, local12]
+}
+free-array local11
+free-array local12
+if (1) {
+    local17 = 0
+} else {
+    local17 = 10 - 1
+}
+dim array local15 byte[0...local17][0...36] swap=2
+local11 = "backupstats"
+local12 = "custom"
+run-script LoadCoachINIArray [local15, local11, local12]
+array-copy-range gBackupKidData local15 264 (264 + local17) 0 36 0 local17 0 36
+free-array local11
+free-array local12
+free-array local15
+array-copy-range gKidData gBackupKidData 264 (264 + local17) 0 36 264 (264 + local17) 0 36
+gSeasonDivision = read-ini-int gCoachINIPath "player" "DIVISION"
+run-script ResetSeasonRosterArray []
+gSeasonRosterArray[gSeasonDivision][10] = read-ini-int gCoachINIPath "player" "TEAM-NAME-1"
+gSeasonRosterArray[gSeasonDivision][11] = read-ini-int gCoachINIPath "player" "TEAM-NAME-2"
+gSeasonRosterArray[gSeasonDivision][12] = read-ini-int gCoachINIPath "player" "TEAM-COLOR-1"
+gSeasonRosterArray[gSeasonDivision][13] = read-ini-int gCoachINIPath "player" "TEAM-COLOR-2"
+run-script ResetSeasonScheduleArray []
+local11 = "schedule"
+local12 = "season"
+run-script LoadCoachINIArray [gSeasonScheduleArray, local11, local12]
+free-array local11
+free-array local12
+local11 = "roster"
+local12 = "season"
+run-script LoadCoachINIArray [gSeasonRosterArray, local11, local12]
+free-array local11
+free-array local12
+run-script ResetSeasonTeamsArray []
+local11 = "teams"
+local12 = "season"
+run-script LoadCoachINIArray [gSeasonTeamsArray, local11, local12]
+free-array local11
+free-array local12
+if (gSeasonGameNumber >= 14) {
+    run-script ResetPlayoffTeamsArray []
+    local11 = "teams"
+    local12 = "playoffs"
+    run-script LoadCoachINIArray [gPlayoffTeamsArray, local11, local12]
+    free-array local11
+    free-array local12
+    run-script ResetPlayoffScheduleArray []
+    local11 = "schedule"
+    local12 = "playoffs"
+    run-script LoadCoachINIArray [gPlayoffScheduleArray, local11, local12]
+    free-array local11
+    free-array local12
+    run-script ResetPlayoffRosterArray []
+    local11 = "roster"
+    local12 = "playoffs"
+    run-script LoadCoachINIArray [gPlayoffRosterArray, local11, local12]
+    free-array local11
+    free-array local12
+}
+local14 = call-script IsSeasonRosterValid []
+temp = strlen gCoachINIPath
+local19 = substr gCoachINIPath (temp - 2) temp
+local18 = "baseball2001"
+sprintf local10 "%s%s.t%s" [gSaveGamePath, local18, local19]
+free-array local19
+free-array local18
+local13 = file-open local10 1
+if (local13 != -1) {
+    temp = (array-height gGameStats) * (array-width gGameStats) + (array-height gSeasonStats) * (array-width gSeasonStats) + (array-height gPlayoffStats) * (array-width gPlayoffStats)
+    local9 = file-read-array 4 local13 (temp * 2 - 1)
+    file-close local13
+    redim 5 local9 0 (temp - 1)
+    local4 = 0
+    for local2 = 0 to ((array-height gGameStats) - 1) ++ {
+        for local3 = 0 to ((array-width gGameStats) - 1) ++ {
+            gGameStats[local2][local3] = local9[local4]
+            local4 = local4 + 1
+        }
+    }
+    for local2 = 0 to ((array-height gSeasonStats) - 1) ++ {
+        for local3 = 0 to ((array-width gSeasonStats) - 1) ++ {
+            gSeasonStats[local2][local3] = local9[local4]
+            local4 = local4 + 1
+        }
+    }
+    for local2 = 0 to ((array-height gPlayoffStats) - 1) ++ {
+        for local3 = 0 to ((array-width gPlayoffStats) - 1) ++ {
+            gPlayoffStats[local2][local3] = local9[local4]
+            local4 = local4 + 1
+        }
+    }
+    free-array local9
+} else {
+    xb6-xfe
+    xb6-x4b "No Stats!!"
+}
+free-array local10
+if (gDebug == 101) {
+    run-script DumpSeasonRosterFile []
+    run-script DumpSeasonScheduleFile []
+}
+return local14
+free-script

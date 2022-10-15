@@ -1,0 +1,14 @@
+; EXCD 34
+
+if (gSeasonGameNumber < 14 && !gSeasonOver) {
+    run-script 2136 []
+}
+if (global682) {
+    run-script FreeScratchImage [global682]
+    global682 = 0
+}
+run-script 2085 []
+run-script RefreshTeams []
+free-array room17
+free-array room19
+finish-script

@@ -1,0 +1,15 @@
+; LSC2 27 2271
+
+if (!room120) {
+    dim array room120 i16[0...0][0...7] swap=2
+    dim array room121 i16[0...0][0...7] swap=2
+    dim array room124 i16[0...0][0...7] swap=2
+    dim array room125 i16[0...0][0...7] swap=2
+    dim array room122 i16[0...0][0...7] swap=2
+    dim array room123 i16[0...0][0...7] swap=2
+    dim array room126 i16[0...0][0...7] swap=2
+    dim array room131 i16[0...0][0...7] swap=2
+    dim array room132 i16[0...0][0...7] swap=2
+    dim array room134 i16[0...0][0...7] swap=2
+}
+free-script

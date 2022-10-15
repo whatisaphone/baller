@@ -1,0 +1,10 @@
+; LSC2 40 2107
+
+local variable local0
+
+if (local0 == room1[11]) {
+    run-script 2076 []
+} else {
+    run-script 2077 []
+}
+free-script

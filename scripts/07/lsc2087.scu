@@ -1,0 +1,57 @@
+; LSC2 7 2087
+
+local variable local0
+local variable local1
+local variable local2
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+local6 = room8[0]
+image-select local6
+image-op-create
+image-x20 162
+image-x21 194
+image-xff
+image-select local6
+image-x85 0 0 162 194 room12
+image-xff
+room1 = gTeamInfo[room0][TI-BATTING-ORDER-KIDS]
+run-script 279 [room21, gTeamInfo[room0][3], gTeamInfo[room0][8]]
+run-script 270 [gTeamInfo[room0][TI-TEAM-NOUN], room6[31], 445, 127, room21]
+run-script 2096 []
+for local1 = 0 to 8 ++ {
+    if (local0 != local1 + 1) {
+        local2 = room1[local1]
+        run-script GetKidName [local2, 5]
+        temp2 = (strlen gKidName) - 1
+        for temp = 0 to temp2 ++ {
+            if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+                gKidName[temp] = gKidName[temp] - 32
+            }
+        }
+        local7 = call-script maybe_draw_text_to_image [gKidName, 1239, room8[1], room14]
+        local9 = local1 * 2 + local1
+        local10 = local1 * 18 + local9
+        image-select room8[1]
+        image-pos (84 - local7 / 2) local10
+        image-render-into local6
+        image-x36 1
+        image-x30
+        image-xff
+        if (room4) {
+            local8 = local10 + 210
+            polygon-xf7 (10000 + local1) (10000 + local1)
+            polygon-quadrilateral (10000 + local1) 48 local8 210 local8 210 (local8 + 16) 48 (local8 + 16)
+        }
+    }
+}
+sprite-set-range room6[4] room6[4]
+sprite-clear
+sprite-set-image local6
+sprite-x7c 0
+sprite-x2b -800
+sprite-set-hotspot 48 208
+free-script

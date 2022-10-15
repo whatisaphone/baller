@@ -1,0 +1,4 @@
+; SCRP 134
+
+return gTeamInfo[0][TI-TEAM-NOUN]
+free-script

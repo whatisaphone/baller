@@ -1,0 +1,222 @@
+; LSC2 4 2134 BanterPitcherStamina
+
+parameter arg0
+
+gCurrentSpeechScript = BanterPitcherStamina
+case arg0 {
+    of 1 {
+        if (random 1) {
+            xba "\x7fT21797920,36605\x7f  C'mon coach, I'm dying out here." 11
+        } else {
+            xba "\x7fT21834525,28361\x7f  Hey, kid, my arm's getting tired." 11
+        }
+    }
+    of 2 {
+        if (random 1) {
+            xba "\x7fT21862886,33690\x7f  Aye yai yai, I think I need a siesta!" 11
+        } else {
+            xba "\x7fT21896576,22525\x7f  Hey there, I'm tired." 11
+        }
+    }
+    of 3 {
+        if (random 1) {
+            xba "\x7fT21919101,30285\x7f  Hey brilliant, I'm getting tired out here." 11
+        } else {
+            xba "\x7fT21949386,48162\x7f  Okay, I know I'm good but my arm needs a rest before it turns into a big noodle." 11
+        }
+    }
+    of 4 {
+        if (random 1) {
+            xba "\x7fT21997548,32560\x7f  I'm tired of pitching.  Can I stop now?" 11
+        } else {
+            xba "\x7fT22030108,24773\x7f  I don't wanna pitch anymore, please?" 11
+        }
+    }
+    of 5 {
+        if (random 1) {
+            xba "\x7fT22054881,16503\x7f  Um I'm tired." 11
+        } else {
+            xba "\x7fT22071384,13372\x7f  My arm is tired." 11
+        }
+    }
+    of 6 {
+        if (random 1) {
+            xba "\x7fT22084756,48921\x7f  I need a sub.  I don't have the same energy as some of the younger kids, you know." 11
+        } else {
+            xba "\x7fT22133677,21802\x7f  I'm getting kind of tired of pitching." 11
+        }
+    }
+    of 7 {
+        if (random 1) {
+            xba "\x7fT22155479,48060\x7f  Hey, I'm getting tired of pitchin.  Sub me out." 11
+        } else {
+            xba "\x7fT22203539,35134\x7f  Yoo hoo, my arms gettin tired out here..." 11
+        }
+    }
+    in [8, 9] {
+        if (random 1) {
+            xba "\x7fT22238673,28478\x7f  Say, my tennis elbow is acting up!" 11
+        } else {
+            xba "\x7fT22267151,22730\x7f  I'm getting kind of tired of pitching!" 11
+        }
+    }
+    of 10 {
+        if (random 1) {
+            xba "\x7fT22289881,29607\x7f  I can't take much more of this, captain!" 11
+        } else {
+            xba "\x7fT22319488,36610\x7f  I need a sub, and I'm not talkin' lunch here!" 11
+        }
+    }
+    of 11 {
+        if (random 1) {
+            xba "\x7fT22356098,21022\x7f        My daddy says I shouldn't pitch for too long." 11
+        } else {
+            xba "\x7fT22377120,34825\x7f        I'm getting kinda tired, coach.  You should move me to short stop." 11
+        }
+    }
+    of 12 {
+        if (random 1) {
+            xba "\x7fT22411945,34484\x7f  Teddy says to tewl you we'w getting tiwed!" 11
+        } else {
+            xba "\x7fT22446429,48024\x7f  Teddy says it's time for his nap so we need a sub." 11
+        }
+    }
+    of 13 {
+        if (random 1) {
+            xba "\x7fT22494453,30424\x7f  \x09\x09Hey, I'm pooped.  I need a sub!" 11
+        } else {
+            xba "\x7fT22524877,35108\x7f  \x09\x09Could I get a sub out here?  My arm is toast!" 11
+        }
+    }
+    of 14 {
+        if (random 1) {
+            xba "\x7fT22559985,15546\x7f  My arm is toast." 11
+        } else {
+            xba "\x7fT22575531,24017\x7f  My arm is spent, how about a sub?" 11
+        }
+    }
+    of 15 {
+        if (random 1) {
+            xba "\x7fT22599548,22097\x7f       I'm tired.  Gimme a sub." 11
+        } else {
+            xba "\x7fT22621645,15707\x7f       How about a sub, ace?" 11
+        }
+    }
+    of 16 {
+        if (random 1) {
+            xba "\x7fT22637352,21874\x7f  I'm getting sleepy" 11
+        } else {
+            xba "\x7fT22659226,26352\x7f  I don't want to pitch anymore!" 11
+        }
+    }
+    of 17 {
+        if (random 1) {
+            xba "\x7fT22685578,24745\x7f  Hey, I'm tired.  I don't want to pitch anymore!" 11
+        } else {
+            xba "\x7fT22710323,15951\x7f  My arm is tired." 11
+        }
+    }
+    of 18 {
+        if (random 1) {
+            xba "\x7fT22726274,28200\x7f  Hey, I'm tired.  I don't want to pitch anymore!" 11
+        } else {
+            xba "\x7fT22754474,15193\x7f  My arm is tired." 11
+        }
+    }
+    of 19 {
+        if (random 1) {
+            xba "\x7fT22769667,31468\x7f  Man, I don't want to complain, but my arm is tired!" 11
+        } else {
+            xba "\x7fT22801135,20025\x7f  I could use a sub right about now..." 11
+        }
+    }
+    of 20 {
+        if (random 1) {
+            xba "\x7fT22821160,11557\x7f  I tired." 11
+        } else {
+            xba "\x7fT22832717,37167\x7f  Uhh, I don't want the throw the ball no more." 11
+        }
+    }
+    of 21 {
+        if (random 1) {
+            xba "\x7fT22869884,61919\x7f  I believe my young muscles are becoming very fatigued.  Perhaps a substitution is in order." 11
+        } else {
+            xba "\x7fT22931803,52516\x7f   My fatigue level has increased to a debilitating level.  A substitute is in order." 11
+        }
+    }
+    of 22 {
+        if (random 1) {
+            xba "\x7fT22984319,24147\x7f  Umm, I getting kind of tired." 11
+        } else {
+            xba "\x7fT23008466,42578\x7f  Maybe I could get a sub, if that's okay with you." 11
+        }
+    }
+    of 23 {
+        if (random 1) {
+            xba "\x7fT23051044,40725\x7f  I'm plumb tuckered out like a mule in a gravy train." 11
+        } else {
+            xba "\x7fT23091769,29779\x7f  I'm gettin real tarred out here." 11
+        }
+    }
+    of 24 {
+        if (random 1) {
+            xba "\x7fT23121548,38104\x7f  I'm feeling a bit faint, and need to take a rest." 11
+        } else {
+            xba "\x7fT23159652,72571\x7f  Okay, I think my effectiveness as a pitcher is over.  Please provide a substitute for me." 11
+        }
+    }
+    of 25 {
+        if (random 1) {
+            xba "\x7fT23232223,30632\x7f  Se me va a caer el brazo" 11
+        } else {
+            xba "\x7fT23262855,38630\x7f  Oye entrenador, me estoy cansando" 11
+        }
+    }
+    of 26 {
+        case random 2 {
+            of 0 {
+                xba "\x7fT23301485,23165\x7f       Hey Slick, I could use a sub out here." 11
+            }
+            of 1 {
+                xba "\x7fT23324650,25981\x7f       C'mon Slick, my arm's gettin tired." 11
+            }
+            of 2 {
+                xba "\x7fT23350631,30441\x7f       Whaddya trying to do, kill me?  I need a sub here." 11
+            }
+        }
+    }
+    of 27 {
+        if (random 1) {
+            xba "\x7fT23381072,35393\x7f  I'm tired and sleepy and my arms hurts." 11
+        } else {
+            xba "\x7fT23416465,49065\x7f  I demand to be relieved of my pitching duties.  Gimme a sub!" 11
+        }
+    }
+    of 28 {
+        if (random 1) {
+            xba "\x7fT23465530,29689\x7f   Phew! I'm running out of juice." 11
+        } else {
+            xba "\x7fT23495219,17184\x7f   I'm getting noodle arm." 11
+        }
+    }
+    of 29 {
+        if (random 1) {
+            xba "\x7fT23512403,17023\x7f \x09I'm getting the rubber arms." 11
+        } else {
+            xba "\x7fT23529426,25616\x7f \x09Gimme a break, I'm really tired!" 11
+        }
+    }
+    of 30 {
+        if (random 1) {
+            xba "\x7fT23555042,20610\x7f  I'm tired of pitching now." 11
+        } else {
+            xba "\x7fT23575652,36438\x7f  My arm is tired of pitching.  I wanna play outfield." 11
+        }
+    }
+    of 263 {
+        xbb "\x7fT20783141,24207\x7f"
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

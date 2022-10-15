@@ -1,0 +1,24 @@
+; SCRP 10 PlaySound
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+if (gPlayingSound1) {
+    if (gPlayingSound2) {
+        if (gPlayingSound3) {
+            if (gPlayingSound4 && arg2) {
+                run-script-xc3 PlaySoundClobberEndingSoonest [arg0, arg1]
+            } else {
+                run-script-xc3 PlaySoundOnChannel [arg0, 7, arg1]
+            }
+        } else {
+            run-script-xc3 PlaySoundOnChannel [arg0, 6, arg1]
+        }
+    } else {
+        run-script-xc3 PlaySoundOnChannel [arg0, 5, arg1]
+    }
+} else {
+    run-script-xc3 PlaySoundOnChannel [arg0, 4, arg1]
+}
+free-script

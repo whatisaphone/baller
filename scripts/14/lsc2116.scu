@@ -1,0 +1,17 @@
+; LSC2 14 2116
+
+run-script ReleaseSprite [room1]
+room1 = 0
+run-script ReleaseSprite [room2]
+room2 = 0
+run-script ReleaseSprite [room6]
+room6 = 0
+run-script FreePalette [room4]
+run-script FreePalette [room5]
+room4 = 0
+room5 = 0
+free-array room31
+free-array room32
+free-array room33
+free-array room34
+free-script

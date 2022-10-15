@@ -1,0 +1,8 @@
+; LSC2 39 2068
+
+if (global680) {
+    return 1
+} else {
+    return 0
+}
+free-script

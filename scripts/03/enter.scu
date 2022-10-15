@@ -1,0 +1,122 @@
+; ENCD 3
+
+run-script 2178 []
+if (gTeeBall) {
+    r_maybe_disable_powerups = 1
+}
+if (g_maybe_disable_powerups) {
+    r_maybe_disable_powerups = 1
+}
+if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+    free-running-script GamePadInputLoop
+    run-script HideGamePadCursor []
+}
+if (gNetplayActive) {
+    if (!gUserOnOffense) {
+        if (g_net_smth_me != g_net_smth_master) {
+            xb6-xfe
+            xb6-x4b "I am now master!"
+            g_net_smth_slave = g_net_smth_me
+            g_net_smth_me = g_net_smth_master
+        } else {
+            xb6-xfe
+            xb6-x4b "I am already master!"
+        }
+    } else if (g_net_smth_me == g_net_smth_master) {
+        xb6-xfe
+        xb6-x4b "I am no longer master!"
+        g_net_smth_me = g_net_smth_slave
+        g_net_smth_slave = g_net_smth_master
+    } else {
+        xb6-xfe
+        xb6-x4b "I am already slave!"
+    }
+}
+if (gNetplayActive) {
+    global43 = 0
+}
+gBallIsFair = false
+gCommentaryIsIdle = 1
+rDrawnBallDistanceDecal = 0
+rSavedMinJiffies = gMinJiffies
+gMinJiffies = 3
+gGravity = 3
+global95 = 1
+dim array rBaseCorners i16[0...0][0...3] swap=2
+dim array rCommentQueue i16[0...4][0...1] swap=2
+room13 = gNumOuts
+if (!(global348 == 1) || !gWorld) {
+    run-script SetupVectorsAndCamera []
+}
+g_he9_play_ended = 0
+g_maybe_he9_play_could_end_soon = 0
+global382 = 0
+g_maybe_he9_end_play_counter = 0
+run-script smth_field_specific_hacks []
+run-script 273 []
+if (gNetplayActive) {
+    if (!gNetStateBuffer) {
+        dim array gNetStateBuffer i16[0...21][0...5] swap=2
+    }
+    dim array r_maybe_net_fatigue_dirty byte[0...0][0...gMaxUniqueKid] swap=2
+}
+if (gNetplayActive) {
+    run-script 343 []
+}
+if (MODE-BATTING-PRACTICE != gGameMode) {
+    put-class 323 [160]
+    put-class 324 [160]
+    if (gField >= 0) {
+        image-select (485 + gField)
+        image-pos 0 0
+        image-x30
+        image-x36 1
+        image-xff
+    }
+    run-script 2168 [0, 10, 37 - 30, 38 - 30, 39 - 30, 40 - 30, 41 - 30, 43 - 30, 42 - 30, 44 - 30, 45 - 30, 46 - 30, 47 - 30, 48 - 30, 49 - 30]
+    run-script RunHUDScoreboard []
+} else {
+    xb6-xfe
+    xb6-xc2 "pover-capture-wiz width = %d" (image-get-width 551 0) []
+    if ((image-get-width 551 0) <= 400) {
+        image-select (485 + gField)
+        image-pos 0 0
+        image-x30
+        image-x36 1
+        image-xff
+        run-script smth_batting_practice_kid_actors []
+    } else {
+        image-select 551
+        image-pos 0 0
+        image-x30
+        image-xff
+    }
+    put-class 323 [32]
+    image-select 549
+    image-pos 496 400
+    image-x30
+    image-xff
+    if (g_smth_play_may_continue) {
+        put-class 324 [160]
+    } else if (!gNoPrinting) {
+        put-class 324 [32]
+        image-select 549
+        image-x34 1
+        image-pos 8 400
+        image-x30
+        image-xff
+    } else {
+        put-class 324 [160]
+    }
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+}
+finish-script

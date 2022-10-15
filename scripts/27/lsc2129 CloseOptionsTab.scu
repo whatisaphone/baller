@@ -1,0 +1,13 @@
+; LSC2 27 2129 CloseOptionsTab
+
+run-script ApplyOptionValues []
+run-script 2327 []
+run-script 2122 []
+run-script 2120 []
+if (rOptionsValues) {
+    free-array rOptionsValues
+}
+gOptionChangedScript = 0
+gHoverScript = room67
+gMouseHookScript = 0
+free-script

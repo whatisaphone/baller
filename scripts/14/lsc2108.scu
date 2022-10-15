@@ -1,0 +1,30 @@
+; LSC2 14 2108
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+dim array local5 i32[0...local3 - 1][0...1] swap=2
+for local6 = 0 to local4 ++ {
+    if (local2 == local0[local6][0]) {
+        local7 = local0[local6][4] * 10000 + local0[local6][2] * 100 + local0[local6][3]
+        local5[local8][0] = local6
+        local5[local8][1] = local7
+        ++local8
+    }
+}
+array-sort local5 -1 -1 1 1 1
+for local6 = 0 to (local3 - 1) ++ {
+    local9 = local5[local6][0]
+    array-copy-range local1 local0 (local6 + 1) (local6 + 1) 0 (33 - 1) local9 local9 0 (33 - 1)
+}
+local1[0][0] = local3
+free-array local5
+free-script

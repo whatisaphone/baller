@@ -1,0 +1,27 @@
+; LSC2 5 2072
+
+local variable local0
+local variable local1
+
+run-script FreePalette [room37]
+run-script FreePalette [room38]
+run-script FreePalette [room39]
+run-script FreePalette [room42]
+run-script FreePalette [room43]
+local0 = sprite-group-get-x08 24
+if (local0) {
+    for local1 = 1 to local0[0] ++ {
+        run-script ReleaseSprite [local0[local1]]
+    }
+    free-array local0
+}
+local0 = sprite-group-get-x08 23
+if (local0) {
+    for local1 = 1 to local0[0] ++ {
+        run-script ReleaseSprite [local0[local1]]
+    }
+    free-array local0
+}
+room40 = 0
+room41 = 0
+free-script

@@ -1,0 +1,12 @@
+; SCRP 233
+
+local variable local0
+local variable local1
+
+for local1 = 1 to 20 ++ {
+    if (local0[local1][0]) {
+        run-script AddStat [local0[local1][0], local0[local1][1], local0[local1][2]]
+    }
+}
+free-array local0
+free-script

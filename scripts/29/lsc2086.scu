@@ -1,0 +1,4 @@
+; LSC2 29 2086
+
+array-copy-range gKidData gBackupKidData 264 264 0 36 264 264 0 36
+free-script

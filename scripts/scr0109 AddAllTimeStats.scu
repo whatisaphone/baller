@@ -1,0 +1,65 @@
+; SCRP 109 AddAllTimeStats
+
+local variable local1
+local variable local2
+local variable local3
+
+local2 = read-ini-int gCoachINIPath "AllTime" "Streak"
+if (gWonLastGame) {
+    local1 = read-ini-int gCoachINIPath "AllTime" "Wins"
+    ++local1
+    write-ini-int gCoachINIPath "AllTime" "Wins" local1
+    if (local2 > 0) {
+        ++local2
+        local3 = read-ini-int gCoachINIPath "AllTime" "WinStreak"
+        if (local2 > local3) {
+            write-ini-int gCoachINIPath "AllTime" "WinStreak" local2
+        }
+    } else {
+        local2 = 1
+    }
+} else {
+    local1 = read-ini-int gCoachINIPath "AllTime" "Losses"
+    ++local1
+    write-ini-int gCoachINIPath "AllTime" "Losses" local1
+    if (local2 < 0) {
+        --local2
+    } else {
+        local2 = -1
+    }
+}
+write-ini-int gCoachINIPath "AllTime" "Streak" local2
+local1 = read-ini-int gCoachINIPath "AllTime" "Runs"
+local1 = local1 + gLastGameTotals[0]
+write-ini-int gCoachINIPath "AllTime" "Runs" local1
+local1 = read-ini-int gCoachINIPath "AllTime" "RunsAgainst"
+local1 = local1 + gLastGameTotals[1]
+write-ini-int gCoachINIPath "AllTime" "RunsAgainst" local1
+local1 = read-ini-int gCoachINIPath "AllTime" "MostHits"
+if (local1 < gLastGameTotals[2]) {
+    write-ini-int gCoachINIPath "AllTime" "MostHits" gLastGameTotals[2]
+}
+local1 = read-ini-int gCoachINIPath "AllTime" "MostHomers"
+if (local1 < gLastGameTotals[3]) {
+    write-ini-int gCoachINIPath "AllTime" "MostHomers" gLastGameTotals[3]
+}
+local1 = read-ini-int gCoachINIPath "AllTime" "MostRuns"
+if (local1 < gLastGameTotals[0]) {
+    write-ini-int gCoachINIPath "AllTime" "MostRuns" gLastGameTotals[0]
+}
+local1 = read-ini-int gCoachINIPath "AllTime" "MostIndividualHomeRuns"
+if (local1 < gLastGameTotals[4]) {
+    write-ini-int gCoachINIPath "AllTime" "MostIndividualHomeRuns" gLastGameTotals[4]
+    write-ini-int gCoachINIPath "AllTime" "MostIndividualHomeRunKid" gLastGameTotals[5]
+}
+local1 = read-ini-int gCoachINIPath "AllTime" "MostStrikeOuts"
+if (local1 < gLastGameTotals[6]) {
+    write-ini-int gCoachINIPath "AllTime" "MostStrikeOuts" gLastGameTotals[6]
+    write-ini-int gCoachINIPath "AllTime" "MostStrikeOutKid" gLastGameTotals[7]
+}
+local1 = read-ini-int gCoachINIPath "AllTime" "MostRBIs"
+if (local1 < gLastGameTotals[8]) {
+    write-ini-int gCoachINIPath "AllTime" "MostRBIs" gLastGameTotals[8]
+    write-ini-int gCoachINIPath "AllTime" "MostRBIKid" gLastGameTotals[9]
+}
+free-script

@@ -1,0 +1,77 @@
+; LSC2 3 2170 SetActorFacing
+
+parameter actor: Actor
+parameter new_facing: Facing
+parameter old_facing: Facing
+
+if (old_facing != new_facing) {
+    case old_facing {
+        in [5, 6, 4] {
+            actor-select actor
+            actor-set-conditons [1]
+        }
+        of 3 {
+            actor-select actor
+            actor-set-conditons [2]
+        }
+        in [1, 2, 16] {
+            actor-select actor
+            actor-set-conditons [3]
+        }
+        of 15 {
+            actor-select actor
+            actor-set-conditons [4]
+        }
+        in [13, 14, 12] {
+            actor-select actor
+            actor-set-conditons [5]
+        }
+        of 11 {
+            actor-select actor
+            actor-set-conditons [6]
+        }
+        in [9, 10, 8] {
+            actor-select actor
+            actor-set-conditons [7]
+        }
+        of 7 {
+            actor-select actor
+            actor-set-conditons [8]
+        }
+    }
+}
+case new_facing {
+    in [5, 6, 4] {
+        actor-select actor
+        actor-set-conditons [129]
+    }
+    of 3 {
+        actor-select actor
+        actor-set-conditons [130]
+    }
+    in [1, 2, 16] {
+        actor-select actor
+        actor-set-conditons [131]
+    }
+    of 15 {
+        actor-select actor
+        actor-set-conditons [132]
+    }
+    in [13, 14, 12] {
+        actor-select actor
+        actor-set-conditons [133]
+    }
+    of 11 {
+        actor-select actor
+        actor-set-conditons [134]
+    }
+    in [9, 10, 8] {
+        actor-select actor
+        actor-set-conditons [135]
+    }
+    of 7 {
+        actor-select actor
+        actor-set-conditons [136]
+    }
+}
+free-script

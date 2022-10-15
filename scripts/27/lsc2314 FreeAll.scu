@@ -1,0 +1,8 @@
+; LSC2 27 2314 FreeAll
+
+run-script CloseTab [rCurrentTab]
+run-script 2304 []
+run-script 2090 []
+run-script FreePalettes []
+run-script FreeNavButtons []
+free-script

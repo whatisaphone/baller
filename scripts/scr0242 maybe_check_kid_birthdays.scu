@@ -1,0 +1,19 @@
+; SCRP 242 maybe_check_kid_birthdays
+
+local variable local0
+
+for local0 = 1 to 61 ++ {
+    if (gKidData[local0][KD-BIRTHDAY-MONTH] == gNowMonth) {
+        if (gKidData[local0][KD-BIRTHDAY-DAY] == gNowDay) {
+            run-script maybe_birthday_bonus [local0]
+        }
+    }
+}
+for local0 = [263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273] {
+    if (gKidData[local0][KD-BIRTHDAY-MONTH] == gNowMonth) {
+        if (gKidData[local0][KD-BIRTHDAY-DAY] == gNowDay) {
+            run-script maybe_birthday_bonus [local0]
+        }
+    }
+}
+free-script

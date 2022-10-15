@@ -1,0 +1,15 @@
+; LSC2 27 2335
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+local2 = call-script GetTeamPrefixString [local0, 1]
+sprintf local3 "%s" [local2]
+free-array local2
+local2 = call-script GetTeamNameString [local1, 1]
+sprintf local3 "THE %s %s" [local3, local2]
+free-array local2
+return local3
+free-script

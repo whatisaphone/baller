@@ -1,0 +1,11 @@
+; LSC2 39 2094
+
+run-script 2097 []
+run-script 2104 []
+if (global561[30]) {
+    run-script-xc3 2099 [29, 1]
+} else {
+    run-script-xc3 2099 [29, 1, 1]
+}
+gHoverScript = 2181
+free-script

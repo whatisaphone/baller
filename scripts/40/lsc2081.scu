@@ -1,0 +1,70 @@
+; LSC2 40 2081
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local8
+local variable local9
+local variable local10
+
+image-select global680[24]
+image-op-create
+image-x20 200
+image-x21 400
+image-xff
+image-select global680[24]
+image-x85 0 0 200 400 0
+image-xff
+temp = 0
+temp = "baseball2001"
+sprintf local8 "%s%s.net" [gSaveGamePath, temp]
+free-array temp
+local10 = read-ini-string local8 gNetUsername "_Friends"
+free-array local8
+for local0 = 0 to (strlen local10) ++ {
+    if (local10[local0] == 59) {
+        ++local6
+    }
+}
+palette-select global680[17]
+palette-set-rgb 83 83 252 252 124
+palette-unselect
+dim array local2 byte[0...0][0...(strlen local10) + 5 * local6] swap=2
+if (local6) {
+    for local0 = 1 to local6 ++ {
+        local9 = call-script smth_string [local10, 59, local0, 1]
+        local4 = 5 * local0 + local3
+        local5 = local4 + (strlen local9)
+        array-copy-range local2 local9 0 0 local4 local5 0 0 0 (strlen local9)
+        local3 = local3 + (strlen local9)
+        free-array local9
+    }
+    local2[local3] = 92
+    for local0 = 0 to ((strlen local2) - 1) ++ {
+        if (!local2[local0]) {
+            local2[local0] = 32
+        }
+    }
+    xb6-xfe
+    xb6-xc2 "Friend List %s" local2 []
+    local1 = call-script 51 [local2, global680[6], global680[8], 394, 1, global680[17]]
+    free-array local10
+    free-array local2
+}
+global680[16] = 0
+free-array global681
+global681 = " "
+global680[14] = call-script maybe_draw_text_to_image [global681, global680[7], global680[3], global680[9], 1]
+sprite-set-range global680[12] global680[12]
+sprite-set-image global680[3]
+temp = (sprite-get-translated-hotspot-x global680[12]) + 2
+temp2 = sprite-get-translated-hotspot-y global680[12]
+sprite-set-range global680[10] global680[10]
+image-select global680[11]
+image-pos (temp + global680[14] + 2) temp2
+image-xff
+free-script

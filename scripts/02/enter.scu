@@ -1,0 +1,45 @@
+; ENCD 2
+
+gHoverScript = 2060
+run-script ResetEverything []
+if (gPreviousRoom == 1) {
+    run-script PlayMovieAndStartMusic []
+    run-script smth_init []
+} else {
+    if (g_maybe_operating_system == 2) {
+        image-select 1573
+        image-pos 0 0
+        image-x36 1
+        image-x30
+        image-xff
+    } else {
+        image-select 1572
+        image-pos 0 0
+        image-x36 1
+        image-x30
+        image-xff
+    }
+    run-script 2061 []
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    if (!(is-sound-playing 8074) && !(is-sound-playing 8070)) {
+        run-script AddSongsToPool [-1]
+        run-script AddSongsToPool [8074, 8070]
+        run-script PlayMusicPool [-1]
+    }
+    run-script SetNavButtons [HandleNavClick, 0, 0]
+    run-script 2051 []
+}
+gInputHandlerScript = HandleInput
+if (g_maybe_operating_system == 2) {
+    put-class 391 [160]
+}
+finish-script

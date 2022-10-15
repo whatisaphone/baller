@@ -1,0 +1,12 @@
+; LSC2 27 2114
+
+if (0 == room21) {
+    room21 = 1
+    run-script 2112 []
+    run-script 2077 [r_smth_pick_order[room23]]
+} else {
+    room21 = 0
+    run-script 2063 []
+    run-script 2118 [r_smth_pick_order]
+}
+free-script

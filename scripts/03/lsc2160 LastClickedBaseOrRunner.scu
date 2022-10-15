@@ -1,0 +1,31 @@
+; LSC2 3 2160 LastClickedBaseOrRunner
+
+parameter threshold
+
+local variable local1
+local variable local2
+
+if (!threshold) {
+    threshold = 192
+}
+local2 = -1
+for local1 = 0 to 4 ++ {
+    if (rBaseClaims[local1] != gFielderWithBall) {
+        if ((distance-2d gWorld[LAST-CLICK-FIELDING][X] gWorld[LAST-CLICK-FIELDING][Z] gWorld[local1][X] gWorld[local1][Z]) < threshold) {
+            local2 = local1
+            threshold = distance-2d gWorld[LAST-CLICK-FIELDING][X] gWorld[LAST-CLICK-FIELDING][Z] gWorld[local1][X] gWorld[local1][Z]
+        }
+    }
+}
+for local1 = 46 to 49 ++ {
+    if (gRunners[local1 - 46][R-DIRECTION] != 0) {
+        if ((distance-2d gWorld[LAST-CLICK-FIELDING][X] gWorld[LAST-CLICK-FIELDING][Z] gWorld[local1][X] gWorld[local1][Z]) < threshold) {
+            if (gRunners[local1 - 46][R-DEST-BASE] != local2) {
+                local2 = local1
+                threshold = distance-2d gWorld[LAST-CLICK-FIELDING][X] gWorld[LAST-CLICK-FIELDING][Z] gWorld[local1][X] gWorld[local1][Z]
+            }
+        }
+    }
+}
+return local2
+free-script

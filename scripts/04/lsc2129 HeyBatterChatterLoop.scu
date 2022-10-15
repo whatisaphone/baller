@@ -1,0 +1,31 @@
+; LSC2 4 2129 HeyBatterChatterLoop
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (gNoPlayerChatter) {
+    free-running-script 0
+}
+if (MODE-BATTING-PRACTICE == gGameMode) {
+    free-running-script 0
+}
+local1 = gTeamInfo[1 - gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+sleep (random 10)
+do {
+    if (r_maybe_smth_idle_ready_for_pitch) {
+        do {
+            local2 = local1[random 7]
+        } until (local2 != local3 && local2 != local4)
+        local4 = local3
+        local3 = local2
+        local0 = call-script GetPlayerSound [local2, 1]
+        if (!(is-sound-playing local0)) {
+            run-script PlaySound [local0, 1]
+        }
+    }
+    sleep-frames (random2 45 160)
+}
+free-script

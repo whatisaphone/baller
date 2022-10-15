@@ -1,0 +1,29 @@
+; LSC2 4 2087 HitAngleAdjust
+
+local variable local0
+
+case r_maybe_swing_time {
+    of 1 {
+        local0 = -23
+    }
+    of 2 {
+        local0 = -12
+    }
+    of 3 {
+        local0 = 0
+    }
+    of 4 {
+        local0 = 12
+    }
+    of 5 {
+        local0 = 23
+    }
+    else {
+        pop-discard 0
+    }
+}
+if (rBatterHandedness == LEFT-HANDED) {
+    local0 = 0 - local0
+}
+return local0
+free-script

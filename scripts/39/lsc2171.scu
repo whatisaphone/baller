@@ -1,0 +1,10 @@
+; LSC2 39 2171
+
+local variable local0
+local variable local1
+
+local0 = 7
+local1 = "Welcome to backyard baseball 2001 online play!"
+run-script 2065 [-1, 166, 1104, local0, local1]
+free-array local1
+free-script

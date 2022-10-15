@@ -1,0 +1,34 @@
+; ENCD 6
+
+run-script 2050 []
+if (gNetplayActive) {
+    g_maybe_net_who_picks_next = 0
+    gNetWaitFlag = 0
+    if (g_net_smth_master == g_net_smth_me) {
+        run-script-xc3 maybe_net_send_message [30, 1, NET-SETROOM, 6]
+    }
+}
+gHoverScript = 2116
+run-script 2111 []
+run-script 2096 []
+run-script 2104 []
+run-script 2108 []
+run-script 2098 []
+run-script 2095 []
+run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+if (!(is-sound-playing 8074) && !(is-sound-playing 8070)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8074, 8070]
+    run-script PlayMusicPool [-1]
+}
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+finish-script

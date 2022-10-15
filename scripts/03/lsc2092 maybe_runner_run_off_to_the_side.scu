@@ -1,0 +1,63 @@
+; LSC2 3 2092 maybe_runner_run_off_to_the_side
+
+parameter runneridx
+parameter actor: Actor
+
+local variable heading: Angle
+local variable distance
+local variable runner: Entity
+local variable local5
+
+if (gNetplayActive) {
+}
+if (gPlayEndedReason) {
+    free-running-script 0
+}
+runner = gRunners[runneridx][R-ENTITY]
+do {
+    distance = distance-2d gWorld[runner][X] gWorld[runner][Z] 24 248
+    gRunners[runneridx][R-SPEED] = call-script GetKidRunningSpeed [gRunners[runneridx][R-KID]]
+    if (distance < gRunners[runneridx][R-SPEED]) {
+        gRunners[runneridx][R-SPEED] = distance
+        distance = 0
+    }
+    heading = atan4 gWorld[runner][X] gWorld[runner][Z] 24 248
+    gWorld[runner][X] = gWorld[runner][X] + gRunners[runneridx][R-SPEED] * (cos heading) / 100000
+    gWorld[runner][Z] = gWorld[runner][Z] + gRunners[runneridx][R-SPEED] * (sin heading) / 100000
+    stop-script
+    local5 = 5000 - gWorld[runner][Z]
+    actor-select actor
+    actor-x54 local5
+    actor-set-scale (call-script CalcActorScale [runner])
+    put-actor actor gScreen[runner][X] (local5 + gScreen[runner][Y]) 255
+} until (distance <= 12 || gPlayEndedReason || g_maybe_play_is_ready_to_end || gBallIsFoul || rCaughtFly)
+actor-select actor
+actor-set-conditons [1]
+actor-select actor
+actor-set-conditons [2]
+actor-select actor
+actor-set-conditons [3]
+actor-select actor
+actor-set-conditons [4]
+actor-select actor
+actor-set-conditons [5]
+actor-select actor
+actor-set-conditons [6]
+actor-select actor
+actor-set-conditons [7]
+actor-select actor
+actor-set-conditons [8]
+actor-select actor
+actor-set-conditons [136]
+actor-select actor
+actor-set-var 1 0
+actor-do-anim actor 6
+actor-select actor
+actor-set-var 1 0
+while (!(g_maybe_play_is_ready_to_end || gPlayEndedReason || gBallIsFoul || rCaughtFly)) {
+    stop-script
+}
+while (rBallWasHitHigh && !gPlayEndedReason && !(gBallHasBounced > 0)) {
+    stop-script
+}
+free-script

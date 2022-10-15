@@ -1,0 +1,36 @@
+; LSC2 4 2167 NetPitchCountdownTimer
+
+parameter cancel
+
+if (cancel) {
+    if (rNetPitchCountdownSprite) {
+        sprite-set-range rNetPitchCountdownSprite rNetPitchCountdownSprite
+        sprite-clear
+        run-script ReleaseSprite [rNetPitchCountdownSprite]
+        rNetPitchCountdownSprite = 0
+    }
+} else {
+    rNetPitchCountdownSprite = call-script FindFreeSprite []
+    sprite-set-range rNetPitchCountdownSprite rNetPitchCountdownSprite
+    sprite-clear
+    sprite-set-image 439
+    sprite-set-hotspot 320 240
+    sprite-x2b 5000
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-x34 gNetPitchTimer
+    do {
+        sleep-frames 22
+        if (!r_maybe_calling_timeout && r_maybe_smth_idle_ready_for_pitch) {
+            ++gNetPitchTimer
+            if (gNetPitchTimer == 32) {
+                run-script ForcePitchIntentionalWalk []
+                free-running-script 0
+            } else {
+                sprite-set-range rNetPitchCountdownSprite rNetPitchCountdownSprite
+                sprite-x34 gNetPitchTimer
+            }
+        }
+    }
+}
+free-script

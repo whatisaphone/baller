@@ -1,0 +1,52 @@
+; SCRP 304 DrawBallDistanceDecal
+
+parameter distance
+
+local variable decal_x
+local variable decal_y
+local variable string
+
+if (!distance) {
+    gLastHomeRunDistance = (distance-3d gBallPosX gBallPosY gBallPosZ gWorld[HOME-PLATE-CENTER][X] 0 gWorld[HOME-PLATE-CENTER][Z]) / 12
+    if (gNetplayActive) {
+        run-script-xc3 maybe_net_send_message [30, 1, NET-DRAW-BALL-DISTANCE-DECAL, gLastHomeRunDistance]
+    }
+} else {
+    gLastHomeRunDistance = distance
+}
+if (gUserOnOffense) {
+    if (gLastHomeRunDistance > gUserLongestHomeRun) {
+        gUserLongestHomeRun = gLastHomeRunDistance
+    }
+} else if (gLastHomeRunDistance > gOpponentLongestHomeRun) {
+    gOpponentLongestHomeRun = gLastHomeRunDistance
+}
+sprintf string "%d" [gLastHomeRunDistance]
+decal_x = (get-x 3) - 5
+if (decal_x > 640) {
+    decal_x = 618
+}
+if (decal_x < 0) {
+    decal_x = 1
+}
+decal_y = (get-y 3) - (xa2 3) + 6
+if (decal_y > 480) {
+    decal_y = 472
+}
+if (decal_y < 0) {
+    decal_y = 2
+}
+if (gLastHomeRunDistance < 100) {
+    image-select 550
+    image-pos (decal_x - 12) (decal_y - 5)
+    image-x30
+    image-xff
+} else {
+    image-select 550
+    image-pos (decal_x - 8) (decal_y - 5)
+    image-x30
+    image-xff
+}
+run-script DrawString2 [decal_x, decal_y, 552, string]
+free-array string
+free-script

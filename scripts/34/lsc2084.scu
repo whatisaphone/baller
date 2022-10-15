@@ -1,0 +1,19 @@
+; LSC2 34 2084
+
+if (gSeasonGameNumber < 14) {
+    run-script advanceSeasonGame []
+    while (!!(is-script-running advanceSeasonGame)) {
+        stop-script
+    }
+} else {
+    run-script advancePlayoffGame []
+    while (!!(is-script-running advancePlayoffGame)) {
+        stop-script
+    }
+}
+run-script SaveCoach []
+if (gDebug == 101) {
+    run-script DumpSeasonRosterFile []
+    run-script DumpSeasonScheduleFile []
+}
+free-script

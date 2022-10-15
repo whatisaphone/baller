@@ -1,0 +1,7 @@
+; LSC2 32 2056
+
+local variable local0
+
+local0 = pick (random 2) [160, 161, 162]
+run-script 283 [room7[10], room7[11], local0, 0, 0, room5]
+free-script

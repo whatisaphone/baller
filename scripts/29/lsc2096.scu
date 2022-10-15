@@ -1,0 +1,27 @@
+; LSC2 29 2096
+
+local variable local0
+
+case gBackupKidData[CUSTOM-KID-0][11] {
+    in [1, 3, 5] {
+        local0 = 602
+    }
+    in [2, 4, 6] {
+        local0 = 603
+    }
+    in [7, 9, 11] {
+        local0 = 601
+    }
+    in [8, 10, 12] {
+        local0 = 567
+    }
+    else {
+        local0 = 362
+    }
+}
+actor-select room12
+actor-set-costume local0
+run-script 2080 [264, room12]
+run-script 2081 [264, room12]
+run-script 2082 [room12, 264]
+free-script

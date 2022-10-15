@@ -1,0 +1,15 @@
+; LSC2 3 2064 smth_about_kid_data_2_and_errors
+
+parameter kid: Kid
+
+if (gNoErrors) {
+    return 100
+    free-running-script 0
+}
+if (gDifficulty == HARD) {
+    if (random 1) {
+        return 100
+    }
+}
+return gKidData[kid][2]
+free-script

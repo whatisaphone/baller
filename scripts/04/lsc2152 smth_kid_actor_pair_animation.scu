@@ -1,0 +1,44 @@
+; LSC2 4 2152 smth_kid_actor_pair_animation
+
+parameter kid
+parameter actor1
+parameter actor2
+parameter arg3
+parameter x
+parameter y
+
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+local6 = gTeamInfo[arg3][TI-TEAM-NOUN]
+if (local6 >= 122 && local6 <= 151) {
+    local7 = g_underwater_array[local6][7]
+    local8 = g_underwater_array[local6][8]
+    if (arg3 == gVisitorInfoIndex || gNetplayActive && arg3 == 0) {
+        local9 = g_underwater_array[local6][10]
+    } else {
+        local9 = g_underwater_array[local6][9]
+    }
+} else {
+    local7 = gTeamInfo[arg3][3]
+    local8 = gTeamInfo[arg3][8]
+    if (!gNetplayActive && arg3 == gVisitorInfoIndex || gNetplayActive && arg3 == 0) {
+        local9 = gTeamInfo[arg3][3]
+    } else if (local7 == 8 && local8 == 8) {
+        local9 = 125
+    } else {
+        local9 = 8
+    }
+}
+if (gKidData[kid][33] != 0) {
+    if (gKidData[kid][33] > 128) {
+        local10 = 1
+    } else if (gKidData[kid][33] < 128) {
+        local10 = -1
+    }
+}
+run-script smth_kid_actor_pair_anim [kid, actor1, actor2, local7, local8, local9, x, y, local10]
+free-script

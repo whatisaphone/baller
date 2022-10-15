@@ -1,0 +1,41 @@
+; LSC2 27 2240
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+local8 = call-script FindFreeSprite []
+local6 = call-script AllocScratchImage []
+room92[room92[0]] = local8
+inc-array-item room92 0
+room91[room91[0]] = local6
+inc-array-item room91 0
+case local1 {
+    of 1031 {
+        local7 = room62
+    }
+    of 1029 {
+        local7 = room62
+    }
+    of 1239 {
+        local7 = room83
+    }
+}
+local5 = local5 + 5
+local2 = local2 + 2
+local3 = local3 - 4
+temp = call-script smth_draw_text_image [local0, local1, local6, local4, local5, 0, 0, local7]
+sprite-set-range local8 local8
+sprite-clear
+sprite-set-image local6
+sprite-set-hotspot local2 local3
+sprite-x2b -799
+sprite-x52 0
+sprite-x7c 0
+free-script

@@ -1,0 +1,43 @@
+; LSC2 14 2068
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (local0 == 0) {
+    sprite-set-range global672 global672
+    sprite-clear
+    sprite-set-image 1252
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-x2b -1450
+    sprite-palette g_some_palette_654
+    sprite-x25 17
+    sprite-set-hotspot 320 240
+    local1 = 204
+    local2 = 52
+    sprintf local3 "%s" [gCoachName]
+} else {
+    sprintf local3 "%s" [local0]
+    local1 = 115
+    local2 = 52
+}
+temp2 = (strlen local3) - 1
+for temp = 0 to temp2 ++ {
+    if (local3[temp] >= 97 && local3[temp] <= 122) {
+        local3[temp] = local3[temp] - 32
+    }
+}
+temp = call-script maybe_draw_text_to_image [local3, 1251, global673, g_some_palette_654, 1]
+free-array local3
+sprite-set-range global671 global671
+sprite-clear
+sprite-set-image global673
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -1450
+sprite-palette g_some_palette_654
+sprite-x25 17
+sprite-set-hotspot local1 local2
+free-script

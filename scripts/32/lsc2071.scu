@@ -1,0 +1,46 @@
+; LSC2 32 2071
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (gCoachINIPath) {
+    free-array gCoachINIPath
+}
+if (gCoachName) {
+    free-array gCoachName
+}
+local0 = local0 - 487
+if (room13 == local0 + room17) {
+    local3 = 1
+} else {
+    room13 = local0 + room17
+}
+local1 = call-script smth_string [room19, 44, room13]
+local2 = "baseball2001"
+if (local1 < 10) {
+    sprintf gCoachINIPath "%s%s.c0%d" [gSaveGamePath, local2, local1]
+} else {
+    sprintf gCoachINIPath "%s%s.c%d" [gSaveGamePath, local2, local1]
+}
+free-array local2
+gCoachName = call-script smth_string [room9, 44, room13, 1]
+g_smth_season_mode = 2
+run-script PlaySound [1706]
+if (local3 && (sprite-get-image room7[6]) == 1376) {
+    if (gCoachName) {
+        run-script LoadGame []
+        stop-script
+        go-to-room 27
+    }
+} else {
+    sprite-set-range room7[6] room7[6]
+    sprite-set-hotspot 320 (240 + local0 * 34 + local0)
+    sprite-set-image 1376
+    sprite-x2b (10 + 12)
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-palette room0
+}
+free-script

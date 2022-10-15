@@ -1,0 +1,9 @@
+; LSC2 39 2076
+
+if (call-script 2085 []) {
+    if (global690 < (call-script 2086 [])) {
+        global690 = global690 + 2
+        global133 = 1
+    }
+}
+free-script

@@ -1,0 +1,36 @@
+; LSC2 4 2068 AIDecideWhetherChangePicther
+
+if (!gNetplayActive) {
+    if (gKidData[rPitcherKid][KD-fatigue] > 75) {
+        if ((random 25) > 110 - gKidData[rPitcherKid][KD-fatigue]) {
+            while (gCurrentSpeechScript) {
+                stop-script
+            }
+            run-script ChangePitcher []
+            while (!!(is-script-running ChangePitcher)) {
+                stop-script
+            }
+        }
+    } else if (gGameStats[rPitcherKid][STAT-WALKS-ALLOWED] >= 6) {
+        if (random 1) {
+            while (gCurrentSpeechScript) {
+                stop-script
+            }
+            run-script ChangePitcher []
+            while (!!(is-script-running ChangePitcher)) {
+                stop-script
+            }
+        }
+    } else if (gGameStats[rPitcherKid][STAT-RUNS-AGAINST] > 4) {
+        if (random 1) {
+            while (gCurrentSpeechScript) {
+                stop-script
+            }
+            run-script ChangePitcher []
+            while (!!(is-script-running ChangePitcher)) {
+                stop-script
+            }
+        }
+    }
+}
+free-script

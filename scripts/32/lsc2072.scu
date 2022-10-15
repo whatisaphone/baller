@@ -1,0 +1,59 @@
+; LSC2 32 2072
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (local0 == 4) {
+    if (local1 == 27) {
+        if (gCoachName) {
+            free-array gCoachName
+        }
+        if (gCoachINIPath) {
+            free-array gCoachINIPath
+        }
+        free-running-script 2059
+        sprite-set-range room7[7] room7[7]
+        sprite-clear
+        sprite-set-image 930
+        sprite-x2a 0 2
+        for temp = 21 to 24 ++ {
+            sprite-set-range room7[temp] room7[temp]
+            sprite-clear
+            sprite-x2a 0 2
+        }
+        room15 = 0
+        room14 = 0
+        room16 = 0
+        global43 = 32
+        gInputHandlerScript = HandleInput
+        gGamePadInputHandlerScript = gInputHandlerScript
+        run-script 2070 []
+        run-script maybe_HideNavHoverText []
+        free-running-script 0
+    }
+    if (local1 >= 65 && local1 <= 90) {
+        local1 = local1 + 32
+    }
+    if ((local1 >= 97 && local1 <= 122 || (local1 in [8, 13]) || local1 >= 48 && local1 <= 57 || local1 == 32) && room15) {
+        if (local1 >= 97 && local1 <= 122) {
+            ++room14
+            local1 = local1 - 32
+        } else {
+            if (local1 >= 48 && local1 <= 57) {
+                ++room14
+            }
+            if (local1 == 32 && room14) {
+                ++room14
+            }
+        }
+        if (room14) {
+            run-script 2060 [local1]
+        }
+    }
+} else if (gMouseHandlerScript != 0) {
+    run-script gMouseHandlerScript [local1, local3, local4, local2]
+}
+free-script

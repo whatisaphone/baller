@@ -1,0 +1,24 @@
+; LSC2 27 2191
+
+local variable local0
+local variable local1
+
+run-script PlayClickySound []
+if (local1 < 152) {
+    if (local0 > 590) {
+        run-script 2190 []
+    } else if (local0 > 364) {
+        run-script 2189 [1]
+    } else if (local0 > 250) {
+        run-script 2189 []
+    } else if (local0 > 130) {
+        run-script 2182 []
+    } else {
+        run-script 2182 [1]
+    }
+} else if (local0 < 216) {
+    run-script 2337 []
+} else {
+    run-script 2187 [iif (local0 < 420) 0 1]
+}
+free-script

@@ -1,0 +1,29 @@
+; LSC2 5 2070
+
+local variable local0
+local variable local2
+local variable local3
+
+if ((is-script-running smth_mouse_sprites_1) || (is-script-running smth_mouse_sprites_2)) {
+    free-running-script 0
+}
+run-script PlayClickySound []
+run-script-xc3 2062 [local0, sprite-get-xc6 local0 1]
+if ((sprite-get-group local0) == 23) {
+    local2 = 1
+} else {
+    local2 = 2
+}
+if (local2 == 1) {
+    if (room22 == 1) {
+        local3 = 1
+    }
+} else if (room23 == 1) {
+    local3 = 1
+}
+if (local3) {
+    run-script-xc3 smth_mouse_sprites_2 [local2]
+} else {
+    run-script-xc3 smth_mouse_sprites_1 [local2]
+}
+free-script

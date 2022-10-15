@@ -1,0 +1,268 @@
+; SCRP 39 AddBounceRandomness
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+if (gNetplayActive) {
+    free-running-script 0
+}
+if (gBallVelPhysX + gBallVelPhysY + gBallVelPhysZ == 0) {
+    free-running-script 0
+}
+local5 = gBallVelPhysX / 100
+local6 = gBallVelPhysY / 100
+local7 = gBallVelPhysZ / 100
+local0 = distance-2d 0 0 local5 local7
+local1 = atan4 0 0 local0 local6
+local2 = atan4 0 0 local5 local7
+if (global406) {
+    if (gCurrentRoom == 4) {
+        local8 = random2 0 20
+        global405[global406] = local8
+    } else {
+        local8 = global405[global406]
+    }
+} else {
+    local8 = random2 0 20
+}
+if (global406 > 0) {
+    if (global406 == 20) {
+        global406 = 0
+    } else if (global405[0] == global406) {
+        global406 = 0
+    } else {
+        ++global406
+    }
+}
+case gField {
+    in [DIRT-YARDS, SANDY-FLATS] {
+        if (local8 == 9) {
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local9 = random2 -12 12
+                    global405[global406] = local9
+                } else {
+                    local9 = global405[global406]
+                }
+            } else {
+                local9 = random2 -12 12
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local10 = random2 -25 25
+                    global405[global406] = local10
+                } else {
+                    local10 = global405[global406]
+                }
+            } else {
+                local10 = random2 -25 25
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+        } else {
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local9 = random2 -5 5
+                    global405[global406] = local9
+                } else {
+                    local9 = global405[global406]
+                }
+            } else {
+                local9 = random2 -5 5
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local10 = random2 -15 15
+                    global405[global406] = local10
+                } else {
+                    local10 = global405[global406]
+                }
+            } else {
+                local10 = random2 -15 15
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+        }
+    }
+    in [PLAYGROUND-COMMONS, BIG-CITY-STADIUM, PARKS-DEPARTMENT] {
+        if (local8 == 9) {
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local9 = random2 -5 5
+                    global405[global406] = local9
+                } else {
+                    local9 = global405[global406]
+                }
+            } else {
+                local9 = random2 -5 5
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local10 = random2 -15 15
+                    global405[global406] = local10
+                } else {
+                    local10 = global405[global406]
+                }
+            } else {
+                local10 = random2 -15 15
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+        } else {
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local9 = random2 -2 3
+                    global405[global406] = local9
+                } else {
+                    local9 = global405[global406]
+                }
+            } else {
+                local9 = random2 -2 3
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local10 = random2 -8 8
+                    global405[global406] = local10
+                } else {
+                    local10 = global405[global406]
+                }
+            } else {
+                local10 = random2 -8 8
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+        }
+    }
+    in [CEMENT-GARDENS, TIN-CAN-ALLEY] {
+        if (local8 == 9) {
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local9 = random2 -7 2
+                    global405[global406] = local9
+                } else {
+                    local9 = global405[global406]
+                }
+            } else {
+                local9 = random2 -7 2
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+            if (global406) {
+                if (gCurrentRoom == 4) {
+                    local10 = random2 -2 2
+                    global405[global406] = local10
+                } else {
+                    local10 = global405[global406]
+                }
+            } else {
+                local10 = random2 -2 2
+            }
+            if (global406 > 0) {
+                if (global406 == 20) {
+                    global406 = 0
+                } else if (global405[0] == global406) {
+                    global406 = 0
+                } else {
+                    ++global406
+                }
+            }
+        }
+    }
+}
+local1 = local1 + local9
+local2 = local2 + local10
+if (local1 < 1) {
+    local1 = 1
+}
+if (local1 > 80) {
+    local1 = 80
+}
+local3 = distance-3d 0 0 0 local5 local6 local7
+local6 = (sin local1) * local3 / 1000
+local4 = (cos local1) * local3 / 100000
+local5 = (cos local2) * local4 / 1000
+local7 = (sin local2) * local4 / 1000
+gBallVelPhysX = local5
+gBallVelPhysY = local6
+gBallVelPhysZ = local7
+free-script

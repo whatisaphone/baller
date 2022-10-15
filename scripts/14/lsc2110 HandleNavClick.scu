@@ -1,0 +1,26 @@
+; LSC2 14 2110 HandleNavClick
+
+parameter arg0
+
+case arg0 {
+    of 193 {
+        go-to-room 2
+    }
+    of 192 {
+        go-to-room 2
+    }
+    of 194 {
+        run-script 374 [-1]
+        cursor-input-enable
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-show
+        } else if (gCursorInputEnabled == 0) {
+            free-running-script GamePadCursorLoop
+            run-script ReleaseSprite [gGamePadCursorSprite]
+            gGamePadCursorSprite = 0
+        } else {
+            run-script ShowGamePadCursor []
+        }
+    }
+}
+free-script

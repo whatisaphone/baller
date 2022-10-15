@@ -1,0 +1,76 @@
+; LSC2 32 2060
+
+local variable local0
+local variable local3
+local variable local4
+
+if (local0 == 13) {
+    if (room15) {
+        exec-script HandleNavClick [192]
+    }
+} else {
+    run-script maybe_HideNavHoverText []
+    if (room14 == 1 && local0 != 32) {
+        if (room15) {
+            if (gCoachName) {
+                free-array gCoachName
+            }
+            gCoachName = ""
+        }
+    }
+    if (room14 <= 15) {
+        if (room15) {
+            sprintf local3 "%s" [gCoachName]
+            if (gCoachName) {
+                free-array gCoachName
+            }
+        }
+        if (local0 == 8) {
+            run-script PlaySound [1733]
+            local4 = substr local3 0 ((strlen local3) - 2)
+            --room14
+        } else {
+            sound-select (random2 1730 1732)
+            sound-play
+            sprintf local4 "%s%c" [local3, local0]
+        }
+        free-array local3
+        sprintf gCoachName "%s" [local4]
+        room16 = call-script maybe_draw_text_to_image [local4, 1244, room8[0], room6, 1]
+        free-array local4
+        sprite-set-range room7[24] room7[24]
+        sprite-clear
+        sprite-set-image room8[0]
+        sprite-set-hotspot 220 (226 - 4)
+        sprite-x2b 999
+        sprite-x7c 0
+        sprite-set-range room7[7] room7[7]
+        sprite-clear
+        sprite-set-image 930
+        sprite-set-hotspot (220 + room16 + 2) (226 - 4)
+        sprite-x2b 999
+        sprite-x7c 0
+        if (!room14) {
+            xb6-xfe
+            xb6-x4b "I KNOW SOMETHING SHOULD BE DISABLED"
+            if (gCoachName) {
+                free-array gCoachName
+            }
+            gCoachName = 0
+        }
+    }
+    if (room14 >= 15) {
+        room14 = 15
+        free-running-script 2059
+        sprite-set-range room7[7] room7[7]
+        sprite-clear
+        sprite-set-image 930
+        sprite-x2a 0 2
+    }
+    if (room14 < 15) {
+        if (!(is-script-running 2059)) {
+            run-script 2059 []
+        }
+    }
+}
+free-script

@@ -1,0 +1,111 @@
+; LSC2 4 2052 BatViewPitchingCursorLoop
+
+local variable x
+local variable y
+local variable local2
+local variable local5
+local variable local6
+local variable local7
+
+gBatViewCursorLoopScript = BatViewPitchingCursorLoop
+gCursorLoopScript = BatViewPitchingCursorLoop
+global214 = 0
+do {
+    if (gCursorVisible > 0) {
+        x = gMouseX
+        y = gMouseY
+        if (gGameInputDevice != INPUT-DEVICE-GAME-PAD) {
+            rCursorX = x
+            rCursorY = y
+        }
+        local2 = 0
+        local2 = xa0 x y
+        if (local2) {
+            if ((get-class local2 [146]) || (get-class local2 [4])) {
+                local2 = 0
+            }
+        }
+        if (!local2) {
+            local2 = sprite-get-x2d x y 0 0 []
+            if (local2 >= 1 && local2 <= 10) {
+                local2 = local2 + 99000
+            } else if ((sprite-get-xc6 local2 1) == 344) {
+                local2 = 99001
+            } else {
+                local2 = 0
+            }
+        }
+        if (x >= 250 && x <= 386) {
+            if (y >= 234 - 25 && y <= 380) {
+                if (room25) {
+                    local2 = 88
+                }
+            }
+        }
+        if (local2 != global214) {
+            global214 = local2
+            if (local2) {
+                local5 = 0
+                if (local2 <= 60) {
+                    local5 = 4
+                } else if (local2 > 99000) {
+                    local5 = 4
+                } else if (local2 == 88) {
+                    local5 = 100
+                } else if (xa3 local2 1) {
+                    local5 = 4
+                } else if (local2 == 11) {
+                    local5 = 4
+                } else {
+                    local5 = 1
+                }
+                if (local5) {
+                    if (local5 == -1) {
+                        if (g_maybe_operating_system == 2) {
+                            cursor-set-image-color (0 + 2)
+                            gCursorImage = 0 + 2
+                        } else if (0 <= 76 || (0 in [82, 85, 91, 88, 79, 95])) {
+                            cursor-set-image-bw (0 + 1)
+                            gCursorImage = 0 + 1
+                        } else if (gBlackAndWhiteCursors || 0 == 1) {
+                            cursor-set-image-bw (0 + 1)
+                            gCursorImage = 0 + 1
+                        } else {
+                            cursor-set-image-color 0
+                            gCursorImage = 0
+                        }
+                    } else if (g_maybe_operating_system == 2) {
+                        cursor-set-image-color (local5 + 2)
+                        gCursorImage = local5 + 2
+                    } else if (local5 <= 76 || (local5 in [82, 85, 91, 88, 79, 95])) {
+                        cursor-set-image-bw (local5 + 1)
+                        gCursorImage = local5 + 1
+                    } else if (gBlackAndWhiteCursors || local5 == 1) {
+                        cursor-set-image-bw (local5 + 1)
+                        gCursorImage = local5 + 1
+                    } else {
+                        cursor-set-image-color local5
+                        gCursorImage = local5
+                    }
+                }
+            } else if (g_maybe_operating_system == 2) {
+                cursor-set-image-color (1 + 2)
+                gCursorImage = 1 + 2
+            } else if (1 <= 76 || (1 in [82, 85, 91, 88, 79, 95])) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else if (gBlackAndWhiteCursors || 1 == 1) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else {
+                cursor-set-image-color 1
+                gCursorImage = 1
+            }
+        }
+    }
+    local6 = x
+    local7 = y
+    temp = random 1
+    stop-script
+}
+free-script

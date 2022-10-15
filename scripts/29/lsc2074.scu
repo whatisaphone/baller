@@ -1,0 +1,23 @@
+; LSC2 29 2074
+
+local variable local0
+local variable local1
+
+local1 = 4 * 10 - 1
+if (0 == global632) {
+    dim array global632 i16[0...0][0...4 * 10 - 1] swap=2
+} else {
+    for local0 = 0 to local1 ++ {
+        run-script ReleaseSprite [global632[local0]]
+        global632[local0] = 0
+    }
+}
+for local0 = 0 to local1 ++ {
+    do {
+        global632[local0] = call-script FindFreeSprite []
+        if (!global632[local0]) {
+            stop-script
+        }
+    } until (global632[local0])
+}
+free-script

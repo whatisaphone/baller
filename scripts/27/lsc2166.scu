@@ -1,0 +1,59 @@
+; LSC2 27 2166
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+
+dim array local5 byte[0...0][0...30] swap=2
+local9 = call-script GetSeasonDivision []
+for local8 = 0 to (9 - 1) ++ {
+    local10 = gSeasonRosterArray[local9][local8]
+    if (local10 <= 30) {
+        local5[local10] = 1
+        ++local3
+    }
+    if (local10 == 56) {
+        local13 = 1
+        ++local3
+    }
+}
+local4 = 30 - 1 + 2
+do {
+    local12 = random2 0 23
+} until (local12 != local9 && local12 < local4 - local3)
+while (local3 < local4) {
+    for local1 = 0 to 23 ++ {
+        local11 = call-script 130 [local1]
+        if (local11) {
+            local7 = 1
+        } else {
+            local7 = 0
+        }
+        if (local1 != local9 && local3 < local4) {
+            if (local1 == local12 && !local13) {
+                local2 = 56
+                local13 = 1
+            } else {
+                local2 = call-script 2160 [local0[local1], 1, 30, local5]
+                local5[local2] = 1
+            }
+            gSeasonRosterArray[local1][local6 + local7] = local2
+            gSeasonRosterArray[local1][local6 + 16 + local7] = local2
+            ++local3
+        }
+    }
+    ++local6
+}
+free-array local5
+free-script

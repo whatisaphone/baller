@@ -1,0 +1,17 @@
+; LSC2 39 2139
+
+local variable local0
+
+run-script 2137 []
+gHoverScript = 2136
+run-script-xc3 2144 [7]
+run-script-xc3 2144 [10]
+run-script-xc3 2144 [11]
+run-script 2178 []
+for local0 = 0 to 5 ++ {
+    run-script-xc3 2144 [local0]
+}
+run-script 2145 []
+gSpriteCursorTargets[room43[11]][TARGET-CLICK-SCRIPT] = 2143
+gSpriteCursorTargets[room43[10]][TARGET-CLICK-SCRIPT] = 2142
+free-script

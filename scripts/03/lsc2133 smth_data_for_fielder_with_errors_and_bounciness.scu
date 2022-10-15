@@ -1,0 +1,19 @@
+; LSC2 3 2133 smth_data_for_fielder_with_errors_and_bounciness
+
+parameter fielder: Fielder
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local1 = call-script smth_kid_data_5_maybe_errors_chance_with_fatigue [rFieldingOrder[fielder - 37]]
+local2 = (sin 45) * local1 / 100
+local3 = 2 * local2 / 384000 * gGravity / 60
+if (local3 < 1) {
+    local3 = 1
+}
+local4 = local2 * local3 / 1000
+local4 = local4 + gFieldHorizontalBounciness * local4 / 100
+return local4
+free-script

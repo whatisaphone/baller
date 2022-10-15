@@ -1,0 +1,9 @@
+; SCRP 64 InitSpriteGroupStack
+
+local variable local0
+
+local0 = abs (gMaxSpriteGroup - 1 - 1)
+gSpriteGroupStackPointer = local0 + 1
+dim array gSpriteGroupStack i32[0...0][0...local0] swap=2
+array-fill-values gSpriteGroupStack 0 0 0 local0 1 (gMaxSpriteGroup - 1)
+free-script

@@ -1,0 +1,27 @@
+; LSC2 4 2105 smth_batter_anim
+
+parameter arg0
+
+if (arg0) {
+    while (!(actor-get-var 2 0)) {
+        stop-script
+    }
+}
+room5 = 0
+run-script smth_maybe_batter_actor_anim []
+while (!(actor-get-var 2 0)) {
+    stop-script
+}
+case gBatterStance {
+    of OPEN {
+        actor-do-anim 2 1
+    }
+    of SQUARE {
+        actor-do-anim 2 2
+    }
+    of CLOSED {
+        actor-do-anim 2 3
+    }
+}
+r_maybe_smth_idle_ready_for_pitch = true
+free-script

@@ -1,0 +1,15 @@
+; LSC2 29 2066
+
+local variable local0
+
+if (!global634) {
+    dim array global634 byte[0...0][0...6] swap=2
+    for local0 = 0 to 6 ++ {
+        global634[local0] = call-script FindFreeSprite []
+    }
+    global628 = call-script AllocScratchImage []
+    global629 = call-script AllocScratchImage []
+    global661 = call-script AllocScratchImage []
+    global631 = call-script AllocScratchImage []
+}
+free-script

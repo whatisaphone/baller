@@ -1,0 +1,91 @@
+; SCRP 377 smth_record_book
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+
+local variable local4
+local variable local5
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+
+if (arg2 == gSeasonDivision) {
+    local17 = 1
+}
+local5 = 9
+label0014:
+--local5
+if (local5 < 0) {
+} else {
+    sprintf local8 "%c%c%c%c" [gRecordBook[arg0][local5 * 49], gRecordBook[arg0][local5 * 49 + 1], gRecordBook[arg0][local5 * 49 + 2], gRecordBook[arg0][local5 * 49 + 3]]
+    local9 = atoi local8
+    free-array local8
+    if (arg0 in [10, 22]) {
+        if (arg3 - local17 < local9) {
+            goto label0014
+        }
+    } else if (arg3 + local17 > local9) {
+        goto label0014
+    }
+}
+++local5
+local4 = local5 * 49
+if (local5 < 9) {
+    array-copy-range gRecordBook gRecordBook arg0 arg0 (local4 + 49) (9 * 49) arg0 arg0 local4 (8 * 49)
+}
+sprintf local10 "%d" [arg3]
+local8 = call-script PadString [local10, 4, '0', 1]
+free-array local10
+run-script GetKidName [arg1]
+temp2 = (strlen gKidName) - 1
+for temp = 0 to temp2 ++ {
+    if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+        gKidName[temp] = gKidName[temp] - 32
+    }
+}
+if ((call-script CalcStringPixelWidth [gKidName, 1239, 1]) > 124) {
+    run-script GetKidName [arg1, 5]
+    temp2 = (strlen gKidName) - 1
+    for temp = 0 to temp2 ++ {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] = gKidName[temp] - 32
+        }
+    }
+}
+local14 = call-script PadString [gKidName, 22, ' ']
+if (!local17) {
+    local10 = call-script 267 [gSeasonRosterArray[arg2][9]]
+} else {
+    sprintf local10 "%s" [gCoachName]
+}
+local11 = call-script PadString [local10, 15, ' ']
+free-array local10
+local12 = gSeasonRosterArray[arg2][10]
+sprintf local13 "%c%c" [local12, gSeasonRosterArray[arg2][11]]
+temp = gNowYear
+temp = mod temp 100
+if (temp < 10) {
+    sprintf local16 "200%d" [temp]
+} else {
+    sprintf local16 "20%d" [temp]
+}
+sprintf local15 "%c%c%s" [gNowMonth, gNowDay, local16]
+free-array local16
+sprintf local10 "%s%s%s%s%s" [local8, local14, local11, local13, local15]
+array-copy-range gRecordBook local10 arg0 arg0 local4 (local4 + 49 - 1) 0 0 0 (49 - 1)
+free-array local10
+free-array local8
+free-array local14
+free-array local11
+free-array local13
+free-array local15
+free-script

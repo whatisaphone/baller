@@ -1,0 +1,11 @@
+; LSC2 7 2100
+
+polygon-xf7 10000 10033
+run-script DrawScoreBoardTitle []
+run-script 2069 []
+run-script 2070 []
+run-script 2094 []
+run-script 2095 []
+run-script 2093 []
+run-script 2097 []
+free-script

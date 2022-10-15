@@ -1,0 +1,48 @@
+; LSC2 3 2080 HandleInputOffense
+
+parameter type: InputType
+parameter key: char
+parameter arg2
+parameter x
+parameter y
+
+local variable local6
+local variable local7
+
+if (global596) {
+    exec-script HandleInput [type, key, arg2, x, y]
+}
+if (type == INPUT-TYPE-MOUSE) {
+    if (gNetplayActive) {
+        local6 = sprite-get-x2d gMouseX gMouseY 0 0 []
+        if (local6) {
+            local7 = sprite-get-xc6 local6 1
+            if (local7 == 344) {
+                run-script maybe_net_send_thumbs_up_or_down [local6]
+                free-running-script 0
+            }
+        }
+        run-script-xc3 maybe_net_send_message [20, 1, NET-RUNNER-CLICK, gMouseX, gMouseY]
+    } else {
+        run-script maybe_handle_basepath_click []
+    }
+} else {
+    case key {
+        of 27 {
+            if (!gNetplayActive) {
+                if ((gPlayEndedReason in [PE-BASE-ON-BALLS, PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, 4, PE-OUT-OF-PLAY, 6, 7]) || r_smth_fly_caught_runners_must_return && gBallIsFoul) {
+                    run-script maybe_handle_esc_skip_play []
+                    free-running-script 0
+                }
+            }
+        }
+        in ['1', '2', '3', '4'] {
+            if (gNetplayActive) {
+                run-script maybe_net_send_thumbs_up_or_down [global579[key - 49 + 1]]
+                free-running-script 0
+            }
+        }
+    }
+    exec-script HandleInput [type, key, arg2, x, y]
+}
+free-script

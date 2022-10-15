@@ -1,0 +1,36 @@
+; LSC2 3 2054 EnqueueComment
+
+parameter dialogue: Dialogue
+parameter arg1
+
+if ((gField in [PARKS-DEPARTMENT, BIG-CITY-STADIUM, SUPER-COLOSSAL-DOME]) && !gNoBackgroundSound) {
+    run-script PlayCrowdSoundForDialogue [dialogue]
+}
+if (gUserOnOffense) {
+    if (dialogue >= 101 && dialogue <= 127) {
+        free-running-script 0
+    }
+} else if (dialogue >= 201 && dialogue <= 213) {
+    free-running-script 0
+} else if (dialogue in [DIALOGUE-STOLEN-BASE, DIALOGUE-STOLEN-HOME]) {
+    dialogue = DIALOGUE-BAD-PLAY
+}
+gCommentaryIsIdle = 0
+if (gCommentaryQueuePointer > 2) {
+    gCommentaryQueuePointer = 0
+} else {
+    ++gCommentaryQueuePointer
+}
+if (rCommentQueue[gCommentaryQueuePointer][0] > 0) {
+    array-fill-list rCommentQueue 0 2 0 1 [0]
+}
+rCommentQueue[gCommentaryQueuePointer][0] = dialogue
+rCommentQueue[gCommentaryQueuePointer][1] = arg1
+if (gUserOnOffense) {
+    if (random 1) {
+        if ((dialogue in [DIALOGUE-RUNNER-OUT, DIALOGUE-RUNNER-TAGGED-OUT]) && rCaughtFly == false) {
+            run-script EnqueueComment [DIALOGUE-OUT-GOOCH, arg1]
+        }
+    }
+}
+free-script

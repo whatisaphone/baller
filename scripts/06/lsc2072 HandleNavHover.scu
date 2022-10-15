@@ -1,0 +1,6 @@
+; LSC2 6 2072 HandleNavHover
+
+parameter arg0
+parameter arg1
+
+free-script

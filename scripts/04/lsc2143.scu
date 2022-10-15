@@ -1,0 +1,53 @@
+; LSC2 4 2143
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+local variable local20
+
+array-set local19 [local2, local3, local4, local5, local6, local7, local8, local9, local10, local11, local12, local13, local14] 0
+local18 = (array-width local19) - 1
+dim array local20 i16[0...0][0...local18] swap=2
+xe2 local19
+xe2 local20
+for local17 = 0 to local18 ++ {
+    if (local19[local17]) {
+        local16 = call-script FindFreeActor []
+        actor-select local16
+        actor-xd9
+        actor-set-costume local1
+        actor-x62 global423
+        actor-x2b -10
+        local20[local17] = local16
+        put-actor local16 0 0 gCurrentRoom
+    }
+}
+while (1) {
+    for local17 = 0 to local18 ++ {
+        if (local19[local17]) {
+            local16 = local20[local17]
+            local15 = local19[local17]
+            actor-select local16
+            actor-move (get-x local15) ((get-y local15) + local0 - (xa2 local15))
+        }
+    }
+    stop-script
+}
+free-script

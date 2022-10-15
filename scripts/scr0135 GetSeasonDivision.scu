@@ -1,0 +1,4 @@
+; SCRP 135 GetSeasonDivision
+
+return gSeasonDivision
+free-script

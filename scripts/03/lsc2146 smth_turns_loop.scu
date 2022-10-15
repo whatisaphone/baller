@@ -1,0 +1,11 @@
+; LSC2 3 2146 smth_turns_loop
+
+do {
+    stop-script
+    if (r_maybe_smth_turn < gMaxTurnCount - 1) {
+        ++r_maybe_smth_turn
+    } else {
+        r_maybe_smth_turn = 0
+    }
+}
+free-script

@@ -1,0 +1,19 @@
+; SCRP 25 OnRoomExit
+
+gPreviousRoom = gCurrentRoom
+gKeyHandlerScript = HandleKey
+gMouseHandlerScript = HandleMouse
+gInputHandlerScript = HandleInput
+gGamePadInputHandlerScript = gInputHandlerScript
+gCurrentSpeechScript = 0
+gCurrentMatchupCastScript = 0
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    gUIInputDevice = INPUT-DEVICE-MOUSE
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+}
+gCursorLoopScript = CursorLoop
+gMouseHookScript = 0
+gMinJiffies = 6
+free-script

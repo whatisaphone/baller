@@ -1,0 +1,87 @@
+; LSC2 39 2144
+
+local variable local0
+local variable local1
+
+case 1 {
+    of local0 == 12 {
+        sprite-set-range room43[12] room43[12]
+        sprite-set-image 1553
+        sprite-set-hotspot 320 240
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 2)
+        sprite-palette room16
+    }
+    of local0 == 11 {
+        palette-select room16
+        palette-load 1553 0
+        palette-unselect
+        sprite-set-range room43[11] room43[11]
+        sprite-set-image 1553
+        sprite-set-hotspot 320 240
+        sprite-x34 2
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+    }
+    of local0 == 10 {
+        sprite-set-range room43[10] room43[10]
+        sprite-set-image 1553
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+    }
+    of local0 == 7 {
+        palette-select room10
+        palette-load 1503 0
+        palette-unselect
+        sprite-set-range room43[7] room43[7]
+        sprite-set-image 1503
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b 1000
+        sprite-palette room10
+    }
+    of local0 >= 0 && local0 <= 5 {
+        sprite-set-range room43[local0] room43[local0]
+        sprite-set-image 1518
+        sprite-set-hotspot 320 240
+        sprite-x34 local0
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room10
+        gSpriteCursorTargets[room43[local0]][TARGET-CLICK-SCRIPT] = 2140
+    }
+    of local0 == 6 {
+        sprite-set-range room43[6] room43[6]
+        sprite-set-image 1376
+        sprite-set-hotspot 520 (158 + 21 * local1)
+        sprite-x52 0
+        sprite-x2b (1000 + 2)
+        sprite-palette room10
+    }
+    of local0 == 8 {
+        sprite-set-range room43[8] room43[8]
+        sprite-set-image room44[0]
+        sprite-set-hotspot 344 184
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 2)
+        sprite-palette room13
+    }
+    of local0 == 9 {
+        sprite-set-range room43[9] room43[9]
+        sprite-set-image room44[1]
+        sprite-set-hotspot 344 238
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 2)
+        sprite-palette room13
+        sprite-x7d [160]
+    }
+}
+free-script

@@ -1,0 +1,10 @@
+; LSC2 29 2090
+
+local variable local0
+local variable local1
+
+sound-select (iif (local1 > 0) 4236 4237)
+sound-channel 3
+sound-play
+gBackupKidData[local0][KD-maybe-speed] = min (max (gBackupKidData[local0][KD-maybe-speed] + local1) 0) 100
+free-script

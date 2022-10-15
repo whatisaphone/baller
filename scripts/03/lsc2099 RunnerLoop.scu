@@ -1,0 +1,866 @@
+; LSC2 3 2099 RunnerLoop
+
+parameter runneridx
+
+local variable local1
+local variable actor
+local variable runner: Entity
+local variable angle4
+local variable angle5
+local variable new_facing
+local variable facing
+local variable local8
+local variable local9
+local variable runner_is_batter
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable pickle_counter
+local variable local17
+local variable flags
+local variable flags2
+local variable local20
+
+if (gNetplayActive) {
+}
+runner = gRunners[runneridx][R-ENTITY]
+if (!runner) {
+    xb6-xfe
+    xb6-x4b "Choke!"
+    pop-discard 0
+    free-running-script 0
+}
+actor = runner - 30
+flags2 = flags2 | 8
+flags2 = flags2 & 29
+runner_is_batter = gRunners[runneridx][R-KID] == gBatterKid
+facing = call-script smth_runner_actor_stuff [actor, runneridx]
+angle4 = 999
+angle5 = 999
+do {
+    if (gRunners[runneridx][11]) {
+        while (!(actor-get-var actor 25)) {
+            stop-script
+        }
+        actor-do-anim actor 12
+        actor-select actor
+        actor-set-var 0 0
+        actor-select actor
+        actor-set-var 2 0
+        actor-select actor
+        actor-set-var 25 0
+        while (!(actor-get-var actor 25)) {
+            stop-script
+        }
+        gRunners[runneridx][11] = 0
+    }
+    if (call-script smth_baserunning_check1 [runneridx, local11, runner_is_batter]) {
+        if (call-script smth_baserunning_check2 [runneridx, local11, runner_is_batter]) {
+            local17 = 1
+        }
+    }
+    if (!local17) {
+        ++local15
+        flags2 = flags2 & 29
+        if (runner_is_batter) {
+            if (!rCastedHitKind && local15 > 60 / gMinJiffies) {
+                rCastedHitKind = true
+                case gRunners[runneridx][R-CUR-BASE] - rRunnerStartingBases[runneridx] {
+                    of 2 {
+                        run-script EnqueueComment [DIALOGUE-HIT-DOUBLE, gRunners[runneridx][R-KID]]
+                    }
+                    of 3 {
+                        run-script EnqueueComment [DIALOGUE-HIT-TRIPLE, gRunners[runneridx][R-KID]]
+                    }
+                }
+            }
+        }
+        gRunners[runneridx][R-VELOCITY-X] = 0
+        gRunners[runneridx][R-VELOCITY-Y] = 0
+        if (rCaughtFly && runner_is_batter) {
+            flags = flags | 7
+            if (gNumOuts + 1 > 2) {
+                g_smth_play_may_continue = 0
+            }
+            xb6-xfe
+            xb6-xc2 "Runner(r%d) OUT: Caught fly" runneridx []
+        }
+        if (gRunners[runneridx][R-FORCED]) {
+            if (gRunners[runneridx][R-CUR-BASE] == rRunnerStartingBases[runneridx] && !r_smth_fly_caught_runners_must_return) {
+                if (gBases[rRunnerStartingBases[runneridx] + 1][BASE-TAGGED-WITH-BALL]) {
+                    flags = flags | 7
+                    if (gNumOuts + 1 > 2) {
+                        g_smth_play_may_continue = 0
+                    }
+                    xb6-xfe
+                    xb6-xc2 "r%d: forced out at base %d, while lollygagging at base %d" runneridx [rRunnerStartingBases[runneridx] + 1, gRunners[runneridx][R-CUR-BASE]]
+                }
+            }
+        }
+        actor-select actor
+        actor-set-conditons [1]
+        actor-select actor
+        actor-set-conditons [2]
+        actor-select actor
+        actor-set-conditons [3]
+        actor-select actor
+        actor-set-conditons [4]
+        actor-select actor
+        actor-set-conditons [5]
+        actor-select actor
+        actor-set-conditons [6]
+        actor-select actor
+        actor-set-conditons [7]
+        actor-select actor
+        actor-set-conditons [8]
+        case gRunners[runneridx][R-CUR-BASE] {
+            in [0, R-HOME] {
+                actor-select actor
+                actor-set-conditons [129]
+            }
+            of FIRST {
+                actor-select actor
+                actor-set-conditons [136]
+            }
+            of SECOND {
+                actor-select actor
+                actor-set-conditons [134]
+            }
+            of THIRD {
+                actor-select actor
+                actor-set-conditons [132]
+            }
+            else {
+                xb6-xfe
+                xb6-xc2 "r%d: Aak! Aak!" runneridx []
+            }
+        }
+        gRunners[runneridx][R-DIRECTION] = 0
+        if (!gRunners[0][R-DIRECTION] && !gRunners[1][R-DIRECTION] && !gRunners[2][R-DIRECTION] && !gRunners[3][R-DIRECTION]) {
+            g_maybe_play_is_ready_to_end = 1
+            r_smth_fly_caught_runners_must_return = 0
+        }
+        local9 = 5000 - gWorld[runner][Z]
+        actor-select actor
+        actor-x54 local9
+        actor-set-scale (call-script CalcActorScale [runner])
+        put-actor actor gScreen[runner][X] (local9 + gScreen[runner][Y]) 3
+        actor-select actor
+        actor-set-var 1 0
+        actor-do-anim actor 6
+        actor-select actor
+        actor-set-var 2 0
+        actor-select actor
+        actor-set-var 1 0
+        stop-script
+    } else {
+        local17 = 0
+        local15 = 0
+        if (flags2 & 2) {
+            flags2 = flags2 & 29
+            run-script EnqueueComment [DIALOGUE-GO-FOR-ANOTHER, gRunners[runneridx][R-KID]]
+        }
+        actor-do-anim actor 10
+        actor-select actor
+        actor-set-var 2 0
+        actor-select actor
+        actor-set-var 1 1
+        if (!((gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9]) || (gRunners[runneridx][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]))) {
+            gRunners[runneridx][R-DEST-BASE] = iif (gRunners[runneridx][R-CUR-BASE] == R-HOME) 4 (gRunners[runneridx][R-CUR-BASE] + 1)
+            case gRunners[runneridx][R-DEST-BASE] {
+                of FIRST {
+                    gRunners[runneridx][R-DEST-X] = gWorld[FIRST-BASE-CENTER][X]
+                    gRunners[runneridx][R-DEST-Z] = gWorld[FIRST-BASE-CENTER][Z]
+                }
+                of SECOND {
+                    gRunners[runneridx][R-DEST-X] = gWorld[SECOND-BASE-CENTER][X]
+                    gRunners[runneridx][R-DEST-Z] = gWorld[SECOND-BASE-CENTER][Z]
+                }
+                of THIRD {
+                    gRunners[runneridx][R-DEST-X] = gWorld[THIRD-BASE-CENTER][X]
+                    gRunners[runneridx][R-DEST-Z] = gWorld[THIRD-BASE-CENTER][Z]
+                }
+                in [0, R-HOME] {
+                    gRunners[runneridx][R-DEST-X] = gWorld[HOME-PLATE-CENTER][X]
+                    gRunners[runneridx][R-DEST-Z] = gWorld[HOME-PLATE-CENTER][Z]
+                }
+            }
+            gRunners[runneridx][R-DIRECTION] = FORWARD
+            g_maybe_play_is_ready_to_end = 0
+        }
+        do {
+            if (gRunners[runneridx][11]) {
+                if ((distance-2d 0 0 gRunners[runneridx][R-VELOCITY-X] gRunners[runneridx][R-VELOCITY-Y]) < 100) {
+                    while (!(actor-get-var actor 25)) {
+                        stop-script
+                    }
+                    actor-do-anim actor 12
+                    actor-select actor
+                    actor-set-var 0 0
+                    actor-select actor
+                    actor-set-var 25 0
+                    while (!(actor-get-var actor 25)) {
+                        stop-script
+                    }
+                    gRunners[runneridx][11] = 0
+                    actor-do-anim actor 10
+                    actor-select actor
+                    actor-set-var 1 1
+                }
+            }
+            if ((gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, 4, PE-OUT-OF-PLAY, 6, 7]) || (gRunners[runneridx][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch])) {
+                g_smth_play_may_continue = iif (gRunners[runneridx][R-STATE] == R-maybe-returning-after-catch) 1 0
+                run-script smth_runner_forced [runneridx]
+            }
+            run-script UpdateRunnerSpeed [runneridx]
+            angle5 = angle4
+            angle4 = atan4 gWorld[runner][X] gWorld[runner][Z] gRunners[runneridx][R-DEST-X] gRunners[runneridx][R-DEST-Z]
+            if (angle4 != 999 && angle5 != 999) {
+                temp = abs (angle5 - angle4)
+                if (temp > 180) {
+                    temp = 360 - temp
+                }
+                if (temp >= 170) {
+                    run-script AddFatigue [gRunners[runneridx][R-KID], 36]
+                    if (gRunners[runneridx][R-CUR-BASE] < 4) {
+                        if (gBases[gRunners[runneridx][R-CUR-BASE]][BASE-TAGGED-WITH-BALL] == true || gBases[gRunners[runneridx][R-CUR-BASE] + 1][BASE-TAGGED-WITH-BALL] == true || rCurrentPlay == gRunners[runneridx][R-CUR-BASE] || rCurrentPlay == gRunners[runneridx][R-CUR-BASE] + 1) {
+                            if (pickle_counter <= 3) {
+                                ++pickle_counter
+                            }
+                            if (pickle_counter == 2) {
+                                run-script EnqueueComment [DIALOGUE-PICKLE, gRunners[runneridx][R-KID]]
+                            }
+                        } else if (pickle_counter == 0) {
+                            ++pickle_counter
+                        }
+                    }
+                    gRunnersExtra[runneridx][RE-SPRINT] = 1
+                    if (call-script BaserunnerMaybeTrip [gRunners[runneridx][R-KID], actor, 25]) {
+                        angle4 = angle5
+                    }
+                } else if (temp >= 80) {
+                    run-script AddFatigue [gRunners[runneridx][R-KID], 35]
+                    gRunnersExtra[runneridx][RE-SPRINT] = 1
+                    if (!(gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-BASE-ON-BALLS, 4, PE-OUT-OF-PLAY, 6, 7])) {
+                        if (call-script BaserunnerMaybeTrip [gRunners[runneridx][R-KID], actor, 10]) {
+                            angle4 = angle5
+                        }
+                    }
+                }
+            }
+            if (!(gRunners[runneridx][11] || (actor-get-var actor 2) == 1)) {
+                new_facing = call-script ConvertAngleToFacing [angle4]
+                new_facing = call-script TurnFacingStep [new_facing, facing]
+                run-script-xc3 SetActorFacing [actor, new_facing, facing]
+                facing = new_facing
+            }
+            if (!(flags2 & 4)) {
+                if (call-script RunnerMaybeSlide [runneridx]) {
+                    flags2 = flags2 | 4
+                } else {
+                    flags2 = flags2 & 27
+                }
+            }
+            run-script UpdateRunnerPosition [runneridx, angle4, (actor-get-var actor 2) == 1]
+            local9 = 5000 - gWorld[runner][Z]
+            actor-select actor
+            actor-x54 local9
+            actor-set-scale (call-script CalcActorScale [runner])
+            put-actor actor gScreen[runner][X] (local9 + gScreen[runner][Y]) 255
+            stop-script
+            local9 = 5000 - gWorld[runner][Z]
+            actor-select actor
+            actor-x54 local9
+            actor-set-scale (call-script CalcActorScale [runner])
+            put-actor actor gScreen[runner][X] (local9 + gScreen[runner][Y]) 255
+            local8 = distance-2d gWorld[runner][X] gWorld[runner][Z] gRunners[runneridx][R-DEST-X] gRunners[runneridx][R-DEST-Z]
+            if (local8 < gRunners[runneridx][R-SPEED]) {
+                gRunners[runneridx][R-SPEED] = local8
+            }
+            if (local8 <= 12) {
+                flags = flags | 1
+                flags2 = flags2 | 1
+            } else {
+                flags = flags & 14
+            }
+            local20 = gRunners[runneridx][R-DEST-BASE]
+            if (rCaughtFly && runner_is_batter) {
+                flags = flags | 7
+                if (gNumOuts + 1 > 2) {
+                    g_smth_play_may_continue = 0
+                }
+                xb6-xfe
+                xb6-xc2 "r%d out: Caught fly" runneridx []
+            }
+            if (!rCaughtFly || !runner_is_batter) {
+                if (gBases[gRunners[runneridx][R-CUR-BASE]][BASE-TAGGED-WITH-BALL] == 3) {
+                    xb6-xfe
+                    xb6-xc2 "r%d: Eegah! I've been tagged whilst off base!" runneridx []
+                    flags = flags | 5
+                    if (gNumOuts + 1 > 2) {
+                        g_smth_play_may_continue = 0
+                    }
+                    if (runner_is_batter) {
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                                run-script AddStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                        }
+                    }
+                }
+                if (!gRunnersExtra[runneridx][0] && !(runner_is_batter && gRunners[runneridx][R-FORCED] == true)) {
+                    if (!gRunners[runneridx][17]) {
+                        local13 = 100 - (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])
+                        local13 = local13 * 50
+                        local14 = random2 0 10000
+                    } else if (gRunners[runneridx][17] == 2) {
+                        local14 = 0
+                        local13 = 1
+                    } else {
+                        local14 = 1
+                        local13 = 0
+                    }
+                    if (local14 >= local13) {
+                        if (!gRunners[runneridx][17]) {
+                            gRunners[runneridx][17] = 1
+                        }
+                        for local1 = 0 to 3 ++ {
+                            if (local1 != runneridx) {
+                                if (gRunners[runneridx][R-CUR-BASE] < 3 && gRunners[runneridx][R-FORCED] == false) {
+                                    if (gRunners[local1][R-CUR-BASE] == gRunners[runneridx][R-DEST-BASE] && gRunners[local1][R-DEST-BASE] == NONE) {
+                                        if (local12 < 2) {
+                                            ++local12
+                                        } else {
+                                            if (gRunners[runneridx][R-DIRECTION] == FORWARD) {
+                                                gRunners[runneridx][R-DEST-BASE] = gRunners[runneridx][R-CUR-BASE]
+                                                gRunners[runneridx][R-DIRECTION] = BACKWARD
+                                            } else if (gRunners[runneridx][R-DIRECTION] == BACKWARD) {
+                                                gRunners[runneridx][R-DEST-BASE] = gRunners[runneridx][R-CUR-BASE] + 1
+                                                gRunners[runneridx][R-DIRECTION] = FORWARD
+                                            }
+                                            local20 = gRunners[runneridx][R-DEST-BASE]
+                                            goto label0f61
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (!gRunners[runneridx][17]) {
+                        gRunners[runneridx][17] = 2
+                    }
+                    if (!gRunners[runneridx][18]) {
+                        local13 = 100 - (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])
+                        local13 = local13 * 25
+                        local14 = random 10000
+                    } else if (gRunners[runneridx][18] == 2) {
+                        local14 = 0
+                        local13 = 1
+                    } else {
+                        local14 = 1
+                        local13 = 0
+                    }
+                    if (local14 >= local13) {
+                        if (!gRunners[runneridx][18]) {
+                            gRunners[runneridx][18] = 1
+                        }
+                        if (gRunners[runneridx][R-CUR-BASE] < 4) {
+                            if (!(gBallIsFoul || rCaughtFly)) {
+                                for local1 = 0 to 3 ++ {
+                                    if (local1 != runneridx) {
+                                        if (gRunners[local1][R-ORDER] > gRunners[runneridx][R-ORDER] && gRunners[local1][R-DIRECTION] == BACKWARD && gRunners[local1][R-DEST-BASE] == gRunners[runneridx][R-DEST-BASE]) {
+                                            if (gRunners[runneridx][R-DIRECTION] == FORWARD) {
+                                                gRunners[runneridx][R-DEST-BASE] = gRunners[runneridx][R-CUR-BASE]
+                                                gRunners[runneridx][R-DIRECTION] = BACKWARD
+                                            } else if (gRunners[runneridx][R-DIRECTION] == BACKWARD) {
+                                                gRunners[runneridx][R-DEST-BASE] = gRunners[runneridx][R-CUR-BASE] + 1
+                                                gRunners[runneridx][R-DIRECTION] = FORWARD
+                                            }
+                                            local20 = gRunners[runneridx][R-DEST-BASE]
+                                            goto label0f61
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (!gRunners[runneridx][18]) {
+                        gRunners[runneridx][18] = 2
+                    }
+                } else {
+                    flags2 = flags2 & 23
+                }
+                local20 = gRunners[runneridx][R-DEST-BASE]
+                if (!(local20 in [0, 1, 2, 3, 4])) {
+                    local20 = 0
+                }
+                if (gBases[local20][BASE-TAGGED-WITH-BALL] == true) {
+                    if (gRunners[runneridx][R-FORCED]) {
+                        flags = flags | 7
+                        if (gNumOuts + 1 > 2) {
+                            g_smth_play_may_continue = 0
+                        }
+                        if (runner_is_batter) {
+                            if (gNetplayActive) {
+                                if (g_net_smth_master == g_net_smth_me) {
+                                    run-script AddNetStat [gBatterKid, STAT-FORCED-OUT, 1]
+                                    run-script AddStat [gBatterKid, STAT-FORCED-OUT, 1]
+                                }
+                            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                                run-script AddStat [gBatterKid, STAT-FORCED-OUT, 1]
+                            }
+                        }
+                    } else {
+                        if (flags2 & 8) {
+                            local8 = distance-2d gWorld[runner][X] gWorld[runner][Z] gRunners[runneridx][R-DEST-X] gRunners[runneridx][R-DEST-Z]
+                            if (local8 < 180) {
+                                flags2 = flags2 & 23
+                            }
+                        }
+                        if (flags2 & 8) {
+                            if (gRunners[runneridx][11]) {
+                                flags2 = flags2 & 23
+                            }
+                        }
+                        if (flags2 & 8) {
+                            if (!gRunners[runneridx][20]) {
+                                local13 = 100 - (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])
+                                local13 = local13 * 10
+                                local14 = random 10000
+                                if (local14 >= local13) {
+                                    gRunners[runneridx][20] = 1
+                                } else {
+                                    flags2 = flags2 & 23
+                                    gRunners[runneridx][20] = 2
+                                }
+                            } else if (gRunners[runneridx][20] == 2) {
+                                flags2 = flags2 & 23
+                            }
+                        }
+                        if (flags2 & 8) {
+                            global207 = 0
+                            if (gRunners[runneridx][R-DEST-BASE] != gRunners[runneridx][R-CUR-BASE]) {
+                                local20 = gRunners[runneridx][R-CUR-BASE]
+                                for local1 = 0 to 3 ++ {
+                                    if (local1 != runneridx) {
+                                        if (gRunners[local1][R-CUR-BASE] == local20 && gRunners[local1][R-DEST-BASE] <= gRunners[local1][R-CUR-BASE]) {
+                                            global207 = 1
+                                        }
+                                    }
+                                }
+                            } else {
+                                local20 = gRunners[runneridx][R-CUR-BASE] + 1
+                                if (local20 > 4) {
+                                    local20 = 4
+                                }
+                                for local1 = 0 to 3 ++ {
+                                    if (local1 != runneridx) {
+                                        if (gRunners[local1][R-CUR-BASE] == local20 && gRunners[local1][R-DEST-BASE] >= gRunners[local1][R-CUR-BASE]) {
+                                            global207 = 1
+                                        }
+                                    }
+                                }
+                            }
+                            if (!global207) {
+                                gRunners[runneridx][R-DEST-BASE] = local20
+                                if (local20 == gRunners[runneridx][R-CUR-BASE]) {
+                                    gRunners[runneridx][R-DIRECTION] = BACKWARD
+                                } else {
+                                    gRunners[runneridx][R-DIRECTION] = FORWARD
+                                }
+label0f61:
+                                case local20 {
+                                    of 1 {
+                                        gRunners[runneridx][R-DEST-X] = gWorld[FIRST-BASE-CENTER][X]
+                                        gRunners[runneridx][R-DEST-Z] = gWorld[FIRST-BASE-CENTER][Z]
+                                    }
+                                    of 2 {
+                                        gRunners[runneridx][R-DEST-X] = gWorld[SECOND-BASE-CENTER][X]
+                                        gRunners[runneridx][R-DEST-Z] = gWorld[SECOND-BASE-CENTER][Z]
+                                    }
+                                    of 3 {
+                                        gRunners[runneridx][R-DEST-X] = gWorld[THIRD-BASE-CENTER][X]
+                                        gRunners[runneridx][R-DEST-Z] = gWorld[THIRD-BASE-CENTER][Z]
+                                    }
+                                    in [0, 4] {
+                                        gRunners[runneridx][R-DEST-X] = gWorld[HOME-PLATE-CENTER][X]
+                                        gRunners[runneridx][R-DEST-Z] = gWorld[HOME-PLATE-CENTER][Z]
+                                    }
+                                }
+                            } else {
+                                flags2 = flags2 & 23
+                            }
+                        }
+                    }
+                }
+            }
+            local11 = gRunners[runneridx][R-DIRECTION]
+            if (gRunners[runneridx][R-STATE] == R-LEAVE-FIELD-WITH-OUT) {
+                xb6-xfe
+                xb6-xc2 "r%d: * I've been signaled to kill myself with an out. Do so at once." runneridx []
+                flags = flags | 7
+            }
+            if (gRunners[runneridx][R-STATE] == R-LEAVE-FIELD) {
+                xb6-xfe
+                xb6-xc2 "r%d: ** I've been signaled to kill myself. Do so at once." runneridx []
+                flags = flags | 3
+            }
+        } until (flags & 1)
+        gRunners[runneridx][R-DIRECTION] = 0
+        if (!gRunners[0][R-DIRECTION] && !gRunners[1][R-DIRECTION] && !gRunners[2][R-DIRECTION] && !gRunners[3][R-DIRECTION]) {
+            g_maybe_play_is_ready_to_end = 1
+            r_smth_fly_caught_runners_must_return = 0
+        }
+        flags2 = flags2 | 8
+        pickle_counter = 0
+        if (flags2 & 1 && (g_smth_play_may_continue || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-BASE-ON-BALLS, 4, PE-OUT-OF-PLAY, 6, 7]) || (gRunners[runneridx][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]))) {
+            array-fill-values gRunners runneridx runneridx 16 20 0 0
+            gRunnersExtra[runneridx][0] = false
+            gRunnersExtra[runneridx][RE-SPRINT] = 0
+            gBases[gRunners[runneridx][R-CUR-BASE]][BASE-RUNNERIDX] = NONE
+            if (gRunners[runneridx][R-DEST-BASE] == NONE) {
+                xb6-xfe
+                xb6-xc2 "r%d: If I have no destination, how did I arrive?" runneridx []
+            } else if (gRunners[runneridx][R-DEST-BASE] > gRunners[runneridx][R-CUR-BASE]) {
+                global207 = gBases[gRunners[runneridx][R-DEST-BASE]][BASE-RUNNERIDX]
+                if (global207 != 999) {
+                    if (gRunnersExtra[global207][0] && gRunners[global207][R-DIRECTION] != FORWARD) {
+                        gRunnersExtra[global207][0] = false
+                        gRunnersExtra[global207][RE-SPRINT] = 0
+                    }
+                }
+            }
+            if (gStealing) {
+                if (gRunners[runneridx][R-STATE] == R-STEALING) {
+                    if (gRunners[runneridx][R-DEST-BASE] == gRunners[runneridx][R-CUR-BASE] + 1) {
+                        if (!(flags & 4) && !(flags & 2) && gBases[gRunners[runneridx][R-DEST-BASE]][BASE-TAGGED-WITH-BALL] == false) {
+                            flags2 = flags2 | 2
+                            if (gRunners[runneridx][R-DEST-BASE] == R-HOME) {
+                                run-script EnqueueComment [DIALOGUE-STOLEN-HOME, gRunners[runneridx][R-KID]]
+                                if (gNetplayActive) {
+                                    if (g_net_smth_master == g_net_smth_me) {
+                                        run-script AddNetStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                        run-script AddStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                    }
+                                } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                                    run-script AddStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                }
+                            } else {
+                                run-script EnqueueComment [DIALOGUE-STOLEN-BASE, gRunners[runneridx][R-KID]]
+                                if (gNetplayActive) {
+                                    if (g_net_smth_master == g_net_smth_me) {
+                                        run-script AddNetStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                        run-script AddStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                    }
+                                } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                                    run-script AddStat [gRunners[runneridx][R-KID], STAT-STEALS, 1]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (gRunners[runneridx][R-CUR-BASE] < 4) {
+                r_runners_zeta[gRunners[runneridx][R-CUR-BASE]] = 999
+            }
+            if (gRunners[runneridx][R-DEST-BASE] < 4) {
+                r_runners_zeta[gRunners[runneridx][R-DEST-BASE]] = 999
+            }
+            gRunners[runneridx][R-CUR-BASE] = gRunners[runneridx][R-DEST-BASE]
+            gRunners[runneridx][R-DEST-BASE] = NONE
+            if (gRunnerSpecialDestinations[runneridx] != NONE && !(flags & 4) && !(flags & 2)) {
+                if (gRunnerSpecialDestinations[runneridx] == gRunners[runneridx][R-CUR-BASE]) {
+                    xb6-xfe
+                    xb6-xc2 "r%d: I've arrived at my special destination (FORCE OFF)." runneridx []
+                    gRunners[runneridx][R-DIRECTION] = 0
+                    gRunners[runneridx][R-FORCED] = false
+                    if (gRunners[runneridx][R-STATE] == R-maybe-returning-after-catch) {
+                        case gRunners[runneridx][R-CUR-BASE] {
+                            of FIRST {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-TAGS-FIRST, gRunners[runneridx][R-KID]]
+                            }
+                            of SECOND {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-TAGS-SECOND, gRunners[runneridx][R-KID]]
+                            }
+                            of THIRD {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-TAGS-THIRD, gRunners[runneridx][R-KID]]
+                            }
+                        }
+                    }
+                    if (gRunners[runneridx][R-STATE] == R-maybe-returning-after-catch) {
+                        gRunners[runneridx][R-STATE] = 3
+                    }
+                    if (gRunners[runneridx][R-STATE] == 2) {
+                        gRunners[runneridx][R-STATE] = 3
+                    }
+                    if (!((gRunners[0][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]) || (gRunners[1][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]) || (gRunners[2][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]) || (gRunners[3][R-STATE] in [R-maybe-returning-after-foul, R-maybe-returning-after-infield-fly, R-maybe-returning-after-catch]))) {
+                        r_smth_fly_caught_runners_must_return = 0
+                    }
+                }
+            }
+            if (gRunners[runneridx][R-FORCED] && gRunners[runneridx][R-CUR-BASE] == rRunnerStartingBases[runneridx] && !r_smth_fly_caught_runners_must_return) {
+            } else if (!(gBallIsFoul || rCaughtFly)) {
+                gRunners[runneridx][R-FORCED] = false
+            }
+            if (gRunners[runneridx][R-CUR-BASE] == R-HOME && !gBases[R-HOME][BASE-TAGGED-WITH-BALL] && !(flags & 4) && !(flags & 2)) {
+                if (gPlayEndedReason != PE-BASE-ON-BALLS) {
+                    if (gNumRunners + gNumOuts > 2 && gRunners[0][R-FORCED] + gRunners[1][R-FORCED] + gRunners[2][R-FORCED] + gRunners[3][R-FORCED] + gNumOuts > 2 || gBallHasBounced == 0) {
+                        run-script-xc3 maybe_runner_run_off_to_the_side [runneridx, actor, angle4]
+                        while (!!(is-script-running maybe_runner_run_off_to_the_side)) {
+                            stop-script
+                        }
+                    }
+                }
+                if (gBallIsFoul || rCaughtFly && gRunners[runneridx][R-STATE] != 3) {
+                } else {
+                    gTeamInfo[gBattingTeamInfoIndex][TI-RUNS] = gTeamInfo[gBattingTeamInfoIndex][TI-RUNS] + 1
+                    if (gNetplayActive) {
+                        run-script-xc3 maybe_net_send_message [30, 1, NET-RUNNER-SCORED, actor, gRunners[runneridx][R-KID]]
+                        if (gNetplayActive) {
+                            run-script smth_net_stats_kludge [0]
+                        }
+                    }
+                    room29[runneridx] = 1
+                    run-script-xc3 DrawNameUnderKid [gRunners[runneridx][R-KID], gRunners[runneridx][R-ENTITY] - 30, 113, 0]
+                    if (gPlayEndedReason != PE-HOME-RUN) {
+                        run-script EnqueueComment [DIALOGUE-SCORED-RUN, gRunners[runneridx][R-KID]]
+                    }
+                    if (gNetplayActive) {
+                        if (g_net_smth_master == g_net_smth_me) {
+                            run-script AddNetStat [gRunners[runneridx][R-KID], STAT-RUNS-SCORED, 1]
+                            run-script AddStat [gRunners[runneridx][R-KID], STAT-RUNS-SCORED, 1]
+                        }
+                    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                        run-script AddStat [gRunners[runneridx][R-KID], STAT-RUNS-SCORED, 1]
+                    }
+                    if (gNetplayActive) {
+                        if (g_net_smth_master == g_net_smth_me) {
+                            run-script AddNetStat [rFieldingOrder[POS-PITCHER], STAT-RUNS-AGAINST, 1]
+                            run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-RUNS-AGAINST, 1]
+                        }
+                    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                        run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-RUNS-AGAINST, 1]
+                    }
+                    if (gBallWasHit || gNumBalls == 4) {
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gBatterKid, STAT-RBIS, 1]
+                                run-script AddStat [gBatterKid, STAT-RBIS, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gBatterKid, STAT-RBIS, 1]
+                        }
+                    }
+                    if (runner_is_batter) {
+                        room34 = 1
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gBatterKid, STAT-HOME-RUNS, 1]
+                                run-script AddStat [gBatterKid, STAT-HOME-RUNS, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gBatterKid, STAT-HOME-RUNS, 1]
+                        }
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gBatterKid, STAT-HITS, 1]
+                                run-script AddStat [gBatterKid, STAT-HITS, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gBatterKid, STAT-HITS, 1]
+                        }
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gBatterKid, STAT-AT-BATS, 1]
+                                run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+                        }
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [rFieldingOrder[POS-PITCHER], STAT-HITS-ALLOWED, 1]
+                                run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-HITS-ALLOWED, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-HITS-ALLOWED, 1]
+                        }
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+                                run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+                        }
+                    }
+                    flags = flags | 2
+                    run-script UpdateBasesWithRunners []
+                    run-script-xc3 2085 [gRunners[runneridx][R-CUR-BASE], runneridx]
+                }
+            } else {
+                run-script UpdateBasesWithRunners []
+                if (gBases[gRunners[runneridx][R-CUR-BASE]][BASE-TAGGED-WITH-BALL] == true) {
+                    flags = flags | 6
+                    if (runner_is_batter) {
+                        if (gNetplayActive) {
+                            if (g_net_smth_master == g_net_smth_me) {
+                                run-script AddNetStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                                run-script AddStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                            }
+                        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                            run-script AddStat [gRunners[runneridx][R-KID], STAT-THROWN-OUT, 1]
+                        }
+                    }
+                } else if (rCurrentPlay == gRunners[runneridx][R-CUR-BASE]) {
+                    if (random 1) {
+                        run-script EnqueueComment [DIALOGUE-RUNNER-SAFE, gRunners[runneridx][R-KID]]
+                    } else {
+                        case gRunners[runneridx][R-CUR-BASE] {
+                            of FIRST {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SAFE-AT-FIRST, gRunners[runneridx][R-KID]]
+                            }
+                            of SECOND {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SAFE-AT-SECOND, gRunners[runneridx][R-KID]]
+                            }
+                            of THIRD {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SAFE-AT-THIRD, gRunners[runneridx][R-KID]]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (flags & 4) {
+        flags = flags & 11
+        flags = flags | 2
+        room28[runneridx] = 1
+        run-script-xc3 DrawNameUnderKid [gRunners[runneridx][R-KID], gRunners[runneridx][R-ENTITY] - 30, 114, 0]
+        if (runner_is_batter) {
+            room34 = 1
+            flags2 = flags2 | 16
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [gBatterKid, STAT-AT-BATS, 1]
+                    run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+            }
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+                    run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [rFieldingOrder[POS-PITCHER], STAT-BATTERS-FACED, 1]
+            }
+            if (rCaughtFly) {
+                if (gNetplayActive) {
+                    if (g_net_smth_master == g_net_smth_me) {
+                        run-script AddNetStat [gRunners[runneridx][R-KID], STAT-POPPED-OUT, 1]
+                        run-script AddStat [gRunners[runneridx][R-KID], STAT-POPPED-OUT, 1]
+                    }
+                } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                    run-script AddStat [gRunners[runneridx][R-KID], STAT-POPPED-OUT, 1]
+                }
+            }
+        } else {
+            flags2 = flags2 & 15
+        }
+        if (rCurrentPlay == runneridx + 46) {
+            if (gFielderWithBall) {
+                run-script SetSensibleNextPlay [gFielderWithBall, 100]
+            } else {
+                rCurrentPlay = NONE
+            }
+        }
+        run-script EnqueueComment [DIALOGUE-RUNNER-OUT, gRunners[runneridx][R-KID]]
+        if (gNumOuts == room13 + 1) {
+            run-script EnqueueComment [DIALOGUE-DOUBLE-PLAY, gRunners[runneridx][R-KID]]
+            if (!r_maybe_disable_powerups) {
+                run-script PlaySound [2098, 0, 1]
+                gGivePowerup = gGivePowerup | 64
+            }
+        } else if (gNumOuts == room13 + 2) {
+            run-script EnqueueComment [DIALOGUE-TRIPLE-PLAY, gRunners[runneridx][R-KID]]
+            if (!r_maybe_disable_powerups) {
+                run-script PlaySound [2098, 0, 1]
+                gGivePowerup = gGivePowerup | 64
+            }
+        }
+        ++gNumOuts
+        if (gNumOuts >= 3) {
+            run-script RetireTheSide [runneridx, runner_is_batter]
+        }
+        run-script-xc3 2085 [gRunners[runneridx][R-CUR-BASE], runneridx]
+    }
+    if (flags & 2) {
+        flags = flags & 13
+        run-script-xc3 SendRunnerOffField [runneridx, facing]
+        run-script UpdateBasesWithRunners []
+        free-running-script 0
+    }
+} until (gPlayEndedReason == PE-BASE-ON-BALLS)
+if (gRunners[runneridx][11]) {
+    while (!(actor-get-var actor 25)) {
+        stop-script
+    }
+    actor-do-anim actor 12
+    actor-select actor
+    actor-set-var 0 0
+    actor-select actor
+    actor-set-var 25 0
+    while (!(actor-get-var actor 25)) {
+        stop-script
+    }
+    gRunners[runneridx][11] = 0
+}
+actor-select actor
+actor-set-conditons [1]
+actor-select actor
+actor-set-conditons [2]
+actor-select actor
+actor-set-conditons [3]
+actor-select actor
+actor-set-conditons [4]
+actor-select actor
+actor-set-conditons [5]
+actor-select actor
+actor-set-conditons [6]
+actor-select actor
+actor-set-conditons [7]
+actor-select actor
+actor-set-conditons [8]
+case gRunners[runneridx][R-CUR-BASE] {
+    in [0, R-HOME] {
+        actor-select actor
+        actor-set-conditons [129]
+    }
+    of FIRST {
+        actor-select actor
+        actor-set-conditons [136]
+    }
+    of SECOND {
+        actor-select actor
+        actor-set-conditons [134]
+    }
+    of THIRD {
+        actor-select actor
+        actor-set-conditons [132]
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "r%d: Oh, you know." runneridx []
+    }
+}
+actor-do-anim actor 6
+actor-select actor
+actor-set-var 1 0
+actor-select actor
+actor-set-var 2 0
+free-script

@@ -1,0 +1,19 @@
+; LSC2 8 2092
+
+run-script SetAmbientSound [0]
+if (gGameMode == MODE-SEASON && gGameEnded) {
+    global682 = call-script AllocScratchImage []
+    image-select global682
+    image-x33 0 0 0 639 479
+    image-xff
+    global703 = 0
+    go-to-room 34
+} else if (MODE-SPECTATE == gGameMode) {
+    run-script 2100 []
+} else if (gGameEnded) {
+    global703 = 0
+    go-to-room 27
+} else {
+    go-to-room 7
+}
+free-script

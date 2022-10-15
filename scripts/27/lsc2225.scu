@@ -1,0 +1,108 @@
+; LSC2 27 2225
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+local variable local18
+local variable local19
+
+local14 = palette-x42 room62 5
+local15 = palette-x42 room83 5
+image-select room73[1]
+image-op-create
+image-x20 134
+image-x21 194
+image-xff
+image-select room73[1]
+image-x85 0 0 134 194 local14
+image-xff
+image-select room73[0]
+image-op-create
+image-x20 176
+image-x21 194
+image-xff
+image-select room73[0]
+image-x85 0 0 176 194 local15
+image-xff
+case 1 {
+    of local0 >= 0 {
+        local4 = local0 * 4
+        local3 = local4 + 3
+        local10 = local4
+        local8 = room82
+    }
+    of local0 == -7 {
+        local3 = 17
+        local4 = 12
+        local8 = room80
+        local10 = local4
+    }
+    of local0 == -6 {
+        local3 = 5
+        local4 = 0
+        local8 = room80
+    }
+    of local0 == -8 {
+        local3 = 14
+        local4 = 9
+        local8 = room81
+        local10 = local4
+    }
+    of local0 == -9 {
+        local3 = 5
+        local4 = 0
+        local8 = room81
+    }
+}
+for local2 = local4 to local3 ++ {
+    local13 = local2 - local10
+    local9 = iif (mod local13 2) 1031 1029
+    local7 = call-script GetTeamNameString [local8[local2][5], 1]
+    local1 = call-script 2224 [local7, 1239, local13, 88, room83, 1]
+    sprintf local11 "%d" [local8[local2][0]]
+    local1 = call-script 2224 [local11, local9, local13, 16, room62]
+    sprintf local12 "%d" [local8[local2][1]]
+    local1 = call-script 2224 [local12, local9, local13, 48, room62]
+    local6 = call-script 2218 [local8[local2][2]]
+    local1 = call-script 2224 [local6, local9, local13, 87, room62]
+    sprintf local5 "%d" [local8[local2][3] / 10, mod local8[local2][3] 10]
+    local1 = call-script 2224 [local5, local9, local13, 122, room62]
+    local19 = call-script smth_find_season_team [local8[local2][5]]
+    local17 = call-script ReadActiveRoster [local19, 12]
+    local18 = call-script ReadActiveRoster [local19, 13]
+    if (room85[local13]) {
+        run-script FreeScratchImage [room85[local13]]
+    }
+    room85[local13] = call-script 269 [local8[local2][5], local17, local18]
+    if (local1) {
+        local16 = room90
+    } else {
+        local16 = room0
+    }
+    sprite-set-range room72[10 + local13] room72[10 + local13]
+    sprite-set-image room85[local13]
+    sprite-set-hotspot 190 (185 + local13 * 32 + local13 * 2 + local13)
+    sprite-palette local16
+    sprite-x2b 500
+    sprite-x7c 0
+    sprite-x52 0
+}
+local1 = call-script 2228 [local0]
+local1 = call-script 2229 [local0]
+return 1
+free-script

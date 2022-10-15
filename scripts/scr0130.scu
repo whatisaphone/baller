@@ -1,0 +1,10 @@
+; SCRP 130
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = call-script ReadSeasonTeams [local0]
+local1 = call-script 129 [local2]
+return local1
+free-script

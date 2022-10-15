@@ -1,0 +1,130 @@
+; LSC2 27 2100 smth_kid_bigness
+
+parameter arg0
+
+local variable local1
+
+case arg0 {
+    of 26 {
+        local1 = 1 + 10
+    }
+    of 3 {
+        local1 = 2
+    }
+    of 21 {
+        local1 = 3
+    }
+    of 4 {
+        local1 = 3
+    }
+    of 18 {
+        local1 = 1
+    }
+    of 30 {
+        local1 = 2
+    }
+    of 24 {
+        local1 = 1
+    }
+    of 12 {
+        local1 = 2
+    }
+    of 5 {
+        local1 = 5
+    }
+    of 19 {
+        local1 = 0
+    }
+    of 6 {
+        local1 = 3 + 10
+    }
+    of 10 {
+        local1 = 6 + 10
+    }
+    of 27 {
+        local1 = 3 + 10
+    }
+    of 16 {
+        local1 = 3
+    }
+    of 15 {
+        local1 = 1 + 10
+    }
+    of 9 {
+        local1 = 2 + 10
+    }
+    of 8 {
+        local1 = 2 + 10
+    }
+    of 23 {
+        local1 = 4 + 10
+    }
+    of 11 {
+        local1 = 2
+    }
+    of 13 {
+        local1 = 7
+    }
+    of 1 {
+        local1 = 5 + 10
+    }
+    of 22 {
+        local1 = 4 + 10
+    }
+    of 28 {
+        local1 = 6
+    }
+    of 29 {
+        local1 = 1 + 10
+    }
+    of 25 {
+        local1 = 1
+    }
+    of 7 {
+        local1 = 9 + 10
+    }
+    of 17 {
+        local1 = 3
+    }
+    of 14 {
+        local1 = 2 + 10
+    }
+    of 2 {
+        local1 = 9
+    }
+    of 20 {
+        local1 = 1
+    }
+    of 263 {
+        local1 = 2 + 10
+    }
+    of 59 {
+        local1 = 2
+    }
+    in [44, 33, 56, 45, 50, 43, 54, 51] {
+        local1 = 3
+    }
+    in [42, 35, 52, 40, 36, 34, 47, 61] {
+        local1 = 7
+    }
+    in [49, 38, 53, 55, 46, 41, 39, 60, 48, 31] {
+        local1 = 6 + 10
+    }
+    in [32, 37, 58, 57] {
+        local1 = 10 + 10
+    }
+    in [264, 265, 266, 267, 268, 269, 270, 271, 272, 273] {
+        if (14 == gCurrentRoom) {
+            local1 = 5
+        } else {
+            local1 = gKidData[arg0][KD-maybe-height]
+        }
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "No bigness for player %d!  Using default." arg0 []
+        local1 = 5
+    }
+}
+return local1
+free-script

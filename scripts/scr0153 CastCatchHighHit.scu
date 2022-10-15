@@ -1,0 +1,230 @@
+; SCRP 153 CastCatchHighHit
+
+parameter arg0
+parameter arg1
+
+gCurrentSpeechScript = CastCatchHighHit
+if (arg0 == 113) {
+    case random 17 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT930501,27078\x7f     ...and makes a basket catch!"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT957579,6105\x7f     ...got it!"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT963684,16848\x7f     and makes the catch!"
+        }
+        of 3 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT980532,16350\x7f     ...she's got it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT996882,16954\x7f     and he makes the catch!"
+            }
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1013836,16228\x7f     and catches it!"
+        }
+        of 5 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1030064,24109\x7f     and makes a great catch!"
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1054173,12619\x7f     and NABS it!"
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1066792,18890\x7f     up to make the catch!"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1085682,14996\x7f     easy play"
+        }
+        of 9 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1100678,15377\x7f     An easy out!"
+        }
+        of 10 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1116055,23547\x7f     ... easy basket catch!"
+        }
+        of 11 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1139602,20054\x7f     Yes!  Makes it."
+        }
+        of 12 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1159656,14123\x7f     ... beautiful catch!"
+        }
+        of 13 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1173779,15651\x7f     Got it!    Nice one!"
+        }
+        of 14 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1189430,22477\x7f     Yes!  She makes it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1211907,23548\x7f     Yes!    he's got it!"
+            }
+        }
+        of 15 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1235455,13454\x7f     AND MAKES IT!!!"
+        }
+        of 16 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1248909,17847\x7f     oh!    she grabs it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1266756,14331\x7f     And a nice catch!"
+            }
+        }
+        of 17 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1281087,13647\x7f     and she gets it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1294734,16710\x7f     and he GETS IT!!"
+            }
+        }
+    }
+} else {
+    case random 13 {
+        of 0 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1311444,11441\x7f    she can't get it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1322885,23249\x7f    and he can't make the play!"
+            }
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1346134,14234\x7f    and misses it!"
+        }
+        of 2 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1360368,22172\x7f    No!    she didn't get it!"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1382540,18376\x7f    No!    he didn't make it!"
+            }
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1400916,16580\x7f    Not in time!"
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1417496,10352\x7f    No good."
+        }
+        of 5 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1427848,10465\x7f    she missed it."
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1438313,18529\x7f    Oh!    he doesn't get it!"
+            }
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1456842,14556\x7f    didn't quite make it"
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1471398,9348\x7f    didn't make it"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1480746,12846\x7f    that's not gonna do it"
+        }
+        of 9 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1493592,15271\x7f    and misses"
+        }
+        of 10 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1508863,7840\x7f    she chokes"
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1516703,13907\x7f    and he flubbed it"
+            }
+        }
+        of 11 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1530610,19017\x7f    No. couldn't get that one."
+        }
+        of 12 {
+            if (gKidData[arg1][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1549627,9002\x7f    and she blows it."
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT1558629,19803\x7f    this one's gonna get past him"
+            }
+        }
+        of 13 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT1578432,11834\x7f    not gonna make it"
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

@@ -1,0 +1,89 @@
+; SCRP 387
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+image-select local4
+image-op-create
+image-x20 120
+image-x21 160
+image-xff
+image-select local4
+image-x85 0 0 120 160 (iif local5 53 5)
+image-xff
+if (local6) {
+    palette-select local6
+    palette-load 710 0
+    palette-unselect
+} else {
+    local6 = 1
+}
+local8 = 709
+local12 = ((shr local0 30) & 3) * 4 + ((shr local0 24) & 3)
+image-select local8
+image-pos (320 - (image-get-hotspot-x local8 local12) - 146) (240 - (image-get-hotspot-y local8 local12) - 181)
+image-x34 local12
+image-render-into local4
+image-palette local6
+image-x30
+image-xff
+local10 = call-script 391 [local0, 3, 0]
+local8 = ((shr local0 30) & 3) * 3 + local10
+local9 = (shr local0 16) & 255 & 31
+image-select local8
+image-pos (320 - (image-get-hotspot-x local8 local9) - 146) (240 - (image-get-hotspot-y local8 local9) - 181)
+image-x34 local9
+image-render-into local4
+image-palette local6
+image-x30
+image-xff
+local10 = call-script 391 [local0, 5, 0]
+local8 = ((shr local0 30) & 3) * 3 + local10
+local9 = local0 & 31
+image-select local8
+image-pos (320 - (image-get-hotspot-x local8 local9) - 146) (240 - (image-get-hotspot-y local8 local9) - 181)
+image-x34 local9
+image-render-into local4
+image-palette local6
+image-x30
+image-xff
+local10 = call-script 391 [local0, 4, 0]
+local8 = ((shr local0 30) & 3) * 3 + local10
+local9 = (shr local0 8) & 255 & 31
+image-select local8
+image-pos (320 - (image-get-hotspot-x local8 local9) - 146) (240 - (image-get-hotspot-y local8 local9) - 181)
+image-x34 local9
+image-render-into local4
+image-palette local6
+image-x30
+image-xff
+local11 = local7 + 1580
+image-select local11
+image-pos (320 - (image-get-hotspot-x local11 local12) - 146) (240 - (image-get-hotspot-y local11 local12) - 181)
+image-x34 local12
+image-render-into local4
+image-palette local6
+image-x30
+image-xff
+if (!local5) {
+    sprite-set-range local3 local3
+    sprite-clear
+    sprite-set-image local4
+    sprite-palette local6
+    sprite-set-hotspot local1 local2
+    sprite-x2b 4999
+    sprite-x52 0
+    sprite-x7c 0
+}
+free-script

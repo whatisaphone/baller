@@ -1,0 +1,12 @@
+; LSC2 39 2095
+
+if (global561) {
+    if (global561[30]) {
+        run-script 2070 []
+    }
+}
+run-script 2179 []
+free-running-script 2090
+run-script 2096 []
+gHoverScript = 0
+free-script

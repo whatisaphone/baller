@@ -1,0 +1,28 @@
+; SCRP 136 SetFieldForSeasonGame
+
+local variable local0
+local variable local1
+local variable local2
+
+case gSeasonGameNumber {
+    in [17, 18, 19] {
+        gField = BIG-CITY-STADIUM
+    }
+    in [20, 21, 22, 23, 24] {
+        gField = SUPER-COLOSSAL-DOME
+    }
+    else {
+        if ((call-script ReadActiveSchedule [gSeasonDivision, gSeasonGameNumber, 6]) == 1) {
+            local1 = call-script ReadActiveSchedule [gSeasonDivision, gSeasonGameNumber, 0]
+            local0 = call-script smth_find_season_team [local1]
+            local2 = mod local0 8
+            gField = pick local2 [6, 7, 9, 2, 3, 1, 6, 3, 1]
+            if (gField == gCoachHomeField) {
+                gField = DIRT-YARDS
+            }
+        } else {
+            gField = gCoachHomeField
+        }
+    }
+}
+free-script

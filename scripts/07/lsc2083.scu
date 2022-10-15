@@ -1,0 +1,11 @@
+; LSC2 7 2083
+
+for temp = 0 to 47 ++ {
+    run-script ReleaseSprite [room6[temp]]
+}
+free-array room6
+for temp = 0 to 3 ++ {
+    run-script ReleaseSprite [room7[temp]]
+}
+free-array room7
+free-script

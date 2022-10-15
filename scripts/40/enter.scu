@@ -1,0 +1,14 @@
+; ENCD 40
+
+room33 = 4
+gMinJiffies = 6
+global40 = 333
+global706 = 0
+if (!(is-sound-playing 8137)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8137]
+    run-script PlayMusicPool [-1]
+}
+run-script 2050 []
+run-script 2122 []
+finish-script

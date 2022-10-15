@@ -1,0 +1,58 @@
+; LSC2 27 2172 smth_coach_season_ini
+
+parameter arg0
+
+local variable local6
+local variable local16
+
+if (!gCoachINIPath) {
+    xb6-xfe
+    xb6-x4b "No INI path!!"
+    free-running-script 0
+}
+if (g_smth_season_mode && (gPreviousRoom in [32, 5]) || arg0) {
+    gSeasonOver = 0
+    case g_smth_season_mode {
+        of 1 {
+            if (arg0) {
+                run-script 2171 [1, gSeasonDivision]
+            } else {
+                run-script 2171 []
+            }
+            run-script SaveCoach []
+            run-script WriteActiveSchedule [gSeasonDivision, gSeasonGameNumber, SS-STATUS, 2]
+        }
+        of 2 {
+            gGameMode = MODE-SEASON
+            local16 = call-script LoadCoach []
+            if (!local16) {
+                cursor-input-disable
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-hide
+                } else if (gCursorInputEnabled == 0) {
+                    free-running-script GamePadCursorLoop
+                    run-script ReleaseSprite [gGamePadCursorSprite]
+                    gGamePadCursorSprite = 0
+                } else {
+                    run-script ShowGamePadCursor []
+                }
+                local6 = "Invalid data in coach file!  Please delete this coach."
+                run-script ShowPopup [local6, 2, 5]
+                while (!gPopupResult) {
+                    stop-script
+                }
+                go-to-room 2
+                free-running-script 0
+            }
+        }
+        else {
+            xb6-xfe
+            xb6-x4b "Unsupported season mode!!"
+            free-running-script 0
+        }
+    }
+    run-script RefreshTeams []
+} else if (gGameEnded) {
+    run-script RefreshTeams []
+}
+free-script

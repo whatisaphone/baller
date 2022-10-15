@@ -1,0 +1,104 @@
+; LSC2 3 2118 WatchForFoulBall
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+while (!gBallIsFoul) {
+    stop-script
+}
+stop-script
+if (gEnableHumongousVision == 0 || !(gField in [PARKS-DEPARTMENT, BIG-CITY-STADIUM, SUPER-COLOSSAL-DOME])) {
+    local5 = 0
+} else {
+    local5 = 1
+    case gField {
+        of PARKS-DEPARTMENT {
+            local2 = 264
+            local3 = 0
+            local4 = 454
+        }
+        of BIG-CITY-STADIUM {
+            local2 = 273
+            local3 = 0
+            local4 = 454 + 1
+        }
+        else {
+            local2 = 270
+            local3 = 0
+            local4 = 454 + 2
+        }
+    }
+}
+for local1 = 37 to 45 ++ {
+    gWorld[local1][TARGET-X] = gWorld[local1][X]
+    gWorld[local1][TARGET-Z] = gWorld[local1][Z]
+    gWorld[local1][TARGET] = NONE
+}
+if (rBallWasHitHigh) {
+    case random2 1 5 {
+        of 1 {
+            run-script PlaySoundSynced [2011]
+        }
+        of 2 {
+            run-script PlaySoundSynced [2025]
+        }
+        of 3 {
+            run-script PlaySoundSynced [2026]
+        }
+        of 4 {
+            run-script PlaySoundSynced [2027]
+        }
+        of 5 {
+            run-script PlaySoundSynced [2028]
+        }
+    }
+}
+g_maybe_smth_play_is_alive = 0
+if (local5 == 0) {
+    while (!g_maybe_play_is_ready_to_end) {
+        stop-script
+    }
+    free-running-script 0
+}
+cutscene-start 115 111
+do {
+    stop-script
+    if (local5) {
+        image-select local4
+        image-x30
+        image-pos local2 local3
+        image-x34 5
+        image-xff
+        image-select local4
+        image-x30
+        image-pos local2 local3
+        image-xff
+        sleep 10
+        image-select local4
+        image-x30
+        image-pos local2 local3
+        image-x34 6
+        image-xff
+        image-select local4
+        image-x30
+        image-pos local2 local3
+        image-xff
+        sleep 9
+        ++local0
+    } else {
+        sleep 10
+    }
+} until (local0 > 3 && g_maybe_play_is_ready_to_end)
+if (g_maybe_skipped_cutscene) {
+    while (!g_maybe_play_is_ready_to_end) {
+        stop-script
+    }
+    stop-sound 2011
+} else {
+    cutscene-end
+}
+free-script

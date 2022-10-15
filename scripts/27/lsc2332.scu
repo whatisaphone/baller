@@ -1,0 +1,25 @@
+; LSC2 27 2332
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+dim array local2 i16[0...0][0...9] swap=2
+dim array local3 i16[0...0][0...9] swap=2
+array-copy-range local2 gPickOrder2 0 0 0 9 0 0 0 9
+array-copy-range local3 gBattingOrder2 0 0 0 9 0 0 0 9
+for local1 = 0 to 23 ++ {
+    if (!(gSeasonDivision == local1 && local0)) {
+        array-copy-range gPickOrder2 gSeasonRosterArray 0 0 0 (9 - 1) local1 local1 0 (9 - 1)
+        array-copy-range gBattingOrder2 gSeasonRosterArray 0 0 0 (9 - 1) local1 local1 16 (16 + 9 - 1)
+        run-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders []
+        array-copy-range gSeasonRosterArray gPickOrder2 local1 local1 0 (9 - 1) 0 0 0 (9 - 1)
+        array-copy-range gSeasonRosterArray gBattingOrder2 local1 local1 16 (16 + 9 - 1) 0 0 0 (9 - 1)
+    }
+}
+array-copy-range gPickOrder2 local2 0 0 0 9 0 0 0 9
+array-copy-range gBattingOrder2 local3 0 0 0 9 0 0 0 9
+free-array local2
+free-array local3
+free-script

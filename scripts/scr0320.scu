@@ -1,0 +1,7 @@
+; SCRP 320
+
+local variable local0
+
+local0 = kludge-retval [2001, 2205]
+return local0
+free-script

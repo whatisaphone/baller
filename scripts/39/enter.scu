@@ -1,0 +1,20 @@
+; ENCD 39
+
+local variable local0
+
+local0 = "baseball2001"
+sprintf room36 "%s%s.net" [gSaveGamePath, local0]
+free-array local0
+room31 = -1
+gHoverScript = 2161
+gInputHandlerScript = 2175
+gGamePadInputHandlerScript = gInputHandlerScript
+global40 = 333
+if (!(is-sound-playing 8137)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8137]
+    run-script PlayMusicPool [-1]
+}
+run-script 2050 []
+run-script 2176 []
+finish-script

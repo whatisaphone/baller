@@ -1,0 +1,104 @@
+; SCRP 360 smth_net360
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+g_net_smth_master = kludge-retval [2001, 1510]
+g_net_smth_me = 0
+g_net_smth_slave = 0
+global43 = 0
+if (arg0) {
+    g_net_smth_me = g_net_smth_master
+    g_smth_netplay_master_or_slave = 1
+} else {
+    g_net_smth_slave = g_net_smth_master
+    g_smth_netplay_master_or_slave = 0
+    run-script-xc3 maybe_net_send_message [30, 1, NET-ASK-WHO-IS-MASTER, g_net_smth_master]
+}
+if (g_net_smth_me == 0 || g_net_smth_slave == 0) {
+    do {
+        ++local5
+        if (g_net_smth_me != g_net_smth_master) {
+            ++local4
+            if (local4 >= 10) {
+                run-script-xc3 maybe_net_send_message [30, 1, NET-ASK-WHO-IS-MASTER, g_net_smth_master]
+                local4 = 0
+            }
+        }
+        if (local5 > 300) {
+            local3 = "Error - Could not start game.  Other user not responding."
+            run-script smth_net_connection [local3]
+            free-running-script 0
+        }
+        stop-script
+    } until (g_net_smth_me != 0 && g_net_smth_slave != 0)
+}
+global40 = 369
+run-script smth_net_set_game_flags [global559]
+run-script maybe_net_set_game_options [g_smth_net_game_flags]
+run-script 365 []
+local2 = gMinJiffies
+gMinJiffies = 1
+sleep 2
+run-script smth_net_lag []
+while (!!(is-script-running smth_net_lag)) {
+    stop-script
+}
+if (global571) {
+    run-script 347 [6, 13, 1, global557]
+    run-script 347 [6, 13, 0, global554]
+    run-script smth_net_waiting_for_other_user []
+    run-script 367 []
+}
+global248 = 0
+if (gNetplayActive) {
+    run-script-xc3 maybe_net_send_message [30, 1, NET-WAITFLAG, global510, global248]
+    do {
+        stop-script
+    } until (gNetWaitFlag)
+    --gNetWaitFlag
+}
+gMinJiffies = local2
+gGameMode = MODE-PICKUP
+gNoGooch = 1
+global44 = 0
+gGameEnded = 0
+if (global571 && g_smth_netplay_master_or_slave) {
+    kludge [2001, 2224, g_net_smth_me, g_net_smth_slave, gNetRemoteCoachName]
+}
+local1 = read-ini-int "QuickStartNetworkGame"
+if (local1) {
+    global570 = 1
+}
+if (g_net_smth_me == g_net_smth_master) {
+    gHomeInfoIndex = 0
+    gVisitorInfoIndex = 1
+    gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = CB-USER
+    gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = CB-NETWORK
+    gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER] = gPickOrder1
+    gTeamInfo[gVisitorInfoIndex][TI-FIELDING-ORDER] = gPickOrder2
+    gTeamInfo[gHomeInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+    gTeamInfo[gVisitorInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+    if (!global570) {
+        global621 = 3
+        go-to-room 6
+    } else {
+        run-script maybe_quick_network_game []
+    }
+} else {
+    global621 = 3
+    gHomeInfoIndex = 1
+    gVisitorInfoIndex = 0
+    gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = CB-NETWORK
+    gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = CB-USER
+    gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER] = gPickOrder2
+    gTeamInfo[gVisitorInfoIndex][TI-FIELDING-ORDER] = gPickOrder1
+    gTeamInfo[gHomeInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+    gTeamInfo[gVisitorInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+}
+free-script

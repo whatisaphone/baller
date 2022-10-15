@@ -1,0 +1,26 @@
+; LSC2 3 2148 CheckFielderDive
+
+parameter fielder: Fielder
+parameter dist_ball_2d
+parameter smth_stat_27
+parameter speed
+
+local variable local4
+local variable local5
+local variable local6
+
+if (dist_ball_2d < smth_stat_27 + speed + 12) {
+    if (gDifficulty == HARD) {
+        local6 = 100
+    } else {
+        local6 = 200
+    }
+    if ((random local6) < (call-script smth_about_kid_data_12_with_fatigue [rFieldingOrder[fielder - 37]])) {
+        local5 = call-script maybe_smth_distance_2d_ahead_ball [fielder]
+        if (local5 > dist_ball_2d + speed + 12) {
+            return 1
+        }
+    }
+}
+return local4
+free-script

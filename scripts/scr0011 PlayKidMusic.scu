@@ -1,0 +1,327 @@
+; SCRP 11 PlayKidMusic
+
+parameter kid: Kid
+parameter arg1
+
+local variable local2
+
+if (gNoMusic) {
+    free-running-script 0
+}
+if (arg1 == 1) {
+    case kid {
+        of ACHMED-KHAN {
+            local2 = 8000
+        }
+        of DMITRI-PETROVICH {
+            local2 = 8004
+        }
+        of MARKY-DUBOIS {
+            local2 = 8007
+        }
+        of KIESHA-PHILLIPS {
+            local2 = 8010
+        }
+        of STEPHANIE-MORGAN {
+            local2 = 8013
+        }
+        of ASHLEY-WEBBER {
+            local2 = 8016
+        }
+        of SIDNEY-WEBBER {
+            local2 = 8019
+        }
+        of PABLO-SANCHEZ {
+            local2 = 8022
+        }
+        of PETE-WHEELER {
+            local2 = 8025
+        }
+        of AMIR-KHAN {
+            local2 = 8028
+        }
+        of LUANNE-LUI {
+            local2 = 8031
+        }
+        of MARIA-LUNA {
+            local2 = 8034
+        }
+        of TONY-DELVECCHIO {
+            local2 = 8037
+        }
+        of JOCINDA-SMITH {
+            local2 = 8040
+        }
+        of LISA-CROCKET {
+            local2 = 8043
+        }
+        of VICKI-KAWAGUCHI {
+            local2 = 8046
+        }
+        of ANGELA-DELVECCHIO {
+            local2 = 8049
+        }
+        of KENNY-KAWAGUCHI {
+            local2 = 8052
+        }
+        of REESE-WORTHINGTON {
+            local2 = 8055
+        }
+        of JORGE-GARCIA {
+            local2 = 8058
+        }
+        of BILLY-JEAN-BLACKWOOD {
+            local2 = 8061
+        }
+        of RONNY-DOBBS {
+            local2 = 8064
+        }
+        of DANTE-ROBINSON {
+            local2 = 8067
+        }
+        of ANNIE-FRAZIER {
+            local2 = 8071
+        }
+        of KIMMY-ECKMAN {
+            local2 = 8075
+        }
+        of ERNIE-STEELE {
+            local2 = 8079
+        }
+        of GRETCHEN-HASSELHOFF {
+            local2 = 8082
+        }
+        of RICKY-JOHNSON {
+            local2 = 8085
+        }
+        of MIKEY-THOMAS {
+            local2 = 8093
+        }
+        of SALLY-DOBBS {
+            local2 = 8101
+        }
+        else {
+            local2 = (random (10 - 1)) * 3 + 8107
+        }
+    }
+} else if (arg1 == 2) {
+    case kid {
+        of ACHMED-KHAN {
+            local2 = 8002
+        }
+        of DMITRI-PETROVICH {
+            local2 = 8006
+        }
+        of MARKY-DUBOIS {
+            local2 = 8009
+        }
+        of KIESHA-PHILLIPS {
+            local2 = 8012
+        }
+        of STEPHANIE-MORGAN {
+            local2 = 8015
+        }
+        of ASHLEY-WEBBER {
+            local2 = 8018
+        }
+        of SIDNEY-WEBBER {
+            local2 = 8021
+        }
+        of PABLO-SANCHEZ {
+            local2 = 8024
+        }
+        of PETE-WHEELER {
+            local2 = 8027
+        }
+        of AMIR-KHAN {
+            local2 = 8030
+        }
+        of LUANNE-LUI {
+            local2 = 8033
+        }
+        of MARIA-LUNA {
+            local2 = 8036
+        }
+        of TONY-DELVECCHIO {
+            local2 = 8039
+        }
+        of JOCINDA-SMITH {
+            local2 = 8042
+        }
+        of LISA-CROCKET {
+            local2 = 8045
+        }
+        of VICKI-KAWAGUCHI {
+            local2 = 8048
+        }
+        of ANGELA-DELVECCHIO {
+            local2 = 8051
+        }
+        of KENNY-KAWAGUCHI {
+            local2 = 8054
+        }
+        of REESE-WORTHINGTON {
+            local2 = 8057
+        }
+        of JORGE-GARCIA {
+            local2 = 8060
+        }
+        of BILLY-JEAN-BLACKWOOD {
+            local2 = 8063
+        }
+        of RONNY-DOBBS {
+            local2 = 8066
+        }
+        of DANTE-ROBINSON {
+            local2 = 8069
+        }
+        of ANNIE-FRAZIER {
+            local2 = 8073
+        }
+        of KIMMY-ECKMAN {
+            local2 = 8077
+        }
+        of ERNIE-STEELE {
+            local2 = 8081
+        }
+        of GRETCHEN-HASSELHOFF {
+            local2 = 8084
+        }
+        of RICKY-JOHNSON {
+            local2 = 8087
+        }
+        of MIKEY-THOMAS {
+            local2 = 8095
+        }
+        of SALLY-DOBBS {
+            local2 = 8103
+        }
+        else {
+            if (kid >= 31 && kid <= 61) {
+                if (global641) {
+                    local2 = global641 + 2
+                    global641 = 0
+                } else {
+                    local2 = (random (10 - 1)) * 3 + 8108
+                }
+            } else {
+                local2 = 8003
+            }
+        }
+    }
+} else {
+    case kid {
+        of ACHMED-KHAN {
+            local2 = 8001
+        }
+        of DMITRI-PETROVICH {
+            local2 = 8005
+        }
+        of MARKY-DUBOIS {
+            local2 = 8008
+        }
+        of KIESHA-PHILLIPS {
+            local2 = 8011
+        }
+        of STEPHANIE-MORGAN {
+            local2 = 8014
+        }
+        of ASHLEY-WEBBER {
+            local2 = 8017
+        }
+        of SIDNEY-WEBBER {
+            local2 = 8020
+        }
+        of PABLO-SANCHEZ {
+            local2 = 8023
+        }
+        of PETE-WHEELER {
+            local2 = 8026
+        }
+        of AMIR-KHAN {
+            local2 = 8029
+        }
+        of LUANNE-LUI {
+            local2 = 8032
+        }
+        of MARIA-LUNA {
+            local2 = 8035
+        }
+        of TONY-DELVECCHIO {
+            local2 = 8038
+        }
+        of JOCINDA-SMITH {
+            local2 = 8041
+        }
+        of LISA-CROCKET {
+            local2 = 8044
+        }
+        of VICKI-KAWAGUCHI {
+            local2 = 8047
+        }
+        of ANGELA-DELVECCHIO {
+            local2 = 8050
+        }
+        of KENNY-KAWAGUCHI {
+            local2 = 8053
+        }
+        of REESE-WORTHINGTON {
+            local2 = 8056
+        }
+        of JORGE-GARCIA {
+            local2 = 8059
+        }
+        of BILLY-JEAN-BLACKWOOD {
+            local2 = 8062
+        }
+        of RONNY-DOBBS {
+            local2 = 8065
+        }
+        of DANTE-ROBINSON {
+            local2 = 8068
+        }
+        of ANNIE-FRAZIER {
+            local2 = 8072
+        }
+        of KIMMY-ECKMAN {
+            local2 = 8076
+        }
+        of ERNIE-STEELE {
+            local2 = 8080
+        }
+        of GRETCHEN-HASSELHOFF {
+            local2 = 8083
+        }
+        of RICKY-JOHNSON {
+            local2 = 8086
+        }
+        of MIKEY-THOMAS {
+            local2 = 8094
+        }
+        of SALLY-DOBBS {
+            local2 = 8102
+        }
+        else {
+            if (kid >= 31 && kid <= 61) {
+                if (global660 == 0) {
+                    dim array global660 i32[0...0][0...10] swap=2
+                    array-fill-values global660 0 0 1 10 1 10
+                    shuffle-array global660 1 10
+                    global660[0] = 1
+                } else {
+                    global660[0] = global660[0] + 1
+                    if (global660[0] > 10) {
+                        shuffle-array global660 1 10
+                        global660[0] = 1
+                    }
+                }
+                local2 = (global660[0] - 1) * 3 + 8106
+                global641 = local2
+            }
+        }
+    }
+}
+sound-select local2
+sound-channel 0
+sound-play
+free-script

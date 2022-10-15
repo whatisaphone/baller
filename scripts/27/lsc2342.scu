@@ -1,0 +1,22 @@
+; LSC2 27 2342
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+sprintf local1 "trophy%d" [local0]
+local2 = read-ini-int gCoachINIPath "trophyDate" local1
+sprite-set-range room96 room96
+sprite-clear
+if (local2 == 0) {
+    free-running-script 0
+}
+local3 = local2 / 10000
+local4 = mod (local2 / 100) 100
+local5 = mod local2 100
+run-script 418 [local5, local4 + 1, local3 + 1900, room96, room97, 1239, room98, 18, 333]
+free-array local1
+free-script

@@ -1,0 +1,64 @@
+; LSC2 4 2099 RunSwing
+
+parameter swing: Swing
+
+local variable is_practice_swing
+local variable local2
+
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else {
+    cursor-hide
+}
+room51 = 0
+if (global477) {
+    free-running-script 0
+}
+room5 = 1
+gHitAngleXZ = 0
+r_maybe_smth_idle_ready_for_pitch = false
+r_maybe_swing_time = 0
+if (gUserOnOffense) {
+    if (r_maybe_pitch_phase) {
+        if (gDifficulty == EASY) {
+            if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+                local2 = r_maybe_frames_before_pitched_ball_animation_is_over - (random2 9 11)
+                local2 = max 0 local2
+                sleep local2
+            }
+        }
+    }
+}
+if (gMinJiffies != 2) {
+    gMinJiffies = 2
+    for temp = 1 to gActorPoolMax ++ {
+        actor-select temp
+        actor-x61 (6 / gMinJiffies)
+    }
+}
+run-script smth_actor_swing_anim []
+stop-script
+if (r_maybe_pitch_phase || gTeeBall) {
+    run-script CastGameplay [DIALOGUE-BATTER-SWINGS, gBatterKid]
+} else {
+    is_practice_swing = 1
+}
+stop-script
+if (rSwingSound) {
+    run-script PlaySound [rSwingSound]
+}
+if (gOffenseControlledBy != CB-NETWORK) {
+    if (!is_practice_swing) {
+        if (gTeeBall) {
+            run-script maybe_do_swing_tee_ball []
+        } else {
+            run-script smth_do_swing []
+        }
+    } else {
+        while (!(actor-get-var 2 0)) {
+            stop-script
+        }
+        run-script SendBatViewMessage [MSG-RESET-BATTER, 1]
+    }
+}
+free-script

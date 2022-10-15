@@ -1,0 +1,7 @@
+; LSC2 5 2050
+
+local variable local0
+
+stop-script
+rSaidFirstQuote[local0] = true
+free-script

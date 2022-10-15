@@ -1,0 +1,9 @@
+; SCRP 78 AllocPalette
+
+if (gPaletteStackPointer) {
+    --gPaletteStackPointer
+    return gPaletteStack[gPaletteStackPointer]
+} else {
+    return 0
+}
+free-script

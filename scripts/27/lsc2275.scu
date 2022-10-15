@@ -1,0 +1,15 @@
+; LSC2 27 2275
+
+if (room120) {
+    free-array room120
+    free-array room121
+    free-array room124
+    free-array room125
+    free-array room122
+    free-array room123
+    free-array room126
+    free-array room131
+    free-array room132
+    free-array room134
+}
+free-script

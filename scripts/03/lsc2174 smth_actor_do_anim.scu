@@ -1,0 +1,14 @@
+; LSC2 3 2174 smth_actor_do_anim
+
+parameter fielder: Fielder
+parameter actor
+parameter animation
+
+if (gNetplayActive) {
+    if (g_net_smth_me == g_net_smth_master) {
+        temp = shl 1 (actor - 7)
+        g_maybe_net_fielders_dirty_mask = g_maybe_net_fielders_dirty_mask | temp
+    }
+}
+actor-do-anim actor animation
+free-script

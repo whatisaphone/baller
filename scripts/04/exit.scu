@@ -1,0 +1,23 @@
+; EXCD 4
+
+run-script NetPitchCountdownTimer [1]
+free-array rCommentQueue
+run-script 2226 []
+x50
+run-script CursorLoop []
+gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION] = rBattingOrderPosition
+cursor-charset room3
+if (!(gNextRoom in [4, 3])) {
+    run-script SetAmbientSound [0]
+}
+global43 = 32
+run-script 343 [1]
+if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+    run-script GamePadInputLoop []
+    run-script ShowGamePadCursor []
+}
+run-script 2224 []
+if (MODE-BATTING-PRACTICE == gGameMode) {
+    gNoCommentary = rSavedNoCommentary
+}
+finish-script

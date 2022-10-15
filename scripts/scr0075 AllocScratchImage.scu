@@ -1,0 +1,15 @@
+; SCRP 75 AllocScratchImage
+
+local variable local0
+
+if (gScratchStackPointer) {
+    --gScratchStackPointer
+    local0 = gScratchStack[gScratchStackPointer]
+    kludge [714, 19, local0, 1]
+} else {
+    xb7-xfe
+    xb7-x4b "ERROR: Scratch Image stack is Empty"
+    pop-discard 0
+}
+return local0
+free-script

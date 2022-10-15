@@ -1,0 +1,29 @@
+; LSC2 14 2124
+
+local variable local0
+
+room36 = room31
+room35 = 1
+run-script 2112 []
+run-script 2114 []
+run-script 2113 []
+sprite-set-range room3 room3
+sprite-clear
+sprite-set-image 403
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -700
+sprite-palette room5
+sprite-set-hotspot 320 240
+local0 = call-script findFieldBgAndSetPalette [1, room36[room35][1]]
+sprite-set-range room9 room9
+sprite-clear
+sprite-set-image local0
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -905
+sprite-palette g_some_palette_3
+sprite-set-hotspot 257 159
+run-script 2098 [local0]
+run-script 2123 [room36, room35]
+free-script

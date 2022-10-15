@@ -1,0 +1,9 @@
+; SCRP 66
+
+if (global604) {
+    --global604
+    return global603[global604]
+} else {
+    return 0
+}
+free-script

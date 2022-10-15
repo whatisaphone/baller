@@ -1,0 +1,39 @@
+; SCRP 296 StartQuickPickupGame
+
+parameter field_plus_one
+
+gHomeInfoIndex = 1
+gVisitorInfoIndex = 0
+if (gGameLength != 18) {
+    gGameLength = 12
+}
+if (!gGameMode) {
+    gGameMode = MODE-PICKUP
+}
+if (!gDifficulty) {
+    gDifficulty = MEDIUM
+}
+gTeamInfo[1][TI-CONTROLLED-BY] = CB-COMPUTER
+if (MODE-SPECTATE == gGameMode) {
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+} else {
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+}
+run-script maybe_pick_random_team_names_colors []
+if (!gPickOrder2 || !gPickOrder1) {
+    run-script PickRandomKids []
+} else if (gPickOrder2[1] == 0 || gPickOrder1[1] == 0) {
+    run-script PickRandomKids []
+}
+gTeamInfo[1][TI-FIELDING-ORDER] = gPickOrder2
+gTeamInfo[0][TI-FIELDING-ORDER] = gPickOrder1
+if (field_plus_one) {
+    gField = field_plus_one - 1
+} else {
+    do {
+        gField = random2 0 9
+    } until (gField != BIG-CITY-STADIUM && gField != SUPER-COLOSSAL-DOME)
+}
+run-script SetFieldVars []
+go-to-room 8
+free-script

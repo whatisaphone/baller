@@ -1,0 +1,99 @@
+; ENCD 5
+
+local variable local0
+
+global541 = 0
+gHoverScript = HandleHover
+global95 = 1
+global126 = 1
+if (!gCustomKidNames) {
+    dim array gCustomKidNames byte[0...10][0...20] swap=2
+}
+run-script InitYesNoHeads []
+run-script InitPalettes []
+room12 = gActorPoolMin
+gActorPoolMin = 6
+room9 = gMinJiffies
+gMinJiffies = 3
+room10 = gKeyHandlerScript
+room11 = global43
+gKeyHandlerScript = KeyHandler
+if (29 != gPreviousRoom) {
+    dim array gBleachersKids bit[0...0][0...gMaxUniqueKid + 10 + 1] swap=2
+}
+if (gTeamInfo[0][TI-CONTROLLED-BY] == CB-USER) {
+    rUserTeamInfoIndex = 0
+} else {
+    rUserTeamInfoIndex = 1
+}
+run-script 2155 []
+if (gNetplayActive && gPreviousRoom == 6) {
+    run-script maybe_setup_two_player_draft []
+} else if (gGameMode == MODE-PICKUP && gPreviousRoom == 6 && !gNetplayActive) {
+    run-script maybe_setup_two_player_draft []
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+}
+if (gGameMode == MODE-maybe-cards) {
+    rKidClickHandlerScript = smth_handle_kid_click_1
+    run-script InitDoneHeads []
+} else {
+    rKidClickHandlerScript = smth_hande_kid_click_2
+}
+if (29 != gPreviousRoom) {
+    run-script maybe_reset_custom_kid_data [264]
+    gColorRandom1 = random2 1 9
+    gColorRandom2 = random2 1 9
+    run-script maybe_make_bleacher_lineup []
+    run-script maybe_fill_bleacher_entries []
+    global593 = 320
+}
+if (!(is-sound-playing 8074)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8074]
+    run-script PlayMusicPool [8074]
+}
+if (gNetplayActive) {
+    run-script SetNavButtons [HandleNavClick, 0, 0, 1]
+} else {
+    run-script SetNavButtons [HandleNavClick, 0, 0]
+}
+run-script smth_update_sprites [1]
+temp = call-script RefreshKidActors [0]
+if (!(gGameMode in [MODE-maybe-cards, MODE-BATTING-PRACTICE])) {
+    run-script 2071 []
+} else {
+    room37 = call-script AllocPalette []
+    room38 = call-script AllocPalette []
+    room39 = call-script AllocPalette []
+    palette-select room37
+    palette-load 122 0
+    palette-unselect
+    palette-select room38
+    palette-load 125 0
+    palette-unselect
+    palette-select room39
+    palette-load 1239 0
+    palette-unselect
+}
+run-script 2171 []
+if (gPreviousRoom == 29) {
+    for local0 = 0 to (gDraftRound - 1 - g_maybe_who_picks_first) ++ {
+        run-script maybe_draw_kid_name_string [1, local0, gPickOrder1[local0]]
+        run-script maybe_draw_kid_name_string [2, local0, gPickOrder2[local0]]
+    }
+    if (g_maybe_who_picks_first) {
+        run-script maybe_draw_kid_name_string [2, local0, gPickOrder2[local0]]
+    }
+    run-script smth_hande_kid_click_2 []
+}
+finish-script

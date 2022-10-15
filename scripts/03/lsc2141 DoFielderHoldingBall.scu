@@ -1,0 +1,765 @@
+; LSC2 3 2141 DoFielderHoldingBall
+
+parameter fielder: Fielder
+parameter facing
+parameter actor
+parameter smth_diving
+
+local variable kid_speed
+local variable smth_kid_data_3
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable add_x
+local variable add_y
+local variable foo
+local variable angle14
+local variable new_facing
+local variable dist
+local variable local17: FieldingTarget
+local variable local18
+local variable i
+local variable local20
+local variable target: FieldingTarget
+local variable local22
+
+if (gNetplayActive) {
+}
+kid_speed = call-script GetKidRunningSpeed [rFieldingOrder[fielder - 37]]
+smth_kid_data_3 = call-script smth_kid_data_3_with_fatigue [rFieldingOrder[fielder - 37]]
+if (gUserSelectedPlay == BALL-SHADOW) {
+    gUserSelectedPlay = NONE
+} else if (gUserSelectedPlay == fielder) {
+    gUserSelectedPlay = NONE
+}
+if (gUserSelectedPlay == LAST-CLICK-FIELDING) {
+    gUserSelectedPlay = NONE
+}
+actor-select actor
+actor-x61 2
+if (smth_diving) {
+    actor-select actor
+    actor-set-var 0 1
+    sleep 2
+    while (!((actor-get-var actor 0) == 0)) {
+        stop-script
+    }
+    actor-do-anim actor 6
+    smth_diving = 0
+    actor-select actor
+    actor-set-var 2 0
+}
+run-script SetBaseCorners []
+foo = gWorld[fielder][TARGET]
+if (foo in [0, 1, 2, 3]) {
+    if (rBaseClaims[foo] == fielder) {
+        if (gUserSelectedPlay == foo) {
+            gUserSelectedPlay = NONE
+        }
+        for i = 0 to 3 ++ {
+            if (gRunners[i][R-DEST-BASE] == foo || foo == 0 && gRunners[i][R-DEST-BASE] == R-HOME) {
+                if (gRunners[i][R-FORCED] == true) {
+                    sleep (random2 1 2)
+                    if (foo == 0) {
+                        gBases[R-HOME][BASE-TAGGED-WITH-BALL] = true
+                    } else {
+                        gBases[foo][BASE-TAGGED-WITH-BALL] = true
+                    }
+                    if (g_maybe_last_fielder_to_touch_ball) {
+                        run-script PlayKidEmoteSound [rFieldingOrder[g_maybe_last_fielder_to_touch_ball - 37], 1]
+                    }
+                } else {
+                    if (gWorld[fielder][X] != gWorld[rBaseCorners[foo]][X] || gWorld[fielder][Z] != gWorld[rBaseCorners[foo]][Z]) {
+                        gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[foo]][X]
+                        gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[foo]][Z]
+                        actor-select actor
+                        actor-set-var 1 1
+                        do {
+                            if (gRunners[i][R-CUR-BASE] == foo || foo == 0 && gRunners[i][R-CUR-BASE] == R-HOME) {
+                                goto label0522
+                            }
+                            angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[rBaseCorners[foo]][X] gWorld[rBaseCorners[foo]][Z]
+                            new_facing = call-script ConvertAngleToFacing [angle14]
+                            new_facing = call-script TurnFacingStep [new_facing, facing]
+                            run-script-xc3 SetActorFacing [actor, new_facing, facing]
+                            facing = new_facing
+                            if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[fielder][TARGET-X] gWorld[fielder][TARGET-Z]) < kid_speed + 1) {
+                                gWorld[fielder][X] = gWorld[fielder][TARGET-X]
+                                gWorld[fielder][Z] = gWorld[fielder][TARGET-Z]
+                            } else {
+                                add_x = (cos angle14) * kid_speed / 100000
+                                add_y = (sin angle14) * kid_speed / 100000
+                                gWorld[fielder][X] = gWorld[fielder][X] + add_x
+                                gWorld[fielder][Z] = gWorld[fielder][Z] + add_y
+                            }
+                            stop-script
+                            actor-select actor
+                            actor-set-scale (call-script CalcActorScale [fielder])
+                            local18 = 5000 - gWorld[fielder][Z]
+                            actor-select actor
+                            actor-x54 local18
+                            put-actor actor gScreen[fielder][X] (local18 + gScreen[fielder][Y]) 3
+                        } until (gWorld[fielder][X] == gWorld[fielder][TARGET-X] && gWorld[fielder][Z] == gWorld[fielder][TARGET-Z])
+                    }
+                    actor-select actor
+                    actor-set-var 1 0
+                    if ((distance-2d gWorld[gRunners[i][R-ENTITY]][X] gWorld[gRunners[i][R-ENTITY]][Z] gWorld[fielder][X] gWorld[fielder][Z]) < 40) {
+                        if (gRunners[i][11]) {
+                            actor-do-anim actor 21
+                            sleep 3
+                        }
+                    }
+                    if (foo == 0) {
+                        gBases[R-HOME][BASE-TAGGED-WITH-BALL] = true
+                    } else {
+                        gBases[foo][BASE-TAGGED-WITH-BALL] = true
+                    }
+                    sleep 2
+                    if (gRunners[i][R-STATE] != R-LEAVE-FIELD-WITH-OUT) {
+                        if (foo == 0) {
+                            if (gRunners[i][R-CUR-BASE] == R-HOME) {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-TAGGED-SAFE, gRunners[i][R-KID]]
+                                if (random 3) {
+                                    run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 6]
+                                }
+                                run-script SetCurrentEmote [11]
+                            }
+                        } else if (gRunners[i][R-CUR-BASE] == foo && gRunners[i][R-DEST-BASE] != foo) {
+                            run-script EnqueueComment [DIALOGUE-RUNNER-TAGGED-SAFE, gRunners[i][R-KID]]
+                            if (random 3) {
+                                run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 6]
+                            }
+                            run-script SetCurrentEmote [11]
+                        }
+                    } else {
+                        if (g_maybe_last_fielder_to_touch_ball) {
+                            run-script PlayKidEmoteSound [rFieldingOrder[g_maybe_last_fielder_to_touch_ball - 37], 1]
+                        }
+                        stop-script
+                        run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 5]
+                    }
+                    do {
+                        angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[gRunners[i][R-ENTITY]][X] gWorld[gRunners[i][R-ENTITY]][Z]
+                        new_facing = call-script ConvertAngleToFacing [angle14]
+                        new_facing = call-script TurnFacingStep [new_facing, facing]
+                        run-script-xc3 SetActorFacing [actor, new_facing, facing]
+                        if (facing == new_facing) {
+                            goto label0522
+                        } else {
+                            facing = new_facing
+                            stop-script
+                        }
+                    }
+                }
+            }
+        }
+        if (foo == 0) {
+            gBases[R-HOME][BASE-TAGGED-WITH-BALL] = true
+        } else {
+            gBases[foo][BASE-TAGGED-WITH-BALL] = true
+        }
+        foo = 3
+    }
+}
+label0522:
+g_maybe_last_fielder_to_touch_ball = fielder
+if (gBallIsFoul || gNumOuts > 2 || !gNumRunners) {
+    actor-select actor
+    actor-set-var 1 0
+    g_maybe_smth_play_is_alive = 0
+    run-script-xc3 DoFielderIdle [fielder, facing, actor]
+    free-running-script 0
+}
+gBallHasBounced = 1
+foo = 0
+run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+if (rCurrentPlay < 5) {
+    if (rBaseClaims[rCurrentPlay] == 0 - fielder) {
+        goto label083a
+    } else if (rCurrentPlay == MOUND && fielder == FIELDER-PITCHER && g_maybe_play_is_ready_to_end) {
+        goto label083a
+    }
+} else {
+    if (gDefenseControlledBy != CB-COMPUTER) {
+        if (gDifficulty == EASY) {
+            foo = gOutfieldDelay - 5
+        } else if (gDifficulty == MEDIUM) {
+            foo = 0
+        } else {
+            foo = gOutfieldDelay - 200
+        }
+    } else if (gDifficulty == EASY) {
+        foo = 0
+    } else if (gDifficulty == MEDIUM) {
+        foo = gOutfieldDelay - 5
+    } else {
+        foo = gOutfieldDelay
+    }
+    actor-select actor
+    actor-set-var 1 0
+    do {
+        if (gUserSelectedPlay != NONE) {
+            foo = gOutfieldDelay
+            rCurrentPlay = gUserSelectedPlay
+            xb6-xfe
+            xb6-xc2 "USER SELECTED-PLAY %d" gUserSelectedPlay []
+        } else {
+            if ((actor-get-var actor 2) == 1) {
+                goto label0d7f
+            }
+            stop-script
+        }
+        ++foo
+    } until (foo > gOutfieldDelay)
+    local10 = 0
+    if (rCurrentPlay != NONE) {
+        angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]
+        if (gUserSelectedPlay == NONE) {
+            do {
+                if (rCurrentPlay < 5) {
+                    if (rBaseClaims[rCurrentPlay] != fielder) {
+                        new_facing = call-script ConvertAngleToFacing [angle14]
+                        new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+                        run-script-xc3 SetActorFacing [actor, new_facing, facing]
+                        facing = new_facing
+                    }
+                } else {
+                    new_facing = call-script ConvertAngleToFacing [angle14]
+                    new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+                    run-script-xc3 SetActorFacing [actor, new_facing, facing]
+                    facing = new_facing
+                }
+                stop-script
+                if ((actor-get-var actor 2) == 1) {
+                    goto label0d7f
+                }
+                local18 = 5000 - gWorld[fielder][Z]
+                actor-select actor
+                actor-x54 local18
+                put-actor actor gScreen[fielder][X] (local18 + gScreen[fielder][Y]) 3
+                ++local10
+                foo = rCurrentPlay
+                for i = 0 to 3 ++ {
+                    if (gRunners[i][R-DEST-BASE] == foo || foo == 0 && gRunners[i][R-DEST-BASE] == R-HOME) {
+                        if ((distance-2d gWorld[gRunners[i][R-ENTITY]][X] gWorld[gRunners[i][R-ENTITY]][Z] gWorld[fielder][X] gWorld[fielder][Z]) < 40) {
+                            if (gRunners[i][11]) {
+                                actor-do-anim actor 21
+                                sleep 2
+                                local10 = smth_kid_data_3 - 4
+                            }
+                        }
+                    }
+                }
+            } until (local10 >= smth_kid_data_3 - 4)
+            run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+        }
+    }
+}
+label083a:
+if ((actor-get-var actor 2) == 1) {
+    goto label0d7f
+}
+temp = actor-get-property actor 0 2
+temp = temp / 4
+if (rCurrentPlay == NONE) {
+    if (gNumOuts > 2 || !gNumRunners) {
+        g_maybe_smth_play_is_alive = 0
+        run-script-xc3 DoFielderIdle [fielder, facing, actor]
+        free-running-script 0
+    }
+    angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[MOUND-CENTER][X] gWorld[MOUND-CENTER][Z]
+    new_facing = call-script ConvertAngleToFacing [angle14]
+    new_facing = call-script TurnFacingStep [new_facing, facing]
+    run-script-xc3 SetActorFacing [actor, new_facing, facing]
+    facing = new_facing
+    stop-script
+    run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+    goto label083a
+} else if (rCurrentPlay > 4) {
+    if (rCurrentPlay == LAST-CLICK-FIELDING || rCurrentPlay >= 46) {
+        local7 = 2
+    } else {
+        local7 = 1
+    }
+} else if (rBaseClaims[rCurrentPlay] == fielder) {
+    if (gUserSelectedPlay == MOUND) {
+        gUserSelectedPlay = NONE
+    }
+    actor-select actor
+    actor-set-var 1 0
+    if (g_maybe_play_is_ready_to_end && rCurrentPlay == MOUND && fielder == FIELDER-PITCHER) {
+        r_maybe_pitcher_is_standing_on_the_mound = 1
+        sleep 5
+        if (!g_maybe_play_is_ready_to_end) {
+            r_maybe_pitcher_is_standing_on_the_mound = 0
+            goto label083a
+        }
+        g_maybe_smth_play_is_alive = 0
+        free-running-script 0
+    }
+    angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[MOUND-CENTER][X] gWorld[MOUND-CENTER][Z]
+    new_facing = call-script ConvertAngleToFacing [angle14]
+    new_facing = call-script TurnFacingStep [new_facing, facing]
+    run-script-xc3 SetActorFacing [actor, new_facing, facing]
+    facing = new_facing
+    stop-script
+    foo = rCurrentPlay
+    for i = 0 to 3 ++ {
+        if (gRunners[i][R-DEST-BASE] == foo || foo == 0 && gRunners[i][R-DEST-BASE] == R-HOME) {
+            if ((distance-2d gWorld[gRunners[i][R-ENTITY]][X] gWorld[gRunners[i][R-ENTITY]][Z] gWorld[fielder][X] gWorld[fielder][Z]) < 40) {
+                if (gRunners[i][11]) {
+                    actor-do-anim actor 21
+                    sleep 2
+                }
+            }
+        }
+    }
+    if (gUserSelectedPlay == NONE) {
+        run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+    } else {
+        rCurrentPlay = gUserSelectedPlay
+    }
+    goto label083a
+}
+angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]
+if (local7 == 1) {
+} else {
+    if (local7 == 2) {
+    } else {
+label0aac:
+        local6 = rBaseClaims[rCurrentPlay]
+        if (local6 > 0) {
+            local7 = 1
+            actor-do-anim actor 20
+            goto label0c21
+        }
+        if (rCurrentPlay == MOUND) {
+            if (fielder == FIELDER-PITCHER) {
+                local7 = 2
+                goto label0bc6
+            } else {
+                local7 = 3
+            }
+            goto label0c21
+        }
+        if (local6 < 0) {
+            if (local6 == 0 - fielder) {
+                local7 = 2
+            } else {
+                local8 = call-script CalcFielderTimeRunToPoint [abs local6, gWorld[rCurrentPlay][X], gWorld[rCurrentPlay][Z], 1]
+                local9 = call-script CalcFielderTimeRunToPoint [fielder, gWorld[rCurrentPlay][X], gWorld[rCurrentPlay][Z], 1]
+                if (local9 <= local8) {
+                    local7 = 2
+                    target = gWorld[fielder][TARGET]
+                    if (target in [F-HOME, FIRST, SECOND, THIRD, MOUND]) {
+                        if (rBaseClaims[target] == fielder) {
+                            if (target == F-HOME) {
+                                gBases[R-HOME][BASE-TAGGED-WITH-BALL] = false
+                            } else if (target < 4) {
+                                gBases[target][BASE-TAGGED-WITH-BALL] = false
+                            }
+                        }
+                        rBaseClaims[target] = 0
+                    }
+                } else {
+                    local7 = 3
+                }
+            }
+            goto label0c21
+        }
+        local7 = 2
+    }
+label0bc6:
+    target = gWorld[fielder][TARGET]
+    if (target in [F-HOME, FIRST, SECOND, THIRD, MOUND]) {
+        if (rBaseClaims[target] == fielder) {
+            if (target == F-HOME) {
+                gBases[R-HOME][BASE-TAGGED-WITH-BALL] = false
+            } else if (target < 4) {
+                gBases[target][BASE-TAGGED-WITH-BALL] = false
+            }
+        }
+        rBaseClaims[target] = 0
+    }
+}
+label0c21:
+if (local7 == 1) {
+    if (fielder in [FIELDER-LF, FIELDER-CF, FIELDER-RF]) {
+        local17 = call-script BestInfieldThrowTarget [fielder]
+        if (local17 != NONE) {
+            rCurrentPlay = local17
+        }
+    }
+    actor-select actor
+    actor-x61 1
+    actor-do-anim actor 20
+    actor-select actor
+    actor-set-var 3 0
+    stop-script
+}
+angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]
+local10 = 0
+new_facing = facing
+do {
+    facing = new_facing
+    new_facing = call-script ConvertAngleToFacing [angle14]
+    if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]) > 480) {
+        new_facing = call-script TurnFacingStep [new_facing, facing, 1, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+    } else {
+        new_facing = call-script TurnFacingStep [new_facing, facing, 1]
+    }
+    run-script-xc3 SetActorFacing [actor, new_facing, facing]
+    stop-script
+    if ((actor-get-var actor 2) == 1) {
+        facing = new_facing
+        goto label0d7f
+    }
+    local18 = 5000 - gWorld[fielder][Z]
+    actor-select actor
+    actor-x54 local18
+    put-actor actor gScreen[fielder][X] (local18 + gScreen[fielder][Y]) 3
+    ++local10
+} until (facing == new_facing)
+if (local7 == 1) {
+label0d7f:
+    if ((actor-get-var actor 2) == 1) {
+        gBallVelPhysY = random2 10000 25000
+        gBallVelPhysX = random2 -25000 25000
+        gBallVelPhysZ = random2 -25000 25000
+        gBallPosPhysX = gWorld[fielder][X] * 1000
+        gBallPosX = gBallPosPhysX / 1000
+        gBallPosPhysY = 50000
+        gBallPosY = gBallPosPhysY / 1000
+        gBallPosPhysZ = gWorld[fielder][Z] * 1000
+        gBallPosZ = gBallPosPhysZ / 1000
+        run-script SimulateBallStopPosition [true]
+        run-script EnqueueComment [DIALOGUE-DROP, rFieldingOrder[fielder - 37]]
+        run-script-xc3 SendClosestFielderToTarget []
+    } else {
+        actor-select actor
+        actor-set-var 3 1
+        stop-script
+        do {
+            temp = (actor-get-property actor 0 2) / 4
+            if (temp != 20) {
+                actor-do-anim actor 20
+            }
+            stop-script
+        } until ((actor-get-var actor 3) == 0)
+        actor-select actor
+        actor-set-var 2 0
+        if (rCurrentPlay < 4) {
+            run-script FielderThrow [fielder, gWorld[rBaseCorners[rCurrentPlay]][X], gWorld[rBaseCorners[rCurrentPlay]][Z], facing]
+            case rCurrentPlay {
+                of FIRST {
+                    run-script EnqueueComment [DIALOGUE-THROW-TO-FIRST, rFieldingOrder[fielder - 37]]
+                }
+                of SECOND {
+                    run-script EnqueueComment [DIALOGUE-THROW-TO-SECOND, rFieldingOrder[fielder - 37]]
+                }
+                of THIRD {
+                    run-script EnqueueComment [DIALOGUE-THROW-TO-THIRD, rFieldingOrder[fielder - 37]]
+                }
+                else {
+                    run-script EnqueueComment [DIALOGUE-THROW-TO-HOME, rFieldingOrder[fielder - 37]]
+                }
+            }
+        } else {
+            run-script FielderThrow [fielder, gWorld[rCurrentPlay][X], gWorld[rCurrentPlay][Z], facing]
+            if (rCurrentPlay == MOUND) {
+            } else {
+                run-script EnqueueComment [DIALOGUE-THROW, rFieldingOrder[fielder - 37]]
+            }
+        }
+    }
+    if (rBallFetcher == fielder) {
+        rBallFetcher = 0
+    }
+    target = gWorld[fielder][TARGET]
+    if (target in [F-HOME, FIRST, SECOND, THIRD]) {
+        if (rBaseClaims[target] == 0 - fielder) {
+            gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[target]][X]
+            gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[target]][Z]
+        } else if (rBaseClaims[target] == fielder) {
+            if (target == F-HOME) {
+                gBases[R-HOME][BASE-TAGGED-WITH-BALL] = false
+            } else {
+                gBases[target][BASE-TAGGED-WITH-BALL] = false
+            }
+        }
+    } else if (target == MOUND) {
+        gWorld[fielder][TARGET-X] = gWorld[MOUND-CENTER][X]
+        gWorld[fielder][TARGET-Z] = gWorld[MOUND-CENTER][Z]
+    } else {
+        gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+        gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+    }
+    if ((actor-get-var actor 2) == 1) {
+        run-script-xc3 DoFielderLoop [fielder, facing, 2]
+        gFielderWithBall = 0
+    } else {
+        actor-select actor
+        actor-x61 2
+        actor-select actor
+        actor-set-var 2 0
+        run-script-xc3 DoFielderLoop [fielder, facing, 1]
+    }
+    free-running-script 0
+} else if (local7 == 3) {
+    if (rCurrentPlay == MOUND) {
+        do {
+            if (gNumOuts > 2 || !gNumRunners) {
+                actor-select actor
+                actor-set-var 1 0
+                g_maybe_smth_play_is_alive = 0
+                run-script-xc3 DoFielderIdle [fielder, facing, actor]
+                free-running-script 0
+            }
+            stop-script
+            if ((actor-get-var actor 2) == 1) {
+                goto label0d7f
+            }
+            if (!(gUserSelectedPlay in [MOUND, NONE])) {
+                run-script DoFielderHoldingBall [fielder, facing, actor]
+                free-running-script 0
+            } else {
+                gUserSelectedPlay = NONE
+            }
+            if (gWorld[FIELDER-PITCHER][TARGET] != MOUND) {
+                run-script DoFielderHoldingBall [fielder, facing, actor]
+                free-running-script 0
+            }
+        } until (rBaseClaims[MOUND] == FIELDER-PITCHER)
+        local7 = 1
+        goto label0c21
+    }
+    local9 = call-script smth_distance_concerning_fielding [fielder, gWorld[rBaseCorners[rCurrentPlay]][X], gWorld[rBaseCorners[rCurrentPlay]][Z]]
+    do {
+        local6 = rBaseClaims[rCurrentPlay]
+        if (local6 == 0 || (abs local6) == fielder) {
+            goto label0aac
+        }
+        if (fielder == FIELDER-CACTHER) {
+            local8 = call-script CalcFielderTimeRunToPoint [abs local6, gWorld[rBaseCorners[rCurrentPlay]][X], gWorld[rBaseCorners[rCurrentPlay]][Z], 0, 0]
+        } else {
+            local8 = call-script CalcFielderTimeRunToPoint [abs local6, gWorld[rBaseCorners[rCurrentPlay]][X], gWorld[rBaseCorners[rCurrentPlay]][Z], 0, 1]
+        }
+        stop-script
+        if ((actor-get-var actor 2) == 1) {
+            goto label0d7f
+        }
+    } until (local8 < local9 || rBaseClaims[rCurrentPlay] > 0)
+    local7 = 1
+    goto label0c21
+} else {
+    gUserSelectedPlay = NONE
+    if (rCurrentPlay < 4) {
+        rBaseClaims[rCurrentPlay] = 0 - fielder
+        gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[rCurrentPlay]][X]
+        gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[rCurrentPlay]][Z]
+        gWorld[fielder][TARGET] = rCurrentPlay
+    } else {
+        if (rCurrentPlay == MOUND) {
+            rBaseClaims[rCurrentPlay] = 0 - fielder
+            gWorld[fielder][TARGET] = MOUND
+        } else {
+            gWorld[fielder][TARGET] = NONE
+        }
+        gWorld[fielder][TARGET-X] = gWorld[rCurrentPlay][X]
+        gWorld[fielder][TARGET-Z] = gWorld[rCurrentPlay][Z]
+    }
+    actor-select actor
+    actor-set-var 1 1
+    if (fielder == gFielderWithBall) {
+        if (rCurrentPlay in [RUNNER-0, RUNNER-1, RUNNER-2, RUNNER-3]) {
+            if ((actor-get-var actor 2) == 0) {
+                if ((actor-get-property actor 0 2) / 4 == 10) {
+                    if ((actor-get-property actor 0 2) / 4 != 26) {
+                        if ((actor-get-var actor 1) == 1) {
+                            actor-do-anim actor 26
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (rCurrentPlay < 4) {
+        if ((abs local6) != fielder && local6 != 0) {
+            gWorld[abs local6][TARGET-X] = gWorld[abs local6][X]
+            gWorld[abs local6][TARGET-Z] = gWorld[abs local6][Z]
+            gWorld[abs local6][TARGET] = NONE
+        }
+    }
+    local20 = rCurrentPlay
+    if (rCurrentPlay in [RUNNER-0, RUNNER-1, RUNNER-2, RUNNER-3]) {
+        run-script AddFatigue [rFieldingOrder[fielder - 37], 31]
+    }
+    do {
+        if (actor-get-var actor 2) {
+            if ((actor-get-var actor 2) == 1) {
+                goto label0d7f
+            } else {
+                actor-select actor
+                actor-set-var 2 0
+            }
+        }
+        angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[fielder][TARGET-X] gWorld[fielder][TARGET-Z]
+        new_facing = call-script ConvertAngleToFacing [angle14]
+        dist = distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[fielder][TARGET-X] gWorld[fielder][TARGET-Z]
+        if (dist < kid_speed + 1) {
+            actor-select actor
+            actor-set-var 1 0
+            gWorld[fielder][X] = gWorld[fielder][TARGET-X]
+            gWorld[fielder][Z] = gWorld[fielder][TARGET-Z]
+            if (rCurrentPlay < 4) {
+                rBaseClaims[rCurrentPlay] = fielder
+                if (rCurrentPlay == F-HOME) {
+                    gBases[R-HOME][BASE-TAGGED-WITH-BALL] = true
+                } else {
+                    gBases[rCurrentPlay][BASE-TAGGED-WITH-BALL] = true
+                }
+            } else if (rCurrentPlay == MOUND) {
+                if (g_maybe_play_is_ready_to_end) {
+                    r_maybe_pitcher_is_standing_on_the_mound = 1
+                    if (gUserSelectedPlay == MOUND) {
+                        gUserSelectedPlay = NONE
+                    }
+                    sleep 5
+                    if (g_maybe_play_is_ready_to_end) {
+                        g_maybe_smth_play_is_alive = 0
+                        free-running-script 0
+                    }
+                    r_maybe_pitcher_is_standing_on_the_mound = 0
+                }
+            }
+            run-script DoFielderHoldingBall [fielder, facing, actor]
+            free-running-script 0
+        } else {
+            if (rCurrentPlay in [RUNNER-0, RUNNER-1, RUNNER-2, RUNNER-3]) {
+                gWorld[fielder][TARGET-X] = gWorld[rCurrentPlay][X]
+                gWorld[fielder][TARGET-Z] = gWorld[rCurrentPlay][Z]
+            }
+            add_x = (cos angle14) * kid_speed / 100000
+            add_y = (sin angle14) * kid_speed / 100000
+            foo = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+            if (foo) {
+                ++local22
+                if (local22 > 50) {
+                    run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+                    local22 = 0
+                    goto label083a
+                }
+                if ((call-script AngleDifference [foo, angle14]) > 120) {
+                    foo = foo + 180
+                }
+                add_x = (cos foo) * kid_speed / 100000
+                add_y = (sin foo) * kid_speed / 100000
+                foo = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                if (foo) {
+                    if ((call-script AngleDifference [foo, angle14]) > 120) {
+                        foo = foo + 180
+                    }
+                    add_x = (cos foo) * kid_speed / 100000
+                    add_y = (sin foo) * kid_speed / 100000
+                    foo = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                    if (foo) {
+                        add_x = 0
+                        add_y = 0
+                        actor-select actor
+                        actor-set-var 2 1
+                        goto label0d7f
+                    }
+                }
+            } else {
+                local22 = 0
+            }
+            gWorld[fielder][X] = gWorld[fielder][X] + add_x
+            gWorld[fielder][Z] = gWorld[fielder][Z] + add_y
+            actor-select actor
+            actor-set-scale (call-script CalcActorScale [fielder])
+        }
+        new_facing = call-script TurnFacingStep [new_facing, facing]
+        run-script-xc3 SetActorFacing [actor, new_facing, facing]
+        facing = new_facing
+        stop-script
+        local18 = 5000 - gWorld[fielder][Z]
+        actor-select actor
+        actor-x54 local18
+        put-actor actor gScreen[fielder][X] (local18 + gScreen[fielder][Y]) 3
+        if (gDefenseControlledBy == CB-COMPUTER) {
+            if (local20 in [46, 47, 48, 49]) {
+                run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+                if (rCurrentPlay == NONE && gRunners[local20 - 46][R-DIRECTION] == BACKWARD) {
+                    rCurrentPlay = local20
+                }
+                if (rCurrentPlay != local20) {
+                    if (rCurrentPlay == F-HOME) {
+                        if (R-HOME == gRunners[local20 - 46][R-DEST-BASE] && gRunners[local20 - 46][R-DIRECTION] == FORWARD) {
+                            if ((distance-2d gWorld[local20][X] gWorld[local20][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]) > (distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z])) {
+                                rCurrentPlay = local20
+                                gUserSelectedPlay = NONE
+                            } else {
+                                gUserSelectedPlay = rCurrentPlay
+                                gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                                gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                                run-script DoFielderHoldingBall [fielder, facing, actor]
+                            }
+                        } else {
+                            gUserSelectedPlay = rCurrentPlay
+                            gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                            gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                            run-script DoFielderHoldingBall [fielder, facing, actor]
+                        }
+                    } else if (rCurrentPlay == gRunners[local20 - 46][R-DEST-BASE] && gRunners[local20 - 46][R-DIRECTION] == FORWARD) {
+                        if ((distance-2d gWorld[local20][X] gWorld[local20][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]) > (distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z])) {
+                            rCurrentPlay = local20
+                            gUserSelectedPlay = NONE
+                        } else {
+                            gUserSelectedPlay = rCurrentPlay
+                            gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                            gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                            run-script DoFielderHoldingBall [fielder, facing, actor]
+                        }
+                    } else {
+                        gUserSelectedPlay = rCurrentPlay
+                        gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                        gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                        run-script DoFielderHoldingBall [fielder, facing, actor]
+                    }
+                } else {
+                    gUserSelectedPlay = NONE
+                }
+            } else if (local20 == 4) {
+                run-script SetSensibleNextPlay [fielder, smth_kid_data_3]
+                if (rCurrentPlay != MOUND) {
+                    run-script DoFielderHoldingBall [fielder, facing, actor]
+                }
+            }
+        }
+        if (gUserSelectedPlay != NONE) {
+            if (gUserSelectedPlay == LAST-CLICK-FIELDING) {
+                gWorld[fielder][TARGET-X] = gWorld[LAST-CLICK-FIELDING][X]
+                gWorld[fielder][TARGET-Z] = gWorld[LAST-CLICK-FIELDING][Z]
+                if (rCurrentPlay < 5) {
+                    rBaseClaims[rCurrentPlay] = 0
+                    gWorld[fielder][TARGET] = NONE
+                    local20 = 56
+                }
+                rCurrentPlay = LAST-CLICK-FIELDING
+                gUserSelectedPlay = NONE
+            } else {
+                gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                run-script DoFielderHoldingBall [fielder, facing, actor]
+            }
+        }
+        if (local20 in [0, 1, 2, 3]) {
+            if ((abs rBaseClaims[local20]) != fielder) {
+                run-script DoFielderHoldingBall [fielder, facing, actor]
+            }
+        }
+    }
+}
+free-script

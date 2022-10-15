@@ -1,0 +1,63 @@
+; LSC2 5 2114
+
+local variable local1
+
+if (gGameMode == MODE-maybe-cards) {
+    exec-script RunPlayerSay [g_maybe_kid_video_actor]
+} else if (rCurrentKid < 16) {
+    local1 = 2115
+} else if (rCurrentKid <= 30) {
+    local1 = 2116
+} else if (rCurrentKid <= 61) {
+    local1 = 2117
+} else if (rCurrentKid == MR-CLANKY) {
+    local1 = 2116
+} else {
+    local1 = 2118
+}
+actor-select g_maybe_selected_actor
+actor-set-var 0 0
+xd1
+if ((is-script-running PlayerSay1To15) || (is-script-running PlayerSay16To23) || (is-script-running PlayerSay24To30And263)) {
+    if (actor-get-var g_maybe_selected_actor 4) {
+        actor-do-anim g_maybe_selected_actor (actor-get-var g_maybe_selected_actor 4)
+    }
+}
+free-running-script PlayerSay1To15
+free-running-script PlayerSay16To23
+free-running-script PlayerSay24To30And263
+free-running-script PlayerSay31To45
+free-running-script PlayerSay46To61
+free-running-script PlayerSayCustom
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+cutscene-start 115 19
+run-script local1 []
+while (!!(is-script-running local1)) {
+    stop-script
+}
+if (g_maybe_skipped_cutscene) {
+    free-running-script local1
+    xd1
+} else {
+    cutscene-end
+}
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

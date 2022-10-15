@@ -1,0 +1,49 @@
+; LSC2 3 2147 CatchErrorCheck
+
+parameter fielder: Fielder
+parameter smth_height
+parameter smth_stat_3
+parameter angle: Angle
+
+local variable result
+local variable angle_diff
+local variable local6
+local variable danger
+
+if (gNoErrors || g_maybe_play_is_ready_to_end && rCurrentPlay == MOUND) {
+    return 0
+}
+if (gPlayEndedReason == PE-INFIELD-FLY) {
+    return 0
+}
+if (gBallIsFoul || gSimFirstBounceFoul) {
+    return 0
+} else {
+    if ((abs (gBallPosY - smth_height)) < 7) {
+        danger = 2
+    } else if (gBallPosPhysY < 7000) {
+        danger = 2
+    } else {
+        danger = 1
+    }
+    angle_diff = call-script AngleDifference [atan4 gWorld[fielder][X] gWorld[fielder][Z] gBallPosX gBallPosZ, angle]
+    if (angle_diff > 45) {
+        danger = danger + 2
+        if (angle_diff > 90) {
+            danger = danger + 5
+            if (angle_diff > 135 && rFieldingOrder[fielder - 37] != KENNY-KAWAGUCHI) {
+                result = 666
+            }
+        }
+    }
+    if (result != 666) {
+        local6 = ((abs gBallVelPhysX) + (abs gBallVelPhysY) + (abs gBallVelPhysZ)) / 10000
+        temp = danger
+        danger = danger * (local6 + smth_stat_3)
+        if ((random2 -30 danger) > 45) {
+            result = 1
+        }
+    }
+}
+return result
+free-script

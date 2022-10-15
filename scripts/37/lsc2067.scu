@@ -1,0 +1,27 @@
+; LSC2 37 2067
+
+local variable local1
+local variable local2
+local variable local3
+
+if (gNetUsername) {
+    if (call-script 2066 []) {
+        if (gPopupState) {
+            free-running-script 0
+        }
+        sprintf local1 "%s is already in your list of coaches. Please choose another name." [gNetUsername]
+        run-script ShowPopup [local1, 2, 5]
+    } else {
+        local2 = strlen global473
+        if (local2) {
+            sprintf local3 "%s,%s" [gNetUsername, global473]
+            write-ini-string gINIPath "Baseball" "_NetCoachNames" local3
+            free-array local3
+        } else {
+            write-ini-string gINIPath "Baseball" "_NetCoachNames" gNetUsername
+        }
+        room30 = 0
+        run-script 2080 []
+    }
+}
+free-script

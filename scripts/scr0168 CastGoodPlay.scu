@@ -1,0 +1,71 @@
+; SCRP 168 CastGoodPlay
+
+parameter arg0
+
+if (gNoGooch) {
+    free-running-script 0
+}
+if (gCommentaryPlayingPointer != gCommentaryQueuePointer) {
+    free-running-script 0
+}
+gCurrentSpeechScript = CastGoodPlay
+case random 10 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5593437,15976\x7f    What a great play!"
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5609413,35289\x7f    Glove is a many splendored thing."
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5644702,13027\x7f    That kid can catch!"
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5657729,29695\x7f    Caught that fly like a frog on a lilly pad!"
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5687424,18960\x7f    What an outstanding play!"
+    }
+    of 5 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5706384,18878\x7f    Oh what a play!"
+    }
+    of 6 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5725262,14313\x7f    An amazing catch!"
+    }
+    of 7 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5739575,23036\x7f    these kids are really hustling today!"
+    }
+    of 8 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5762611,33426\x7f    Did you see that?    What an incredible catch!!!"
+    }
+    of 9 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5796037,35535\x7f    that's one outstanding play... what a catch!"
+    }
+    of 10 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT5831572,33460\x7f    That catch stuffed the cheers back down their throats!"
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

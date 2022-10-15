@@ -1,0 +1,27 @@
+; LSC2 39 2073
+
+if (!(call-script 2068 [])) {
+    free-running-script 0
+}
+run-script 2067 [1]
+global680[18] = 0
+free-running-script 2074
+global133 = 0
+free-running-script 2084
+sprite-set-range global680[10] global680[10]
+sprite-clear
+sprite-x2a 0 2
+if (global681) {
+    free-array global681
+}
+global681 = ""
+free-image global680[3]
+free-image global680[0]
+global680[16] = 0
+global680[14] = 0
+sprite-set-range global680[13] global680[13]
+sprite-x2a 0 2
+global690 = 0
+global43 = 32
+global45 = 46
+free-script

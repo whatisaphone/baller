@@ -1,0 +1,6 @@
+; LSC2 27 2296
+
+run-script 2270 []
+run-script 2271 []
+run-script 2273 []
+free-script

@@ -1,0 +1,44 @@
+; SCRP 23 OnRoomEnter
+
+local variable local0
+local variable local1
+
+global259 = 0
+local1 = find-all-objects-of-class gCurrentRoom [146]
+if (local1) {
+    for local0 = 1 to local1[0] ++ {
+        put-class local1[local0] [18]
+    }
+}
+free-array local1
+gAlternateInput_always_false = 0
+global212 = 0
+gCursorImage = 1
+if (g_maybe_operating_system == 2) {
+    cursor-set-image-color (gCursorImage + 2)
+    gCursorImage = gCursorImage + 2
+} else if (gCursorImage <= 76 || (gCursorImage in [82, 85, 91, 88, 79, 95])) {
+    cursor-set-image-bw (gCursorImage + 1)
+    gCursorImage = gCursorImage + 1
+} else if (gBlackAndWhiteCursors || gCursorImage == 1) {
+    cursor-set-image-bw (gCursorImage + 1)
+    gCursorImage = gCursorImage + 1
+} else {
+    cursor-set-image-color gCursorImage
+    gCursorImage = gCursorImage
+}
+for local0 = gActorPoolMax to gActorPoolMin -- {
+    run-script ReleaseActor [local0]
+}
+for local0 = 2 to gActorPoolMin ++ {
+    run-script ReleaseActor [local0]
+}
+if (global240) {
+    free-array global240
+}
+if (!(is-script-running CursorLoop)) {
+    run-script CursorLoop []
+}
+gHoverScript = 0
+g_maybe_net_yell_sound = 0
+free-script

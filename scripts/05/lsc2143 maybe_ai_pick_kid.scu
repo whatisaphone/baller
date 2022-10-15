@@ -1,0 +1,96 @@
+; LSC2 5 2143 maybe_ai_pick_kid
+
+local variable kid: Kid
+local variable local2
+local variable local3
+
+if (!g_maybe_ai_draft_wanted_skill) {
+    g_maybe_ai_draft_wanted_skill = random2 31 40
+    g_smth_score_check_minimum = random2 20 50
+}
+do {
+    kid = 0
+    if (gLastPickedKid == ASHLEY-WEBBER) {
+        if (random 1) {
+            kid = SIDNEY-WEBBER
+        }
+    } else if (gLastPickedKid == SIDNEY-WEBBER) {
+        if (random 1) {
+            kid = ASHLEY-WEBBER
+        }
+    } else if (gLastPickedKid == RONNY-DOBBS) {
+        if (random 1) {
+            kid = SALLY-DOBBS
+        }
+    } else if (gLastPickedKid == SALLY-DOBBS) {
+        if ((random 1) || (g_maybe_ai_draft_wanted_skill in [38, 39])) {
+        } else {
+            kid = RONNY-DOBBS
+        }
+    } else if (gLastPickedKid == AMIR-KHAN) {
+        if (random 1) {
+            kid = ACHMED-KHAN
+        }
+    } else if (gLastPickedKid == ACHMED-KHAN) {
+        if (random 1) {
+            kid = AMIR-KHAN
+        }
+    }
+    if (kid) {
+    } else {
+        kid = call-script smth_maybe_ai_next_draft_pick [g_maybe_ai_draft_wanted_skill]
+    }
+    if (!kid) {
+        if (g_smth_score_check_minimum > 20) {
+            g_smth_score_check_minimum = g_smth_score_check_minimum - 10
+        } else {
+            kid = call-script smth_maybe_ai_next_draft_pick [random2 31 35]
+        }
+    }
+} until (gBleachersKids[kid])
+gBleachersKids[kid] = false
+run-script smth_after_draft_kid [kid]
+if (g_maybe_who_picks_first) {
+    ++gDraftRound
+}
+gPickOrder2[gDraftRound - 1] = kid
+local2 = call-script FindBleachersEntry [gBleachersEntries, kid, BI-KID]
+if (local2 == -2) {
+    xb6-xfe
+    xb6-x4b "ERROR:  tried to pick an unknown kid!"
+    free-running-script 0
+}
+local3 = gBleachersEntries[local2][BI-ACTOR]
+if (local3) {
+    put-actor local3 0 0 0
+}
+gBleachersEntries[local2][BI-KID] = 0
+gBleachersEntries[local2][BI-ACTOR] = 0
+run-script 2069 [1, gDraftRound - 1, kid, 1]
+stop-script
+while (!!(is-script-running smth_mouse_sprites_2)) {
+    stop-script
+}
+run-script maybe_show_kid_dialog [kid, 1]
+while (!!(is-script-running maybe_show_kid_dialog)) {
+    stop-script
+}
+if (!g_maybe_who_picks_first && gDraftRound == 9) {
+    sleep 30
+    go-to-room 27
+    free-running-script 0
+}
+free-running-script 2151
+gCursorLoopScript = CursorLoop
+run-script gCursorLoopScript []
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

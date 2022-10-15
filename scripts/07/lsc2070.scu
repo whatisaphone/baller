@@ -1,0 +1,21 @@
+; LSC2 7 2070
+
+local variable local0
+local variable local1
+
+for local0 = [gNumBalls, gNumStrikes, gNumOuts] {
+    if (local0 > 0) {
+        sprite-set-range room6[local1 + 22] room6[local1 + 22]
+        sprite-clear
+        sprite-set-image (local1 + 1002)
+        sprite-x7c 0
+        sprite-x52 0
+        sprite-x34 (local0 - 1)
+        sprite-x2b -800
+        sprite-set-hotspot 320 240
+        sprite-set-range room6[local1 + 22] room6[local1 + 22]
+        sprite-palette room19
+    }
+    ++local1
+}
+free-script

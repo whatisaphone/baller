@@ -1,0 +1,27 @@
+; LSC2 27 2150
+
+local variable local0
+local variable local1
+local variable local2
+
+if (random 1) {
+    array-set local2 [0, 1] 0
+} else {
+    array-set local2 [1, 0] 0
+}
+for local0 = 0 to 11 ++ {
+    run-script WriteSeasonSchedule [local0, 10, SS-HOME-OR-AWAY, local2[0]]
+    run-script WriteSeasonSchedule [local0, 11, SS-HOME-OR-AWAY, local2[1]]
+}
+for local0 = 12 to 23 ++ {
+    run-script WriteSeasonSchedule [local0, 10, SS-HOME-OR-AWAY, local2[1]]
+    run-script WriteSeasonSchedule [local0, 11, SS-HOME-OR-AWAY, local2[0]]
+}
+for local0 = 0 to 23 ++ {
+    for local1 = 12 to 13 ++ {
+        run-script WriteSeasonSchedule [local0, local1, SS-HOME-OR-AWAY, 99]
+    }
+}
+run-script 2148 [12, 23]
+free-array local2
+free-script

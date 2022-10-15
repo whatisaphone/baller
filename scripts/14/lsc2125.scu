@@ -1,0 +1,75 @@
+; LSC2 14 2125
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+if (2 == local0) {
+    local1 = 1
+    local2 = 0
+    local3 = room25
+    case room36 {
+        of room32 {
+            local4 = room31
+        }
+        of room33 {
+            local4 = room32
+        }
+        of room34 {
+            local4 = room33
+        }
+        else {
+            local4 = room34
+        }
+    }
+} else {
+    local1 = 3
+    local2 = 2
+    local3 = room26
+    case room36 {
+        of room34 {
+            local4 = room31
+        }
+        of room31 {
+            local4 = room32
+        }
+        of room32 {
+            local4 = room33
+        }
+        else {
+            local4 = room34
+        }
+    }
+}
+run-script PlayClickySound []
+sprite-set-range local3 local3
+sprite-x34 local1
+sleep 2
+room36 = local4
+sprite-set-range local3 local3
+sprite-x34 local2
+sleep 2
+run-script 2123 [room36, 1]
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

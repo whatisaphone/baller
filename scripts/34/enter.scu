@@ -1,0 +1,14 @@
+; ENCD 34
+
+if (global682) {
+    image-select global682
+    image-pos 0 0
+    image-x30
+    image-xff
+}
+run-script 2130 []
+run-script 2146 []
+if (gAutoplaySeason) {
+    run-script 2147 []
+}
+finish-script

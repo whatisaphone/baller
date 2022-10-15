@@ -1,0 +1,105 @@
+; LSC2 3 2128 smth_to_do_with_fielding_sometimes_infield
+
+parameter fielder: Fielder
+
+local variable target: FieldingTarget
+
+if (!rBaseClaims) {
+    free-running-script 0
+}
+if (gBallIsFoul || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-OUT-OF-PLAY])) {
+    free-running-script 0
+}
+target = gWorld[fielder][TARGET]
+if (fielder == FIELDER-PITCHER) {
+    if (target != NONE) {
+        if (g_maybe_play_is_ready_to_end) {
+            if (target == MOUND || rCurrentPlay == target) {
+                free-running-script 0
+            }
+            run-script-xc3 ClearFielderTarget [FIELDER-PITCHER]
+            gWorld[fielder][TARGET] = MOUND
+            rBaseClaims[MOUND] = 0 - fielder
+            gWorld[fielder][TARGET-X] = gWorld[MOUND-CENTER][X]
+            gWorld[fielder][TARGET-Z] = gWorld[MOUND-CENTER][Z]
+        } else if (target != MOUND) {
+            free-running-script 0
+        }
+    }
+}
+if (fielder == rBallFetcher) {
+    if (gFielderWithBall) {
+        rBallFetcher = 0
+        if (target == BALL-SHADOW) {
+            gWorld[fielder][TARGET] = NONE
+        }
+        rAutoFieldeingDelay = 0
+    } else {
+        if (rAutoFieldeingDelay < 1) {
+            run-script SendClosestFielderToTarget []
+            gWorld[fielder][TARGET-X] = gBallPosX
+            gWorld[fielder][TARGET-Z] = gBallPosZ
+            gWorld[fielder][TARGET] = BALL-SHADOW
+        } else if (gBallHasBounced == 0 && g_maybe_last_fielder_to_touch_ball == 0) {
+            if (!(is-script-running IfBallIsNotCaughtAwardAnError)) {
+                run-script IfBallIsNotCaughtAwardAnError [fielder]
+            }
+        }
+        free-running-script 0
+    }
+}
+case fielder {
+    of FIELDER-1B {
+        if (call-script smth_override_other_fielder_at_base [fielder, 1, true]) {
+            run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+        }
+    }
+    of FIELDER-2B {
+        if (call-script smth_override_other_fielder_at_base [fielder, 2, true]) {
+            run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+        }
+    }
+    of FIELDER-SS {
+        if (call-script smth_override_other_fielder_at_base [fielder, 2]) {
+            run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+        }
+    }
+    of FIELDER-3B {
+        if (call-script smth_override_other_fielder_at_base [fielder, 3, true]) {
+            if (call-script smth_override_other_fielder_at_base [fielder, 0]) {
+                run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+            }
+        }
+    }
+    of FIELDER-CACTHER {
+        if (call-script smth_override_other_fielder_at_base [fielder, 0, true]) {
+            run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+        }
+    }
+    of FIELDER-PITCHER {
+        if (g_maybe_play_is_ready_to_end) {
+            if (rBaseClaims[MOUND] == 0) {
+                run-script-xc3 ClearFielderTarget [FIELDER-PITCHER]
+                rBaseClaims[MOUND] = 0 - 45
+                gWorld[fielder][TARGET-X] = gWorld[MOUND-CENTER][X]
+                gWorld[fielder][TARGET-Z] = gWorld[MOUND-CENTER][Z]
+                gWorld[fielder][TARGET] = MOUND
+            }
+        } else {
+            if (rCurrentPlay == MOUND) {
+                free-running-script 0
+            }
+            if (gStealing) {
+                free-running-script 0
+            }
+            if (call-script smth_override_other_fielder_at_base [fielder, 1]) {
+                if (call-script smth_override_other_fielder_at_base [fielder, 3]) {
+                    if (call-script smth_override_other_fielder_at_base [fielder, 0]) {
+                        run-script-xc3 smth_maybe_fielder_adjust_target [fielder]
+                    }
+                }
+            }
+        }
+    }
+}
+free-script

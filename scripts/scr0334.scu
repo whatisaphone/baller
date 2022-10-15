@@ -1,0 +1,28 @@
+; SCRP 334
+
+local variable local0
+local variable local1
+
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+x50
+local1 = "You have lost your connection to the internet."
+if (local0) {
+    run-script 325 [901, local1, 1]
+} else {
+    run-script 325 [0, local1]
+    while (!!(is-script-running 325)) {
+        stop-script
+    }
+    run-script 317 [1]
+    go-to-room 2
+}
+free-script

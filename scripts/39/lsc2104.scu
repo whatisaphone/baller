@@ -1,0 +1,26 @@
+; LSC2 39 2104
+
+palette-select room13
+palette-load 1031 0
+palette-unselect
+palette-select room16
+palette-load 1555 0
+palette-unselect
+run-script-xc3 2099 [17]
+run-script 2178 []
+if (global561[30]) {
+    run-script 2105 []
+}
+if (global561[30]) {
+    run-script 2071 [2]
+    run-script-xc3 2099 [25]
+    run-script-xc3 2099 [27]
+    run-script-xc3 2099 [26]
+} else {
+    run-script-xc3 2099 [27, 1]
+    run-script-xc3 2099 [26, 1]
+}
+run-script-xc3 2099 [0]
+run-script 2093 [global694]
+run-script 2090 []
+free-script

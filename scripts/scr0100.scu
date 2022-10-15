@@ -1,0 +1,22 @@
+; SCRP 100
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+array-set local2 [0, 1, 2, 3, 4, 5] 0
+array-set local3 [0, 1, 2, 3, 4, 5] 0
+for local4 = 0 to 5 ++ {
+    local1 = 0
+    while (0 == gPlayoffTeamsArray[local4]) {
+        if (local3[local4] == (call-script 133 [local0[local1][0]])) {
+            gPlayoffTeamsArray[local2[local4]] = call-script ReadSeasonTeams [local0[local1][0]]
+        }
+        ++local1
+    }
+}
+free-array local2
+free-array local3
+free-script

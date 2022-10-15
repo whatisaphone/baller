@@ -1,0 +1,90 @@
+; LSC2 5 2156 HandleNavClick
+
+parameter arg0
+
+local variable local1
+
+if (sprite-get-image room60) {
+    run-script 2111 [rCurrentKid]
+    free-running-script 0
+}
+if (gCursorLoopScript != CursorLoop) {
+    run-script 2075 []
+    run-script 2079 []
+    if ((actor-get-costume g_maybe_kid_video_actor) in [602, 603, 601, 567]) {
+        run-script maybe_reset_custom_kid_data [264]
+    }
+    if (g_maybe_kid_video_actor) {
+        run-script ReleaseActor [g_maybe_kid_video_actor]
+        g_maybe_kid_video_actor = 0
+    }
+    actor-default-clip-rect 0 0 639 479
+    if (gGameMode == MODE-maybe-cards) {
+        run-script 2113 []
+    } else {
+        run-script 2135 []
+    }
+    gInputHandlerScript = HandleInput
+    gGamePadInputHandlerScript = gInputHandlerScript
+    run-script CursorLoop []
+    free-running-script 2151
+    gCursorLoopScript = CursorLoop
+    run-script smth_move_bleacher_actors_2 []
+    temp = call-script RefreshKidActors [0]
+    run-script smth_update_sprites [1]
+    if (room47) {
+        run-script 2168 [room44]
+    }
+    gLastHoverNumber = 0
+    free-running-script 0
+}
+case arg0 {
+    of 193 {
+        if (gNetplayActive) {
+            run-script NetPromptQuit []
+        } else {
+            go-to-room 2
+        }
+    }
+    of 192 {
+        if (gNetplayActive) {
+            local1 = "You must pick a full roster."
+            run-script HandleHover [0, 0, local1]
+            cursor-input-enable
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-show
+            } else if (gCursorInputEnabled == 0) {
+                free-running-script GamePadCursorLoop
+                run-script ReleaseSprite [gGamePadCursorSprite]
+                gGamePadCursorSprite = 0
+            } else {
+                run-script ShowGamePadCursor []
+            }
+        } else {
+            case gGameMode {
+                of MODE-maybe-cards {
+                    go-to-room 2
+                }
+                of MODE-BATTING-PRACTICE {
+                    gBattingPracticeKid = random2 1 61
+                    sleep 10
+                    run-script ReadHE9 []
+                    go-to-room 4
+                    free-running-script 0
+                }
+                else {
+                    run-script PickRandomKids []
+                    go-to-room 27
+                }
+            }
+        }
+    }
+    of 194 {
+        if (gNetplayActive) {
+            run-script NetPromptQuit []
+        } else {
+            go-to-room 7
+        }
+    }
+}
+free-script

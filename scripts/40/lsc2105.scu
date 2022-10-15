@@ -1,0 +1,33 @@
+; LSC2 40 2105
+
+local variable local0
+local variable local1
+
+if (local0 == room1[12]) {
+    ++room20
+    if (room20 > 8) {
+        room20 = 8
+    }
+    local1 = 3
+} else {
+    --room20
+    if (room20 < 0) {
+        room20 = 0
+    }
+    local1 = 1
+}
+run-script PlayClickySound []
+run-script-xc3 2112 [42, local1]
+stop-script
+sprite-set-range room1[42] room1[42]
+sprite-clear
+sprite-x2a 0 2
+local1 = call-script 2104 []
+run-script-xc3 2112 [40]
+run-script-xc3 2112 [10]
+if (room12) {
+    local1 = call-script 2104 [1]
+    run-script-xc3 2112 [41]
+    run-script-xc3 2112 [36]
+}
+free-script

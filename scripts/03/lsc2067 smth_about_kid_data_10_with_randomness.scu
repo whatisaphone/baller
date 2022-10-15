@@ -1,0 +1,25 @@
+; LSC2 3 2067 smth_about_kid_data_10_with_randomness
+
+parameter kid: Kid
+
+local variable local1
+local variable local2
+local variable result
+
+if (gNoErrors) {
+    result = 100
+} else {
+    local1 = gKidData[kid][10]
+    local2 = gKidData[kid][KD-fatigue] / 3
+    result = local1 - local2
+    if (gDifficulty == HARD) {
+        if (random 3) {
+            result = max 100 (25 + result)
+        }
+    }
+    if (result < 1) {
+        result = 1
+    }
+}
+return result
+free-script

@@ -1,0 +1,38 @@
+; LSC2 3 2152 CastHit
+
+parameter fielder: Fielder
+
+local variable dialogue: Dialogue
+
+if (gCurrentSwing > 4) {
+    sleep 10
+    run-script EnqueueComment [DIALOGUE-HIT-WITH-POWERUP, gBatterKid]
+    if (gCurrentSwing in [SWING-ALUMINUM-POWER, SWING-SCREAMING-LINE-DRIVE]) {
+        run-script SetCurrentEmote [9]
+    }
+    free-running-script 0
+}
+if (rBallWasHitHigh) {
+    if (gSimFirstBounceFoul) {
+        dialogue = DIALOGUE-HIT-FOUL-OUTFIELD
+    } else if ((distance-2d gSimFirstBounceX gSimFirstBounceZ 0 300) > 1600) {
+        run-script EnqueueComment [DIALOGUE-HIT-TO-OUTFIELD, gBatterKid]
+        run-script SetCurrentEmote [9]
+        dialogue = DIALOGUE-FIELDER-RUNNING-TO-CATCH-FLY
+    } else {
+        run-script EnqueueComment [DIALOGUE-POP-FLY, gBatterKid]
+        if (gBallVelPhysY > 120000) {
+            run-script SetCurrentEmote [9]
+        }
+        dialogue = DIALOGUE-FIELDER-UNDER-POP-FLY
+    }
+    sleep (call-script smth_kid_data_3_with_fatigue [rFieldingOrder[fielder - 37]])
+    sleep 10
+    if (gBallHasBounced || g_maybe_last_fielder_to_touch_ball) {
+        free-running-script 0
+    }
+    run-script EnqueueComment [dialogue, rFieldingOrder[fielder - 37]]
+} else {
+    run-script CastHitNotHighFly []
+}
+free-script

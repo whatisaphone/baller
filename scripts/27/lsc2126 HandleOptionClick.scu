@@ -1,0 +1,120 @@
+; LSC2 27 2126 HandleOptionClick
+
+local variable x
+local variable y
+local variable local2
+
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    x = gGamePadX
+    y = gGamePadY
+} else {
+    x = gMouseX
+    y = gMouseY
+}
+x = x - 320 - (image-get-hotspot-x 1094 0)
+y = y - 240 - (image-get-hotspot-y 1094 0)
+local2 = image-get-x42 1094 0 x y
+if (gNetplayActive || global696) {
+    if (local2 != 68 && local2 != 69) {
+        free-running-script 0
+    }
+}
+run-script PlayClickySound []
+label007a:
+case local2 {
+    of 50 {
+        run-script ToggleOptionValue [5, 0]
+    }
+    of 51 {
+        run-script ToggleOptionValue [5, 1]
+    }
+    of 52 {
+        run-script ToggleOptionValue [5, 2]
+    }
+    of 53 {
+        run-script ToggleOptionValue [6, 0]
+    }
+    of 54 {
+        run-script ToggleOptionValue [6, 1]
+    }
+    of 55 {
+        run-script ToggleOptionValue [6, 2]
+    }
+    of 56 {
+        run-script ToggleOptionValue [7, 0]
+        if (gNoMusic) {
+            gNoMusic = 0
+            run-script AddSongsToPool [-1]
+            run-script AddSongsToPool [8074, 8070]
+            run-script PlayMusicPool [-1]
+        } else {
+            gNoMusic = 1
+            run-script PlayMusicPool [0]
+        }
+    }
+    of 57 {
+        run-script ToggleOptionValue [7, 1]
+        gNoMusic = 0
+        run-script AddSongsToPool [-1]
+        run-script AddSongsToPool [8074, 8070]
+        run-script PlayMusicPool [-1]
+    }
+    of 58 {
+        run-script ToggleOptionValue [7, 2]
+        gNoMusic = 1
+        run-script PlayMusicPool [0]
+    }
+    of 59 {
+        run-script ToggleOptionValue [8, 0]
+    }
+    of 60 {
+        run-script ToggleOptionValue [8, 1]
+    }
+    of 61 {
+        run-script ToggleOptionValue [8, 2]
+    }
+    of 62 {
+        run-script ToggleOptionValue [9, 0]
+    }
+    of 63 {
+        run-script ToggleOptionValue [9, 1]
+    }
+    of 64 {
+        run-script ToggleOptionValue [9, 2]
+    }
+    of 65 {
+        run-script ToggleOptionValue [10, 0]
+    }
+    of 66 {
+        run-script ToggleOptionValue [10, 1]
+    }
+    of 67 {
+        run-script ToggleOptionValue [10, 2]
+    }
+    of 68 {
+        if (gGameInputDevice != INPUT-DEVICE-MOUSE) {
+            run-script ToggleOptionValue [11, 1]
+            run-script 2328 [1]
+            gGameInputDevice = INPUT-DEVICE-MOUSE
+            if (gUIInputDevice != INPUT-DEVICE-MOUSE) {
+                gUIInputDevice = INPUT-DEVICE-MOUSE
+                run-script HideGamePadCursor []
+            }
+            free-running-script GamePadInputLoop
+        }
+    }
+    of 69 {
+        if (1 & global124) {
+        } else {
+            local2 = 68
+            goto label007a
+        }
+        if (gGameInputDevice != INPUT-DEVICE-GAME-PAD) {
+            run-script ToggleOptionValue [11, 2]
+            run-script 2328 [2]
+            gGameInputDevice = INPUT-DEVICE-GAME-PAD
+            run-script GamePadInputLoop []
+        }
+    }
+}
+free-script

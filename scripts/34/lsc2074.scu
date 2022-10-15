@@ -1,0 +1,341 @@
+; LSC2 34 2074
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+
+room37 = room37 + room37 / 10
+if (gHitAngleXZ > 44 && gHitAngleXZ < 135) {
+    if (room37 > 239) {
+        local1 = 0
+        local0 = 4
+    } else {
+        if (room37 > 199) {
+            local1 = 37 + 5
+            local2 = 10
+            local3 = 70
+            local4 = 80
+            local5 = 100
+            if (gHitAngleXZ < 75) {
+                local6 = 0
+                if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 6
+                }
+            } else if (gHitAngleXZ > 105) {
+                local6 = 2
+                if (random 1) {
+                    local7 = 4
+                } else {
+                    local7 = 5
+                }
+            } else {
+                local6 = 3
+                if (random 1) {
+                    local7 = 6
+                } else {
+                    local7 = 4
+                }
+            }
+        } else if (room37 > 149) {
+            local1 = 37 + 15
+            local2 = 35
+            local3 = 90
+            local4 = 96
+            local5 = 110
+            if (gHitAngleXZ < 75) {
+                local6 = 0
+                if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 6
+                }
+            } else if (gHitAngleXZ > 105) {
+                local6 = 2
+                if (random 1) {
+                    local7 = 4
+                } else {
+                    local7 = 5
+                }
+            } else {
+                local6 = 3
+                if (random 1) {
+                    local7 = 6
+                } else {
+                    local7 = 4
+                }
+            }
+        } else if (room37 > 99) {
+            local1 = 37 + 20
+            local2 = 70
+            local3 = 95
+            local4 = 105
+            local5 = 115
+            if (gHitAngleXZ < 75) {
+                local6 = 0
+                if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 6
+                }
+            } else if (gHitAngleXZ > 105) {
+                local6 = 2
+                if (random 1) {
+                    local7 = 4
+                } else {
+                    local7 = 5
+                }
+            } else {
+                local6 = 3
+                if (random 1) {
+                    local7 = 6
+                } else {
+                    local7 = 4
+                }
+            }
+        } else if (room37 > 49) {
+            local1 = 37 + 40
+            local2 = 90
+            local3 = 100
+            local4 = 110
+            local5 = 120
+            if (gHitAngleXZ < 67) {
+                local6 = 3
+                if (random 3) {
+                    local7 = 5
+                } else {
+                    local7 = 4
+                }
+            } else if (gHitAngleXZ < 90) {
+                local6 = 6
+                if (random 3) {
+                    local7 = 5
+                } else if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 4
+                }
+            } else if (gHitAngleXZ < 112) {
+                local6 = 4
+                if (random 3) {
+                    local7 = 5
+                } else if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 6
+                }
+            } else {
+                local6 = 5
+                if (random 3) {
+                    local7 = -1
+                } else if (random 1) {
+                    local7 = 3
+                } else {
+                    local7 = 6
+                }
+            }
+        } else if (room37 > 24) {
+            if (gHitAngleXZ < 67 || gHitAngleXZ > 112) {
+                local1 = 37 + 20
+            } else {
+                local1 = 37 + 70
+            }
+            local2 = 95
+            local3 = 110
+            local4 = 125
+            local5 = 150
+            if (random 1) {
+                local6 = 8
+            } else {
+                local6 = 9
+            }
+            if (random 4) {
+                local7 = 5
+            } else if (random 1) {
+                local7 = 4
+            } else {
+                local7 = 3
+            }
+        } else {
+            local1 = 37 + 70
+            local2 = 99
+            local3 = 130
+            local4 = 150
+            local5 = 200
+            if (random 1) {
+                local6 = 8
+            } else {
+                local6 = 9
+            }
+            if (random 4) {
+                local7 = 5
+            } else if (random 1) {
+                local7 = 4
+            } else {
+                local7 = 3
+            }
+        }
+        if (room36 > 60) {
+            local1 = local1 + 10
+        }
+        if (room36 > 70) {
+            local1 = local1 + 10
+        }
+        if (room36 > 80) {
+            local1 = local1 + 10
+        }
+        if (room36 > 0 && room36 < 30) {
+            local1 = local1 - 15
+        }
+        if ((random 100) > local1) {
+            local8 = random 100
+            if (local8 < local2) {
+                local0 = 1
+            } else if (local8 < local3) {
+                local0 = 2
+            } else if (local8 < local4) {
+                local0 = 3
+            } else {
+                local0 = 4
+            }
+            local8 = random 100
+            local12 = gKidData[room31][KD-maybe-speed]
+            if (local8 + 30 < local12 / 2) {
+                ++local0
+            }
+            if (local8 + 0 < local12 / 5) {
+                ++local0
+            }
+            if (local8 + 0 < local12 / 10) {
+                ++local0
+            }
+            if (local8 + 30 < (100 - local12) / 2) {
+                --local0
+            }
+            if (local8 + 0 < (100 - local12) / 5) {
+                --local0
+            }
+            if (local8 + 0 < (100 - local12) / 10) {
+                --local0
+            }
+            if (local0 > 4) {
+                local0 = 4
+            }
+            if (local0 < 0) {
+                local0 = 0
+            }
+        } else if (local8 < local12 / 5) {
+            local0 = 1
+        }
+    }
+    local13 = call-script smth_find_season_team [room42]
+    local10 = call-script ReadActiveRoster [local13, local6]
+    if (local10 == room20) {
+        local10 = call-script ReadActiveRoster [local13, 8]
+    }
+    if (local7 != -1) {
+        local11 = call-script ReadActiveRoster [local13, local7]
+        if (local11 == room20) {
+            local11 = call-script ReadActiveRoster [local13, 8]
+        }
+    }
+    if ((random 100) < 2 + (100 - gKidData[local10][6]) / 20) {
+        local9 = local10
+    }
+    if (local11) {
+        if ((random 100) < 2 + (100 - gKidData[local11][3]) / 20) {
+            local9 = local11
+        }
+    }
+    if (local9) {
+        if (gNetplayActive) {
+            if (g_net_smth_master == g_net_smth_me) {
+                run-script AddNetStat [local9, STAT-ERRORS, 1]
+                run-script AddStat [local9, STAT-ERRORS, 1]
+            }
+        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+            run-script AddStat [local9, STAT-ERRORS, 1]
+        }
+        ++room55
+        if (local0 < 4) {
+            ++local0
+        }
+    }
+    case local0 {
+        of 1 {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room31, STAT-SINGLES, 1]
+                    run-script AddStat [room31, STAT-SINGLES, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room31, STAT-SINGLES, 1]
+            }
+        }
+        of 2 {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room31, STAT-DOUBLES, 1]
+                    run-script AddStat [room31, STAT-DOUBLES, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room31, STAT-DOUBLES, 1]
+            }
+        }
+        of 3 {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room31, STAT-TRIPLES, 1]
+                    run-script AddStat [room31, STAT-TRIPLES, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room31, STAT-TRIPLES, 1]
+            }
+        }
+        of 4 {
+            if (gNetplayActive) {
+                if (g_net_smth_master == g_net_smth_me) {
+                    run-script AddNetStat [room31, STAT-HOME-RUNS, 1]
+                    run-script AddStat [room31, STAT-HOME-RUNS, 1]
+                }
+            } else if (MODE-BATTING-PRACTICE != gGameMode) {
+                run-script AddStat [room31, STAT-HOME-RUNS, 1]
+            }
+        }
+    }
+    if (local0) {
+        if (gNetplayActive) {
+            if (g_net_smth_master == g_net_smth_me) {
+                run-script AddNetStat [room31, STAT-HITS, 1]
+                run-script AddStat [room31, STAT-HITS, 1]
+            }
+        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+            run-script AddStat [room31, STAT-HITS, 1]
+        }
+        ++room54
+        if (gNetplayActive) {
+            if (g_net_smth_master == g_net_smth_me) {
+                run-script AddNetStat [room20, STAT-HITS-ALLOWED, 1]
+                run-script AddStat [room20, STAT-HITS-ALLOWED, 1]
+            }
+        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+            run-script AddStat [room20, STAT-HITS-ALLOWED, 1]
+        }
+    }
+} else {
+    local0 = -1
+}
+return local0
+free-script

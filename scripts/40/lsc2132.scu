@@ -1,0 +1,12 @@
+; LSC2 40 2132
+
+stop-sound g_maybe_net_yell_sound
+array-fill-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[56] room1[56] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[57] room1[57] 1 4 [0]
+run-script 425 []
+kludge [2001, 2213, gField]
+run-script maybe_net_smth_yell_sound [1, 5]
+free-script

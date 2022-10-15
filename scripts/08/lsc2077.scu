@@ -1,0 +1,10 @@
+; LSC2 8 2077
+
+run-script smth_net_stats_kludge [1]
+while (!!(is-script-running smth_net_stats_kludge)) {
+    stop-script
+}
+gNetplayActive = 0
+global696 = 1
+run-script smth_net361 []
+free-script

@@ -1,0 +1,14 @@
+; LSC2 40 2124
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (local0 == 4) {
+    run-script 2084 [local1]
+} else if (gMouseHandlerScript) {
+    run-script gMouseHandlerScript [local1, local3, local4, local2]
+}
+free-script

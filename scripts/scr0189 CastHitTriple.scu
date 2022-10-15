@@ -1,0 +1,55 @@
+; SCRP 189 CastHitTriple
+
+parameter arg0
+
+gCurrentSpeechScript = CastHitTriple
+case random 4 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT10015597,24360\x7f Would you believe it...A triple!"
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT10039957,19560\x7f OH MY!  That's a triple"
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT10059517,16872\x7f gets the triple!"
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT10076389,11272\x7f snags the triple!"
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT10087661,18024\x7f and MAKES the triple!"
+    }
+}
+xa9-xa9
+if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
+    case random 2 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT10105685,22861\x7f Man, that kid is fast!"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT10128546,28333\x7f That kid's got a lotta get up and go!"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT10156879,36547\x7f That's the kinda gusto that's gonna win this game for us!"
+        }
+    }
+    xa9-xa9
+}
+gCurrentSpeechScript = 0
+free-script

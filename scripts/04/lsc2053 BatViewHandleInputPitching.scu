@@ -1,0 +1,190 @@
+; LSC2 4 2053 BatViewHandleInputPitching
+
+parameter type: InputType
+parameter key: char
+parameter arg2
+parameter x
+parameter y
+
+local variable sprite
+local variable debug
+
+if (room51 == 0) {
+    if (key == 27) {
+        room54 = 1
+        xd1
+        if (gCurrentSpeechScript > 1) {
+            xd1
+            free-running-script gCurrentSpeechScript
+            gCurrentSpeechScript = 0
+        }
+        if (gCurrentLowPriCastScript > 1) {
+            xd1
+            free-running-script gCurrentLowPriCastScript
+            gCurrentLowPriCastScript = 0
+        }
+        if (gCurrentMatchupCastScript > 0) {
+            free-running-script gCurrentMatchupCastScript
+            gCurrentMatchupCastScript = 0
+        }
+    }
+    free-running-script 0
+}
+if (type == INPUT-TYPE-KEYBOARD && (get-class 95 [32])) {
+    debug = gDebug
+    if (gNetplayActive) {
+        debug = 0
+    }
+    case key {
+        of 27 {
+            room54 = 1
+        }
+        of 'S' {
+            if (debug) {
+                temp = gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY]
+                gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY]
+                gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = temp
+                go-to-room 4
+            }
+        }
+        of 'X' {
+            if (debug) {
+                gPitchBallIndicator = 1 - gPitchBallIndicator
+            }
+        }
+        of 'W' {
+            if (debug) {
+                array-fill-list gGameInfo 0 0 0 51 [0]
+                if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gVisitorInfoIndex
+                    gGameInfo[0] = 1
+                } else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gHomeInfoIndex
+                    gGameInfo[1] = 1
+                } else {
+                    free-running-script 0
+                }
+                gTeamInfo[temp][TI-RUNS] = 1
+                gTeamInfo[1 - temp][TI-RUNS] = 0
+                free-running-script ContinueGame
+                gGameEnded = 1
+                run-script EndTheGame []
+            }
+        }
+        of 'L' {
+            if (debug) {
+                if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gVisitorInfoIndex
+                } else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gHomeInfoIndex
+                } else {
+                    free-running-script 0
+                }
+                gTeamInfo[temp][TI-RUNS] = 0
+                gTeamInfo[1 - temp][TI-RUNS] = 1
+                free-running-script ContinueGame
+                gGameEnded = 1
+                run-script EndTheGame []
+            }
+        }
+        of 'P' {
+            if (debug) {
+                run-script FillPitcherPitches [1]
+                if (gDefenseControlledBy == CB-USER) {
+                    run-script RefreshPitchButtons []
+                }
+                run-script smth_ui_sprites [3]
+            }
+        }
+        of 'A' {
+            if (debug) {
+                if (gSeasonSpectatorMode) {
+                    gSeasonSpectatorMode = false
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+                    xb7-xfe
+                    xb7-xc2 "Season Specatator Mode %d OFF" gSeasonSpectatorMode []
+                } else {
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+                    gSeasonSpectatorMode = true
+                    xb7-xfe
+                    xb7-xc2 "Season Specatator Mode %d ON" gSeasonSpectatorMode []
+                }
+                if (gNetplayActive) {
+                    run-script-xc3 maybe_net_send_message [30, 1, NET-SETROOM, 4]
+                }
+                go-to-room 4
+                free-running-script 0
+            }
+        }
+        of '[' {
+            if (debug) {
+                if (gStatsAuditWindow) {
+                    gStatsAuditWindow = 0
+                    if (gStatsAuditImage) {
+                        run-script FreeScratchImage [gStatsAuditImage]
+                        gStatsAuditImage = 0
+                    }
+                    window-select 2
+                    window-destroy
+                    window-set-image 0
+                    window-xff
+                } else {
+                    gStatsAuditWindow = 1
+                }
+            }
+        }
+    }
+} else {
+    if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+        free-running-script 0
+    }
+    gLastMouseX = x
+    gLastMouseY = y
+    sprite = sprite-get-x2d gLastMouseX gLastMouseY 0 0 []
+    if (sprite) {
+        temp = sprite-get-xc6 sprite 1
+        if (temp >= 14 && temp <= 27) {
+            run-script SelectSwingOrPitch [sprite, temp, false]
+            free-running-script 0
+        } else if (temp == 344) {
+            run-script maybe_net_send_thumbs_up_or_down [sprite]
+            free-running-script 0
+        }
+    }
+    sprite = xa0 gLastMouseX gLastMouseY
+    if (sprite) {
+        if (!(xa3 sprite 1)) {
+            sprite = 0
+        }
+    }
+    if (!sprite) {
+        if (gLastMouseX >= 250 && gLastMouseX <= 386) {
+            if (gLastMouseY >= 234 - 25 && gLastMouseY <= 380) {
+                if (room25 && r_maybe_smth_idle_ready_for_pitch && (get-class 95 [32])) {
+                    xd1
+                    if (gCurrentSpeechScript > 1) {
+                        xd1
+                        free-running-script gCurrentSpeechScript
+                        gCurrentSpeechScript = 0
+                    }
+                    if (gCurrentLowPriCastScript > 1) {
+                        xd1
+                        free-running-script gCurrentLowPriCastScript
+                        gCurrentLowPriCastScript = 0
+                    }
+                    if (gCurrentMatchupCastScript > 0) {
+                        free-running-script gCurrentMatchupCastScript
+                        gCurrentMatchupCastScript = 0
+                    }
+                    run-script SendBatViewMessage [MSG-CHOOSE-PITCH-LOCATION, get-x 5, (get-y 5) + 200]
+                    free-running-script 0
+                }
+            }
+        } else {
+            xb6-xfe
+            xb6-x4b "Eek!"
+        }
+    }
+}
+exec-script HandleInput [type, key, arg2, x, y]
+free-script

@@ -1,0 +1,20 @@
+; LSC2 3 2084 SetForcedRunners
+
+local variable i
+local variable j
+
+array-fill-values gRunners 0 3 8 8 0 0
+if (gBallWasHit || gPlayEndedReason == PE-BASE-ON-BALLS) {
+    for i = 0 to 3 ++ {
+        for j = 0 to 3 ++ {
+            if (gRunners[j][R-CUR-BASE] == i) {
+                if (gRunners[j][R-ORDER] >= i) {
+                    gRunners[j][R-FORCED] = true
+                    xb6-xfe
+                    xb6-xc2 "Setting runneridx %d (order %d, i = %d) to be FORCED" j [gRunners[j][R-ORDER], i]
+                }
+            }
+        }
+    }
+}
+free-script

@@ -1,0 +1,93 @@
+; SCRP 177 CastOutGooch
+
+parameter arg0
+
+if (gCommentaryPlayingPointer != gCommentaryQueuePointer || gNoGooch) {
+    free-running-script 0
+}
+gCurrentSpeechScript = CastOutGooch
+label0016:
+case random 11 {
+    of 0 {
+        if (gKidData[arg0][KD-gender] == GIRL) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT8272054,33993\x7f What a bummer.  She gave it her best shot, though."
+        } else {
+            goto label0016
+        }
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8306047,27640\x7f OH!  That's not what we're lookin' for."
+    }
+    of 2 {
+        if (gNumOuts == 3) {
+            goto label0016
+        }
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8333687,50249\x7f It's tough not to let an out shake you up.  These kids have to keep their cool."
+    }
+    of 3 {
+        if (gNumOuts == 3) {
+            goto label0016
+        }
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8383936,29948\x7f I know these kids can keep it together out there."
+    }
+    of 4 {
+        if (gNumOuts == 3) {
+            goto label0016
+        }
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8413884,45995\x7f Ok, we've still got a chance to score in this inning, let's do it!"
+    }
+    of 5 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8459879,30949\x7f And it's a long walk back to the dugout."
+    }
+    of 6 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8490828,20213\x7f All you can do is try your hardest."
+    }
+    of 7 {
+        if (gKidData[arg0][KD-gender] == GIRL) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT8511041,14397\x7f she was robbed!"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT8525438,15648\x7f he was robbed!"
+        }
+    }
+    of 8 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8541086,25256\x7fYa gotta score runs to win a game."
+    }
+    of 9 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8566342,26280\x7fCan't win a game if you don't get on base."
+    }
+    of 10 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8592622,18600\x7fOoh, that's too bad."
+    }
+    of 11 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT8611222,16296\x7fThat kid was out by a mile!"
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

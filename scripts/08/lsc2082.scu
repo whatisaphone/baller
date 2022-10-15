@@ -1,0 +1,104 @@
+; LSC2 8 2082
+
+local variable local0
+local variable local1
+
+local1 = 0
+if (local0 >= 101 && local0 <= 106) {
+    local1 = local0 - 101
+} else {
+    case local0 {
+        of 122 {
+            local1 = 0
+        }
+        of 123 {
+            local1 = 0
+        }
+        of 124 {
+            local1 = 0
+        }
+        of 125 {
+            local1 = 0
+        }
+        of 126 {
+            local1 = 1
+        }
+        of 127 {
+            local1 = 0
+        }
+        of 128 {
+            local1 = 0
+        }
+        of 129 {
+            local1 = 1
+        }
+        of 130 {
+            local1 = 1
+        }
+        of 131 {
+            local1 = 1
+        }
+        of 132 {
+            local1 = 2
+        }
+        of 133 {
+            local1 = 1
+        }
+        of 134 {
+            local1 = 2
+        }
+        of 135 {
+            local1 = 3
+        }
+        of 136 {
+            local1 = 2
+        }
+        of 137 {
+            local1 = 3
+        }
+        of 138 {
+            local1 = 4
+        }
+        of 139 {
+            local1 = 2
+        }
+        of 140 {
+            local1 = 2
+        }
+        of 141 {
+            local1 = 3
+        }
+        of 142 {
+            local1 = 1
+        }
+        of 143 {
+            local1 = 4
+        }
+        of 144 {
+            local1 = 4
+        }
+        of 145 {
+            local1 = 3
+        }
+        of 146 {
+            local1 = 4
+        }
+        of 147 {
+            local1 = 2
+        }
+        of 148 {
+            local1 = 5
+        }
+        of 149 {
+            local1 = 3
+        }
+        of 150 {
+            local1 = 3
+        }
+        of 151 {
+            local1 = 4
+        }
+    }
+}
+return local1
+free-script

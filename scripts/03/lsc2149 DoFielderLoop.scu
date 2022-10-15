@@ -1,0 +1,651 @@
+; LSC2 3 2149 DoFielderLoop
+
+parameter fielder: Fielder
+parameter facing: Facing
+parameter arg2
+
+local variable add_x
+local variable add_y
+local variable angle: Angle
+local variable actor: Actor
+local variable speed
+local variable smth_stat_3
+local variable next_facing
+local variable he9_angle: Angle
+local variable smth_stat_27
+local variable smth_height
+local variable delay
+local variable angle14: Angle
+local variable local15
+local variable smth_diving
+local variable ticks_until_catch
+local variable boredom
+local variable dist_ball_2d
+local variable smth_turns
+local variable bottled_up_emotions
+local variable catch_error
+local variable local23
+
+speed = call-script GetKidRunningSpeed [rFieldingOrder[fielder - 37]]
+smth_stat_3 = call-script smth_kid_data_3_with_fatigue [rFieldingOrder[fielder - 37]]
+smth_stat_27 = call-script smth_kid_data_27_maybe_errors_chance [rFieldingOrder[fielder - 37]]
+smth_height = call-script smth_about_kid_data_maybe_height [rFieldingOrder[fielder - 37]]
+smth_turns = fielder - fielder / gMaxTurnCount * gMaxTurnCount
+actor = fielder - 30
+if (actor && arg2 == 0) {
+    local15 = 5000 - gWorld[fielder][Z]
+    actor-select actor
+    actor-xd9
+    actor-set-costume (call-script maybe_kid_get_costume_fielding [rFieldingOrder[fielder - 37]])
+    actor-x54 local15
+    actor-x61 2
+    actor-x5f
+    actor-set-scale (call-script CalcActorScale [fielder])
+    actor-x62 global423
+    actor-set-conditons [138]
+    if (gNetplayActive) {
+        if (g_net_smth_me == g_net_smth_master) {
+            temp2 = actor - 7
+            case temp2 {
+                of 0 {
+                    temp = 510
+                }
+                of 1 {
+                    temp = 509
+                }
+                of 2 {
+                    temp = 507
+                }
+                of 3 {
+                    temp = 503
+                }
+                of 4 {
+                    temp = 495
+                }
+                of 5 {
+                    temp = 479
+                }
+                of 6 {
+                    temp = 447
+                }
+                of 7 {
+                    temp = 383
+                }
+                of 8 {
+                    temp = 255
+                }
+            }
+            g_maybe_net_fielders_dirty_mask = g_maybe_net_fielders_dirty_mask & temp
+        }
+    }
+    run-script smth_actor_palette_team_color [actor, abs (gBattingTeamInfoIndex - 1)]
+    run-script smth_actor_kid_palette [actor, rFieldingOrder[fielder - 37]]
+    put-actor actor gScreen[fielder][X] (local15 + gScreen[fielder][Y]) 3
+    actor-do-anim actor 6
+    if (fielder == rBallFetcher) {
+        run-script DrawNameUnderFielder [rBallFetcher]
+    }
+    bottled_up_emotions = random2 10 25
+    if (rCurrentEmote == 9) {
+        bottled_up_emotions = bottled_up_emotions + (random2 20 40)
+    }
+} else {
+    angle = facing * 22 - 22
+}
+if (gNetplayActive) {
+    if (gDefenseControlledBy == CB-NETWORK) {
+        xb6-xfe
+        xb6-x4b "Remote control fielders???"
+        free-running-script 0
+    }
+}
+if (arg2 == 2) {
+    actor-select actor
+    actor-set-var 2 1
+    goto label0d51
+}
+if (arg2 == 1) {
+    sleep 3
+}
+if (!facing) {
+    if (fielder == FIELDER-CACTHER) {
+        facing = 5
+        smth_stat_3 = smth_stat_3 + 3
+        angle = 90
+    } else {
+        facing = 13
+        angle = 270
+    }
+}
+run-script-xc3 SetActorFacing [actor, facing]
+if (!g_smth_play_may_continue && arg2 == 0) {
+    stop-script
+    put-actor actor gScreen[fielder][X] (local15 + gScreen[fielder][Y]) 3
+    if (gPlayEndedReason == PE-BASE-ON-BALLS) {
+        while (!g_maybe_play_is_ready_to_end) {
+            stop-script
+        }
+    }
+    g_maybe_smth_play_is_alive = 0
+    run-script-xc3 DoFielderIdle [fielder, facing, actor]
+    free-running-script 0
+}
+if (gDefenseControlledBy != CB-COMPUTER && arg2 == 0) {
+    if (rBallWasHitHigh && gWorld[fielder][TARGET] == BALL-SHADOW) {
+        delay = smth_stat_3 + gOutfieldDelay
+    } else {
+        delay = smth_stat_3 + arg2 * 5
+    }
+} else if (gDefenseControlledBy == CB-COMPUTER && arg2 == 0) {
+    delay = smth_stat_3 + 10
+} else {
+    delay = smth_stat_3 + arg2 * 5
+}
+do {
+    if (!g_maybe_smth_play_is_alive) {
+        actor-select actor
+        actor-set-var 1 0
+        sleep 5
+        run-script-xc3 DoFielderIdle [fielder, facing, actor]
+        free-running-script 0
+    }
+    do {
+        if ((actor-get-var actor 2) && !smth_diving) {
+            goto label0d51
+        }
+        if (actor) {
+            local15 = 5000 - gWorld[fielder][Z]
+            actor-select actor
+            actor-x54 local15
+            put-actor actor gScreen[fielder][X] (local15 + gScreen[fielder][Y]) 3
+        }
+        if (arg2) {
+            if (gFielderWithBall != 0 && gFielderWithBall != fielder) {
+                arg2 = 0
+            }
+        }
+        dist_ball_2d = call-script DistanceToBall2D [fielder]
+        if (ticks_until_catch) {
+            --ticks_until_catch
+            if (ticks_until_catch == 0) {
+                actor-select actor
+                actor-x61 2
+            }
+        } else if (!smth_diving) {
+            if (dist_ball_2d < rBallCatchDistance) {
+                if (rBallThrownToFielder && (abs rBallThrownToFielder) != fielder) {
+                } else {
+                    ticks_until_catch = call-script FielderTicksUntilCatch [fielder]
+                }
+                if (ticks_until_catch) {
+                    rBallThrownToFielder = 0
+                    if (ticks_until_catch == 4 && g_maybe_last_fielder_to_touch_ball == 0) {
+                        run-script EnqueueComment [DIALOGUE-FIELDER-ABOUT-TO-CATCH, rFieldingOrder[fielder - 37]]
+                    }
+                    if (ticks_until_catch == 4) {
+                        actor-do-anim actor 24
+                    } else if (gWorld[fielder][X] == gWorld[fielder][TARGET-X] && gWorld[fielder][Z] == gWorld[fielder][TARGET-Z] && (fielder in [FIELDER-1B, FIELDER-2B, FIELDER-3B, FIELDER-CACTHER])) {
+                        actor-do-anim actor 25
+                    } else {
+                        actor-do-anim actor (21 + ticks_until_catch - 1)
+                    }
+                    ticks_until_catch = 5
+                    actor-select actor
+                    actor-x61 1
+                }
+            }
+        }
+        if (gFielderWithBall > 0 || arg2 || dist_ball_2d > 80 || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-OUT-OF-PLAY])) {
+        } else if (rBallThrownToFielder && (abs rBallThrownToFielder) != fielder) {
+        } else if (gBallPosY < smth_height || (gBallPosPhysY + gBallVelPhysY * gVectorScaleNum / gVectorScaleDen) / 1000 < smth_height) {
+            if (dist_ball_2d < smth_stat_27) {
+                boredom = 0
+                catch_error = call-script CatchErrorCheck [fielder, smth_height, smth_stat_3, angle]
+                if (catch_error == 666) {
+                    catch_error = 1
+                    actor-select actor
+                    actor-set-var 2 1
+                    if (bottled_up_emotions > 15) {
+                        run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 8]
+                        bottled_up_emotions = 0
+                    }
+                }
+                rAutoFieldeingDelay = 0
+                if (catch_error || gCurrentSwing * !gBallHasBounced == 6) {
+                    if (gCurrentSwing == SWING-SCREAMING-LINE-DRIVE) {
+                        gCurrentSwing = SWING-LINE-DRIVE
+                    }
+                    run-script DoFielderMissedCatch [fielder, smth_height, smth_diving]
+                    if (ticks_until_catch) {
+                        ticks_until_catch = 0
+                        actor-select actor
+                        actor-x61 2
+                    }
+                    if (g_maybe_play_is_ready_to_end == 0) {
+                        if (bottled_up_emotions > 15) {
+                            run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 2]
+                            bottled_up_emotions = 0
+                        }
+                        run-script SetCurrentEmote [4]
+                    }
+                    if (!smth_diving) {
+                        sleep (smth_stat_3 + (random2 5 20))
+                    }
+                } else if (!gBallIsFoul && !(gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, PE-OUT-OF-PLAY])) {
+                    case 1 {
+                        of (abs gBallVelPhysX) + (abs gBallVelPhysY) + (abs gBallVelPhysZ) > 100000 {
+                            if (gNetplayActive) {
+                                gNetStateBuffer[1][4] = 1996
+                            }
+                            sound-select 1996
+                            sound-play
+                        }
+                        of (abs gBallVelPhysX) + (abs gBallVelPhysY) + (abs gBallVelPhysZ) > 50000 {
+                            if (gNetplayActive) {
+                                gNetStateBuffer[1][4] = 1995
+                            }
+                            sound-select 1995
+                            sound-play
+                        }
+                        of (abs gBallVelPhysX) + (abs gBallVelPhysY) + (abs gBallVelPhysZ) > 20000 {
+                            if (gNetplayActive) {
+                                gNetStateBuffer[1][4] = 1994
+                            }
+                            sound-select 1994
+                            sound-play
+                        }
+                    }
+                    gFielderWithBall = fielder
+                    run-script DrawNameUnderFielder [fielder]
+                    if (smth_diving) {
+                        if (g_maybe_last_fielder_to_touch_ball == 0 || g_maybe_last_fielder_to_touch_ball == fielder) {
+                            if (gBallHasBounced) {
+                                run-script EnqueueComment [DIALOGUE-CATCH-LOW-HIT, rFieldingOrder[fielder - 37]]
+                            } else if (call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X], gWorld[fielder][Z] + 80]) {
+                                run-script EnqueueComment [DIALOGUE-SNOWCONE-CATCH, gBatterKid]
+                            } else {
+                                run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT, rFieldingOrder[fielder - 37]]
+                            }
+                        }
+                    } else if (rBallWasHitHigh && gBallHasBounced == 0) {
+                        if (call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X], gWorld[fielder][Z] + 80]) {
+                            run-script EnqueueComment [DIALOGUE-SNOWCONE-CATCH, gBatterKid]
+                        } else {
+                            run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT, rFieldingOrder[fielder - 37]]
+                        }
+                    } else if (g_maybe_last_fielder_to_touch_ball == 0 && gBallWasHit) {
+                        if (gBallHasBounced) {
+                            if (fielder == FIELDER-PITCHER && gFieldingTargetZ > gWorld[fielder][Z]) {
+                                run-script EnqueueComment [DIALOGUE-HIT-TO-PITCHER, rFieldingOrder[fielder - 37]]
+                            } else if (fielder == FIELDER-SS && gFieldingTargetZ > gWorld[fielder][Z]) {
+                                run-script EnqueueComment [DIALOGUE-HIT-TO-SHORTSTOP, rFieldingOrder[fielder - 37]]
+                            } else if (gBallVelPhysZ < -2000) {
+                                run-script EnqueueComment [DIALOGUE-BALL-OFF-THE-WALL, rFieldingOrder[fielder - 37]]
+                            } else {
+                                run-script EnqueueComment [DIALOGUE-CATCH-GENERAL, rFieldingOrder[fielder - 37]]
+                            }
+                        } else {
+                            run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT, rFieldingOrder[fielder - 37]]
+                        }
+                    } else if (gBallHasBounced) {
+                    } else {
+                        run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT, rFieldingOrder[fielder - 37]]
+                    }
+                    if (gBallHasBounced == 0) {
+                        rCaughtFly = true
+                        gBallIsFair = true
+                        actor-select actor
+                        actor-set-var 1 0
+                        sleep 2
+                        run-script SetCurrentEmote [3]
+                        if (bottled_up_emotions > 15) {
+                            run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 1]
+                            bottled_up_emotions = 0
+                        }
+                    } else if (gBallIsFair == false) {
+                        if (call-script IsFoulTerritory [gWorld[fielder][X], gWorld[fielder][Z]]) {
+                            gBallIsFoul = true
+                        } else {
+                            gBallIsFair = true
+                        }
+                    }
+                    if (gWorld[fielder][TARGET] == BALL-SHADOW) {
+                        gWorld[fielder][TARGET] = NONE
+                    }
+                    run-script DoFielderHoldingBall [fielder, facing, actor, smth_diving]
+                    free-running-script 0
+                }
+            } else if (delay == 0 && gField != CEMENT-GARDENS) {
+                if (smth_diving == 0 && gWorld[fielder][TARGET] == BALL-SHADOW && rFieldingOrder[fielder - 37] != KENNY-KAWAGUCHI && rFieldingOrder[fielder - 37] != MR-CLANKY) {
+                    smth_diving = call-script CheckFielderDive [fielder, dist_ball_2d, smth_stat_27, speed]
+                    if (smth_diving) {
+                        speed = speed + 5
+                        angle = call-script maybe_smth_angle_2d_ahead_ball [fielder]
+                        actor-do-anim actor 13
+                        actor-select actor
+                        actor-set-var 2 1
+                        run-script EnqueueComment [DIALOGUE-FIELDER-DIVE, rFieldingOrder[fielder - 37]]
+                        run-script AddFatigue [rFieldingOrder[fielder - 37], 30]
+                    }
+                }
+            }
+        }
+        if (delay) {
+            if (gUserSelectedPlay != NONE) {
+                delay = 0
+            } else {
+                --delay
+            }
+            stop-script
+        } else if (ticks_until_catch) {
+            stop-script
+        }
+    } until (delay * g_maybe_smth_play_is_alive == 0 && ticks_until_catch == 0)
+    if (arg2) {
+        arg2 = 0
+    }
+    if (smth_diving || ticks_until_catch) {
+    } else {
+        if (!(smth_turns - r_maybe_smth_turn)) {
+            if (gWorld[fielder][TARGET] != NONE) {
+                if (gWorld[fielder][TARGET] == BALL-SHADOW) {
+                    if (gFielderWithBall || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-OUT-OF-PLAY])) {
+                        gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                        gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+                        gWorld[fielder][TARGET] = NONE
+                    } else if (rAutoFieldeingDelay < 1) {
+                        gWorld[fielder][TARGET-X] = gBallPosX
+                        gWorld[fielder][TARGET-Z] = gBallPosZ
+                        if (fielder == rBallFetcher) {
+                            rBallFetcher = 0
+                        }
+                    }
+                } else {
+                    if (fielder == FIELDER-PITCHER) {
+                        run-script-xc3 smth_to_do_with_fielding_sometimes_infield [fielder]
+                    } else if (gWorld[fielder][TARGET] != MOUND) {
+                        gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[gWorld[fielder][TARGET]]][X]
+                        gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[gWorld[fielder][TARGET]]][Z]
+                    }
+                    if (gWorld[fielder][X] == gWorld[fielder][TARGET-X] && gWorld[fielder][Z] == gWorld[fielder][TARGET-Z]) {
+                        rBaseClaims[gWorld[fielder][TARGET]] = fielder
+                    }
+                }
+            } else if (fielder > 39) {
+                run-script-xc3 smth_to_do_with_fielding_sometimes_infield [fielder]
+            } else {
+                run-script-xc3 smth_fielding_outfield [fielder]
+            }
+        }
+        if (gWorld[fielder][X] == gWorld[fielder][TARGET-X] && gWorld[fielder][Z] == gWorld[fielder][TARGET-Z]) {
+            if (actor-get-var actor 2) {
+                goto label0d51
+            }
+            actor-select actor
+            actor-set-var 1 0
+            if (bottled_up_emotions < 30) {
+                bottled_up_emotions = bottled_up_emotions + (random2 0 1)
+            } else {
+                if ((random 2) == 2) {
+                    run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37]]
+                }
+                bottled_up_emotions = 0
+            }
+            if (!(smth_turns - r_maybe_smth_turn)) {
+                if (gFielderWithBall) {
+                    angle = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[gFielderWithBall][X] gWorld[gFielderWithBall][Z]
+                    next_facing = call-script ConvertAngleToFacing [angle]
+                } else if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[BALL-SHADOW][X] gWorld[BALL-SHADOW][Z]) > 120) {
+                    angle = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[BALL-SHADOW][X] gWorld[BALL-SHADOW][Z]
+                    next_facing = call-script ConvertAngleToFacing [angle]
+                } else {
+                    next_facing = facing
+                }
+            }
+            if (gWorld[fielder][TARGET] != BALL-SHADOW) {
+                if (dist_ball_2d < 480) {
+                    boredom = 0
+                }
+                if ((random 100) > (call-script smth_about_kid_data_10_with_randomness [rFieldingOrder[fielder - 37]])) {
+                    ++boredom
+                }
+                if (boredom > 80 || gPlayEndedReason) {
+                    if (gPlayEndedReason) {
+                        sleep (random 8)
+                        if (random 1) {
+                            run-script-xc3 DoFielderIdle [fielder, facing, actor, 30]
+                        } else {
+                            run-script-xc3 DoFielderIdle [fielder, facing, actor, 32]
+                        }
+                    } else {
+                        run-script-xc3 DoFielderIdle [fielder, facing, actor, 33]
+                    }
+                    free-running-script 0
+                }
+            }
+            goto label130a
+        }
+        actor-select actor
+        actor-set-var 1 1
+        angle14 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gWorld[fielder][TARGET-X] gWorld[fielder][TARGET-Z]
+        if ((abs (angle14 - angle)) > 5) {
+            angle = angle14
+        }
+    }
+label0d51:
+    boredom = 0
+    if ((actor-get-var actor 2) && !smth_diving) {
+        angle = facing * 22 - 22
+        if ((actor-get-var actor 2) == 1) {
+            if (random 1) {
+                angle = angle - (random2 90 270)
+                speed = 10
+                actor-do-anim actor 11
+                actor-select actor
+                actor-set-var 0 0
+            } else {
+                angle = angle + (random2 -45 45)
+                speed = speed + 5
+                actor-do-anim actor 13
+                actor-select actor
+                actor-set-var 0 0
+            }
+            actor-select actor
+            actor-set-var 1 0
+        } else {
+            angle = angle - (random2 30 60)
+            actor-select actor
+            actor-set-var 1 1
+        }
+        if (angle < 0) {
+            angle = angle + 360
+        }
+    }
+    next_facing = call-script ConvertAngleToFacing [angle]
+    if (smth_diving) {
+        if (smth_diving >= smth_stat_3) {
+            actor-select actor
+            actor-set-var 0 1
+            temp = (actor-get-property actor 0 2) / 4
+            if (gFielderWithBall == 0 && g_maybe_last_fielder_to_touch_ball == 0) {
+                if (rBallWasHitHigh) {
+                    run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT-ERROR, rFieldingOrder[fielder - 37]]
+                } else {
+                    run-script EnqueueComment [DIALOGUE-CATCH-LOW-HIT-ERROR, rFieldingOrder[fielder - 37]]
+                }
+            }
+            sleep 2
+            while (!((actor-get-var actor 0) == 0)) {
+                stop-script
+            }
+            actor-do-anim actor 6
+            actor-select actor
+            actor-set-var 1 0
+            actor-select actor
+            actor-set-var 2 0
+            smth_diving = 0
+            speed = call-script GetKidRunningSpeed [rFieldingOrder[fielder - 37]]
+        } else {
+            ++smth_diving
+            add_x = (cos angle) * speed / 100000
+            add_y = (sin angle) * speed / 100000
+            he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+            if (he9_angle) {
+                ++local23
+                if ((call-script AngleDifference [he9_angle, angle]) > 120) {
+                    he9_angle = he9_angle + 180
+                }
+                add_x = (cos he9_angle) * speed / 100000
+                add_y = (sin he9_angle) * speed / 100000
+                he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                if (he9_angle) {
+                    if ((call-script AngleDifference [he9_angle, angle]) > 120) {
+                        he9_angle = he9_angle + 180
+                    }
+                    add_x = (cos he9_angle) * speed / 100000
+                    add_y = (sin he9_angle) * speed / 100000
+                    he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                    if (he9_angle) {
+                        add_x = 0
+                        add_y = 0
+                    }
+                }
+            } else {
+                local23 = 0
+            }
+            gWorld[fielder][X] = gWorld[fielder][X] + add_x
+            gWorld[fielder][Z] = gWorld[fielder][Z] + add_y
+            gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+            gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+        }
+        if (ticks_until_catch) {
+            ticks_until_catch = 0
+            actor-select actor
+            actor-x61 2
+        }
+    } else if (!ticks_until_catch) {
+        if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[fielder][TARGET-X] gWorld[fielder][TARGET-Z]) < speed + 1 && (actor-get-var actor 2) == 0) {
+            if (!(call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][TARGET-X], gWorld[fielder][TARGET-Z]])) {
+                gWorld[fielder][X] = gWorld[fielder][TARGET-X]
+                gWorld[fielder][Z] = gWorld[fielder][TARGET-Z]
+            } else {
+                gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+                gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+            }
+        } else {
+            if (!gBallHasBounced) {
+                if (gWorld[fielder][TARGET] == BALL-SHADOW) {
+                    if (!smth_diving) {
+                        if ((actor-get-var actor 2) == 0) {
+                            if ((actor-get-property actor 0 2) / 4 == 10) {
+                                if ((actor-get-property actor 0 2) / 4 != 26) {
+                                    if ((actor-get-var actor 1) == 1) {
+                                        actor-do-anim actor 26
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            add_x = (cos angle) * speed / 100000
+            add_y = (sin angle) * speed / 100000
+            he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+            if (he9_angle) {
+                ++local23
+                if ((call-script AngleDifference [he9_angle, angle]) > 120) {
+                    he9_angle = he9_angle + 180
+                }
+                add_x = (cos he9_angle) * speed / 100000
+                add_y = (sin he9_angle) * speed / 100000
+                he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                if (he9_angle) {
+                    if ((call-script AngleDifference [he9_angle, angle]) > 120) {
+                        he9_angle = he9_angle + 180
+                    }
+                    add_x = (cos he9_angle) * speed / 100000
+                    add_y = (sin he9_angle) * speed / 100000
+                    he9_angle = call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y]
+                    if (he9_angle) {
+                        add_x = 0
+                        add_y = 0
+                    }
+                }
+            } else {
+                local23 = 0
+            }
+            gWorld[fielder][X] = gWorld[fielder][X] + add_x
+            gWorld[fielder][Z] = gWorld[fielder][Z] + add_y
+        }
+    }
+    actor-select actor
+    actor-set-scale (call-script CalcActorScale [fielder])
+label130a:
+    next_facing = call-script TurnFacingStep [next_facing, facing]
+    run-script-xc3 SetActorFacing [actor, next_facing, facing]
+    facing = next_facing
+    if ((actor-get-var actor 2) && !smth_diving) {
+        if ((actor-get-var actor 2) == 1) {
+            run-script-xc3 ClearFielderTarget [fielder]
+            gWorld[fielder][TARGET] = NONE
+            if (ticks_until_catch) {
+                ticks_until_catch = 0
+                actor-select actor
+                actor-x61 2
+            }
+            delay = smth_stat_3 + (random2 5 20)
+            if (random 2) {
+                run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 7]
+            }
+            bottled_up_emotions = 0
+        } else {
+            delay = 5 + (random2 0 smth_stat_3)
+        }
+        do {
+            stop-script
+            local15 = 5000 - gWorld[fielder][Z]
+            actor-select actor
+            actor-x54 local15
+            put-actor actor gScreen[fielder][X] (local15 + gScreen[fielder][Y]) 3
+            --delay
+            if ((actor-get-var actor 2) == 2) {
+                if (speed > 5) {
+                    --speed
+                }
+            } else {
+                speed = speed * 9 / 10
+            }
+            add_x = (cos angle) * speed / 100000
+            add_y = (sin angle) * speed / 100000
+            if (!(call-script smth_angle_from_he9 [gWorld[fielder][X], gWorld[fielder][Z], gWorld[fielder][X] + add_x, gWorld[fielder][Z] + add_y])) {
+                gWorld[fielder][X] = gWorld[fielder][X] + add_x
+                gWorld[fielder][Z] = gWorld[fielder][Z] + add_y
+            }
+        } until (delay < 1 || !g_maybe_smth_play_is_alive)
+        if ((actor-get-var actor 2) == 1) {
+            gWorld[fielder][TARGET-X] = gWorld[fielder][X]
+            gWorld[fielder][TARGET-Z] = gWorld[fielder][Z]
+            actor-select actor
+            actor-set-var 0 1
+            sleep 2
+            while (!((actor-get-var actor 0) == 0)) {
+                stop-script
+            }
+            actor-do-anim actor 6
+            actor-select actor
+            actor-set-var 1 0
+        } else {
+            actor-select actor
+            actor-set-var 1 1
+        }
+        actor-select actor
+        actor-set-var 2 0
+        speed = call-script GetKidRunningSpeed [rFieldingOrder[fielder - 37]]
+        if (!rBallFetcher) {
+            run-script SimulateBallStopPosition [true]
+            run-script-xc3 SendClosestFielderToTarget [true]
+        }
+    }
+    stop-script
+}
+free-script

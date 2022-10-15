@@ -1,0 +1,466 @@
+; LSC2 3 2074 maybe_record_replay_then_wait_to_cast_end_of_play
+
+local variable ground_cap_width
+local variable ground_cap_height
+local variable cap_fallback_left
+local variable cap_width
+local variable cap_fallback_top
+local variable cap_height
+local variable cap_left
+local variable cap_right
+local variable cap_top
+local variable cap_bottom
+local variable focus_y_offset
+local variable focus_x
+local variable focus_y
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable focus_entity: Entity
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+local variable local22
+local variable local23
+
+if (gNetplayActive) {
+    free-running-script 0
+}
+pop-discard-2 0 "no trace"
+if (gEnableHumongousVision == 0 || !(gField in [PARKS-DEPARTMENT, BIG-CITY-STADIUM, SUPER-COLOSSAL-DOME])) {
+    local23 = 0
+    while (!(!g_maybe_smth_play_is_alive || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-INFIELD-FLY, PE-OUT-OF-PLAY]))) {
+        stop-script
+    }
+    goto label03d0
+} else {
+    local23 = 1
+}
+cap_fallback_left = 1
+ground_cap_width = 50
+cap_fallback_top = 1
+ground_cap_height = 33
+case gField {
+    of PARKS-DEPARTMENT {
+        local13 = 264
+        local14 = 0
+        local15 = 377
+        local16 = 66
+        local22 = 454
+    }
+    of BIG-CITY-STADIUM {
+        local13 = 273
+        local14 = 0
+        local15 = 358
+        local16 = 53
+        local22 = 454 + 1
+    }
+    else {
+        local13 = 270
+        local14 = 0
+        local15 = 368
+        local16 = 54
+        local22 = 454 + 2
+    }
+}
+local18 = 1
+if (!g_smth_play_may_continue) {
+    for local21 = 0 to 3 ++ {
+        if (gRunners[local21][R-DEST-BASE] == FIRST) {
+            focus_entity = gRunners[local21][R-ENTITY]
+        }
+    }
+    focus_y_offset = 5 - ground_cap_height
+}
+if (gEnableReplays) {
+    dim array local19 i16[0...24][0...1] swap=2
+    xe2 local19
+    array-fill-values local19 0 24 0 0 457 481
+    put-class 73 [32]
+} else {
+    put-class 73 [160]
+}
+polygon-quadrilateral local18 local13 local14 local15 local14 local15 local16 local13 local16
+stop-script
+do {
+    if (gFielderWithBall) {
+        focus_entity = gFielderWithBall
+        focus_y_offset = 5 - ground_cap_height
+    } else if (g_smth_play_may_continue) {
+        focus_entity = BALL
+        focus_y_offset = -5
+    }
+    focus_x = gScreen[focus_entity][X]
+    focus_y = gScreen[focus_entity][Y] + focus_y_offset
+    if (gWorld[focus_entity][Y] > 120) {
+        cap_width = ground_cap_width + (gWorld[focus_entity][Y] - 120) / 12
+        cap_height = ground_cap_height + (gWorld[focus_entity][Y] - 120) / 18
+        if (cap_width > 180) {
+            cap_width = 180
+        }
+        if (cap_height > 120) {
+            cap_height = 120
+        }
+    } else {
+        cap_width = ground_cap_width
+        cap_height = ground_cap_height
+    }
+    if (focus_x < 0) {
+        cap_left = cap_fallback_left
+        cap_right = cap_width
+    } else if (focus_x > 637 - cap_width / 2) {
+        cap_left = 638 - cap_width
+        cap_right = 638
+    } else {
+        cap_left = focus_x - cap_width / 2
+        cap_right = focus_x + cap_width - cap_width / 2
+    }
+    if (focus_y < 0) {
+        cap_top = cap_fallback_top
+        cap_bottom = cap_height
+    } else if (focus_y > 479 - cap_height / 2) {
+        cap_top = 478 - cap_height
+        cap_bottom = 478
+    } else {
+        cap_top = focus_y - cap_height / 2
+        cap_bottom = focus_y + cap_height - cap_height / 2
+    }
+    stop-script
+    lock-image 453
+    image-select 453
+    image-x33 0 cap_left cap_top cap_right cap_bottom
+    image-xff
+    stop-script
+    image-select 453
+    image-xf6 local18
+    image-x30
+    image-xff
+    image-select local22
+    image-x30
+    image-pos local13 local14
+    image-xff
+    unlock-image 453
+    if (gBallIsFoul) {
+        if (gEnableReplays) {
+            for local20 = 0 to 24 ++ {
+                unlock-image local19[local20][0]
+            }
+        }
+        while (!!(is-script-running WatchForFoulBall)) {
+            stop-script
+        }
+        free-running-script 0
+    }
+    if (gEnableReplays) {
+        if (local21) {
+            if (rCurrentPlay != FIELDER-PITCHER && rCurrentPlay != MOUND) {
+                lock-image local19[local20][0]
+                image-select local19[local20][0]
+                image-x33 0 local13 local14 local15 local16
+                image-xff
+                local19[local20][1] = 1
+                ++local20
+                if (local20 > 24) {
+                    local20 = 0
+                }
+                local21 = 0
+            }
+        } else {
+            local21 = 1
+        }
+    }
+} until (!g_maybe_smth_play_is_alive || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-INFIELD-FLY, PE-OUT-OF-PLAY]))
+label03d0:
+if (gNumOuts > room13 + 1) {
+    rDefenseSentiment = 2
+} else if (rDefenseSentiment == -1) {
+    run-script EnqueueComment [DIALOGUE-BAD-PLAY, 0]
+} else if (rDefenseSentiment == 1) {
+    run-script EnqueueComment [DIALOGUE-GOOD-PLAY, 0]
+}
+if (gNumOuts > 2) {
+    if (rDefenseSentiment != 2) {
+        rDefenseSentiment = 1
+    }
+    if (gCurrentHalfInning == gGameLength - 1) {
+        if (gTeamInfo[gHomeInfoIndex][TI-RUNS] > gTeamInfo[gVisitorInfoIndex][TI-RUNS]) {
+        } else {
+            run-script EnqueueComment [DIALOGUE-THIRD-OUT, 0]
+        }
+    } else if (gCurrentHalfInning < gGameLength - 1) {
+        run-script EnqueueComment [DIALOGUE-THIRD-OUT, 0]
+    }
+}
+if (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, PE-OUT-OF-PLAY]) {
+    rDefenseSentiment = -1
+}
+if (gPlayEndedReason == PE-INFIELD-FLY) {
+    rDefenseSentiment = 1
+}
+cutscene-start 115 1147
+if (local23 == 0 || !(gField in [PARKS-DEPARTMENT, BIG-CITY-STADIUM, SUPER-COLOSSAL-DOME])) {
+    if (gPlayEndedReason == PE-INFIELD-FLY) {
+        run-script-xc3 PlaySound [2010, 1]
+        while (!!(is-sound-playing 2010)) {
+            stop-script
+        }
+        while (!gBallHasBounced) {
+            stop-script
+        }
+    }
+    sleep 20
+    while (!!(is-script-running smth_wait_for_play_ended)) {
+        stop-script
+    }
+    while (!!(is-script-running HomeRunStuff)) {
+        stop-script
+    }
+    cutscene-end
+    free-running-script 0
+}
+if (rDefenseSentiment && gEnableReplays) {
+    if (gUserOnOffense && rDefenseSentiment == -1 || !gUserOnOffense && rDefenseSentiment > 0) {
+        if (!(gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE])) {
+            run-script EnqueueComment [DIALOGUE-INSTANT-REPLAY]
+        }
+    }
+    do {
+        if (gPlayEndedReason == PE-HOME-RUN) {
+            for local21 = 1 to 4 ++ {
+                if (room21) {
+                    image-select local22
+                    image-x30
+                    image-pos local13 local14
+                    image-x34 15
+                    image-xff
+                } else {
+                    image-select local22
+                    image-x30
+                    image-pos local13 local14
+                    image-x34 13
+                    image-xff
+                }
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                if (room21) {
+                    image-select local22
+                    image-x30
+                    image-pos local13 local14
+                    image-x34 16
+                    image-xff
+                } else {
+                    image-select local22
+                    image-x30
+                    image-pos local13 local14
+                    image-x34 14
+                    image-xff
+                }
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        } else if (gPlayEndedReason == PE-GROUND-RULE-DOUBLE) {
+            for local21 = 1 to 4 ++ {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 9
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 10
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        } else if (gPlayEndedReason == PE-OUT-OF-PLAY) {
+            for local21 = 1 to 4 ++ {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 1
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 2
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        } else if (gPlayEndedReason == PE-INFIELD-FLY) {
+            run-script-xc3 PlaySound [2010, 1]
+            do {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 3
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 4
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 4
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 4
+            } until (!(is-sound-playing 2010))
+            sleep 20
+        } else if (rDefenseSentiment == 2) {
+            for local21 = 1 to 3 ++ {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 11
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 12
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        } else if (gPlayEndedReason == PE-BASE-ON-BALLS) {
+            for local21 = 1 to 3 ++ {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 7
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 8
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        } else {
+            for local21 = 1 to 3 ++ {
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 17
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-x34 18
+                image-xff
+                image-select local22
+                image-x30
+                image-pos local13 local14
+                image-xff
+                sleep 5
+            }
+        }
+        if (gPlayEndedReason != PE-INFIELD-FLY) {
+            local21 = 0
+            do {
+                if (local19[local20][1]) {
+                    sleep 4
+                    image-select local19[local20][0]
+                    image-x30
+                    image-pos local13 local14
+                    image-xff
+                } else {
+                    stop-script
+                }
+                ++local20
+                if (local20 > 24) {
+                    local20 = 0
+                }
+                ++local21
+                if (local21 == 25) {
+                    sleep 10
+                }
+                if (local21 == 49) {
+                    sleep 10
+                }
+                if (local21 == 73) {
+                    sleep 10
+                }
+            } until (local21 > 48 && gCurrentSpeechScript == 0)
+        }
+        stop-script
+    } until (g_maybe_play_is_ready_to_end || !gNumRunners)
+} else {
+    sleep-seconds 2
+}
+if (g_maybe_skipped_cutscene) {
+    stop-sound 2010
+    free-running-script smth_wait_for_play_ended
+    sprite-set-range 1 1
+    sprite-clear
+    sprite-set-image 0
+    stop-sound 10000
+} else {
+    cutscene-end
+    while (!!(is-script-running smth_wait_for_play_ended)) {
+        stop-script
+    }
+    while (!!(is-script-running HomeRunStuff)) {
+        stop-script
+    }
+}
+if (local23 == 0 || gEnableReplays == 0) {
+    free-running-script 0
+}
+for local20 = 0 to 24 ++ {
+    unlock-image local19[local20][0]
+}
+pop-discard-2 0 "trace on"
+free-script

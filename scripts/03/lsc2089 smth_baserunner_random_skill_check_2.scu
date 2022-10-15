@@ -1,0 +1,41 @@
+; LSC2 3 2089 smth_baserunner_random_skill_check_2
+
+parameter runneridx
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local1 = 1
+if (gRunners[runneridx][17] == 0) {
+    local3 = 100 - (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])
+    local3 = local3 * 50
+    local4 = random 10000
+} else if (gRunners[runneridx][17] == 2) {
+    local4 = 0
+    local3 = 1
+} else {
+    local4 = 1
+    local3 = 0
+}
+if (local4 >= local3) {
+    if (gRunners[runneridx][17] == 0) {
+        gRunners[runneridx][17] = 1
+    }
+    for local2 = 0 to 3 ++ {
+        if (local2 != runneridx) {
+            if (gRunners[local2][R-CUR-BASE] == gRunners[runneridx][R-CUR-BASE] + 1) {
+                if (!(gRunners[local2][R-DIRECTION] == FORWARD)) {
+                    if (!(gRunners[local2][R-CUR-BASE] == R-HOME)) {
+                        local1 = 0
+                    }
+                }
+            }
+        }
+    }
+} else if (gRunners[runneridx][17] == 0) {
+    gRunners[runneridx][17] = 2
+}
+return local1
+free-script

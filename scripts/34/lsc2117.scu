@@ -1,0 +1,16 @@
+; LSC2 34 2117
+
+room13 = 0
+gMouseHookScript = 2107
+run-script 2115 []
+while (!!(is-script-running 2115)) {
+    stop-script
+}
+sprite-set-range room9 room9
+sprite-set-image 0
+run-script 2123 []
+sprite-set-range room8 room8
+sprite-set-hotspot 320 240
+sprite-set-range room10 room10
+sprite-set-hotspot -500 -500
+free-script

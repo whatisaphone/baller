@@ -1,0 +1,145 @@
+; LSC2 4 2218 BetweenPitches
+
+local variable local0
+
+g_smth_net_pause_flag = 0
+if (gGivePowerup == -1) {
+    if (gOffenseControlledBy == CB-USER) {
+        run-script smth_ensure_valid_current_swing []
+    }
+    gGivePowerup = 0
+}
+if (gNumStrikes > 2) {
+    if (!g_maybe_disable_powerups) {
+        run-script FillPitcherPitches [1]
+        run-script PlaySound [2098, 0, 1]
+        if (gDefenseControlledBy == CB-USER) {
+            run-script RefreshPitchButtons []
+        }
+    }
+    run-script PlayCrowdSound [3]
+    global477 = 1
+    if (gTeeBall) {
+        actor-select 4
+        actor-set-var 3 1
+    }
+    ++gNumOuts
+    gNumStrikes = 0
+    gNumBalls = 0
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [gBatterKid, STAT-STRUCK-OUT, 1]
+            run-script AddStat [gBatterKid, STAT-STRUCK-OUT, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [gBatterKid, STAT-STRUCK-OUT, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [rPitcherKid, STAT-STRIKE-OUTS-PITCHED, 1]
+            run-script AddStat [rPitcherKid, STAT-STRIKE-OUTS-PITCHED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [rPitcherKid, STAT-STRIKE-OUTS-PITCHED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [gBatterKid, STAT-AT-BATS, 1]
+            run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [gBatterKid, STAT-AT-BATS, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+            run-script AddStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+    }
+}
+if (gNumBalls > 3) {
+    gNumStrikes = 0
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [gBatterKid, STAT-WALKED, 1]
+            run-script AddStat [gBatterKid, STAT-WALKED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [gBatterKid, STAT-WALKED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [rPitcherKid, STAT-WALKS-ALLOWED, 1]
+            run-script AddStat [rPitcherKid, STAT-WALKS-ALLOWED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [rPitcherKid, STAT-WALKS-ALLOWED, 1]
+    }
+    if (gNetplayActive) {
+        if (g_net_smth_master == g_net_smth_me) {
+            run-script AddNetStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+            run-script AddStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+        }
+    } else if (MODE-BATTING-PRACTICE != gGameMode) {
+        run-script AddStat [rPitcherKid, STAT-BATTERS-FACED, 1]
+    }
+    run-script PlayCrowdSound [4]
+    while (!!rCommentaryActive) {
+        stop-script
+    }
+    gStealing = 0
+    array-set gStealArray [0, 0, 0] 0
+    become-script TransitionToOverheadView 1 [1]
+}
+if (gNumOuts > 2) {
+    sprite-set-range 13 13
+    sprite-set-hotspot -100 -100
+    run-script smth_maybe_third_strike []
+    while (!!(is-script-running smth_maybe_third_strike)) {
+        stop-script
+    }
+    gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION] = rBattingOrderPosition
+    exec-script AdvanceHalfInning []
+}
+if (gNumOuts != gNumOutsBeforePitch) {
+    gNumOutsBeforePitch = gNumOuts
+    if (gStealing && !global477) {
+        free-running-script 0
+    }
+    run-script InitBatter []
+    run-script smth_reduce_fatigue [gBattingTeamInfoIndex, 10]
+}
+if (gNumStrikes == 2) {
+    queue-costume g_maybe_batter_strikeout_costume
+}
+draw-object-x3f 92 (gNumBalls + 1)
+draw-object-x3f 93 (gNumStrikes + 1)
+draw-object-x3f 94 (gNumOuts + 1)
+if (gStealing) {
+    free-running-script 0
+}
+while (!!(is-script-running InitBatter)) {
+    stop-script
+}
+if (gNetplayActive) {
+    if (!local0) {
+        sleep 5
+        global248 = 0
+        if (gNetplayActive) {
+            global248 = 7
+            run-script-xc3 maybe_net_send_message [30, 1, NET-WAITFLAG, global510, global248]
+            do {
+                stop-script
+            } until (gNetWaitFlag)
+            --gNetWaitFlag
+        }
+    }
+    run-script FlushNetStats []
+    if (is-script-running NetPause) {
+        free-running-script 0
+    }
+}
+run-script RunPitch []
+free-script

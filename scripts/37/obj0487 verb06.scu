@@ -1,0 +1,6 @@
+; VERB 37 487
+
+run-script 2087 [487]
+room23 = 1
+run-script 2080 []
+finish-script

@@ -1,0 +1,112 @@
+; SCRP 255 maybe_kid_get_costume_pitching
+
+parameter arg0
+
+local variable local1
+
+case arg0 {
+    of 1 {
+        local1 = 33
+    }
+    of 2 {
+        local1 = 37
+    }
+    of 3 {
+        local1 = 41
+    }
+    of 4 {
+        local1 = 45
+    }
+    of 5 {
+        local1 = 49
+    }
+    of 6 {
+        local1 = 53
+    }
+    of 7 {
+        local1 = 57
+    }
+    of 8 {
+        local1 = 61
+    }
+    of 9 {
+        local1 = 61
+    }
+    of 14 {
+        local1 = 81
+    }
+    of 12 {
+        local1 = 73
+    }
+    of 13 {
+        local1 = 77
+    }
+    of 11 {
+        local1 = 69
+    }
+    of 10 {
+        local1 = 65
+    }
+    of 15 {
+        local1 = 85
+    }
+    of 16 {
+        local1 = 89
+    }
+    of 17 {
+        local1 = 93
+    }
+    of 18 {
+        local1 = 97
+    }
+    of 19 {
+        local1 = 101
+    }
+    of 20 {
+        local1 = 105
+    }
+    of 22 {
+        local1 = 113
+    }
+    of 23 {
+        local1 = 117
+    }
+    of 24 {
+        local1 = 121
+    }
+    of 25 {
+        local1 = 125
+    }
+    of 21 {
+        local1 = 109
+    }
+    of 26 {
+        local1 = 129
+    }
+    of 28 {
+        local1 = 137
+    }
+    of 29 {
+        local1 = 141
+    }
+    of 27 {
+        local1 = 133
+    }
+    of 30 {
+        local1 = 145
+    }
+    of 263 {
+        local1 = 197
+    }
+    else {
+        if (arg0 >= 31 && arg0 <= 61) {
+            local1 = (arg0 - 31) * 4 + 436
+        } else if (gKidData[arg0][11] >= 7) {
+            local1 = 173 + 4 * (gKidData[arg0][11] - 7)
+        } else {
+            local1 = 149 + 4 * (gKidData[arg0][11] - 1)
+        }
+    }
+}
+return local1
+free-script

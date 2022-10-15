@@ -1,0 +1,25 @@
+; SCRP 389
+
+local variable local0
+local variable local1
+local variable local2
+
+if (!local0) {
+    local0 = 940
+}
+if (!local1) {
+    local1 = 40
+}
+if (!local2) {
+    local2 = 48
+}
+image-select local0
+image-op-create
+image-x20 local1
+image-x21 local2
+image-xff
+image-select local0
+image-x85 0 0 local1 local2 5
+image-xff
+return 1
+free-script

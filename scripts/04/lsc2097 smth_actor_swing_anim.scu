@@ -1,0 +1,49 @@
+; LSC2 4 2097 smth_actor_swing_anim
+
+actor-select 2
+actor-x61 1
+if (gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT]) {
+    case gBatterStance {
+        of OPEN {
+            actor-do-anim 2 11
+        }
+        of SQUARE {
+            actor-do-anim 2 12
+        }
+        of CLOSED {
+            actor-do-anim 2 13
+        }
+    }
+} else {
+    actor-select 2
+    actor-set-var 1 1
+}
+actor-select 2
+actor-set-var 0 0
+actor-select 2
+actor-set-var 2 0
+actor-select 2
+actor-set-var 3 0
+if (rPitchZone > 35 || rPitchZone == -3) {
+    actor-select 2
+    actor-set-conditons [129]
+    actor-select 2
+    actor-set-conditons [2]
+    actor-select 2
+    actor-set-conditons [3]
+} else if (rPitchZone < 15) {
+    actor-select 2
+    actor-set-conditons [1]
+    actor-select 2
+    actor-set-conditons [2]
+    actor-select 2
+    actor-set-conditons [131]
+} else {
+    actor-select 2
+    actor-set-conditons [1]
+    actor-select 2
+    actor-set-conditons [130]
+    actor-select 2
+    actor-set-conditons [3]
+}
+free-script

@@ -1,0 +1,17 @@
+; SCRP 253 GetPlayerSound
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+case arg1 {
+    of 1 {
+        return (call-script GetPlayerChatterSound [arg0, arg2])
+    }
+    else {
+        xb6-xfe
+        xb6-x4b "Not a defined sound type!"
+        return 0
+    }
+}
+free-script

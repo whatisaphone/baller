@@ -1,0 +1,131 @@
+; LSC2 8 2067 CastPlayoffLoss
+
+run-script CastLoss [1]
+while (!!(is-script-running CastLoss)) {
+    stop-script
+}
+room1 = 1
+gCurrentMatchupCastScript = CastPlayoffLoss
+if (room2 != 1) {
+    image-select 286
+    image-pos 0 0
+    image-x30
+    image-x36 1
+    image-xff
+    run-script 273 []
+    room2 = 1
+    run-script FreeNavButtons []
+    if (gGameEnded) {
+        image-select 287
+        image-x34 2
+        image-pos 280 400
+        image-x30
+        image-xff
+    } else {
+        image-select 287
+        image-x34 0
+        image-pos 280 400
+        image-x30
+        image-xff
+    }
+    actor-select 1
+    actor-xd9
+    actor-set-costume 430
+    actor-x50 0 0
+    put-actor 1 320 240 gCurrentRoom
+    actor-select 2
+    actor-xd9
+    actor-set-costume 431
+    actor-x50 0 0
+    put-actor 2 320 240 gCurrentRoom
+    run-script smth_team_color_palette [0, 2]
+}
+case random 4 {
+    of 0 {
+        xba "\x7fT109812291,60888\x7f      Oh, the agony of defeat seems so much worse when we were so close to total victory" 1
+    }
+    of 1 {
+        xba "\x7fT109873179,51765\x7f      So close, but yet so far.  This is a heart-wrenching defeat. " 1
+    }
+    of 2 {
+        xba "\x7fT109924944,43992\x7f      Well, that's the end of the line.  It's been a great ride, though." 1
+    }
+    of 3 {
+        xba "\x7fT109968936,67604\x7f      Well, that's the end of an incredible season!  These kids have finally been defeated." 1
+    }
+    of 4 {
+        xba "\x7fT110036540,60024\x7f      All good things must come to an end and that is true for this season, as well.  <sniff.>" 1
+    }
+}
+xa9-xa9
+case random 4 {
+    of 0 {
+        xba "\x7fT110096564,39244\x7f     Tough break for these kids, they really played their hearts out.  " 2
+        xa9-xa9
+        xba "\x7fT110135808,48359\x7f     It was a close one, and they should be proud they made it as far as they did!   " 2
+        xa9-xa9
+        xba "\x7fT110184167,42763\x7f     Well, thanks for coming out, and we'll see you all next season!   " 2
+        xa9-xa9
+        xba "\x7fT110226930,29350\x7f       This is Sunny Day, saying 'toodles'" 1
+        xa9-xa9
+        xba "\x7fT110256280,47937\x7f     Toodles?  Sunny, we gotta have a talk about this 'toodles' thing.  " 2
+        xa9-xa9
+        xba "\x7fT110304217,28411\x7f     This is the Gooch sayin' catch ya later. " 2
+    }
+    of 1 {
+        xba "\x7fT110332628,62817\x7f     Every one of these players should hold their heads up high, and be proud of the way they've played this season.  " 2
+        xa9-xa9
+        xba "\x7fT110395445,19948\x7f     Thanks for the memories, kids.  " 2
+        xa9-xa9
+        xba "\x7fT110415393,57209\x7f     This is Vinnie the Gooch and Sunny Day sayin' see ya on the flip side. " 2
+        xa9-xa9
+        xba "\x7fT110472602,11818\x7f       See ya next season! " 1
+    }
+    of 2 {
+        xba "\x7fT110484420,78384\x7f     Well, there's nothing tougher than having the prize almost in your hands, only to be yanked away at the last minute.  " 2
+        xa9-xa9
+        xba "\x7fT110562804,40011\x7f     But you know, a true ball player doesn't play for the trophy.  " 2
+        xa9-xa9
+        xba "\x7fT110602815,28527\x7f     It's the game that counts, not the outcome.  " 2
+        xa9-xa9
+        xba "\x7fT110631342,31012\x7f     And every one of these kids played like a champ.  " 2
+        xa9-xa9
+        xba "\x7fT110662354,59054\x7f     This is Vinnie the Gooch and Sunny Day signing off until next season.   " 2
+        xa9-xa9
+        xba "\x7fT110721408,36073\x7f       Bye, everybody! (fading) Aw, Vinnie, that was sweet. " 1
+    }
+    of 3 {
+        xba "\x7fT110757481,74218\x7f     You know, these kids played the best ball they know how, and just makin' it to the championships is something to be proud of.   " 2
+        xa9-xa9
+        xba "\x7fT110831699,32274\x7f     Thanks for joining us in this unforgettable season.  " 2
+        xa9-xa9
+        xba "\x7fT110863973,16490\x7f     We'll see ya next time.    " 2
+        xa9-xa9
+        xba "\x7fT110880463,34008\x7f       This is Sunny Day and Vinnie the Gooch signing off. " 1
+    }
+    of 4 {
+        xba "\x7fT110914471,41510\x7f     Well, folks, this has been an exciting season of ups and downs.  " 2
+        xa9-xa9
+        xba "\x7fT110955981,48454\x7f     True, this is a sad ending but the season as a whole has been a success.  " 2
+        xa9-xa9
+        xba "\x7fT111004435,36491\x7f     The kids played hard... and we thank them for the memories. " 2
+        xa9-xa9
+        xba "\x7fT111040926,45063\x7f     This is Sunny Day and Vinnie the Gooch sayin' Buh-Bye, now.   " 2
+        xa9-xa9
+        xba "\x7fT111085989,13747\x7f       See ya next time around!" 1
+    }
+}
+xa9-xa9
+if (room2 != 2) {
+    actor-select 1
+    actor-set-costume 0
+    actor-select 2
+    actor-set-costume 0
+    run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+    x9c-xd5 0
+    kludge [23]
+    run-script 2087 []
+    room2 = 2
+}
+gCurrentMatchupCastScript = 0
+free-script

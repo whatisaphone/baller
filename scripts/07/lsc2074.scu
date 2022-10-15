@@ -1,0 +1,83 @@
+; LSC2 7 2074
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+room31 = 1
+run-script PlaySound [1706]
+local0 = local0 - 20
+local7 = local0 + 6
+local10 = local0 + 32
+sprite-set-range room6[local7] room6[local7]
+sprite-x2b 1001
+sprite-set-range room6[local10] room6[local10]
+sprite-clear
+sprite-x2a 0 2
+sleep 3
+room5 = gUIInputDevice
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    do {
+        sprite-set-range room6[local7] room6[local7]
+        sprite-set-hotspot (gGamePadX - 8) (gGamePadY - 8)
+        stop-script
+    } until (global123 != 0 || (is-script-running 2073) || room5 != gUIInputDevice)
+} else {
+    do {
+        sprite-set-range room6[local7] room6[local7]
+        sprite-set-hotspot (gMouseX - 8) (gMouseY - 8)
+        stop-script
+    } until (global17 != 0 || global18 != 0 || (is-script-running 2073) || room5 != gUIInputDevice)
+}
+sprite-set-range room6[local7] room6[local7]
+sprite-x2b 0
+run-script PlaySound [1706]
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    local1 = xfc gGamePadX gGamePadY
+} else {
+    local1 = xfc gMouseX gMouseY
+}
+local11 = local1
+local1 = local1 - 10020
+local2 = local1 + 6
+if (local1 >= 0) {
+    local3 = sprite-get-image room6[local2]
+    local9 = sprite-get-wiz room6[local2]
+    if (1 - gBattingTeamInfoIndex) {
+        local12 = room27
+    } else {
+        local12 = room22
+    }
+    sprite-set-range room6[local2] room6[local2]
+    sprite-set-image (sprite-get-image room6[local7])
+    sprite-x34 (sprite-get-wiz room6[local7])
+    sprite-palette local12
+    sprite-x52 0
+    sprite-set-range room6[local7] room6[local7]
+    sprite-set-image local3
+    sprite-x34 local9
+    sprite-palette local12
+    sprite-x52 0
+    local4 = room3[local0]
+    room3[local0] = room3[local1]
+    room3[local1] = local4
+    run-script 2087 []
+    run-script 2086 []
+    run-script 2088 [local11]
+}
+run-script 2072 []
+local5 = room2[local0][0]
+local6 = room2[local0][1]
+sprite-set-range room6[local7] room6[local7]
+sprite-set-hotspot local5 local6
+stop-script
+free-script

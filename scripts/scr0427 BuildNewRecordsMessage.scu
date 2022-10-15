@@ -1,0 +1,33 @@
+; SCRP 427 BuildNewRecordsMessage
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local3 = ""
+for local4 = 0 to 11 ++ {
+    if (local0 & 1 && 72 - (strlen local3) >= 21) {
+        local1 = call-script GetRecordName [local4]
+        sprintf local2 "%s" [local3]
+        free-array local3
+        sprintf local3 "%s, %s" [local2, local1]
+        free-array local2
+        free-array local1
+        ++local5
+    }
+    local0 = shr local0 1
+}
+local3[0] = 58
+if (local5 > 1) {
+    local2 = "s"
+} else {
+    local2 = ""
+}
+sprintf local1 "Congratulations!  You broke the following record%s this season%s" [local2, local3]
+free-array local2
+free-array local3
+return local1
+free-script

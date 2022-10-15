@@ -1,0 +1,58 @@
+; LSC2 27 2250
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script PlayClickySound []
+sprite-set-range room99 room99
+sprite-x34 3
+sleep 2
+sprite-set-range room99 room99
+sprite-x34 2
+case room101 {
+    of 0 {
+        run-script DrawTrophy [1]
+        run-script 2249 []
+        if (gSeasonGameNumber <= 19) {
+            sprite-set-range room99 room99
+            sprite-clear
+        }
+    }
+    of 1 {
+        run-script DrawTrophy [2]
+        if (0 == room102) {
+            sprite-set-range room99 room99
+            sprite-clear
+        }
+        run-script 2249 []
+    }
+    of 2 {
+        run-script DrawTrophy [3]
+        sprite-set-range room99 room99
+        sprite-clear
+        run-script 2249 []
+    }
+    of 3 {
+        xb6-xfe
+        xb6-x4b "Error: You should not have been able to press the right button after series 3."
+        pop-discard 0
+    }
+}
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

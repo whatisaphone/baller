@@ -1,0 +1,57 @@
+; LSC2 27 2208
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+if (local0 in [23, 24]) {
+    local4 = 1
+    ++local2
+    local5 = local1 / 1000
+    local1 = mod local1 1000
+    case 1 {
+        of local1 < 10 {
+            sprintf local3 ".00%d" [local1]
+        }
+        of local1 < 100 {
+            sprintf local3 ".0%d" [local1]
+        }
+        of local1 < 1000 {
+            sprintf local3 ".%d" [local1]
+        }
+    }
+} else if (local0 == 26) {
+    if (local1 == 9999) {
+        local3 = "N/A"
+    } else {
+        ++local2
+        local4 = 1
+        local5 = local1 / 100
+        local1 = mod local1 100
+        case 1 {
+            of local1 < 10 {
+                sprintf local3 ".0%d" [local1]
+            }
+            of local1 < 100 {
+                sprintf local3 ".%d" [local1]
+            }
+        }
+    }
+} else {
+    sprintf local3 "%d" [local1]
+}
+if (local5) {
+    sprintf local6 "%d%s" [local5, local3]
+} else {
+    sprintf local6 "%s" [local3]
+}
+free-array local3
+while ((strlen local6) > local2) {
+    local6[(strlen local6) - 1] = 0
+}
+return local6
+free-script

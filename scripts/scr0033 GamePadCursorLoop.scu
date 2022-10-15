@@ -1,0 +1,13 @@
+; SCRP 33 GamePadCursorLoop
+
+do {
+    gGamePadX = min (max gGamePadX 0) 632
+    gGamePadY = min (max gGamePadY 0) 472
+    sprite-set-range gGamePadCursorSprite gGamePadCursorSprite
+    sprite-set-image gCursorImage
+    sprite-set-hotspot gGamePadX gGamePadY
+    sprite-x52 0
+    sprite-x2b 21000
+    stop-script
+}
+free-script

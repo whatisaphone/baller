@@ -1,0 +1,12 @@
+; LSC2 34 2118
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = call-script AllocScratchImage []
+sprintf local1 "%d" [local0]
+temp = call-script smth_draw_text_image [local1, 1029, local2, 45, 32, 0, 0, room3]
+free-array local1
+return local2
+free-script

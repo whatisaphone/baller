@@ -1,0 +1,23 @@
+; LSC2 27 2146
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+dim array local3 byte[0...23][0...2] swap=2
+for local0 = 0 to 23 ++ {
+    for local2 = 0 to 2 ++ {
+        if (!local3[local0][local2]) {
+            local1 = call-script smth_find_season_team [call-script ReadSeasonSchedule [local0, local2, 0]]
+            run-script WriteSeasonSchedule [local0, local2, SS-HOME-OR-AWAY, 0]
+            run-script WriteSeasonSchedule [local1, local2, SS-HOME-OR-AWAY, 1]
+            run-script WriteSeasonSchedule [local0, local2 + 3, SS-HOME-OR-AWAY, 1]
+            run-script WriteSeasonSchedule [local1, local2 + 3, SS-HOME-OR-AWAY, 0]
+            local3[local0][local2] = 1
+            local3[local1][local2] = 1
+        }
+    }
+}
+free-array local3
+free-script

@@ -1,0 +1,17 @@
+; LSC2 27 2104
+
+local variable local0
+local variable local1
+local variable local2
+
+if (14 == gCurrentRoom) {
+    local1 = 240
+    local2 = 148
+} else {
+    local1 = 228
+    local2 = 132
+}
+sprite-group-select 16
+sprite-group-clear
+sprite-group-x43 (16 + local1) (11 + local2) (15 + local1 + (image-get-width local0 0)) (10 + local2 + (image-get-height local0 0))
+free-script

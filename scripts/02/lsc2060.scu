@@ -1,0 +1,66 @@
+; LSC2 2 2060
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+case local1 {
+    of 2 {
+        case local0 {
+            of gNavButtons[1][0] {
+                local2 = "Quit"
+                local3 = "click here to quit BACKYARD BASEBALL."
+            }
+            of gNavButtons[3][0] {
+                local2 = "Quick Pickup game"
+                local3 = "click here to quick start a random SINGLE GAME."
+            }
+        }
+    }
+    of 3 {
+        case local0 {
+            of 67 {
+                local2 = "Season games"
+                local3 = "click here to start or continue a SEASON GAME."
+            }
+            of 68 {
+                local2 = "Single games"
+                local3 = "click here to start a SINGLE GAME."
+            }
+            of 72 {
+                local2 = "Hall of fame"
+                local3 = "click here to view the BBL TROPHY CASE."
+            }
+            of 391 {
+                local2 = "Online games"
+                local3 = "click here for safe, secure online play."
+            }
+            of 70 {
+                local2 = "Meet the players"
+                local3 = "click here to meet all the kids."
+            }
+        }
+    }
+    of 6 {
+        if (local0 == room3) {
+            if (is-script-running 2049) {
+                local2 = "Mr. Clanky"
+                local3 = "Mr. Clanky wants to play on your team.  Look for him on the bench."
+            } else {
+                local2 = "Hall of fame"
+                local3 = "click here to view the BBL TROPHY CASE."
+            }
+        }
+    }
+}
+if (local2 || local3) {
+    run-script UpdateNavText [local2, local3]
+    if (local2) {
+        free-array local2
+    }
+    if (local3) {
+        free-array local3
+    }
+}
+free-script

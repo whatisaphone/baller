@@ -1,0 +1,49 @@
+; LSC2 39 2180
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+temp = 0
+temp = "baseball2001"
+sprintf local4 "%s%s.net" [gSaveGamePath, temp]
+free-array temp
+local5 = read-ini-string local4 gNetUsername "_Friends"
+free-array local4
+for local1 = 0 to (strlen local5) ++ {
+    if (local5[local1] == 59) {
+        ++local6
+    }
+}
+sprintf local7 "%s" [local0]
+if (local6 > 0) {
+    for local1 = 1 to local6 ++ {
+        local2 = call-script smth_string [local5, 59, local1, 1]
+        if (!(strcmp local7 local2)) {
+            free-array local7
+            free-array local5
+            free-array local2
+            local3 = 1
+            goto label00df
+        }
+        free-array local2
+    }
+    free-array local5
+}
+label00df:
+if (local5) {
+    free-array local5
+}
+if (local7) {
+    free-array local7
+}
+if (local2) {
+    free-array local2
+}
+return local3
+free-script

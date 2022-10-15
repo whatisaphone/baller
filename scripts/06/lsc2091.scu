@@ -1,0 +1,30 @@
+; LSC2 6 2091
+
+local variable local0
+local variable local1
+
+case room1 {
+    of 3 {
+        local0 = 162
+        local1 = 235
+    }
+    of 1 {
+        local0 = 160
+        local1 = 240
+    }
+    of 2 {
+        local0 = 161
+        local1 = 240
+    }
+    of 4 {
+        if (room5) {
+            local0 = room5
+            local1 = 240
+        } else {
+            local0 = 162
+            local1 = 235
+        }
+    }
+}
+run-script 283 [global651, global650, local0, room10, room8, g_some_palette_655, 320, local1]
+free-script

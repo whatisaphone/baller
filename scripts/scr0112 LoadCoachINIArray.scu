@@ -1,0 +1,29 @@
+; SCRP 112 LoadCoachINIArray
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local3 = array-height arg0
+local4 = array-width arg0
+dim array local8 i16[0...0][0...local4 - 1] swap=2
+for local5 = 0 to (local3 - 1) ++ {
+    sprintf local9 "%s%d" [arg1, local5]
+    local7 = read-ini-string gCoachINIPath arg2 local9
+    run-script 107 [local7, local8]
+    for local6 = 0 to (local4 - 1) ++ {
+        arg0[local5][local6] = local8[local6]
+    }
+    free-array local7
+    free-array local9
+}
+free-array local8
+free-script

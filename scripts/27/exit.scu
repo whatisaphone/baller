@@ -1,0 +1,20 @@
+; EXCD 27
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+actor-default-clip-rect 0 0 639 479
+run-script FreeAll []
+g_maybe_selected_actor = room24
+if (global692) {
+    run-script FreePalette [global692]
+    global692 = 0
+}
+finish-script

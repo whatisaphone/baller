@@ -1,0 +1,46 @@
+; SCRP 248 UpdateStatsAuditWindow
+
+parameter arg0
+parameter arg1
+parameter arg2
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+local5 = call-script DebugFormatStat [arg0, arg1, arg2]
+local5[(array-width local5) - 3] = 0
+local4 = call-script AllocScratchImage []
+local6 = call-script maybe_draw_text_to_image [local5, 1037, local4, 2]
+free-array local5
+if (gStatsAuditImage) {
+    local3 = gStatsAuditImage
+}
+gStatsAuditImage = call-script AllocScratchImage []
+image-select gStatsAuditImage
+image-op-create
+image-x20 350
+image-x21 450
+image-xff
+image-select gStatsAuditImage
+image-x85 0 0 350 450 0
+image-xff
+if (local3) {
+    image-select local3
+    image-pos 0 -12
+    image-render-into gStatsAuditImage
+    image-x30
+    image-xff
+    run-script FreeScratchImage [local3]
+}
+image-select local4
+image-pos 0 (450 + -12)
+image-render-into gStatsAuditImage
+image-x30
+image-xff
+run-script FreeScratchImage [local4]
+window-select 2
+window-set-image gStatsAuditImage
+window-xff
+free-script

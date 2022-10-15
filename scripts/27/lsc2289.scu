@@ -1,0 +1,32 @@
+; LSC2 27 2289
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+local5 = call-script 2288 [local1, local0]
+local6 = call-script 2288 [local2, local0]
+if (!(local0 in [14, 17, 20])) {
+    run-script 2283 [local1, local2, local0 - 1, local3]
+}
+run-script displayLeadingIndicator [local0, local5, local6, local4]
+if (local0 >= 17) {
+    run-script 2284 [local1, local3]
+    run-script 2284 [local2, local3 + 1]
+} else {
+    run-script 2286 [local1, local3]
+    run-script 2286 [local2, local3 + 1]
+    run-script 2287 [local1, local2, local5, local6, local3]
+}
+if (local0 >= 20) {
+    if ((call-script smth_find_season_team [gPlayoffTeamsArray[local1]]) >= 11) {
+        run-script 2285 [local2, local1]
+    } else {
+        run-script 2285 [local1, local2]
+    }
+}
+free-script

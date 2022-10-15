@@ -1,0 +1,7 @@
+; LSC2 27 2050
+
+local variable local0
+
+stop-script
+room144[local0] = 1
+free-script

@@ -1,0 +1,87 @@
+; LSC2 5 2153 BleachersHandleInput
+
+parameter type: InputType
+parameter key: char
+parameter arg2
+parameter x
+parameter y
+
+local variable local5
+
+if (type == INPUT-TYPE-KEYBOARD) {
+    if (key == 27 && !global46) {
+        run-script HandleNavClick []
+    }
+    if (key in ['y', 'Y']) {
+        rDraftChoice = DRAFT-PICK
+    }
+    if (key in ['n', 'N']) {
+        rDraftChoice = DRAFT-REJECT
+    }
+    free-running-script 0
+}
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    case arg2 {
+        of 1 {
+        }
+        of 2 {
+            exec-script HandleInput [INPUT-TYPE-KEYBOARD, 27, 0, 0, 0]
+        }
+        else {
+            free-running-script 0
+        }
+    }
+    x = gGamePadX
+    y = gGamePadY
+    local5 = sprite-get-x2d x y 0 0 [32]
+} else {
+    local5 = sprite-get-x2d x y 0 0 []
+}
+if (!local5) {
+    local5 = -1
+}
+if (local5 in [room15, room16, g_some_sprite_array[0], g_some_sprite_array[1], g_some_sprite_array[2], room65, room66, room67, room68, gNavButtons[1][0], gNavButtons[3][0]]) {
+    if (!(local5 in [g_some_sprite_array[0], g_some_sprite_array[1], g_some_sprite_array[2]])) {
+        run-script PlayClickySound []
+    }
+    case local5 {
+        of room15 {
+            rDraftChoice = DRAFT-PICK
+        }
+        of room16 {
+            rDraftChoice = DRAFT-REJECT
+        }
+        in [g_some_sprite_array[0], g_some_sprite_array[1], g_some_sprite_array[2]] {
+            run-script 2114 []
+        }
+        of room67 {
+            if (MODE-maybe-cards == gGameMode) {
+                run-script PlayMusicPool [-1]
+            }
+            run-script-xc3 2062 [local5, sprite-get-xc6 local5 1]
+            rDraftChoice = DRAFT-REJECT
+        }
+        of room68 {
+            if (sprite-get-image room60) {
+                run-script 2111 [rCurrentKid]
+                gLastHoverNumber = 0
+            } else {
+                run-script 2111 [rCurrentKid, 1]
+            }
+        }
+        of room65 {
+            run-script 2152 [-1]
+            run-script-xc3 2062 [local5, sprite-get-xc6 local5 1]
+        }
+        of room66 {
+            run-script 2152 [1]
+            run-script-xc3 2062 [local5, sprite-get-xc6 local5 1]
+        }
+        in [gNavButtons[1][0], gNavButtons[3][0]] {
+            run-script HandleNavClick []
+        }
+    }
+} else {
+    local5 = xa0 x y
+}
+free-script

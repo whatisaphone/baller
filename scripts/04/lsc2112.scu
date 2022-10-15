@@ -1,0 +1,39 @@
+; LSC2 4 2112
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+local4 = gTeamInfo[1 - gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+local5 = local4[7]
+if (local0) {
+    if (local1) {
+        if (local2) {
+            local3 = 0
+            goto label00de
+        } else {
+            local6 = gKidData[local0][KD-maybe-speed] / 10 - 5
+            local6 = local6 + 2 * (gKidData[local1][KD-maybe-speed] / 10 - 5)
+            local3 = local3 + local6 / 3
+        }
+    } else {
+        local3 = local3 + gKidData[local0][KD-maybe-speed] / 10 - 5
+    }
+} else if (local1) {
+    if (local2) {
+        local3 = 0
+        goto label00de
+    } else {
+        local3 = local3 + gKidData[local1][KD-maybe-speed] / 10 - 7
+    }
+}
+local3 = local3 + 2 - gNumOuts
+local3 = local3 - gKidData[local5][6] / 10 - 3
+local3 = max 0 (min local3 10)
+label00de:
+return local3
+free-script

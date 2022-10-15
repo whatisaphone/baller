@@ -1,0 +1,68 @@
+; LSC2 4 2065 AISetPitchParameters
+
+local variable local0
+local variable click_x
+local variable click_y
+local variable zone: Zone
+local variable zone_x
+local variable zone_y
+
+if (global397 == 0) {
+    run-script smth_about_pitching_ai []
+}
+if (!global398) {
+    run-script 2061 []
+}
+if (gNumStrikes == 2) {
+    if (random 2) {
+        local0 = 1
+    } else {
+        local0 = 2
+    }
+}
+case gNumBalls {
+    of 3 {
+        if (random 10) {
+            if (random 1) {
+                local0 = 1
+            } else {
+                local0 = 3
+            }
+        } else {
+            local0 = 2
+        }
+    }
+    of 2 {
+        if (random 3) {
+            if (random 3) {
+                local0 = 1
+            } else {
+                local0 = 3
+            }
+        } else {
+            local0 = 2
+        }
+    }
+}
+if (!local0) {
+    if (random 6) {
+        local0 = 1
+    } else {
+        local0 = 2
+    }
+}
+if (gNumBalls == 0 && gNumStrikes == 0) {
+    if (!(random 15)) {
+        local0 = 3
+    } else if (!(random 4)) {
+        local0 = 2
+    }
+}
+zone = call-script AIChoosePitchParametersForSituation [local0]
+zone_y = (zone - 1) / 7
+zone_x = zone - 1 - zone_y * 7
+click_x = 16 * (zone_x - 1) + 277 + (random 16)
+click_y = rStrikeZoneZoneHeight * (zone_y - 1) + rStrikeZoneMinY + (random rStrikeZoneZoneHeight)
+rClickedPitchLocationX = click_x
+rClickedPitchLocationY = click_y
+free-script

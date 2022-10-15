@@ -1,0 +1,76 @@
+; SCRP 170 CastDoublePlay
+
+parameter arg0
+
+gCurrentSpeechScript = CastDoublePlay
+case random 5 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6096001,13864\x7f    double play!"
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6109865,13864\x7f    and it's a double play!"
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6123729,19304\x7f    and that's a double play!"
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6143033,24232\x7f    an exciting double play, folks!"
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT6167265,15016\x7f    for a double play!"
+    }
+    of 5 {
+        if (gKidData[arg0][KD-gender] == GIRL) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6182281,22120\x7f    And they got her for a double play!"
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6204401,22440\x7f    they've got him on a double play!"
+        }
+    }
+}
+xa9-xa9
+if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
+    case random 4 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6226841,12151\x7f What a play!"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6238992,17208\x7f    Great hustle, out there!"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6256200,24839\x7f    Now,    that's great action!"
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6281039,35057\x7f    That's what I like to see out there.    These kids are hot!"
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT6316096,21683\x7f    Those kids are really on it today!"
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

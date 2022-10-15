@@ -1,0 +1,31 @@
+; LSC2 7 2080
+
+local variable local0
+local variable local1
+
+local1 = sprite-get-wiz local0
+run-script 2088 [local1 + 2000]
+if ((sprite-get-image local0) == 985) {
+    free-running-script 0
+}
+do {
+    if (986 == (sprite-get-image local0)) {
+        sprite-set-range local0 local0
+        sprite-set-image 987
+        sprite-x52 0
+        sprite-x7c 2
+        sprite-x34 local1
+        sprite-x2b -1200
+    }
+    stop-script
+} until (local0 != gLastHoverNumber || gLastHoverType != 2)
+if ((sprite-get-image local0) != 985) {
+    sprite-set-range local0 local0
+    sprite-set-image 986
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-x34 local1
+    sprite-x2b -1300
+    sprite-x25 14
+}
+free-script

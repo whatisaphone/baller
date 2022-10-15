@@ -1,0 +1,31 @@
+; LSC2 32 2049
+
+local variable local1
+local variable local2
+local variable local4
+
+if (gCoachName) {
+    if (call-script IsCoachNameAlreadyTaken []) {
+        if (gPopupState) {
+            free-running-script 0
+        } else {
+            xb6-xfe
+            xb6-x4b "CONTINUE"
+        }
+        sprintf local1 "%s is already in your list of coaches. Please choose another name." [gCoachName]
+        run-script ShowPopup [local1, 2, 4]
+    } else {
+        global474 = 1
+        sprintf global472 "%s" [gCoachName]
+        local2 = call-script smth_string [room19, 44, room10 + 1]
+        local4 = "baseball2001"
+        if (local2 < 10) {
+            sprintf gCoachINIPath "%s%s.c0%d" [gSaveGamePath, local4, local2]
+        } else {
+            sprintf gCoachINIPath "%s%s.c%d" [gSaveGamePath, local4, local2]
+        }
+        free-array local4
+        go-to-room 6
+    }
+}
+free-script

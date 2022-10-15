@@ -1,0 +1,18 @@
+; SCRP 228 GetCustomKidName
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+local2 = "                              "
+while (gCustomKidNames[arg0][local1] != NUL) {
+    local2[local1] = gCustomKidNames[arg0][local1]
+    ++local1
+}
+local2[local1] = gCustomKidNames[arg0][local1]
+sprintf local3 "%s" [local2]
+free-array local2
+return local3
+free-script

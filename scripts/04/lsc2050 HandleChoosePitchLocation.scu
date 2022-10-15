@@ -1,0 +1,24 @@
+; LSC2 4 2050 HandleChoosePitchLocation
+
+parameter clicked_x
+parameter clicked_y
+
+local variable local2
+local variable local3
+local variable local4
+
+run-script SendBatViewMessage [7613, g_net_smth_master]
+stop-script
+while (r_smth_maybe_current_phase == 1 && local2 < 100) {
+    ++local2
+    stop-script
+}
+if (r_smth_maybe_current_phase == 2) {
+    run-script SetAdjustedPitchLocation [clicked_x, clicked_y]
+    local3 = random 100
+    local4 = call-script FatigueAfterPitch [rPitcherKid, rPitchKind]
+    run-script SendBatViewMessage [MSG-RUN-PITCH, rPitchKind, rRealPitchLocationX, rRealPitchLocationY, local3, local4]
+} else {
+    r_smth_maybe_current_phase = 3
+}
+free-script

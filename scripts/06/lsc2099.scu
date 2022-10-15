@@ -1,0 +1,9 @@
+; LSC2 6 2099
+
+local variable local0
+
+for local0 = 1 to 4 ++ {
+    run-script ReleaseSprite [room0[local0][0]]
+}
+free-array room0
+free-script

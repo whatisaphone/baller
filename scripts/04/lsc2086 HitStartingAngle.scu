@@ -1,0 +1,37 @@
+; LSC2 4 2086 HitStartingAngle
+
+local variable local0
+
+if (rBatterHandedness == RIGHT-HANDED) {
+    case gBatterStance {
+        of OPEN {
+            local0 = 57
+        }
+        of SQUARE {
+            local0 = 80
+        }
+        of CLOSED {
+            local0 = 102
+        }
+        else {
+            pop-discard 0
+        }
+    }
+} else {
+    case gBatterStance {
+        of OPEN {
+            local0 = 102
+        }
+        of SQUARE {
+            local0 = 80
+        }
+        of CLOSED {
+            local0 = 57
+        }
+        else {
+            pop-discard 0
+        }
+    }
+}
+return local0
+free-script

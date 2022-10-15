@@ -1,0 +1,96 @@
+; LSC2 4 2192 RunBattingPracticePitch
+
+parameter pitch: PitchKind
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+
+local variable local7
+
+rPitchKind = pitch
+rRealPitchLocationX = arg1
+rRealPitchLocationY = arg2
+sprite-set-range rBallSprite rBallSprite
+sprite-set-hotspot -500 -500
+if (rPitchKind > 17) {
+    case rPitchKind {
+        of PITCH-CORKSCREW {
+            load-sound 1457
+            load-sound 1458
+            load-sound 1459
+        }
+        of PITCH-ZIG-ZAG {
+            load-sound 1460
+            load-sound 1461
+            load-sound 1462
+            load-sound 1467
+        }
+        of PITCH-FREEZE {
+            queue-sound 1463
+        }
+        of PITCH-FIREBALL {
+            load-sound 1464
+            load-sound 1468
+        }
+        of PITCH-SLOW-MO {
+            load-sound 1465
+        }
+        of PITCH-ELEVATOR {
+            load-sound 1466
+        }
+        of PITCH-SPIT-BALL {
+            load-sound 1471
+            load-sound 1469
+        }
+        of PITCH-HEAT {
+            load-sound 1996
+        }
+        of PITCH-SLOWBALL {
+            load-sound 1994
+        }
+        of PITCH-CRAZY-BALL {
+            load-sound 1470
+            load-sound 1539
+        }
+        else {
+            load-sound 1995
+        }
+    }
+}
+actor-select 3
+actor-set-var 1 1
+actor-select 3
+actor-set-var 7 2
+room25 = 0
+r_maybe_pitch_phase = 1
+stop-script
+rPitchZone = call-script GetPitchZone [rRealPitchLocationX, rRealPitchLocationY]
+rInsidePitch = false
+if (rRealPitchLocationX >= 277 && rRealPitchLocationX <= 357) {
+    if (rRealPitchLocationY >= rStrikeZoneMinY && rRealPitchLocationY <= rStrikeZoneMaxY) {
+        rBallOrStrike = 1
+    } else {
+        rBallOrStrike = 2
+    }
+} else {
+    if (rPitchZone <= 0) {
+        if (rRealPitchLocationX < 277 && rBatterHandedness == RIGHT-HANDED) {
+            rInsidePitch = true
+        } else if (rRealPitchLocationX > 357 && rBatterHandedness == LEFT-HANDED) {
+            rInsidePitch = true
+        }
+    }
+    rBallOrStrike = 2
+}
+while (!((actor-get-var 3 2) == 1)) {
+    stop-script
+}
+actor-select 3
+actor-set-var 2 0
+run-script PlaySound [local7]
+++gBattingPracticeNumPitches
+run-script BattingPracticeDrawCounters []
+queue-costume 12
+run-script smth_do_a_pitch [arg3]
+free-script

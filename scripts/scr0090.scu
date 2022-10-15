@@ -1,0 +1,84 @@
+; SCRP 90
+
+local variable local0
+local variable local1
+local variable local2
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+
+image-select 1416
+image-x34 0
+image-palette 2
+image-pos (0 - (image-get-hotspot-x 1416 0)) (0 - (image-get-hotspot-y 1416 0) + 2)
+image-render-into 634
+image-x30
+image-xff
+if (local1 <= 8) {
+    image-select 1415
+    image-x34 local1
+    image-palette 2
+    image-pos (0 - (image-get-hotspot-x 1415 local1) + 2) (0 - (image-get-hotspot-y 1415 local1) + 2)
+    image-render-into 634
+    image-x30
+    image-xff
+}
+run-script GetKidName [local0, 1]
+temp2 = (strlen gKidName) - 1
+for temp = 0 to temp2 ++ {
+    if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+        gKidName[temp] = gKidName[temp] - 32
+    }
+}
+local11 = call-script maybe_draw_text_to_image [gKidName, 633, local2, 2, 1]
+image-select local2
+image-pos 0 0
+image-render-into 634
+image-pos (50 - local11 / 2) 0
+image-x30
+image-xff
+run-script GetKidName [local0, 2]
+temp2 = (strlen gKidName) - 1
+for temp = 0 to temp2 ++ {
+    if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+        gKidName[temp] = gKidName[temp] - 32
+    }
+}
+local11 = call-script maybe_draw_text_to_image [gKidName, 633, local2, 2, 1]
+image-select local2
+image-pos 0 0
+image-render-into 634
+image-pos (50 - local11 / 2) 15
+image-x30
+image-xff
+local7 = 1
+for local5 = [243, 244, 245, 246] {
+    local8 = call-script local5 [local0, 0]
+    local9 = call-script local5 [local0, 1]
+    local13 = max local9 local8
+    for local6 = 1 to local13 ++ {
+        if (local6 > local9) {
+            local12 = 8
+        } else if (local6 > local8) {
+            local12 = 4
+        } else {
+            local12 = 0
+        }
+        local10 = (local6 - 1) * 26
+        image-select 1416
+        image-x34 (local7 + local12)
+        image-palette 2
+        image-pos (0 - (image-get-hotspot-x 1416 local7) + local10) (0 - (image-get-hotspot-y 1416 local7) + 2)
+        image-render-into 634
+        image-x30
+        image-xff
+    }
+    ++local7
+}
+free-script

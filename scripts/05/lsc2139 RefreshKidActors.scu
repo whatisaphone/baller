@@ -1,0 +1,55 @@
+; LSC2 5 2139 RefreshKidActors
+
+parameter arg0
+
+local variable i
+local variable local2
+local variable actor
+local variable max
+
+global593 = global593 + arg0
+local2 = arg0 - global593 + (min 640 (max 0 global593))
+global593 = min 640 (max 0 global593)
+image-select 115
+image-pos (global593 - 640) 0
+image-x30
+image-xff
+max = call-script GetArrayHeight [gBleachersEntries]
+for i = 1 to max ++ {
+    if (gBleachersEntries[i][BI-KID] != 0) {
+        gBleachersEntries[i][BI-X] = gBleachersEntries[i][BI-X] + local2
+    }
+}
+for i = 1 to max ++ {
+    if (gBleachersEntries[i][BI-KID]) {
+        if (gBleachersEntries[i][BI-X] < -30 || gBleachersEntries[i][BI-X] > 670) {
+            if (gBleachersEntries[i][BI-ACTOR]) {
+                run-script ReleaseActor [gBleachersEntries[i][BI-ACTOR]]
+                gBleachersEntries[i][BI-ACTOR] = 0
+            }
+        } else if (gBleachersEntries[i][BI-ACTOR] == 0) {
+            actor = call-script FindFreeActor []
+            if (actor) {
+                gBleachersEntries[i][BI-ACTOR] = actor
+                actor-select actor
+                actor-xd9
+                actor-set-costume gBleachersEntries[i][3]
+                actor-x61 2
+                actor-x62 gBleachersEntries[i][4]
+                gActorCursorTargets[actor][TARGET-CLICK-SCRIPT] = rKidClickHandlerScript
+                gActorCursorTargets[actor][TARGET-HOVER-SCRIPT] = 2146
+                gActorCursorTargets[actor][TARGET-HOVER-DELAY] = 0
+                put-actor actor gBleachersEntries[i][BI-X] gBleachersEntries[i][BI-Y] 5
+                actor-select actor
+                actor-set-var 10 gBleachersEntries[i][BI-KID]
+            } else {
+                xb6-xfe
+                xb6-x4b "ERROR!!!! I need another actor!"
+            }
+        } else {
+            put-actor gBleachersEntries[i][BI-ACTOR] gBleachersEntries[i][BI-X] gBleachersEntries[i][BI-Y] 255
+        }
+    }
+}
+return local2
+free-script

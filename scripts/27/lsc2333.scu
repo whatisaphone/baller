@@ -1,0 +1,22 @@
+; LSC2 27 2333
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+local0 = call-script GetSeasonDivision []
+dim array local1 byte[0...0][0...29] swap=2
+for local2 = 0 to 29 ++ {
+    local1[local2] = local2 + 1
+}
+shuffle-array local1 0 29
+local2 = 0
+for local3 = 0 to 23 ++ {
+    if (local3 != local0) {
+        gSeasonRosterArray[local3][9] = local1[local2]
+        ++local2
+    }
+}
+free-array local1
+free-script

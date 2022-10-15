@@ -1,0 +1,134 @@
+; LSC2 40 2098
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+local2 = global108
+local1 = global109
+local9 = image-get-width 1567 0
+local10 = image-get-height 1567 0
+local3 = local0
+temp2 = (strlen local1) - 1
+for temp = 0 to temp2 ++ {
+    if (local1[temp] >= 97 && local1[temp] <= 122) {
+        local1[temp] = local1[temp] - 32
+    }
+}
+if (call-script 2066 [local1]) {
+    local11 = 1
+    local12 = 1029
+} else {
+    local11 = 0
+    local12 = 1031
+}
+local5 = call-script maybe_draw_text_to_image [local1, 1244, room2[10], room5, 1]
+free-image room2[11]
+image-select room2[11]
+image-op-create
+image-x20 local9
+image-x21 local10
+image-xff
+image-select room2[11]
+image-x85 0 0 local9 local10 5
+image-xff
+image-select 1567
+image-x34 local11
+image-pos 0 0
+image-palette room24
+image-render-into room2[11]
+image-x30
+image-xff
+case local2[6] {
+    of 1 {
+        local6 = 5
+    }
+    of 2 {
+        local6 = 4
+    }
+    of 3 {
+        local6 = 3
+    }
+    else {
+        local6 = 4
+    }
+}
+case local2[5] {
+    of 0 {
+        local8 = 0
+    }
+    of 1 {
+        local8 = 1
+    }
+    of 2 {
+        local8 = 1
+    }
+}
+image-select 1566
+image-pos 0 4
+image-x34 local8
+image-palette room24
+image-render-into room2[11]
+image-x30
+image-xff
+image-select room2[10]
+image-pos 96 4
+image-render-into room2[11]
+image-x30
+image-xff
+image-select 695
+image-pos 21 24
+image-x34 local6
+image-render-into room2[11]
+image-x30
+image-xff
+sprintf local7 "%d - %d - %d" [local2[2], local2[3], local2[4]]
+local5 = call-script maybe_draw_text_to_image [local7, local12, room2[10], room18, 1]
+free-array local7
+image-select room2[10]
+image-pos 96 29
+image-render-into room2[11]
+image-x30
+image-xff
+image-select room2[5 + local3]
+image-op-create
+image-x20 local9
+image-x21 local10
+image-xff
+image-select room2[5 + local3]
+image-x85 0 0 local9 local10 5
+image-xff
+image-select room2[11]
+image-pos 0 0
+image-render-into room2[5 + local3]
+image-x30
+image-xff
+sprite-set-range room1[22 + local3] room1[22 + local3]
+sprite-clear
+sprite-set-image room2[5 + local3]
+sprite-set-hotspot 347 (168 + local3 * 55)
+sprite-x2b (1000 + 1)
+sprite-x7c 0
+sprite-palette room24
+sprite-set-range room1[22 + local3] room1[22 + local3]
+sprite-xc6 1 (local3 + 1)
+gSpriteCursorTargets[room1[22 + local3]][TARGET-CLICK-SCRIPT] = 2094
+run-script-xc3 maybe_smth_net_yell_ui [local2[1], 410, 196 + 55 * local3, room1[27 + local3], room2[12 + local3], -1, 9999]
+sprite-set-range room1[27 + local3] room1[27 + local3]
+sprite-x7d [160]
+if (local1) {
+    free-array local1
+}
+if (local2) {
+    free-array local2
+}
+free-script

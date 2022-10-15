@@ -1,0 +1,10 @@
+; LSC2 39 2100
+
+run-script-xc3 2099 [20]
+temp = call-script 2103 []
+run-script-xc3 2099 [21]
+run-script-xc3 2099 [22]
+run-script-xc3 2099 [23]
+run-script-xc3 2099 [19]
+run-script-xc3 2099 [24]
+free-script

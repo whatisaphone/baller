@@ -1,0 +1,18 @@
+; LSC2 14 2076
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local3 = 25
+local4 = 49 * local1
+while (gRecordBook[local0][local4 + local3] == 32 && local3 > 4) {
+    local2[local3 - 4] = 0
+    --local3
+}
+for local3 = local3 to 4 -- {
+    local2[local3 - 4] = gRecordBook[local0][local4 + local3]
+}
+free-script

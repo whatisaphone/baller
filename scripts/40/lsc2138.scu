@@ -1,0 +1,27 @@
+; LSC2 40 2138
+
+local variable local0
+local variable local1
+local variable local2
+
+if (room13 || room14 || (is-script-running 2095)) {
+    kludge [2001, 2212, local0]
+} else {
+    if (!(is-script-running 2095)) {
+        run-script 2095 [1]
+    }
+    room13 = 1
+    gSpriteCursorTargets[room1[56]][TARGET-CLICK-SCRIPT] = 0
+    gSpriteCursorTargets[room1[57]][TARGET-CLICK-SCRIPT] = 0
+    run-script-xc3 2112 [15, 4]
+    room28 = local1
+    global553 = local0
+    if (room27) {
+        free-array room27
+    }
+    sprintf room27 "%s" [local2]
+    free-array local2
+    run-script-xc3 2130 [15, 11]
+    kludge [2001, 2220, 1]
+}
+free-script

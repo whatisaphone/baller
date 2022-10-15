@@ -1,0 +1,30 @@
+; LSC2 3 2096 BaserunnerMaybeTrip
+
+parameter kid: Kid
+parameter actor
+parameter factor
+
+local variable local3
+local variable local4
+
+pop-discard-2 0 "no trace"
+local4 = 0
+if (!(kid in [KENNY-KAWAGUCHI, MR-CLANKY])) {
+    if (!((actor-get-var actor 2) == 1)) {
+        local3 = (2 * gKidData[kid][3] + 100 - gKidData[kid][KD-fatigue]) / 3
+        local3 = 100 - local3
+        local3 = local3 * factor
+        if ((random 10000) < local3) {
+            actor-do-anim actor 15
+            actor-select actor
+            actor-set-var 0 0
+            actor-select actor
+            actor-set-var 2 1
+            run-script EnqueueComment [DIALOGUE-TRIP, kid]
+            local4 = 1
+        }
+    }
+}
+pop-discard-2 0 "trace on"
+return local4
+free-script

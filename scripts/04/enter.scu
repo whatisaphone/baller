@@ -1,0 +1,113 @@
+; ENCD 4
+
+if (gAutoplaySeason) {
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+    gSeasonSpectatorMode = true
+}
+sprite-group-select 25
+sprite-group-clear
+run-script 2223 []
+run-script 2225 []
+gMinJiffies = 6
+for temp = 1 to gActorPoolMax ++ {
+    actor-select temp
+    actor-x61 (6 / gMinJiffies)
+}
+if (!gGameInputDevice) {
+    gGameInputDevice = INPUT-DEVICE-MOUSE
+}
+put-class 88 [160]
+free-running-script CursorLoop
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else {
+    cursor-hide
+}
+room51 = 0
+cursor-input-enable
+gDialogueHandlerScript = BatViewDialogueHandler
+if (gNetplayActive) {
+    global43 = 0
+}
+dim array rCommentQueue i16[0...5][0...9] swap=2
+run-script CommentQueueLoop []
+array-set gStealArray [0, 0, 0] 0
+global232 = gInputHandlerScript
+room3 = gCurCharset
+cursor-charset 3
+if (MODE-BATTING-PRACTICE == gGameMode) {
+    put-class 95 [160]
+    put-class 89 [160]
+    put-class 90 [160]
+    put-class 91 [160]
+    put-class 108 [160]
+    put-class 109 [160]
+    put-class 111 [160]
+    put-class 110 [160]
+    object-put-state 95 0
+    object-put-state 89 0
+    object-put-state 90 0
+    object-put-state 91 0
+    object-put-state 108 0
+    object-put-state 109 0
+    object-put-state 111 0
+    object-put-state 110 0
+    object-put-state 92 0
+    object-put-state 93 0
+    object-put-state 94 0
+    object-put-state 102 0
+    object-put-state 96 0
+    object-put-state 99 0
+    object-put-state 97 0
+    object-put-state 100 0
+    object-put-state 98 0
+    object-put-state 101 0
+    object-put-state 103 0
+    object-put-state 104 0
+    put-class 298 [32]
+    put-class 299 [32]
+    put-class 300 [32]
+    put-class 301 [32]
+    put-class 302 [32]
+    put-class 303 [32]
+    rSavedNoCommentary = gNoCommentary
+    gNoCommentary = true
+    run-script InitBattingPractice []
+} else {
+    put-class 95 [32]
+    put-class 89 [32]
+    put-class 90 [32]
+    put-class 91 [32]
+    put-class 108 [32]
+    put-class 109 [32]
+    put-class 111 [32]
+    put-class 110 [32]
+    put-class 298 [160]
+    put-class 299 [160]
+    put-class 300 [160]
+    put-class 301 [160]
+    put-class 302 [160]
+    put-class 303 [160]
+    object-put-state 298 0
+    object-put-state 299 0
+    object-put-state 300 0
+    object-put-state 301 0
+    object-put-state 302 0
+    object-put-state 303 0
+    if (gCurrentHalfInning == -1) {
+        run-script StartGame []
+    } else {
+        run-script ContinueGame []
+    }
+}
+if (!(is-sound-playing gAmbientSound)) {
+    run-script SetAmbientSound [1]
+}
+if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+    free-running-script GamePadInputLoop
+    run-script HideGamePadCursor []
+}
+put-class 95 [160]
+put-class 12 [160]
+put-class 11 [160]
+finish-script

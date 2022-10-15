@@ -1,0 +1,54 @@
+; SCRP 156 CastPopFly
+
+parameter arg0
+
+gCurrentSpeechScript = CastPopFly
+if (gDebug == 13) {
+}
+case random 3 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2002717,13289\x7f ... and popped up."
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2016006,11211\x7f ... popped it up..."
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2027217,8921\x7f ... looped up..."
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2036138,10273\x7f pop fly"
+    }
+}
+xa9-xa9
+if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
+    if (gUserOnOffense) {
+        case random 2 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2046411,23592\x7fThat's a can o' corn for the opposing team."
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2070003,24840\x7fLost sight of that one it's so high."
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2094843,23624\x7fThat's easy money for the opposing team."
+            }
+        }
+        xa9-xa9
+    }
+}
+gCurrentSpeechScript = 0
+free-script

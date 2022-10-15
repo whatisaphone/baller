@@ -1,0 +1,96 @@
+; LSC2 8 2094
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+case local1 {
+    of 2 {
+        case local0 {
+            of gNavButtons[1][0] {
+                case gGameMode {
+                    of MODE-SPECTATE {
+                        local2 = "LEave game"
+                        local3 = "click here to return to THE CLUB HOUSE"
+                    }
+                    of MODE-SEASON {
+                        if (gGameEnded) {
+                            local2 = "Around the league"
+                            local3 = "click here to see results from AROUND THE LEAGUE"
+                        } else {
+                            local2 = "Roster"
+                            local3 = "click here to return to your Roster"
+                        }
+                    }
+                    else {
+                        if (gGameEnded) {
+                            local2 = "Team Page"
+                            local3 = "Click here to return to your team page"
+                        } else {
+                            local2 = "Roster"
+                            local3 = "click here to return to your Roster"
+                        }
+                    }
+                }
+            }
+            of gNavButtons[3][0] {
+                if (gCurrentHalfInning == -1) {
+                    local2 = "Play ball!"
+                    local3 = "click here to PLAY BALL!"
+                } else if (gGameMode == MODE-SEASON) {
+                    local2 = "Around the league"
+                    local3 = "click here to see results from AROUND THE LEAGUE"
+                } else if (gGameEnded) {
+                    local2 = "Team page"
+                    local3 = "click here to return to your team page"
+                } else {
+                    local2 = "Roster"
+                    local3 = "Click here to return to your Roster"
+                }
+            }
+        }
+    }
+    of 6 {
+        if (local0 == gNavButtons[2][0]) {
+            local2 = "Hurry Up!"
+            local3 = "Click here to tease your slow opponent."
+        }
+    }
+    of 3 {
+        case local0 {
+            of 494 {
+                if (get-class local0 [32]) {
+                    if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] != CB-USER) {
+                        local2 = "Away Team"
+                        local3 = "click here to switch your team to be the Away team"
+                    } else {
+                        local2 = "You are the Away Team"
+                        local3 = "You bat first"
+                    }
+                }
+            }
+            of 495 {
+                if (get-class local0 [32]) {
+                    if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] != CB-USER) {
+                        local2 = "Home team"
+                        local3 = "click here to switch your team to be the Home team"
+                    } else {
+                        local2 = "You are the Home Team"
+                        local3 = "You pitch first"
+                    }
+                }
+            }
+        }
+    }
+}
+if (local2 || local3) {
+    run-script UpdateNavText [local2, local3]
+    if (local2) {
+        free-array local2
+    }
+    if (local3) {
+        free-array local3
+    }
+}
+free-script

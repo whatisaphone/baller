@@ -1,0 +1,96 @@
+; LSC2 39 2083
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!(call-script 2085 [])) {
+    free-running-script 0
+}
+if ((call-script 2066 []) == 1) {
+    free-running-script 0
+}
+if (!global680[16] && local0 == 32) {
+    free-running-script 0
+}
+if (!global680[16] && local0 == 8) {
+    free-running-script 0
+}
+if (!global680[16] && local0 == 13) {
+    free-running-script 0
+}
+if (global680[16] <= 100) {
+    global680[16] = global680[16] + 1
+    if (local0 == 13) {
+        if ((strlen global681) > 1) {
+            run-script PlayClickySound []
+            stop-script
+            temp2 = (strlen global681) - 1
+            for temp = 0 to temp2 ++ {
+                if (global681[temp] >= 97 && global681[temp] <= 122) {
+                    global681[temp] = global681[temp] - 32
+                }
+            }
+            kludge [2001, 2234, global681]
+            global680[16] = 0
+            free-array global681
+            global681 = " "
+            goto label018a
+        }
+    } else {
+        if (local0 == 8) {
+            run-script PlaySound [2632]
+            stop-script
+            local1 = substr global681 0 ((strlen global681) - 2)
+            global680[16] = global680[16] - 2
+            if (!global680[16]) {
+                free-array local1
+                local1 = " "
+            }
+        } else {
+            run-script PlaySound [2631]
+            stop-script
+            if (global680[16] < 100) {
+                sprintf local1 "%s%c" [global681, local0]
+            } else {
+                sprintf local1 "%s" [global681]
+            }
+        }
+        free-array global681
+        sprintf global681 "%s" [local1]
+        free-array local1
+    }
+label018a:
+    temp2 = (strlen global681) - 1
+    for temp = 0 to temp2 ++ {
+        if (global681[temp] >= 97 && global681[temp] <= 122) {
+            global681[temp] = global681[temp] - 32
+        }
+    }
+    local4 = call-script 51 [global681, global680[7], global680[3], global680[5], 1, global680[9], global680[23], 2, global680[27]]
+    global680[14] = local4 & 65535
+    global680[15] = max 0 (((shr local4 16) & 65535) - 1)
+    sprite-set-range global680[12] global680[12]
+    sprite-set-image global680[3]
+    local2 = (sprite-get-translated-hotspot-x global680[12]) + 2
+    local3 = sprite-get-translated-hotspot-y global680[12]
+    sprite-set-range global680[10] global680[10]
+    sprite-set-image global680[11]
+    sprite-set-hotspot (local2 + global680[14] + 2) (local3 + global680[15] * (image-get-height global680[7] 113))
+}
+if (global680[16] >= 100) {
+    global680[16] = 100
+    free-running-script 2084
+    sprite-set-range global680[10] global680[10]
+    sprite-clear
+    sprite-set-image global680[11]
+    sprite-x2a 0 2
+}
+if (global680[16] < 100) {
+    if (!(is-script-running 2084)) {
+        run-script 2084 []
+    }
+}
+free-script

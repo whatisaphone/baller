@@ -1,0 +1,78 @@
+; LSC2 6 2104
+
+local variable local0
+
+dim array room17 byte[0...4][0...18] swap=2
+for local0 = 0 to 18 ++ {
+    room17[0][local0] = call-script FindFreeSprite []
+    sprite-set-range room17[0][local0] room17[0][local0]
+    sprite-x52 0
+    sprite-x7c 1
+    sprite-x2b 10
+    sprite-set-hotspot 0 0
+    sprite-set-range room17[0][local0] room17[0][local0]
+    sprite-xc6 1 local0
+    gSpriteCursorTargets[room17[0][local0]][TARGET-CLICK-SCRIPT] = 2080
+}
+room22 = call-script FindFreeSprite []
+sprite-set-range room22 room22
+sprite-set-image 167
+sprite-x52 0
+sprite-x7c 1
+sprite-palette room13
+sprite-x2b 20
+sprite-set-hotspot -500 -500
+room23 = call-script FindFreeSprite []
+room24 = call-script FindFreeSprite []
+array-set-row room17 3 [104, 103, 106, 101, 105, 102]
+array-set-row room17 1 [122, 147, 150, 142, 130, 128, 132, 135, 138, 125, 126, 140, 151, 149]
+array-set-row room17 2 [131, 123, 145, 136, 146, 127, 134, 137, 129, 144, 148, 124, 141, 139, 143, 133]
+array-fill-values room17 4 4 0 (17 - 1) 1 17
+if (MODE-SEASON == gGameMode) {
+    for local0 = 1 to 7 ++ {
+        room17[4][local0 - 1] = 0
+    }
+} else {
+    room17[4][15 - 1] = 0
+    room17[4][16 - 1] = 0
+    room17[4][17 - 1] = 0
+}
+room29 = call-script FindFreeSprite []
+sprite-set-range room29 room29
+sprite-set-image 132
+sprite-x7c 2
+sprite-x52 0
+sprite-x34 7
+sprite-palette room12
+sprite-x2b 10
+sprite-set-hotspot -500 -500
+gSpriteCursorTargets[room29][TARGET-CLICK-SCRIPT] = 2084
+room30 = call-script FindFreeSprite []
+sprite-set-range room30 room30
+sprite-set-image 132
+sprite-x7c 2
+sprite-x52 0
+sprite-x34 8
+sprite-palette room12
+sprite-x2b 10
+sprite-set-hotspot -500 -500
+gSpriteCursorTargets[room30][TARGET-CLICK-SCRIPT] = 2084
+room31 = call-script FindFreeSprite []
+sprite-set-range room31 room31
+sprite-set-image 132
+sprite-x7c 2
+sprite-x52 0
+sprite-x34 6
+sprite-palette room12
+sprite-x2b 20
+sprite-set-hotspot -500 -500
+room32 = call-script FindFreeSprite []
+sprite-set-range room32 room32
+sprite-set-image 132
+sprite-x7c 2
+sprite-x52 0
+sprite-x34 6
+sprite-palette room12
+sprite-x2b 20
+sprite-set-hotspot -500 -500
+free-script

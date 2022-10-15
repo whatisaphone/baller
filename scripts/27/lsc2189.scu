@@ -1,0 +1,32 @@
+; LSC2 27 2189
+
+local variable local0
+
+room63 = room45[3]
+room66 = local0
+sprite-set-range room44[7] room44[7]
+sprite-clear
+sprite-set-image 1033
+sprite-x34 (iif room66 6 5)
+sprite-set-hotspot 320 240
+sprite-palette room47
+sprite-x2b (-800 + 1)
+sprite-x52 0
+sprite-x7c 0
+sprite-set-range room44[9] room44[9]
+sprite-clear
+sprite-set-image room63
+sprite-x7c 0
+sprite-x2b 10000
+sprite-set-hotspot 233 162
+sprite-x25 1
+sprite-group-select 1
+sprite-group-x41 0 0
+sprite-group-x43 234 176 610 385
+gSpriteCursorTargets[room44[9]][TARGET-CLICK-SCRIPT] = StatClickHandler
+stop-script
+temp = call-script 2185 []
+room68 = 0
+run-script 2188 []
+run-script 2176 []
+free-script

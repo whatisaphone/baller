@@ -1,0 +1,37 @@
+; LSC2 5 2129
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (local0 == room19) {
+    local1 = -12
+    sprite-set-range room19 room19
+    sprite-x34 3
+} else {
+    local1 = 12
+    sprite-set-range room18 room18
+    sprite-x34 1
+}
+do {
+    if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+        local3 = (sprite-get-x2d gGamePadX gGamePadY 0 0 [32]) in [room19, room18]
+    } else {
+        local3 = (sprite-get-x2d gMouseX gMouseY 0 0 [32]) in [room19, room18]
+    }
+    if (!local3) {
+        goto label0096
+    }
+    local2 = call-script RefreshKidActors [local1]
+    if (local2 == 0) {
+        goto label0096
+    }
+    stop-script
+}
+label0096:
+sprite-set-range room19 room19
+sprite-x34 2
+sprite-set-range room18 room18
+sprite-x34 0
+free-script

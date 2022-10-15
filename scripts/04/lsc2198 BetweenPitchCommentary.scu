@@ -1,0 +1,11 @@
+; LSC2 4 2198 BetweenPitchCommentary
+
+if (!rCastersMentionedRunners) {
+    if (random 2) {
+        run-script AddToCommentQueue [DIALOGUE-RUNNERS-ON-BASE]
+        rCastersMentionedRunners = 1
+    }
+} else if (random 2) {
+    run-script AddToCommentQueue [DIALOGUE-CURRENT-BALLS-STRIKES]
+}
+free-script

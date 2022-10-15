@@ -1,0 +1,52 @@
+; LSC2 27 2168
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+run-script ResetSeasonRosterArray []
+dim array local7 byte[0...0][0...23] swap=2
+local8 = call-script GetSeasonDivision []
+for local1 = 0 to 23 ++ {
+    local7[local1] = pick (random 8) [35, 31, 33, 32, 34, 37, 38, 39, 40]
+}
+run-script 2167 []
+for local1 = 0 to 23 ++ {
+    local2 = call-script ReadSeasonTeams [local1]
+    if (local1 != local8) {
+        gSeasonRosterArray[local1][10] = 0
+        gSeasonRosterArray[local1][11] = local2
+        gSeasonRosterArray[local1][12] = 0
+        gSeasonRosterArray[local1][14] = 0
+        gSeasonRosterArray[local1][15] = 0
+        if (local2 >= 122 && local2 <= 151) {
+            local3 = g_underwater_array[local2][6]
+            local9 = call-script 127 [gTeamInfo[0][TI-FIELDING-ORDER], local3]
+            if (local9) {
+                local3 = call-script 2158 [local3]
+            }
+            gSeasonRosterArray[local1][0] = local3
+            gSeasonRosterArray[local1][16] = local3
+        }
+    }
+}
+run-script 2166 [local7]
+run-script 2164 [local7]
+local10 = call-script 134 []
+run-script 2332 [local0]
+free-array local7
+if (!(call-script IsSeasonRosterValid [])) {
+    xb7-xfe
+    xb7-x4b "Error: kids not allocated to teams correctly."
+    run-script ResetEverything []
+    go-to-room 2
+}
+if (gDebug == 101) {
+    run-script DumpSeasonRosterFile []
+}
+free-script

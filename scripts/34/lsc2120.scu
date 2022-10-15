@@ -1,0 +1,62 @@
+; LSC2 34 2120
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local3 = 72 + 150 * local1
+local4 = 139 + 90 * local2
+local7 = call-script smth_find_season_team [room17[local0][52]]
+local8 = gSeasonRosterArray[local7][12]
+local9 = gSeasonRosterArray[local7][13]
+run-script-xc3 2119 [room17[local0][52], local8, local9, local3, local4, 0]
+local4 = local4 + 37
+local7 = call-script smth_find_season_team [room17[local0][53]]
+local8 = gSeasonRosterArray[local7][12]
+local9 = gSeasonRosterArray[local7][13]
+run-script-xc3 2119 [room17[local0][53], local8, local9, local3, local4, 0]
+local5 = call-script 2118 [room17[local0][54]]
+room15[room15[0]] = local5
+room15[0] = room15[0] + 1
+local3 = 112 + 150 * local1
+local4 = 139 + 90 * local2
+image-select local5
+image-pos local3 local4
+image-x30
+image-xff
+local5 = call-script 2118 [room17[local0][55]]
+room15[room15[0]] = local5
+room15[0] = room15[0] + 1
+local4 = local4 + 37
+image-select local5
+image-pos local3 local4
+image-x30
+image-xff
+local6 = local1 * 6 + local2 * 2
+if (room17[local0][54] < room17[local0][55]) {
+    local6 = local6 + 1
+}
+image-select 1267
+image-x34 local6
+image-pos (320 - (image-get-hotspot-x 1267 local6)) (240 - (image-get-hotspot-y 1267 local6))
+image-palette room0
+image-x30
+image-xff
+local3 = 162 + local1 * 150
+local4 = 165 + local2 * 90
+local6 = room19[local1 * 3 + local2][1] - 1 + 4
+local6 = min local6 13
+image-select 1265
+image-x34 local6
+image-pos local3 local4
+image-palette room0
+image-x30
+image-xff
+free-script

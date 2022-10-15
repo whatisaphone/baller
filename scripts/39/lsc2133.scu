@@ -1,0 +1,7 @@
+; LSC2 39 2133
+
+run-script 2128 []
+run-script 2131 []
+gHoverScript = 0
+run-script 89 []
+free-script

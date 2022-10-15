@@ -1,0 +1,79 @@
+; LSC2 3 2157 smth_mouse_user_defense
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+if (gNetplayActive) {
+}
+stop-script
+actor-select 21
+actor-xd9
+actor-set-costume 562
+actor-x5f
+actor-x61 2
+actor-x62 global424
+local1 = 999
+do {
+    if (gUserSelectedPlay != NONE) {
+        local0 = gUserSelectedPlay
+    } else if (rCurrentPlay != NONE) {
+        if (local1 == rCurrentPlay) {
+            local0 = rCurrentPlay
+        } else {
+            local1 = 999
+            local0 = 999
+        }
+    } else {
+        local0 = 999
+    }
+    local2 = 0
+    local3 = 0
+    if (local0 != 999) {
+        if (local0 >= 0 && local0 <= 3) {
+            case local0 {
+                of 1 {
+                    local3 = -21
+                    local2 = 10
+                }
+                of 2 {
+                    local2 = 15
+                }
+                of 3 {
+                    local3 = 21
+                    local2 = 10
+                }
+            }
+            if (gBases[local0][BASE-TAGGED-WITH-BALL] == true) {
+                local0 = 999
+            }
+        } else if (local0 >= 37 && local0 <= 45) {
+            if (gFielderWithBall == local0) {
+                local0 = 999
+            }
+        } else if (local0 in [46, 47, 48, 49]) {
+            if (gRunners[local0 - 46][R-STATE] == R-LEAVE-FIELD-WITH-OUT) {
+                local0 = 999
+            }
+        }
+    }
+    if (local0 != 999) {
+        actor-select 21
+        actor-set-scale (call-script CalcActorScale [local0])
+        local4 = gScreen[local0][X] + local3
+        local5 = gScreen[local0][Y] + local2
+        put-actor 21 local4 local5 3
+        if (local1 != local0) {
+            local1 = local0
+            actor-do-anim 21 7
+        }
+    } else {
+        actor-do-anim 21 1
+    }
+    stop-script
+} until (!g_maybe_smth_play_is_alive)
+put-actor 21 0 0 0
+free-script

@@ -1,0 +1,116 @@
+; SCRP 20 HandleKey
+
+parameter key: char
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (!gDebugMode) {
+} else {
+    case key {
+        of 'f' {
+            if (gScratchStack) {
+                xb6-xfe
+                xb6-xc2 "SCRATCH STACK STATUS: %d free out of %d" (call-script GetScratchStackPointer []) [array-width gScratchStack]
+                xb6-xfe
+                xb6-xc2 "PALETTE STACK STATUS: %d free out of %d" (call-script GetPaletteStackPointer []) [array-width gPaletteStack]
+                xb6-xfe
+                xb6-xc2 "SPRITE  STACK STATUS: %d free out of %d" (call-script GetSpriteStackPointer []) [array-width gSpriteStack]
+            }
+            xb6-xfe
+            xb6-xc2 "FREE ARRAYS: %d" (get-free-arrays) []
+        }
+        of '*' {
+            run-script DebugShowPalette []
+        }
+        of '3' {
+            gMachineSpeed = gMachineSpeed + 1
+            if (gMachineSpeed > 2) {
+                gMachineSpeed = SLOW-MACHINE
+            }
+            case gMachineSpeed {
+                of SLOW-MACHINE {
+                    xb7-xfe
+                    xb7-x4b "Now set to Slow speed machine."
+                }
+                of MED-MACHINE {
+                    xb7-xfe
+                    xb7-x4b "Now set to Medium speed machine."
+                }
+                of FAST-MACHINE {
+                    xb7-xfe
+                    xb7-x4b "Now set to Fast speed machine."
+                }
+            }
+        }
+        of '6' {
+            local1 = g_maybe_selected_actor + 1
+            if (local1 > gActorPoolMax) {
+                local1 = gActorPoolMin
+            }
+            do {
+                if ((get-room local1) == gCurrentRoom) {
+                    g_maybe_selected_actor = local1
+                    xb6-xfe
+                    xb6-xc2 "Selected actor is %d" g_maybe_selected_actor []
+                } else {
+                    ++local1
+                }
+            } until (local1 == g_maybe_selected_actor || local1 > gActorPoolMax)
+        }
+        of 'T' {
+            if (gDebug == 13) {
+                case random 2 {
+                    of 0 {
+                        local2 = "Testing 1 2 3 4"
+                    }
+                    of 1 {
+                        local2 = "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site?"
+                    }
+                    of 2 {
+                        local2 = "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site? Fatal Initialization Error - (Too Many Auto Restarts) "
+                    }
+                }
+                temp = random 1
+                run-script smth_message_popup [local2, temp, 0]
+                while (!!(is-script-running smth_message_popup)) {
+                    stop-script
+                }
+            }
+        }
+        of '+' {
+            run-script PlayMusicPool [iif (gCurrentMusic + 1 <= 8137) (gCurrentMusic + 1) 8000]
+        }
+        of '-' {
+            run-script PlayMusicPool [iif (gCurrentMusic - 1 >= 8000) (gCurrentMusic - 1) 8137]
+        }
+        of 'K' {
+            stop-sound 10000
+        }
+        of 'P' {
+            for local4 = 0 to 479 ++ {
+                for local3 = 0 to 639 ++ {
+                    if (xfc local3 local4) {
+                    }
+                    xa6 local3 local4 local3 local4 32769
+                }
+            }
+        }
+        of 'M' {
+            run-script SetMusicEnabled [gNoMusic]
+        }
+        of '^' {
+            run-script PlayMusicPool [-1]
+        }
+    }
+}
+case key {
+    of 27 {
+        xb6-xfe
+        xb6-x4b "Hit Esc with no override set. Do a Stop-line"
+        xd1
+    }
+}
+free-script

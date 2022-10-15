@@ -1,0 +1,24 @@
+; SCRP 349 NetPromptQuit
+
+local variable local0
+
+local0 = "Do you want to quit this game?  Remember, you will be charged with a loss."
+run-script smth_message_popup [local0, 1, 0, 0]
+while (!!(is-script-running smth_message_popup)) {
+    stop-script
+}
+if (global577 == 1) {
+    run-script smth_net_abort_game [46]
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+}
+free-script

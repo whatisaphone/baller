@@ -1,0 +1,482 @@
+; SCRP 201 CastPitchBall
+
+parameter pitcher_kid: Kid
+parameter batter_kid: Kid
+parameter zone: Zone
+parameter pitch_kind: PitchKind
+parameter arg4
+
+local variable batter_handedness: Handedness
+local variable batter_gender: Gender
+
+gCurrentSpeechScript = CastPitchBall
+batter_handedness = shr (gKidData[gBatterKid][13] & 48) 4
+batter_gender = gKidData[gBatterKid][KD-gender]
+if (random 1) {
+    if (random 1) {
+        case 1 {
+            of zone in [1, 2, 8] {
+                if (batter_handedness == RIGHT-HANDED) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15431215,9320\x7f High and inside"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15440535,9672\x7f High and outside"
+                }
+            }
+            of zone in [6, 7, 14] {
+                if (batter_handedness == RIGHT-HANDED) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15440535,9672\x7f High and outside"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15431215,9320\x7f High and inside"
+                }
+            }
+            of zone in [36, 43, 44] {
+                if (batter_handedness == RIGHT-HANDED) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15450207,10216\x7f Low and inside"
+                } else if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15460423,8808\x7f Low and away"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15469231,12392\x7f Low and outside"
+                }
+            }
+            of zone in [42, 48, 49] {
+                if (batter_handedness == RIGHT-HANDED) {
+                    if (random 1) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15460423,8808\x7f Low and away"
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15469231,12392\x7f Low and outside"
+                    }
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15450207,10216\x7f Low and inside"
+                }
+            }
+            else {
+                goto label0441
+            }
+        }
+    } else {
+        case gNumBalls {
+            of 1 {
+                if (zone < 15 && zone > 0 || zone == -1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15481623,10152\x7f High ball 1"
+                } else if (zone > 35 || zone == -3) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15491775,11304\x7f Low ball 1"
+                } else {
+                    goto label0441
+                }
+            }
+            of 2 {
+                if (zone < 15 && zone > 0 || zone == -1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15503079,8584\x7f High ball 2"
+                } else if (zone > 35 || zone == -3) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15511663,9512\x7f Low ball 2"
+                } else {
+                    goto label0441
+                }
+            }
+            of 3 {
+                if (zone < 15 && zone > 0 || zone == -1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15521175,13928\x7f High ball 3"
+                } else if (zone > 35 || zone == -3) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15535103,12840\x7f Low ball 3"
+                } else {
+                    goto label0441
+                }
+            }
+        }
+    }
+} else {
+label0441:
+    if (!(random 4)) {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT15547943,9640\x7f That was a ball"
+    } else {
+        case gNumBalls {
+            of 1 {
+                if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15557583,7592\x7f Ball 1"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15565175,10472\x7f that was ball 1"
+                }
+            }
+            of 2 {
+                if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15575647,7944\x7f Ball 2"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15583591,12968\x7f that was ball 2"
+                }
+            }
+            of 3 {
+                if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15596559,7496\x7f Ball 3"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15604055,14920\x7f that was ball 3"
+                }
+            }
+            of 4 {
+                case random 2 {
+                    of 0 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15618975,11560\x7f Ball 4"
+                    }
+                    of 1 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15630535,14824\x7f and that's the fourth ball."
+                    }
+                    of 2 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15645359,13979\x7f and there's ball 4."
+                    }
+                }
+            }
+        }
+    }
+}
+xa9-xa9
+if (gNumBalls == 4) {
+} else {
+    if (arg4) {
+        if (!(random 3)) {
+            if (4 == gCurrentRoom) {
+                gCurrentSpeechScript = 0
+                run-script gDialogueHandlerScript [12, batter_kid]
+                free-running-script 0
+            }
+        }
+    }
+    if ((random 3) || gNoGooch) {
+        goto label154d
+    }
+    if (gNumBalls == 3) {
+        if (random 1) {
+            goto label0b89
+        }
+    } else {
+label06c6:
+        gPitchWasCasted = 1
+        case random 7 {
+            of 0 {
+                if (zone in [1, 2, 6, 7, 8, 14, 36, 42, 43, 44, 48, 49]) {
+                    if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15659338,18132\x7f She tried the corner on this."
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15677470,24317\x7f  He painted the corner with that one"
+                    }
+                } else {
+                    goto label06c6
+                }
+            }
+            of 1 {
+                if (batter_gender == GIRL) {
+                    if ((zone in [1, 2, 8, 15]) && batter_handedness == RIGHT-HANDED || (zone in [6, 7, 14, 21]) && batter_handedness == LEFT-HANDED) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15701787,29853\x7f A little chin music to back her off the plate"
+                    } else {
+                        goto label06c6
+                    }
+                } else {
+                    goto label06c6
+                }
+            }
+            of 2 {
+                if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                    goto label06c6
+                } else if ((zone in [1, 2, 8, 15]) && batter_handedness == RIGHT-HANDED || (zone in [6, 7, 14, 21]) && batter_handedness == LEFT-HANDED) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15731640,28516\x7f He really got up in the kitchen with that one."
+                } else {
+                    goto label06c6
+                }
+            }
+            of 3 {
+                if ((zone in [-4, 1, 8, 15, 22, 29, 36, 43]) && batter_handedness == 0 || (zone in [-2, 7, 14, 21, 28, 35, 42, 49]) && batter_handedness == RIGHT-HANDED) {
+                    if (random 1) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15760156,27100\x7f  ...juuust a bit outside."
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15787256,21757\x7f  that one was just a bit wide"
+                    }
+                } else {
+                    goto label06c6
+                }
+            }
+            of 4 {
+                if (zone > 0 && zone < 8 || zone == -1) {
+                    if (gKidData[pitcher_kid][KD-gender] == GIRL && (random 1)) {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15809013,28743\x7f  Looked she was tryin' to hit a bird or somethin'"
+                    } else {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT15837756,15051\x7f  Just a bit high"
+                    }
+                } else {
+                    goto label06c6
+                }
+            }
+            of 5 {
+                if (zone == -3 || zone > 42) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15852807,20239\x7f  Bowling for dollars."
+                } else {
+                    goto label06c6
+                }
+            }
+            of 6 {
+                if ((zone in [36, 43, 44]) && batter_handedness == RIGHT-HANDED || (zone in [42, 48, 49]) && batter_handedness == LEFT-HANDED) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15873046,18574\x7f  straight for the shins"
+                }
+            }
+            of 7 {
+                if ((random 1) && !gUserOnOffense) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15891620,35856\x7f  it's been too long since that ump. had his eyes checked"
+                }
+            }
+        }
+        xa9-xa9
+        goto label154d
+    }
+label0b89:
+    if (gUserOnOffense) {
+        if (gNumStrikes == 1) {
+            if (!(random 3)) {
+                gPitchWasCasted = 1
+                if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15927476,14730\x7f Gimme pitch, comin' up"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT15942206,21541\x7f  3-1 pitch should be easy money"
+                }
+            }
+        }
+    } else {
+        gPitchWasCasted = 1
+        if (random 1) {
+            if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT15963747,20553\x7f  Tryin' to keep her cool out there."
+            } else {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT15984300,37100\x7f  You can see his frustration level rising."
+            }
+        } else if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT16021400,25696\x7f  She's trying not to let it get to her."
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT16047096,27765\x7f  He's trying to pull it together out there."
+        }
+    }
+    xa9-xa9
+    goto label154d
+}
+if (gUserOnOffense) {
+    temp = 3
+} else {
+    temp = 6
+}
+case random temp {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16074861,8838\x7f Forced a walk..."
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16083699,12876\x7f and that's a walk"
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16096575,20457\x7f stroll down the first baseline"
+    }
+    of 3 {
+        if (gKidData[batter_kid][KD-gender] == GIRL) {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT16117032,9909\x7f And she walks.."
+        } else {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT16126941,8777\x7f he got a walk"
+        }
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16135718,12425\x7f hands one over"
+    }
+    of 5 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16148143,10246\x7f gives up a walk"
+    }
+    of 6 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT16158389,8119\x7f gives up a base"
+    }
+}
+xa9-xa9
+if (!(random 2) || gNoGooch) {
+} else {
+    gCurrentSpeechScript = 0
+    while (!(gCurrentRoom == 3)) {
+        stop-script
+    }
+    stop-script
+    put-actor g_maybe_selected_actor 0 0 gCurrentRoom
+    gCurrentSpeechScript = CastPitchBall
+    if (gUserOnOffense) {
+        case random 6 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16166508,76322\x7f  Contestant #1, come on down!  You've just won yourself a free trip to first base!"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16242830,31379\x7f  Nice one!   That's what I like to see!"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16274209,21655\x7f  That's workin' for us!"
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16295864,37200\x7f Way to go kid, that's showin' 'em who's boss."
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT10381176,21401\x7f\x09Now that kid has moxie!"
+            }
+            of 5 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT11033115,32888\x7f That's major league action right here in the neighborhood!"
+            }
+            of 6 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT10777698,32524\x7f\x09Who needs movies when life is this exciting?"
+            }
+        }
+    } else {
+        case random 5 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT8383936,29948\x7fI know these kids can keep it together out there."
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT8306047,27640\x7fOH! That's not what we're lookin' for."
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16166508,76322\x7f  Contestant #1, come on down!  You've just won yourself a free trip to first base!"
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16333064,97974\x7f  you win some, you lose some.  Each batter up is in a personal battle against the pitcher... Somebody's gotta go down every time."
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT16431038,29200\x7f   Happens to the best of 'em from time to time."
+            }
+            of 5 {
+                if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT16460238,54020\x7f  that's really tough on a pitcher's confidence level.  Let's hope this doesn't get to her."
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT16514258,69135\x7f  He's really got to pull it together for this next batter.  He can't let it get to him or he'll go down."
+                }
+            }
+        }
+    }
+    xa9-xa9
+}
+label154d:
+gCurrentSpeechScript = 0
+free-script

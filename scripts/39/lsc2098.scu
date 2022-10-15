@@ -1,0 +1,28 @@
+; LSC2 39 2098
+
+local variable local0
+local variable local1
+
+if (local0 == room28[23]) {
+    ++room30
+    if (room30 > 8) {
+        room30 = 8
+    }
+    local1 = 3
+} else {
+    --room30
+    if (room30 < 0) {
+        room30 = 0
+    }
+    local1 = 1
+}
+run-script PlayClickySound []
+run-script-xc3 2099 [18, local1]
+stop-script
+sprite-set-range room28[18] room28[18]
+sprite-clear
+sprite-x2a 0 2
+local1 = call-script 2103 []
+run-script-xc3 2099 [21]
+run-script-xc3 2099 [19]
+free-script

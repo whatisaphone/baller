@@ -1,0 +1,88 @@
+; LSC2 8 2063 CastGameEnded
+
+gCurrentMatchupCastScript = CastGameEnded
+label0006:
+case random 7 {
+    of 0 {
+        xba "\x7fT106329786,47975\x7f       Until next time, this is Sunny day and Vinnie the Gooch, signing off." 1
+    }
+    of 1 {
+        xba "\x7fT106377761,38055\x7f       This is Sunny Day and Vinnie the Gooch sayin' see ya next time." 1
+    }
+    in [2, 3] {
+        case gField {
+            of PLAYGROUND-COMMONS {
+                xba "\x7fT106415816,69536\x7f       Thanks for coming out, folks.  This has been Sunny Day and Vinnie the Gooch, live at the playground commons." 1
+            }
+            of DIRT-YARDS {
+                xba "\x7fT106485352,53692\x7f       Live from Dirt Yards, this has been Sunny Day and Vinnie the Gooch. See ya next time!" 1
+            }
+            of CEMENT-GARDENS {
+                xba "\x7fT106539044,47450\x7f       Straight from Cement Gardens, this is Sunny Day and Vinnie the Gooch signing off." 1
+            }
+            of PARKS-DEPARTMENT {
+                case random 4 {
+                    of 0 {
+                        xba "\x7fT106586494,59051\x7f  Straight from the official BBL field, this is Sunny Day and Vinnie the Gooch signing off." 1
+                    }
+                    of 1 {
+                        xba "\x7fT106645545,72786\x7f  Until next time, this is Sunny day and Vinnie the Gooch signing off from the Parks dept field #2." 1
+                    }
+                    of 2 {
+                        xba "\x7fT106718331,68960\x7f  This is Sunny Day and Vinnie the Gooch sayin' see ya next time here at the Parks dept. Field #2." 1
+                    }
+                    of 3 {
+                        xba "\x7fT106787291,73796\x7f  Live from the Parks Dept field # 2, this has been Sunny Day and Vinnie the Gooch.  See ya next time!" 1
+                    }
+                    of 4 {
+                        xba "\x7fT106861087,69520\x7f  Straight from the Parks Dept. Field #2, this is Sunny Day and Vinnie the Gooch signing off" 1
+                    }
+                }
+            }
+            of BIG-CITY-STADIUM {
+                if (random 1) {
+                    xba "\x7fT106930607,73226\x7f  Thanks for coming out, folks  This has been Sunny Day and Vinnie the Gooch, live at the Big City Stadium" 1
+                } else {
+                    xba "\x7fT107003833,56062\x7f  Straight from the Big City Stadium, this is Sunny Day and Vinnie the Gooch signing off" 1
+                }
+            }
+            of SUPER-COLOSSAL-DOME {
+                xba "\x7fT107059895,55756\x7f  Straight from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch signing off" 1
+            }
+            of SANDY-FLATS {
+                xba "\x7fT107115651,50829\x7f  Straight from Sandy Flats, this is Sunny Day and Vinnie the Gooch, signing off." 1
+            }
+            of TIN-CAN-ALLEY {
+                xba "\x7fT107166480,50525\x7f  Straight from Tin Can Alley, this is Sunny Day and Vinnie the Gooch, signing off." 1
+            }
+            of ECKMAN-ACRES {
+                xba "\x7fT107217005,56873\x7f  Live from Eckman Acres, this has been Sunny Day and Vinnie the Gooch.  See ya next time." 1
+            }
+            of STEELE-STADIUM {
+                xba "\x7fT107273878,53045\x7f  Straight from Steele Stadium, this is Sunny Day and Vinnie the Gooch, signing off." 1
+            }
+            else {
+                goto label0006
+            }
+        }
+    }
+    of 4 {
+        xba "\x7fT107326923,79544\x7fFor Vinnie the Gooch, this is Sunny Day, wishing you all peace, harmony, and great baseball. See ya next time!" 1
+    }
+    of 5 {
+        xba "\x7fT107406467,71608\x7fUntil next time, this is Sunny Day, for Vinnie the Gooch and the whole Backyard Gang ...so long!" 1
+    }
+    of 6 {
+        xba "\x7fT107478075,47938\x7fFor Vinnie the Gooch, this is Sunny Day, bidding you farewell ..." 1
+        xa9-xa9
+        xba "\x7fT107526013,62650\x7f'Bidding you farewell'?!  You've been reading those fancy novels again haven't you?" 2
+        xa9-xa9
+        xba "\x7fT107588663,40472\x7fHonestly, Vinnie. See ya next time Baseball fans!" 1
+    }
+    of 7 {
+        xba "\x7fT107629135,57686\x7fUntil next time, for Vinnie the Gooch, this is Sunny Day.  So long sports fans!" 1
+    }
+}
+xa9-xa9
+gCurrentMatchupCastScript = 0
+free-script

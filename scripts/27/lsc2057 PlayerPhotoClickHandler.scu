@@ -1,0 +1,9 @@
+; LSC2 27 2057 PlayerPhotoClickHandler
+
+parameter arg0
+
+local variable local1
+
+local1 = actor-get-var arg0 10
+run-script PlayerSay [local1]
+free-script

@@ -1,0 +1,176 @@
+; LSC2 5 2150 maybe_setup_two_player_draft
+
+local variable local0
+local variable local1
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+stop-script
+if (gNetplayActive) {
+    if (g_net_smth_master == g_net_smth_me) {
+        g_maybe_net_who_picks_next = 0
+        g_maybe_who_picks_first = random2 0 1
+        run-script-xc3 maybe_net_send_message [30, 1, NET-PICK-FIRST, g_maybe_who_picks_first + 1]
+    } else {
+        while (!g_maybe_net_who_picks_next) {
+            stop-script
+        }
+        g_maybe_who_picks_first = 1 - g_maybe_net_who_picks_next - 1
+    }
+    g_maybe_net_who_picks_next = 0
+} else {
+    g_maybe_who_picks_first = 0
+    if (gGameMode == MODE-PICKUP) {
+        g_maybe_who_picks_first = random2 0 1
+    }
+}
+local1 = 1
+cutscene-start 115 319
+queue-costume 286
+queue-sound 1736
+queue-sound 1737
+queue-sound 1738
+queue-sound 1739
+queue-sound 1740
+queue-sound 1741
+queue-sound 1742
+stop-script
+run-script smth_update_sprites [0]
+sleep 11
+actor-select local1
+actor-xd9
+actor-set-costume 286
+actor-x2b 200
+actor-set-sounds [1736, 1736, 1737, 1738, 1739, 1740, 1741, 1742]
+put-actor local1 320 240 5
+actor-select local1
+actor-x61 (6 / gMinJiffies)
+actor-do-anim local1 (random2 1 2)
+if (g_maybe_who_picks_first) {
+    actor-select local1
+    actor-set-conditons [130]
+    queue-sound 1744
+} else {
+    actor-select local1
+    actor-set-conditons [129]
+    queue-sound 1743
+}
+sleep (8 * 6 / gMinJiffies)
+actor-select local1
+actor-set-var 1 1
+while (!(actor-get-var local1 0)) {
+    stop-script
+}
+sleep (5 * 6 / gMinJiffies)
+actor-select local1
+actor-set-var 0 0
+actor-select local1
+actor-x61 4
+local0 = random2 6 9
+actor-do-anim local1 local0
+if (local0 < 8) {
+    sound-select 1742
+    sound-play
+} else {
+    sound-select 1741
+    sound-play
+}
+while (!(actor-get-var local1 0)) {
+    stop-script
+}
+if (g_maybe_who_picks_first) {
+    run-script PlaySound [1744]
+} else {
+    run-script PlaySound [1743]
+}
+sleep 15
+actor-select local1
+actor-set-costume 0
+put-actor local1 0 0 0
+if (gNetplayActive) {
+    run-script 2192 []
+}
+if (g_maybe_skipped_cutscene) {
+    stop-sound 10000
+    if (g_maybe_who_picks_first) {
+        if (gNetplayActive) {
+            run-script maybe_net_send_first_pick_message []
+            while (!!(is-script-running maybe_net_send_first_pick_message)) {
+                stop-script
+            }
+        } else {
+            run-script maybe_ai_pick_kid []
+        }
+        stop-sound 1744
+    } else {
+        if (gNetplayActive) {
+            run-script maybe_net_send_first_pick_message []
+            while (!!(is-script-running maybe_net_send_first_pick_message)) {
+                stop-script
+            }
+        }
+        cursor-input-enable
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-show
+        } else if (gCursorInputEnabled == 0) {
+            free-running-script GamePadCursorLoop
+            run-script ReleaseSprite [gGamePadCursorSprite]
+            gGamePadCursorSprite = 0
+        } else {
+            run-script ShowGamePadCursor []
+        }
+        stop-sound 1743
+    }
+} else {
+    while (!!(is-sound-playing 1744)) {
+        stop-script
+    }
+    while (!!(is-sound-playing 1743)) {
+        stop-script
+    }
+    cutscene-end
+    if (g_maybe_who_picks_first) {
+        sleep 10
+        if (gNetplayActive) {
+            run-script maybe_net_send_first_pick_message []
+            while (!!(is-script-running maybe_net_send_first_pick_message)) {
+                stop-script
+            }
+        } else {
+            run-script maybe_ai_pick_kid []
+        }
+    } else {
+        if (gNetplayActive) {
+            run-script maybe_net_send_first_pick_message []
+            while (!!(is-script-running maybe_net_send_first_pick_message)) {
+                stop-script
+            }
+        }
+        cursor-input-enable
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-show
+        } else if (gCursorInputEnabled == 0) {
+            free-running-script GamePadCursorLoop
+            run-script ReleaseSprite [gGamePadCursorSprite]
+            gGamePadCursorSprite = 0
+        } else {
+            run-script ShowGamePadCursor []
+        }
+    }
+}
+sprite-group-select 23
+sprite-group-x2c 0 (0 - 30)
+sprite-group-select 24
+sprite-group-x2c 0 (0 - 30)
+sprite-group-select 26
+sprite-group-x2c 0 (0 - 30)
+run-script smth_update_sprites [1]
+free-script

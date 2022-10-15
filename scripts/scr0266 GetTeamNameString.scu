@@ -1,0 +1,130 @@
+; SCRP 266 GetTeamNameString
+
+parameter name
+parameter uppercase
+
+local variable local2
+
+case name {
+    of 101 {
+        local2 = "Bombers"
+    }
+    of 102 {
+        local2 = "Fishes"
+    }
+    of 103 {
+        local2 = "Hornets"
+    }
+    of 104 {
+        local2 = "Melonheads"
+    }
+    of 105 {
+        local2 = "Monsters"
+    }
+    of 106 {
+        local2 = "Wombats"
+    }
+    of 122 {
+        local2 = "Angels"
+    }
+    of 123 {
+        local2 = "Diamondbacks"
+    }
+    of 124 {
+        local2 = "Braves"
+    }
+    of 125 {
+        local2 = "Orioles"
+    }
+    of 126 {
+        local2 = "Red Sox"
+    }
+    of 127 {
+        local2 = "Cubs"
+    }
+    of 128 {
+        local2 = "White Sox"
+    }
+    of 129 {
+        local2 = "Reds"
+    }
+    of 130 {
+        local2 = "Indians"
+    }
+    of 131 {
+        local2 = "Rockies"
+    }
+    of 132 {
+        local2 = "Tigers"
+    }
+    of 133 {
+        local2 = "Marlins"
+    }
+    of 134 {
+        local2 = "Astros"
+    }
+    of 135 {
+        local2 = "Royals"
+    }
+    of 136 {
+        local2 = "Dodgers"
+    }
+    of 137 {
+        local2 = "Brewers"
+    }
+    of 138 {
+        local2 = "Twins"
+    }
+    of 139 {
+        local2 = "Expos"
+    }
+    of 140 {
+        local2 = "Yankees"
+    }
+    of 141 {
+        local2 = "Mets"
+    }
+    of 142 {
+        local2 = "Athletics"
+    }
+    of 143 {
+        local2 = "Phillies"
+    }
+    of 144 {
+        local2 = "Pirates"
+    }
+    of 145 {
+        local2 = "Padres"
+    }
+    of 146 {
+        local2 = "Giants"
+    }
+    of 147 {
+        local2 = "Mariners"
+    }
+    of 148 {
+        local2 = "Cardinals"
+    }
+    of 149 {
+        local2 = "Devil Rays"
+    }
+    of 150 {
+        local2 = "Rangers"
+    }
+    of 151 {
+        local2 = "Blue Jays"
+    }
+    else {
+        local2 = "No Team"
+    }
+}
+if (uppercase) {
+    temp2 = (strlen local2) - 1
+    for temp = 0 to temp2 ++ {
+        if (local2[temp] >= 97 && local2[temp] <= 122) {
+            local2[temp] = local2[temp] - 32
+        }
+    }
+}
+return local2
+free-script

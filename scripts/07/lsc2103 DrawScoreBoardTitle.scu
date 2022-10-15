@@ -1,0 +1,57 @@
+; LSC2 7 2103 DrawScoreBoardTitle
+
+local variable local1
+local variable local2
+local variable local3
+
+case gGameMode {
+    of MODE-PICKUP {
+        local1 = 3
+    }
+    of MODE-SEASON {
+        case 1 {
+            of gSeasonGameNumber <= 14 {
+                local2 = gSeasonGameNumber - 1
+                local1 = 1
+                local3 = 320
+            }
+            of gSeasonGameNumber < 20 {
+                local2 = gSeasonGameNumber - 14 - 1
+                local1 = 2
+                local3 = 330
+            }
+            else {
+                local2 = gSeasonGameNumber - 20
+                local1 = 0
+                local3 = 352
+            }
+        }
+        sprite-set-range room6[30] room6[30]
+        sprite-clear
+        sprite-set-image 1006
+        sprite-x34 local2
+        sprite-palette room19
+        sprite-x7c 0
+        sprite-x52 0
+        sprite-x2b -800
+        sprite-set-hotspot local3 240
+    }
+    of MODE-SPECTATE {
+        local1 = 5
+    }
+    else {
+        local1 = 3
+        xb7-xfe
+        xb7-xc2 "DrawScoreBoardTitle - undefined game mode - defaulting to pickup (%d)" gGameMode []
+    }
+}
+sprite-set-range room6[21] room6[21]
+sprite-clear
+sprite-set-image 1005
+sprite-x34 local1
+sprite-palette room19
+sprite-x7c 0
+sprite-x52 0
+sprite-x2b -800
+sprite-set-hotspot 320 240
+free-script

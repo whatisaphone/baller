@@ -1,0 +1,9 @@
+; SCRP 122 WriteSeasonSchedule
+
+parameter arg0
+parameter arg1
+parameter field: SeasonScheduleField
+parameter arg3
+
+gSeasonScheduleArray[arg0][arg1 * 7 + field] = arg3
+free-script

@@ -1,0 +1,9 @@
+; LSC2 3 2176
+
+local variable local0
+
+for local0 = 1 to 32 ++ {
+    sprite-set-range local0 local0
+    sprite-clear
+}
+free-script

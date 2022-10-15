@@ -1,0 +1,23 @@
+; LSC2 39 2154
+
+local variable local0
+local variable local1
+
+sprintf local1 "%c" [95]
+local0 = call-script maybe_draw_text_to_image [local1, 1239, 930, room13]
+free-array local1
+do {
+    sprite-set-range room47[1] room47[1]
+    sprite-clear
+    sprite-set-image 930
+    sprite-set-hotspot (332 + room51 + 2) 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+    sleep 6
+    sprite-set-range room47[1] room47[1]
+    sprite-clear
+    sprite-set-image 930
+    sprite-x2a 0 2
+    sleep 6
+}
+free-script

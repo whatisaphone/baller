@@ -1,0 +1,26 @@
+; SCRP 312 SetCameraVars
+
+parameter room
+
+if (!room) {
+    room = gCurrentRoom
+}
+gCameraAngleX = 0 - gCameraTransform[3][room]
+gCameraAngleY = 0 - gCameraTransform[4][room]
+gCameraAngleZ = 0 - gCameraTransform[5][room]
+if (gCameraAngleX) {
+    gCosCameraAngleX = cos gCameraAngleX
+    gSinCameraAngleX = sin gCameraAngleX
+}
+if (gCameraAngleY) {
+    gCosCameraAngleY = cos gCameraAngleY
+    gSinCameraAngleY = sin gCameraAngleY
+}
+if (gCameraAngleZ) {
+    gCosCameraAngleZ = cos gCameraAngleZ
+    gSinCameraAngleZ = sin gCameraAngleZ
+}
+gCameraPosX = gCameraTransform[0][room]
+gCameraPosY = gCameraTransform[1][room]
+gCameraPosZ = gCameraTransform[2][room]
+free-script

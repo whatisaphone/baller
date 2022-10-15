@@ -1,0 +1,66 @@
+; SCRP 4 PlayMusicPool
+
+parameter arg0
+parameter arg1
+
+local variable local2
+
+if (arg0 == 0) {
+    stop-sound 10000
+    free-running-script 0
+}
+if (gNoMusic) {
+    free-running-script 0
+}
+if (gMusicPool == 0) {
+    dim array gMusicPool i16[0...0][0...100] swap=2
+    gMusicPool[0] = 0
+}
+if (global46) {
+    xa9-xa9
+}
+if (arg0 == -1) {
+    goto label0090
+}
+if (arg0 != 1) {
+    run-script PlayMusic [arg0, 1]
+}
+do {
+    stop-script
+    stop-script
+    sleep 10
+    while (!!(is-sound-playing 10000)) {
+        stop-script
+    }
+    if (arg1) {
+        run-script PlayMusic [arg1, 1]
+        arg1 = 0
+        stop-script
+        stop-script
+        sleep 10
+        while (!!(is-sound-playing 10000)) {
+            stop-script
+        }
+    }
+label0090:
+    if (global240 && (random 100) <= global241) {
+        local2 = global240[random2 1 global240[0]]
+        if (global240[0] != 1) {
+            while (local2 == gCurrentMusic) {
+                local2 = global240[random2 1 global240[0]]
+            }
+        }
+    } else {
+        if (gMusicPool[0] == 0) {
+            free-running-script 0
+        }
+        local2 = gMusicPool[random2 1 gMusicPool[0]]
+        if (gMusicPool[0] != 1) {
+            while (local2 == gCurrentMusic) {
+                local2 = gMusicPool[random2 1 gMusicPool[0]]
+            }
+        }
+    }
+    run-script PlayMusic [local2, 1]
+}
+free-script

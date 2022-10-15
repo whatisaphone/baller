@@ -1,0 +1,47 @@
+; LSC2 29 2079
+
+local variable local0
+local variable local1
+
+if (MODE-SEASON == gGameMode) {
+    local1 = gCoachHomeField
+} else if (gField == -1) {
+    local1 = random2 0 9
+} else {
+    local1 = gField
+}
+case local1 {
+    of 0 {
+        local0 = 1131
+    }
+    of 1 {
+        local0 = 1132
+    }
+    of 2 {
+        local0 = 1133
+    }
+    of 3 {
+        local0 = 1134
+    }
+    of 4 {
+        local0 = 1135
+    }
+    of 5 {
+        local0 = 1136
+    }
+    of 6 {
+        local0 = 1137
+    }
+    of 7 {
+        local0 = 1138
+    }
+    of 8 {
+        local0 = 1139
+    }
+    of 9 {
+        local0 = 1140
+    }
+}
+run-script smth_load_palette [local0]
+return local0
+free-script

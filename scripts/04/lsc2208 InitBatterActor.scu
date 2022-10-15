@@ -1,0 +1,184 @@
+; LSC2 4 2208 InitBatterActor
+
+parameter skip_walking_to_plate_animation
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local3 = 0 - gWorld[HIT-CONTACT][Z] / 10
+local3 = local3 + 1
+actor-select 2
+actor-xd9
+actor-set-costume 0
+actor-x54 local3
+actor-x2b 15
+actor-select 2
+actor-x62 global423
+actor-select 2
+actor-clip-rect 0 0 639 400
+put-actor 2 320 (240 + local3) 4
+local5 = shr (gKidData[gBatterKid][13] & 12) 2
+if (!local5) {
+    local5 = gKidData[gBatterKid][13] & 3
+} else if (local5 == 3) {
+    local5 = gKidData[rPitcherKid][13] & 3
+}
+gKidData[gBatterKid][13] = (gKidData[gBatterKid][13] & 15) + (shl local5 4)
+local1 = call-script maybe_kid_get_costume_batting [gBatterKid]
+local2 = local1 + 1
+if (MODE-BATTING-PRACTICE != gGameMode) {
+    if (g_maybe_batter_strikeout_costume != local1 + 2) {
+        skip_walking_to_plate_animation = 0
+        g_maybe_batter_strikeout_costume = local1 + 2
+    }
+} else {
+    local4 = 0
+}
+actor-select 2
+actor-x61 (6 / gMinJiffies)
+run-script SetBatterSounds []
+if (!skip_walking_to_plate_animation) {
+    if (gBatterKid <= 61) {
+        run-script PlayKidMusic [gBatterKid]
+    } else {
+        run-script maybe_play_generic_music []
+    }
+    queue-costume local2
+    sleep (60 / gMinJiffies)
+    run-script PlayCrowdSound [5]
+    room36 = 1
+    actor-select 2
+    actor-set-costume local1
+    actor-select 2
+    actor-x56 231 (palette-xd9 0 0 0)
+    run-script smth_team_color_palette [gBattingTeamInfoIndex, 2]
+    if (gGameStats[gBatterKid][STAT-AT-BATS] == 0) {
+        actor-select 2
+        actor-set-var 5 1
+    }
+    actor-do-anim 2 1
+    if (gBatterKid > gMaxUniqueKid) {
+        if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+            actor-do-anim 2 248
+        }
+    } else if (gBatterKid in [CHIPPER-JONES, CARLOS-BELTRAN]) {
+        if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+            actor-do-anim 2 248
+        }
+    } else if (gBatterKid in [KENNY-LOFTON, TONY-GWYNN, SHAWN-GREEN, LARRY-WALKER, JEROMY-BURNITZ, JASON-GIAMBI]) {
+        actor-do-anim 2 248
+    }
+    cutscene-start 115 368
+    while (!(actor-get-var 2 0)) {
+        stop-script
+    }
+    sleep 5
+    if (gUserOnOffense) {
+        run-script AddToCommentQueue [DIALOGUE-BANTER-BATTER, gBatterKid]
+    }
+}
+sprite-set-range 14 14
+sprite-x7c 2
+sprite-set-range 11 11
+sprite-x7c 2
+free-costume local1
+actor-select 2
+actor-set-costume local2
+actor-select 2
+actor-x56 231 (palette-xd9 0 0 0)
+run-script smth_team_color_palette [gBattingTeamInfoIndex, 2]
+actor-select 2
+actor-set-var 5 0
+if (gBatterKid in [PABLO-SANCHEZ, TONY-DELVECCHIO, MARIA-LUNA, STEPHANIE-MORGAN, JORGE-GARCIA, REESE-WORTHINGTON, DEREK-JETER, RANDY-JOHNSON, MO-VAUGHN, SHAWN-GREEN, KENNY-LOFTON, CHIPPER-JONES, ALEX-RODRIGUEZ, JEFF-BAGWELL, RAUL-MONDESI, CURT-SCHILLING, SAMMY-SOSA, LARRY-WALKER, JUAN-GONZALEZ, NOMAR-GARCIAPARRA, ALEX-GONZALEZ, MARTY-CORDOVA]) {
+    local4 = 1
+}
+if (!skip_walking_to_plate_animation) {
+    if (gBatterKid in [REESE-WORTHINGTON, PABLO-SANCHEZ, TONY-DELVECCHIO]) {
+        local4 = 0
+    }
+} else if (random 3) {
+    local4 = 0
+}
+if (gNetplayActive) {
+    if (gPreviousRoom == 27) {
+        local4 = 0
+    }
+}
+if (gBatterKid > gMaxUniqueKid) {
+    if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+        actor-do-anim 2 248
+    }
+} else if (gBatterKid in [CHIPPER-JONES, CARLOS-BELTRAN]) {
+    if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+        actor-do-anim 2 248
+    }
+} else if (gBatterKid in [KENNY-LOFTON, TONY-GWYNN, SHAWN-GREEN, LARRY-WALKER, JEROMY-BURNITZ, JASON-GIAMBI]) {
+    actor-do-anim 2 248
+}
+if (local4 && MODE-BATTING-PRACTICE != gGameMode) {
+    actor-select 2
+    actor-set-var 0 0
+    actor-do-anim 2 6
+    while (!(actor-get-var 2 0)) {
+        stop-script
+    }
+}
+if (g_maybe_skipped_cutscene) {
+    actor-select 2
+    actor-set-costume local2
+    actor-select 2
+    actor-x56 231 (palette-xd9 0 0 0)
+    run-script smth_team_color_palette [gBattingTeamInfoIndex, 2]
+    xd1
+    if (gCurrentSpeechScript > 1) {
+        xd1
+        free-running-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > 1) {
+        xd1
+        free-running-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        free-running-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+    stop-sound 10000
+    room54 = 1
+} else {
+    cutscene-end
+}
+actor-select 2
+actor-set-var 1 0
+case gBatterStance {
+    of OPEN {
+        actor-do-anim 2 1
+    }
+    of SQUARE {
+        actor-do-anim 2 2
+    }
+    of CLOSED {
+        actor-do-anim 2 3
+    }
+}
+rStanceChangeDirection = 1
+if (gBatterKid == ANGELA-DELVECCHIO) {
+    if (!(gField in [CEMENT-GARDENS, TIN-CAN-ALLEY])) {
+        actor-select 2
+        actor-set-conditons [133]
+    }
+}
+sprite-set-range 13 13
+sprite-x34 (gBatterStance - 1 + 3 * ((shr (gKidData[gBatterKid][13] & 48) 4) == 2))
+sprite-set-range 13 13
+sprite-set-hotspot 280 352
+run-script SetStrikeZoneForBatter []
+r_maybe_smth_idle_ready_for_pitch = true
+if (!(is-script-running HeyBatterChatterLoop)) {
+    run-script HeyBatterChatterLoop []
+}
+free-script

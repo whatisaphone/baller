@@ -1,0 +1,73 @@
+; LSC2 4 2072 maybe_animate_pitched_ball
+
+parameter arg0
+
+local variable step_x
+local variable step_y
+local variable off_x
+local variable off_y
+local variable cur_x
+local variable cur_y
+local variable local7
+local variable local8
+local variable start_x
+local variable start_y
+local variable local11
+local variable local12
+
+local8 = call-script maybe_pitching_animation_ball_start_pos [0]
+start_x = local8 / 1000
+start_y = mod local8 1000
+start_y = 240 + start_y - 46
+off_x = rRealPitchLocationX - start_x
+off_y = rRealPitchLocationY - start_y
+actor-select 8
+actor-x2b (5 + 1)
+actor-select 9
+actor-x2b (5 + 1)
+actor-do-anim 8 arg0
+actor-do-anim 9 (arg0 + 20)
+local7 = -55
+actor-select 8
+actor-x54 local7
+put-actor 8 start_x (start_y + local7) 255
+put-actor 9 start_x 40 255
+sleep 2
+local11 = actor-get-var 8 18
+if (rPitchKind == PITCH-ELEVATOR) {
+    local12 = actor-get-var 8 11
+} else {
+    local12 = local11
+}
+if (local11 == 0) {
+    local11 = 55
+}
+if (!gStealStartingPosAdjust) {
+    gStealStartingPosAdjust = (local11 - 55) * 50
+    gStealStartingPosAdjust = gStealStartingPosAdjust / 20
+}
+r_maybe_frames_before_pitched_ball_animation_is_over = local11
+step_x = off_x * 10000 / local12
+step_y = off_y * 10000 / local12
+do {
+    stop-script
+    --r_maybe_frames_before_pitched_ball_animation_is_over
+    if ((actor-get-var 8 12) == 0) {
+        cur_x = cur_x + step_x
+        cur_y = cur_y + step_y
+        off_x = cur_x / 10000
+        off_y = cur_y / 10000
+        local7 = -55 - off_y
+        actor-select 8
+        actor-x54 local7
+        if ((actor-get-var 8 2) == 2) {
+            actor-select 8
+            actor-x2b (15 + 1)
+            actor-select 9
+            actor-x2b (15 + 1)
+        }
+        put-actor 8 (start_x + off_x) (start_y + off_y + local7) 255
+        put-actor 9 (start_x + off_x) 40 255
+    }
+}
+free-script

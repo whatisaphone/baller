@@ -1,0 +1,76 @@
+; LSC2 29 2106
+
+local variable local2
+
+room21 = gKeyHandlerScript
+room23 = global43
+sprite-group-select 9
+sprite-group-clear
+sprite-group-select 8
+sprite-group-clear
+sprite-group-select 3
+sprite-group-clear
+sprite-group-select 4
+sprite-group-clear
+sprite-group-select 5
+sprite-group-clear
+sprite-group-select 6
+sprite-group-clear
+sprite-group-select 7
+sprite-group-clear
+global622 = 239
+global623 = 290
+run-script 2070 []
+run-script 2066 []
+sprite-set-range global634[4] global634[4]
+sprite-x25 6
+run-script 2074 []
+run-script 2104 []
+room14 = 24 - (call-script 243 [264]) - (call-script 244 [264]) - (call-script 245 [264]) - (call-script 246 [264])
+rAwaitingFirstInput = 1
+room8 = call-script AllocPalette []
+room9 = call-script AllocPalette []
+room10 = call-script AllocPalette []
+palette-select room8
+palette-load 981 0
+palette-unselect
+palette-select room9
+palette-load 977 0
+palette-unselect
+palette-select room10
+palette-load 1047 0
+palette-unselect
+local2 = "Make your own custom kid"
+run-script SetNavButtons [HandleNavClick, 0, 0]
+run-script 2050 []
+run-script 2048 []
+run-script 2065 [0, 976, 0, 0, local2]
+free-array local2
+run-script maybe_reset_custom_kid_data [264]
+run-script 2101 []
+run-script 2102 []
+run-script 2100 []
+run-script 2103 []
+sprite-group-select 5
+sprite-group-x41 0 -174
+sprite-group-select 7
+sprite-group-x41 0 1000
+run-script 2071 [264]
+run-script smth_kid_name_sprite [264, 8]
+sprite-group-select 8
+sprite-group-x41 0 1
+gSpriteCursorTargets[global634[5]][TARGET-CLICK-SCRIPT] = 2085
+run-script 2078 [264, 9]
+sprite-group-select 9
+sprite-group-x41 0 4
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-script

@@ -1,0 +1,22 @@
+; LSC2 39 2164
+
+run-script 2048 []
+room11 = call-script AllocPalette []
+room10 = call-script AllocPalette []
+room12 = call-script AllocPalette []
+room26 = call-script AllocPalette []
+room27 = call-script AllocPalette []
+room13 = call-script AllocPalette []
+room14 = call-script AllocPalette []
+room15 = call-script AllocPalette []
+room16 = call-script AllocPalette []
+room17 = call-script AllocPalette []
+room19 = call-script AllocPalette []
+room20 = call-script AllocPalette []
+palette-select room20
+palette-load 1517 0
+palette-unselect
+palette-select room27
+palette-load 1239 0
+palette-unselect
+free-script

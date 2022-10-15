@@ -1,0 +1,131 @@
+; LSC2 3 2153 StartFieldingAfterHit
+
+local variable ball_x
+local variable ball_z
+local variable ball_time: BallTime
+local variable f: Fielder
+local variable time
+local variable i
+local variable local6
+local variable local7
+local variable local8
+local variable chaser: Fielder
+local variable min_cost
+local variable min_fielder: Fielder
+local variable local12
+local variable local13
+
+do {
+    ball_time = gBallPath[i][2]
+    if (ball_time == DEAD-BALL) {
+        i = 100
+    }
+    ball_x = gBallPath[i][0]
+    ball_z = gBallPath[i][1]
+    for f = 37 to 45 ++ {
+        if (gWorld[f][TARGET] == NONE) {
+            if ((gDifficulty in [EASY, TEE-BALL]) && gDefenseControlledBy == CB-USER || gDifficulty == HARD && gDefenseControlledBy == CB-COMPUTER) {
+                local12 = 100
+            } else {
+                local12 = call-script smth_about_kid_data_2_and_errors [rFieldingOrder[f - 37]]
+            }
+            if (local12 > (random 100)) {
+                time = call-script CalcFielderTimeRunToPoint [f, ball_x, ball_z, 1]
+            } else {
+                time = call-script CalcFielderTimeRunToPoint [f, ball_x, ball_z]
+            }
+            if (gDefenseControlledBy == CB-COMPUTER) {
+                time = time + 10
+            }
+            if (time < ball_time || ball_time == DEAD-BALL) {
+                if (ball_time == DEAD-BALL) {
+                    gWorld[f][Y] = 200
+                } else {
+                    gWorld[f][Y] = ball_time
+                }
+                if (time == 36) {
+                    ++time
+                }
+                gWorld[f][TARGET] = time
+                gWorld[f][TARGET-X] = ball_x
+                gWorld[f][TARGET-Z] = ball_z
+            }
+        }
+    }
+    ++i
+} until (i == 101)
+for local6 = 0 to 4 ++ {
+    if (min_cost == 0) {
+        min_cost = 10000
+    } else {
+        min_cost = min_cost + 10
+    }
+    min_fielder = 0
+    for f = 37 to 45 ++ {
+        if (gWorld[f][TARGET] != BALL-SHADOW) {
+            if (gWorld[f][TARGET] < min_cost) {
+                local7 = call-script smth_about_kid_data_12_with_fatigue [rFieldingOrder[f - 37]]
+                if (f == FIELDER-1B) {
+                    local7 = local7 - 25
+                }
+                if ((random2 (local6 * 30) (local6 * 50 + 1)) < local7) {
+                    min_cost = gWorld[f][TARGET]
+                    min_fielder = f
+                } else {
+                    gWorld[f][TARGET] = F-HOME
+                    gWorld[f][TARGET-X] = gWorld[f][X]
+                    gWorld[f][TARGET-Z] = gWorld[f][Z]
+                }
+            }
+        }
+    }
+    if (min_fielder != 0) {
+        gWorld[min_fielder][TARGET] = BALL-SHADOW
+        if (rBallWasHitHigh) {
+            if ((gDifficulty in [EASY, TEE-BALL]) && gDefenseControlledBy == CB-USER || gDifficulty == HARD && gDefenseControlledBy == CB-COMPUTER) {
+                local8 = 1
+            } else {
+                local8 = call-script FielderBallPredictionCheck [rFieldingOrder[min_fielder - 37]]
+            }
+            gWorld[min_fielder][TARGET-X] = gWorld[min_fielder][TARGET-X] + (random2 (-2 * local8) (2 * local8))
+            gWorld[min_fielder][TARGET-Z] = gWorld[min_fielder][TARGET-Z] + (random2 (-2 * local8) (2 * local8))
+        }
+        if (rBallFetcher == 0) {
+            rBallFetcher = min_fielder
+            local13 = min_cost
+            rAutoFieldeingDelay = gWorld[min_fielder][Y] + 1
+        }
+    }
+}
+for f = 37 to 45 ++ {
+    if (gWorld[f][TARGET] != BALL-SHADOW) {
+        gWorld[f][TARGET] = NONE
+        gWorld[f][TARGET-X] = gWorld[f][X]
+        gWorld[f][TARGET-Z] = gWorld[f][Z]
+    }
+    gWorld[f][Y] = 0
+}
+gFieldingTargetX = gBallPath[100][0]
+gFieldingTargetZ = gBallPath[100][1]
+chaser = call-script FindClosestFielder [gFieldingTargetX, gFieldingTargetZ]
+if (chaser != rBallFetcher) {
+    if (gWorld[chaser][TARGET] == NONE) {
+        if (gDifficulty == HARD || gDifficulty == MEDIUM && !(random 3)) {
+            gWorld[rBallFetcher][TARGET] = BALL-SHADOW
+            rBallFetcher = chaser
+        }
+        gWorld[chaser][TARGET-X] = gFieldingTargetX
+        gWorld[chaser][TARGET-Z] = gFieldingTargetZ
+        gWorld[chaser][TARGET] = BALL-SHADOW
+    }
+}
+for f = 37 to 45 ++ {
+    if (gWorld[f][TARGET] == NONE) {
+        run-script-xc3 smth_to_do_with_fielding_sometimes_infield [f]
+    }
+}
+run-script CastHit [chaser]
+if (local13 < rAutoFieldeingDelay) {
+    room37 = 1
+}
+free-script

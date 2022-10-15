@@ -1,0 +1,5 @@
+; LSC2 34 2147
+
+sleep-seconds 1
+run-script HandleNavClick2 [192]
+free-script

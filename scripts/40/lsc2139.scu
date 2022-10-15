@@ -1,0 +1,146 @@
+; LSC2 40 2139
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+free-running-script 2137
+stop-sound 2627
+free-running-script 2095
+stop-sound 2634
+sprite-set-range room1[63] room1[63]
+sprite-clear
+sprite-x2a 0 2
+if (is-script-running 2128) {
+    free-running-script 2128
+    stop-sound 2628
+}
+free-running-script 2129
+stop-sound 2630
+kludge [2001, 2215, global553]
+global553 = 0
+stop-sound g_maybe_net_yell_sound
+run-script maybe_net_smth_yell_sound [1, 4]
+if (is-script-running 2108) {
+    free-running-script 2108
+}
+sprite-set-range room1[2] room1[2]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[8] room1[8]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[9] room1[9]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[10] room1[10]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[11] room1[11]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[12] room1[12]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[19] room1[19]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[37] room1[37]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[39] room1[39]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[38] room1[38]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[40] room1[40]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[60] room1[60]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[67] room1[67]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[33] room1[33]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[35] room1[35]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[34] room1[34]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[36] room1[36]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[32] room1[32]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[41] room1[41]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[43] room1[43]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[44] room1[44]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[45] room1[45]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[46] room1[46]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[47] room1[47]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[48] room1[48]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[49] room1[49]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[50] room1[50]
+sprite-clear
+sprite-x2a 0 2
+sprite-set-range room1[51] room1[51]
+sprite-clear
+sprite-x2a 0 2
+array-fill-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+array-fill-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+run-script-xc3 2112 [57]
+run-script-xc3 2112 [56]
+run-script-xc3 2112 [15, 2, 0]
+if (0) {
+    global110 = 0
+}
+if (!(is-script-running 2102)) {
+    run-script 2102 []
+}
+if (!(is-script-running 2101)) {
+    run-script 2101 []
+}
+kludge [2001, 2220, 0]
+run-script 425 []
+room20 = 0
+room14 = 0
+room12 = 0
+room13 = 0
+room23 = 0
+run-script 2119 [room23]
+run-script 2123 []
+run-script 2090 [gField]
+global553 = 0
+room25 = 1
+free-script

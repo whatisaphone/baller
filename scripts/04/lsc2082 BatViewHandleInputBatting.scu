@@ -1,0 +1,202 @@
+; LSC2 4 2082 BatViewHandleInputBatting
+
+parameter type: InputType
+parameter key: char
+parameter arg2
+parameter x
+parameter y
+
+local variable local5
+local variable debug
+
+if (room51 == 0) {
+    if (key == 27) {
+        xd1
+        if (gCurrentSpeechScript > 1) {
+            xd1
+            free-running-script gCurrentSpeechScript
+            gCurrentSpeechScript = 0
+        }
+        if (gCurrentLowPriCastScript > 1) {
+            xd1
+            free-running-script gCurrentLowPriCastScript
+            gCurrentLowPriCastScript = 0
+        }
+        if (gCurrentMatchupCastScript > 0) {
+            free-running-script gCurrentMatchupCastScript
+            gCurrentMatchupCastScript = 0
+        }
+    }
+    free-running-script 0
+}
+if (type == INPUT-TYPE-KEYBOARD && MODE-BATTING-PRACTICE == gGameMode) {
+    goto label0072
+}
+if (type == INPUT-TYPE-KEYBOARD && (get-class 95 [32])) {
+label0072:
+    debug = gDebug
+    if (gNetplayActive) {
+        debug = 0
+    }
+    if (MODE-BATTING-PRACTICE == gGameMode) {
+        debug = 0
+    }
+    case key {
+        of 'c' {
+            if (debug) {
+                gKidData[rPitcherKid][KD-fatigue] = 99
+            }
+        }
+        of 'W' {
+            if (debug) {
+                array-fill-list gGameInfo 0 0 0 51 [0]
+                if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gVisitorInfoIndex
+                    gGameInfo[0] = 1
+                } else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gHomeInfoIndex
+                    gGameInfo[1] = 1
+                } else {
+                    free-running-script 0
+                }
+                gTeamInfo[temp][TI-RUNS] = 1
+                gTeamInfo[1 - temp][TI-RUNS] = 0
+                free-running-script ContinueGame
+                gGameEnded = 1
+                run-script EndTheGame []
+            }
+        }
+        of 'L' {
+            if (debug) {
+                if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gVisitorInfoIndex
+                } else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+                    temp = gHomeInfoIndex
+                } else {
+                    free-running-script 0
+                }
+                gTeamInfo[temp][TI-RUNS] = 0
+                gTeamInfo[1 - temp][TI-RUNS] = 1
+                free-running-script ContinueGame
+                gGameEnded = 1
+                run-script EndTheGame []
+            }
+        }
+        of 'X' {
+            if (debug) {
+                gPitchBallIndicator = 1 - gPitchBallIndicator
+            }
+        }
+        of 'H' {
+            if (debug) {
+                rManuallyInputHitParameters = 1 - rManuallyInputHitParameters
+            }
+        }
+        of 'B' {
+            if (debug) {
+                run-script IncrementPowerup []
+                gGivePowerup = -1
+                run-script BetweenPitches []
+            }
+        }
+        of 'A' {
+            if (debug) {
+                if (gSeasonSpectatorMode) {
+                    gSeasonSpectatorMode = false
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+                    xb7-xfe
+                    xb7-xc2 "Autoplay Mode %d OFF" gSeasonSpectatorMode []
+                } else {
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+                    gSeasonSpectatorMode = true
+                    xb7-xfe
+                    xb7-xc2 "Autoplay Mode %d ON" gSeasonSpectatorMode []
+                }
+                go-to-room 4
+                free-running-script 0
+            }
+        }
+        of 'G' {
+            if (debug) {
+                if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+                    gGameInputDevice = INPUT-DEVICE-MOUSE
+                    xb7-xfe
+                    xb7-x4b "Switching to MOUSE control"
+                } else {
+                    gGameInputDevice = INPUT-DEVICE-GAME-PAD
+                    xb7-xfe
+                    xb7-x4b "Switching to GAME PAD control"
+                }
+                go-to-room 4
+                free-running-script 0
+            }
+        }
+        of '[' {
+            if (debug) {
+                if (gStatsAuditWindow) {
+                    gStatsAuditWindow = 0
+                    if (gStatsAuditImage) {
+                        run-script FreeScratchImage [gStatsAuditImage]
+                        gStatsAuditImage = 0
+                    }
+                    window-select 2
+                    window-destroy
+                    window-set-image 0
+                    window-xff
+                } else {
+                    gStatsAuditWindow = 1
+                }
+            }
+        }
+        of 'S' {
+            if (debug) {
+                temp = gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY]
+                gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY]
+                gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = temp
+                go-to-room 4
+            }
+        }
+        else {
+            exec-script HandleInput [type, key, arg2, x, y]
+        }
+    }
+    free-running-script 0
+} else if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+    free-running-script 0
+}
+rAIDelay = 3 * 60 / gMinJiffies
+local5 = sprite-get-x2d x y 0 0 []
+if (local5) {
+    temp = sprite-get-xc6 local5 1
+    if (temp >= 1 && temp <= 8) {
+        run-script SelectSwingOrPitch [local5, temp, true]
+        free-running-script 0
+    } else {
+        if (temp == 344) {
+            run-script maybe_net_send_thumbs_up_or_down [local5]
+            free-running-script 0
+        }
+        if (local5 == 13) {
+            run-script SendBatViewMessage [MSG-TOGGLE-STANCE]
+            free-running-script 0
+        }
+    }
+}
+local5 = xa0 x y
+if (!local5) {
+    if (x > 200 && x < 440) {
+        if (y > 150 && y < 400) {
+            local5 = 88
+        }
+    }
+}
+if (local5) {
+    if (local5 == 303) {
+        if (get-class 303 [18]) {
+            start-script local5 1 []
+        }
+    } else {
+        start-script local5 1 []
+    }
+}
+free-script

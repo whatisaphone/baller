@@ -1,0 +1,170 @@
+; LSC2 37 2090
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local6 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+local7 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+if (is-script-running 2068) {
+    free-running-script 0
+}
+case local1 {
+    of 2 {
+        local4 = sprite-get-image local0
+        local5 = sprite-get-wiz local0
+        case 1 {
+            of local4 == 1047 || local4 == 1046 {
+            }
+            of local4 == 1380 {
+                if (local7 < 318) {
+                    if (!gNetUsername) {
+                        local3 = "Coach Name Must Have At Least One letter."
+                    }
+                }
+            }
+            of local4 == 642 {
+                case local5 {
+                    of 1 {
+                        if (gNetUsername) {
+                            if (gNetPassword) {
+                                local2 = "Log on"
+                                local3 = "Click here to log On To The Network."
+                            } else if (room21) {
+                                local2 = "Enter password"
+                                sprintf local3 "Click here to enter the password for %s." [gNetUsername]
+                            } else {
+                                local2 = "Log on"
+                                local3 = "Please select a coach first."
+                            }
+                        } else if (room23) {
+                            local2 = "Heads up!"
+                            local3 = "Coach Name Must Have At Least One Letter."
+                        } else {
+                            local2 = "Heads up!"
+                            local3 = "Please Select Or Create A Coach Before Continuing."
+                        }
+                    }
+                    of 3 {
+                        local2 = "the Club House"
+                        local3 = "click here to return to The Club House."
+                    }
+                }
+            }
+            of local0 == room15[26] {
+                local2 = "Check for Game Updates"
+                local3 = "Click here to check if there are any game updates.  This will be done automatically when you log on with a coach though."
+            }
+            of local0 == room15[27] {
+                local2 = "Register a new coach"
+                local3 = "Click here to create a new coach for Online play.  This will launch your web browser and take you to the registration website."
+            }
+            of local0 == room15[28] {
+                local2 = "Unhide your password"
+                local3 = "Click here to toggle between hiding your password from everyone to showing the actual letters."
+            }
+            of local0 == room15[29] {
+                local2 = "hide your password"
+                local3 = "Click here to toggle between hiding your password from everyone to showing the actual letters."
+            }
+        }
+    }
+    of 1 {
+    }
+    of 3 {
+        local0 = local0 - 487
+        local0 = local0 + room25
+        local8 = call-script smth_string [room17, 44, local0, 1]
+        local2 = "Select this coach"
+        sprintf local3 "Click here to Select Coach %s.  Double-click to select and Enter Password." [local8]
+        local9 = read-ini-int room34 local8 "_CoachID"
+        run-script-xc3 387 [local9, 494, 179, room15[10], room16[2], 0, room10]
+        free-array local8
+    }
+    of 6 {
+        case local0 {
+            of -91 {
+                if (!room23) {
+                    local2 = "Delete coach"
+                    if (gNetUsername) {
+                        sprintf local3 "Click here to Delete Coach %s from the list." [gNetUsername]
+                    } else {
+                        local3 = "No Coach Selected To Delete."
+                    }
+                } else if (room23 == 1) {
+                    local3 = "Press ESC To Cancel Or Right Arrow To Continue."
+                } else {
+                    local3 = "Cannot Delete Coach While Entering A Password."
+                }
+            }
+            of -90 {
+                if (room23) {
+                    if (room23 == 1) {
+                        local3 = "Press ESC To Cancel Or Right Arrow To Continue."
+                    } else {
+                        local3 = "Cannot Add A Coach While Entering A Password."
+                    }
+                } else {
+                    local2 = "Enter you registered Coach"
+                    local3 = "Click here to add your registered online coach to the list.  If you haven't registered a coach name yet, hit the register button first."
+                }
+            }
+            of -89 {
+                if (room23) {
+                    if (room23 == 1) {
+                        local3 = "Press ESC To Cancel Or Right Arrow To Continue."
+                    } else {
+                        local3 = "Cannot Do This While Entering A Password."
+                    }
+                } else if (room26 < room18) {
+                    local2 = "More coaches"
+                    local3 = "Click here To Scroll Down The List."
+                } else {
+                    local2 = "No more coaches"
+                    local3 = "you are at the end of The List."
+                }
+            }
+            of -88 {
+                if (room23) {
+                    if (room23 == 1) {
+                        local3 = "Press ESC To Cancel Or Right Arrow To Continue."
+                    } else {
+                        local3 = "Cannot Do This While Entering A Password."
+                    }
+                } else if (room25 > 1) {
+                    local2 = "More coaches"
+                    local3 = "Click here To Scroll Up The List."
+                } else {
+                    local2 = "Top of the list"
+                    local3 = "This is the First Coach In The List"
+                }
+            }
+            of -87 {
+                local2 = "Done"
+                local3 = "Click here when you are done, but I guess that's pretty obvious, huh?"
+            }
+            of -86 {
+                local2 = "Cancel"
+                local3 = "Click here if you want to cancel your entry.  Pretty simple, huh?"
+            }
+        }
+    }
+}
+if (local3 || local2) {
+    run-script maybe_HideNavHoverText []
+    run-script UpdateNavText [local2, local3]
+    if (local3) {
+        free-array local3
+    }
+    if (local2) {
+        free-array local2
+    }
+}
+free-script

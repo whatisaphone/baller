@@ -1,0 +1,30 @@
+; SCRP 88
+
+local variable local0
+local variable local1
+local variable local2
+
+if (gNoPrinting) {
+    free-running-script 0
+}
+gLastHoverNumber = 0
+free-running-script 89
+gNavButtons[5][2] = 1
+if ((sprite-get-hotspot-y gNavButtons[2][0]) == 240) {
+    free-running-script 0
+}
+if (!local0) {
+    stop-script
+    local2 = 0 - (image-get-height 642 5) / 5
+    for local1 = 1 to 5 ++ {
+        sprite-set-range gNavButtons[2][0] gNavButtons[2][0]
+        sprite-move-hotspot 0 local2
+        if ((sprite-get-hotspot-y gNavButtons[2][0]) + local2 <= 240) {
+            local1 = 999
+        }
+        stop-script
+    }
+}
+sprite-set-range gNavButtons[2][0] gNavButtons[2][0]
+sprite-set-hotspot 320 240
+free-script

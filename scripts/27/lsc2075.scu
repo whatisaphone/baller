@@ -1,0 +1,77 @@
+; LSC2 27 2075
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (0 == g_maybe_kid_video_actor) {
+    g_maybe_kid_video_actor = call-script FindFreeActor []
+}
+local1 = call-script 2071 [local0]
+if (local1 == (actor-get-costume g_maybe_kid_video_actor)) {
+    free-running-script 0
+}
+actor-select g_maybe_selected_actor
+actor-set-var 0 0
+xd1
+if ((is-script-running PlayerSay1To15) || (is-script-running PlayerSay16To23) || (is-script-running PlayerSay24To30And263)) {
+    if (actor-get-var g_maybe_selected_actor 4) {
+        actor-do-anim g_maybe_selected_actor (actor-get-var g_maybe_selected_actor 4)
+    }
+}
+free-running-script PlayerSay1To15
+free-running-script PlayerSay16To23
+free-running-script PlayerSay24To30And263
+free-running-script PlayerSay31To45
+free-running-script PlayerSay46To61
+free-running-script PlayerSayCustom
+actor-select g_maybe_kid_video_actor
+actor-xd9
+actor-set-costume local1
+actor-x50 0 0
+if (gMinJiffies) {
+    actor-select g_maybe_kid_video_actor
+    actor-x61 (6 / gMinJiffies)
+}
+if (local0 == 264) {
+    run-script 2320 [local0, g_maybe_kid_video_actor]
+    run-script 2319 [local0, g_maybe_kid_video_actor]
+}
+if (gCurrentRoom != 5) {
+    local3 = call-script 2083 []
+    if (MODE-SEASON == gGameMode) {
+        run-script smth_team_color_palette [local3, g_maybe_kid_video_actor, 1, 0, 0, 0, 1]
+    } else {
+        run-script smth_team_color_palette [local3, g_maybe_kid_video_actor, 0, 0, 0, 0, 1]
+    }
+} else {
+    if (local0 >= 31 && local0 <= 61) {
+        actor-select g_maybe_kid_video_actor
+        actor-set-conditons [129]
+    } else {
+        run-script smth_color [g_maybe_kid_video_actor, local0]
+    }
+    run-script 2321 [local0]
+}
+actor-select g_maybe_kid_video_actor
+actor-set-var 10 local0
+gActorCursorTargets[g_maybe_kid_video_actor][TARGET-CLICK-SCRIPT] = PlayerPhotoClickHandler
+g_maybe_selected_actor = g_maybe_kid_video_actor
+case 1 {
+    of local0 >= 31 && local0 <= 61 {
+        if (local0 in [38, 46, 34, 48, 41, 35, 50, 42, 39, 61]) {
+            local2 = -45
+        } else {
+            local2 = -35
+        }
+    }
+    of local0 == 263 {
+        local2 = 4
+    }
+    else {
+        local2 = 6
+    }
+}
+put-actor g_maybe_kid_video_actor global622 (global623 + local2) gCurrentRoom
+free-script

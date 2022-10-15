@@ -1,0 +1,7 @@
+; LSC2 39 2109
+
+room42 = iif (room42 == 1) 1 1
+gGameInputDevice = room42
+run-script-xc3 2114 [21]
+run-script-xc3 2114 [24]
+free-script

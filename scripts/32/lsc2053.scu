@@ -1,0 +1,28 @@
+; LSC2 32 2053
+
+local variable local0
+
+for local0 = 0 to 24 ++ {
+    run-script ReleaseSprite [room7[local0]]
+}
+free-array room7
+for local0 = 0 to 2 ++ {
+    run-script FreeScratchImage [room8[local0]]
+}
+free-array room8
+if (room9) {
+    free-array room9
+}
+if (room19) {
+    free-array room19
+}
+if (room12) {
+    free-array room12
+}
+for local0 = 0 to 6 ++ {
+    if (room23[local0]) {
+        run-script FreeScratchImage [room23[local0]]
+    }
+}
+free-array room23
+free-script

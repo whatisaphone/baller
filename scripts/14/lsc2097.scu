@@ -1,0 +1,51 @@
+; LSC2 14 2097
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local12
+
+local5 = call-script AllocPalette []
+for local12 = 1 to 3 ++ {
+    case local12 {
+        of 1 {
+            local6 = local2
+            local7 = 32
+        }
+        of 2 {
+            local6 = local3
+            local7 = 40
+        }
+        of 3 {
+            local6 = local4
+            local7 = 36
+        }
+    }
+    local8 = call-script BBALLMISC_SetTeamPalette [local6]
+    if (local8 > 1000) {
+        palette-select local5
+        palette-load 636 0
+        palette-unselect
+        local8 = local8 - 1000
+    } else {
+        palette-select local5
+        palette-load 635 0
+        palette-unselect
+    }
+    run-script 278 [local0, local5, local7, local8, 4]
+    run-script 278 [local1, local5, local7, local8, 4]
+}
+palette-select local0
+palette-set-rgb 240 240 0 0 0
+palette-unselect
+palette-select local1
+palette-set-rgb 231 231 0 0 0
+palette-unselect
+run-script FreePalette [local5]
+free-script

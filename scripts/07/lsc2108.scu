@@ -1,0 +1,21 @@
+; LSC2 7 2108
+
+local variable local0
+local variable local1
+
+if (!room3) {
+    room3 = gTeamInfo[room0][TI-FIELDING-ORDER]
+}
+if (!room1) {
+    room1 = gTeamInfo[room0][TI-BATTING-ORDER-KIDS]
+}
+room3 = gTeamInfo[room0][TI-FIELDING-ORDER]
+room1 = gTeamInfo[room0][TI-BATTING-ORDER-KIDS]
+local0 = local0 - 1
+for local1 = 0 to 8 ++ {
+    if (room3[local1] == room1[local0]) {
+        return local1
+    }
+}
+return -1
+free-script

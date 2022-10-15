@@ -1,0 +1,49 @@
+; LSC2 34 2109
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+local4 = local2 - local1
+if (local1 == 6) {
+    local5 = 321
+} else {
+    local5 = 228
+}
+local7 = call-script AllocScratchImage []
+for local3 = local4 to (local2 - 1) ++ {
+    sprintf local8 "%d" [room17[room19[local0][0]][local3 * 2]]
+    local9 = local9 + room17[room19[local0][0]][local3 * 2]
+    temp = call-script smth_draw_text_image [local8, 1031, local7, 27, 32, 0, 0, room6]
+    free-array local8
+    image-select local7
+    image-pos local5 47
+    image-render-into room14
+    image-x30
+    image-xff
+    if (local3 == local2 - 1) {
+        if (local10 > local9) {
+            goto label0141
+        }
+    }
+    sprintf local8 "%d" [room17[room19[local0][0]][local3 * 2 + 1]]
+    local10 = local10 + room17[room19[local0][0]][local3 * 2 + 1]
+    temp = call-script smth_draw_text_image [local8, 1031, local7, 27, 32, 0, 0, room6]
+    free-array local8
+    image-select local7
+    image-pos local5 84
+    image-render-into room14
+    image-x30
+    image-xff
+    local5 = local5 + 31
+}
+label0141:
+run-script FreeScratchImage [local7]
+free-script

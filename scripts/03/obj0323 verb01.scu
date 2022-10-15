@@ -1,0 +1,20 @@
+; VERB 3 323
+
+cursor-input-disable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-hide
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+run-script PlayClickySound []
+stop-script
+if (g_smth_play_may_continue) {
+    gMinJiffies = 0
+} else {
+    go-to-room 4
+}
+finish-script

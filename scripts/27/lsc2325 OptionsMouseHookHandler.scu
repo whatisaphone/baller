@@ -1,0 +1,36 @@
+; LSC2 27 2325 OptionsMouseHookHandler
+
+parameter arg0
+parameter arg1
+
+local variable x
+local variable y
+local variable local4
+local variable local5
+
+if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+    x = gGamePadX
+    y = gGamePadY
+} else {
+    x = gMouseX
+    y = gMouseY
+}
+local5 = sprite-get-x2d x y 0 0 []
+if (local5 == room30) {
+    gMouseHookFlags = 134217728
+    gLastHoverNumber = 0
+    return -1
+}
+if (local5 == room43) {
+    return 0
+}
+x = x - 320 - (image-get-hotspot-x 1094 0)
+y = y - 240 - (image-get-hotspot-y 1094 0)
+local4 = image-get-x42 1094 0 x y
+if (local4 >= 50 && local4 <= 69) {
+    gMouseHookFlags = 8
+    return local4
+} else {
+    return 0
+}
+free-script

@@ -1,0 +1,50 @@
+; SCRP 426 GetRecordName
+
+parameter arg0
+
+local variable local1
+
+case arg0 {
+    of 0 {
+        local1 = "HOME RUNS"
+    }
+    of 1 {
+        local1 = "HITS"
+    }
+    of 2 {
+        local1 = "DOUBLES"
+    }
+    of 3 {
+        local1 = "TRIPLES"
+    }
+    of 4 {
+        local1 = "RBIS"
+    }
+    of 5 {
+        local1 = "RUNS"
+    }
+    of 6 {
+        local1 = "BATTING AVERAGE"
+    }
+    of 7 {
+        local1 = "SLUGGING PERCENTAGE"
+    }
+    of 8 {
+        local1 = "STEALS"
+    }
+    of 9 {
+        local1 = "STRIKE OUTS PITCHED"
+    }
+    of 10 {
+        local1 = "ERA"
+    }
+    of 11 {
+        local1 = "ERRORS"
+    }
+    else {
+        pop-discard 0
+        local1 = ""
+    }
+}
+return local1
+free-script

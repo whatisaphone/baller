@@ -1,0 +1,6 @@
+; LSC2 5 2098 GetArrayWidth
+
+parameter arg0
+
+return (array-width arg0)
+free-script

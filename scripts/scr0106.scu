@@ -1,0 +1,26 @@
+; SCRP 106
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+local7 = array-width local0
+local8 = local7 * 2
+dim array local1 byte[0...0][0...local8] swap=2
+for local2 = 0 to (local7 - 1) ++ {
+    local6 = local0[local2]
+    local4 = local6 / 16 + 65
+    local5 = (local6 & 15) + 65
+    local1[local3] = local4
+    local1[local3 + 1] = local5
+    local3 = local3 + 2
+}
+local1[local3] = 0
+return local1
+free-script

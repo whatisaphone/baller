@@ -1,0 +1,101 @@
+; LSC2 3 2112 RunFunnyBunt
+
+local variable fielder: Fielder
+local variable fielder_dist
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable sound: Sound
+local variable prev_fielder_idx
+local variable local10
+
+local5 = random2 100 300
+if (gDebug == 69) {
+    xb6-xfe
+    xb6-x4b "funny bunt"
+}
+sound = xe3 local10 [2015, 2016, 2017, 2018, 2019]
+do {
+    fielder = call-script FindClosestFielder [gBallPosX, gBallPosZ]
+    fielder_dist = distance-2d gWorld[fielder][X] gWorld[fielder][Z] gBallPosX gBallPosZ
+    if ((distance-2d gBallPosX gBallPosZ gBallPosX ((abs gBallPosX) + 300)) < fielder_dist) {
+        local2 = random2 70 110
+        fielder = 0
+        fielder_dist = distance-2d gBallPosX gBallPosZ gBallPosX ((abs gBallPosX) + 300)
+    } else {
+        local2 = atan4 gWorld[fielder][X] gWorld[fielder][Z] gBallPosX gBallPosZ
+        local2 = local2 + (random2 -30 30)
+        if (local2 > 360) {
+            local2 = local2 - 360
+        }
+        if (local2 < 0) {
+            local2 = local2 + 360
+        }
+    }
+    if (fielder != prev_fielder_idx && !(is-sound-playing sound)) {
+        prev_fielder_idx = fielder
+        sound = xe3 local10 [2015, 2016, 2017, 2018, 2019]
+        if (gNetplayActive) {
+            run-script NetSendSound [sound]
+        }
+        run-script PlaySound [sound]
+        if (fielder != 0) {
+            gFieldingTargetX = gBallPosX
+            gFieldingTargetZ = gBallPosZ
+            run-script SendClosestFielderToTarget []
+        }
+    }
+    if (fielder_dist < 48) {
+        local3 = 80
+    } else {
+        local3 = (random2 5 10) * 500 / fielder_dist
+    }
+    if (local3 > 80) {
+        local3 = 100
+    }
+    if (!(random 10)) {
+        if (gBallPosPhysY < 12000) {
+            gBallVelPhysY = gBallVelPhysY + local3 * 1000
+        }
+    }
+    local6 = (cos local2) * local3 / 100
+    local7 = (sin local2) * local3 / 100
+    if (call-script IsFoulTerritory [(gBallPosPhysX + gBallVelPhysX + local6) / 1000, (gBallPosPhysZ + gBallVelPhysZ + local7 + 12000) / 1000]) {
+        local2 = atan4 ((gBallPosPhysX + gBallVelPhysX + local6) / 1000) ((gBallPosPhysZ + gBallVelPhysZ + local7) / 1000) 0 (random2 360 2000)
+        if (gDebug == 69) {
+            xb6-xfe
+            xb6-x4b "bunt going foul"
+        }
+        do {
+            local6 = local6 + (cos local2) * local3 / 100
+            local7 = local7 + (sin local2) * local3 / 100
+        } until (!(call-script IsFoulTerritory [(gBallPosPhysX + gBallVelPhysX + local6) / 1000, (gBallPosPhysZ + gBallVelPhysZ + local7 + 12000) / 1000]))
+    }
+    gBallVelPhysX = gBallVelPhysX + local6
+    gBallVelPhysZ = gBallVelPhysZ + local7
+    if (gBallVelPhysX > 200000) {
+        gBallVelPhysX = 200000
+    }
+    if (gBallVelPhysX < -200000) {
+        gBallVelPhysX = -200000
+    }
+    if (gBallVelPhysZ > 200000) {
+        gBallVelPhysZ = 200000
+    }
+    if (gBallVelPhysZ < -200000) {
+        gBallVelPhysZ = -200000
+    }
+    if (gBallVelPhysY > 120000) {
+        gBallVelPhysY = 120000
+    }
+    stop-script
+    ++local4
+    if (g_nitrogen_vector_is_set || gBallIsFoul) {
+        local4 = local5 + 1
+    }
+} until (local4 > local5 || gFielderWithBall)
+free-array local10
+free-script

@@ -1,0 +1,82 @@
+; LSC2 32 2066
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+if (gCoachName && gCoachINIPath) {
+    sprintf local3 "Are you sure you would like to delete coach '%s'?" [gCoachName]
+    run-script ShowPopup [local3, 0, 5]
+    while (!gPopupResult) {
+        stop-script
+    }
+    if (gPopupResult == 1) {
+        local2 = call-script smth_string [room19, 44, room13]
+        local9 = "baseball2001"
+        if (local2 < 10) {
+            sprintf local0 "%s%s.t0%d" [gSaveGamePath, local9, local2]
+            sprintf local1 "%s%s.c0%d" [gSaveGamePath, local9, local2]
+        } else {
+            sprintf local0 "%s%s.t%d" [gSaveGamePath, local9, local2]
+            sprintf local1 "%s%s.c%d" [gSaveGamePath, local9, local2]
+        }
+        free-array local9
+        local5 = call-script 2062 [local0]
+        local5 = call-script 2062 [local1]
+        run-script DeleteSavedGame [gCoachName]
+        local3 = call-script smth_string [room9, 44, room13, 1, 1]
+        local7 = substr local3 0 ((strlen local3) - 2)
+        local8 = ","
+        if (!(strcmp local7 local8)) {
+            free-array local7
+            local7 = ""
+        }
+        free-array local8
+        write-ini-string gINIPath "Baseball" "_CoachNames" local7
+        free-array local7
+        free-array local3
+        local3 = call-script smth_string [room19, 44, room13, 1, 1]
+        sprintf local6 "%s%d" [local3, local2]
+        free-array local3
+        write-ini-string gINIPath "Baseball" "_CoachFiles" local6
+        free-array local6
+        run-script 2061 []
+        for temp2 = 15 to 20 ++ {
+            sprite-set-range room7[temp2] room7[temp2]
+            sprite-clear
+            sprite-x2a 0 2
+        }
+        run-script 2074 []
+        run-script 2070 []
+    }
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    gInputHandlerScript = HandleInput
+    gGamePadInputHandlerScript = gInputHandlerScript
+    run-script CursorLoop []
+    gCursorLoopScript = CursorLoop
+    if (gCoachName) {
+        free-array gCoachName
+    }
+    if (gCoachINIPath) {
+        free-array gCoachINIPath
+    }
+    sprite-set-range room7[6] room7[6]
+    sprite-clear
+    sprite-x2a 0 2
+}
+free-script

@@ -1,0 +1,63 @@
+; LSC2 4 2194 InitBattingPracticeUI
+
+palette-select room68
+palette-load (288 + gField) 0
+palette-unselect
+if (!rBallSprite) {
+    rBallSprite = call-script FindFreeSprite []
+}
+image-select (288 + gField)
+image-pos 0 0
+image-palette room68
+image-x30
+image-xff
+rUserCurrentlyControlling = CONTROLLING-BATTER
+sprite-set-range 13 13
+sprite-clear
+sprite-set-image 354
+sprite-x2b -1
+sprite-x52 0
+sprite-set-range 13 13
+sprite-set-hotspot -100 -100
+put-class 88 [32]
+run-script smth_ensure_valid_current_swing []
+if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+    run-script BatViewBattingCursorLoop []
+    gCursorLoopScript = BatViewBattingCursorLoop
+}
+gInputHandlerScript = BatViewHandleInputBatting
+object-put-state 105 0
+object-put-state 297 1
+if (!gBattingPracticeEnabledPitches) {
+    gBattingPracticeEnabledPitches = 1
+    gBattingPracticeNumPitches = 0
+    gBattingPracticeNumHits = 0
+}
+if (gBattingPracticeEnabledPitches & 1) {
+    draw-object-x3f 298 2
+} else {
+    draw-object-x3f 298 1
+}
+if (gBattingPracticeEnabledPitches & 2) {
+    draw-object-x3f 299 2
+} else {
+    draw-object-x3f 299 1
+}
+if (gBattingPracticeEnabledPitches & 4) {
+    draw-object-x3f 300 2
+} else {
+    draw-object-x3f 300 1
+}
+if (gBattingPracticeEnabledPitches & 8) {
+    draw-object-x3f 301 2
+} else {
+    draw-object-x3f 301 1
+}
+run-script BattingPracticeDrawCounters []
+if (gPreviousRoom == 3 && gLastHomeRunDistance > 175) {
+    run-script BattingPracticeFlashMessage [BPM-NICE-HIT]
+} else {
+    object-put-state 308 1
+}
+gLastHomeRunDistance = 0
+free-script

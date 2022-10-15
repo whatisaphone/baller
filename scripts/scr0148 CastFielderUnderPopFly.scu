@@ -1,0 +1,45 @@
+; SCRP 148 CastFielderUnderPopFly
+
+parameter kid: Kid
+
+local variable sound: Sound
+
+gCurrentSpeechScript = CastFielderUnderPopFly
+case random 6 {
+    of 0 {
+        sound = 1984
+    }
+    of 1 {
+        sound = 1985
+    }
+    of 2 {
+        if (gKidData[kid][KD-gender] == GIRL) {
+            sound = 1986
+        } else {
+            sound = 1987
+        }
+    }
+    of 3 {
+        sound = 1988
+    }
+    of 4 {
+        sound = 1989
+    }
+    of 5 {
+        if (gKidData[kid][KD-gender] == GIRL) {
+            sound = 1990
+        } else {
+            sound = 1991
+        }
+    }
+    of 6 {
+        if (gKidData[kid][KD-gender] == GIRL) {
+            sound = 1992
+        } else {
+            sound = 1993
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

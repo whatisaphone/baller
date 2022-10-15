@@ -1,0 +1,47 @@
+; SCRP 48 DrawString
+
+parameter string: char[]
+parameter font_image
+parameter render_into
+
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+local7 = (strlen string) - 1
+local8 = max 1 (image-get-height font_image 87)
+local9 = max 1 (image-get-width font_image 87)
+local5 = max 1 (local8 * 2)
+local6 = max 1 (local9 * local7 + 2 * local7 + local9)
+local10 = local5 * 2 / 3
+local12 = palette-x42 1 5
+image-select render_into
+image-op-create
+image-x20 local6
+image-x21 local5
+image-x9a 0 local10
+image-xff
+image-select render_into
+image-x85 0 0 local6 local5 local12
+image-xff
+if (local7 >= 0) {
+    for local3 = 0 to local7 ++ {
+        local11 = image-get-hotspot-y font_image string[local3]
+        image-select font_image
+        image-x34 string[local3]
+        image-pos local4 (local10 - local11)
+        image-render-into render_into
+        image-x30
+        image-xff
+        local4 = iif (string[local3] == ' ') (local4 + local9 / 2) (local4 + (image-get-width font_image string[local3]) + 2)
+    }
+}
+return local4
+free-script

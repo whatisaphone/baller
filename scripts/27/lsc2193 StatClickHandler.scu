@@ -1,0 +1,24 @@
+; LSC2 27 2193 StatClickHandler
+
+local variable sprite
+local variable local1
+local variable local2
+local variable x
+local variable y
+
+x = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+y = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+sprite = sprite-get-x2d x y 0 0 [32]
+local1 = sprite-get-image sprite
+local2 = sprite-get-wiz sprite
+case local1 {
+    in [1032, 1022, 1263, 1023, 1263, 1262, 1261, 1260, room63, room45[1]] {
+        run-script HandleStatClick [x, y]
+    }
+    of 1034 {
+    }
+    of 1033 {
+        run-script 2191 [x, y]
+    }
+}
+free-script

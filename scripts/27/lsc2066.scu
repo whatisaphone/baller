@@ -1,0 +1,15 @@
+; LSC2 27 2066
+
+local variable local0
+local variable local1
+
+run-script GetKidName [local0]
+temp2 = (strlen gKidName) - 1
+for temp = 0 to temp2 ++ {
+    if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+        gKidName[temp] = gKidName[temp] - 32
+    }
+}
+local1 = call-script maybe_draw_text_to_image [gKidName, 1065, global661, g_some_palette_1, 1]
+return local1
+free-script

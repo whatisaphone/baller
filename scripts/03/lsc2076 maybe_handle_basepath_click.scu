@@ -1,0 +1,112 @@
+; LSC2 3 2076 maybe_handle_basepath_click
+
+parameter arg0
+parameter x
+parameter y
+parameter arg3
+
+local variable local5
+local variable local6
+local variable i
+local variable local8
+
+if (!arg0) {
+    x = gMouseX
+    y = gMouseY
+}
+if (arg3) {
+} else if (gRunnerCursorIndex != NONE && gRunnerCursorDestinationBase != NONE) {
+    if (gRunners[gRunnerCursorIndex][R-CUR-BASE] != NONE) {
+        local8 = gRunners[gRunnerCursorIndex][R-KID] == gBatterKid
+        temp = gRunnersExtra[gRunnerCursorIndex][RE-SPRINT]
+        if (temp) {
+            if (temp == 1) {
+                temp = 6
+            } else if (temp < 30) {
+                temp = temp + 3
+            }
+        } else {
+            temp = 1
+        }
+        gRunnersExtra[gRunnerCursorIndex][RE-SPRINT] = temp
+        if (gRunners[gRunnerCursorIndex][R-FORCED] == false && gPlayEndedReason == 0) {
+            if (gRunners[gRunnerCursorIndex][R-DIRECTION]) {
+                if (gRunnerCursorDestinationBase > gRunners[gRunnerCursorIndex][R-CUR-BASE]) {
+                    gRunners[gRunnerCursorIndex][R-DIRECTION] = FORWARD
+                } else {
+                    gRunners[gRunnerCursorIndex][R-DIRECTION] = BACKWARD
+                }
+            }
+            gRunners[gRunnerCursorIndex][R-DEST-BASE] = gRunnerCursorDestinationBase
+            case gRunnerCursorDestinationBase {
+                of FIRST {
+                    gRunners[gRunnerCursorIndex][R-DEST-X] = gWorld[FIRST-BASE-CENTER][X]
+                    gRunners[gRunnerCursorIndex][R-DEST-Z] = gWorld[FIRST-BASE-CENTER][Z]
+                }
+                of SECOND {
+                    gRunners[gRunnerCursorIndex][R-DEST-X] = gWorld[SECOND-BASE-CENTER][X]
+                    gRunners[gRunnerCursorIndex][R-DEST-Z] = gWorld[SECOND-BASE-CENTER][Z]
+                }
+                of THIRD {
+                    gRunners[gRunnerCursorIndex][R-DEST-X] = gWorld[THIRD-BASE-CENTER][X]
+                    gRunners[gRunnerCursorIndex][R-DEST-Z] = gWorld[THIRD-BASE-CENTER][Z]
+                }
+                in [0, R-HOME] {
+                    gRunners[gRunnerCursorIndex][R-DEST-X] = gWorld[HOME-PLATE-CENTER][X]
+                    gRunners[gRunnerCursorIndex][R-DEST-Z] = gWorld[HOME-PLATE-CENTER][Z]
+                }
+            }
+            gRunnersExtra[gRunnerCursorIndex][0] = true
+        }
+    }
+    goto label032b
+}
+if (arg3 == 0) {
+    run-script TransformUserInputVector [x, y, 2]
+    local5 = gWorld[LAST-CLICK-RUNNING][X]
+    local6 = gWorld[LAST-CLICK-RUNNING][Z]
+    if ((distance-2d local5 local6 gWorld[FIRST-BASE-CENTER][X] gWorld[FIRST-BASE-CENTER][Z]) < 24) {
+        arg3 = 1
+    }
+    if ((distance-2d local5 local6 gWorld[SECOND-BASE-CENTER][X] gWorld[SECOND-BASE-CENTER][Z]) < 24) {
+        arg3 = 2
+    }
+    if ((distance-2d local5 local6 gWorld[THIRD-BASE-CENTER][X] gWorld[THIRD-BASE-CENTER][Z]) < 24) {
+        arg3 = 3
+    }
+    if ((distance-2d local5 local6 gWorld[HOME-PLATE-CENTER][X] gWorld[HOME-PLATE-CENTER][Z]) < 18) {
+        arg3 = 4
+    }
+}
+for i = 0 to 3 ++ {
+    if (gRunners[i][R-CUR-BASE] == arg3 - 1 && gRunners[i][R-DIRECTION] == FORWARD) {
+        temp = gRunnersExtra[i][RE-SPRINT]
+        if (temp) {
+            if (temp == 1) {
+                temp = 6
+            } else if (temp < 30) {
+                temp = temp + 3
+            }
+        } else {
+            temp = 1
+        }
+        gRunnersExtra[i][RE-SPRINT] = temp
+    } else if (gRunners[i][R-CUR-BASE] == arg3 && gRunners[i][R-DIRECTION] == BACKWARD) {
+        temp = gRunnersExtra[i][RE-SPRINT]
+        if (temp) {
+            if (temp == 1) {
+                temp = 6
+            } else if (temp < 30) {
+                temp = temp + 3
+            }
+        } else {
+            temp = 1
+        }
+        gRunnersExtra[i][RE-SPRINT] = temp
+    }
+}
+label032b:
+if (!arg0) {
+    run-script DrawNameUnderRunner [gRunnerCursorIndex]
+}
+free-script

@@ -1,0 +1,36 @@
+; SCRP 208 WriteHE9_unused
+
+local variable local0
+
+gHE9File = file-open "Baseball.he9" 2
+for gField = 0 to 9 ++ {
+    run-script ReadHE9 []
+    run-script smth_he9_fill_final_array []
+    run-script smth_he9_fill_array []
+    g_he9_number_of_objects = g_he9_array[0]
+    file-write-i16 gHE9File g_he9_number_of_objects
+    xb6-xfe
+    xb6-xc2 "number of objects %d" g_he9_number_of_objects []
+    xb6-xfe
+    xb6-xc2 "off set number of items %d" (file-get-pos gHE9File) []
+    for local0 = 1 to 64 ++ {
+        g_he9_cur_row = g_he9_array[local0]
+        if (!g_he9_cur_row) {
+            dim array g_he9_cur_row i32[0...0][0...31] swap=2
+        }
+        redim 4 g_he9_cur_row 0 127
+        file-write-array 4 gHE9File g_he9_cur_row
+        xb6-xfe
+        xb6-xc2 "off set %d" (file-get-pos gHE9File) []
+        free-array g_he9_cur_row
+    }
+    redim 4 g_smth_he9_final_array 0 1023
+    file-write-array 4 gHE9File g_smth_he9_final_array
+    xb6-xfe
+    xb6-xc2 "off-set-2 %d" (file-get-pos gHE9File) []
+    free-array g_smth_he9_final_array
+    free-array g_he9_array
+    g_he9_cur_row = 0
+}
+file-close gHE9File
+free-script

@@ -1,0 +1,14 @@
+; SCRP 351 maybe_smth_net_send_array
+
+parameter arg0
+
+local variable local2
+local variable local3
+
+if (arg0 >= 30) {
+    local3 = 14
+} else {
+    local3 = 4
+}
+kludge [2001, 1509, local3, 0, 0, local2]
+free-script

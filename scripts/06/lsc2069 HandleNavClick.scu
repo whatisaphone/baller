@@ -1,0 +1,47 @@
+; LSC2 6 2069 HandleNavClick
+
+parameter arg0
+
+case arg0 {
+    of 193 {
+        if (gNetplayActive) {
+            run-script NetPromptQuit []
+        } else {
+            go-to-room 2
+        }
+    }
+    of 192 {
+        if (!gNetplayActive) {
+            run-script 2110 []
+        }
+        case room28 {
+            of 1 {
+                if (MODE-SPECTATE == gGameMode) {
+                    run-script maybe_skip_to_quick_game []
+                } else if (MODE-BATTING-PRACTICE == gGameMode) {
+                    run-script maybe_skip_to_team_selection []
+                } else {
+                    global621 = 3
+                    go-to-room 6
+                }
+            }
+            of 2 {
+                global621 = 3
+                go-to-room 6
+            }
+            of 3 {
+                if (gNetplayActive) {
+                    run-script 2071 []
+                } else if (MODE-SPECTATE == gGameMode) {
+                    run-script maybe_skip_to_quick_game []
+                } else {
+                    run-script maybe_skip_to_team_selection []
+                }
+            }
+        }
+    }
+    of 194 {
+        run-script StartQuickPickupGame [(call-script GetFieldFromChoice [rFieldChoice]) + 1]
+    }
+}
+free-script

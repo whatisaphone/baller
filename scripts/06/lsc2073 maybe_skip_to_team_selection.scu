@@ -1,0 +1,21 @@
+; LSC2 6 2073 maybe_skip_to_team_selection
+
+if (room5) {
+    gTeamInfo[0][3] = room10
+    gTeamInfo[0][8] = room8
+    gTeamInfo[0][TI-TEAM-ADJECTIVE] = room4
+    gTeamInfo[0][TI-TEAM-NOUN] = room5
+}
+gHomeInfoIndex = 1
+gVisitorInfoIndex = 0
+gTeamInfo[1][TI-CONTROLLED-BY] = CB-COMPUTER
+if (MODE-SPECTATE == gGameMode) {
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+} else {
+    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+}
+gTeamInfo[1][TI-FIELDING-ORDER] = gPickOrder2
+gTeamInfo[0][TI-FIELDING-ORDER] = gPickOrder1
+run-script maybe_pick_random_team_names_colors []
+go-to-room 5
+free-script

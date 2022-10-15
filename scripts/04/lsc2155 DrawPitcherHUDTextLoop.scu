@@ -1,0 +1,17 @@
+; LSC2 4 2155 DrawPitcherHUDTextLoop
+
+local variable local0
+local variable local1
+local variable local2
+
+local0 = gGameStats[rPitcherKid][STAT-PITCHES-THROWN]
+local1 = gGameStats[rPitcherKid][STAT-STRIKE-OUTS-PITCHED]
+local2 = gGameStats[rPitcherKid][STAT-WALKS-ALLOWED]
+do {
+    if (local0 != gGameStats[rPitcherKid][STAT-PITCHES-THROWN] || local1 != gGameStats[rPitcherKid][STAT-STRIKE-OUTS-PITCHED] || local2 != gGameStats[rPitcherKid][STAT-WALKS-ALLOWED]) {
+        run-script DrawPitcherHUDText []
+        free-running-script 0
+    }
+    sleep 2
+}
+free-script

@@ -1,0 +1,21 @@
+; LSC2 40 2143
+
+run-script PlayClickySound []
+sprite-set-range room1[67] room1[67]
+sprite-clear
+sprite-set-image 1574
+sprite-set-hotspot 320 240
+sprite-x34 5
+sprite-x2b 1950
+sprite-x52 0
+sprite-x7c 0
+sprite-palette room30
+free-running-script 424
+run-script 425 []
+if (room12 && room13) {
+    run-script 2139 []
+} else {
+    run-script 2096 []
+}
+stop-script
+free-script

@@ -1,0 +1,118 @@
+; LSC2 5 2168
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+case local0 {
+    of room44 {
+        run-script-xc3 2062 [local0, sprite-get-xc6 local0 1]
+        if (room47) {
+            room47 = 0
+            cursor-input-disable
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-hide
+            } else if (gCursorInputEnabled == 0) {
+                free-running-script GamePadCursorLoop
+                run-script ReleaseSprite [gGamePadCursorSprite]
+                gGamePadCursorSprite = 0
+            } else {
+                run-script ShowGamePadCursor []
+            }
+            run-script 2161 [0, 109, 0, 40, 3, 4]
+            run-script-xc3 2162 [26, 0, 109, 0, 40]
+            while (!!(is-script-running 2162)) {
+                stop-script
+            }
+            if (!local1) {
+                cursor-input-enable
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-show
+                } else if (gCursorInputEnabled == 0) {
+                    free-running-script GamePadCursorLoop
+                    run-script ReleaseSprite [gGamePadCursorSprite]
+                    gGamePadCursorSprite = 0
+                } else {
+                    run-script ShowGamePadCursor []
+                }
+            }
+            sprite-set-range room44 room44
+            sprite-x34 4
+            gSpriteCursorTargets[room50][TARGET-CLICK-SCRIPT] = 0
+            gMouseHookScript = 0
+            global43 = room11
+        } else {
+            room47 = 1
+            cursor-input-disable
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-hide
+            } else if (gCursorInputEnabled == 0) {
+                free-running-script GamePadCursorLoop
+                run-script ReleaseSprite [gGamePadCursorSprite]
+                gGamePadCursorSprite = 0
+            } else {
+                run-script ShowGamePadCursor []
+            }
+            run-script 2161 [0, 0 - 109, 0, -40, 3, 4]
+            run-script-xc3 2162 [26, 0, 0, 0, -40]
+            while (!!(is-script-running 2162)) {
+                stop-script
+            }
+            if (!local1) {
+                cursor-input-enable
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-show
+                } else if (gCursorInputEnabled == 0) {
+                    free-running-script GamePadCursorLoop
+                    run-script ReleaseSprite [gGamePadCursorSprite]
+                    gGamePadCursorSprite = 0
+                } else {
+                    run-script ShowGamePadCursor []
+                }
+            }
+            sprite-set-range room44 room44
+            sprite-x34 6
+            gSpriteCursorTargets[room50][TARGET-CLICK-SCRIPT] = 2169
+            gMouseHookScript = 2167
+            global43 = 0
+        }
+    }
+    of room45 {
+        run-script-xc3 2062 [local0, sprite-get-xc6 local0 1]
+        --global664
+        if (global664 < 1) {
+            global664 = global666
+        }
+        run-script 2159 []
+    }
+    of room46 {
+        run-script-xc3 2062 [local0, sprite-get-xc6 local0 1]
+        ++global664
+        if (global664 > global666) {
+            global664 = 1
+        }
+        run-script 2159 []
+    }
+    of room59 {
+        run-script 2157 [global665[global664][0]]
+    }
+    of room50 {
+        local2 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+        local3 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+        local2 = local2 - 320 - (image-get-hotspot-x 122 3)
+        local3 = local3 - 240 - (image-get-hotspot-y 122 3)
+        case image-get-x42 122 3 local2 local3 {
+            of 16 {
+                exec-script 2168 [room45]
+            }
+            of 17 {
+                exec-script 2168 [room59]
+            }
+            of 18 {
+                exec-script 2168 [room46]
+            }
+        }
+    }
+}
+free-script

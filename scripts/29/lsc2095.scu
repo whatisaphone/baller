@@ -1,0 +1,9 @@
+; LSC2 29 2095
+
+local variable local0
+local variable local1
+
+stop-script
+sprite-set-range local0 local0
+sprite-x34 local1
+free-script

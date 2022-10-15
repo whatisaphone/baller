@@ -1,0 +1,22 @@
+; LSC2 4 2062 smth_about_pitching_ai
+
+local variable local0
+local variable local1
+local variable local2
+
+free-array global397
+dim array global397 byte[0...0][0...10] swap=2
+dim array local1 byte[0...10][0...1] swap=2
+for local0 = 1 to 10 ++ {
+    local2 = gPitcherPitches[1 - gBattingTeamInfoIndex][local0] / 10
+    if (local2 && local2 != 27 && local2 != 26) {
+        local1[local0][0] = local0
+        local1[local0][1] = gKidData[rPitcherKid][local2]
+    }
+}
+array-sort local1 1 10 1 1 1
+for local0 = 1 to 10 ++ {
+    global397[local0] = local1[local0][0]
+}
+free-array local1
+free-script

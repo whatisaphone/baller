@@ -1,0 +1,27 @@
+; LSC2 8 2085
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+sprintf local4 "%d" [local1]
+if (local0 == gVisitorInfoIndex) {
+    local5 = 148
+    local7 = room6
+} else {
+    local5 = 492
+    local7 = room7
+}
+local6 = 319
+local3 = call-script maybe_draw_text_to_image [local4, 322, local2, local7, -1]
+image-select local2
+image-pos (local5 - local3 / 2) (local6 + 10)
+image-x30
+image-xff
+free-array local4
+free-script

@@ -1,0 +1,40 @@
+; LSC2 27 2230
+
+room67 = gHoverScript
+gHoverScript = 2340
+run-script 2234 []
+room0 = call-script AllocPalette []
+room46 = call-script AllocPalette []
+room47 = call-script AllocPalette []
+room62 = call-script AllocPalette []
+room83 = call-script AllocPalette []
+room88 = call-script AllocPalette []
+room90 = call-script AllocPalette []
+palette-select room46
+palette-load 1242 0
+palette-unselect
+palette-select room47
+palette-load 1243 0
+palette-unselect
+palette-select room62
+palette-load 1031 0
+palette-unselect
+palette-select room83
+palette-load 1239 0
+palette-unselect
+palette-select room88
+palette-load 1244 0
+palette-unselect
+palette-select room0
+palette-load 153 0
+palette-unselect
+room89 = gSeasonDivision
+if (gSeasonGameNumber >= 1 && gSeasonGameNumber < 17) {
+    xb6-xfe
+    xb6-x4b "GAME WITHIN BOUNDS"
+}
+run-script 2233 []
+run-script 2237 []
+run-script 2239 []
+run-script 88 []
+free-script

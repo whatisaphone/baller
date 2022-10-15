@@ -1,0 +1,95 @@
+; LSC2 14 2050
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+run-script AddSongsToPool [-1]
+run-script AddSongsToPool [8105]
+run-script PlayMusicPool [8105]
+gMinJiffies = 4
+room42 = call-script AllocScratchImage []
+room40 = call-script AllocScratchImage []
+room39 = call-script FindFreeSprite []
+room43 = call-script FindFreeSprite []
+room44 = call-script AllocScratchImage []
+local2 = image-get-width 1121 0
+local3 = (image-get-height 1121 0) + 1
+local4 = image-get-height 632 30
+local5 = local3 / (local4 + 5)
+sprite-set-range room39 room39
+sprite-clear
+image-select room40
+image-op-create
+image-x20 local2
+image-x21 local3
+image-palette room41
+image-xff
+image-select room44
+image-op-create
+image-x20 local2
+image-x21 local3
+image-palette room22
+image-xff
+image-select room44
+image-x85 0 0 local2 local3 (palette-xd9 0 70 0)
+image-xff
+sprite-set-range room43 room43
+sprite-clear
+sprite-set-image room44
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b (-825 - 1)
+sprite-x62 global652
+sprite-set-hotspot (240 + 17) (148 + 11)
+label00f7:
+for local0 = 0 to (317 - local5) ++ {
+    local6 = 0
+    while (local6 <= local4 + 5) {
+        if (room46) {
+            local7 = local5
+            local6 = local4 + 5 + 1
+            local0 = 317 - local5
+        } else {
+            image-select room40
+            image-x85 0 0 local2 local3 5
+            image-xff
+            for local7 = 0 to local5 ++ {
+                local1 = call-script getCreditsString [local0 + local7]
+                if (room45) {
+                    local8 = 633
+                } else {
+                    local8 = 632
+                }
+                local9 = call-script maybe_draw_text_to_image [local1, local8, room42, room41]
+                image-select room42
+                image-pos ((local2 - local9) / 2) (local7 * (local4 + 5) - local6)
+                image-render-into room40
+                image-palette room41
+                image-x30
+                image-xff
+                free-array local1
+            }
+            local6 = local6 + 3
+            sprite-set-range room39 room39
+            sprite-set-image room40
+            sprite-x52 0
+            sprite-x7c 2
+            sprite-x2b -825
+            sprite-set-hotspot (240 + 17) (148 + 11)
+            stop-script
+        }
+    }
+}
+if (!room46) {
+    goto label00f7
+}
+run-script 2051 []
+free-script

@@ -1,0 +1,56 @@
+; LSC2 4 2091 CalcHitAngleY
+
+parameter angle_y_zone
+
+local variable result
+local variable local2
+
+case angle_y_zone {
+    of 1 {
+        result = random2 32 60
+    }
+    of 2 {
+        result = random2 10 40
+    }
+    of 3 {
+        result = random2 -20 5
+    }
+    of 4 {
+        result = random2 -25 -5
+    }
+    of 5 {
+        return (random2 10 15)
+    }
+}
+if (gCurrentSwing > 4) {
+    if (gCurrentSwing == SWING-ALUMINUM-POWER) {
+        result = max 30 result
+    }
+    return result
+    free-running-script 0
+}
+case rHitQuality {
+    of 1 {
+        local2 = random 180
+    }
+    of 2 {
+        local2 = random2 -10 45
+    }
+    of 3 {
+        local2 = random2 -5 15
+    }
+}
+if (rPitchKind == PITCH-SPIT-BALL) {
+    local2 = local2 + (random 90)
+}
+if (rPitchZone > 35 || rPitchZone == -3) {
+    result = result - local2
+} else if (rPitchZone < 15) {
+    result = result + local2
+} else if (random 1) {
+    result = result + local2
+} else {
+    result = result - local2
+}
+return result
+free-script

@@ -1,0 +1,170 @@
+; LSC2 3 2052 PlayKidEmoteSound
+
+parameter kid: Kid
+parameter emote: Emote
+
+local variable local2
+
+if (gNoPlayerChatter) {
+    free-running-script 0
+}
+if (!emote) {
+    emote = rCurrentEmote
+}
+if (kid > 61 && kid < 264) {
+    free-running-script 0
+}
+if (kid >= 31 && kid <= 61) {
+    case emote {
+        of 1 {
+            local2 = random2 2635 2637
+        }
+        of 2 {
+            local2 = random2 2638 2640
+        }
+        of 3 {
+            local2 = random2 2641 2644
+        }
+        of 4 {
+            local2 = random2 2645 2648
+        }
+        of 5 {
+            local2 = 2649
+        }
+        of 6 {
+            local2 = 2650
+        }
+        of 7 {
+            local2 = random2 2656 2658
+        }
+        of 8 {
+            local2 = random2 2659 2661
+        }
+        of 9 {
+            local2 = random2 2665 2667
+        }
+        of 10 {
+            local2 = random2 2676 2677
+        }
+        of 11 {
+            local2 = random2 2668 2670
+        }
+        else {
+            if (random 1) {
+                local2 = random2 2671 2675
+            } else {
+                local2 = random2 2651 2655
+            }
+        }
+    }
+    local2 = local2 + (kid - 31) * 46
+} else if (kid >= 264 && kid <= 264 - 1 + 10) {
+    case emote {
+        of 1 {
+            local2 = random2 4061 4063
+        }
+        of 2 {
+            local2 = random2 4064 4066
+        }
+        of 3 {
+            local2 = random2 4067 4070
+        }
+        of 4 {
+            local2 = random2 4071 4074
+        }
+        of 5 {
+            local2 = 4075
+        }
+        of 6 {
+            local2 = 4076
+        }
+        of 7 {
+            local2 = random2 4082 4084
+        }
+        of 8 {
+            local2 = random2 4085 4087
+        }
+        of 9 {
+            local2 = random2 4091 4093
+        }
+        of 10 {
+            local2 = random2 4102 4103
+        }
+        of 11 {
+            local2 = random2 4094 4096
+        }
+        else {
+            if (random 1) {
+                local2 = random2 4097 4101
+            } else {
+                local2 = random2 4077 4081
+            }
+        }
+    }
+    if (gKidData[kid][KD-gender] == GIRL) {
+        local2 = local2 + 46
+    }
+} else {
+    if (kid == SIDNEY-WEBBER) {
+        kid = ASHLEY-WEBBER
+    }
+    case emote {
+        of 1 {
+            local2 = random2 2 4
+        }
+        of 2 {
+            local2 = random2 5 7
+        }
+        of 3 {
+            local2 = random2 8 21
+        }
+        of 4 {
+            local2 = random2 22 29
+        }
+        of 5 {
+            local2 = 30
+        }
+        of 6 {
+            local2 = 31
+        }
+        of 7 {
+            local2 = random2 32 34
+        }
+        of 8 {
+            local2 = random2 35 37
+        }
+        of 9 {
+            local2 = random2 38 40
+        }
+        of 10 {
+            local2 = random2 41 42
+        }
+        of 11 {
+            local2 = random2 26 29
+        }
+        else {
+            if ((random 1) || gTeamInfo[1 - gBattingTeamInfoIndex][3] >= 9) {
+                if (random 1) {
+                    local2 = random2 8 9
+                } else if (random 1) {
+                    local2 = random2 41 42
+                } else {
+                    free-running-script 0
+                }
+            } else {
+                local2 = 43 + gTeamInfo[1 - gBattingTeamInfoIndex][3] - 1
+            }
+        }
+    }
+    if (kid > 1) {
+        local2 = local2 + (kid - 1) * 49
+        if (kid > 9) {
+            local2 = local2 - 49
+        }
+    }
+}
+if (gNetplayActive) {
+    run-script NetSendSound [local2, 0, 1]
+}
+run-script PlaySound [local2, 0, 1]
+free-script

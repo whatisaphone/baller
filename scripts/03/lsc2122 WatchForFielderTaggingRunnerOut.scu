@@ -1,0 +1,38 @@
+; LSC2 3 2122 WatchForFielderTaggingRunnerOut
+
+local variable i
+local variable local3
+local variable fielder: Fielder
+
+if (gNetplayActive) {
+}
+do {
+    while (!gFielderWithBall) {
+        stop-script
+    }
+    fielder = gFielderWithBall
+    if (!g_maybe_play_is_ready_to_end) {
+        local3 = gWorld[fielder][TARGET]
+        if (local3 in [0, 1, 2, 3]) {
+            if (rBaseClaims[local3] == fielder) {
+                goto label00db
+            }
+        } else {
+            for i = 0 to 3 ++ {
+                if (gRunners[i][R-DIRECTION] != 0 && gRunners[i][R-STATE] != R-LEAVE-FIELD-WITH-OUT) {
+                    if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[gRunners[i][R-ENTITY]][X] gWorld[gRunners[i][R-ENTITY]][Z]) < 24) {
+                        gRunners[i][R-STATE] = R-LEAVE-FIELD-WITH-OUT
+                        if (gUserSelectedPlay == gRunners[i][R-ENTITY]) {
+                            gUserSelectedPlay = fielder
+                        }
+                        stop-script
+                        run-script PlayKidEmoteSound [rFieldingOrder[fielder - 37], 5]
+                    }
+                }
+            }
+        }
+    }
+label00db:
+    stop-script
+} until (!g_maybe_smth_play_is_alive || gBallIsFoul)
+free-script

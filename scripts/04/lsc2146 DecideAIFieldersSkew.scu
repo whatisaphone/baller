@@ -1,0 +1,76 @@
+; LSC2 4 2146 DecideAIFieldersSkew
+
+local variable local0
+local variable local1
+local variable result: Skew
+local variable local3
+
+local0 = abs (gBattingTeamInfoIndex - 1)
+local1 = gTeamInfo[local0][TI-RUNS] - gTeamInfo[gBattingTeamInfoIndex][TI-RUNS]
+if (local1 > 3) {
+    if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+        if ((call-script maybe_score_check [636, gBatterKid]) > 200) {
+            result = -3
+        } else {
+            result = 0
+        }
+    } else {
+        result = 0
+    }
+} else if (local1 < -3) {
+    if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+        if ((call-script maybe_score_check [636, gBatterKid]) > 220) {
+            result = -3
+        } else if ((call-script maybe_score_check [636, gBatterKid]) < 120) {
+            result = 3
+        } else {
+            result = 0
+        }
+    } else {
+        result = 0
+    }
+    if (rBatterHandedness == RIGHT-HANDED) {
+        result = result + gBatterStance - 2
+    } else {
+        result = result + 2 - gBatterStance
+    }
+} else {
+    if (gNumOuts == 2 && (random 1)) {
+        if (gBases) {
+            local3 = gBases[THIRD][BASE-RUNNERIDX] != NONE
+            local3 = local3 + (gBases[SECOND][BASE-RUNNERIDX] != NONE)
+            local3 = local3 + (gBases[FIRST][BASE-RUNNERIDX] != NONE)
+            if (local3 > 1) {
+                if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+                    result = -3
+                } else {
+                    result = 3
+                }
+            } else {
+                result = 0
+            }
+        }
+    } else if (!(gCurrentSwing in [SWING-BUNT, SWING-CRAZY-BUNT])) {
+        result = 0
+    } else if (random 1) {
+        result = 3
+    }
+    if (random 1) {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = result + gBatterStance - 2
+        } else {
+            result = result + 2 - gBatterStance
+        }
+    }
+}
+if (result in [-3, 0, 3]) {
+    if ((random2 0 20) == 7) {
+        if (rBatterHandedness == RIGHT-HANDED) {
+            result = result + gBatterStance - 2
+        } else {
+            result = result + 2 - gBatterStance
+        }
+    }
+}
+gFieldersSkew = result
+free-script

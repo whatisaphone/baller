@@ -1,0 +1,174 @@
+; LSC2 4 2080 smth_do_a_pitch
+
+parameter rand
+
+local variable local1
+local variable local2
+local variable local6
+local variable local7
+local variable local8
+local variable throw_sound
+local variable catch_sound
+local variable local12
+local variable local13
+
+if (gKidData[rPitcherKid][KD-maybe-height] < 3) {
+    local8 = 10
+} else {
+    local8 = -20
+}
+if (rPitchKind != PITCH-maybe-intentional-walk) {
+    local2 = 15 + rPitchKind - 14
+} else {
+    local2 = 16
+}
+actor-select 8
+actor-xd9
+actor-set-costume local2
+actor-x54 -75
+actor-x5f
+actor-select 8
+actor-clip-rect 0 0 639 400
+actor-select 9
+actor-xd9
+actor-set-costume local2
+actor-x54 -200
+actor-x5f
+actor-select 9
+actor-clip-rect 0 0 639 400
+actor-select 9
+actor-x62 global423
+actor-select 9
+actor-x56 231 (palette-xd9 0 0 0)
+if (rPitchKind == PITCH-FREEZE) {
+    actor-select 8
+    actor-set-sounds [1463, 1463]
+} else if (rPitchKind == PITCH-SLOW-MO) {
+    actor-select 8
+    actor-set-sounds [1465, 1465]
+    catch_sound = 1994
+} else if (rPitchKind == PITCH-ELEVATOR) {
+    actor-select 8
+    actor-set-sounds [1466, 1466]
+} else if (rPitchKind == PITCH-SPIT-BALL) {
+    actor-select 8
+    actor-set-sounds [1471, 1471]
+    catch_sound = 1469
+} else if (rPitchKind == PITCH-CRAZY-BALL) {
+    actor-select 8
+    actor-set-sounds [1539, 1539]
+}
+put-actor 9 320 (240 + -200) 4
+put-actor 8 320 (240 + -75 + local8) 4
+local1 = rPitchKind - 13
+r_maybe_pitch_phase = 2
+gStealStartingPosAdjust = 0
+case rPitchKind {
+    in [PITCH-HEAT, PITCH-SLOWBALL, PITCH-LEFT-HOOK, PITCH-RIGHT-HOOK] {
+        local7 = 1 + gKidData[rPitcherKid][rPitchKind] / 10
+        local7 = local7 - gKidData[rPitcherKid][KD-fatigue] / 25
+        if (rand < 75) {
+            local6 = local7
+        } else if (rand < 85) {
+            local6 = local7 - 1
+        } else if (rand < 93) {
+            local6 = local7 - 2
+        } else if (rand < 98) {
+            local6 = local7 - 3
+        } else {
+            local6 = local7 - 4
+        }
+        local6 = max local6 1
+        local6 = min local6 10
+        local6 = 11 - local6
+        if (rPitchKind == PITCH-SLOWBALL) {
+            catch_sound = 1994
+        }
+    }
+    of PITCH-maybe-intentional-walk {
+        local6 = 5
+        gStealStartingPosAdjust = -20
+    }
+    of PITCH-CRAZY-BALL {
+        local7 = (gKidData[rPitcherKid][23] - gKidData[rPitcherKid][KD-fatigue] + 10) / 25
+        local6 = min 4 local7
+        local6 = max 1 local6
+        catch_sound = 1470
+    }
+    in [PITCH-CORKSCREW, PITCH-ELEVATOR, PITCH-ZIG-ZAG, PITCH-SPIT-BALL] {
+        local7 = (gKidData[rPitcherKid][rPitchKind] - gKidData[rPitcherKid][KD-fatigue] + 10) / 33
+        local6 = min 3 local7
+        local6 = max 1 local6
+        if (rPitchKind == PITCH-CORKSCREW) {
+            throw_sound = 1457 + local6 - 1
+        }
+        if (rPitchKind == PITCH-ZIG-ZAG) {
+            throw_sound = 1460 + local6 - 1
+            catch_sound = 1467
+        }
+    }
+    else {
+        local6 = 1
+        if (rPitchKind == PITCH-FIREBALL) {
+            gStealStartingPosAdjust = -90
+            throw_sound = 1464
+            catch_sound = 1468
+        }
+    }
+}
+if (throw_sound) {
+    sound-select throw_sound
+    sound-play
+}
+run-script maybe_animate_pitched_ball [local6]
+stop-script
+run-script smth_batting_circle []
+if (gPitchBallIndicator) {
+    sprite-set-range rBallSprite rBallSprite
+    sprite-set-image 438
+    sprite-x34 0
+    sprite-x62 global423
+    sprite-x7c 0
+    sprite-palette room70
+    sprite-x2b -1000
+    sprite-set-hotspot rRealPitchLocationX rRealPitchLocationY
+}
+do {
+    room14 = actor-get-var 8 7
+    stop-script
+} until (actor-get-var 8 0)
+room28 = 1
+r_maybe_pitch_phase = 0
+free-running-script maybe_animate_pitched_ball
+put-actor 8 0 0 0
+put-actor 9 0 0 0
+if (rUserCurrentlyControlling == CONTROLLING-BATTER && !gNoBatCircle) {
+    put-actor 5 0 0 0
+}
+if (!gBallWasHit) {
+    if (catch_sound) {
+        if (catch_sound) {
+            sound-select catch_sound
+            sound-play
+        }
+    } else if (1995) {
+        sound-select 1995
+        sound-play
+    }
+    if (rPitchKind == PITCH-FIREBALL) {
+        local13 = gTeamInfo[1 - gBattingTeamInfoIndex][TI-FIELDING-ORDER]
+        local12 = local13[7]
+        if (local12 >= 1 && local12 <= 30) {
+            throw_sound = random2 35 37
+            if (local12 > 1) {
+                throw_sound = throw_sound + (local12 - 1) * 49
+                if (local12 > 9) {
+                    throw_sound = throw_sound - 49
+                }
+            }
+            sleep 5
+            run-script PlaySound [throw_sound, 1]
+        }
+    }
+}
+free-script

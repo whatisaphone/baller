@@ -1,0 +1,40 @@
+; LSC2 7 2076
+
+local variable local0
+local variable local1
+local variable local2
+
+case 1 {
+    of local0 == 2 || local0 == 3 {
+        local1 = 988
+        local2 = 0
+    }
+    of local0 == 1 {
+        local1 = 1007
+        local2 = iif (gSavedGameLength > 12) 0 1
+    }
+    of local0 == 0 {
+        local1 = 988
+        local2 = 0
+    }
+}
+if (local1) {
+    palette-select room18
+    palette-load local1 0
+    palette-unselect
+    room12 = palette-x42 room18 5
+    sprite-set-range room6[0] room6[0]
+    sprite-set-image local1
+    sprite-set-hotspot 320 240
+    sprite-x7c 2
+    sprite-x2b -905
+    sprite-x34 local2
+    sprite-x52 0
+    sprite-set-range room6[0] room6[0]
+    sprite-palette room18
+} else {
+    sprite-set-range room6[0] room6[0]
+    sprite-clear
+    sprite-x2a 0 2
+}
+free-script

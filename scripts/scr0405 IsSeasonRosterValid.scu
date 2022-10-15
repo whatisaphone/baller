@@ -1,0 +1,64 @@
+; SCRP 405 IsSeasonRosterValid
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+dim array local0 byte[0...0][0...273] swap=2
+for local1 = 0 to 23 ++ {
+    for local3 = 0 to (9 - 1) ++ {
+        local2 = gSeasonRosterArray[local1][local3]
+        case 1 {
+            of local2 < 1 {
+                xb6-xfe
+                xb6-xc2 "Oh no!  Bad kid picked! %d" local2 []
+                pop-discard 0
+            }
+            of local2 <= 30 {
+                ++local8
+            }
+            of local2 <= 61 {
+                ++local7
+            }
+            of local2 <= 231 {
+                ++local9
+            }
+            of local2 <= 262 {
+                ++local10
+            }
+            of local2 <= 273 {
+                ++local6
+            }
+            else {
+                xb6-xfe
+                xb6-x4b "Kid not BY, MLB, Clone, or Mirror!"
+                pop-discard 0
+            }
+        }
+        local0[local2] = local0[local2] + 1
+    }
+}
+for local5 = 1 to 273 ++ {
+    if (local0[local5] > 1) {
+        ++local4
+        xb6-xfe
+        xb6-xc2 "Oh no!  Kid %d picked %d times!" local5 [local0[local5]]
+    }
+}
+free-array local0
+if (local4) {
+    xb6-xfe
+    xb6-xc2 "There were %d errors in the team Rosters." local4 []
+    return 0
+} else {
+    return 1
+}
+free-script

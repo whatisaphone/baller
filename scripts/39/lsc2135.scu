@@ -1,0 +1,61 @@
+; LSC2 39 2135
+
+local variable local0
+local variable local1
+
+case local0 {
+    of 0 {
+        palette-select room10
+        palette-load 1506 0
+        palette-unselect
+        sprite-set-range room46[0] room46[0]
+        sprite-set-image 1506
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b 1000
+        sprite-palette room10
+    }
+    of 2 {
+        palette-select room16
+        palette-load 1521 0
+        palette-unselect
+        sprite-set-range room46[2] room46[2]
+        sprite-set-image 1521
+        sprite-set-hotspot 320 240
+        sprite-x34 0
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+        gSpriteCursorTargets[room46[2]][TARGET-CLICK-SCRIPT] = 2134
+    }
+    of 3 {
+        sprite-set-range room46[3] room46[3]
+        sprite-set-image 1521
+        sprite-set-hotspot 320 240
+        sprite-x34 2
+        sprite-x52 0
+        sprite-x2b (1000 + 1)
+        sprite-palette room16
+        gSpriteCursorTargets[room46[3]][TARGET-CLICK-SCRIPT] = 2134
+    }
+    of 4 {
+        sprite-set-range room46[4] room46[4]
+        sprite-set-image 1521
+        sprite-set-hotspot 320 240
+        sprite-x34 local1
+        sprite-x52 0
+        sprite-x2b (1000 + 2)
+        sprite-palette room16
+    }
+    of 1 {
+        sprite-set-range room46[1] room46[1]
+        sprite-clear
+        sprite-set-image 703
+        sprite-set-hotspot 0 96
+        sprite-x2b 10000
+        sprite-x52 0
+        sprite-x7c 0
+    }
+}
+free-script

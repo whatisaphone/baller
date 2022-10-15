@@ -1,0 +1,16 @@
+; SCRP 123 WriteActiveSchedule
+
+parameter arg0
+parameter arg1
+parameter field: SeasonScheduleField
+parameter arg3
+
+local variable local4
+
+if (arg1 >= 14) {
+    local4 = call-script smth_find_playoffs [arg0]
+    run-script WritePlayoffSchedule [local4, arg1, field, arg3]
+} else {
+    run-script WriteSeasonSchedule [arg0, arg1, field, arg3]
+}
+free-script

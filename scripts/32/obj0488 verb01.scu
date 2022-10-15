@@ -1,0 +1,4 @@
+; VERB 32 488
+
+run-script 2071 [488]
+finish-script

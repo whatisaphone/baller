@@ -1,0 +1,37 @@
+; SCRP 419 smth_net_set_game_flags
+
+parameter arg0
+
+case arg0 {
+    of 24 {
+        g_smth_net_game_flags = 0
+    }
+    of 26 {
+        g_smth_net_game_flags = 256
+    }
+    of 25 {
+        g_smth_net_game_flags = 65536
+    }
+    of 16 {
+        g_smth_net_game_flags = 64
+    }
+    of 17 {
+        g_smth_net_game_flags = 65536
+    }
+    of 18 {
+        g_smth_net_game_flags = 0
+    }
+    of 19 {
+        g_smth_net_game_flags = 4096
+    }
+    of 9 {
+        g_smth_net_game_flags = 64
+    }
+    of 8 {
+        g_smth_net_game_flags = 65536
+    }
+    else {
+        g_smth_net_game_flags = 0
+    }
+}
+free-script

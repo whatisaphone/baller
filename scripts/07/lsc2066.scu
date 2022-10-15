@@ -1,0 +1,21 @@
+; LSC2 7 2066
+
+if (gNetplayActive) {
+    if (g_net_smth_master == g_net_smth_slave) {
+        free-running-script 0
+    }
+}
+if (gKidData[0][33] == 0) {
+    gKidData[0][33] = 1
+    run-script maybe_kid_bonuses []
+    run-script maybe_stat_ups_downs []
+    run-script maybe_check_kid_birthdays []
+    run-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders []
+    if (MODE-SEASON != gGameMode) {
+        run-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders [1]
+    }
+    if (gNetplayActive) {
+        run-script 402 []
+    }
+}
+free-script

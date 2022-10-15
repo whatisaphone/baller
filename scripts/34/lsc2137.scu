@@ -1,0 +1,127 @@
+; LSC2 34 2137
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local11
+local variable local12
+
+if (is-script-running 2100) {
+    free-running-script 2100
+    sprite-set-range global653 global653
+    sprite-x34 (sprite-get-x24 global653)
+}
+local12 = gSeasonGameNumber - 1
+if (gSeasonGameNumber > 14) {
+    local11 = call-script smth_find_playoffs_cur_division []
+    local8 = call-script ReadPlayoffSchedule [local11, local12, 4]
+    local7 = call-script ReadPlayoffSchedule [local11, local12, 3]
+}
+if (local0) {
+    local1 = local0
+} else {
+    local1 = call-script doTheNewspaper [local7, local8]
+}
+if (local1 in [0, 8, 1, 2]) {
+    run-script 2136 []
+    run-script 2144 []
+}
+run-script SetNavButtons [HandleNavClick]
+run-script 88 []
+gHoverScript = 2142
+run-script 2143 []
+image-select global682
+image-x30
+image-xff
+sprite-set-range room66 room66
+sprite-clear
+sprite-set-image 1272
+sprite-x7c 2
+sprite-x52 0
+sprite-x2b 100
+sprite-palette room65
+sprite-x34 local1
+sprite-set-hotspot 320 240
+local3 = call-script GetTeamNameString [gSeasonRosterArray[gSeasonDivision][11], 0]
+case local1 {
+    of 8 {
+        sprintf local2 "All eyes are on the %s as they enter the playoffs!  A win in the playoffs leads to the league championships, and finally the Backyard World Series (R)." [local3]
+        sprintf local4 "%s  %cIt's a long road to travel, but we think we're ready,%c says coach %s." [local2, 34, 34, gCoachName]
+        free-array local2
+    }
+    of 0 {
+        sprintf local2 "The %s record of %d and %d did not qualify them for the playoffs." [local3, gSeasonRosterArray[gSeasonDivision][14], gSeasonRosterArray[gSeasonDivision][15]]
+        sprintf local4 "%s  %cThese kids played some tough games this season,%c says coach %s.  %cWe'll play better than ever next year.%c" [local2, 34, 34, gCoachName, 34, 34]
+    }
+    else {
+        if (local7 >= local8) {
+            do {
+                local5 = gSeasonRosterArray[gSeasonDivision][random 8]
+            } until (local5 != 25)
+            run-script GetKidName [local5]
+            case random 2 {
+                of 0 {
+                    sprintf local2 "%cWe came through a lot of adversity this season, but we stuck together as a team,%c said %s, the %s' co-captain." [34, 34, gKidName, local3]
+                }
+                of 1 {
+                    sprintf local2 "%cThis season is the result of good team playing and a great coach,%c said the %s' co-captain, %s." [34, 34, local3, gKidName]
+                }
+                of 2 {
+                    sprintf local2 "%cAt the beginning of the season, folks said we'd never get this far, but here we are,%c said the %s' co-captain, %s." [34, 34, local3, gKidName]
+                }
+            }
+            do {
+                local6 = gSeasonRosterArray[gSeasonDivision][random 8]
+            } until (local6 != 25 && local6 != local5)
+            run-script GetKidName [local6]
+            case random 2 {
+                of 0 {
+                    sprintf local4 "%s %cThe fans are the real winners here,%c said %s, choking back the tears." [local2, 34, 34, gKidName]
+                }
+                of 1 {
+                    sprintf local4 "%s %cI love these kids,%c said %s, choking back the tears." [local2, 34, 34, gKidName]
+                }
+                of 2 {
+                    sprintf local4 "%s %cI'd just like to thank my mom for providing the orange slices,%c said %s." [local2, 34, 34, gKidName]
+                }
+            }
+            free-array local2
+        } else {
+            local9 = call-script GetTeamNameString [call-script ReadActiveSchedule [gSeasonDivision, local12, 0]]
+            do {
+                local5 = gSeasonRosterArray[gSeasonDivision][random 8]
+            } until (local5 != 25)
+            run-script GetKidName [local5]
+            sprintf local2 "%cWe gave it our best shot, that's all we could do,%c said %s, the %s' outspoken team leader." [34, 34, gKidName, local3]
+            do {
+                local6 = gSeasonRosterArray[gSeasonDivision][random 8]
+            } until (local6 != 25 && local6 != local5)
+            run-script GetKidName [local6]
+            sprintf local4 "%s %cYou've got to hand it to the %s.  They played a good game,%c said %s, choking back the tears." [local2, 34, local9, 34, gKidName]
+            free-array local2
+        }
+    }
+}
+temp = call-script 46 [local4, 1525, room68, 33, 2, room65, 2]
+sprite-set-range room67 room67
+sprite-clear
+sprite-set-image room68
+sprite-x7c 2
+sprite-x52 0
+sprite-x2b 120
+sprite-palette room65
+sprite-set-hotspot 49 280
+free-array local4
+global485 = 1
+free-array local3
+if (local9) {
+    free-array local9
+}
+free-script

@@ -1,0 +1,236 @@
+; SCRP 144 CastGameplay
+
+parameter dialogue: Dialogue
+parameter arg1
+parameter arg2
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+
+if (gNoCommentary) {
+    free-running-script 0
+}
+if ((get-room 1) != gCurrentRoom) {
+    actor-select 1
+    actor-xd9
+    actor-set-costume 0
+    put-actor 1 0 0 gCurrentRoom
+}
+actor-select 1
+actor-x63 0 250
+actor-x57 245
+if (dialogue <= 13) {
+    run-script gDialogueHandlerScript [dialogue, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
+    free-running-script 0
+}
+case dialogue {
+    of DIALOGUE-HIT-FOUL {
+        run-script CastHitFoul [arg1]
+    }
+    of DIALOGUE-PITCH-BALL {
+        run-script CastPitchBall [arg1, arg2, arg3, arg4, arg5]
+    }
+    of DIALOGUE-FIELDER-RUNNING-TO-CATCH-FLY {
+        run-script CastFielderRunningToCatchFly [arg1]
+    }
+    of DIALOGUE-FIELDER-ABOUT-TO-CATCH {
+        run-script CastFielderAboutToCatch [arg1]
+    }
+    of DIALOGUE-FIELDER-DIVE {
+        run-script CastFielderDive [arg1]
+    }
+    of DIALOGUE-FIELDER-UNDER-POP-FLY {
+        run-script CastFielderUnderPopFly [arg1]
+    }
+    of DIALOGUE-HIT-FOUL-OUTFIELD {
+        run-script CastHitFoulOutfield [arg1]
+    }
+    of DIALOGUE-THROW {
+        run-script CastThrow [arg1]
+    }
+    of DIALOGUE-THROW-TO-FIRST {
+        run-script CastThrowInfield [arg1, 1]
+    }
+    of DIALOGUE-THROW-TO-SECOND {
+        run-script CastThrowInfield [arg1, 2]
+    }
+    of DIALOGUE-THROW-TO-THIRD {
+        run-script CastThrowInfield [arg1, 3]
+    }
+    of DIALOGUE-THROW-TO-HOME {
+        run-script CastThrowInfield [arg1, 0]
+    }
+    of DIALOGUE-THROW-TO-PITCHER {
+        run-script CastThrowInfield [arg1, 4]
+    }
+    of DIALOGUE-HIT-TO-PITCHER {
+        run-script CastHitToPitcher [arg1]
+    }
+    of DIALOGUE-HIT-TO-SHORTSTOP {
+        run-script CastHitToShortstop [arg1]
+    }
+    in [DIALOGUE-CATCH-HIGH-HIT, DIALOGUE-CATCH-HIGH-HIT-ERROR] {
+        run-script CastCatchHighHit [dialogue, arg1]
+    }
+    in [DIALOGUE-CATCH-LOW-HIT, DIALOGUE-CATCH-LOW-HIT-ERROR] {
+        run-script CastCatchLowHit [dialogue, arg1]
+    }
+    of DIALOGUE-DROP {
+        run-script CastDrop [arg1]
+    }
+    of DIALOGUE-POP-FLY {
+        run-script CastPopFly [arg1]
+    }
+    of DIALOGUE-HIT-TO-OUTFIELD {
+        run-script CastHitToOutfield [arg1]
+    }
+    in [DIALOGUE-HIT-LINE-DRIVE-CENTER-FIELD, DIALOGUE-HIT-LINE-DRIVE-LEFT-FIELD, DIALOGUE-HIT-LINE-DRIVE-RIGHT-FIELD, DIALOGUE-HIT-LINE-DRIVE-GENERAL] {
+        run-script CastHitLineDrive [arg1, dialogue]
+    }
+    in [DIALOGUE-GROUNDER-RIGHT, DIALOGUE-GROUNDER-CENTER, DIALOGUE-GROUNDER-LEFT, DIALOGUE-GROUNDER-SHORTSTOP, DIALOGUE-GROUNDER-GENERAL] {
+        run-script CastHitGrounder [arg1, dialogue]
+    }
+    of DIALOGUE-LINE-DRIVE-GAP {
+        run-script CastHitLineDriveGap [arg1]
+    }
+    of DIALOGUE-FOUL-OUTFIELD {
+        run-script CastHitFoulOutfield [arg1]
+    }
+    of DIALOGUE-HIT-HOME-RUN {
+        run-script CastHitHomeRun [arg1]
+    }
+    of DIALOGUE-HIT-GRAND-SLAM {
+        run-script CastHitGrandSlam [arg1]
+    }
+    of DIALOGUE-RUNNER-TAGGED-OUT {
+        run-script CastRunnerTaggedOut [arg1, gUserOnOffense]
+    }
+    of DIALOGUE-RUNNER-TAGGED-SAFE {
+        run-script CastRunnerTaggedSafe [arg1]
+    }
+    of DIALOGUE-RUNNER-THROW-ERROR {
+        run-script CastThrowError [arg1]
+    }
+    of DIALOGUE-GOOD-PLAY {
+        run-script CastGoodPlay [arg1]
+    }
+    of DIALOGUE-BAD-PLAY {
+        run-script CastBadPlay [arg1]
+    }
+    of DIALOGUE-DOUBLE-PLAY {
+        run-script CastDoublePlay [arg1]
+    }
+    of DIALOGUE-THIRD-OUT {
+        run-script CastThirdOut [arg1, gUserOnOffense]
+    }
+    of DIALOGUE-FIELDER-COLLISION {
+        run-script CastFielderCollision []
+    }
+    of DIALOGUE-HIT-BUNT {
+        run-script CastHitBunt [arg1]
+    }
+    of DIALOGUE-RUNNER-SAFE {
+        run-script CastRunnerSafe [arg1, 999]
+    }
+    of DIALOGUE-RUNNER-SAFE-AT-FIRST {
+        run-script CastRunnerSafe [arg1, 1]
+    }
+    of DIALOGUE-RUNNER-SAFE-AT-SECOND {
+        run-script CastRunnerSafe [arg1, 2]
+    }
+    of DIALOGUE-RUNNER-SAFE-AT-THIRD {
+        run-script CastRunnerSafe [arg1, 3]
+    }
+    of DIALOGUE-RUNNER-OUT {
+        run-script CastRunnerOut [arg1]
+    }
+    of DIALOGUE-SCORED-RUN {
+        run-script CastScoredRun [arg1]
+    }
+    of DIALOGUE-OUT-GOOCH {
+        run-script CastOutGooch [arg1]
+    }
+    of DIALOGUE-SNOWCONE-CATCH {
+        run-script CastSnowconeCatch [arg1]
+    }
+    of DIALOGUE-TRIPLE-PLAY {
+        run-script CastTriplePlay [arg1]
+    }
+    of DIALOGUE-CATCH-GENERAL {
+        run-script CastCatchGeneral [arg1]
+    }
+    of DIALOGUE-CATCH-GENERAL-ERROR {
+        run-script CastCatchGeneralError [arg1]
+    }
+    of DIALOGUE-BALL-OUT-OF-PLAY {
+        run-script CastBallOutOfPlay []
+    }
+    of DIALOGUE-BALL-OFF-THE-WALL {
+        run-script CastBallOffTheWall [arg1]
+    }
+    of DIALOGUE-INSTANT-REPLAY {
+        run-script CastInstantReplay []
+    }
+    of DIALOGUE-GROUND-RULE-DOUBLE {
+        run-script CastGroundRuleDouble []
+    }
+    of DIALOGUE-HIT-DOUBLE {
+        run-script CastHitDouble [arg1]
+    }
+    of DIALOGUE-HIT-TRIPLE {
+        run-script CastHitTriple [arg1]
+    }
+    of DIALOGUE-RUNNER-SLIDE-INTO-FIRST {
+        run-script CastRunnerSlide [arg1, 1]
+    }
+    of DIALOGUE-RUNNER-SLIDE-INTO-SECOND {
+        run-script CastRunnerSlide [arg1, 2]
+    }
+    of DIALOGUE-RUNNER-SLIDE-INTO-THIRD {
+        run-script CastRunnerSlide [arg1, 3]
+    }
+    of DIALOGUE-RUNNER-SLIDE-INTO-HOME {
+        run-script CastRunnerSlide [arg1, 4]
+    }
+    of DIALOGUE-STEALING-BASE {
+        run-script CastStealingBase [arg1, 0]
+    }
+    of DIALOGUE-STEALING-HOME {
+        run-script CastStealingBase [arg1, 4]
+    }
+    of DIALOGUE-STOLEN-BASE {
+        run-script CastStolenBase [arg1, 0]
+    }
+    of DIALOGUE-STOLEN-HOME {
+        run-script CastStolenBase [arg1, 4]
+    }
+    of DIALOGUE-GO-FOR-ANOTHER {
+        run-script CastGoForAnother [arg1]
+    }
+    of DIALOGUE-RUNNER-TAGS-FIRST {
+        run-script CastRunnerTags [arg1, 1]
+    }
+    of DIALOGUE-RUNNER-TAGS-SECOND {
+        run-script CastRunnerTags [arg1, 2]
+    }
+    of DIALOGUE-RUNNER-TAGS-THIRD {
+        run-script CastRunnerTags [arg1, 3]
+    }
+    of DIALOGUE-TRIP {
+        run-script CastTrip [arg1]
+    }
+    of DIALOGUE-PICKLE {
+        run-script CastPickle [arg1]
+    }
+    of DIALOGUE-HIT-WITH-POWERUP {
+        run-script CastHitWithPowerup []
+    }
+    of DIALOGUE-INFIELD-FLY {
+        run-script CastHitInfieldFly []
+    }
+}
+free-script

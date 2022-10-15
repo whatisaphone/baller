@@ -1,0 +1,105 @@
+; LSC2 27 2156 smth_building_season_schedule
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+dim array local0 byte[0...5][0...3] swap=2
+dim array local2 byte[0...0][0...5] swap=2
+local4 = 13
+array-set local2 [0, 1, 2, 3, 4, 5] 0
+shuffle-array local2 0 5
+array-set-row local0 local2[0] [1, 1, 0, 0]
+array-set-row local0 local2[1] [1, 0, 1, 0]
+array-set-row local0 local2[2] [1, 0, 0, 1]
+array-set-row local0 local2[3] [0, 1, 1, 0]
+array-set-row local0 local2[4] [0, 1, 0, 1]
+array-set-row local0 local2[5] [0, 0, 1, 1]
+local1 = 0
+label00a5:
+for local3 = 0 to 11 ++ {
+    run-script WriteSeasonSchedule [local3, local4, 0, 0]
+}
+if (local1 > 5) {
+    pop-discard 0
+    run-script 2157 []
+}
+for local6 = 0 to 3 ++ {
+    while (!(call-script ReadSeasonSchedule [local6, local4, 0])) {
+        if (local0[local1][local6] == 1) {
+            local7 = call-script pickATeam [1]
+        } else {
+            local7 = call-script pickATeam [2]
+        }
+        local8 = call-script smth_find_season_team [local7]
+        if (!(call-script smth_find_in_season_schedule [local6, local7, local4]) && (call-script smth_find_in_season_schedule_2 [local7, local4])) {
+            run-script WriteSeasonSchedule [local6, local4, 0, local7]
+            run-script smth_write_season_schedule [local7, local6, local4]
+        }
+    }
+}
+for local6 = 4 to 7 ++ {
+    while (!(call-script ReadSeasonSchedule [local6, local4, 0])) {
+        ++local5
+        if (local5 > 30) {
+            local5 = 0
+            ++local1
+            goto label00a5
+        }
+        local7 = call-script pickATeam [2]
+        local8 = call-script smth_find_season_team [local7]
+        if (!(call-script smth_find_in_season_schedule [local6, local7, local4]) && (call-script smth_find_in_season_schedule_2 [local7, local4])) {
+            run-script WriteSeasonSchedule [local6, local4, 0, local7]
+            run-script smth_write_season_schedule [local7, local6, local4]
+        }
+    }
+}
+local1 = 0
+local5 = 0
+label0218:
+for local3 = 12 to 23 ++ {
+    run-script WriteSeasonSchedule [local3, local4, 0, 0]
+}
+if (local1 > 5) {
+    pop-discard 0
+    run-script 2157 []
+}
+for local6 = 12 to 15 ++ {
+    while (!(call-script ReadSeasonSchedule [local6, local4, 0])) {
+        if (local0[local1][local6 - 12] == 1) {
+            local7 = call-script pickATeam [4]
+        } else {
+            local7 = call-script pickATeam [5]
+        }
+        local8 = call-script smth_find_season_team [local7]
+        if (!(call-script smth_find_in_season_schedule [local6, local7, local4]) && (call-script smth_find_in_season_schedule_2 [local7, local4])) {
+            run-script WriteSeasonSchedule [local6, local4, 0, local7]
+            run-script smth_write_season_schedule [local7, local6, local4]
+        }
+    }
+}
+for local6 = 16 to 19 ++ {
+    while (!(call-script ReadSeasonSchedule [local6, local4, 0])) {
+        ++local5
+        if (local5 > 30) {
+            local5 = 0
+            ++local1
+            goto label0218
+        }
+        local7 = call-script pickATeam [5]
+        local8 = call-script smth_find_season_team [local7]
+        if (!(call-script smth_find_in_season_schedule [local6, local7, local4]) && (call-script smth_find_in_season_schedule_2 [local7, local4])) {
+            run-script WriteSeasonSchedule [local6, local4, 0, local7]
+            run-script smth_write_season_schedule [local7, local6, local4]
+        }
+    }
+}
+free-array local2
+free-array local0
+free-script

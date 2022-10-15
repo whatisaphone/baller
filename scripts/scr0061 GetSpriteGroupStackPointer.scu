@@ -1,0 +1,4 @@
+; SCRP 61 GetSpriteGroupStackPointer
+
+return gSpriteGroupStackPointer
+free-script

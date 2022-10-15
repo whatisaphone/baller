@@ -1,0 +1,247 @@
+; LSC2 3 2081 MouseCursorLoopOffense
+
+local variable x
+local variable y
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable direction: RunnerDirection
+local variable local8
+local variable runneridx: IndexOrNone
+local variable end_base
+local variable start_base
+local variable local16
+local variable runner_is_batter
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+local variable local22
+
+dim array local20 i32[0...0][0...3] swap=2
+xe2 local20
+do {
+    if (gCursorVisible > 0) {
+        x = gMouseX
+        y = gMouseY
+        local2 = 0
+        local2 = xa0 x y
+        if (local2) {
+            if (get-class local2 [4]) {
+                local2 = 0
+            }
+        }
+        if (local2) {
+            local4 = local3
+            if (local2 in [74, 75, 76, 77]) {
+                direction = 0
+                array-set local20 [0, 0, 0, 0] 0
+                local21 = 0
+                end_base = local2 - 74 + 1
+                start_base = end_base - 1
+                runneridx = gBases[start_base][BASE-RUNNERIDX]
+                if (runneridx == NONE) {
+                    gRunnerCursorIndex = NONE
+                    local8 = 999
+                } else if (gRunners[runneridx][R-DIRECTION] == BACKWARD) {
+                    if (gRunners[runneridx][R-DEST-BASE] == start_base) {
+                        gRunnerCursorIndex = runneridx
+                        local8 = end_base
+                    } else {
+                        gRunnerCursorIndex = NONE
+                        local8 = 999
+                    }
+                } else if (gRunners[runneridx][R-DIRECTION] == FORWARD || end_base != 1) {
+                    gRunnerCursorIndex = runneridx
+                    local8 = end_base
+                } else {
+                    gRunnerCursorIndex = NONE
+                    local8 = 999
+                }
+                if (gRunnerCursorIndex != NONE && local8 != 999) {
+                    case local8 {
+                        of 1 {
+                            local8 = 33
+                        }
+                        of 2 {
+                            local8 = 2
+                        }
+                        of 3 {
+                            local8 = 34
+                        }
+                        in [4, 0] {
+                            local8 = 32
+                        }
+                    }
+                    if (gPlayEndedReason == 0) {
+                        local20[local2 - 74] = 1
+                        local21 = local2 - 74 + 1
+                    }
+                    local5 = distance-2d x y gScreen[local8][X] gScreen[local8][Y]
+                    temp2 = gRunners[gRunnerCursorIndex][R-ENTITY] - 30
+                    local6 = distance-2d (get-x temp2) ((get-y temp2) - (xa2 temp2)) gScreen[local8][X] gScreen[local8][Y]
+                    if (local5 < local6) {
+                        direction = FORWARD
+                    } else {
+                        direction = BACKWARD
+                    }
+                } else {
+                    local3 = 1
+                }
+                if (direction) {
+                    if (direction == BACKWARD && gRunners[gRunnerCursorIndex][R-DEST-BASE] == NONE) {
+                        direction = FORWARD
+                    }
+                    runner_is_batter = gRunners[gRunnerCursorIndex][R-KID] == gBatterKid
+                    if (gPlayEndedReason == 0 && !gObviousFoul) {
+                        local3 = call-script SetCursorDestinationBase [local2, direction, runner_is_batter]
+                    }
+                }
+            } else {
+                sprite-set-range 3 3
+                sprite-clear
+                sprite-set-image 0
+                gRunnerCursorIndex = NONE
+                gRunnerCursorDestinationBase = NONE
+                local3 = 1
+                local22 = get-class local2 []
+                case 1 {
+                    of local22 & 256 > 0 {
+                        local3 = 7
+                    }
+                    of local22 & 512 > 0 {
+                        local3 = 85
+                    }
+                    of local22 & 1024 > 0 {
+                        local3 = 13
+                    }
+                    of local22 & 2048 > 0 {
+                        local3 = 88
+                    }
+                    of local22 & 4096 > 0 {
+                        local3 = 19
+                    }
+                    of local22 & 8192 > 0 {
+                        local3 = 91
+                    }
+                    of local22 & 16384 > 0 {
+                        local3 = 25
+                    }
+                    of local22 & 32768 > 0 {
+                        local3 = 82
+                    }
+                    else {
+                        if (local2 <= 60) {
+                            local3 = 4
+                        } else if (xa3 local2 1) {
+                            local3 = 4
+                        } else {
+                            local3 = 1
+                        }
+                    }
+                }
+            }
+label0367:
+            if (gRunnerCursorIndex != NONE && gRunnerCursorDestinationBase != NONE) {
+                local16 = local2 - 74
+                if (r_runners_zeta[local16] == 999) {
+                    temp2 = call-script smth_baserunning_check2 [gRunnerCursorIndex, 0, runner_is_batter]
+                }
+                if (r_runners_zeta[local16] == 0) {
+                    local20[local16] = 0
+                    local21 = 0
+                    local3 = 1
+                }
+            }
+            if (!local21) {
+                sprite-set-range 3 3
+                sprite-clear
+                local3 = 1
+            }
+            if (local3 && local4 != local3) {
+                if (local21) {
+                    sprite-set-range 3 3
+                    sprite-clear
+                    sprite-set-image 521
+                    sprite-x52 0
+                    sprite-x7c 0
+                    sprite-x2b -1
+                    sprite-x34 (local21 - 1)
+                    sprite-x62 global424
+                    case local21 {
+                        of 1 {
+                            sprite-set-range 3 3
+                            sprite-set-hotspot 264 272
+                        }
+                        of 2 {
+                            sprite-set-range 3 3
+                            sprite-set-hotspot 264 184
+                        }
+                        of 3 {
+                            sprite-set-range 3 3
+                            sprite-set-hotspot 112 184
+                        }
+                        of 4 {
+                            sprite-set-range 3 3
+                            sprite-set-hotspot 112 272
+                        }
+                    }
+                }
+                if (g_maybe_operating_system == 2) {
+                    cursor-set-image-color (local3 + 2)
+                    gCursorImage = local3 + 2
+                } else if (local3 <= 76 || (local3 in [82, 85, 91, 88, 79, 95])) {
+                    cursor-set-image-bw (local3 + 1)
+                    gCursorImage = local3 + 1
+                } else if (gBlackAndWhiteCursors || local3 == 1) {
+                    cursor-set-image-bw (local3 + 1)
+                    gCursorImage = local3 + 1
+                } else {
+                    cursor-set-image-color local3
+                    gCursorImage = local3
+                }
+            }
+        } else {
+            sprite-set-range 3 3
+            sprite-clear
+            gRunnerCursorIndex = NONE
+            gRunnerCursorDestinationBase = NONE
+            local3 = 1
+            local2 = sprite-get-x2d x y 0 0 []
+            if (local2) {
+                if ((sprite-get-xc6 local2 1) == 344) {
+                    local3 = 4
+                    goto label0367
+                }
+            }
+            if (local3 && local4 != local3) {
+                if (g_maybe_operating_system == 2) {
+                    cursor-set-image-color (local3 + 2)
+                    gCursorImage = local3 + 2
+                } else if (local3 <= 76 || (local3 in [82, 85, 91, 88, 79, 95])) {
+                    cursor-set-image-bw (local3 + 1)
+                    gCursorImage = local3 + 1
+                } else if (gBlackAndWhiteCursors || local3 == 1) {
+                    cursor-set-image-bw (local3 + 1)
+                    gCursorImage = local3 + 1
+                } else {
+                    cursor-set-image-color local3
+                    gCursorImage = local3
+                }
+            }
+            local4 = local3
+        }
+    }
+    if (gNetplayActive) {
+        if (local18 != gRunnerCursorIndex || local19 != gRunnerCursorDestinationBase) {
+            local18 = gRunnerCursorIndex
+            local19 = gRunnerCursorDestinationBase
+            run-script-xc3 maybe_net_send_message [10, 1, NET-SET-RUNNER-VARS, gRunnerCursorIndex, gRunnerCursorDestinationBase]
+            run-script DrawNameUnderRunner [gRunnerCursorIndex]
+        }
+    }
+    stop-script
+}
+free-script

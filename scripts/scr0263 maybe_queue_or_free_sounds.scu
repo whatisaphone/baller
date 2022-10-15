@@ -1,0 +1,23 @@
+; SCRP 263 maybe_queue_or_free_sounds
+
+parameter arg0
+parameter arg1
+
+local variable local2
+
+if (global545) {
+    free-running-script 0
+}
+if (arg0) {
+    for local2 = 1660 to 1705 ++ {
+        kludge [714, 4, local2, 1]
+        if (arg1) {
+            queue-sound local2
+        }
+    }
+} else {
+    for local2 = 1660 to 1705 ++ {
+        free-sound local2
+    }
+}
+free-script

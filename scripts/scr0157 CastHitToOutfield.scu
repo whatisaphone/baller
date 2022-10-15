@@ -1,0 +1,123 @@
+; SCRP 157 CastHitToOutfield
+
+parameter arg0
+
+gCurrentSpeechScript = CastHitToOutfield
+if (gDebug == 13) {
+}
+label000e:
+case random 10 {
+    of 0 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2118467,17073\x7f ... and drove one deep!"
+    }
+    of 1 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2135540,18864\x7f a long one, and deep"
+    }
+    of 2 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2154404,15186\x7f back towards the outfield..."
+    }
+    of 3 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2169590,24049\x7f ... a long drive."
+    }
+    of 4 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2193639,13392\x7f ...a long fly"
+    }
+    of 5 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2207031,16496\x7f  and belted!"
+    }
+    of 6 {
+        xb8-xfe 1
+        xb8-x41 0 0
+        xb8-x4b "\x7fT2223527,8288\x7f  Belted it!"
+    }
+    else {
+        case 1 {
+            of gHitAngleXZ > 35 && gHitAngleXZ < 76 {
+                if (random 1) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT2231815,21105\x7f ... and drove it to deep left."
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT2252920,19329\x7f skyed to left"
+                }
+            }
+            of gHitAngleXZ > 75 && gHitAngleXZ < 91 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2272249,23977\x7f smacked one left of center"
+            }
+            of gHitAngleXZ > 90 && gHitAngleXZ < 106 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2296226,24813\x7f smacked one into right center field"
+            }
+            of gHitAngleXZ > 105 && gHitAngleXZ < 145 {
+                case random 2 {
+                    of 0 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT2321039,26606\x7f ... and drove one deep to right  field"
+                    }
+                    of 1 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT2347645,28257\x7f ... a drive toward right field, and deep!"
+                    }
+                    of 2 {
+                        xb8-xfe 1
+                        xb8-x41 0 0
+                        xb8-x4b "\x7fT2375902,20784\x7f hit to deep right field"
+                    }
+                }
+            }
+            else {
+                goto label000e
+            }
+        }
+    }
+}
+xa9-xa9
+if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
+    if (gUserOnOffense) {
+        case random 2 {
+            of 0 {
+                if (gKidData[arg0][KD-gender] == GIRL) {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT2396686,32871\x7f boy, it sounded like she broke the bat on that one!"
+                } else {
+                    xb8-xfe 1
+                    xb8-x41 0 0
+                    xb8-x4b "\x7fT2429557,25239\x7f he left his autograph on that one"
+                }
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2454796,16568\x7f get on your horse"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT2471364,17319\x7f  that dog will hunt"
+            }
+        }
+        xa9-xa9
+    }
+}
+gCurrentSpeechScript = 0
+free-script

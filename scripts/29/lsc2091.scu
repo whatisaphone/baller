@@ -1,0 +1,14 @@
+; LSC2 29 2091
+
+local variable local0
+local variable local1
+
+sound-select (iif (local1 > 0) 4236 4237)
+sound-channel 4
+sound-play
+gBackupKidData[local0][14] = min (max (gBackupKidData[local0][14] + local1) 0) 100
+gBackupKidData[local0][15] = min (max (gBackupKidData[local0][15] + local1) 0) 100
+gBackupKidData[local0][16] = min (max (gBackupKidData[local0][16] + local1) 0) 100
+gBackupKidData[local0][17] = min (max (gBackupKidData[local0][17] + local1) 0) 100
+gBackupKidData[local0][1] = min (max (gBackupKidData[local0][1] + local1) 0) 100
+free-script

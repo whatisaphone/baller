@@ -1,0 +1,10 @@
+; SCRP 79 FreePalette
+
+parameter arg0
+
+gPaletteStack[gPaletteStackPointer] = arg0
+++gPaletteStackPointer
+palette-select arg0
+palette-reset
+palette-unselect
+free-script

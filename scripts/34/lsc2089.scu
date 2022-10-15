@@ -1,0 +1,8 @@
+; LSC2 34 2089
+
+if (gGameMode != MODE-SPECTATE) {
+    return (iif gTeamInfo[0][TI-CONTROLLED-BY] gPickOrder1 gPickOrder2)
+} else {
+    return gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER]
+}
+free-script

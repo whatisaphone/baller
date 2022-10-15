@@ -1,0 +1,31 @@
+; LSC2 5 2068
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local1 = 104
+local2 = 5
+if (local0 == 1) {
+    local3 = gTeamInfo[0][3]
+    local4 = gTeamInfo[0][8]
+    run-script 279 [room42, local3, local4]
+    local5 = gTeamInfo[0][TI-TEAM-NOUN]
+    if (!room40) {
+        room40 = call-script FindFreeSprite []
+    }
+    run-script 2067 [local5, room40, local1, local2, 23, room42]
+} else {
+    local3 = gTeamInfo[1][3]
+    local4 = gTeamInfo[1][8]
+    run-script 279 [room43, local3, local4]
+    local5 = gTeamInfo[1][TI-TEAM-NOUN]
+    if (!room41) {
+        room41 = call-script FindFreeSprite []
+    }
+    run-script 2067 [local5, room41, local1, local2, 24, room43]
+}
+free-script

@@ -1,0 +1,72 @@
+; LSC2 39 2155
+
+local variable local0
+local variable local3
+local variable local4
+
+if (room52 <= 15) {
+    if (local0 == 13) {
+        if (room53) {
+            exec-script 2088 []
+        } else {
+            exec-script 2156 []
+        }
+    }
+    room53 = 0
+    if (room52 == 1 && local0 != 32) {
+        free-array room49
+        room49 = ""
+    }
+    if (local0 == 8) {
+        run-script PlaySound [2632]
+        local4 = substr room49 0 ((strlen room49) - 2)
+        --room52
+    } else {
+        run-script PlaySound [2631]
+        sprintf local4 "%s%c" [room49, local0]
+    }
+    free-array local3
+    room51 = call-script maybe_draw_text_to_image [local4, 1239, 659, room13]
+    sprite-set-range room47[2] room47[2]
+    sprite-clear
+    sprite-set-image 659
+    sprite-set-hotspot 332 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+    sprite-set-range room47[1] room47[1]
+    sprite-clear
+    sprite-set-image 930
+    sprite-set-hotspot (332 + room51 + 2) 192
+    sprite-x2b (1000 + 1)
+    sprite-x7c 0
+    sprintf room49 "%s" [local4]
+    free-array local4
+    if (!(strlen room49)) {
+        sprite-set-range room47[3] room47[3]
+        sprite-clear
+        sprite-set-image 662
+        sprite-x2a 0 2
+        sprite-set-range room47[4] room47[4]
+        sprite-clear
+        sprite-set-image 660
+        sprite-x2a 0 2
+        sprite-set-range room47[5] room47[5]
+        sprite-clear
+        sprite-set-image 661
+        sprite-x2a 0 2
+    }
+}
+if (room52 >= 15) {
+    room52 = 15
+    free-running-script 2154
+    sprite-set-range room47[1] room47[1]
+    sprite-clear
+    sprite-set-image 930
+    sprite-x2a 0 2
+}
+if (room52 < 15) {
+    if (!(is-script-running 2154)) {
+        run-script 2154 []
+    }
+}
+free-script

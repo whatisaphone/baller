@@ -1,0 +1,138 @@
+; SCRP 376 SeasonOverCheckNewRecords
+
+local variable local0
+local variable local2
+local variable local4
+local variable local7
+local variable local8
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local16
+local variable local17
+
+if (gGameLength == 12) {
+    local4 = 12
+}
+for local0 = 0 to 11 ++ {
+    local7 = local0 + local4
+    case local0 {
+        of 0 {
+            local8 = 10
+        }
+        of 1 {
+            local8 = 1
+        }
+        of 2 {
+            local8 = 8
+        }
+        of 3 {
+            local8 = 9
+        }
+        of 4 {
+            local8 = 15
+        }
+        of 5 {
+            local8 = 12
+        }
+        of 6 {
+            local8 = 23
+        }
+        of 7 {
+            local8 = 24
+        }
+        of 8 {
+            local8 = 11
+        }
+        of 9 {
+            local8 = 17
+        }
+        of 10 {
+            local8 = 26
+        }
+        of 11 {
+            local8 = 14
+        }
+    }
+    for local2 = 0 to 23 ++ {
+        if (local2 != gSeasonDivision) {
+            local11 = max local11 (call-script 406 [local2, local8, local7])
+        }
+    }
+}
+for local0 = 0 to 11 ++ {
+    local7 = local0 + local4
+    case local0 {
+        of 0 {
+            local8 = 10
+        }
+        of 1 {
+            local8 = 1
+        }
+        of 2 {
+            local8 = 8
+        }
+        of 3 {
+            local8 = 9
+        }
+        of 4 {
+            local8 = 15
+        }
+        of 5 {
+            local8 = 12
+        }
+        of 6 {
+            local8 = 23
+        }
+        of 7 {
+            local8 = 24
+        }
+        of 8 {
+            local8 = 11
+        }
+        of 9 {
+            local8 = 17
+        }
+        of 10 {
+            local8 = 26
+        }
+        of 11 {
+            local8 = 14
+        }
+    }
+    if (call-script 406 [gSeasonDivision, local8, local7]) {
+        local17 = local17 | (shl 1 local0)
+    }
+}
+xb6-xfe
+xb6-xc2 "Arrays before print congrats %d" (get-free-arrays) []
+if (local17 && gPopupState == 0) {
+    local16 = call-script BuildNewRecordsMessage [local17]
+    run-script ShowPopup [local16, 2, 4, 0]
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+}
+xb6-xfe
+xb6-xc2 "Arrays after print congrats %d" (get-free-arrays) []
+while (!(gPopupState == 0)) {
+    stop-script
+}
+if (local11 || local17) {
+    local14 = "baseball2001"
+    sprintf local12 "%s%s.rec" [gSaveGamePath, local14]
+    free-array local14
+    local13 = file-open local12 2
+    file-write-array 4 local13 gRecordBook
+    file-close local13
+    free-array local12
+}
+free-script

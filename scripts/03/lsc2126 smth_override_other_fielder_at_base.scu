@@ -1,0 +1,92 @@
+; LSC2 3 2126 smth_override_other_fielder_at_base
+
+parameter fielder: Fielder
+parameter base
+parameter primary: bool
+
+local variable other: Fielder
+local variable other_time
+local variable self_time
+local variable i
+local variable maybe_is_runner_nearby_base
+
+if (rCurrentPlay == base && gFielderWithBall == 0) {
+    maybe_is_runner_nearby_base = 1
+} else if (gRunners) {
+    if (!g_maybe_play_is_ready_to_end) {
+        if (base in [1, 2, 3]) {
+            for i = 0 to 3 ++ {
+                if ((gRunners[i][R-CUR-BASE] in [base - 1, base]) && gRunners[i][R-DIRECTION] != 0) {
+                    maybe_is_runner_nearby_base = 1
+                }
+            }
+        } else {
+            for i = 0 to 3 ++ {
+                if ((gRunners[i][R-CUR-BASE] in [THIRD, R-HOME]) && gRunners[i][R-DIRECTION] != 0) {
+                    maybe_is_runner_nearby_base = 1
+                }
+            }
+        }
+    }
+}
+other = rBaseClaims[base]
+if (other == 0) {
+    run-script ClearFielderTarget [fielder]
+    rBaseClaims[base] = 0 - fielder
+    gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[base]][X]
+    gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[base]][Z]
+    gWorld[fielder][TARGET] = base
+    return 0
+} else if (other < 0) {
+    other = abs other
+    if (maybe_is_runner_nearby_base) {
+        other_time = call-script CalcFielderTimeRunToPoint [other, gWorld[rBaseCorners[base]][X], gWorld[rBaseCorners[base]][Z], 1]
+        self_time = call-script CalcFielderTimeRunToPoint [fielder, gWorld[rBaseCorners[base]][X], gWorld[rBaseCorners[base]][Z], 1]
+        if (other_time > 10) {
+            self_time = call-script CalcFielderTimeRunToPoint [fielder, gWorld[rBaseCorners[base]][X], gWorld[rBaseCorners[base]][Z], 1]
+            if (self_time + 5 < other_time) {
+                run-script ClearFielderTarget [fielder]
+                rBaseClaims[base] = 0 - fielder
+                gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[base]][X]
+                gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[base]][Z]
+                gWorld[fielder][TARGET] = base
+                gWorld[other][TARGET] = NONE
+                gWorld[other][TARGET-X] = gWorld[other][X]
+                gWorld[other][TARGET-Z] = gWorld[other][Z]
+                return 0
+                free-running-script 0
+            }
+        }
+    } else if (primary) {
+        run-script ClearFielderTarget [fielder]
+        rBaseClaims[base] = 0 - fielder
+        gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[base]][X]
+        gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[base]][Z]
+        gWorld[fielder][TARGET] = base
+        gWorld[other][TARGET] = NONE
+        gWorld[other][TARGET-X] = gWorld[other][X]
+        gWorld[other][TARGET-Z] = gWorld[other][Z]
+        return 0
+        free-running-script 0
+    }
+} else {
+    if (other == gFielderWithBall) {
+        return 1
+        free-running-script 0
+    }
+    if (primary == true && maybe_is_runner_nearby_base == 0) {
+        run-script ClearFielderTarget [fielder]
+        rBaseClaims[base] = 0 - fielder
+        gWorld[fielder][TARGET-X] = gWorld[rBaseCorners[base]][X]
+        gWorld[fielder][TARGET-Z] = gWorld[rBaseCorners[base]][Z]
+        gWorld[fielder][TARGET] = base
+        gWorld[other][TARGET] = NONE
+        gWorld[other][TARGET-X] = gWorld[other][X]
+        gWorld[other][TARGET-Z] = gWorld[other][Z]
+        gBases[base][BASE-TAGGED-WITH-BALL] = false
+        return 0
+        free-running-script 0
+    }
+}
+return 1
+free-script

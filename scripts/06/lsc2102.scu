@@ -1,0 +1,18 @@
+; LSC2 6 2102
+
+local variable local0
+
+if (local0 < 4) {
+    sprite-set-range room22 room22
+    sprite-set-hotspot -500 -500
+    room6 = 0
+    room7 = 0
+    room9 = 0
+    room11 = 0
+    if (local0 == 3) {
+        run-script 2101 []
+    }
+} else {
+    run-script 2100 []
+}
+free-script

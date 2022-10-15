@@ -1,0 +1,125 @@
+; SCRP 421 smth_net_map_descriptions
+
+parameter arg0
+parameter arg1
+
+local variable local2
+
+case arg1 {
+    of 0 {
+        case arg0 {
+            of -3 {
+                local2 = "Big League Plays.  Big League Hits.  BIG league action.  Do you have what it takes?"
+            }
+            of -2 {
+                local2 = "When you're ready for a challenge, come to Mediumville.  Better practice first though."
+            }
+            of -1 {
+                local2 = "Practice your skills against other beginners."
+            }
+            of 24 {
+                local2 = "No fancy rules, just good old fashioned Backyard Baseball."
+            }
+            of 26 {
+                local2 = "Are you ready for the big time?  Then c'mon downtown.  One rule here:  no power-ups allowed."
+            }
+            of 25 {
+                local2 = "All votes are in - no lame ducks allowed here.  No pitch locator allowed either.  So how's that eye of yours anyway?"
+            }
+            of 16 {
+                local2 = "If you wanna run with the big dogs, get off the porch and come on in.  Three innings of quick baseball action."
+            }
+            of 17 {
+                local2 = "Once you pass though those gates you're in baseball country.  Taking away the pitch locator makes it extra tough."
+            }
+            of 18 {
+                local2 = "Cool down in the lake after you get lit up on the diamond.  Six innings, no special rules - just come on in, the water's fine."
+            }
+            of 19 {
+                local2 = "In Prince Rupert, the computer picks your rosters for you, which might make things interesting.  But don't be a quitter, play with what you get!"
+            }
+            of 9 {
+                local2 = "A friendly game of baseball in the fresh air.  Six innings of good times."
+            }
+            of 8 {
+                local2 = "Come out to the 'burbs for three innings of fun."
+            }
+        }
+    }
+    of 1 {
+        case arg0 {
+            of -3 {
+                local2 = "TOUGHY TOWN"
+            }
+            of -2 {
+                local2 = "MEDIUMVILLE"
+            }
+            of -1 {
+                local2 = "EASY STREETS"
+            }
+            of 24 {
+                local2 = "VESPUCCI PARK"
+            }
+            of 26 {
+                local2 = "LEWIS AVE"
+            }
+            of 25 {
+                local2 = "CAPITAL HILL"
+            }
+            of 16 {
+                local2 = "DOGWOOD"
+            }
+            of 17 {
+                local2 = "BROOKLINE"
+            }
+            of 18 {
+                local2 = "TALULA LAKE"
+            }
+            of 19 {
+                local2 = "PRINCE RUPERT"
+            }
+            of 9 {
+                local2 = "MOUNTAIN AIRE"
+            }
+            of 8 {
+                local2 = "WILDERNESS"
+            }
+        }
+    }
+    of 2 {
+        case arg0 {
+            of 24 {
+                local2 = "NO FANCY RULES IN VESPUCCI PARK"
+            }
+            of 26 {
+                local2 = "NO POWER-UPS ALLOWED IN LEWIS AVE"
+            }
+            of 25 {
+                local2 = "NO PITCH LOCATOR ALLOWED IN CAPITAL HILL"
+            }
+            of 16 {
+                local2 = "THREE INNING GAMES IN DOGWOOD"
+            }
+            of 17 {
+                local2 = "NO PITCH LOCATOR ALLOWED IN BROOKLINE"
+            }
+            of 18 {
+                local2 = "NO FANCY RULES IN TALULA LAKE"
+            }
+            of 19 {
+                local2 = "RANDOM ROSTERS IN PRINCE RUPERT"
+            }
+            of 9 {
+                local2 = "NO FANCY RULES IN MOUNTAIN AIRE"
+            }
+            of 8 {
+                local2 = "THREE INNING GAMES IN WILDERNESS"
+            }
+        }
+    }
+}
+if (!local2) {
+    local2 = "ERROR"
+}
+return local2
+free-script

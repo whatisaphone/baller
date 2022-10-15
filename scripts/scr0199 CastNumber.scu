@@ -1,0 +1,1213 @@
+; SCRP 199 CastNumber
+
+parameter arg0
+parameter arg1
+
+local variable local2
+local variable local3
+local variable local4
+
+gCurrentSpeechScript = CastNumber
+if (arg0 > 100) {
+    if (arg0 > 999) {
+        local3 = arg0 / 1000
+        local2 = arg0 - local3 * 1000
+        local4 = local2 / 100
+        local2 = local2 - local4 * 100
+        case local3 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12063511,4821\x7f      0"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12068332,5523\x7f      1"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12073855,6484\x7f      2"
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12080339,5351\x7f      3"
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12085690,5496\x7f      4"
+            }
+            of 5 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12091186,6266\x7f      5"
+            }
+            of 6 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12097452,4041\x7f      6"
+            }
+            of 7 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12101493,4168\x7f      7"
+            }
+            of 8 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12105661,4646\x7f      8"
+            }
+            of 9 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12110307,6614\x7f      9"
+            }
+        }
+        xa9-xa9
+        case local4 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12063511,4821\x7f      0"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12068332,5523\x7f      1"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12073855,6484\x7f      2"
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12080339,5351\x7f      3"
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12085690,5496\x7f      4"
+            }
+            of 5 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12091186,6266\x7f      5"
+            }
+            of 6 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12097452,4041\x7f      6"
+            }
+            of 7 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12101493,4168\x7f      7"
+            }
+            of 8 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12105661,4646\x7f      8"
+            }
+            of 9 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12110307,6614\x7f      9"
+            }
+        }
+        if (local2 < 10) {
+            xa9-xa9
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12116921,4191\x7f 0"
+        }
+    } else {
+        local4 = arg0 / 100
+        local2 = arg0 - local4 * 100
+        case local4 {
+            of 0 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12063511,4821\x7f      0"
+            }
+            of 1 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12068332,5523\x7f      1"
+            }
+            of 2 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12073855,6484\x7f      2"
+            }
+            of 3 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12080339,5351\x7f      3"
+            }
+            of 4 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12085690,5496\x7f      4"
+            }
+            of 5 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12091186,6266\x7f      5"
+            }
+            of 6 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12097452,4041\x7f      6"
+            }
+            of 7 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12101493,4168\x7f      7"
+            }
+            of 8 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12105661,4646\x7f      8"
+            }
+            of 9 {
+                xb8-xfe 1
+                xb8-x41 0 0
+                xb8-x4b "\x7fT12110307,6614\x7f      9"
+            }
+        }
+        if (local2 < 10) {
+            xa9-xa9
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12116921,4191\x7f 0"
+        }
+    }
+    xa9-xa9
+} else {
+    local2 = arg0
+}
+if (arg1) {
+    case local2 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12121112,6772\x7f      0"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12127884,5357\x7f      1"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12133241,5172\x7f      2"
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12138413,5627\x7f      3"
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12144040,5430\x7f      4"
+        }
+        of 5 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12149470,6039\x7f      5"
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12155509,3125\x7f      6"
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12158634,5269\x7f      7"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12163903,4419\x7f      8"
+        }
+        of 9 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12168322,6362\x7f      9"
+        }
+        of 10 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12174684,5211\x7f      10"
+        }
+        of 11 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12179895,6564\x7f      11"
+        }
+        of 12 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12186459,7063\x7f      12"
+        }
+        of 13 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12193522,7336\x7f      13"
+        }
+        of 14 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12200858,7074\x7f      14"
+        }
+        of 15 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12207932,7587\x7f      15"
+        }
+        of 16 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12215519,8177\x7f      16"
+        }
+        of 17 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12223696,8825\x7f      17"
+        }
+        of 18 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12232521,8282\x7f      18"
+        }
+        of 19 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12240803,9194\x7f      19"
+        }
+        of 20 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12249997,5791\x7f      20"
+        }
+        of 21 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12255788,9244\x7f      21"
+        }
+        of 22 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12265032,8819\x7f      22"
+        }
+        of 23 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12273851,9178\x7f      23"
+        }
+        of 24 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12283029,9620\x7f      24"
+        }
+        of 25 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12292649,9174\x7f      25"
+        }
+        of 26 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12301823,9655\x7f      26"
+        }
+        of 27 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12311478,9005\x7f      27"
+        }
+        of 28 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12320483,7728\x7f      28"
+        }
+        of 29 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12328211,8464\x7f      29"
+        }
+        of 30 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12336675,4776\x7f      30"
+        }
+        of 31 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12341451,8138\x7f      31"
+        }
+        of 32 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12349589,8429\x7f      32"
+        }
+        of 33 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12358018,8632\x7f      33"
+        }
+        of 34 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12366650,9445\x7f      34"
+        }
+        of 35 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12376095,9026\x7f      35"
+        }
+        of 36 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12385121,8965\x7f      36"
+        }
+        of 37 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12394086,9259\x7f      37"
+        }
+        of 38 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12403345,7831\x7f      38"
+        }
+        of 39 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12411176,9522\x7f      39"
+        }
+        of 40 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12420698,5521\x7f      40"
+        }
+        of 41 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12426219,8699\x7f      41"
+        }
+        of 42 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12434918,8911\x7f      42"
+        }
+        of 43 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12443829,9746\x7f      43"
+        }
+        of 44 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12453575,9006\x7f      44"
+        }
+        of 45 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12462581,9037\x7f      45"
+        }
+        of 46 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12471618,8914\x7f      46"
+        }
+        of 47 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12480532,9403\x7f      47"
+        }
+        of 48 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12489935,6192\x7f      48"
+        }
+        of 49 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12496127,9204\x7f      49"
+        }
+        of 50 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12505331,5239\x7f      50"
+        }
+        of 51 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12510570,9132\x7f      51"
+        }
+        of 52 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12519702,8499\x7f      52"
+        }
+        of 53 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12528201,8988\x7f      53"
+        }
+        of 54 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12537189,10148\x7f      54"
+        }
+        of 55 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12547337,10886\x7f      55"
+        }
+        of 56 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12558223,9474\x7f      56"
+        }
+        of 57 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12567697,10456\x7f      57"
+        }
+        of 58 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12578153,7637\x7f      58"
+        }
+        of 59 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12585790,9213\x7f      59"
+        }
+        of 60 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12595003,5930\x7f      60"
+        }
+        of 61 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12600933,8855\x7f      61"
+        }
+        of 62 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12609788,9229\x7f      62"
+        }
+        of 63 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12619017,9742\x7f      63"
+        }
+        of 64 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12628759,10189\x7f      64"
+        }
+        of 65 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12638948,11072\x7f      65"
+        }
+        of 66 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12650020,9877\x7f      66"
+        }
+        of 67 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12659897,9682\x7f      67"
+        }
+        of 68 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12669579,10406\x7f      68"
+        }
+        of 69 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12679985,9924\x7f      69"
+        }
+        of 70 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12689909,6189\x7f      70"
+        }
+        of 71 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12696098,9392\x7f      71"
+        }
+        of 72 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12705490,10472\x7f      72"
+        }
+        of 73 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12715962,9837\x7f      73"
+        }
+        of 74 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12725799,10548\x7f      74"
+        }
+        of 75 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12736347,10985\x7f      75"
+        }
+        of 76 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12747332,13532\x7f      76"
+        }
+        of 77 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12760864,10775\x7f      77"
+        }
+        of 78 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12771639,9102\x7f      78"
+        }
+        of 79 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12780741,10473\x7f      79"
+        }
+        of 80 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12791214,5457\x7f      80"
+        }
+        of 81 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12796671,8636\x7f      81"
+        }
+        of 82 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12805307,9130\x7f      82"
+        }
+        of 83 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12814437,9757\x7f      83"
+        }
+        of 84 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12824194,10170\x7f      84"
+        }
+        of 85 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12834364,10690\x7f      85"
+        }
+        of 86 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12845054,11299\x7f      86"
+        }
+        of 87 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12856353,10097\x7f      87"
+        }
+        of 88 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12866450,8165\x7f      88"
+        }
+        of 89 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12874615,9596\x7f      89"
+        }
+        of 90 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12884211,7101\x7f      90"
+        }
+        of 91 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12891312,10357\x7f      91"
+        }
+        of 92 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12901669,10631\x7f      92"
+        }
+        of 93 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12912300,9716\x7f      93"
+        }
+        of 94 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12922016,8505\x7f      94"
+        }
+        of 95 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12930521,10569\x7f      95"
+        }
+        of 96 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12941090,9383\x7f      96"
+        }
+        of 97 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12950473,10697\x7f      97"
+        }
+        of 98 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12961170,9141\x7f      98"
+        }
+        of 99 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12970311,9609\x7f      99"
+        }
+        of 100 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12979920,7820\x7f      100"
+        }
+    }
+} else {
+    case local2 {
+        of 0 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12987740,5151\x7f      0"
+        }
+        of 1 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12068332,5523\x7f      1"
+        }
+        of 2 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12073855,6484\x7f      2"
+        }
+        of 3 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12080339,5351\x7f      3"
+        }
+        of 4 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12085690,5496\x7f      4"
+        }
+        of 5 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12091186,6266\x7f      5"
+        }
+        of 6 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12097452,4041\x7f      6"
+        }
+        of 7 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12101493,4168\x7f      7"
+        }
+        of 8 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12105661,4646\x7f      8"
+        }
+        of 9 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12110307,6614\x7f      9"
+        }
+        of 10 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12992891,6081\x7f      10"
+        }
+        of 11 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT12998972,6918\x7f      11"
+        }
+        of 12 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13005890,7077\x7f      12"
+        }
+        of 13 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13012967,8043\x7f      13"
+        }
+        of 14 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13021010,7780\x7f      14"
+        }
+        of 15 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13028790,7622\x7f      15"
+        }
+        of 16 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13036412,9438\x7f      16"
+        }
+        of 17 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13045850,8597\x7f      17"
+        }
+        of 18 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13054447,9095\x7f      18"
+        }
+        of 19 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13063542,9832\x7f      19"
+        }
+        of 20 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13073374,6429\x7f      20"
+        }
+        of 21 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13079803,8943\x7f      21"
+        }
+        of 22 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13088746,9469\x7f      22"
+        }
+        of 23 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13098215,9261\x7f      23"
+        }
+        of 24 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13107476,8780\x7f      24"
+        }
+        of 25 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13116256,9198\x7f      25"
+        }
+        of 26 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13125454,8892\x7f      26"
+        }
+        of 27 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13134346,8265\x7f      27"
+        }
+        of 28 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13142611,6540\x7f      28"
+        }
+        of 29 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13149151,8089\x7f      29"
+        }
+        of 30 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13157240,4575\x7f      30"
+        }
+        of 31 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13161815,8326\x7f      31"
+        }
+        of 32 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13170141,8078\x7f      32"
+        }
+        of 33 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13178219,9248\x7f      33"
+        }
+        of 34 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13187467,8877\x7f      34"
+        }
+        of 35 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13196344,7892\x7f      35"
+        }
+        of 36 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13204236,8054\x7f      36"
+        }
+        of 37 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13212290,8860\x7f      37"
+        }
+        of 38 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13221150,8697\x7f      38"
+        }
+        of 39 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13229847,10802\x7f      39"
+        }
+        of 40 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13240649,6140\x7f      40"
+        }
+        of 41 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13246789,8958\x7f      41"
+        }
+        of 42 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13255747,8937\x7f      42"
+        }
+        of 43 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13264684,8689\x7f      43"
+        }
+        of 44 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13273373,8422\x7f      44"
+        }
+        of 45 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13281795,8903\x7f      45"
+        }
+        of 46 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13290698,14384\x7f      46"
+        }
+        of 47 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13305082,9588\x7f      47"
+        }
+        of 48 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13314670,7790\x7f      48"
+        }
+        of 49 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13322460,9822\x7f      49"
+        }
+        of 50 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13332282,5013\x7f      50"
+        }
+        of 51 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13337295,9019\x7f      51"
+        }
+        of 52 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13346314,9319\x7f      52"
+        }
+        of 53 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13355633,9998\x7f      53"
+        }
+        of 54 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13365631,9842\x7f      54"
+        }
+        of 55 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13375473,10686\x7f      55"
+        }
+        of 56 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13386159,10090\x7f      56"
+        }
+        of 57 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13396249,10278\x7f      57"
+        }
+        of 58 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13406527,20624\x7f      58"
+        }
+        of 59 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13427151,9819\x7f      59"
+        }
+        of 60 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13436970,5207\x7f      60"
+        }
+        of 61 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13442177,9415\x7f      61"
+        }
+        of 62 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13451592,9318\x7f      62"
+        }
+        of 63 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13460910,10941\x7f      63"
+        }
+        of 64 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13471851,10462\x7f      64"
+        }
+        of 65 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13482313,10716\x7f      65"
+        }
+        of 66 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13493029,9709\x7f      66"
+        }
+        of 67 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13502738,9909\x7f      67"
+        }
+        of 68 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13512647,7701\x7f      68"
+        }
+        of 69 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13520348,9696\x7f      69"
+        }
+        of 70 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13530044,10280\x7f      70"
+        }
+        of 71 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13540324,8716\x7f      71"
+        }
+        of 72 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13549040,10621\x7f      72"
+        }
+        of 73 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13559661,10594\x7f      73"
+        }
+        of 74 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13570255,11212\x7f      74"
+        }
+        of 75 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13581467,10489\x7f      75"
+        }
+        of 76 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13591956,11433\x7f      76"
+        }
+        of 77 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13603389,11143\x7f      77"
+        }
+        of 78 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13614532,9537\x7f      78"
+        }
+        of 79 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13624069,10923\x7f      79"
+        }
+        of 80 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13634992,5108\x7f      80"
+        }
+        of 81 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13640100,9556\x7f      81"
+        }
+        of 82 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13649656,9780\x7f      82"
+        }
+        of 83 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13659436,11235\x7f      83"
+        }
+        of 84 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13670671,10320\x7f      84"
+        }
+        of 85 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13680991,12500\x7f      85"
+        }
+        of 86 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13693491,10676\x7f      86"
+        }
+        of 87 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13704167,11450\x7f      87"
+        }
+        of 88 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13715617,10318\x7f      88"
+        }
+        of 89 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13725935,10826\x7f      89"
+        }
+        of 90 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13736761,7492\x7f      90"
+        }
+        of 91 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13744253,11383\x7f      91"
+        }
+        of 92 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13755636,11113\x7f      92"
+        }
+        of 93 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13766749,11972\x7f      93"
+        }
+        of 94 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13778721,10884\x7f      94"
+        }
+        of 95 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13789605,11105\x7f      95"
+        }
+        of 96 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13800710,11288\x7f      96"
+        }
+        of 97 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13811998,11478\x7f      97"
+        }
+        of 98 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13823476,11034\x7f      98"
+        }
+        of 99 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13834510,11406\x7f      99"
+        }
+        of 100 {
+            xb8-xfe 1
+            xb8-x41 0 0
+            xb8-x4b "\x7fT13845916,8649\x7f      100"
+        }
+    }
+}
+xa9-xa9
+gCurrentSpeechScript = 0
+free-script

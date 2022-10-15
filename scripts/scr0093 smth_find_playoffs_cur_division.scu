@@ -1,0 +1,7 @@
+; SCRP 93 smth_find_playoffs_cur_division
+
+local variable local0
+
+local0 = call-script smth_find_playoffs [gSeasonDivision]
+return local0
+free-script

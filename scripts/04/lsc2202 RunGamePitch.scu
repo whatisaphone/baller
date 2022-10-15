@@ -1,0 +1,147 @@
+; LSC2 4 2202 RunGamePitch
+
+parameter pitch_kind: PitchKind
+parameter pitch_location_x
+parameter pitch_location_y
+parameter rand
+parameter pitcher_new_fatigue
+
+local variable local5
+local variable local6
+local variable grunt_sound
+
+free-running-script maybe_pitcher_head_animation
+actor-select 3
+actor-set-conditons [129]
+actor-select 3
+actor-set-conditons [2]
+actor-select 3
+actor-set-conditons [3]
+run-script NetPitchCountdownTimer [1]
+gNetPitchTimer = 0
+sprite-set-range rBallSprite rBallSprite
+sprite-set-hotspot -500 -500
+rPitchKind = pitch_kind
+rRealPitchLocationX = pitch_location_x
+rRealPitchLocationY = pitch_location_y
+if (rPitchKind > 17) {
+    case rPitchKind {
+        of PITCH-CORKSCREW {
+            load-sound 1457
+            load-sound 1458
+            load-sound 1459
+        }
+        of PITCH-ZIG-ZAG {
+            load-sound 1460
+            load-sound 1461
+            load-sound 1462
+            load-sound 1467
+        }
+        of PITCH-FREEZE {
+            queue-sound 1463
+        }
+        of PITCH-FIREBALL {
+            load-sound 1464
+            load-sound 1468
+        }
+        of PITCH-SLOW-MO {
+            load-sound 1465
+        }
+        of PITCH-ELEVATOR {
+            load-sound 1466
+        }
+        of PITCH-SPIT-BALL {
+            load-sound 1471
+            load-sound 1469
+        }
+        of PITCH-HEAT {
+            load-sound 1996
+        }
+        of PITCH-SLOWBALL {
+            load-sound 1994
+        }
+        of PITCH-CRAZY-BALL {
+            load-sound 1470
+            load-sound 1539
+        }
+        else {
+            load-sound 1995
+        }
+    }
+}
+if (gKidData[rPitcherKid][KD-gender] == GIRL) {
+    grunt_sound = random2 1452 1456
+} else {
+    grunt_sound = random2 1447 1451
+}
+queue-sound grunt_sound
+if (gDefenseControlledBy == CB-COMPUTER) {
+    run-script DecideAIFieldersSkew []
+    run-script SetFielderStartPositions [gFieldersSkew]
+}
+if (gDefenseControlledBy == CB-NETWORK) {
+    run-script SetFielderStartPositions [gFieldersSkew]
+}
+run-script CopyFielderPositionsToWorld []
+gKidData[rPitcherKid][KD-fatigue] = pitcher_new_fatigue
+if (gDefenseControlledBy == CB-USER) {
+    run-script smth_pitcher_fatigue_ui []
+}
+if (rPitchKind > 17 && rPitchKind != PITCH-maybe-intentional-walk) {
+    for local5 = 6 to 10 ++ {
+        if (gPitcherPitches[1 - gBattingTeamInfoIndex][local5] / 10 == rPitchKind) {
+            gPitcherPitches[1 - gBattingTeamInfoIndex][local5] = gPitcherPitches[1 - gBattingTeamInfoIndex][local5] - 1
+            if (gPitcherPitches[1 - gBattingTeamInfoIndex][local5] / 10 != rPitchKind) {
+                for local6 = local5 to (10 - 1) ++ {
+                    gPitcherPitches[1 - gBattingTeamInfoIndex][local6] = gPitcherPitches[1 - gBattingTeamInfoIndex][local6 + 1]
+                }
+                gPitcherPitches[1 - gBattingTeamInfoIndex][10] = 0
+                room34 = 1
+            }
+        }
+    }
+}
+actor-do-anim 3 2
+actor-select 3
+actor-set-var 7 2
+room25 = 0
+r_maybe_pitch_phase = 1
+stop-script
+rPitchZone = call-script GetPitchZone [rRealPitchLocationX, rRealPitchLocationY]
+rInsidePitch = false
+if (rRealPitchLocationX >= 277 && rRealPitchLocationX <= 357) {
+    if (rRealPitchLocationY >= rStrikeZoneMinY && rRealPitchLocationY <= rStrikeZoneMaxY) {
+        rBallOrStrike = 1
+    } else {
+        rBallOrStrike = 2
+    }
+} else {
+    if (rPitchZone <= 0) {
+        if (rRealPitchLocationX < 277 && rBatterHandedness == RIGHT-HANDED) {
+            rInsidePitch = true
+        } else if (rRealPitchLocationX > 357 && rBatterHandedness == LEFT-HANDED) {
+            rInsidePitch = true
+        }
+    }
+    rBallOrStrike = 2
+}
+run-script RememberPitch [rPitchKind, rPitchZone]
+if (gNetplayActive) {
+    if (g_net_smth_master == g_net_smth_me) {
+        run-script AddNetStat [rPitcherKid, STAT-PITCHES-THROWN, 1]
+        run-script AddStat [rPitcherKid, STAT-PITCHES-THROWN, 1]
+    }
+} else if (MODE-BATTING-PRACTICE != gGameMode) {
+    run-script AddStat [rPitcherKid, STAT-PITCHES-THROWN, 1]
+}
+stop-script
+run-script AddToCommentQueue [7, rPitcherKid]
+while (!((actor-get-var 3 2) == 1)) {
+    stop-script
+}
+actor-select 3
+actor-set-var 2 0
+run-script PlaySound [grunt_sound]
+queue-costume 12
+run-script smth_do_a_pitch [rand]
+free-script

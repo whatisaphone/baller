@@ -1,0 +1,41 @@
+; LSC2 6 2112
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (local0 == 2) {
+    for local2 = 0 to 18 ++ {
+        if (local1 == room17[0][local2]) {
+            local3 = room17[room1][local2]
+            local2 = 999
+        }
+    }
+    if (local3) {
+        if (room26[0] == 1) {
+            if (local3 in [4, 8, 9, 13, 12]) {
+                gMouseHookFlags = 134217728
+                return local3
+            }
+        }
+        if (room26[1] == 3) {
+            if (local3 in [10, 11]) {
+                gMouseHookFlags = 134217728
+                return local3
+            }
+        }
+    }
+} else if (local0) {
+} else if (gMouseX >= 340) {
+    if (gMouseX <= 592) {
+        if (gMouseY >= 162) {
+            if (gMouseY <= 348) {
+                gMouseHookFlags = 134217728
+                return 111
+            }
+        }
+    }
+}
+return 0
+free-script

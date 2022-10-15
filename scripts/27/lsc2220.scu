@@ -1,0 +1,38 @@
+; LSC2 27 2220
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local11
+
+local2 = 12
+for local0 = 23 to 0 -- {
+    local7 = call-script smth_find_season_team [room78[local0][5]]
+    if (local7 > 11) {
+        if (!local1) {
+            local5 = room78[local0][0]
+            local6 = room78[local0][1]
+        }
+        array-copy-range room80 room78 local1 local1 0 5 local0 local0 0 5
+        room80[local1][3] = (local5 - room80[local1][0] + room80[local1][1] - local6) * 10 / 2
+        local11 = call-script 2221 [room80, local1]
+        ++local1
+    } else {
+        if (local2 == 12) {
+            local3 = room78[local0][0]
+            local4 = room78[local0][1]
+        }
+        array-copy-range room80 room78 local2 local2 0 5 local0 local0 0 5
+        room80[local2][3] = (local3 - room80[local2][0] + room80[local2][1] - local4) * 10 / 2
+        local11 = call-script 2221 [room80, local2]
+        ++local2
+    }
+}
+local11 = call-script 2226 [1]
+return 1
+free-script

@@ -1,0 +1,26 @@
+; LSC2 14 2114
+
+local variable local0
+
+if (!room3) {
+    room3 = call-script FindFreeSprite []
+    room9 = call-script FindFreeSprite []
+    room12 = call-script FindFreeSprite []
+    room14 = call-script FindFreeSprite []
+    room18 = call-script FindFreeSprite []
+    room20 = call-script FindFreeSprite []
+    room24 = call-script FindFreeSprite []
+    room25 = call-script FindFreeSprite []
+    room26 = call-script FindFreeSprite []
+    room27 = call-script FindFreeSprite []
+    room28 = call-script FindFreeSprite []
+    room29 = call-script FindFreeSprite []
+    room37 = call-script FindFreeSprite []
+    dim array room7 i16[0...0][0...9 - 1] swap=2
+    dim array room8 i16[0...0][0...9 - 1] swap=2
+    for local0 = 0 to (9 - 1) ++ {
+        room7[local0] = call-script FindFreeSprite []
+        room8[local0] = call-script FindFreeSprite []
+    }
+}
+free-script

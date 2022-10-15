@@ -1,0 +1,24 @@
+; SCRP 38 IsFoulTerritory
+
+parameter x
+parameter z
+
+local variable local2
+local variable local3
+
+if (gBallWasHit) {
+    if (z < gWorld[HOME-PLATE-BACK-CORNER][Z]) {
+        return 1
+    } else {
+        local2 = abs (x - gWorld[HOME-PLATE-BACK-CORNER][X])
+        local3 = abs (z - gWorld[HOME-PLATE-BACK-CORNER][Z])
+        if (local3 < local2) {
+            return 1
+        } else {
+            return 0
+        }
+    }
+} else {
+    return 0
+}
+free-script

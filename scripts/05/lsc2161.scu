@@ -1,0 +1,48 @@
+; LSC2 5 2161
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+
+local8 = get-x local4
+local9 = get-y local4
+if (local2) {
+    local6 = mod local0 local2
+}
+if (local3) {
+    local7 = mod local1 local3
+}
+if (local6 || local7) {
+    local9 = local9 + local7
+    local8 = local8 + local6
+    actor-select local4
+    actor-move local8 local9
+    actor-select local5
+    actor-move local8 local9
+    local0 = local0 - local6
+    local1 = local1 - local7
+    stop-script
+}
+while (local0 || local1) {
+    if (local0) {
+        local8 = local8 + local2
+    }
+    if (local1) {
+        local9 = local9 + local3
+    }
+    actor-select local4
+    actor-move local8 local9
+    actor-select local5
+    actor-move local8 local9
+    local0 = local0 - local2
+    local1 = local1 - local3
+    sleep (6 / gMinJiffies)
+}
+free-script

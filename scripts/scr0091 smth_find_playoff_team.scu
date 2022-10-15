@@ -1,0 +1,15 @@
+; SCRP 91 smth_find_playoff_team
+
+parameter arg0
+
+local variable local1
+local variable local2
+
+local1 = -1
+for local2 = 0 to 7 ++ {
+    if (gPlayoffTeamsArray[local2] == arg0) {
+        local1 = local2
+    }
+}
+return local1
+free-script

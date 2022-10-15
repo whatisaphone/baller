@@ -1,0 +1,17 @@
+; LSC2 5 2094
+
+local variable local0
+local variable local1
+
+local1 = call-script 2061 [local0]
+temp = call-script smth_draw_text_image [local1, 1037, global628, 370, 80, 3, 1, g_some_palette_1]
+sprite-set-range global634[1] global634[1]
+sprite-clear
+sprite-set-image global628
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -900
+sprite-palette g_some_palette_1
+sprite-set-hotspot (global622 + 10) (global623 + -66)
+free-array local1
+free-script

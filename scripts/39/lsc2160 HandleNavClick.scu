@@ -1,0 +1,76 @@
+; LSC2 39 2160 HandleNavClick
+
+parameter arg0
+
+local variable local1
+
+case arg0 {
+    of 193 {
+        cursor-input-enable
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-show
+        } else if (gCursorInputEnabled == 0) {
+            free-running-script GamePadCursorLoop
+            run-script ReleaseSprite [gGamePadCursorSprite]
+            gGamePadCursorSprite = 0
+        } else {
+            run-script ShowGamePadCursor []
+        }
+        local1 = "Are you sure you would like to log out of online play?"
+        run-script ShowPopup [local1, 0, 5]
+        while (!gPopupResult) {
+            stop-script
+        }
+        if (gPopupResult == 1) {
+            write-ini-int room36 gNetUsername "_Wins" global561[1]
+            write-ini-int room36 gNetUsername "_Losses" global561[2]
+            write-ini-int room36 gNetUsername "_CoachID" global555
+            if (global561[30]) {
+                run-script 2070 []
+            }
+            run-script 2168 [room31]
+            while (!!(is-script-running 2168)) {
+                stop-script
+            }
+            run-script 317 [1]
+            if (gNetUsername) {
+                free-array gNetUsername
+            }
+            if (global561) {
+                free-array global561
+            }
+            if (gNetPassword) {
+                free-array gNetPassword
+            }
+            if (global566) {
+                free-array global566
+            }
+            if (global567) {
+                free-array global567
+            }
+            if (global562) {
+                free-array global562
+            }
+            if (gNetRemoteCoachName) {
+                free-array gNetRemoteCoachName
+            }
+            if (global575) {
+                free-array global575
+            }
+            go-to-room 2
+        }
+    }
+    else {
+        cursor-input-enable
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-show
+        } else if (gCursorInputEnabled == 0) {
+            free-running-script GamePadCursorLoop
+            run-script ReleaseSprite [gGamePadCursorSprite]
+            gGamePadCursorSprite = 0
+        } else {
+            run-script ShowGamePadCursor []
+        }
+    }
+}
+free-script

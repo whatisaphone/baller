@@ -1,0 +1,13 @@
+; LSC2 39 2141
+
+local variable local0
+local variable local1
+
+local1 = 59
+global561[29] = global576
+local0 = call-script smth_string [global575, local1, 8]
+write-ini-int room36 gNetUsername "_Poll" local0
+run-script 2179 []
+run-script 2138 []
+gHoverScript = 0
+free-script

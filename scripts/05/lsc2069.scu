@@ -1,0 +1,31 @@
+; LSC2 5 2069
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (local0 == room35) {
+    local4 = 1
+} else {
+    local4 = 2
+}
+if (local1 < 0) {
+    local1 = 0
+}
+if (!local3) {
+    run-script-xc3 smth_mouse_sprites_1 [local4]
+    while (!!(is-script-running smth_mouse_sprites_1)) {
+        stop-script
+    }
+}
+run-script maybe_draw_kid_name_string [local4, local1, local2]
+sleep 10
+if (!local3) {
+    run-script-xc3 smth_mouse_sprites_2 [local4]
+    while (!!(is-script-running smth_mouse_sprites_2)) {
+        stop-script
+    }
+}
+free-script

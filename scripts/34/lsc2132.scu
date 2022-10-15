@@ -1,0 +1,12 @@
+; LSC2 34 2132
+
+local variable local0
+
+local0 = file-open "testdata" 1
+if (local0 != -1) {
+    free-array room17
+    room17 = file-read-array 4 local0 ((23 + 1) * (62 + 1) * 2 - 1)
+    redim 5 room17 23 62
+}
+file-close local0
+free-script

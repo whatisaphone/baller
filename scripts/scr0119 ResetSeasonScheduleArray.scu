@@ -1,0 +1,7 @@
+; SCRP 119 ResetSeasonScheduleArray
+
+if (gSeasonScheduleArray) {
+    free-array gSeasonScheduleArray
+}
+dim array gSeasonScheduleArray byte[0...24][0...15 * 7] swap=2
+free-script

@@ -1,0 +1,103 @@
+; LSC2 5 2108
+
+local variable local0
+
+case local0 {
+    of 42 {
+        return 1463
+    }
+    of 61 {
+        return 1464
+    }
+    of 43 {
+        return 1465
+    }
+    of 44 {
+        return 1466
+    }
+    of 55 {
+        return 1467
+    }
+    of 46 {
+        return 1468
+    }
+    of 58 {
+        return 1469
+    }
+    of 47 {
+        return 1470
+    }
+    of 35 {
+        return 1471
+    }
+    of 51 {
+        return 1472
+    }
+    of 60 {
+        return 1473
+    }
+    of 56 {
+        return 1474
+    }
+    of 48 {
+        return 1475
+    }
+    of 54 {
+        return 1476
+    }
+    of 50 {
+        return 1478
+    }
+    of 41 {
+        return 1480
+    }
+    of 32 {
+        return 1481
+    }
+    of 33 {
+        return 1479
+    }
+    of 53 {
+        return 1482
+    }
+    of 38 {
+        return 1483
+    }
+    of 39 {
+        return 1484
+    }
+    of 57 {
+        return 1485
+    }
+    of 45 {
+        return 1486
+    }
+    of 49 {
+        return 1487
+    }
+    of 34 {
+        return 1488
+    }
+    of 59 {
+        return 1477
+    }
+    of 52 {
+        return 1489
+    }
+    of 36 {
+        return 1490
+    }
+    of 37 {
+        return 1491
+    }
+    of 31 {
+        return 1492
+    }
+    of 40 {
+        return 1493
+    }
+    else {
+        return 0
+    }
+}
+free-script

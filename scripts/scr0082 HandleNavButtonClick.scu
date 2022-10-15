@@ -1,0 +1,47 @@
+; SCRP 82 HandleNavButtonClick
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+
+local1 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+local2 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+if (gNavButtons[6][0] == 2) {
+    local5 = 18
+} else {
+    local5 = 7
+}
+local1 = local1 - 320 - (image-get-hotspot-x 642 local5)
+local2 = local2 - 240 - (image-get-hotspot-y 642 local5)
+local3 = image-get-x42 642 local5 local1 local2
+if (local3 != 5) {
+    cursor-input-disable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-hide
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    run-script PlayClickySound []
+    local4 = sprite-get-wiz arg0
+    sprite-set-range arg0 arg0
+    sprite-x34 (local4 + 1)
+    sleep 2
+    sprite-set-range arg0 arg0
+    sprite-x34 local4
+    sleep 2
+    while (!!(is-script-running PlayClickySound)) {
+        stop-script
+    }
+    if (gNavButtons[1][1]) {
+        run-script gNavButtons[1][1] [local3]
+    }
+}
+free-script

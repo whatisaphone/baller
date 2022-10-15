@@ -1,0 +1,23 @@
+; LSC2 27 2219
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+dim array local0 i32[0...0][0...5] swap=2
+local1 = 23
+while (local1 > 0) {
+    local2 = 0
+    for local3 = 0 to (local1 - 1) ++ {
+        if (room78[local3][0] > room78[local3 + 1][0]) {
+            local4 = call-script 2227 [room78, local3 + 1, local3]
+            local2 = local3
+        }
+    }
+    local1 = local2
+}
+free-array local0
+return 1
+free-script

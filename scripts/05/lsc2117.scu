@@ -1,0 +1,16 @@
+; LSC2 5 2117
+
+local variable local0
+local variable local1
+
+local0 = (rCurrentKid - 31) * 3 + 2268
+local0 = local0 + (random 2)
+local1 = actor-get-var g_maybe_selected_actor 3
+if (local1) {
+    actor-do-anim g_maybe_selected_actor local1
+}
+xb8-xfe g_maybe_selected_actor
+xb8-xf9 [0]
+xb8-xe1 local0
+xa9-xa9
+free-script

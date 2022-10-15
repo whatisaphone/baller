@@ -1,0 +1,6 @@
+; LSC2 40 2080
+
+window-select global680[25]
+window-set-image 0
+window-xff
+free-script

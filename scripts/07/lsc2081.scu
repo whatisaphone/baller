@@ -1,0 +1,11 @@
+; LSC2 7 2081
+
+local variable local0
+local variable local1
+
+local1 = sprite-get-wiz local0
+if (room10 == local1) {
+    free-running-script 0
+}
+run-script 2098 [local1]
+free-script

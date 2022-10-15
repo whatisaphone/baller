@@ -1,0 +1,6 @@
+; SCRP 333
+
+if (gCurrentRoom == 40 || gCurrentRoom == 39) {
+    kludge [2001, 2230]
+}
+free-script

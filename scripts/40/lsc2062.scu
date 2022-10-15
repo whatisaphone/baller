@@ -1,0 +1,16 @@
+; LSC2 40 2062
+
+if (!global646) {
+    global646 = call-script FindFreeSprite []
+    global647 = call-script FindFreeSprite []
+    global648 = call-script FindFreeSprite []
+    global649 = call-script FindFreeSprite []
+    global671 = call-script FindFreeSprite []
+    global672 = call-script FindFreeSprite []
+    global673 = call-script AllocScratchImage []
+}
+if (!global651) {
+    global651 = call-script FindFreeSprite []
+    global650 = call-script FindFreeSprite []
+}
+free-script

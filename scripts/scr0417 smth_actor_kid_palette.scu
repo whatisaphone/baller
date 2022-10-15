@@ -1,0 +1,42 @@
+; SCRP 417 smth_actor_kid_palette
+
+local variable actor
+local variable kid: Kid
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+if (kid < 62 || kid > 262 && kid <= 263) {
+    free-running-script 0
+}
+local2 = gKidData[kid][11]
+local4 = call-script AllocPalette []
+palette-select local4
+palette-load 1508 0
+palette-unselect
+case local2 {
+    in [1, 2, 7, 8] {
+        local3 = 0
+    }
+    in [3, 4, 9] {
+        local3 = 1
+    }
+    in [5, 6, 11, 12] {
+        local3 = 2
+    }
+    in [10] {
+        local3 = 3
+    }
+}
+local5 = iif (local3 == 3) 48 (48 + 5 * local3)
+local6 = 64 + 5 * local3
+for local3 = 0 to (5 - 1) ++ {
+    actor-select actor
+    actor-x56 (32 + local3) (palette-x42 local4 (local6 + local3))
+    actor-select actor
+    actor-x56 (37 + local3) (palette-x42 local4 (local5 + 5 - local3 - 1))
+}
+run-script FreePalette [local4]
+free-script

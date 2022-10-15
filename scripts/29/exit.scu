@@ -1,0 +1,14 @@
+; EXCD 29
+
+run-script 2108 []
+gCustomKidNames[1][rInputLen] = NUL
+if (gCustomKidNames[1][0] == NUL) {
+    gCustomKidNames[1][0] = 'C'
+    gCustomKidNames[1][1] = 'U'
+    gCustomKidNames[1][2] = 'S'
+    gCustomKidNames[1][3] = 'T'
+    gCustomKidNames[1][4] = 'O'
+    gCustomKidNames[1][5] = 'M'
+    gCustomKidNames[1][6] = NUL
+}
+finish-script

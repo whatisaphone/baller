@@ -1,0 +1,118 @@
+; LSC2 8 2087
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+if (local0) {
+    kludge [23]
+}
+local1 = 485 + gField
+image-select local1
+image-x62 257
+image-pos 0 0
+image-x36 1
+image-x30
+image-xff
+image-select 298
+image-x34 1
+image-pos (320 - (image-get-hotspot-x 298 1)) (240 - (image-get-hotspot-y 298 1))
+image-palette room3
+image-x30
+image-xff
+image-select 298
+image-x34 0
+image-pos (320 - (image-get-hotspot-x 298 0)) (240 - (image-get-hotspot-y 298 0))
+image-x62 257
+image-palette room3
+image-x30
+image-xff
+local5 = call-script AllocScratchImage []
+local6 = call-script AllocScratchImage []
+run-script 2084 [gVisitorInfoIndex, 180, local5]
+run-script 2084 [gHomeInfoIndex, 460, local6]
+image-select 298
+image-x34 2
+image-pos (320 - (image-get-hotspot-x 298 2)) (240 - (image-get-hotspot-y 298 2) + 10)
+image-palette room3
+image-x30
+image-xff
+run-script 273 []
+if (gGameEnded) {
+    image-select 298
+    image-x34 10
+    image-pos (320 - (image-get-hotspot-x 298 10)) (240 - (image-get-hotspot-y 298 10) + 10)
+    image-palette room3
+    image-x30
+    image-xff
+    image-select 298
+    image-x34 8
+    image-pos (320 - (image-get-hotspot-x 298 8)) (240 - (image-get-hotspot-y 298 8) + 10)
+    image-x62 257
+    image-palette room3
+    image-x30
+    image-xff
+    image-select 298
+    image-x34 6
+    image-pos (320 - (image-get-hotspot-x 298 6)) (240 - (image-get-hotspot-y 298 6) + 10)
+    image-x62 257
+    image-palette room3
+    image-x30
+    image-xff
+    local3 = gTeamInfo[gVisitorInfoIndex][TI-RUNS]
+    local4 = gTeamInfo[gHomeInfoIndex][TI-RUNS]
+    local7 = call-script AllocScratchImage []
+    local8 = call-script AllocScratchImage []
+    run-script 2085 [gVisitorInfoIndex, local3, local7]
+    run-script 2085 [gHomeInfoIndex, local4, local8]
+    run-script 2099 [local3, local4]
+} else {
+    image-select 298
+    image-x34 4
+    image-pos (320 - (image-get-hotspot-x 298 4)) (240 - (image-get-hotspot-y 298 4) + 10)
+    image-palette room3
+    image-x30
+    image-xff
+    local2 = gField - 0 + 11
+    image-select 298
+    image-x34 local2
+    image-pos (320 - (image-get-hotspot-x 298 local2)) (240 - (image-get-hotspot-y 298 local2) + 10)
+    image-palette room3
+    image-x30
+    image-xff
+    image-select 298
+    image-x34 5
+    image-pos (320 - (image-get-hotspot-x 298 5)) (240 - (image-get-hotspot-y 298 5) + 10)
+    image-x62 257
+    image-palette room3
+    image-x30
+    image-xff
+    image-select 298
+    image-x34 3
+    image-pos (320 - (image-get-hotspot-x 298 3)) (240 - (image-get-hotspot-y 298 3) + 10)
+    image-x62 257
+    image-palette room3
+    image-x30
+    image-xff
+}
+run-script smth_controls_ui [gVisitorInfoIndex]
+run-script smth_controls_ui [gHomeInfoIndex]
+run-script 2083 []
+run-script 2080 [gVisitorInfoIndex, 78]
+run-script 2080 [gHomeInfoIndex, 422]
+stop-script
+run-script FreeScratchImage [local5]
+run-script FreeScratchImage [local6]
+if (local7) {
+    run-script FreeScratchImage [local7]
+}
+if (local8) {
+    run-script FreeScratchImage [local8]
+}
+free-script

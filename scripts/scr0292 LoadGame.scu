@@ -1,0 +1,39 @@
+; SCRP 292 LoadGame
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+run-script InitSaveGamePath []
+sprintf local0 "%s%s.sg" [gSaveGamePath, gCoachName]
+xe2 local0
+local1 = file-open local0 1
+if (local1 != -1) {
+    file-close local1
+    if (g_maybe_operating_system == 2) {
+        sprintf local2 "%s" [gBuildVersion]
+    } else {
+        local2 = kludge-retval [2001, 2236]
+    }
+    local3 = read-ini-string gCoachINIPath "general" "SavedGameVersion"
+    xe2 local2
+    xe2 local3
+    if (!(strcmp local2 local3)) {
+        save-load-game 2 local0
+    } else {
+        xb7-xfe
+        xb7-x4b "Game was saved with a previous version of Backyard Baseball.  Restoring to last completed game."
+        file-delete local0
+        write-ini-string gCoachINIPath "general" "SavedGameVersion" ""
+    }
+} else {
+    temp = read-ini-string gCoachINIPath "general" "SavedGameVersion"
+    if (temp[0]) {
+        xb7-xfe
+        xb7-xc2 "Saved game %s does not exist.  Restoring to last completed game." local0 []
+        write-ini-string gCoachINIPath "general" "SavedGameVersion" ""
+    }
+    free-array temp
+}
+free-script

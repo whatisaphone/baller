@@ -1,0 +1,17 @@
+; LSC2 6 2111
+
+room27 = global621
+if (room27 == 1) {
+    room1 = 4
+    room35 = "Choose game options"
+    room28 = 1
+} else if (room27 == 2) {
+    room1 = pick (random 2) [2, 1, 3]
+    room35 = "Choose your team"
+    room28 = 2
+} else {
+    room1 = pick (random 2) [2, 1, 3]
+    room28 = 3
+    room35 = "Choose your team"
+}
+free-script

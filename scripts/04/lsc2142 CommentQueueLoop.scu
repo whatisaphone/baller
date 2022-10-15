@@ -1,0 +1,53 @@
+; LSC2 4 2142 CommentQueueLoop
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+if (MODE-BATTING-PRACTICE == gGameMode) {
+    free-running-script 0
+}
+do {
+    while (!(gCurrentSpeechScript == 0)) {
+        stop-script
+    }
+    if (rCommentQueue[0][0]) {
+        ++local10
+        if (local10 > 5) {
+            local10 = 1
+        }
+        if (rCommentQueue[local10][0]) {
+            rCommentaryActive = 1
+            local0 = rCommentQueue[local10][0]
+            local1 = rCommentQueue[local10][1]
+            local2 = rCommentQueue[local10][2]
+            local3 = rCommentQueue[local10][3]
+            local4 = rCommentQueue[local10][4]
+            local5 = rCommentQueue[local10][5]
+            local6 = rCommentQueue[local10][6]
+            local7 = rCommentQueue[local10][7]
+            local8 = rCommentQueue[local10][8]
+            local9 = rCommentQueue[local10][9]
+            if (local0 < 1000) {
+                run-script CastGameplay [local0, local1, local2, local3, local4, local5, local6, local7, local8, local9]
+            } else {
+                run-script BatViewBanter [local0, local1, local2, local3, local4, local5, local6, local7, local8, local9]
+            }
+            rCommentQueue[local10][0] = 0
+            rCommentQueue[local10][1] = 0
+            rCommentQueue[0][0] = rCommentQueue[0][0] - 1
+        }
+    } else {
+        rCommentaryActive = 0
+    }
+    stop-script
+}
+free-script

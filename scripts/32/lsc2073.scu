@@ -1,0 +1,121 @@
+; LSC2 32 2073
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+local5 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+local6 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+case local1 {
+    of 6 {
+        case local0 {
+            of -91 {
+                if (!room15) {
+                    local8 = "Delete Coach"
+                    if (gCoachName) {
+                        sprintf local2 "Click here to delete Coach %s." [gCoachName]
+                    } else {
+                        local2 = "No Coach Selected To Delete."
+                    }
+                } else {
+                    local2 = "Press ESC To Cancel Or Right Arrow To Continue."
+                }
+            }
+            of -90 {
+                if (room15) {
+                    local2 = "Press ESC To Cancel Or Right Arrow To Continue."
+                } else {
+                    local8 = "Create New Coach"
+                    local2 = "click here to create a new coach and start a new season."
+                }
+            }
+            of -89 {
+                if (room15) {
+                    local2 = "Press ESC To Cancel Or Right Arrow To Continue."
+                } else if (room18 < room10) {
+                    local8 = "More coaches"
+                    local2 = "Click here To Scroll Down The List."
+                } else {
+                    local8 = "No more coaches"
+                    local2 = "you are at The end of the List."
+                }
+            }
+            of -88 {
+                if (room15) {
+                    local2 = "Press ESC To Cancel Or Right Arrow To Continue."
+                } else if (room17 > 1) {
+                    local8 = "More coaches"
+                    local2 = "Click here To Scroll Up The List."
+                } else {
+                    local8 = "Top of the list"
+                    local2 = "This is the First Coach In The List."
+                }
+            }
+        }
+    }
+    of 2 {
+        local3 = sprite-get-image local0
+        local4 = sprite-get-wiz local0
+        case 1 {
+            of local3 == 1047 || local3 == 1046 {
+            }
+            of local3 == 1380 {
+                if (local6 < 318) {
+                    if (!gCoachName) {
+                        local8 = "HEads up!"
+                        local2 = "Coach Name Must Have At Least One Letter."
+                    }
+                }
+            }
+            of local3 == 642 {
+                case local4 {
+                    of 1 {
+                        if (gCoachName) {
+                            if (g_smth_season_mode == 2) {
+                                local8 = "Team Page"
+                                local2 = "Click here to move to your team page."
+                            } else {
+                                local8 = "choose your team"
+                                local2 = "click here to move ahead to the team selection screen."
+                            }
+                        } else {
+                            local8 = "Heads up!"
+                            if (room15) {
+                                local2 = "Coach Name Must Have At Least One Character."
+                            } else {
+                                local2 = "Please Select Or Create A Coach Before Continuing."
+                            }
+                        }
+                    }
+                    of 3 {
+                        local8 = "The club house"
+                        local2 = "click here to return to THE CLUB HOUSE."
+                    }
+                }
+            }
+        }
+    }
+    of 1 {
+    }
+    of 3 {
+        local0 = local0 - 487
+        local0 = local0 + room17
+        local7 = call-script smth_string [room9, 44, local0, 1]
+        sprintf local8 "%s" [local7]
+        sprintf local2 "Click here to continue playing with Coach %s." [local7]
+        free-array local7
+    }
+}
+if (local2 || local8) {
+    run-script maybe_HideNavHoverText []
+    run-script UpdateNavText [local8, local2]
+    free-array local8
+    free-array local2
+}
+free-script

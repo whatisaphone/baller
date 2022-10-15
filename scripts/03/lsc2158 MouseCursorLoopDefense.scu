@@ -1,0 +1,100 @@
+; LSC2 3 2158 MouseCursorLoopDefense
+
+local variable x
+local variable y
+local variable local2
+local variable local3
+local variable local4
+
+pop-discard-2 0 "no trace"
+stop-script
+actor-select 20
+actor-xd9
+actor-set-costume 562
+actor-x5f
+actor-x54 1000
+actor-x62 global424
+put-actor 20 0 0 3
+do {
+    x = gMouseX
+    y = gMouseY
+    if (gNetplayActive) {
+        local4 = 0
+        local2 = sprite-get-x2d x y 0 0 []
+        if (local2) {
+            local3 = sprite-get-xc6 local2 1
+            if (local3 == 344) {
+                local4 = 1
+                cursor-show
+                if (g_maybe_operating_system == 2) {
+                    cursor-set-image-color (4 + 2)
+                    gCursorImage = 4 + 2
+                } else if (4 <= 76 || (4 in [82, 85, 91, 88, 79, 95])) {
+                    cursor-set-image-bw (4 + 1)
+                    gCursorImage = 4 + 1
+                } else if (gBlackAndWhiteCursors || 4 == 1) {
+                    cursor-set-image-bw (4 + 1)
+                    gCursorImage = 4 + 1
+                } else {
+                    cursor-set-image-color 4
+                    gCursorImage = 4
+                }
+                put-actor 20 -500 -500 255
+            }
+        }
+        if (!local4) {
+            cursor-hide
+        } else {
+            goto label013b
+        }
+    } else {
+        run-script TransformUserInputVector [x, y, 1]
+        actor-select 20
+        actor-set-scale (call-script CalcActorScale [58])
+        put-actor 20 gScreen[LAST-HOVER-FIELDING][X] (gScreen[LAST-HOVER-FIELDING][Y] + 1000) 255
+        actor-do-anim 20 6
+    }
+label013b:
+    stop-script
+} until (!g_maybe_smth_play_is_alive || (gPlayEndedReason in [PE-HOME-RUN, PE-GROUND-RULE-DOUBLE, 9, PE-INFIELD-FLY, PE-OUT-OF-PLAY]) || gBallIsFoul)
+gUserSelectedPlay = NONE
+put-actor 20 0 0 0
+if (gNetplayActive) {
+    cursor-show
+    do {
+        local2 = sprite-get-x2d x y 0 0 []
+        if (local2) {
+            local3 = sprite-get-xc6 local2 1
+            if (local3 == 344) {
+                if (g_maybe_operating_system == 2) {
+                    cursor-set-image-color (4 + 2)
+                    gCursorImage = 4 + 2
+                } else if (4 <= 76 || (4 in [82, 85, 91, 88, 79, 95])) {
+                    cursor-set-image-bw (4 + 1)
+                    gCursorImage = 4 + 1
+                } else if (gBlackAndWhiteCursors || 4 == 1) {
+                    cursor-set-image-bw (4 + 1)
+                    gCursorImage = 4 + 1
+                } else {
+                    cursor-set-image-color 4
+                    gCursorImage = 4
+                }
+            } else if (g_maybe_operating_system == 2) {
+                cursor-set-image-color (1 + 2)
+                gCursorImage = 1 + 2
+            } else if (1 <= 76 || (1 in [82, 85, 91, 88, 79, 95])) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else if (gBlackAndWhiteCursors || 1 == 1) {
+                cursor-set-image-bw (1 + 1)
+                gCursorImage = 1 + 1
+            } else {
+                cursor-set-image-color 1
+                gCursorImage = 1
+            }
+        }
+        stop-script
+    }
+}
+pop-discard-2 0 "trace on"
+free-script

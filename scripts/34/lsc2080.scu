@@ -1,0 +1,42 @@
+; LSC2 34 2080
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+dim array local0 byte[0...0][0...23] swap=2
+local1 = call-script smth_find_season_team [call-script ReadSeasonSchedule [gSeasonDivision, gSeasonGameNumber, 0]]
+local0[gSeasonDivision] = 1
+local0[local1] = 1
+dim array room17 i16[0...23][0...62] swap=2
+for local2 = 0 to 23 ++ {
+    if (0 == local0[local2]) {
+        if (0 == (call-script ReadSeasonSchedule [local2, gSeasonGameNumber, SS-HOME-OR-AWAY])) {
+            local3 = call-script ReadSeasonTeams [local2]
+            local4 = call-script ReadSeasonSchedule [local2, gSeasonGameNumber, 0]
+            local1 = call-script smth_find_season_team [local4]
+        } else {
+            local4 = call-script ReadSeasonTeams [local2]
+            local3 = call-script ReadSeasonSchedule [local2, gSeasonGameNumber, 0]
+            local1 = call-script smth_find_season_team [local3]
+        }
+        if (local2 == 0) {
+            room16 = local1
+        } else {
+            room16 = local2
+        }
+        room17[room16][52] = local4
+        room17[room16][53] = local3
+        run-script 2078 [local3, local4]
+        while (!!(is-script-running 2078)) {
+            stop-script
+        }
+        local0[local2] = 1
+        local0[local1] = 1
+    }
+}
+free-array local0
+global461 = 0
+free-script

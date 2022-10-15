@@ -1,0 +1,42 @@
+; LSC2 4 2070 maybe_pitch_ui_ball_location_loop
+
+local variable local0
+local variable local1
+
+do {
+    stop-script
+    if (room25 && r_maybe_smth_idle_ready_for_pitch && (get-class 95 [32])) {
+        if (gCursorVisible == 0 && gGameInputDevice == INPUT-DEVICE-MOUSE) {
+            put-actor 5 -200 -200 255
+            sprite-set-range rBallSprite rBallSprite
+            sprite-set-hotspot -500 -500
+        } else {
+            local0 = rCursorX
+            local1 = rCursorY
+            if (local0 < 250) {
+                local0 = -200
+            }
+            if (local0 > 386) {
+                local0 = -200
+            }
+            if (local1 < 234 - 25) {
+                local1 = -200
+            }
+            if (local1 > 380) {
+                local1 = -200
+            }
+            put-actor 5 local0 (local1 - 200) 4
+            sprite-set-range rBallSprite rBallSprite
+            sprite-set-image 438
+            sprite-x34 0
+            sprite-x62 0
+            sprite-x7c 0
+            sprite-palette room70
+            sprite-x2b 1000
+            sprite-set-hotspot local0 local1
+        }
+    } else {
+        put-actor 5 -200 -200 255
+    }
+}
+free-script

@@ -1,0 +1,28 @@
+; ENCD 14
+
+room0 = -1
+room47 = gMinJiffies
+run-script 2057 []
+run-script 2139 []
+run-script SetNavButtons [HandleNavClick, 0, 0]
+run-script 2111 []
+run-script 2052 []
+run-script 2135 [0]
+run-script 2138 []
+if (!(is-sound-playing 8078)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8078]
+    run-script PlayMusicPool [8078]
+}
+gHoverScript = 2103
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+finish-script

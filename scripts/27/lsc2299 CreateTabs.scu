@@ -1,0 +1,64 @@
+; LSC2 27 2299 CreateTabs
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+if (gSeasonGameNumber >= 14) {
+    local2 = 1050
+    local3 = 1051
+} else {
+    local2 = 1046
+    local3 = 1047
+}
+if (!rTabSprites) {
+    dim array rTabSprites i16[0...0][0...6] swap=2
+}
+for local1 = 0 to 6 ++ {
+    rTabSprites[local1] = call-script FindFreeSprite []
+    sprite-set-range rTabSprites[local1] rTabSprites[local1]
+    sprite-clear
+    sprite-set-image local2
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-x2b -1300
+    sprite-x25 14
+    sprite-x34 local1
+    sprite-set-range rTabSprites[local1] rTabSprites[local1]
+    sprite-palette room25
+    sprite-set-range rTabSprites[local1] rTabSprites[local1]
+    sprite-set-hotspot 320 240
+    gSpriteCursorTargets[rTabSprites[local1]][TARGET-CLICK-SCRIPT] = TabClickHandler
+    gSpriteCursorTargets[rTabSprites[local1]][TARGET-HOVER-SCRIPT] = TabHoverHandler
+    gSpriteCursorTargets[rTabSprites[local1]][TARGET-HOVER-DELAY] = 0
+    sprite-set-range rTabSprites[local1] rTabSprites[local1]
+    sprite-x8c local2
+    sprite-x34 local1
+}
+sprite-set-range rTabSprites[arg0] rTabSprites[arg0]
+sprite-set-image local3
+sprite-x34 arg0
+sprite-x2b -1000
+sprite-x52 0
+run-script 2303 [arg0]
+if (gNetplayActive) {
+    run-script ReleaseSprite [rTabSprites[1]]
+    rTabSprites[1] = 0
+}
+if (gGameMode != MODE-SEASON) {
+    run-script ReleaseSprite [rTabSprites[3]]
+    rTabSprites[3] = 0
+    run-script ReleaseSprite [rTabSprites[4]]
+    rTabSprites[4] = 0
+    run-script ReleaseSprite [rTabSprites[5]]
+    rTabSprites[5] = 0
+    run-script ReleaseSprite [rTabSprites[2]]
+    rTabSprites[2] = 0
+}
+if (gSeasonGameNumber >= 14 && gGameMode == MODE-SEASON) {
+    run-script ReleaseSprite [rTabSprites[3]]
+    rTabSprites[3] = 0
+}
+free-script

@@ -1,0 +1,8 @@
+; SCRP 395 smth_load_palette
+
+parameter arg0
+
+palette-select g_some_palette_3
+palette-load arg0 0
+palette-unselect
+free-script

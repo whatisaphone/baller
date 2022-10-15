@@ -1,0 +1,32 @@
+; LSC2 3 2125 IfBallIsNotCaughtAwardAnError
+
+parameter arg0
+
+local variable local1
+
+while (!(gBallHasBounced || g_maybe_last_fielder_to_touch_ball)) {
+    stop-script
+}
+sleep 3
+if (gPlayEndedReason in [164, 163]) {
+    free-running-script 0
+}
+if (g_maybe_last_fielder_to_touch_ball == 0) {
+    if (gBallIsFoul) {
+        free-running-script 0
+    } else {
+        run-script EnqueueComment [DIALOGUE-CATCH-HIGH-HIT-ERROR, rFieldingOrder[arg0 - 37]]
+        local1 = rFieldingOrder[arg0 - 37]
+        if (gNetplayActive) {
+            if (g_net_smth_master == g_net_smth_me) {
+                run-script AddNetStat [local1, STAT-ERRORS, 1]
+                run-script AddStat [local1, STAT-ERRORS, 1]
+            }
+        } else if (MODE-BATTING-PRACTICE != gGameMode) {
+            run-script AddStat [local1, STAT-ERRORS, 1]
+        }
+        run-script PlayKidEmoteSound [rFieldingOrder[arg0 - 37], 2]
+        run-script SetCurrentEmote [4]
+    }
+}
+free-script

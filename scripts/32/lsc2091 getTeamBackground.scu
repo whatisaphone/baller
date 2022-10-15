@@ -1,0 +1,78 @@
+; LSC2 32 2091 getTeamBackground
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+
+if (call-script 129 [gTeamInfo[arg0][TI-TEAM-NOUN]]) {
+    local2 = gTeamInfo[arg0][TI-TEAM-NOUN]
+    local3 = g_underwater_array[local2][3]
+} else {
+    local3 = gTeamInfo[arg0][3]
+}
+case local3 {
+    of 1 {
+        local1 = 1103
+    }
+    of 2 {
+        local1 = 1104
+    }
+    of 3 {
+        local1 = 1105
+    }
+    of 4 {
+        local1 = 1106
+    }
+    of 5 {
+        local1 = 1107
+    }
+    of 6 {
+        local1 = 1108
+    }
+    of 7 {
+        local1 = 1109
+    }
+    of 8 {
+        local1 = 1110
+    }
+    of 9 {
+        local1 = 1111
+    }
+    of 10 {
+        local1 = 1112
+    }
+    of 11 {
+        local1 = 1115
+    }
+    of 12 {
+        local1 = 1113
+    }
+    of 13 {
+        local1 = 1114
+    }
+    of 14 {
+        local1 = 1116
+    }
+    of 15 {
+        local1 = 1117
+    }
+    of 16 {
+        local1 = 1118
+    }
+    of 17 {
+        local1 = 1119
+    }
+    of 18 {
+        local1 = 1120
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "Error! Bad color for getTeamBackground: %d" local3 []
+        pop-discard 0
+        local1 = 1119
+    }
+}
+return local1
+free-script

@@ -1,0 +1,20 @@
+; LSC2 5 2103 FindBleachersEntry
+
+parameter bleachers: [BleachersInfo]
+parameter value
+parameter index: BleachersInfo
+
+local variable result
+
+if (index <= 0) {
+    index = BI-KID
+}
+result = 1
+while (result != 0) {
+    if (bleachers[result][index] == value) {
+        return result
+    }
+    ++result
+}
+return -2
+free-script

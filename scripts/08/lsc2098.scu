@@ -1,0 +1,11 @@
+; LSC2 8 2098
+
+local variable local0
+
+dim array local0 i16[0...0][0...36] swap=2
+local0[0] = 999
+array-copy-range local0 gPickOrder1 0 0 1 9 0 0 0 8
+array-copy-range local0 gBattingOrder1 0 0 19 27 0 0 0 8
+run-script-xc3 maybe_smth_net_send_array [40, 1, local0]
+free-array local0
+free-script

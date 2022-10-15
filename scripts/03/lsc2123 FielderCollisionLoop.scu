@@ -1,0 +1,70 @@
+; LSC2 3 2123 FielderCollisionLoop
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+
+if (gDifficulty == HARD) {
+    local6 = 2
+} else {
+    local6 = 1
+}
+do {
+    stop-script
+    if (local3 > 25) {
+        local3 = 0
+        sleep 80
+    }
+    if (local2) {
+        --local2
+    }
+    for local0 = 37 to 44 ++ {
+        for local1 = (local0 + 1) to 45 ++ {
+            if ((distance-2d gWorld[local0][X] gWorld[local0][Z] gWorld[local1][X] gWorld[local1][Z]) < 36) {
+                if ((actor-get-var (local0 - 30) 2) == 0) {
+                    if ((actor-get-var (local1 - 30) 2) == 0) {
+                        ++local3
+                        for local5 = [local0, local1] {
+                            local4 = 0
+                            if (!(random local6)) {
+                                if ((random 100) > gKidData[rFieldingOrder[local5 - 37]][3]) {
+                                    if (rFieldingOrder[local5 - 37] != KENNY-KAWAGUCHI) {
+                                        local4 = 1
+                                        actor-select (local5 - 30)
+                                        actor-set-var 2 1
+                                        if (local5 == rBallFetcher) {
+                                            rBallFetcher = 0
+                                        }
+                                        if (!local2) {
+                                            run-script EnqueueComment [DIALOGUE-FIELDER-COLLISION, 0]
+                                        }
+                                        local2 = 100
+                                        run-script AddFatigue [rFieldingOrder[local5 - 37], 29]
+                                    }
+                                }
+                            }
+                            if (!local4) {
+                                if (local5 != gFielderWithBall) {
+                                    actor-select (local5 - 30)
+                                    actor-set-var 2 2
+                                } else {
+                                    actor-select (local5 - 30)
+                                    actor-set-var 2 0
+                                }
+                            }
+                            if ((is-sound-playing 2007) + (is-sound-playing 2008) + (is-sound-playing 2009) == 0) {
+                                temp = random 2
+                                run-script PlaySoundSynced [2007 + temp]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+} until (!g_maybe_smth_play_is_alive)
+free-script

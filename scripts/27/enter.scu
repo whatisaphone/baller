@@ -1,0 +1,28 @@
+; ENCD 27
+
+gHoverScript = 2313
+room24 = g_maybe_selected_actor
+rCurrentTab = -1
+run-script InitNavButtons []
+run-script 2081 []
+run-script InitPalettes []
+run-script InitUI []
+cursor-input-enable
+if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+    cursor-show
+} else if (gCursorInputEnabled == 0) {
+    free-running-script GamePadCursorLoop
+    run-script ReleaseSprite [gGamePadCursorSprite]
+    gGamePadCursorSprite = 0
+} else {
+    run-script ShowGamePadCursor []
+}
+if (!(is-sound-playing 8074) && !(is-sound-playing 8070)) {
+    run-script AddSongsToPool [-1]
+    run-script AddSongsToPool [8074, 8070]
+    run-script PlayMusicPool [-1]
+}
+if (gAutoplaySeason) {
+    run-script IfAutoplayingPlayNext []
+}
+finish-script

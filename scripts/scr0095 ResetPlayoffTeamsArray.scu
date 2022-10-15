@@ -1,0 +1,7 @@
+; SCRP 95 ResetPlayoffTeamsArray
+
+if (gPlayoffTeamsArray) {
+    free-array gPlayoffTeamsArray
+}
+dim array gPlayoffTeamsArray byte[0...0][0...7] swap=2
+free-script

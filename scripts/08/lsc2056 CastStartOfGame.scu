@@ -1,0 +1,452 @@
+; LSC2 8 2056 CastStartOfGame
+
+local variable local0
+local variable local1
+local variable local2
+
+gCurrentMatchupCastScript = CastStartOfGame
+local1 = random 10
+label000c:
+case local1 {
+    in [0, 1] {
+        case gField {
+            of PLAYGROUND-COMMONS {
+                case random 2 {
+                    of 0 {
+                        xba "\x7fT101280733,54809\x7f     Live from Playground Commons, this is Sunny Day and my sidekick, Vinnie the Gooch." 1
+                    }
+                    of 1 {
+                        xba "\x7fT101335542,16346\x7f     My name's Sunny Day." 1
+                        xa9-xa9
+                        xba "\x7fT101351888,70038\x7f     My pal Vinnie the Gooch and I are coming to you live from Playground Commons, where the action is about to begin." 1
+                    }
+                    of 2 {
+                        xba "\x7fT101421926,74722\x7f     This is Sunny Day here with my buddy Vinnie the Gooch, ready to let you in on the excitement happening here at     Playground Commons!" 1
+                    }
+                }
+            }
+            of CEMENT-GARDENS {
+                if (random 1) {
+                    xba "\x7fT101496648,62792\x7f     This is Sunny Day, here, ready to bring you another exciting game here at Cement Gardens." 1
+                    xa9-xa9
+                    xba "\x7fT101559440,29564\x7f     Joining me is my sidekick, Vinnie the Gooch." 1
+label02e4:
+                    local2 = 1
+                    xa9-xa9
+                    if ((actor-get-var 2 3) == 1) {
+                        actor-do-anim 2 2
+                    } else {
+                        actor-do-anim 2 5
+                    }
+                    actor-select 2
+                    actor-set-var 3 0
+                    while ((actor-get-var 2 3) == 0) {
+                        stop-script
+                    }
+                    xba "\x7fT101589004,25038\x7f      Why do I always have to be the sidekick?" 2
+                    sleep 2
+                    if ((actor-get-var 1 3) == 1) {
+                        actor-do-anim 1 2
+                    } else {
+                        actor-do-anim 1 5
+                    }
+                    actor-select 1
+                    actor-set-var 3 0
+                    xa9-xa9
+                    xba "\x7fT101614042,26596\x7f      Just once, I wish you were the sidekick!" 2
+                    xa9-xa9
+                    if ((actor-get-var 1 3) == 1) {
+                        actor-do-anim 1 2
+                    } else {
+                        actor-do-anim 1 5
+                    }
+                    actor-select 1
+                    actor-set-var 3 0
+                    while ((actor-get-var 1 3) == 0) {
+                        stop-script
+                    }
+                    xba "\x7fT101640638,17352\x7fNot gonna happen, Vinnie." 1
+                } else {
+                    local2 = 1
+                    if ((actor-get-var 2 3) == 1) {
+                        actor-do-anim 2 2
+                    } else {
+                        actor-do-anim 2 5
+                    }
+                    actor-select 2
+                    actor-set-var 3 0
+                    xba "\x7fT101657990,62860\x7f     This is Sunny Day and Vinnie the Gooch comin' to ya live from Cement Gardens." 1
+                    xa9-xa9
+                    while ((actor-get-var 2 3) == 0) {
+                        stop-script
+                    }
+                    if ((actor-get-var 1 3) == 1) {
+                        actor-do-anim 1 2
+                    } else {
+                        actor-do-anim 1 5
+                    }
+                    actor-select 1
+                    actor-set-var 3 0
+                    xba "\x7fT101720850,55773\x7f    Since when is this old parking lot called 'Cement Gardens', Sunny?" 2
+                    xa9-xa9
+                    xba "\x7fT101776623,38090\x7f     Pu-leese, Vinnie, have a little imagination." 1
+                }
+            }
+            of DIRT-YARDS {
+                if (random 1) {
+                    xba "\x7fT101814713,77574\x7f     Reporting to you directly from Dirt Yards, where balls bounce anywhere they want to, this is Sunny Day and Vinnie the Gooch." 1
+                } else {
+                    local2 = 1
+                    xba "\x7fT101892287,82728\x7f     This is Sunny Day and my cohort, Vinnie the Gooch, ready to report every bit of the action here at Dirt Yards..." 1
+                    xa9-xa9
+                    if ((actor-get-var 2 3) == 1) {
+                        actor-do-anim 2 2
+                    } else {
+                        actor-do-anim 2 5
+                    }
+                    actor-select 2
+                    actor-set-var 3 0
+                    xba "\x7fT101975015,49238\x7f     the laughs, the tears, the excitement, the fears, the..." 1
+                    xa9-xa9
+                    xba "\x7fT102024253,27367\x7f    OK, ok...I think they get the picture." 2
+                }
+            }
+            of PARKS-DEPARTMENT {
+                case random 3 {
+                    of 0 {
+                        xba "\x7fT102051620,102947\x7f My name's Sunny Day.  My pal Vinnie the Gooch and I are coming to you live from the Parks dept. field # 2, where the action is about to begin" 1
+                    }
+                    of 1 {
+                        xba "\x7fT102154567,68632\x7f Live from Parks Dept field #2, this is Sunny Day and my sidekick, Vinnie the Gooch" 1
+                        if (!(random 3)) {
+                            goto label02e4
+                        }
+                    }
+                    of 2 {
+                        xba "\x7fT102223199,85569\x7f I'm Sunny Day, and together with my pal Vinnie the Gooch, we're ready to report the action here at The Parks Dept. Field #2." 1
+                    }
+                    of 3 {
+                        xba "\x7fT102308768,65874\x7f Reporting to you live from the Parks Department field # 2, this is Sunny Day and Vinnie the Gooch" 1
+                    }
+                }
+            }
+            of SUPER-COLOSSAL-DOME {
+                if (random 1) {
+                    xba "\x7fT102374642,58996\x7f Reporting to you directly from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch" 1
+                } else {
+                    xba "\x7fT102433638,74148\x7f Live from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch ready for another exciting game" 1
+                }
+            }
+            of BIG-CITY-STADIUM {
+                if (random 1) {
+                    xba "\x7fT102507786,59588\x7f This is Sunny Day and Vinnie the Gooch comin' to ya live from the Big City Stadium" 1
+                } else {
+                    xba "\x7fT102567374,87926\x7f This is Sunny Day here with my buddy Vinnie the Gooch, ready to let you in on the excitement happening here at  the Big City Stadium" 1
+                }
+            }
+            of SANDY-FLATS {
+                if (random 1) {
+                    xba "\x7fT102655300,74501\x7f This is Sunny Day and Vinnie the Gooch live at Sandy Flats, where the running is slow and the balls bounce low." 1
+                } else {
+                    goto label000c
+                }
+            }
+            of STEELE-STADIUM {
+                if (random 1) {
+                    xba "\x7fT102729801,81352\x7f Sunny Day, here, with my pal Vinnie the Gooch at Steele Stadium, where a bhit in the neighbor's pool is a home run by rule." 1
+                } else {
+                    goto label000c
+                }
+            }
+            of TIN-CAN-ALLEY {
+                if (random 1) {
+                    xba "\x7fT102811153,68935\x7f This is Sunny Day and Vinnie the Gooch welcoming you to Tin Can Alley, where there is no such thing as a home run." 1
+                } else {
+                    goto label000c
+                }
+            }
+            of ECKMAN-ACRES {
+                if (random 1) {
+                    xba "\x7fT102880088,100314\x7f This is Sunny day and Vinnie the Gooch here at Eckman Acres, where ten balls have already been lost this season to the nextdoor neighbor, old Mrs. Crankypants." 1
+                } else {
+                    goto label000c
+                }
+            }
+            else {
+                goto label000c
+            }
+        }
+        if (!local2 && !(random 10)) {
+            xa9-xa9
+            xba "\x7fT102980402,41340\x7fThe hitting!  The pitching! The spitting!  I love the baseball!" 2
+        }
+    }
+    of 2 {
+        xba "\x7fT103021742,72784\x7f     I'm Sunny Day, and together with my pal, Vinnie the Gooch, we'll bring every bit of the action to ya!" 1
+    }
+    of 3 {
+        xba "\x7fT103094526,45108\x7f     I'm Sunny Day and joining me is my pal, Vinnie the Gooch." 1
+        xa9-xa9
+        xba "\x7fT103139634,32842\x7f     Together, we'll bring you every bit of the action!" 1
+        xa9-xa9
+        xba "\x7fT103172476,36732\x7f     What she means is, she's never gonna stop yappin'." 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT103209208,17456\x7f     It's my job, Vinnie!" 1
+        xa9-xa9
+        xba "\x7fT103226664,12018\x7fNow it's my turn." 2
+    }
+    of 4 {
+        xba "\x7fT103238682,86516\x7f     Sunny Day, here, along with Vinnie the Gooch, welcoming you friends of the feathered to another edition of baseball madness!" 1
+    }
+    of 5 {
+        xba "\x7fT103325198,47572\x7f     This is Sunny Day and my pal Vinnie the Gooch with a hearty hi-ho to ya!" 1
+        sleep 4
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT103372770,19860\x7f      Wait a minute..." 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        xba "\x7fT103392630,68823\x7f      The Gooch does not, under any circumstances,     say 'Hi-Ho'." 2
+        xa9-xa9
+        xba "\x7fT103461453,51044\x7f      Sunny Day may being sayin' 'Hi-ho', but the Gooch just says 'yo.'" 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT103512497,15020\x7f     Whatever, Vinnie." 1
+    }
+    of 6 {
+        xba "\x7fT103527517,53630\x7fHello baseball fans!  Sunny Day here along with my good friend Vinnie the Gooch." 1
+        xa9-xa9
+        xba "\x7fT103581147,64910\x7fThanks Sunny.  It's good to be here for another exciting game of baseball. I can't get enough of it." 2
+    }
+    of 7 {
+        xba "\x7fT103646057,36232\x7fSunny Day here with Vinnie the Gooch.  Say hello, Vinnie." 1
+        xa9-xa9
+        xba "\x7fT103682289,9352\x7fHello Vinnie." 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        sleep 10
+    }
+    of 8 {
+        xba "\x7fT103691641,79340\x7fHi there sports fans.  I'm Sunny Day, along with my partner Vinnie the Gooch.  Say hello to the nice people Vinnie." 1
+        xa9-xa9
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT103770981,50938\x7fNice?  I got a bowl of potato salad dumped on my head on the way in here." 2
+        sleep 2
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT103821919,19824\x7fOh Vinnie, behave." 1
+        xa9-xa9
+        xba "\x7fT103841743,15604\x7fWhat?  It's true!" 2
+    }
+    of 9 {
+        xba "\x7fT103857347,80208\x7fHiya folks!  Welcome to Backyard Baseball.  I'm Sunny Day, along with my broadcast partner Vinnie the Gooch..." 1
+        xa9-xa9
+        xba "\x7fT103937555,124494\x7fFolks, we're going to bring you the best in Baseball today: home runs, triple plays, strike outs, live action from some of the hottest players in the league this season. The best in baseball." 2
+        sleep 30
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT104062049,25958\x7fBoy you're sure enthusiastic today." 1
+        sleep 1
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT104088007,15726\x7fI had a good breakfast." 2
+    }
+    of 10 {
+        xba "\x7fT104103733,64140\x7fSunny Day here, along with Vinnie the Gooch, welcoming you again to Backyard Baseball." 1
+        xa9-xa9
+        xba "\x7fT104167873,58596\x7fVinnie the Gooch here, along Sunny Day, welcoming you again to Backyard Baseball." 2
+        xa9-xa9
+        if ((actor-get-var 1 3) == 1) {
+            actor-do-anim 1 2
+        } else {
+            actor-do-anim 1 5
+        }
+        actor-select 1
+        actor-set-var 3 0
+        while ((actor-get-var 1 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT104226469,14070\x7fI just said that Vinnie. " 1
+        if ((actor-get-var 2 3) == 1) {
+            actor-do-anim 2 2
+        } else {
+            actor-do-anim 2 5
+        }
+        actor-select 2
+        actor-set-var 3 0
+        xa9-xa9
+        while ((actor-get-var 2 3) == 0) {
+            stop-script
+        }
+        xba "\x7fT104240539,41218\x7fI know. But I think I said it better. With more pizzaz!" 2
+    }
+}
+xa9-xa9
+if (room2 != 2) {
+    actor-select 1
+    actor-set-costume 0
+    actor-select 2
+    actor-set-costume 0
+    run-script SetNavButtons [HandleNavClick, HandleNavHover, 0]
+    x9c-xd5 0
+    kludge [23]
+    run-script 2087 []
+    room2 = 2
+}
+sleep 5
+if (random 20) {
+    run-script CastMatchupTeams []
+    while (!!(is-script-running CastMatchupTeams)) {
+        stop-script
+    }
+} else {
+    xba "\x7fT104281757,87964\x7fThis'll be a great matchup of my two favorite teams - The ...uh ...what's-their-faces, and the ...uh ...other guys." 2
+    xa9-xa9
+}
+if (room2 != 1) {
+    image-select 286
+    image-pos 0 0
+    image-x30
+    image-x36 1
+    image-xff
+    run-script 273 []
+    room2 = 1
+    run-script FreeNavButtons []
+    if (gGameEnded) {
+        image-select 287
+        image-x34 2
+        image-pos 280 400
+        image-x30
+        image-xff
+    } else {
+        image-select 287
+        image-x34 0
+        image-pos 280 400
+        image-x30
+        image-xff
+    }
+    actor-select 1
+    actor-xd9
+    actor-set-costume 430
+    actor-x50 0 0
+    put-actor 1 320 240 gCurrentRoom
+    actor-select 2
+    actor-xd9
+    actor-set-costume 431
+    actor-x50 0 0
+    put-actor 2 320 240 gCurrentRoom
+    run-script smth_team_color_palette [0, 2]
+}
+if (gCurrentMatchupCastScript) {
+    if (gSeasonGameNumber) {
+        case gSeasonGameNumber {
+            of 1 {
+                run-script CastFirstGameOfTheSeason []
+            }
+            of 14 - 1 {
+                run-script CastLastGameOfTheSeason []
+            }
+            in [14, 15, 16] {
+                run-script CastPlayoffsStart []
+            }
+            in [17, 18, 19] {
+                run-script CastPlayoffsMiddle []
+            }
+            in [20, 21, 22] {
+                run-script CastPlayoffsEnd []
+            }
+            else {
+                local0 = (call-script ReadActiveRoster [gSeasonDivision, 14]) * 100 / gSeasonGameNumber
+                if (local0 < 30) {
+                    run-script CastLosingSeason []
+                } else if (local0 > 70) {
+                    run-script CastWinningSeason []
+                } else {
+                    run-script CastAverageSeason []
+                }
+            }
+        }
+    } else {
+        run-script CastFirstGameOfTheSeason []
+    }
+}
+free-script

@@ -1,0 +1,52 @@
+; LSC2 8 2071 LoadCostumes
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+local2 = "LOADING"
+sprintf local3 "%s" [local2]
+run-script ShowPopup [local3, 3]
+local4 = -1
+for local0 = 0 to 8 ++ {
+    local1 = call-script maybe_kid_get_costume_fielding [gPickOrder1[local0]]
+    load-costume local1
+    stop-script
+    ++local4
+    local4 = mod local4 7
+    if (local2[local4] >= 97) {
+        local2[local4] = local2[local4] - 32
+    } else {
+        local2[local4] = local2[local4] + 32
+    }
+    sprintf local3 "%s" [local2]
+    run-script maybe_draw_popup_text [local3, 0, 0, 1]
+    local1 = call-script maybe_kid_get_costume_fielding [gPickOrder2[local0]]
+    load-costume local1
+    stop-script
+    ++local4
+    local4 = mod local4 7
+    if (local2[local4] >= 97) {
+        local2[local4] = local2[local4] - 32
+    } else {
+        local2[local4] = local2[local4] + 32
+    }
+    sprintf local3 "%s" [local2]
+    run-script maybe_draw_popup_text [local3, 0, 0, 1]
+}
+while (local4 < 6) {
+    ++local4
+    if (local2[local4] >= 97) {
+        local2[local4] = local2[local4] - 32
+    } else {
+        local2[local4] = local2[local4] + 32
+    }
+    sprintf local3 "%s" [local2]
+    run-script maybe_draw_popup_text [local3, 0, 0, 1]
+    stop-script
+}
+free-array local2
+run-script FreePopup []
+free-script

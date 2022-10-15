@@ -1,0 +1,41 @@
+; LSC2 8 2086 smth_controls_ui
+
+parameter arg0
+
+local variable local1
+local variable local2
+
+if (arg0 == gVisitorInfoIndex) {
+    local1 = 0
+} else {
+    local1 = 512
+}
+case gTeamInfo[arg0][TI-CONTROLLED-BY] {
+    of CB-COMPUTER {
+        local2 = 2
+    }
+    of CB-NETWORK {
+        local2 = 3
+        if (g_smth_netplay_master_or_slave) {
+            if (global675 == 1) {
+                local2 = 4
+            }
+        } else if (global674 == 1) {
+            local2 = 4
+        }
+    }
+    of CB-USER {
+        if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+            local2 = 0
+        } else {
+            local2 = 1
+        }
+    }
+}
+image-select 325
+image-x34 local2
+image-palette room9
+image-pos (320 - (image-get-hotspot-x 325 local2) + local1) (240 - (image-get-hotspot-y 325 local2))
+image-x30
+image-xff
+free-script

@@ -1,0 +1,41 @@
+; SCRP 350 maybe_net_send_message
+
+parameter arg0
+parameter arg1
+parameter message: NetMessage
+parameter arg3
+parameter arg4
+parameter arg5
+parameter arg6
+parameter arg7
+parameter arg8
+parameter arg9
+parameter arg10
+parameter arg11
+
+local variable local12
+local variable local13
+
+if (!gDisableReliable) {
+    if (arg0 >= 30) {
+        local13 = 24
+    } else {
+        local13 = 4
+    }
+} else {
+    local13 = 4
+}
+kludge [2001, 1492, local13, 0, 0, message, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]
+gNetLag = global136
+if (arg0 == 20 || arg0 == 40) {
+    if (arg1 == 2) {
+        temp = 1000 / 60 / gMinJiffies
+        temp2 = gNetLag / temp
+        xb6-xfe
+        xb6-xc2 "NetLagBreak - frames: %d  net-lag (%d) ms per frame %d, " temp2 [gNetLag, temp]
+        temp = 1000 * gNetLag / 60
+        sleep (temp2 * 2)
+    }
+    local12 = call-script gNetMessageHandlerScript [message, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, 1]
+}
+free-script

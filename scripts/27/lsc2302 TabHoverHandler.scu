@@ -1,0 +1,42 @@
+; LSC2 27 2302 TabHoverHandler
+
+parameter arg0
+
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+
+if (gSeasonGameNumber >= 14) {
+    local2 = 1052
+    local3 = 1050
+    local4 = 1051
+} else {
+    local2 = 1049
+    local3 = 1046
+    local4 = 1047
+}
+local1 = sprite-get-wiz arg0
+if ((sprite-get-image arg0) == local4) {
+    free-running-script 0
+}
+do {
+    if (local3 == (sprite-get-image arg0)) {
+        sprite-set-range arg0 arg0
+        sprite-set-image local2
+        sprite-x52 0
+        sprite-x34 local1
+        sprite-x2b -1200
+    }
+    stop-script
+} until (arg0 != gLastHoverNumber || gLastHoverType != 2)
+if ((sprite-get-image arg0) != local4) {
+    sprite-set-range arg0 arg0
+    sprite-set-image local3
+    sprite-x52 0
+    sprite-x7c 2
+    sprite-x34 local1
+    sprite-x2b -1300
+    sprite-x25 14
+}
+free-script

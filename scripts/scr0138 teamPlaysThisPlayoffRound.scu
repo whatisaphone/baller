@@ -1,0 +1,57 @@
+; SCRP 138 teamPlaysThisPlayoffRound
+
+parameter arg0
+parameter arg1
+
+local variable local2
+
+if (0 == arg1) {
+    arg1 = gSeasonGameNumber
+}
+if (arg1 == gSeasonGameNumber) {
+    if (1 == (call-script ReadPlayoffSchedule [arg0, arg1, 2])) {
+        return 0
+    }
+}
+case arg1 {
+    in [14, 15] {
+        local2 = 1
+    }
+    of 16 {
+        if (gPlayoffRosterArray[arg0][14] == 1 && gPlayoffRosterArray[arg0][15] == 1) {
+            local2 = 1
+        }
+    }
+    in [17, 18] {
+        if (gPlayoffRosterArray[arg0][14] >= 2) {
+            local2 = 1
+        }
+    }
+    of 19 {
+        if (gPlayoffRosterArray[arg0][14] == 3) {
+            local2 = 1
+        }
+    }
+    in [20, 21, 22] {
+        if (gPlayoffRosterArray[arg0][14] >= 4) {
+            local2 = 1
+        }
+    }
+    of 23 {
+        if (gPlayoffRosterArray[arg0][14] >= 5 && gPlayoffRosterArray[arg0][14] <= 7) {
+            local2 = 1
+        }
+    }
+    of 24 {
+        if (gPlayoffRosterArray[arg0][14] == 6 && gPlayoffRosterArray[arg0][14] == 7) {
+            local2 = 1
+        }
+    }
+    else {
+        xb6-xfe
+        xb6-xc2 "Error: bad round for teamPlaysThisPlayoffRound: %d" arg1 []
+        pop-discard 0
+    }
+}
+return local2
+free-script

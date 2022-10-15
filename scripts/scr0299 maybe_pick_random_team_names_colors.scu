@@ -1,0 +1,37 @@
+; SCRP 299 maybe_pick_random_team_names_colors
+
+local variable local0
+local variable local1
+local variable local2
+
+for local0 = [0, 1] {
+    if (gTeamInfo[local0][TI-TEAM-NOUN] == 0) {
+        if (random 2) {
+            do {
+                local1 = random2 122 151
+            } until (local1 != gTeamInfo[1 - local0][TI-TEAM-NOUN])
+            gTeamInfo[local0][TI-TEAM-NOUN] = local1
+            gTeamInfo[local0][TI-TEAM-ADJECTIVE] = local1 - 100
+            gTeamInfo[local0][3] = g_underwater_array[local1][4]
+            gTeamInfo[local0][8] = g_underwater_array[local1][5]
+        } else {
+            do {
+                local1 = random2 101 106
+            } until (local1 != gTeamInfo[1 - local0][TI-TEAM-NOUN])
+            gTeamInfo[local0][TI-TEAM-NOUN] = local1
+            do {
+                local1 = random2 1 10
+            } until (local1 != gTeamInfo[1 - local0][TI-TEAM-ADJECTIVE])
+            gTeamInfo[local0][TI-TEAM-ADJECTIVE] = local1
+            do {
+                local2 = random2 1 9
+            } until (local2 != gTeamInfo[1 - local0][3])
+            gTeamInfo[local0][3] = local2
+            do {
+                local2 = random2 1 9
+            } until (local2 != gTeamInfo[1 - local0][8])
+            gTeamInfo[local0][8] = local2
+        }
+    }
+}
+free-script

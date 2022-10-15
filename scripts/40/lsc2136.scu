@@ -1,0 +1,18 @@
+; LSC2 40 2136
+
+local variable local0
+
+room7 = local0
+if (room7 < 1) {
+    room7 = 1
+}
+if (room7 > 10) {
+    room7 = 10
+}
+if (room23 == 0 && room12) {
+    while (!!(is-script-running 424)) {
+        stop-script
+    }
+    run-script 2108 []
+}
+free-script

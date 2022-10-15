@@ -1,0 +1,40 @@
+; LSC2 29 2094
+
+local variable local0
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+case local0 {
+    of 2089 {
+        local7 = -7
+    }
+    of 2090 {
+        local7 = -10
+    }
+    of 2091 {
+        local7 = -5
+    }
+    of 2092 {
+        local7 = -6
+    }
+}
+for local6 = (local4 + 1) to (local4 + 10 - 1) ++ {
+    gSpriteCursorTargets[global632[local6]][TARGET-CLICK-SCRIPT] = 0
+}
+gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = 0
+for local6 = local2 to local3 -- {
+    run-script local0 [264, local7]
+    sprite-set-range global632[local6] global632[local6]
+    sprite-set-image 0
+    temp = call-script 2088 [1]
+    stop-script
+}
+gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = 2084
+for local6 = (local4 + 1) to (local4 + 10 - 1) ++ {
+    gSpriteCursorTargets[global632[local6]][TARGET-CLICK-SCRIPT] = 2083
+}
+free-script

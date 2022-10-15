@@ -1,0 +1,15 @@
+; LSC2 6 2101
+
+sprite-set-range room2 room2
+sprite-set-hotspot -500 -500
+sprite-set-range room3 room3
+sprite-set-hotspot -500 -500
+sprite-set-range room29 room29
+sprite-set-hotspot -500 -500
+sprite-set-range room30 room30
+sprite-set-hotspot -500 -500
+sprite-set-range room31 room31
+sprite-set-hotspot -500 -500
+sprite-set-range room32 room32
+sprite-set-hotspot -500 -500
+free-script

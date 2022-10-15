@@ -1,0 +1,165 @@
+; SCRP 338
+
+local variable local0
+local variable local1
+
+local0 = kludge-retval [2001, 3000]
+if (local0 == 0) {
+    global111 = 0
+    kludge [2001, 3002]
+label0023:
+    while (!global111) {
+        stop-script
+    }
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    case global111 {
+        of 2 {
+            cursor-input-disable
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-hide
+            } else if (gCursorInputEnabled == 0) {
+                free-running-script GamePadCursorLoop
+                run-script ReleaseSprite [gGamePadCursorSprite]
+                gGamePadCursorSprite = 0
+            } else {
+                run-script ShowGamePadCursor []
+            }
+        }
+        of 4 {
+            local1 = "File Transfer Requires a Restart - Press OK To Restart"
+            run-script ShowPopup [local1, 2, 3]
+            while (!gPopupResult) {
+                stop-script
+            }
+            write-ini-int "EnterRoomOnStartUp" 1
+            if (!gNetUsername && !gNetPassword) {
+                gNetUsername = "$"
+                gNetPassword = "$"
+            }
+            write-ini-string "Pswd" gNetPassword
+            write-ini-string "Name" gNetUsername
+            prompt-quit
+        }
+        of 3 {
+            run-script 339 []
+            local1 = "Update failed. (Maia Error) Please note reason for error. Would you like to launch the FAQ site?"
+            run-script ShowPopup [local1, 0, 3]
+            while (!gPopupResult) {
+                stop-script
+            }
+            if (gPopupResult == 1) {
+                run-script 332 [1]
+            }
+            sleep 2
+            go-to-room 2
+        }
+        of 6 {
+            if (global112) {
+                sprintf local1 "%s Continue?" [global112]
+                run-script ShowPopup [local1, 0, 3]
+                free-array global112
+                while (!gPopupResult) {
+                    stop-script
+                }
+                if (gPopupResult == 1) {
+                    global111 = 0
+                    kludge [2001, 3003]
+                    goto label0023
+                } else {
+                    local1 = "Returning you to the clubhouse."
+                    run-script ShowPopup [local1, 2, 3]
+                    while (!gPopupResult) {
+                        stop-script
+                    }
+                    free-array gNetUsername
+                    free-array global561
+                    free-array gNetPassword
+                    run-script 339 []
+                    run-script 317 [1]
+                    go-to-room 2
+                }
+            }
+        }
+        of 5 {
+            sprintf local1 "I need to transfer %d bytes. Continue?" [global113]
+            run-script ShowPopup [local1, 0, 3]
+            while (!gPopupResult) {
+                stop-script
+            }
+            if (gPopupResult == 1) {
+                global111 = 0
+                kludge [2001, 3003]
+                goto label0023
+            } else {
+                local1 = "Returning you to the clubhouse."
+                run-script ShowPopup [local1, 2, 3]
+                while (!gPopupResult) {
+                    stop-script
+                }
+                free-array gNetUsername
+                free-array global561
+                free-array gNetPassword
+                run-script 339 []
+                run-script 317 [1]
+                go-to-room 2
+            }
+        }
+    }
+} else {
+    cursor-input-enable
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-show
+    } else if (gCursorInputEnabled == 0) {
+        free-running-script GamePadCursorLoop
+        run-script ReleaseSprite [gGamePadCursorSprite]
+        gGamePadCursorSprite = 0
+    } else {
+        run-script ShowGamePadCursor []
+    }
+    case local0 {
+        of 1 {
+            local1 = "Fatal Initialization Error - (Maia Error) Would you like to launch the FAQ site?"
+        }
+        of -1 {
+            local1 = "Fatal Initialization Error - (Load Library) Would you like to launch the FAQ site?"
+        }
+        of -2 {
+            local1 = "Fatal Initialization Error - (Proc Address) Would you like to launch the FAQ site?"
+        }
+        of -3 {
+            local1 = "Fatal Initialization Error - (Version Mismatch) Would you like to launch the FAQ site?"
+        }
+        of -4 {
+            local1 = "Fatal Initialization Error - (Bad Argument) Would you like to launch the FAQ site?"
+        }
+        of -5 {
+            local1 = "Fatal Initialization Error - (Invalid State) Would you like to launch the FAQ site?"
+        }
+        of -6 {
+            local1 = "Fatal Initialization Error - (Restart Still Running) Would you like to launch the FAQ site?"
+        }
+        of -7 {
+            local1 = "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site?"
+        }
+    }
+    run-script 339 []
+    run-script ShowPopup [local1]
+    while (!gPopupResult) {
+        stop-script
+    }
+    if (gPopupResult == 1) {
+        run-script 332 [1]
+    }
+    sleep 2
+    go-to-room 2
+}
+free-script

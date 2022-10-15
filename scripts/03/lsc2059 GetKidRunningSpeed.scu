@@ -1,0 +1,27 @@
+; LSC2 3 2059 GetKidRunningSpeed
+
+parameter kid: Kid
+
+local variable local1
+local variable local2
+local variable local3
+
+local1 = 6 + gKidData[kid][KD-maybe-speed] / 20
+local2 = gKidData[kid][KD-fatigue] * local1 / 200
+local3 = local1 - local2
+case gField {
+    in [PLAYGROUND-COMMONS, ECKMAN-ACRES, STEELE-STADIUM, DIRT-YARDS] {
+        local3 = local3 - 1
+    }
+    in [SANDY-FLATS] {
+        local3 = local3 - 2
+    }
+}
+if (gKidData[kid][KD-maybe-speed] > 95) {
+    ++local3
+}
+if (local3 < 4) {
+    local3 = 4
+}
+return local3
+free-script

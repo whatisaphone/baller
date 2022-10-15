@@ -1,0 +1,178 @@
+; SCRP 272 DrawString2
+
+parameter x
+parameter y
+parameter font_alphanum_first_image
+parameter string
+parameter render_into
+parameter palette
+parameter arg6
+parameter arg7
+parameter arg8
+
+local variable local9
+local variable local10
+local variable local11
+local variable ch: char
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable local17
+
+if (!palette) {
+    palette = 1
+}
+local9 = (strlen string) - 1
+local14 = x
+local10 = (image-get-width font_alphanum_first_image 0) + arg8
+if (font_alphanum_first_image in [554, 555, 552]) {
+    local17 = 1
+}
+for local11 = 0 to local9 ++ {
+    if (local17) {
+        local13 = font_alphanum_first_image
+    } else {
+        local13 = 0
+        local16 = 0
+    }
+    ch = string[local11]
+    if (ch >= 65 && ch <= 90) {
+        ch = ch + 97 - 65
+    }
+    if (ch >= 97 && ch <= 122) {
+        if (local13) {
+            local16 = ch - 97
+        } else {
+            local13 = font_alphanum_first_image + ch - 97
+        }
+    } else if (ch >= 48 && ch <= 57) {
+        if (local13) {
+            local16 = 26 + ch - 48
+        } else {
+            local13 = font_alphanum_first_image + 26 + ch - 48
+        }
+    } else {
+        case ch {
+            of ' ' {
+                if (arg7) {
+                    free-running-script 0
+                }
+                local13 = 0
+            }
+            of ':' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 40
+                    }
+                }
+            }
+            of '.' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 36
+                    }
+                    of 555 {
+                        local16 = 36
+                    }
+                }
+            }
+            of ',' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 37
+                    }
+                    of 555 {
+                        local16 = 37
+                    }
+                }
+            }
+            of ';' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 40
+                    }
+                }
+            }
+            of '"' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 41
+                    }
+                }
+            }
+            of '!' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 38
+                    }
+                    of 555 {
+                        local16 = 38
+                    }
+                }
+            }
+            of '?' {
+                case font_alphanum_first_image {
+                    of 554 {
+                        local16 = 39
+                    }
+                    of 555 {
+                        local16 = 39
+                    }
+                }
+            }
+            of ''' {
+                if (font_alphanum_first_image == 554) {
+                    local16 = 43
+                }
+            }
+            else {
+                local13 = 0
+            }
+        }
+    }
+    if (!local15) {
+        local15 = 1
+    }
+    if (local13) {
+        if (render_into) {
+            if (local17) {
+                image-select local13
+                image-x34 local16
+                image-pos (local14 + 0 - (image-get-hotspot-x local13 local16)) (y + 0 - (image-get-hotspot-y local13 local16))
+                image-render-into render_into
+                image-palette palette
+                image-x30
+                image-xff
+            } else {
+                image-select local13
+                image-x34 local16
+                image-pos local14 y
+                image-render-into render_into
+                image-palette palette
+                image-x30
+                image-xff
+            }
+        } else if (local17) {
+            image-select local13
+            image-x34 local16
+            image-pos (local14 + 0 - (image-get-hotspot-x local13 local16)) (y + 0 - (image-get-hotspot-y local13 local16))
+            image-palette palette
+            image-x30
+            image-xff
+        } else {
+            image-select local13
+            image-x34 local16
+            image-pos local14 y
+            image-palette palette
+            image-x30
+            image-xff
+        }
+    }
+    if (arg6 && local13) {
+        local10 = image-get-width local13 0
+    }
+    local14 = local14 + local10 + local15
+    local15 = 0
+}
+free-script

@@ -1,0 +1,17 @@
+; LSC2 4 2177 CastBatterSwings
+
+parameter kid: Kid
+
+local variable local1
+
+if (gCurrentSpeechScript) {
+    free-running-script 0
+}
+gCurrentSpeechScript = CastBatterSwings
+local1 = 1660 + (random 5)
+run-script CastPlaySound [local1]
+while (!!(is-sound-playing local1)) {
+    stop-script
+}
+gCurrentSpeechScript = 0
+free-script

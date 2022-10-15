@@ -1,0 +1,86 @@
+; SCRP 218 smth_he9_vector_math
+
+parameter arg0
+parameter arg1
+parameter arg2
+parameter arg3
+
+local variable local4
+local variable local5
+local variable ax
+local variable ay
+local variable az
+local variable local10
+local variable bx
+local variable by
+local variable bz
+local variable local20
+
+g_he9_cur_row = g_he9_array[arg0]
+case arg1 {
+    of 1 {
+        ax = g_he9_cur_row[7]
+        ay = g_he9_cur_row[8]
+        az = g_he9_cur_row[9]
+        local10 = 13
+    }
+    of 2 {
+        ax = g_he9_cur_row[0]
+        ay = g_he9_cur_row[1]
+        az = g_he9_cur_row[2]
+        local10 = 16
+    }
+    of 3 {
+        ax = g_he9_cur_row[7]
+        ay = g_he9_cur_row[8]
+        az = g_he9_cur_row[9]
+        local10 = 19
+    }
+    of 4 {
+        ax = g_he9_cur_row[10]
+        ay = g_he9_cur_row[11]
+        az = g_he9_cur_row[12]
+        local10 = 22
+    }
+    of 5 {
+        ax = g_he9_cur_row[10]
+        ay = g_he9_cur_row[11]
+        az = g_he9_cur_row[12]
+        local10 = 25
+    }
+}
+g_carbon_x = g_carbon_x - 2900 * (arg2 - 1)
+g_carbon_z = g_carbon_z - 2900 * (arg3 - 1)
+g_helium_x = g_helium_x - 2900 * (arg2 - 1)
+g_helium_z = g_helium_z - 2900 * (arg3 - 1)
+ax = ax - 2900 * (arg2 - 1)
+az = az - 2900 * (arg3 - 1)
+bx = g_he9_cur_row[local10]
+by = g_he9_cur_row[local10 + 1]
+bz = g_he9_cur_row[local10 + 2]
+local4 = bx * (ax - g_helium_x) + by * (ay - g_helium_y) + bz * (az - g_helium_z)
+local5 = bx * (g_carbon_x - g_helium_x) + by * (g_carbon_y - g_helium_y) + bz * (g_carbon_z - g_helium_z)
+local20 = 0
+if (local5 != 0) {
+    if (!(local4 / local5)) {
+        local20 = 1
+    }
+}
+if (local20) {
+    g_nitrogen_vector_is_set = 1
+    g_nitrogen_x = (g_helium_x * local5 + local4 * (g_carbon_x - g_helium_x)) / local5
+    g_nitrogen_y = (g_helium_y * local5 + local4 * (g_carbon_y - g_helium_y)) / local5
+    g_nitrogen_z = (g_helium_z * local5 + local4 * (g_carbon_z - g_helium_z)) / local5
+    g_nitrogen_x = g_nitrogen_x + 2900 * (arg2 - 1)
+    g_nitrogen_z = g_nitrogen_z + 2900 * (arg3 - 1)
+} else {
+    g_nitrogen_vector_is_set = 0
+    g_nitrogen_x = 0
+    g_nitrogen_y = 0
+    g_nitrogen_z = 0
+}
+g_carbon_x = g_carbon_x + 2900 * (arg2 - 1)
+g_carbon_z = g_carbon_z + 2900 * (arg3 - 1)
+g_helium_x = g_helium_x + 2900 * (arg2 - 1)
+g_helium_z = g_helium_z + 2900 * (arg3 - 1)
+free-script

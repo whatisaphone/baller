@@ -1,0 +1,22 @@
+; SCRP 384
+
+local variable local0
+local variable local1
+local variable local2
+
+local2 = local2 & 7
+case local1 {
+    of 3 {
+        return ((-14680065 & local0) + (shl local2 21))
+    }
+    of 4 {
+        return ((-57345 & local0) + (shl local2 13))
+    }
+    of 5 {
+        return ((-225 & local0) + (shl local2 5))
+    }
+    else {
+        return local0
+    }
+}
+free-script

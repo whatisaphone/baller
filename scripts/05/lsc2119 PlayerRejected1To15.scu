@@ -1,0 +1,123 @@
+; LSC2 5 2119 PlayerRejected1To15
+
+local variable local1
+local variable local2
+
+local1 = actor-get-var g_maybe_selected_actor 3
+local2 = actor-get-var g_maybe_selected_actor 4
+if (local1) {
+    actor-do-anim g_maybe_selected_actor local1
+}
+case rCurrentKid {
+    of KIMMY-ECKMAN {
+        if (random 1) {
+            xbb "\x7fT91555492,16269\x7f  You must not want to win..."
+        } else {
+            xbb "\x7fT91571761,12780\x7f  Maybe next time, huh?"
+        }
+    }
+    of MARIA-LUNA {
+        if (random 1) {
+            xbb "\x7fT91584541,42396\x7f  S'okay, I didn't want get my dress dirty anyway."
+        } else {
+            xbb "\x7fT91626937,29024\x7f  You're very silly for not picking me."
+        }
+    }
+    of ANGELA-DELVECCHIO {
+        if (random 1) {
+            xbb "\x7fT91655961,42230\x7f  Are you sure you're making the right decision, cuz I don't think you are, ya know."
+        } else {
+            xbb "\x7fT91698191,26681\x7f  I didn't want to play on your team anyways..."
+        }
+    }
+    of VICKI-KAWAGUCHI {
+        if (random 1) {
+            xbb "\x7fT91724872,6586\x7f Aw!"
+        } else {
+            xbb "\x7fT91731458,13174\x7f Oooh!"
+        }
+    }
+    of GRETCHEN-HASSELHOFF {
+        if (random 1) {
+            xbb "\x7fT91744632,6274\x7f  Oh!"
+        } else {
+            xbb "\x7fT91750906,32177\x7f  That'sokaycuzIdon'thavetoplaytohaveagoodtimeIcanjustwatch, hnnn."
+        }
+    }
+    of SALLY-DOBBS {
+        if (random 1) {
+            xbb "\x7fT91783083,26854\x7f  Obviously, you're not thinking this through..."
+        } else {
+            xbb "\x7fT91809937,34472\x7f  That's okay, I'm too old to be playing with a bunch of kids anyway."
+        }
+    }
+    of BILLY-JEAN-BLACKWOOD {
+        if (random 1) {
+            xbb "\x7fT91844409,13750\x7f Merci me!"
+        } else {
+            xbb "\x7fT91858159,10167\x7f That's all right."
+        }
+    }
+    of ASHLEY-WEBBER {
+        if (random 1) {
+            xbb "\x7fT91868326,23759\x7f  That's okay!  I'll just watch!"
+        } else {
+            xbb "\x7fT91892085,26945\x7f  Okay, if that's what you want!"
+        }
+    }
+    of SIDNEY-WEBBER {
+        if (random 1) {
+            xbb "\x7fT91868326,23759\x7f  That's okay!  I'll just watch!"
+        } else {
+            xbb "\x7fT91892085,26945\x7f  Okay, if that's what you want!"
+        }
+    }
+    of KIESHA-PHILLIPS {
+        if (random 1) {
+            xbb "\x7fT91919030,15422\x7f  You sure about that now?"
+        } else {
+            xbb "\x7fT91934452,37822\x7f  That's okay, I'm not really that good -(pause) kidding!"
+        }
+    }
+    of STEPHANIE-MORGAN {
+        if (random 1) {
+            xbb "\x7fT91972274,20874\x7f        Wow, that's never happened before."
+        } else {
+            xbb "\x7fT91993148,44325\x7f        You must not want to win very badly but that's okay, you'll come crawling back later when you're losing."
+        }
+    }
+    of LUANNE-LUI {
+        if (random 1) {
+            xbb "\x7fT92037473,44328\x7f That's okay.  Teddy needs his nap anyways."
+        } else {
+            xbb "\x7fT92081801,15148\x7f You'w mean!"
+        }
+    }
+    of ANNIE-FRAZIER {
+        if (random 1) {
+            xbb "\x7fT92096949,21375\x7f  \x09I'll just watch the game, then."
+        } else {
+            xbb "\x7fT92118324,38199\x7f  \x09Lame!  Oh well, maybe next time."
+        }
+    }
+    of JOCINDA-SMITH {
+        if (random 1) {
+            xbb "\x7fT92156523,7776\x7f  That's all right."
+        } else {
+            xbb "\x7fT92164299,6766\x7f  Okay..."
+        }
+    }
+    of LISA-CROCKET {
+        if (random 1) {
+            if (random 1) {
+                xbb "\x7fT92171065,5920\x7f      Whatever."
+            } else {
+                xbb "\x7fT92176985,7684\x7f      Whatever."
+            }
+        } else {
+            xbb "\x7fT92184669,6997\x7f      All right."
+        }
+    }
+}
+xa9-xa9
+free-script

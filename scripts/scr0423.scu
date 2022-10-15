@@ -1,0 +1,16 @@
+; SCRP 423
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+
+if (local0 != -1) {
+    local3 = file-read-array 4 local0 (33 - 1)
+} else {
+    pop-discard 0
+}
+array-copy-range local1 local3 local2 local2 0 (33 - 1) 0 0 0 (33 - 1)
+free-array local3
+return local0
+free-script

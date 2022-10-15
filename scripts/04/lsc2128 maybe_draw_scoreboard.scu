@@ -1,0 +1,124 @@
+; LSC2 4 2128 maybe_draw_scoreboard
+
+parameter arg0
+parameter arg1
+
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local10
+local variable local12
+local variable local14
+
+local12 = gCurrentHalfInning
+local12 = local12 / 2
+if (gSavedGameLength > 12) {
+    palette-select room75
+    palette-load 1308 0
+    palette-unselect
+    palette-select room75
+    palette-set-16bit 235 235 (palette-x42 1 235)
+    palette-unselect
+    image-select 1308
+    image-pos 0 0
+    image-palette room75
+    image-x30
+    image-xff
+} else {
+    palette-select room75
+    palette-load 1309 0
+    palette-unselect
+    palette-select room75
+    palette-set-16bit 235 235 (palette-x42 1 235)
+    palette-unselect
+    image-select 1309
+    image-pos 0 0
+    image-palette room75
+    image-x30
+    image-xff
+}
+run-script maybe_draw_scoreboard_inning_runs [local12, arg0, arg1]
+run-script-xc3 2151 [gVisitorInfoIndex, 132, 190, 1]
+run-script-xc3 2151 [gHomeInfoIndex, 132, 238, 1]
+actor-select 3
+actor-xd9
+actor-set-costume 365
+actor-x54 0
+actor-x5f
+actor-x5d
+put-actor 3 320 240 gCurrentRoom
+if (gCurrentRoom == 4) {
+    if (gMinJiffies) {
+        actor-select 3
+        actor-x61 (6 / gMinJiffies)
+    }
+}
+run-script smth_team_color_palette [gHomeInfoIndex, 3]
+actor-do-anim 3 (random2 6 7)
+run-script DrawMultiDigitNumber [484, 204, 1298, gTeamInfo[gVisitorInfoIndex][TI-RUNS], 0, 0, 0, 0, room75]
+run-script DrawMultiDigitNumber [484, 253, 1298, gTeamInfo[gHomeInfoIndex][TI-RUNS], 0, 0, 0, 0, room75]
+local4 = call-script TeamStatTotal [gVisitorInfoIndex, STAT-HITS]
+run-script DrawMultiDigitNumber [524, 204, 1298, local4, 0, 0, 0, 0, room75]
+local4 = call-script TeamStatTotal [gHomeInfoIndex, STAT-HITS]
+run-script DrawMultiDigitNumber [524, 253, 1298, local4, 0, 0, 0, 0, room75]
+local5 = call-script TeamStatTotal [gVisitorInfoIndex, STAT-ERRORS]
+run-script DrawMultiDigitNumber [564, 204, 1298, local5, 0, 0, 0, 0, room75]
+local5 = call-script TeamStatTotal [gHomeInfoIndex, STAT-ERRORS]
+run-script DrawMultiDigitNumber [564, 253, 1298, local5, 0, 0, 0, 0, room75]
+if (gGameEnded || gCurrentHalfInning == 999) {
+    free-running-script 0
+}
+local6 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-ORDER-KIDS]
+local14 = 1
+local10 = gTeamInfo[gBattingTeamInfoIndex][TI-BATTING-POSITION] + local14
+if (local10 > 8) {
+    local10 = 0
+}
+local10 = max 0 local10
+local7 = local6[local10]
+actor-select 12
+actor-xd9
+actor-select 11
+actor-xd9
+run-script smth_kid_actor_pair_animation [local7, 11, 12, gBattingTeamInfoIndex, 183, 343]
+run-script GetKidName [local7, 1]
+sprintf local8 "%s" [gKidName]
+run-script GetKidName [local7, 2]
+run-script DrawString2 [82, 354, 554, local8]
+run-script DrawString2 [82, 378, 554, gKidName]
+free-array local8
+++local10
+if (local10 > 8) {
+    local10 = 0
+}
+local7 = local6[local10]
+actor-select 14
+actor-xd9
+actor-select 13
+actor-xd9
+run-script smth_kid_actor_pair_animation [local7, 13, 14, gBattingTeamInfoIndex, 351, 343]
+run-script GetKidName [local7, 1]
+sprintf local8 "%s" [gKidName]
+run-script GetKidName [local7, 2]
+run-script DrawString2 [250, 354, 554, local8]
+run-script DrawString2 [250, 378, 554, gKidName]
+free-array local8
+++local10
+if (local10 > 8) {
+    local10 = 0
+}
+local7 = local6[local10]
+actor-select 17
+actor-xd9
+actor-select 15
+actor-xd9
+run-script smth_kid_actor_pair_animation [local7, 15, 17, gBattingTeamInfoIndex, 519, 343]
+run-script GetKidName [local7, 1]
+sprintf local8 "%s" [gKidName]
+run-script GetKidName [local7, 2]
+run-script DrawString2 [418, 354, 554, local8]
+run-script DrawString2 [418, 378, 554, gKidName]
+free-array local8
+free-script

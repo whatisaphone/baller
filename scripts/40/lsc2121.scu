@@ -1,0 +1,39 @@
+; LSC2 40 2121
+
+local variable local1
+local variable local2
+
+local1 = 234
+local2 = 34
+image-select 442
+image-op-create
+image-x20 local1
+image-x21 local2
+image-xff
+image-select 442
+image-x85 0 0 local1 local2 (palette-x42 1 5)
+image-xff
+local1 = 216
+local2 = 152
+image-select 443
+image-op-create
+image-x20 local1
+image-x21 local2
+image-xff
+image-select 443
+image-x85 0 0 local1 local2 (palette-x42 1 5)
+image-xff
+sprite-set-range room1[14] room1[14]
+sprite-clear
+sprite-set-image 442
+sprite-x2b 10000
+sprite-set-hotspot 30 322
+sprite-x7c 0
+sprite-set-range room1[13] room1[13]
+sprite-clear
+sprite-set-image 443
+sprite-x2b 10000
+sprite-set-hotspot 26 164
+sprite-x7c 0
+run-script 2070 [room1[13], 678, room1[14], 1244, 0, 2]
+free-script

@@ -1,0 +1,71 @@
+; LSC2 39 2112
+
+local variable local0
+local variable local1
+local variable local2
+
+run-script PlayClickySound []
+local1 = room37
+local2 = (sprite-get-wiz local0) + 17
+run-script-xc3 2114 [17, local2]
+stop-script
+sprite-set-range room37[17] room37[17]
+sprite-clear
+sprite-x2a 0 2
+stop-sound g_maybe_net_yell_sound
+g_maybe_net_yell_sound = 0
+case local0 {
+    of local1[0] {
+        run-script 2107 [3, 63, 0, 1]
+    }
+    of local1[1] {
+        run-script 2107 [4, 63, 0, 1]
+    }
+    of local1[2] {
+        run-script 2107 [5, 63, 0, 1]
+    }
+    of local1[3] {
+        run-script 2107 [2, 3, 0, 1]
+    }
+    of local1[4] {
+        run-script 2107 [1, 2, 0, 1]
+    }
+    of local1[5] {
+        exec-script 2113 [1]
+    }
+    of local1[6] {
+        exec-script 2109 []
+    }
+    of local1[7] {
+        run-script 2107 [3, 0, 63, 0]
+    }
+    of local1[8] {
+        run-script 2107 [4, 0, 63, 0]
+    }
+    of local1[9] {
+        run-script 2107 [5, 0, 63, 0]
+    }
+    of local1[10] {
+        run-script 2107 [2, 0, 3, 0]
+    }
+    of local1[11] {
+        run-script 2107 [1, 0, 2, 0]
+    }
+    of local1[12] {
+        exec-script 2113 []
+    }
+    of local1[13] {
+        exec-script 2109 []
+    }
+    of local1[14] {
+        exec-script maybe_net_smth_yell_sound [1, 0]
+    }
+    of local1[15] {
+        exec-script 2110 []
+    }
+    of local1[16] {
+        exec-script 2111 []
+    }
+}
+run-script 2108 []
+free-script

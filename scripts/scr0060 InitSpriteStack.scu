@@ -1,0 +1,9 @@
+; SCRP 60 InitSpriteStack
+
+local variable local0
+
+local0 = abs (gSpriteStackMax - 1 - gSpriteStackMin)
+gSpriteStackPointer = local0 + 1
+dim array gSpriteStack i32[0...0][0...local0] swap=2
+array-fill-values gSpriteStack 0 0 0 local0 gSpriteStackMin (gSpriteStackMax - 1)
+free-script

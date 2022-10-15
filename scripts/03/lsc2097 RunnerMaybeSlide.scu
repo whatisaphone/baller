@@ -1,0 +1,62 @@
+; LSC2 3 2097 RunnerMaybeSlide
+
+parameter runneridx
+
+local variable entity: Entity
+local variable actor: Actor
+local variable result
+local variable smth_x
+local variable smth_y
+local variable local7
+local variable local8
+local variable angle
+
+if (gNetplayActive) {
+}
+result = 0
+entity = gRunners[runneridx][R-ENTITY]
+actor = entity - 30
+if (gRunners[runneridx][R-KID] in [KENNY-KAWAGUCHI, MARIA-LUNA, MR-CLANKY]) {
+    return 0
+}
+if (gRunnersExtra[runneridx][RE-SPRINT] > 1 && !(gField in [CEMENT-GARDENS, TIN-CAN-ALLEY])) {
+    if (rCurrentPlay == gRunners[runneridx][R-DEST-BASE]) {
+        if (!(gRunners[runneridx][R-DEST-BASE] == FIRST && gRunners[runneridx][R-CUR-BASE] < 1)) {
+            smth_x = gRunners[runneridx][R-VELOCITY-X] * gRunners[runneridx][R-VELOCITY-X] / (30 + 30 - 15 - 15) / 100
+            smth_y = gRunners[runneridx][R-VELOCITY-Y] * gRunners[runneridx][R-VELOCITY-Y] / (30 + 30 - 15 - 15) / 100
+            local7 = (distance-2d 0 0 smth_x smth_y) + 5
+            local8 = distance-2d gWorld[entity][X] gWorld[entity][Z] gRunners[runneridx][R-DEST-X] gRunners[runneridx][R-DEST-Z]
+            if (local7 * 90 / 100 > local8) {
+                if (gRunners[runneridx][11] <= 8) {
+                    if (!gRunners[runneridx][11]) {
+                        result = 1
+                        case gRunners[runneridx][R-DEST-BASE] {
+                            of FIRST {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SLIDE-INTO-FIRST, gRunners[runneridx][R-KID]]
+                            }
+                            of SECOND {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SLIDE-INTO-SECOND, gRunners[runneridx][R-KID]]
+                            }
+                            of THIRD {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SLIDE-INTO-THIRD, gRunners[runneridx][R-KID]]
+                            }
+                            of R-HOME {
+                                run-script EnqueueComment [DIALOGUE-RUNNER-SLIDE-INTO-HOME, gRunners[runneridx][R-KID]]
+                            }
+                        }
+                        gRunnersExtra[runneridx][RE-SPRINT] = 12
+                        actor-do-anim actor 11
+                        actor-select actor
+                        actor-set-var 0 0
+                    }
+                    gRunners[runneridx][11] = gRunners[runneridx][11] + 1
+                    angle = atan4 gWorld[entity][X] gWorld[entity][Z] gRunners[runneridx][R-DEST-X] gRunners[runneridx][R-DEST-Z]
+                    gWorld[entity][X] = gWorld[entity][X] + (cos angle) / 100000 * 12
+                    gWorld[entity][Z] = gWorld[entity][Z] + (sin angle) / 100000 * 12
+                }
+            }
+        }
+    }
+}
+return result
+free-script

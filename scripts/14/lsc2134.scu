@@ -1,0 +1,42 @@
+; LSC2 14 2134
+
+local variable local0
+local variable local2
+local variable local3
+local variable local4
+
+if (0 == local0) {
+    local2 = room1
+    local3 = room2
+    local4 = 1
+} else {
+    local2 = room2
+    local3 = room1
+    local4 = 0
+}
+sprite-set-range local3 local3
+sprite-set-image 405
+sprite-x52 0
+sprite-x7c 2
+sprite-x2b -1300
+sprite-x25 14
+sprite-x34 local4
+sprite-palette room4
+sprite-set-hotspot 320 240
+sprite-set-range local2 local2
+sprite-set-image 404
+sprite-x52 0
+sprite-x7c 2
+sprite-palette room4
+sprite-x25 14
+sprite-x34 local0
+sprite-x2b -1000
+sprite-set-hotspot 320 240
+run-script 2133 [local0]
+sprite-set-range local3 local3
+sprite-x8c 405
+sprite-x34 local4
+sprite-set-range local2 local2
+sprite-x8c 405
+sprite-x34 local0
+free-script

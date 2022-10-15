@@ -1,0 +1,18 @@
+; LSC2 27 2236
+
+local variable local0
+
+run-script 2235 []
+for local0 = [room0, room46, room47, room62, room83, room88, room90] {
+    run-script FreePalette [local0]
+}
+room0 = 0
+room46 = 0
+room47 = 0
+room62 = 0
+room83 = 0
+room88 = 0
+room90 = 0
+gHoverScript = room67
+run-script 89 []
+free-script

@@ -1,0 +1,138 @@
+; LSC2 40 2120
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+
+local8 = palette-x42 room18 5
+if (local0) {
+    local9 = room2[2]
+    local10 = global562
+    local11 = 120
+    local12 = global562[29]
+} else {
+    local9 = room2[1]
+    local10 = global561
+    local11 = 0
+    local12 = global576
+}
+image-select local9
+image-op-create
+image-x20 235
+image-x21 244
+image-xff
+image-select local9
+image-x85 0 0 235 244 local8
+image-xff
+if (local0) {
+    run-script 387 [global552, 503, 156, room1[32], room2[17], 0, room10]
+} else {
+    run-script 387 [global555, 24, 156, room1[8], room2[0], 0, room10]
+}
+sprintf local1 "W%d-L%d-D%d" [local10[1], local10[2], local10[3]]
+local3 = call-script maybe_draw_text_to_image [local1, 1239, room2[4], room5, 1]
+free-array local1
+image-select room2[4]
+image-pos (180 - local3 / 2 - local11) 36
+image-render-into local9
+image-x30
+image-xff
+if (local10[4] >= 0) {
+    sprintf local1 "WON %d" [local10[4]]
+} else {
+    sprintf local1 "LOST %d" [abs local10[4]]
+}
+local3 = call-script maybe_draw_text_to_image [local1, 1239, room2[4], room5, 1]
+free-array local1
+image-select room2[4]
+image-pos (180 - local3 / 2 - local11) (36 + 39 * 1)
+image-render-into local9
+image-x30
+image-xff
+sprintf local1 "W %d  L %d" [local10[5] & 1023, shr local10[5] 10]
+local3 = call-script maybe_draw_text_to_image [local1, 1239, room2[4], room5, 1]
+free-array local1
+image-select room2[4]
+image-pos (180 - local3 / 2 - local11) (36 + 39 * 2)
+image-render-into local9
+image-x30
+image-xff
+sprintf local1 "%d" [local10[6]]
+local3 = strlen local1
+if (local3 > 3) {
+    local4 = substr local1 0 (local3 - 4)
+    local5 = substr local1 (local3 - 3) local3
+    free-array local1
+    sprintf local1 "%s.%s" [local4, local5]
+    free-array local4
+    free-array local5
+} else {
+    sprintf local4 "0.%s" [local1]
+    free-array local1
+    sprintf local1 "%s" [local4]
+    free-array local4
+}
+local3 = call-script maybe_draw_text_to_image [local1, 1239, room2[4], room5, 1]
+free-array local1
+image-select room2[4]
+image-pos (180 - local3 / 2 - local11) (36 + 39 * 3)
+image-render-into local9
+image-x30
+image-xff
+if (global575) {
+    free-array global575
+}
+sprintf local2 "%sdownloads\poll.ini" [gSaveGamePath]
+global575 = read-ini-string local2 "POLL" "QUES"
+free-array local2
+if (local12 && global575) {
+    local1 = call-script smth_string [global575, 59, local12, 1]
+} else {
+    local1 = "DID NOT ANSWER POLL."
+}
+local3 = call-script maybe_draw_text_to_image [local1, 1239, room2[4], room5, 1]
+free-array local1
+image-select room2[4]
+image-pos 80 (36 + 39 * 3 + 21)
+image-render-into local9
+image-x30
+image-xff
+if (local0) {
+    local13 = 1
+    local14 = 47
+    for local6 = [1, 4, 5, 6] {
+        temp = 0
+        if (local6 == 5) {
+            if (global561[local6] & 1023 > global562[local6] & 1023) {
+                temp = local13
+            }
+            if (global562[local6] & 1023 > global561[local6] & 1023) {
+                temp = local13 + 4
+            }
+        } else {
+            if (global561[local6] > global562[local6]) {
+                temp = local13
+            }
+            if (global562[local6] > global561[local6]) {
+                temp = local13 + 4
+            }
+        }
+        if (temp) {
+            run-script-xc3 2112 [local14, temp]
+        }
+        ++local13
+        ++local14
+    }
+}
+free-script

@@ -1,0 +1,44 @@
+; SCRP 397
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+
+dim array local3 i16[0...0][0...16 + 8] swap=2
+if (gPlayoffRosterArray) {
+    local4 = call-script smth_find_playoffs_cur_division []
+    local8 = gPlayoffRosterArray
+} else {
+    local4 = gSeasonDivision
+    local8 = gSeasonRosterArray
+}
+array-copy-range local3 local8 0 0 0 (16 + 8) local4 local4 0 (16 + 8)
+now
+local7 = array-width gCoachName
+local0[0] = local1
+local0[1] = gCoachHomeField
+local0[2] = gNowMonth
+local0[3] = gNowDay
+local0[4] = gNowYear
+for local2 = 0 to (local7 - 1) ++ {
+    local0[5 + local2] = gCoachName[local2]
+}
+local0[20] = local3[12]
+local0[21] = local3[13]
+local0[22] = local3[10]
+local0[23] = local3[11]
+for local6 = 0 to (9 - 1) ++ {
+    local5 = local3[local6]
+    if (local5 > 61) {
+        local5 = 61 + gKidData[local5][11]
+    }
+    local0[24 + local6] = local5
+}
+free-array local3
+free-script

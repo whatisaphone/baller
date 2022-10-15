@@ -1,0 +1,33 @@
+; LSC2 27 2164
+
+local variable local0
+local variable local1
+local variable local2
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+
+local5 = 262 - 62 + 1
+dim array local1 i16[0...0][0...local5] swap=2
+for local7 = 232 to 262 ++ {
+    for local4 = 0 to 23 ++ {
+        if (local7 == gSeasonRosterArray[local4][0]) {
+            local1[local7 - 62 + 1] = 1
+            --local5
+        }
+    }
+}
+while (local2 < 9) {
+    for local4 = 0 to 23 ++ {
+        if (0 == gSeasonRosterArray[local4][local2]) {
+            local6 = call-script 2160 [local0[local4], 62, 262, local1]
+            local1[local6 - 62 + 1] = 1
+            gSeasonRosterArray[local4][local2] = local6
+            gSeasonRosterArray[local4][local2 + 16] = local6
+        }
+    }
+    ++local2
+}
+free-array local1
+free-script
