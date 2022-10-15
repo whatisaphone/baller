@@ -1,4 +1,4 @@
-use nirvana_rust::{build, extract, read_index, Config, FsEntry};
+use inside_baseball::{build, extract, read_index, Config, FsEntry};
 use std::{
     collections::HashMap,
     env,

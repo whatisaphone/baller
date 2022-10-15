@@ -1,7 +1,7 @@
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [package]
-name = "nirvana-rust"
+name = "inside-baseball"
 version = "0.0.0"
 authors = ["John Simon <john@whatisaph.one>"]
 edition = "2021"
