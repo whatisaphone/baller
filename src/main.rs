@@ -98,6 +98,8 @@ struct Extract {
     config_path: Option<PathBuf>,
     #[clap(long)]
     aside: bool,
+    #[clap(long, hidden(true))]
+    publish_scripts: bool,
 }
 
 impl Extract {
@@ -127,8 +129,16 @@ impl Extract {
 
         input.truncate(input.len() - 3);
 
-        Self::disk(&index, &config, &mut input, &self.output, 1)?;
-        Self::disk(&index, &config, &mut input, &self.output, 2)?;
+        for disk_number in 1..=2 {
+            Self::disk(
+                &index,
+                &config,
+                &mut input,
+                &self.output,
+                disk_number,
+                self.publish_scripts,
+            )?;
+        }
         Ok(())
     }
 
@@ -138,18 +148,26 @@ impl Extract {
         input: &mut String,
         output: &Path,
         disk_number: u8,
+        publish_scripts: bool,
     ) -> Result<(), Box<dyn Error>> {
         input.push('(');
         input.push((disk_number + b'a' - 1).into());
         input.push(')');
 
         let mut f = File::open(&input)?;
-        extract(index, disk_number, config, &mut f, &mut |path, data| {
-            let path = output.join(path);
-            fs::create_dir_all(path.parent().unwrap())?;
-            fs::write(path, data)?;
-            Ok(())
-        })?;
+        extract(
+            index,
+            disk_number,
+            config,
+            publish_scripts,
+            &mut f,
+            &mut |path, data| {
+                let path = output.join(path);
+                fs::create_dir_all(path.parent().unwrap())?;
+                fs::write(path, data)?;
+                Ok(())
+            },
+        )?;
         drop(f);
 
         input.truncate(input.len() - 3);

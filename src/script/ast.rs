@@ -887,6 +887,11 @@ pub fn get_script_config<'a>(cx: &WriteCx<'a>) -> Option<&'a Script> {
     }
 }
 
+pub fn get_script_name(scope: Scope, config: &Config) -> Option<&str> {
+    let script = get_script_config(&WriteCx { scope, config })?;
+    script.name.as_deref()
+}
+
 fn write_label(w: &mut impl Write, addr: usize) -> fmt::Result {
     write!(w, "label{addr:04x}")
 }

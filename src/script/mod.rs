@@ -1,4 +1,8 @@
-pub use self::{ast::Scope, decode::disasm_to_string, decompile::decompile};
+pub use self::{
+    ast::{get_script_name, Scope},
+    decode::disasm_to_string,
+    decompile::decompile,
+};
 
 mod ast;
 mod basic;

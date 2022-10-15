@@ -1,6 +1,6 @@
 use crate::{
     config::Config,
-    script::{decompile, disasm_to_string, Scope},
+    script::{decompile, disasm_to_string, get_script_name, Scope},
     xor::XorStream,
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
@@ -160,6 +160,7 @@ pub fn extract(
     index: &Index,
     disk_number: u8,
     config: &Config,
+    publish_scripts: bool,
     s: &mut (impl Read + Seek),
     write: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
 ) -> Result<(), Box<dyn Error>> {
@@ -179,6 +180,7 @@ pub fn extract(
             path.push('.');
             path
         },
+        publish_scripts,
         current_room: 0,
         current_object: 0,
         block_numbers: HashMap::new(),
@@ -198,6 +200,7 @@ struct ExtractState<'a> {
     config: &'a Config,
     write: &'a mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     path: String,
+    publish_scripts: bool,
     current_room: i32,
     current_object: u16,
     block_numbers: HashMap<[u8; 4], i32>,
@@ -273,6 +276,7 @@ fn extract_recursive<R: Read + Seek>(
         config: state.config,
         write: state.write,
         path: mem::take(&mut state.path),
+        publish_scripts: state.publish_scripts,
         current_room: state.current_room,
         current_object: state.current_object,
         block_numbers: HashMap::new(),
@@ -418,8 +422,32 @@ fn output_script(
         let _span = info_span!("decompile", script = %id_num).entered();
         decompile(code, scope, state.config)
     };
-    let filename = format!("{}/{}.scu", state.path, id_num);
+    let mut filename = format!("{}/{}.scu", state.path, id_num);
     (state.write)(&filename, decomp.as_bytes())?;
+
+    if state.publish_scripts {
+        filename.clear();
+        write!(filename, "scripts/")?;
+        match scope {
+            Scope::Global(number) => write!(filename, "scr{number:04}")?,
+            Scope::RoomLocal(room, number) => write!(filename, "{room:02}/lsc{number:04}")?,
+            Scope::RoomEnter(room) => write!(filename, "{room:02}/enter")?,
+            Scope::RoomExit(room) => write!(filename, "{room:02}/exit")?,
+            Scope::Verb(room, object) => {
+                write!(
+                    filename,
+                    "{room:02}/obj{object:04} verb{verb:02}",
+                    verb = id_num.1,
+                )?;
+            }
+        }
+        if let Some(name) = get_script_name(scope, state.config) {
+            write!(filename, " {name}")?;
+        }
+        write!(filename, ".scu")?;
+        (state.write)(&filename, decomp.as_bytes())?;
+    }
+
     Ok(())
 }
 

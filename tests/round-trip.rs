@@ -36,6 +36,7 @@ fn round_trip_thread() -> Result<(), Box<dyn Error>> {
         &index,
         disk_number,
         &Config::default(),
+        false,
         &mut input,
         &mut |path, data| fs_write(&mut fs, path, data.to_vec()),
     )?;
