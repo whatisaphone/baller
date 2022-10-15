@@ -12,6 +12,7 @@ use std::{
     io,
     io::{BufReader, Read, Seek, SeekFrom},
     mem,
+    ops::Range,
     str,
 };
 use tracing::info_span;
@@ -355,30 +356,22 @@ fn extract_script(
     id: [u8; 4],
     number: i32,
 ) -> Result<(), Box<dyn Error>> {
-    let mut blob = state.buf.as_slice();
+    let mut range = 0..state.buf.len();
 
     if id == *b"LSC2" {
         // Skip header. Code starts at offset 4.
-        blob = &blob[4..];
+        range.start = 4;
     }
 
-    let disasm = disasm_to_string(blob);
-    let filename = format!("{}/{}.s", state.path, IdAndNum(id, number));
-    (state.write)(&filename, disasm.as_bytes())?;
-
-    let decomp = {
-        let _span = info_span!("decompile", script = %IdAndNum(id, number)).entered();
-        let scope = match &id {
-            b"SCRP" => Scope::Global(number),
-            b"LSC2" => Scope::RoomLocal(state.current_room, number),
-            b"ENCD" => Scope::RoomEnter(state.current_room),
-            b"EXCD" => Scope::RoomExit(state.current_room),
-            _ => unreachable!(),
-        };
-        decompile(blob, scope, state.config)
+    let id_num = IdAndNum(id, number);
+    let scope = match &id {
+        b"SCRP" => Scope::Global(number),
+        b"LSC2" => Scope::RoomLocal(state.current_room, number),
+        b"ENCD" => Scope::RoomEnter(state.current_room),
+        b"EXCD" => Scope::RoomExit(state.current_room),
+        _ => unreachable!(),
     };
-    let filename = format!("{}/{}.scu", state.path, IdAndNum(id, number),);
-    (state.write)(&filename, decomp.as_bytes())?;
+    output_script(state, range, id_num, scope)?;
     Ok(())
 }
 
@@ -392,20 +385,10 @@ fn extract_verb(state: &mut ExtractState) -> Result<(), Box<dyn Error>> {
             Some(o) => (o - 8).try_into()?,
             None => state.buf.len(),
         };
-        let code = &state.buf[start..end];
 
-        let disasm = disasm_to_string(code);
-        let filename = format!("{}/{}.s", state.path, IdAndNum(*b"VERB", number.into()));
-        (state.write)(&filename, disasm.as_bytes())?;
-
-        let decomp = {
-            let _span =
-                info_span!("decompile", object = state.current_object, verb = number).entered();
-            let scope = Scope::Verb(state.current_room, state.current_object);
-            decompile(code, scope, state.config)
-        };
-        let filename = format!("{}/{}.scu", state.path, IdAndNum(*b"VERB", number.into()),);
-        (state.write)(&filename, decomp.as_bytes())?;
+        let id_num = IdAndNum(*b"VERB", number.into());
+        let scope = Scope::Verb(state.current_room, state.current_object);
+        output_script(state, start..end, id_num, scope)?;
     }
     Ok(())
 }
@@ -417,6 +400,27 @@ fn read_verb(buf: &[u8]) -> Option<(u8, u16)> {
     }
     let offset = u16::from_le_bytes(buf.get(1..3)?.try_into().unwrap());
     Some((number, offset))
+}
+
+fn output_script(
+    state: &mut ExtractState,
+    range: Range<usize>,
+    id_num: IdAndNum,
+    scope: Scope,
+) -> Result<(), Box<dyn Error>> {
+    let code = &state.buf[range];
+
+    let disasm = disasm_to_string(code);
+    let filename = format!("{}/{}.s", state.path, id_num);
+    (state.write)(&filename, disasm.as_bytes())?;
+
+    let decomp = {
+        let _span = info_span!("decompile", script = %id_num).entered();
+        decompile(code, scope, state.config)
+    };
+    let filename = format!("{}/{}.scu", state.path, id_num);
+    (state.write)(&filename, decomp.as_bytes())?;
+    Ok(())
 }
 
 fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {
@@ -441,6 +445,7 @@ fn find_object_number(index: &Index, dir: &Directory, disk_number: u8, offset: u
     None
 }
 
+#[derive(Copy, Clone)]
 struct IdAndNum([u8; 4], i32);
 
 impl fmt::Display for IdAndNum {
