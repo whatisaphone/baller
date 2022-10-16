@@ -31,7 +31,7 @@ if (gBattingTeamInfoIndex) {
 local2 = call-script smth_kid_data_11 [local3[mod local4 9]]
 local8 = room2[9][0]
 if (local8 == 431) {
-    local14 = shr (gKidData[local3[mod local4 9]][13] & 48) 4
+    local14 = shr (gKidData[local3[mod local4 9]][KD-HANDEDNESS] & 48) 4
     if (local14 == 2) {
         local8 = local8 + 36
     } else {

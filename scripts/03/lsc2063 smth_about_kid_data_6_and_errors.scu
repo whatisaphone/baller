@@ -15,7 +15,7 @@ if (gDifficulty == HARD) {
         return 100
     }
 }
-local1 = gKidData[kid][6]
+local1 = gKidData[kid][KD-THROWING]
 local2 = gKidData[kid][KD-fatigue] / 10
 result = local1 - local2
 if (result < 1) {

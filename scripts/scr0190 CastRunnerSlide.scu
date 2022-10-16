@@ -7,7 +7,7 @@ gCurrentSpeechScript = CastRunnerSlide
 if (random 1) {
     case random 3 {
         of 0 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10193426,9576\x7f she slides..."
@@ -56,7 +56,7 @@ if (random 1) {
             xb8-x4b "\x7fT10279122,18216\x7f slides into home plate!"
         }
         else {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10193426,9576\x7f she slides..."

@@ -211,7 +211,7 @@ if (gHitAngleXZ > 44 && gHitAngleXZ < 135) {
                 local0 = 4
             }
             local8 = random 100
-            local12 = gKidData[room31][KD-maybe-speed]
+            local12 = gKidData[room31][KD-SPEED]
             if (local8 + 30 < local12 / 2) {
                 ++local0
             }
@@ -251,11 +251,11 @@ if (gHitAngleXZ > 44 && gHitAngleXZ < 135) {
             local11 = call-script ReadActiveRoster [local13, 8]
         }
     }
-    if ((random 100) < 2 + (100 - gKidData[local10][6]) / 20) {
+    if ((random 100) < 2 + (100 - gKidData[local10][KD-THROWING]) / 20) {
         local9 = local10
     }
     if (local11) {
-        if ((random 100) < 2 + (100 - gKidData[local11][3]) / 20) {
+        if ((random 100) < 2 + (100 - gKidData[local11][KD-COORDINATION]) / 20) {
             local9 = local11
         }
     }

@@ -31,7 +31,7 @@ if (!use_existing_pitcher) {
     if (gDifficulty == HARD || gDifficulty == MEDIUM && !(random 3)) {
         for local6 = 0 to 7 ++ {
             local8 = local1[local6]
-            local9 = gKidData[local8][14] + gKidData[local8][15] + gKidData[local8][16] + gKidData[local8][17]
+            local9 = gKidData[local8][KD-PITCH-HEAT] + gKidData[local8][KD-PITCH-SLOWBALL] + gKidData[local8][KD-PITCH-LEFT-HOOK] + gKidData[local8][KD-PITCH-RIGHT-HOOK]
             local9 = local9 - gKidData[local8][KD-fatigue] * 10
             if (local9 > local7) {
                 local7 = local9

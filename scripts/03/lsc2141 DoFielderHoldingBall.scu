@@ -221,13 +221,13 @@ if (rCurrentPlay < 5) {
                 if (rCurrentPlay < 5) {
                     if (rBaseClaims[rCurrentPlay] != fielder) {
                         new_facing = call-script ConvertAngleToFacing [angle14]
-                        new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+                        new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][KD-HANDEDNESS] & 3]
                         run-script-xc3 SetActorFacing [actor, new_facing, facing]
                         facing = new_facing
                     }
                 } else {
                     new_facing = call-script ConvertAngleToFacing [angle14]
-                    new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+                    new_facing = call-script TurnFacingStep [new_facing, facing, 0, gKidData[rFieldingOrder[fielder - 37]][KD-HANDEDNESS] & 3]
                     run-script-xc3 SetActorFacing [actor, new_facing, facing]
                     facing = new_facing
                 }
@@ -406,7 +406,7 @@ do {
     facing = new_facing
     new_facing = call-script ConvertAngleToFacing [angle14]
     if ((distance-2d gWorld[fielder][X] gWorld[fielder][Z] gWorld[rCurrentPlay][X] gWorld[rCurrentPlay][Z]) > 480) {
-        new_facing = call-script TurnFacingStep [new_facing, facing, 1, gKidData[rFieldingOrder[fielder - 37]][13] & 3]
+        new_facing = call-script TurnFacingStep [new_facing, facing, 1, gKidData[rFieldingOrder[fielder - 37]][KD-HANDEDNESS] & 3]
     } else {
         new_facing = call-script TurnFacingStep [new_facing, facing, 1]
     }

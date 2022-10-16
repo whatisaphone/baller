@@ -80,7 +80,7 @@ if (gUserOnOffense && !gNoGooch) {
             xb8-x4b "\x7fT3872756,31698\x7f the pitcher just turned to watch it go outta the park."
         }
         of 4 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT3904454,131664\x7f  I remember once, back in the old days... Last season, I think it was... she hit the ball so hard she broke the bat in two!  <s\he> rounded the bases, holding the bat handle in the air like the Olympic torch!"
@@ -91,7 +91,7 @@ if (gUserOnOffense && !gNoGooch) {
             }
         }
         of 5 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT4086051,77789\x7f  Man, that kid can hit. One time I saw her knock a ball clear outta the park and into a passing convertible.  Boy, was the driver surprised!"
@@ -117,7 +117,7 @@ if (gUserOnOffense && !gNoGooch) {
             xb8-x4b "\x7fT4308569,27353\x7f  Aloha means goodbye, baby."
         }
         of 9 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT4308569,27353\x7f  Aloha means goodbye, baby."

@@ -15,7 +15,7 @@ local variable local10
 if (gCurrentRoom == 14) {
     local10 = local0 - 61
 } else {
-    local10 = gBackupKidData[local0][11]
+    local10 = gBackupKidData[local0][KD-APPEARANCE]
 }
 case local10 {
     in [1, 2, 7, 8, 10] {

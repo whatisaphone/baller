@@ -9,7 +9,7 @@ gCurrentSpeechScript = CastOutGooch
 label0016:
 case random 11 {
     of 0 {
-        if (gKidData[arg0][KD-gender] == GIRL) {
+        if (gKidData[arg0][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT8272054,33993\x7f What a bummer.  She gave it her best shot, though."
@@ -57,7 +57,7 @@ case random 11 {
         xb8-x4b "\x7fT8490828,20213\x7f All you can do is try your hardest."
     }
     of 7 {
-        if (gKidData[arg0][KD-gender] == GIRL) {
+        if (gKidData[arg0][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT8511041,14397\x7f she was robbed!"

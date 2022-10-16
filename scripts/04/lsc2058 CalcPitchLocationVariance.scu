@@ -4,7 +4,7 @@ local variable result
 local variable local1
 local variable local2
 
-if (rPitchKind == PITCH-maybe-intentional-walk) {
+if (rPitchKind == PITCH-INTENTIONAL-WALK) {
     result = 0
     return result
 } else {

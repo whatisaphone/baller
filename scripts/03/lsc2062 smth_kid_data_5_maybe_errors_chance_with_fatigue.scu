@@ -6,7 +6,7 @@ local variable local1
 local variable local2
 local variable local3
 
-local1 = 90 + gKidData[kid][5] / 2
+local1 = 90 + gKidData[kid][KD-ARM] / 2
 local2 = gKidData[kid][KD-fatigue] / 2
 local3 = local1 - local2
 if (gNoErrors) {

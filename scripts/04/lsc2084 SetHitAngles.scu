@@ -48,12 +48,12 @@ if (gTeeBall) {
     rHitQuality = call-script CalcHitQuality []
 }
 if (gCurrentSwing == SWING-POWER) {
-    local2 = gKidData[gBatterKid][KD-BATTING-POWER]
+    local2 = gKidData[gBatterKid][KD-BAT-SWING]
 } else {
-    local2 = gKidData[gBatterKid][KD-BATTING-CONTACT]
+    local2 = gKidData[gBatterKid][KD-BAT-HITTING]
 }
 local3 = random 100
-if (local3 < gKidData[gBatterKid][KD-BATTING-POWER]) {
+if (local3 < gKidData[gBatterKid][KD-BAT-SWING]) {
     ++rHitQuality
 }
 if (gNetplayActive) {

@@ -69,7 +69,7 @@ if (rPitchKind > 17) {
         }
     }
 }
-if (gKidData[rPitcherKid][KD-gender] == GIRL) {
+if (gKidData[rPitcherKid][KD-GENDER] == GIRL) {
     grunt_sound = random2 1452 1456
 } else {
     grunt_sound = random2 1447 1451
@@ -87,7 +87,7 @@ gKidData[rPitcherKid][KD-fatigue] = pitcher_new_fatigue
 if (gDefenseControlledBy == CB-USER) {
     run-script smth_pitcher_fatigue_ui []
 }
-if (rPitchKind > 17 && rPitchKind != PITCH-maybe-intentional-walk) {
+if (rPitchKind > 17 && rPitchKind != PITCH-INTENTIONAL-WALK) {
     for local5 = 6 to 10 ++ {
         if (gPitcherPitches[1 - gBattingTeamInfoIndex][local5] / 10 == rPitchKind) {
             gPitcherPitches[1 - gBattingTeamInfoIndex][local5] = gPitcherPitches[1 - gBattingTeamInfoIndex][local5] - 1

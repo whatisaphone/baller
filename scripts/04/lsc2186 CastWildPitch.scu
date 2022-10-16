@@ -13,12 +13,12 @@ xa9-xa9
 if (!gNoGooch) {
     local1 = random2 368 372
     if (local1 == 371) {
-        if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+        if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
         } else {
             local1 = 372
         }
     } else if (local1 == 372) {
-        if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+        if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
             local1 = 371
         }
     }

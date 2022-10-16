@@ -109,13 +109,13 @@ if (arg0 >= 1 && arg0 <= 30) {
         }
     }
 } else if (arg0 >= 264 && arg0 <= 273) {
-    if (gKidData[arg0][KD-gender] == BOY) {
+    if (gKidData[arg0][KD-GENDER] == BOY) {
         local3 = 4182 + (random 7)
     } else {
         local3 = 4190 + (random 2)
     }
 } else {
-    if (gKidData[arg0][KD-gender] == GIRL) {
+    if (gKidData[arg0][KD-GENDER] == GIRL) {
         array-set local2 [1541, 1540, 1579, 1592, 1545, 1560, 1555, 4190, 4191, 4192] 0
         local4 = 9
     } else {

@@ -55,7 +55,7 @@ do {
                 }
             }
             of 1 & local2 > 0 {
-                if ((shr (gKidData[gBatterKid][13] & 48) 4) == 1) {
+                if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 1) {
                     local3 = -1
                 } else {
                     local3 = 1
@@ -63,7 +63,7 @@ do {
                 run-script SendBatViewMessage [MSG-TOGGLE-STANCE, local3]
             }
             of 2 & local2 > 0 {
-                if ((shr (gKidData[gBatterKid][13] & 48) 4) == 1) {
+                if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 1) {
                     local3 = 1
                 } else {
                     local3 = -1

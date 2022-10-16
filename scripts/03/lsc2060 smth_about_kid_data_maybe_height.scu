@@ -5,7 +5,7 @@ parameter kid: Kid
 local variable local1
 
 local1 = 105
-case gKidData[kid][KD-maybe-height] {
+case gKidData[kid][KD-HEIGHT] {
     of 1 {
         local1 = 70
     }

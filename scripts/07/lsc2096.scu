@@ -11,7 +11,7 @@ if (local0) {
     palette-select room17
     palette-load 1378 0
     palette-unselect
-    run-script 279 [room17, gTeamInfo[room0][3], gTeamInfo[room0][8]]
+    run-script 279 [room17, gTeamInfo[room0][TI-PRIMARY-COLOR], gTeamInfo[room0][TI-SECONDARY-COLOR]]
 }
 sprite-set-range room6[28] room6[28]
 sprite-set-hotspot 338 125

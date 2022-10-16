@@ -28,7 +28,7 @@ for local6 = 0 to 8 ++ {
         if (arg1) {
             local3 = arg1
         } else {
-            local3 = gKidData[local5][1] / 10
+            local3 = gKidData[local5][KD-STAMINA] / 10
         }
         local7 = gKidData[local5][KD-fatigue] - local3
         local7 = max 0 local7

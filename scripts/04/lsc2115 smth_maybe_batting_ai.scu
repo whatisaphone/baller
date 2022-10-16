@@ -115,7 +115,7 @@ case g_smth_ai_bat_strategy {
         g_smth_ai_stance = 0
     }
     else {
-        if (gKidData[gBatterKid][2] >= (random 100)) {
+        if (gKidData[gBatterKid][KD-INTELLIGENCE] >= (random 100)) {
             if (random 1) {
                 g_smth_ai_batting = 5
             } else {
@@ -143,7 +143,7 @@ if (g_smth_ai_stance) {
             stance = SQUARE
         }
     }
-    if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+    if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
         if (stance == OPEN) {
             stance = CLOSED
         } else if (stance == CLOSED) {

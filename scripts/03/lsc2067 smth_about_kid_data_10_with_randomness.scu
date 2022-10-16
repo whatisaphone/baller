@@ -9,7 +9,7 @@ local variable result
 if (gNoErrors) {
     result = 100
 } else {
-    local1 = gKidData[kid][10]
+    local1 = gKidData[kid][KD-ATTENTION]
     local2 = gKidData[kid][KD-fatigue] / 3
     result = local1 - local2
     if (gDifficulty == HARD) {

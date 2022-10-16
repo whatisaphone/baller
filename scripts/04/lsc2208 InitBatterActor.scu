@@ -20,13 +20,13 @@ actor-x62 global423
 actor-select 2
 actor-clip-rect 0 0 639 400
 put-actor 2 320 (240 + local3) 4
-local5 = shr (gKidData[gBatterKid][13] & 12) 2
+local5 = shr (gKidData[gBatterKid][KD-HANDEDNESS] & 12) 2
 if (!local5) {
-    local5 = gKidData[gBatterKid][13] & 3
+    local5 = gKidData[gBatterKid][KD-HANDEDNESS] & 3
 } else if (local5 == 3) {
-    local5 = gKidData[rPitcherKid][13] & 3
+    local5 = gKidData[rPitcherKid][KD-HANDEDNESS] & 3
 }
-gKidData[gBatterKid][13] = (gKidData[gBatterKid][13] & 15) + (shl local5 4)
+gKidData[gBatterKid][KD-HANDEDNESS] = (gKidData[gBatterKid][KD-HANDEDNESS] & 15) + (shl local5 4)
 local1 = call-script maybe_kid_get_costume_batting [gBatterKid]
 local2 = local1 + 1
 if (MODE-BATTING-PRACTICE != gGameMode) {
@@ -61,11 +61,11 @@ if (!skip_walking_to_plate_animation) {
     }
     actor-do-anim 2 1
     if (gBatterKid > gMaxUniqueKid) {
-        if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+        if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
             actor-do-anim 2 248
         }
     } else if (gBatterKid in [CHIPPER-JONES, CARLOS-BELTRAN]) {
-        if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+        if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
             actor-do-anim 2 248
         }
     } else if (gBatterKid in [KENNY-LOFTON, TONY-GWYNN, SHAWN-GREEN, LARRY-WALKER, JEROMY-BURNITZ, JASON-GIAMBI]) {
@@ -108,11 +108,11 @@ if (gNetplayActive) {
     }
 }
 if (gBatterKid > gMaxUniqueKid) {
-    if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+    if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
         actor-do-anim 2 248
     }
 } else if (gBatterKid in [CHIPPER-JONES, CARLOS-BELTRAN]) {
-    if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+    if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
         actor-do-anim 2 248
     }
 } else if (gBatterKid in [KENNY-LOFTON, TONY-GWYNN, SHAWN-GREEN, LARRY-WALKER, JEROMY-BURNITZ, JASON-GIAMBI]) {
@@ -173,7 +173,7 @@ if (gBatterKid == ANGELA-DELVECCHIO) {
     }
 }
 sprite-set-range 13 13
-sprite-x34 (gBatterStance - 1 + 3 * ((shr (gKidData[gBatterKid][13] & 48) 4) == 2))
+sprite-x34 (gBatterStance - 1 + 3 * ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2))
 sprite-set-range 13 13
 sprite-set-hotspot 280 352
 run-script SetStrikeZoneForBatter []

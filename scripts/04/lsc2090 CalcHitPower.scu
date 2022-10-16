@@ -7,7 +7,7 @@ local variable local2
 local variable local3
 local variable result
 
-local2 = gKidData[gBatterKid][KD-BATTING-POWER]
+local2 = gKidData[gBatterKid][KD-BAT-SWING]
 local1 = random 100
 case power_zone {
     of 4 {

@@ -49,7 +49,7 @@ case arg1 {
         local5 = 1
     }
 }
-local3 = gKidData[kid][1] - 50
+local3 = gKidData[kid][KD-STAMINA] - 50
 local4 = local5 - local5 * local3 / 100
 local2 = local2 + local4
 if (local2 > 100) {

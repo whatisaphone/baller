@@ -4,7 +4,7 @@ local variable local0
 local variable local1
 
 for local1 = 122 to 151 ++ {
-    if (g_underwater_array[local1][6] == local0) {
+    if (gMLBTeamData[local1][6] == local0) {
         return local1
     }
 }

@@ -11,5 +11,5 @@ if (gDifficulty == HARD) {
         return 100
     }
 }
-return gKidData[kid][2]
+return gKidData[kid][KD-INTELLIGENCE]
 free-script

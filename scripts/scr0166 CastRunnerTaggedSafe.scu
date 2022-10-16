@@ -35,7 +35,7 @@ case random 6 {
         xb8-x4b "\x7fT5306084,17800\x7f    doesn't    make the tag"
     }
     of 6 {
-        if (gKidData[arg0][KD-gender] == GIRL) {
+        if (gKidData[arg0][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT5323884,24168\x7f    oh no!    she missed the tag!"

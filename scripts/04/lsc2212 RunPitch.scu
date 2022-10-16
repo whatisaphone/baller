@@ -44,7 +44,7 @@ if (gTeeBall && (actor-get-var 4 0) != 1) {
     actor-set-var 3 0
     actor-select 4
     actor-set-conditons [129]
-    local0 = min 2 (max gKidData[gBatterKid][KD-maybe-height] 4)
+    local0 = min 2 (max gKidData[gBatterKid][KD-HEIGHT] 4)
     actor-do-anim 4 local0
     room14 = 2
     rPitchZone = 25

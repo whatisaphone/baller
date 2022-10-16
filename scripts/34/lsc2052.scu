@@ -3,7 +3,7 @@
 local variable local0
 
 if (local0 == 0) {
-    if ((random 100) < gKidData[room20][2]) {
+    if ((random 100) < gKidData[room20][KD-INTELLIGENCE]) {
         local0 = random2 2 13
     } else {
         local0 = 1

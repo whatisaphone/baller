@@ -12,7 +12,7 @@ if (gTeeBall || gDifficulty == EASY) {
 } else {
     local4 = random 100
 }
-if (gKidData[gBatterKid][2] > local4) {
+if (gKidData[gBatterKid][KD-INTELLIGENCE] > local4) {
     if (arg2 != 0) {
         result = 5
     } else if (arg0 != 0) {

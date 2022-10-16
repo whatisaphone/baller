@@ -44,7 +44,7 @@ if (local6 < 1) {
 local9 = local5 * local6 / 1000
 from_x = gWorld[fielder][X]
 from_z = gWorld[fielder][Z]
-if (gKidData[rFieldingOrder[fielder - 37]][13] & 3 == 1) {
+if (gKidData[rFieldingOrder[fielder - 37]][KD-HANDEDNESS] & 3 == 1) {
     hand = 1
 } else {
     hand = -1
@@ -204,7 +204,7 @@ case 1 {
 }
 smth_kid_data_5 = smth_kid_data_5 + 20
 if (smth_kid_data_5 > 150) {
-    local11 = local11 + local11 * (gKidData[rFieldingOrder[fielder - 37]][5] - 50) / 2 / 100
+    local11 = local11 + local11 * (gKidData[rFieldingOrder[fielder - 37]][KD-ARM] - 50) / 2 / 100
 }
 if (local11 > smth_kid_data_5) {
     local11 = smth_kid_data_5
@@ -215,7 +215,7 @@ angle_y = call-script smth_vector_math_gravity_angle [gWorld[fielder][X], gWorld
 temp = call-script smth_actor_anim [3, -1, -1, -1]
 gBallVelPhysY = (sin angle_y) * local11 / 100
 local6 = 2 * gBallVelPhysY / 384000 * gGravity / 60
-if (gKidData[rFieldingOrder[fielder - 37]][KD-maybe-height] > 3) {
+if (gKidData[rFieldingOrder[fielder - 37]][KD-HEIGHT] > 3) {
     ++local6
 }
 if (local6 < 1) {
@@ -255,7 +255,7 @@ if (rCurrentPlay in [F-HOME, FIRST, SECOND, THIRD]) {
     }
 }
 if (local9 < adjusted_distance) {
-    if (!(call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], 3, gDefenseControlledBy == CB-COMPUTER])) {
+    if (!(call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], KD-COORDINATION, gDefenseControlledBy == CB-COMPUTER])) {
         if ((random 100) > 85) {
             if (random 1) {
                 gBallVelPhysY = (sin (random2 45 85)) * smth_kid_data_5 / 200
@@ -276,7 +276,7 @@ if (local9 < adjusted_distance) {
         gBallVelPhysX = 1000 * local9 * delta_x / adjusted_distance * local6
         gBallVelPhysZ = 1000 * local9 * delta_z / adjusted_distance * local6
         if (MOUND != rCurrentPlay) {
-            if (!(call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], 3, gDefenseControlledBy == CB-COMPUTER])) {
+            if (!(call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], KD-COORDINATION, gDefenseControlledBy == CB-COMPUTER])) {
                 angle_y = angle_y + (random2 -5 5)
                 gBallVelPhysY = (sin angle_y) * local11 / 100
             } else if (gField in [CEMENT-GARDENS, TIN-CAN-ALLEY]) {
@@ -292,7 +292,7 @@ if (local9 < adjusted_distance) {
     gBallVelPhysX = 1000 * delta_x / local6
     gBallVelPhysZ = 1000 * delta_z / local6
     if (rCurrentPlay != MOUND) {
-        if (call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], 3, gDefenseControlledBy == CB-COMPUTER]) {
+        if (call-script RandomBasedOnKidData [rFieldingOrder[fielder - 37], KD-COORDINATION, gDefenseControlledBy == CB-COMPUTER]) {
             angle_y = angle_y + (random2 -5 5)
             gBallVelPhysY = (sin angle_y) * local11 / 100
         }
@@ -326,7 +326,7 @@ gBallPosPhysX = from_x * 1000 + 2 * gBallVelPhysX * gVectorScaleNum / gVectorSca
 gBallPosX = gBallPosPhysX / 1000
 gBallPosPhysZ = from_z * 1000 + 2 * gBallVelPhysZ * gVectorScaleNum / gVectorScaleDen
 gBallPosZ = gBallPosPhysZ / 1000
-gBallPosPhysY = (gKidData[rFieldingOrder[fielder - 37]][KD-maybe-height] - 1) * 15000 + 35000
+gBallPosPhysY = (gKidData[rFieldingOrder[fielder - 37]][KD-HEIGHT] - 1) * 15000 + 35000
 gBallPosY = gBallPosPhysY / 1000
 gBallVelPhysY = gBallVelPhysY - 2 * 384000 * gGravity / 60 * gVectorScaleNum / gVectorScaleDen
 run-script SimulateBallStopPosition [true]

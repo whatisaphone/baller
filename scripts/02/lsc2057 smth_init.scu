@@ -9,5 +9,5 @@ stop-script
 run-script maybe_alloc_or_free_sounds_and_costumes [1, 1]
 stop-script
 run-script ReadRecordBook []
-run-script populate_underwater_array []
+run-script PopulateMLBTeamData []
 free-script

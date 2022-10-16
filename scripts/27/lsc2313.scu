@@ -199,7 +199,7 @@ case local1 {
                         }
                         run-script GetKidName [r_smth_pick_order[local9]]
                         sprintf local2 "%s" [gKidName]
-                        if (gKidData[r_smth_pick_order[local9]][KD-gender] == GIRL) {
+                        if (gKidData[r_smth_pick_order[local9]][KD-GENDER] == GIRL) {
                             local8 = "Click to view her close-up."
                         } else {
                             local8 = "Click to view him close-up."

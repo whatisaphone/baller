@@ -53,9 +53,9 @@ if (14 != gCurrentRoom) {
     if (MODE-SEASON == gGameMode) {
         temp = call-script ReadActiveRoster [gSeasonDivision, 11]
         if (temp >= 122 && temp <= 151) {
-            arg5 = g_underwater_array[temp][7]
-            arg6 = g_underwater_array[temp][8]
-            arg7 = g_underwater_array[temp][9]
+            arg5 = gMLBTeamData[temp][7]
+            arg6 = gMLBTeamData[temp][8]
+            arg7 = gMLBTeamData[temp][9]
         } else {
             arg5 = call-script ReadActiveRoster [gSeasonDivision, 12]
             arg6 = call-script ReadActiveRoster [gSeasonDivision, 13]
@@ -65,13 +65,13 @@ if (14 != gCurrentRoom) {
         temp2 = call-script 2059 []
         temp = gTeamInfo[temp2][TI-TEAM-NOUN]
         if (temp >= 122 && temp <= 151) {
-            arg5 = g_underwater_array[temp][7]
-            arg6 = g_underwater_array[temp][8]
-            arg7 = g_underwater_array[temp][9]
+            arg5 = gMLBTeamData[temp][7]
+            arg6 = gMLBTeamData[temp][8]
+            arg7 = gMLBTeamData[temp][9]
         } else {
-            arg5 = gTeamInfo[temp2][3]
-            arg6 = gTeamInfo[temp2][8]
-            arg7 = gTeamInfo[temp2][3]
+            arg5 = gTeamInfo[temp2][TI-PRIMARY-COLOR]
+            arg6 = gTeamInfo[temp2][TI-SECONDARY-COLOR]
+            arg7 = gTeamInfo[temp2][TI-PRIMARY-COLOR]
         }
     }
 }

@@ -101,7 +101,7 @@ if (kid >= 31 && kid <= 61) {
             }
         }
     }
-    if (gKidData[kid][KD-gender] == GIRL) {
+    if (gKidData[kid][KD-GENDER] == GIRL) {
         local2 = local2 + 46
     }
 } else {
@@ -143,7 +143,7 @@ if (kid >= 31 && kid <= 61) {
             local2 = random2 26 29
         }
         else {
-            if ((random 1) || gTeamInfo[1 - gBattingTeamInfoIndex][3] >= 9) {
+            if ((random 1) || gTeamInfo[1 - gBattingTeamInfoIndex][TI-PRIMARY-COLOR] >= 9) {
                 if (random 1) {
                     local2 = random2 8 9
                 } else if (random 1) {
@@ -152,7 +152,7 @@ if (kid >= 31 && kid <= 61) {
                     free-running-script 0
                 }
             } else {
-                local2 = 43 + gTeamInfo[1 - gBattingTeamInfoIndex][3] - 1
+                local2 = 43 + gTeamInfo[1 - gBattingTeamInfoIndex][TI-PRIMARY-COLOR] - 1
             }
         }
     }

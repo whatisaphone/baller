@@ -100,17 +100,17 @@ if (kid > 30) {
             xb6-xc2 "temp cloney %d" (kid - 30 + 1) []
             array-fill-list gKidData kid kid 1 25 [50]
             gKidData[kid][KD-DEFAULT-STANCE] = random2 1 3
-            gKidData[kid][KD-maybe-height] = random2 2 4
-            gKidData[kid][KD-gender] = random2 1 2
-            if (gKidData[kid][KD-gender] == GIRL) {
-                gKidData[kid][11] = random2 7 12
+            gKidData[kid][KD-HEIGHT] = random2 2 4
+            gKidData[kid][KD-GENDER] = random2 1 2
+            if (gKidData[kid][KD-GENDER] == GIRL) {
+                gKidData[kid][KD-APPEARANCE] = random2 7 12
             } else {
-                gKidData[kid][11] = random2 1 6
+                gKidData[kid][KD-APPEARANCE] = random2 1 6
             }
             if (random 4) {
-                gKidData[kid][13] = 1
+                gKidData[kid][KD-HANDEDNESS] = 1
             } else {
-                gKidData[kid][13] = 2
+                gKidData[kid][KD-HANDEDNESS] = 2
             }
         }
     }
@@ -782,8 +782,8 @@ if (kid > 231) {
 if (kid > 262) {
 } else {
     array-copy-range gKidData gKidData kid kid 0 36 (kid - 201) (kid - 201) 0 36
-    gKidData[kid][11] = gKidData[kid][11] + 6
-    gKidData[kid][KD-gender] = GIRL
+    gKidData[kid][KD-APPEARANCE] = gKidData[kid][KD-APPEARANCE] + 6
+    gKidData[kid][KD-GENDER] = GIRL
     free-running-script 0
 }
 case kid {

@@ -193,7 +193,7 @@ case arg0 {
         local2 = 1234
     }
     in [264, 265, 266, 267, 268, 269, 270, 271, 272, 273] {
-        case gBackupKidData[arg0][11] {
+        case gBackupKidData[arg0][KD-APPEARANCE] {
             in [1, 3, 5] {
                 local2 = 1511
             }

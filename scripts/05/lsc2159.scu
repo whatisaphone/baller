@@ -71,7 +71,7 @@ if (global665[global664][0] >= 31 && global665[global664][0] <= 61) {
     } else {
         local1 = call-script 2127 [global665[global664][0]]
     }
-    run-script smth_team_color_palette [-1, 3, 0, g_underwater_array[local1][7], g_underwater_array[local1][8], g_underwater_array[local1][9]]
+    run-script smth_team_color_palette [-1, 3, 0, gMLBTeamData[local1][7], gMLBTeamData[local1][8], gMLBTeamData[local1][9]]
     actor-do-anim 4 2
 } else {
     run-script smth_color [3, global665[global664][0]]

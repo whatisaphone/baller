@@ -9,8 +9,8 @@ local variable local4
 local4 = call-script GetSeasonDivision []
 gSeasonRosterArray[local4][10] = gTeamInfo[0][TI-TEAM-ADJECTIVE]
 gSeasonRosterArray[local4][11] = gTeamInfo[0][TI-TEAM-NOUN]
-gSeasonRosterArray[local4][12] = gTeamInfo[0][3]
-gSeasonRosterArray[local4][13] = gTeamInfo[0][8]
+gSeasonRosterArray[local4][12] = gTeamInfo[0][TI-PRIMARY-COLOR]
+gSeasonRosterArray[local4][13] = gTeamInfo[0][TI-SECONDARY-COLOR]
 gSeasonRosterArray[local4][14] = 0
 gSeasonRosterArray[local4][15] = 0
 if (gBattingOrder1[1] == 0) {

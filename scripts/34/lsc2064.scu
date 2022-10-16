@@ -12,7 +12,7 @@ case gCurrentSwing {
     }
     of SWING-LINE-DRIVE {
         local3 = random 100
-        if (gKidData[gBatterKid][KD-BATTING-POWER] > local3) {
+        if (gKidData[gBatterKid][KD-BAT-SWING] > local3) {
             local0 = 1
         } else {
             local0 = 2
@@ -45,7 +45,7 @@ case gCurrentSwing {
     }
 }
 room34 = call-script 2063 []
-local2 = gKidData[gBatterKid][KD-BATTING-CONTACT]
+local2 = gKidData[gBatterKid][KD-BAT-HITTING]
 local3 = random 100
 if (local3 < local2) {
     if (room34 < 3) {

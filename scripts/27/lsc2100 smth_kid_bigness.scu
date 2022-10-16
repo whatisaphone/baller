@@ -117,7 +117,7 @@ case arg0 {
         if (14 == gCurrentRoom) {
             local1 = 5
         } else {
-            local1 = gKidData[arg0][KD-maybe-height]
+            local1 = gKidData[arg0][KD-HEIGHT]
         }
     }
     else {

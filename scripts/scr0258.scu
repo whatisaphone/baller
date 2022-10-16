@@ -5,7 +5,7 @@ local variable local1
 local variable local2
 
 if (local0 >= 1 && local0 <= 30) {
-    if (gKidData[local0][KD-gender] == GIRL) {
+    if (gKidData[local0][KD-GENDER] == GIRL) {
         if (local0 < 8 || local0 > 30) {
             local1 = 29
         } else {
@@ -18,7 +18,7 @@ if (local0 >= 1 && local0 <= 30) {
     }
 } else {
     local1 = 32
-    local2 = gKidData[local0][11]
+    local2 = gKidData[local0][KD-APPEARANCE]
 }
 return (local1 * 1000 + local2)
 free-script

@@ -101,7 +101,7 @@ case local0 {
         if (local0 >= 31 && local0 <= 61) {
             local1 = (local0 - 31) * 2 + 214
         } else if (local0 >= 264 && local0 <= 264 - 1 + 10) {
-            if (gKidData[local0][KD-gender] == GIRL) {
+            if (gKidData[local0][KD-GENDER] == GIRL) {
                 local1 = 670 + (random 1)
             } else {
                 local1 = 668 + (random 1)

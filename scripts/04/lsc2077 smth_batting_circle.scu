@@ -24,7 +24,7 @@ case rPitchKind {
         local3 = local3 - 1
     }
 }
-local0 = (101 - gKidData[gBatterKid][KD-PREDICTION]) / 10 + local3
+local0 = (101 - gKidData[gBatterKid][KD-EYE]) / 10 + local3
 local0 = min 20 local0
 local0 = max 1 local0
 rBatCircleVariance = 2 * local0

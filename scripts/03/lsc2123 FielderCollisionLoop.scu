@@ -31,7 +31,7 @@ do {
                         for local5 = [local0, local1] {
                             local4 = 0
                             if (!(random local6)) {
-                                if ((random 100) > gKidData[rFieldingOrder[local5 - 37]][3]) {
+                                if ((random 100) > gKidData[rFieldingOrder[local5 - 37]][KD-COORDINATION]) {
                                     if (rFieldingOrder[local5 - 37] != KENNY-KAWAGUCHI) {
                                         local4 = 1
                                         actor-select (local5 - 30)

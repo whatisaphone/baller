@@ -15,8 +15,8 @@ local variable local10
 if (is-script-running CastBatterSwings) {
     local7 = 1
 }
-local10 = gKidData[pitcher_kid][KD-gender]
-local9 = gKidData[gBatterKid][KD-gender]
+local10 = gKidData[pitcher_kid][KD-GENDER]
+local9 = gKidData[gBatterKid][KD-GENDER]
 while (is-script-running CastBatterSwings) {
     stop-script
 }

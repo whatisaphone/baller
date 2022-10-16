@@ -9,7 +9,7 @@ case arg0 {
         local1 = 427
     }
     of 264 {
-        case gBackupKidData[CUSTOM-KID-0][11] {
+        case gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] {
             in [1, 3, 5] {
                 local1 = 602
             }
@@ -24,7 +24,7 @@ case arg0 {
             }
             else {
                 xb6-xfe
-                xb6-xc2 "Error!  Bad kid code %d" gBackupKidData[CUSTOM-KID-0][11] []
+                xb6-xc2 "Error!  Bad kid code %d" gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] []
                 pop-discard 0
                 local1 = 602
             }

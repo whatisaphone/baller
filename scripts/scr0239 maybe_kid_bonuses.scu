@@ -105,7 +105,7 @@ for local3 = [gVisitorInfoIndex, gHomeInfoIndex] {
             }
         }
     }
-    if (gTeamInfo[local3][3] == 7 || gTeamInfo[local3][8] == 7) {
+    if (gTeamInfo[local3][TI-PRIMARY-COLOR] == 7 || gTeamInfo[local3][TI-SECONDARY-COLOR] == 7) {
         for i = 0 to 8 ++ {
             if (kids[i] == MARIA-LUNA) {
                 array-set-row gKidData 2 [0, 64, 16, 87, 80, 73, 73, 87, 75, 80, 64, 15, 21, 2, 56, 80, 73, 77, 0, 67, 0, 0, 0, 28, 31, 86]
@@ -142,10 +142,10 @@ for local3 = [gVisitorInfoIndex, gHomeInfoIndex] {
     for i = 0 to 8 ++ {
         if (kids[i] == CAL-RIPKEN-JR) {
             for j = 0 to 8 ++ {
-                local5 = gKidData[kids[j]][1]
+                local5 = gKidData[kids[j]][KD-STAMINA]
                 local5 = local5 + 10
                 local5 = min local5 100
-                gKidData[kids[j]][1] = local5
+                gKidData[kids[j]][KD-STAMINA] = local5
             }
         }
     }

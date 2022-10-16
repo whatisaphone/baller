@@ -13,7 +13,7 @@ local2 = call-script smth_find_season_team [room41]
 do {
     room31 = call-script ReadActiveRoster [local2, 16 + room53]
     gBatterKid = room31
-    room35 = gKidData[room31][13] & 3
+    room35 = gKidData[room31][KD-HANDEDNESS] & 3
     gBatterStance = SQUARE
     if (gNetplayActive) {
         if (g_net_smth_master == g_net_smth_me) {

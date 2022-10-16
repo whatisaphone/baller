@@ -93,7 +93,7 @@ case arg1 {
             of room15 {
                 if (random 1) {
                     local3 = "Yes!"
-                } else if (gKidData[rCurrentKid][KD-gender] == GIRL) {
+                } else if (gKidData[rCurrentKid][KD-GENDER] == GIRL) {
                     local3 = "I'll take her!"
                 } else {
                     local3 = "I'll take him!"

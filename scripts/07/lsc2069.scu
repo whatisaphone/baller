@@ -40,13 +40,13 @@ if (gBattingTeamInfoIndex == gHomeInfoIndex) {
 }
 local17 = gTeamInfo[gBattingTeamInfoIndex][TI-TEAM-NOUN]
 if (local17 >= 122 && local17 <= 151) {
-    local18 = g_underwater_array[local17][7]
-    local19 = g_underwater_array[local17][8]
-    local20 = g_underwater_array[local17][9]
+    local18 = gMLBTeamData[local17][7]
+    local19 = gMLBTeamData[local17][8]
+    local20 = gMLBTeamData[local17][9]
 } else {
-    local18 = gTeamInfo[gBattingTeamInfoIndex][3]
-    local19 = gTeamInfo[gBattingTeamInfoIndex][8]
-    local20 = gTeamInfo[gBattingTeamInfoIndex][3]
+    local18 = gTeamInfo[gBattingTeamInfoIndex][TI-PRIMARY-COLOR]
+    local19 = gTeamInfo[gBattingTeamInfoIndex][TI-SECONDARY-COLOR]
+    local20 = gTeamInfo[gBattingTeamInfoIndex][TI-PRIMARY-COLOR]
 }
 for local5 = local1 to (local1 + 2) ++ {
     local11 = local0[mod local5 9]

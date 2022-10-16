@@ -40,7 +40,7 @@ if (arg1 < 4) {
             xb8-x4b "\x7fT10743862,10436\x7f Quick thinking"
         }
     }
-} else if (gKidData[arg0][KD-gender] == GIRL) {
+} else if (gKidData[arg0][KD-GENDER] == GIRL) {
     if (random 1) {
         xb8-xfe 1
         xb8-x41 0 0

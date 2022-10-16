@@ -11,7 +11,7 @@ if (local0) {
     palette-select room17
     palette-load 1378 0
     palette-unselect
-    run-script 279 [room17, gTeamInfo[gVisitorInfoIndex][3], gTeamInfo[gVisitorInfoIndex][8]]
+    run-script 279 [room17, gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]]
 }
 sprite-set-range room6[28] room6[28]
 sprite-set-hotspot 23 191
@@ -28,7 +28,7 @@ if (local0) {
     palette-select room24
     palette-load 1378 0
     palette-unselect
-    run-script 279 [room24, gTeamInfo[gHomeInfoIndex][3], gTeamInfo[gHomeInfoIndex][8]]
+    run-script 279 [room24, gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]]
 }
 sprite-set-range room6[29] room6[29]
 sprite-set-hotspot 23 227

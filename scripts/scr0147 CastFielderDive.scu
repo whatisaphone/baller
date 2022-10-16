@@ -16,7 +16,7 @@ case random 3 {
         sound = 1981
     }
     of 3 {
-        if (gKidData[kid][KD-gender] == GIRL) {
+        if (gKidData[kid][KD-GENDER] == GIRL) {
             sound = 1982
         } else {
             sound = 1983

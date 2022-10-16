@@ -4,7 +4,7 @@ actor-select 6
 actor-xd9
 actor-set-costume (call-script maybe_kid_get_costume_fielding2 [gBattingPracticeKid])
 actor-x54 4700
-if ((shr (gKidData[gBattingPracticeKid][13] & 48) 4) == 1) {
+if ((shr (gKidData[gBattingPracticeKid][KD-HANDEDNESS] & 48) 4) == 1) {
     put-actor 6 304 (440 + 4700) gCurrentRoom
 } else {
     put-actor 6 336 (440 + 4700) gCurrentRoom

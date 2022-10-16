@@ -47,8 +47,8 @@ shuffle-array local6 1 5
 shuffle-array local7 1 6
 shuffle-array local8 1 5
 if (arg0 >= 122 && arg0 <= 151) {
-    if (g_underwater_array[arg0][1] == 1) {
-        case g_underwater_array[arg0][2] {
+    if (gMLBTeamData[arg0][1] == 1) {
+        case gMLBTeamData[arg0][2] {
             of 1 {
                 local10 = local5
             }
@@ -63,7 +63,7 @@ if (arg0 >= 122 && arg0 <= 151) {
             }
         }
     } else {
-        case g_underwater_array[arg0][2] {
+        case gMLBTeamData[arg0][2] {
             of 1 {
                 local10 = local8
             }

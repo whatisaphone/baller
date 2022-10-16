@@ -41,7 +41,7 @@ if (room40) {
     }
 }
 local2 = random 100
-if (room39 && local0 > 1 || room39 && local2 < gKidData[room31][KD-maybe-speed] / 2 + 25) {
+if (room39 && local0 > 1 || room39 && local2 < gKidData[room31][KD-SPEED] / 2 + 25) {
     if (gNetplayActive) {
         if (g_net_smth_master == g_net_smth_me) {
             run-script AddNetStat [room39, STAT-RUNS-SCORED, 1]
@@ -138,7 +138,7 @@ local2 = random 100
 case local0 {
     of 1 {
         room40 = room39
-        if (!room40 && local2 < gKidData[room31][KD-maybe-speed] / 2 + 25) {
+        if (!room40 && local2 < gKidData[room31][KD-SPEED] / 2 + 25) {
             room40 = room38
         } else {
             room39 = room38

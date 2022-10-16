@@ -6,7 +6,7 @@ local variable local1
 local variable local2
 local variable result
 
-local1 = 5 + (100 - gKidData[kid][3]) * 10 / 100
+local1 = 5 + (100 - gKidData[kid][KD-COORDINATION]) * 10 / 100
 local2 = gKidData[kid][KD-fatigue] / 20
 result = local1 + local2
 if (result > 15) {

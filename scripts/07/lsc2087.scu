@@ -19,7 +19,7 @@ image-select local6
 image-x85 0 0 162 194 room12
 image-xff
 room1 = gTeamInfo[room0][TI-BATTING-ORDER-KIDS]
-run-script 279 [room21, gTeamInfo[room0][3], gTeamInfo[room0][8]]
+run-script 279 [room21, gTeamInfo[room0][TI-PRIMARY-COLOR], gTeamInfo[room0][TI-SECONDARY-COLOR]]
 run-script 270 [gTeamInfo[room0][TI-TEAM-NOUN], room6[31], 445, 127, room21]
 run-script 2096 []
 for local1 = 0 to 8 ++ {

@@ -10,7 +10,7 @@ local variable angle
 local variable local6
 
 rPitchLocationVariance = min (96 - 10) rPitchLocationVariance
-if (rPitchKind == PITCH-maybe-intentional-walk) {
+if (rPitchKind == PITCH-INTENTIONAL-WALK) {
     if (rBatterHandedness == RIGHT-HANDED) {
         rRealPitchLocationX = 386
     } else {

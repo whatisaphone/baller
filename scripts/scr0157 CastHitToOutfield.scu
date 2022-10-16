@@ -95,7 +95,7 @@ if (gCommentaryPlayingPointer == gCommentaryQueuePointer && !gNoGooch) {
     if (gUserOnOffense) {
         case random 2 {
             of 0 {
-                if (gKidData[arg0][KD-gender] == GIRL) {
+                if (gKidData[arg0][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT2396686,32871\x7f boy, it sounded like she broke the bat on that one!"

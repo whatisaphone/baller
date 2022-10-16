@@ -20,6 +20,6 @@ if (local0 < 0) {
     }
     run-script 283 [global651, global650, local1, 0, 0, g_some_palette_655, 320, local2]
 } else {
-    run-script 283 [global651, global650, gTeamInfo[local0][TI-TEAM-NOUN], gTeamInfo[local0][3], gTeamInfo[local0][8], g_some_palette_655]
+    run-script 283 [global651, global650, gTeamInfo[local0][TI-TEAM-NOUN], gTeamInfo[local0][TI-PRIMARY-COLOR], gTeamInfo[local0][TI-SECONDARY-COLOR], g_some_palette_655]
 }
 free-script

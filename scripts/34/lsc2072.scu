@@ -21,7 +21,7 @@ if (local1 == room20) {
 if (local2 == room20) {
     local2 = call-script ReadActiveRoster [local8, 8]
 }
-if (gKidData[room38][KD-maybe-speed] > gKidData[room39][KD-maybe-speed]) {
+if (gKidData[room38][KD-SPEED] > gKidData[room39][KD-SPEED]) {
     local3 = room38
     local4 = room39
 } else {
@@ -30,7 +30,7 @@ if (gKidData[room38][KD-maybe-speed] > gKidData[room39][KD-maybe-speed]) {
 }
 if (room38) {
     if (room39) {
-        if ((random 100) < gKidData[local0][2]) {
+        if ((random 100) < gKidData[local0][KD-INTELLIGENCE]) {
             local6 = local3
         } else if (random 1) {
             local6 = local3
@@ -44,15 +44,15 @@ if (room38) {
     local6 = room39
 }
 if (local6) {
-    if ((random 100) < 50 + gKidData[local0][6] - gKidData[local6][KD-maybe-speed]) {
-        if ((random 100) < 2 + (100 - gKidData[local0][6]) / 20) {
+    if ((random 100) < 50 + gKidData[local0][KD-THROWING] - gKidData[local6][KD-SPEED]) {
+        if ((random 100) < 2 + (100 - gKidData[local0][KD-THROWING]) / 20) {
             local7 = local0
         }
         if (local6 == room39) {
-            if ((random 100) < 2 + (100 - gKidData[local1][3]) / 20) {
+            if ((random 100) < 2 + (100 - gKidData[local1][KD-COORDINATION]) / 20) {
                 local7 = local1
             }
-        } else if ((random 100) < 2 + (100 - gKidData[local2][3]) / 20) {
+        } else if ((random 100) < 2 + (100 - gKidData[local2][KD-COORDINATION]) / 20) {
             local7 = local2
         }
         if (local7) {

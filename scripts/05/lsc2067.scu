@@ -19,7 +19,7 @@ if (local0 >= 101 && local0 <= 106) {
     } else {
         local6 = 149
     }
-    local7 = g_underwater_array[local0][0] - 1
+    local7 = gMLBTeamData[local0][0] - 1
 }
 local6 = local6 + local7 / 6
 local7 = mod local7 6

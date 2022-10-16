@@ -6,7 +6,7 @@ local variable local2
 local variable local3
 local variable local4
 
-case gBackupKidData[local0][11] {
+case gBackupKidData[local0][KD-APPEARANCE] {
     in [1, 2, 7, 8, 10] {
         local2 = 18
         local3 = 17

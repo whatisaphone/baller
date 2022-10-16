@@ -9,7 +9,7 @@ if (gNoGooch) {
     free-running-script 0
 }
 gCurrentSpeechScript = CastPitch
-local3 = gKidData[gBatterKid][KD-gender]
+local3 = gKidData[gBatterKid][KD-GENDER]
 case arg1 {
     of 22 {
         case random 4 {
@@ -357,7 +357,7 @@ case arg1 {
                 xb8-x4b "\x7fT36099444,28605\x7f What a pitch!  The Big Freeze!"
             }
             of 3 {
-                if (gKidData[arg0][KD-gender] == GIRL) {
+                if (gKidData[arg0][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT36128049,20126\x7f Folks, she has thrown the Big Freeze!"
@@ -372,7 +372,7 @@ case arg1 {
     of 21 {
         case random 3 {
             of 0 {
-                if (gKidData[arg0][KD-gender] == GIRL) {
+                if (gKidData[arg0][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT36164417,34344\x7f I can't believe it! She used the fireball!"
@@ -436,7 +436,7 @@ case arg1 {
                 xb8-x4b "\x7fT36508529,38184\x7f  Going up...  Elevator ball!"
             }
             of 2 {
-                if (gKidData[arg0][KD-gender] == GIRL) {
+                if (gKidData[arg0][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT36546713,51496\x7f And she pulled a fancy elevator pitch out of her hat! Unbelievable!"
@@ -466,7 +466,7 @@ case arg1 {
                 xb8-x4b "\x7fT36683065,39720\x7f That was a perfect corkscrew pitch! Very impressive."
             }
             of 3 {
-                if (gKidData[arg0][KD-gender] == GIRL) {
+                if (gKidData[arg0][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT36722785,28904\x7f She gave 'em a spiraling Corkscrew ball."
@@ -609,7 +609,7 @@ if ((random 2) && !gNetplayActive) {
                     xb8-x4b "\x7fT37612404,34723\x7f  That pitch shoulda been committed! A wacka wacka."
                 }
                 of 3 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT37647127,31635\x7f  I betcha she's all worn out after that one!"
@@ -644,7 +644,7 @@ if ((random 2) && !gNetplayActive) {
                     xb8-x4b "\x7fT37849732,38310\x7f  This'd be a good time to cinch 'em with a hook or a crazy pitch."
                 }
                 in [7, 8] {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT37888042,39366\x7f  She tried to out fox this hitter with an off-speed pitch."
@@ -679,7 +679,7 @@ if ((random 2) && !gNetplayActive) {
                     xb8-x4b "\x7fT38018376,37063\x7f  I think I felt the wind from that pitch all the way over here"
                 }
                 of 4 {
-                    if (gKidData[gBatterKid][KD-gender] == GIRL) {
+                    if (gKidData[gBatterKid][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT37961808,14388\x7f It was in there!"
@@ -709,7 +709,7 @@ if ((random 2) && !gNetplayActive) {
                     xb8-x4b "\x7fT38217552,79519\x7f  I wonder if you threw enough of those, if your arm would start to grow in crooked. I don't think I'd wanna find out, either."
                 }
                 of 3 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT38297071,85351\x7f  How does she do it??  That was a unbelievable pitch!  Not many pitchers can throw a successful Zig Zag!"
@@ -724,7 +724,7 @@ if ((random 2) && !gNetplayActive) {
         of 20 {
             case random 2 {
                 of 0 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT37647127,31635\x7f  I betcha she's all worn out after that one!"
@@ -846,7 +846,7 @@ if ((random 2) && !gNetplayActive) {
                     xb8-x4b "\x7fT39609976,104312\x7f  The batter's arm can get pretty twisted up after throwing one of those pitches.  Sometimes, it's so bad, a friend has to help untangle the pitcher's arm!"
                 }
                 of 2 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT37647127,31635\x7f  I betcha she's all worn out after that one!"

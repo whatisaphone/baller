@@ -9,7 +9,7 @@ local variable local7
 local variable local8
 local variable local10
 
-local1 = gKidData[gBatterKid][2]
+local1 = gKidData[gBatterKid][KD-INTELLIGENCE]
 if (local1 < (random 101)) {
     if (local1 < (random 101)) {
         local7 = 1
@@ -18,7 +18,7 @@ if (local1 < (random 101)) {
     }
 }
 local1 = random 101
-local2 = gKidData[gBatterKid][KD-PREDICTION]
+local2 = gKidData[gBatterKid][KD-EYE]
 local8 = call-script 2068 []
 case room22 {
     in [14, 15] {
@@ -92,7 +92,7 @@ if (!local4) {
 }
 gCurrentSwing = call-script 2067 [gBatterKid]
 local1 = random 21
-local3 = gKidData[gBatterKid][KD-BATTING-CONTACT] / 10 + 10
+local3 = gKidData[gBatterKid][KD-BAT-HITTING] / 10 + 10
 if (local1 < local3) {
     local1 = random 11
     if (local1 < local3) {

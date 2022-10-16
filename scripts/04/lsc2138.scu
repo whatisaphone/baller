@@ -49,7 +49,7 @@ case local0 {
         local4 = 1
     }
 }
-if (gKidData[local1][KD-gender] == GIRL) {
+if (gKidData[local1][KD-GENDER] == GIRL) {
     local2 = local2 + local4
 }
 if (local3 == 12) {

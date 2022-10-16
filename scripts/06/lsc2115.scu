@@ -20,12 +20,12 @@ if (local2 > 0) {
     sprintf local3 "%s %s" [local5, local6]
     free-array local5
     free-array local6
-    if (g_underwater_array[local2][1] == 1) {
+    if (gMLBTeamData[local2][1] == 1) {
         local5 = "American League"
     } else {
         local5 = "National League"
     }
-    case g_underwater_array[local2][2] {
+    case gMLBTeamData[local2][2] {
         of 1 {
             local6 = "West"
         }

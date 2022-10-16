@@ -11,7 +11,7 @@ local variable local6
 if (kid < 62 || kid > 262 && kid <= 263) {
     free-running-script 0
 }
-local2 = gKidData[kid][11]
+local2 = gKidData[kid][KD-APPEARANCE]
 local4 = call-script AllocPalette []
 palette-select local4
 palette-load 1508 0

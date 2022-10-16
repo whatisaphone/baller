@@ -12,8 +12,8 @@ for local0 = [0, 1] {
             } until (local1 != gTeamInfo[1 - local0][TI-TEAM-NOUN])
             gTeamInfo[local0][TI-TEAM-NOUN] = local1
             gTeamInfo[local0][TI-TEAM-ADJECTIVE] = local1 - 100
-            gTeamInfo[local0][3] = g_underwater_array[local1][4]
-            gTeamInfo[local0][8] = g_underwater_array[local1][5]
+            gTeamInfo[local0][TI-PRIMARY-COLOR] = gMLBTeamData[local1][4]
+            gTeamInfo[local0][TI-SECONDARY-COLOR] = gMLBTeamData[local1][5]
         } else {
             do {
                 local1 = random2 101 106
@@ -25,12 +25,12 @@ for local0 = [0, 1] {
             gTeamInfo[local0][TI-TEAM-ADJECTIVE] = local1
             do {
                 local2 = random2 1 9
-            } until (local2 != gTeamInfo[1 - local0][3])
-            gTeamInfo[local0][3] = local2
+            } until (local2 != gTeamInfo[1 - local0][TI-PRIMARY-COLOR])
+            gTeamInfo[local0][TI-PRIMARY-COLOR] = local2
             do {
                 local2 = random2 1 9
-            } until (local2 != gTeamInfo[1 - local0][8])
-            gTeamInfo[local0][8] = local2
+            } until (local2 != gTeamInfo[1 - local0][TI-SECONDARY-COLOR])
+            gTeamInfo[local0][TI-SECONDARY-COLOR] = local2
         }
     }
 }

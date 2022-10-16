@@ -5,7 +5,7 @@ local variable local1
 
 local0 = 0
 if (call-script BatterAndPitcherDifferentHandedness []) {
-    local1 = gKidData[rPitcherKid][13] & 3
+    local1 = gKidData[rPitcherKid][KD-HANDEDNESS] & 3
     if (local1 == 1) {
         if (rPitchKind == PITCH-RIGHT-HOOK) {
             local0 = 1

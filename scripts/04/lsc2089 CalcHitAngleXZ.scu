@@ -5,7 +5,7 @@ local variable result
 local variable local2
 
 result = call-script HitStartingAngle []
-local0 = gKidData[gBatterKid][KD-BATTING-CONTACT]
+local0 = gKidData[gBatterKid][KD-BAT-HITTING]
 local2 = random 105
 if (local2 > local0) {
     if ((random 1) || gTeeBall) {

@@ -24,7 +24,7 @@ if (selecting_swing) {
         free-running-script 0
     }
     rPitchKind = selection
-    if (rPitchKind == PITCH-maybe-more-juice) {
+    if (rPitchKind == PITCH-MORE-JUICE) {
         if (!arg3) {
             gKidData[rPitcherKid][KD-fatigue] = 0
             if (gNetplayActive) {

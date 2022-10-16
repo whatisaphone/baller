@@ -30,7 +30,7 @@ case random 5 {
         xb8-x4b "\x7fT6167265,15016\x7f    for a double play!"
     }
     of 5 {
-        if (gKidData[arg0][KD-gender] == GIRL) {
+        if (gKidData[arg0][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT6182281,22120\x7f    And they got her for a double play!"

@@ -51,7 +51,7 @@ sprite-x25 6
 sprite-set-image 980
 sprite-x2b -901
 sprite-palette room8
-sprite-x34 (gBackupKidData[CUSTOM-KID-0][KD-gender] - 1)
+sprite-x34 (gBackupKidData[CUSTOM-KID-0][KD-GENDER] - 1)
 sprite-x7c 2
 sprite-x52 0
 room18 = call-script FindFreeSprite []
@@ -62,7 +62,7 @@ sprite-x25 6
 sprite-set-image 1054
 sprite-x2b -901
 sprite-palette g_some_palette_1
-sprite-x34 (gBackupKidData[CUSTOM-KID-0][13] - 1)
+sprite-x34 (gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] - 1)
 sprite-x7c 2
 sprite-x52 0
 room19 = call-script FindFreeSprite []

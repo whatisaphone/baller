@@ -4,7 +4,7 @@ local variable local0
 local variable local1
 local variable local2
 
-if (gKidData[local0][KD-gender] == GIRL) {
+if (gKidData[local0][KD-GENDER] == GIRL) {
     local1 = 2497
 } else {
     local1 = 2493

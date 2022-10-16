@@ -75,7 +75,7 @@ if ((random 1) || gNoGooch || gNetplayActive) {
                     xb8-x4b "\x7fT27528967,21065\x7f this kid wants a piece of that ball."
                 }
                 of 5 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT27550032,33512\x7f  This slugger's ready to show us what she's made of!"
@@ -86,18 +86,18 @@ if ((random 1) || gNoGooch || gNetplayActive) {
                     }
                 }
                 of 6 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT27619607,37025\x7f This girl's a scrapper... look at that determination..."
-                    } else if (gKidData[arg0][KD-maybe-speed] > 65) {
+                    } else if (gKidData[arg0][KD-SPEED] > 65) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT27656632,56488\x7f This kid has stolen so many bases, he makes Al Capone look like an angel!"
                     }
                 }
                 of 7 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT27713120,51527\x7f that's the kind of hitter she is, digging in and determined every time."
@@ -163,7 +163,7 @@ if ((random 1) || gNoGooch || gNetplayActive) {
                     xb8-x4b "\x7fT28132655,37224\x7fThe Fabulous Gooch predicts this kid is going places."
                 }
                 of 19 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT28169879,41768\x7fThis girl can walk the walk.  But can she hit the ball?"
@@ -174,7 +174,7 @@ if ((random 1) || gNoGooch || gNetplayActive) {
                     }
                 }
                 of 20 {
-                    if (gKidData[arg0][KD-gender] == GIRL) {
+                    if (gKidData[arg0][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT28249383,27880\x7fThis girl looks like she's all business out there."
@@ -790,7 +790,7 @@ if ((random 1) || gNoGooch || gNetplayActive) {
     local2 = random 5
     case local2 {
         of 0 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT32933320,13319\x7f she's  hitless today."
@@ -801,7 +801,7 @@ if ((random 1) || gNoGooch || gNetplayActive) {
             }
         }
         of 1 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT32975471,26840\x7f looks like she's in a batting slump, today!"

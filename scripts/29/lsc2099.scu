@@ -7,16 +7,16 @@ local1 = kludge-retval [1969, room12]
 run-script PlayClickySound []
 case local0 {
     of room16[1] {
-        gBackupKidData[CUSTOM-KID-0][11] = gBackupKidData[CUSTOM-KID-0][11] - 1
-        if (gBackupKidData[CUSTOM-KID-0][11] < 1) {
-            gBackupKidData[CUSTOM-KID-0][11] = 12
+        gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] - 1
+        if (gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] < 1) {
+            gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = 12
         }
         run-script 2096 []
     }
     of room16[2] {
-        gBackupKidData[CUSTOM-KID-0][11] = gBackupKidData[CUSTOM-KID-0][11] + 1
-        if (gBackupKidData[CUSTOM-KID-0][11] > 12) {
-            gBackupKidData[CUSTOM-KID-0][11] = 1
+        gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] + 1
+        if (gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] > 12) {
+            gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = 1
         }
         run-script 2096 []
     }
@@ -49,22 +49,22 @@ case local0 {
         run-script 2071 [264]
     }
     of room16[11] {
-        gBackupKidData[CUSTOM-KID-0][KD-gender] = BOY
+        gBackupKidData[CUSTOM-KID-0][KD-GENDER] = BOY
         sprite-set-range room17 room17
         sprite-x34 (2 - 1)
     }
     of room16[12] {
-        gBackupKidData[CUSTOM-KID-0][KD-gender] = GIRL
+        gBackupKidData[CUSTOM-KID-0][KD-GENDER] = GIRL
         sprite-set-range room17 room17
         sprite-x34 (1 - 1)
     }
     of room16[13] {
-        gBackupKidData[CUSTOM-KID-0][13] = 1
+        gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] = 1
         sprite-set-range room18 room18
         sprite-x34 (1 - 1)
     }
     of room16[14] {
-        gBackupKidData[CUSTOM-KID-0][13] = 2
+        gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] = 2
         sprite-set-range room18 room18
         sprite-x34 (2 - 1)
     }

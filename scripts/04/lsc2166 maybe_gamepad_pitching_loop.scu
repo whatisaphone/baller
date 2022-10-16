@@ -13,7 +13,7 @@ do {
         local2 = call-script GetInputButtons [BUTTONS-GAME-PAD]
         case 1 {
             of 16 & local2 > 0 {
-                if (rPitchKind == PITCH-maybe-more-juice) {
+                if (rPitchKind == PITCH-MORE-JUICE) {
                     run-script SelectSwingOrPitch [rSelectedPitchOrSwingSprite, sprite-get-xc6 rSelectedPitchOrSwingSprite 1, false, 0]
                 } else if (room25 && r_maybe_smth_idle_ready_for_pitch && (get-class 95 [32]) && room32) {
                     run-script SendBatViewMessage [MSG-CHOOSE-PITCH-LOCATION, get-x 5, (get-y 5) + 200]

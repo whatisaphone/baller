@@ -25,7 +25,7 @@ if (gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN] >= 122) {
     palette-select room36
     palette-load 1507 0
     palette-unselect
-    run-script 279 [room36, gTeamInfo[gVisitorInfoIndex][3], gTeamInfo[gVisitorInfoIndex][8]]
+    run-script 279 [room36, gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]]
     sprite-set-range 32 32
     sprite-clear
     sprite-set-image 1507
@@ -53,7 +53,7 @@ if (gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN] >= 122) {
     palette-select room35
     palette-load 1507 0
     palette-unselect
-    run-script 279 [room35, gTeamInfo[gHomeInfoIndex][3], gTeamInfo[gHomeInfoIndex][8]]
+    run-script 279 [room35, gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]]
     sprite-set-range 31 31
     sprite-clear
     sprite-set-image 1507

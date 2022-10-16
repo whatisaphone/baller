@@ -6,8 +6,8 @@ local variable local1
 local variable local2
 local variable local4
 
-local1 = gKidData[kid][11]
-local2 = iif (gKidData[kid][13] == 2) 2 0
+local1 = gKidData[kid][KD-APPEARANCE]
+local2 = iif (gKidData[kid][KD-HANDEDNESS] == 2) 2 0
 case local1 {
     in [1, 3, 5] {
         local4 = 350

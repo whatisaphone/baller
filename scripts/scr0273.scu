@@ -22,9 +22,9 @@ for local1 = [gHomeInfoIndex, gVisitorInfoIndex] {
     local3 = 232 + local2 * 6
     local5 = gTeamInfo[local1][TI-TEAM-NOUN]
     if (local5 <= 106) {
-        local4 = gTeamInfo[local1][3]
+        local4 = gTeamInfo[local1][TI-PRIMARY-COLOR]
     } else {
-        local4 = g_underwater_array[local5][7]
+        local4 = gMLBTeamData[local5][7]
     }
     run-script 276 [local4, local3]
 }

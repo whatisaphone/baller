@@ -53,7 +53,7 @@ if (fatigue > 100) {
         of PITCH-ELEVATOR {
             cost = 20
         }
-        of PITCH-maybe-intentional-walk {
+        of PITCH-INTENTIONAL-WALK {
             cost = 0
         }
         else {
@@ -62,7 +62,7 @@ if (fatigue > 100) {
             pop-discard 0
         }
     }
-    local4 = gKidData[kid][1] - 50
+    local4 = gKidData[kid][KD-STAMINA] - 50
     local3 = cost - cost * local4 / 100
     fatigue = fatigue + local3
     if (fatigue > 100) {

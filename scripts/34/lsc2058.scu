@@ -6,7 +6,7 @@ local variable local2
 local variable local3
 local variable local4
 
-local2 = gKidData[gBatterKid][KD-BATTING-POWER]
+local2 = gKidData[gBatterKid][KD-BAT-SWING]
 local1 = random 100
 case local0 {
     of 5 {

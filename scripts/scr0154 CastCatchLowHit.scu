@@ -22,7 +22,7 @@ if (arg0 == 115) {
             xb8-x4b "\x7fT1605973,8705\x7f    picks it up"
         }
         of 3 {
-            if (gKidData[arg1][KD-gender] == GIRL) {
+            if (gKidData[arg1][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT1614678,11081\x7f    she's got it, now"
@@ -36,7 +36,7 @@ if (arg0 == 115) {
 } else {
     case random 5 {
         of 0 {
-            if (gKidData[arg1][KD-gender] == GIRL) {
+            if (gKidData[arg1][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT1637055,12707\x7f     gets away from her"
@@ -52,7 +52,7 @@ if (arg0 == 115) {
             xb8-x4b "\x7fT1665533,14951\x7f     having a rough time of it"
         }
         of 2 {
-            if (gKidData[arg1][KD-gender] == GIRL) {
+            if (gKidData[arg1][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT1680484,15251\x7f     she can't seem to get it"
@@ -68,7 +68,7 @@ if (arg0 == 115) {
             xb8-x4b "\x7fT1711888,15862\x7f     oh no!    Missed it!"
         }
         of 4 {
-            if (gKidData[arg1][KD-gender] == GIRL) {
+            if (gKidData[arg1][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT1727750,11100\x7f     she didn't get it."
@@ -79,7 +79,7 @@ if (arg0 == 115) {
             }
         }
         of 5 {
-            if (gKidData[arg1][KD-gender] == GIRL) {
+            if (gKidData[arg1][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT1755885,7902\x7f     got by her"

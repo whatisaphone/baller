@@ -14,7 +14,7 @@ if (local2) {
     palette-load local2 0
     palette-unselect
     if (local0 >= 101 && local0 <= 106) {
-        run-script 279 [room5, gTeamInfo[gVisitorInfoIndex][3], gTeamInfo[gVisitorInfoIndex][8]]
+        run-script 279 [room5, gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]]
     }
     image-select local2
     image-x34 local3
@@ -31,7 +31,7 @@ if (local2) {
     palette-load local2 0
     palette-unselect
     if (local1 >= 101 && local1 <= 106) {
-        run-script 279 [room4, gTeamInfo[gHomeInfoIndex][3], gTeamInfo[gHomeInfoIndex][8]]
+        run-script 279 [room4, gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR], gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]]
         local4 = 0
     } else {
         local4 = 344

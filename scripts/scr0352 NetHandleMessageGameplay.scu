@@ -65,12 +65,12 @@ case message {
         ++gNetWaitFlag
     }
     of NET-TEAMS-INFO {
-        gTeamInfo[1][3] = arg1
-        gTeamInfo[1][8] = arg2
+        gTeamInfo[1][TI-PRIMARY-COLOR] = arg1
+        gTeamInfo[1][TI-SECONDARY-COLOR] = arg2
         gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg3
         gTeamInfo[1][TI-TEAM-NOUN] = arg4
-        gTeamInfo[0][3] = arg5
-        gTeamInfo[0][8] = arg6
+        gTeamInfo[0][TI-PRIMARY-COLOR] = arg5
+        gTeamInfo[0][TI-SECONDARY-COLOR] = arg6
         gTeamInfo[0][TI-TEAM-ADJECTIVE] = arg7
         gTeamInfo[0][TI-TEAM-NOUN] = arg8
     }
@@ -129,7 +129,7 @@ case message {
         }
     }
     of NET-TEAM-INFO {
-        gTeamInfo[1][3] = arg1
+        gTeamInfo[1][TI-PRIMARY-COLOR] = arg1
         gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg2
         gTeamInfo[1][TI-TEAM-NOUN] = arg3
     }

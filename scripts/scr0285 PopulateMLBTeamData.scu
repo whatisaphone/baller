@@ -1,0 +1,36 @@
+; SCRP 285 PopulateMLBTeamData
+
+if (gMLBTeamData == 0) {
+    dim array gMLBTeamData i16[122...151][0...10] swap=2
+}
+array-set-row gMLBTeamData 122 [1, 1, 1, 10, 24, 44, 31, 112, 113, 8, 112]
+array-set-row gMLBTeamData 125 [2, 1, 3, 12, 9, 42, 34, 9, 111, 125, 9]
+array-set-row gMLBTeamData 126 [3, 1, 3, 13, 23, 39, 35, 110, 105, 8, 105]
+array-set-row gMLBTeamData 128 [4, 1, 2, 9, 9, 37, 37, 9, 9, 8, 125]
+array-set-row gMLBTeamData 130 [5, 1, 2, 13, 21, 38, 39, 105, 109, 8, 105]
+array-set-row gMLBTeamData 132 [6, 1, 2, 10, 36, 39, 41, 105, 105, 8, 105]
+array-set-row gMLBTeamData 135 [7, 1, 2, 2, 35, 40, 44, 114, 114, 8, 114]
+array-set-row gMLBTeamData 138 [8, 1, 2, 11, 21, 41, 47, 105, 105, 8, 125]
+array-set-row gMLBTeamData 140 [9, 1, 3, 10, 21, 39, 50, 105, 105, 125, 105]
+array-set-row gMLBTeamData 142 [10, 1, 1, 14, 22, 45, 51, 107, 108, 8, 125]
+array-set-row gMLBTeamData 147 [11, 1, 1, 10, 21, 46, 61, 105, 106, 8, 105]
+array-set-row gMLBTeamData 149 [12, 1, 3, 9, 9, 55, 58, 9, 123, 8, 9]
+array-set-row gMLBTeamData 150 [13, 1, 1, 13, 20, 8, 59, 103, 103, 8, 104]
+array-set-row gMLBTeamData 151 [14, 1, 3, 15, 19, 43, 45, 101, 102, 8, 101]
+array-set-row gMLBTeamData 123 [1, 2, 1, 5, 34, 55, 32, 124, 122, 124, 122]
+array-set-row gMLBTeamData 124 [2, 2, 3, 11, 33, 41, 33, 104, 103, 8, 125]
+array-set-row gMLBTeamData 127 [3, 2, 2, 2, 32, 47, 36, 101, 110, 8, 101]
+array-set-row gMLBTeamData 129 [4, 2, 2, 1, 9, 38, 38, 109, 109, 8, 109]
+array-set-row gMLBTeamData 131 [5, 2, 1, 16, 9, 53, 40, 9, 121, 8, 121]
+array-set-row gMLBTeamData 133 [6, 2, 3, 17, 9, 51, 42, 119, 119, 8, 119]
+array-set-row gMLBTeamData 134 [7, 2, 2, 18, 9, 48, 43, 9, 120, 8, 9]
+array-set-row gMLBTeamData 136 [8, 2, 1, 10, 31, 52, 60, 101, 101, 8, 125]
+array-set-row gMLBTeamData 137 [9, 2, 2, 10, 30, 49, 46, 105, 105, 8, 105]
+array-set-row gMLBTeamData 139 [10, 2, 3, 2, 29, 56, 48, 117, 118, 8, 117]
+array-set-row gMLBTeamData 141 [11, 2, 3, 2, 28, 9, 49, 104, 104, 8, 9]
+array-set-row gMLBTeamData 143 [12, 2, 3, 13, 27, 2, 52, 103, 117, 8, 103]
+array-set-row gMLBTeamData 144 [13, 2, 2, 9, 9, 50, 53, 9, 9, 8, 9]
+array-set-row gMLBTeamData 148 [14, 2, 2, 13, 21, 41, 57, 103, 103, 8, 103]
+array-set-row gMLBTeamData 145 [15, 2, 1, 10, 26, 54, 54, 116, 116, 8, 116]
+array-set-row gMLBTeamData 146 [16, 2, 1, 9, 25, 9, 55, 9, 9, 115, 125]
+free-script

@@ -15,7 +15,7 @@ if (room60 < 295) {
 } else {
     local2 = 3
 }
-if ((shr (gKidData[gBatterKid][13] & 48) 4) == 2) {
+if ((shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4) == 2) {
     if (local2 == 1) {
         local2 = 3
     } else if (local2 == 3) {

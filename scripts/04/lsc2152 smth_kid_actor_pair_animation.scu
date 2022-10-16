@@ -15,18 +15,18 @@ local variable local10
 
 local6 = gTeamInfo[arg3][TI-TEAM-NOUN]
 if (local6 >= 122 && local6 <= 151) {
-    local7 = g_underwater_array[local6][7]
-    local8 = g_underwater_array[local6][8]
+    local7 = gMLBTeamData[local6][7]
+    local8 = gMLBTeamData[local6][8]
     if (arg3 == gVisitorInfoIndex || gNetplayActive && arg3 == 0) {
-        local9 = g_underwater_array[local6][10]
+        local9 = gMLBTeamData[local6][10]
     } else {
-        local9 = g_underwater_array[local6][9]
+        local9 = gMLBTeamData[local6][9]
     }
 } else {
-    local7 = gTeamInfo[arg3][3]
-    local8 = gTeamInfo[arg3][8]
+    local7 = gTeamInfo[arg3][TI-PRIMARY-COLOR]
+    local8 = gTeamInfo[arg3][TI-SECONDARY-COLOR]
     if (!gNetplayActive && arg3 == gVisitorInfoIndex || gNetplayActive && arg3 == 0) {
-        local9 = gTeamInfo[arg3][3]
+        local9 = gTeamInfo[arg3][TI-PRIMARY-COLOR]
     } else if (local7 == 8 && local8 == 8) {
         local9 = 125
     } else {

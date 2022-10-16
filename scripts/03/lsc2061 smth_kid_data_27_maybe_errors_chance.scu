@@ -6,7 +6,7 @@ local variable local1
 
 local1 = 51
 if (!gNoErrors) {
-    case gKidData[kid][KD-maybe-height] {
+    case gKidData[kid][KD-HEIGHT] {
         of 1 {
             local1 = 17
         }

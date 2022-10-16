@@ -25,7 +25,7 @@ for local1 = 0 to 23 ++ {
         gSeasonRosterArray[local1][14] = 0
         gSeasonRosterArray[local1][15] = 0
         if (local2 >= 122 && local2 <= 151) {
-            local3 = g_underwater_array[local2][6]
+            local3 = gMLBTeamData[local2][6]
             local9 = call-script 127 [gTeamInfo[0][TI-FIELDING-ORDER], local3]
             if (local9) {
                 local3 = call-script 2158 [local3]

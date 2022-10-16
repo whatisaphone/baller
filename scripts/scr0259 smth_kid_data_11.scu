@@ -19,7 +19,7 @@ case 1 {
         if (arg1) {
             local2 = 1499
         } else {
-            local2 = gKidData[arg0][11] - 1
+            local2 = gKidData[arg0][KD-APPEARANCE] - 1
             if (local2 < 0) {
                 xb6-xfe
                 xb6-xc2 "ERROR!  Bad kid CODE for %d" arg0 []

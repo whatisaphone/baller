@@ -12,7 +12,7 @@ if (arg1 < 4) {
             xb8-x4b "\x7fT10464274,10408\x7f goes for it!"
         }
         of 1 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10474682,11656\x7f she steals..."
@@ -28,7 +28,7 @@ if (arg1 < 4) {
             xb8-x4b "\x7fT10496842,13256\x7f ... the runner goes..."
         }
         of 3 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10510098,12136\x7f goes for the steal"
@@ -62,7 +62,7 @@ if (arg1 < 4) {
 } else {
     case random 2 {
         of 0 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10573266,15688\x7f She's stealing home!"
@@ -78,7 +78,7 @@ if (arg1 < 4) {
             xb8-x4b "\x7fT10604738,16104\x7f Attempts to steal home!"
         }
         of 2 {
-            if (gKidData[arg0][KD-gender] == GIRL) {
+            if (gKidData[arg0][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT10620842,32296\x7f Is she?  Yes!  Stealing home"

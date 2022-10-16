@@ -5,7 +5,7 @@ parameter arg1
 parameter arg2
 parameter arg3
 
-arg0 = gKidData[gBatterKid][KD-maybe-height]
+arg0 = gKidData[gBatterKid][KD-HEIGHT]
 case arg0 {
     of 1 {
         rStrikeZoneMinY = 300

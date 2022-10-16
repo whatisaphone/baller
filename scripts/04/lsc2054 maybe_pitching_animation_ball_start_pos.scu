@@ -281,7 +281,7 @@ case rPitcherKid {
     }
     else {
         if (rPitcherKid > 61) {
-            if (gKidData[rPitcherKid][13] & 3 == 2) {
+            if (gKidData[rPitcherKid][KD-HANDEDNESS] & 3 == 2) {
                 local4 = 326
                 local5 = 63
                 local1 = 314

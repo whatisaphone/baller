@@ -3,7 +3,7 @@
 parameter arg0
 
 gCurrentSpeechScript = CastCatchGeneralError
-if (gKidData[arg0][KD-gender] == GIRL) {
+if (gKidData[arg0][KD-GENDER] == GIRL) {
     case random 5 {
         of 0 {
             xb8-xfe 1

@@ -59,7 +59,7 @@ if (!gBatterStance) {
     gBatterStance = gKidData[gBatterKid][KD-DEFAULT-STANCE]
 }
 run-script InitBatterActor [same_batter]
-rBatterHandedness = shr (gKidData[gBatterKid][13] & 48) 4
+rBatterHandedness = shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4
 sleep 5
 if (same_batter == 0) {
     if ((gCurrentHalfInning in [0, 1]) && rBattingOrderPosition == 0) {

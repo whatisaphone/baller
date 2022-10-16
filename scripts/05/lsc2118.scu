@@ -3,7 +3,7 @@
 local variable local0
 local variable local1
 
-if (gKidData[rCurrentKid][KD-gender] == GIRL) {
+if (gKidData[rCurrentKid][KD-GENDER] == GIRL) {
     local0 = 2489
 } else {
     local0 = 2485

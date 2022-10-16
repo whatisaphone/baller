@@ -24,7 +24,7 @@ if (local2 >= 1 && local2 <= 10) {
     } else {
         local4 = 310
     }
-    local5 = g_underwater_array[local2 + 100][0] - 1
+    local5 = gMLBTeamData[local2 + 100][0] - 1
 }
 image-select (local4 + local5 / 5)
 image-x34 (mod local5 5)
@@ -41,7 +41,7 @@ if (local3 >= 101 && local3 <= 106) {
     } else {
         local4 = 318
     }
-    local5 = g_underwater_array[local3][0] - 1
+    local5 = gMLBTeamData[local3][0] - 1
 }
 image-select (local4 + local5 / 6)
 image-x34 (mod local5 6)

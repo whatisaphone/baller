@@ -8,7 +8,7 @@ local variable local3
 local variable local4
 
 local3 = 0
-if (rPitchKind == PITCH-maybe-intentional-walk || rWildPitch) {
+if (rPitchKind == PITCH-INTENTIONAL-WALK || rWildPitch) {
     return 0
 }
 if (g_smth_ai_batting == 3) {

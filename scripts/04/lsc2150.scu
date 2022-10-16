@@ -31,7 +31,7 @@ put-actor 13 local3 (local4 + -100) gCurrentRoom
 run-script smth_team_color_palette [1 - gBattingTeamInfoIndex, 13]
 actor-do-anim 13 8
 if ((local0[4] in [39, 54, 60, 56]) || local0[4] > gMaxUniqueKid) {
-    if (gKidData[local0[4]][13] & 3 == 2) {
+    if (gKidData[local0[4]][KD-HANDEDNESS] & 3 == 2) {
         actor-do-anim 13 248
     }
 }
@@ -58,7 +58,7 @@ put-actor 14 local3 (local4 + -100) gCurrentRoom
 run-script smth_team_color_palette [1 - gBattingTeamInfoIndex, 14]
 actor-do-anim 14 8
 if ((local0[6] in [39, 54, 60, 56]) || local0[6] > gMaxUniqueKid) {
-    if (gKidData[local0[6]][13] & 3 == 2) {
+    if (gKidData[local0[6]][KD-HANDEDNESS] & 3 == 2) {
         actor-do-anim 14 248
     }
 }
@@ -110,7 +110,7 @@ put-actor 15 local3 (local4 + -100) gCurrentRoom
 run-script smth_team_color_palette [1 - gBattingTeamInfoIndex, 15]
 actor-do-anim 15 8
 if ((local0[1] in [39, 54, 60, 56]) || local0[1] > gMaxUniqueKid) {
-    if (gKidData[local0[1]][13] & 3 == 2) {
+    if (gKidData[local0[1]][KD-HANDEDNESS] & 3 == 2) {
         actor-do-anim 15 248
     }
 }

@@ -5,7 +5,7 @@ local variable local1
 local variable local2
 
 local1 = call-script 2060 []
-local0 = gKidData[gBatterKid][KD-BATTING-CONTACT]
+local0 = gKidData[gBatterKid][KD-BAT-HITTING]
 local2 = random 100
 if (local2 > local0) {
     if ((random 1) || gTeeBall) {

@@ -15,9 +15,9 @@ local variable local11
 local8 = palette-x42 g_some_palette_655 5
 local10 = gTeamInfo[local2][TI-TEAM-NOUN]
 if (local10 <= 106) {
-    local11 = gTeamInfo[local2][8]
+    local11 = gTeamInfo[local2][TI-SECONDARY-COLOR]
 } else {
-    local11 = g_underwater_array[local10][8]
+    local11 = gMLBTeamData[local10][8]
 }
 run-script 276 [local11, 32]
 local7 = 6 + local1

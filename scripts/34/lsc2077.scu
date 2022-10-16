@@ -12,7 +12,7 @@ local variable local8
 
 for local2 = 0 to 8 ++ {
     local3 = call-script ReadActiveRoster [local0, local2]
-    local4 = gKidData[local3][14] + gKidData[local3][15] + gKidData[local3][16] + gKidData[local3][17]
+    local4 = gKidData[local3][KD-PITCH-HEAT] + gKidData[local3][KD-PITCH-SLOWBALL] + gKidData[local3][KD-PITCH-LEFT-HOOK] + gKidData[local3][KD-PITCH-RIGHT-HOOK]
     if (local4 > local5) {
         local8 = local7
         local7 = local2
@@ -31,7 +31,7 @@ local5 = 0
 local6 = 0
 for local2 = 0 to 8 ++ {
     local3 = call-script ReadActiveRoster [local1, local2]
-    local4 = gKidData[local3][14] + gKidData[local3][15] + gKidData[local3][16] + gKidData[local3][17]
+    local4 = gKidData[local3][KD-PITCH-HEAT] + gKidData[local3][KD-PITCH-SLOWBALL] + gKidData[local3][KD-PITCH-LEFT-HOOK] + gKidData[local3][KD-PITCH-RIGHT-HOOK]
     if (local4 > local5) {
         local8 = local7
         local7 = local2

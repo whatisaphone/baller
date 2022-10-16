@@ -98,10 +98,10 @@ case arg0 {
     else {
         if (arg0 >= 31 && arg0 <= 61) {
             local1 = (arg0 - 31) * 4 + 437
-        } else if (gKidData[arg0][11] >= 7) {
-            local1 = 174 + 4 * (gKidData[arg0][11] - 7)
+        } else if (gKidData[arg0][KD-APPEARANCE] >= 7) {
+            local1 = 174 + 4 * (gKidData[arg0][KD-APPEARANCE] - 7)
         } else {
-            local1 = 150 + 4 * (gKidData[arg0][11] - 1)
+            local1 = 150 + 4 * (gKidData[arg0][KD-APPEARANCE] - 1)
         }
     }
 }

@@ -23,9 +23,9 @@ if (gNumStrikes == 0 && gNumBalls > 0 && gNumBalls < 3) {
 if (gNumStrikes == 1 && gNumBalls > 1) {
     ++local3
 }
-local3 = local3 + gKidData[gBatterKid][KD-BATTING-CONTACT] / 10 - 5
+local3 = local3 + gKidData[gBatterKid][KD-BAT-HITTING] / 10 - 5
 if (local0) {
-    if (gKidData[local0][KD-maybe-speed] < 25 || gKidData[local0][KD-maybe-speed] > 75) {
+    if (gKidData[local0][KD-SPEED] < 25 || gKidData[local0][KD-SPEED] > 75) {
         ++local3
     }
 }

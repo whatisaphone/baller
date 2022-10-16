@@ -42,28 +42,28 @@ case random 15 {
         local1 = 1677
     }
     of 12 {
-        if (gKidData[local0][KD-gender] == GIRL) {
+        if (gKidData[local0][KD-GENDER] == GIRL) {
             local1 = 1678
         } else {
             local1 = 1679
         }
     }
     of 13 {
-        if (gKidData[local0][KD-gender] == GIRL) {
+        if (gKidData[local0][KD-GENDER] == GIRL) {
             local1 = 1680
         } else {
             local1 = 1681
         }
     }
     of 14 {
-        if (gKidData[local0][KD-gender] == GIRL) {
+        if (gKidData[local0][KD-GENDER] == GIRL) {
             local1 = 1682
         } else {
             local1 = 1683
         }
     }
     of 15 {
-        if (gKidData[local0][KD-gender] == GIRL) {
+        if (gKidData[local0][KD-GENDER] == GIRL) {
             local1 = 1684
         } else {
             local1 = 1685
@@ -139,7 +139,7 @@ if (gNumBalls > 0 && gNumStrikes > 0 && (random 1)) {
             local1 = 1703
         }
         of 12 {
-            if (gKidData[local0][KD-gender] == GIRL) {
+            if (gKidData[local0][KD-GENDER] == GIRL) {
                 local1 = 1704
             } else {
                 local1 = 1705

@@ -52,7 +52,7 @@ if (rPitchKind != PITCH-HEAT) {
     }
 }
 local1 = random 101
-local2 = gKidData[gBatterKid][KD-PREDICTION]
+local2 = gKidData[gBatterKid][KD-EYE]
 if (gDifficulty == MEDIUM || gDifficulty == HARD) {
     if (random 3) {
         gAIGuessedPitchLocationX = (rRealPitchLocationX + gAIGuessedPitchLocationX) / 2
@@ -156,7 +156,7 @@ if (!(call-script maybe_ai_decide_whether_to_swing [local8, local1, local2])) {
 gCurrentSwing = call-script AIGetSwingType []
 run-script SetSwingSounds []
 local1 = random 21
-local3 = gKidData[gBatterKid][KD-BATTING-CONTACT] / 10 + 10
+local3 = gKidData[gBatterKid][KD-BAT-HITTING] / 10 + 10
 local1 = local1 - local4 + local12 * 2
 if (gCurrentHalfInning == 49) {
     local3 = 100

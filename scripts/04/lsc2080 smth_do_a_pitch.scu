@@ -12,12 +12,12 @@ local variable catch_sound
 local variable local12
 local variable local13
 
-if (gKidData[rPitcherKid][KD-maybe-height] < 3) {
+if (gKidData[rPitcherKid][KD-HEIGHT] < 3) {
     local8 = 10
 } else {
     local8 = -20
 }
-if (rPitchKind != PITCH-maybe-intentional-walk) {
+if (rPitchKind != PITCH-INTENTIONAL-WALK) {
     local2 = 15 + rPitchKind - 14
 } else {
     local2 = 16
@@ -85,12 +85,12 @@ case rPitchKind {
             catch_sound = 1994
         }
     }
-    of PITCH-maybe-intentional-walk {
+    of PITCH-INTENTIONAL-WALK {
         local6 = 5
         gStealStartingPosAdjust = -20
     }
     of PITCH-CRAZY-BALL {
-        local7 = (gKidData[rPitcherKid][23] - gKidData[rPitcherKid][KD-fatigue] + 10) / 25
+        local7 = (gKidData[rPitcherKid][KD-PITCH-CRAZY-BALL] - gKidData[rPitcherKid][KD-fatigue] + 10) / 25
         local6 = min 4 local7
         local6 = max 1 local6
         catch_sound = 1470

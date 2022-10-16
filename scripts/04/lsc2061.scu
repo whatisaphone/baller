@@ -9,7 +9,7 @@ if (gDifficulty == HARD || gDifficulty == MEDIUM && !(random 3)) {
     local1 = random 1000
 }
 if (!local0) {
-    if (local1 < gKidData[rPitcherKid][2]) {
+    if (local1 < gKidData[rPitcherKid][KD-INTELLIGENCE]) {
         local0 = random2 2 13
     } else {
         local0 = 1

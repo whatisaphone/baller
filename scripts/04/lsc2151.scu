@@ -26,7 +26,7 @@ if (local4 >= 101 && local4 <= 106) {
     } else {
         local6 = 318
     }
-    local7 = g_underwater_array[local4][0] - 1
+    local7 = gMLBTeamData[local4][0] - 1
     if (local4 == 123) {
         local6 = 320
         local7 = 4

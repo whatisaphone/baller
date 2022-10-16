@@ -67,7 +67,7 @@ room25 = 1
 if (rPitcherKid in [KENNY-LOFTON, TONY-GWYNN, SHAWN-GREEN, KEN-GRIFFEY-JR]) {
     actor-do-anim 3 248
 } else if (rPitcherKid > gMaxUniqueKid) {
-    if (gKidData[rPitcherKid][13] & 3 == 2) {
+    if (gKidData[rPitcherKid][KD-HANDEDNESS] & 3 == 2) {
         actor-do-anim 3 248
     }
 }

@@ -9,8 +9,8 @@ local variable local5
 local variable local6
 
 local1 = call-script GetSeasonDivision []
-local3 = gTeamInfo[0][3]
-local4 = gTeamInfo[0][8]
+local3 = gTeamInfo[0][TI-PRIMARY-COLOR]
+local4 = gTeamInfo[0][TI-SECONDARY-COLOR]
 for local0 = 0 to 23 ++ {
     if (local0 != local1) {
         local2 = call-script 130 [local0]
@@ -41,8 +41,8 @@ for local0 = 0 to 23 ++ {
             gSeasonRosterArray[local0][13] = local5
         } else {
             local6 = call-script ReadSeasonTeams [local0]
-            gSeasonRosterArray[local0][12] = g_underwater_array[local6][4]
-            gSeasonRosterArray[local0][13] = g_underwater_array[local6][5]
+            gSeasonRosterArray[local0][12] = gMLBTeamData[local6][4]
+            gSeasonRosterArray[local0][13] = gMLBTeamData[local6][5]
         }
     }
 }

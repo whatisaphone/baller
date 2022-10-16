@@ -12,7 +12,7 @@ if (local0 >= 101 && local0 <= 106) {
         local2 = 324
     }
 } else if (call-script 284 [local0]) {
-    case g_underwater_array[local0][2] {
+    case gMLBTeamData[local0][2] {
         of 1 {
             local2 = 299
         }
@@ -24,7 +24,7 @@ if (local0 >= 101 && local0 <= 106) {
         }
     }
 } else {
-    case g_underwater_array[local0][2] {
+    case gMLBTeamData[local0][2] {
         of 1 {
             local2 = 302
         }

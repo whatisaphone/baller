@@ -73,7 +73,7 @@ run-script GetKidNickname [local0]
 if (!gKidName) {
     gKidName = "This kid"
 }
-if (gKidData[local0][KD-gender] == GIRL) {
+if (gKidData[local0][KD-GENDER] == GIRL) {
     local7 = "her"
     local8 = "her"
 } else {

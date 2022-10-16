@@ -43,7 +43,7 @@ case random 15 {
         sound = 1963
     }
     of 12 {
-        if (gKidData[kid][KD-gender] == GIRL) {
+        if (gKidData[kid][KD-GENDER] == GIRL) {
             sound = 1964
         } else {
             sound = 1965
@@ -53,14 +53,14 @@ case random 15 {
         sound = 1966
     }
     of 14 {
-        if (gKidData[kid][KD-gender] == GIRL) {
+        if (gKidData[kid][KD-GENDER] == GIRL) {
             sound = 1967
         } else {
             sound = 1968
         }
     }
     of 15 {
-        if (gKidData[kid][KD-gender] == GIRL) {
+        if (gKidData[kid][KD-GENDER] == GIRL) {
             sound = 1969
         } else {
             sound = 1970

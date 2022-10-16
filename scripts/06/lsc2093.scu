@@ -21,7 +21,7 @@ if (room4 != room6) {
         } else {
             local1 = 141
         }
-        local2 = g_underwater_array[room4 + 100][0] - 1
+        local2 = gMLBTeamData[room4 + 100][0] - 1
     }
     image-select (local1 + local2 / 5)
     image-x34 (mod local2 5)
@@ -46,7 +46,7 @@ if (room5 != room7) {
             local3 = 160
         }
         local4 = room15
-        local2 = g_underwater_array[room5][0] - 1
+        local2 = gMLBTeamData[room5][0] - 1
     }
     image-select (local1 + local2 / 6)
     image-x34 (mod local2 6)

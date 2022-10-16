@@ -6,7 +6,7 @@ case arg0 {
     of 1 {
         do {
             rPitchKind = gPitcherPitches[1 - gBattingTeamInfoIndex][random2 1 10] / 10
-        } until (rPitchKind && rPitchKind != PITCH-maybe-intentional-walk && rPitchKind != PITCH-maybe-more-juice)
+        } until (rPitchKind && rPitchKind != PITCH-INTENTIONAL-WALK && rPitchKind != PITCH-MORE-JUICE)
     }
     of 2 {
         rPitchKind = gPitcherPitches[1 - gBattingTeamInfoIndex][global397[1]] / 10
@@ -26,7 +26,7 @@ case arg0 {
         rPitchKind = arg0
     }
 }
-if (rPitchKind == PITCH-maybe-more-juice || rPitchKind == 0) {
+if (rPitchKind == PITCH-MORE-JUICE || rPitchKind == 0) {
     run-script smth_about_pitching_ai []
     arg0 = 1
     run-script AIChoosePitchKind [arg0]

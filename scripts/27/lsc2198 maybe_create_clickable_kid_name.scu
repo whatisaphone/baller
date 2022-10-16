@@ -20,7 +20,7 @@ case 1 {
         local2 = gPlayoffRosterArray[room59][11]
     }
     else {
-        run-script 279 [room90, gTeamInfo[room59][3], gTeamInfo[room59][8]]
+        run-script 279 [room90, gTeamInfo[room59][TI-PRIMARY-COLOR], gTeamInfo[room59][TI-SECONDARY-COLOR]]
         local2 = gTeamInfo[room59][TI-TEAM-NOUN]
     }
 }

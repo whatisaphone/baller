@@ -160,7 +160,7 @@ if (rBallWasHitHigh) {
         if (runner_is_batter == 0 || runner_is_batter && gRunners[runneridx][R-FORCED] == false) {
             if (gNumOuts < 2) {
                 if (gRunners[runneridx][16] == 0) {
-                    if ((100 - (gKidData[gRunners[runneridx][R-KID]][KD-PREDICTION] + (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])) / 2) * (random 100) < 1000) {
+                    if ((100 - (gKidData[gRunners[runneridx][R-KID]][KD-EYE] + (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])) / 2) * (random 100) < 1000) {
                         gRunners[runneridx][16] = 1
                     } else {
                         gRunners[runneridx][16] = 2
@@ -181,7 +181,7 @@ if (result) {
 if (call-script IsFoulTerritory [gSimFirstBounceX, gSimFirstBounceZ]) {
     if (gRunners[runneridx][19] == 0) {
         if (!(gBallHasBounced > 0) && !rCaughtFly) {
-            local18 = gKidData[gRunners[runneridx][R-KID]][KD-PREDICTION]
+            local18 = gKidData[gRunners[runneridx][R-KID]][KD-EYE]
             local18 = local18 + (call-script smth_about_kid_data_2_and_errors [gRunners[runneridx][R-KID]])
             local18 = local18 / 5
             local18 = local18 + 60

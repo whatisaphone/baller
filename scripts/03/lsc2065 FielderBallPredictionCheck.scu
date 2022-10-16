@@ -9,9 +9,9 @@ if (gNoErrors) {
     free-running-script 0
 }
 if (gBallVelPhysY) {
-    result = gKidData[kid][KD-PREDICTION] * 240000 / gBallVelPhysY
+    result = gKidData[kid][KD-EYE] * 240000 / gBallVelPhysY
 } else {
-    result = gKidData[kid][KD-PREDICTION] * 240000
+    result = gKidData[kid][KD-EYE] * 240000
 }
 if (result > 100) {
     result = 100

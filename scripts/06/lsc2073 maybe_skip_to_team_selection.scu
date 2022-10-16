@@ -1,8 +1,8 @@
 ; LSC2 6 2073 maybe_skip_to_team_selection
 
 if (room5) {
-    gTeamInfo[0][3] = room10
-    gTeamInfo[0][8] = room8
+    gTeamInfo[0][TI-PRIMARY-COLOR] = room10
+    gTeamInfo[0][TI-SECONDARY-COLOR] = room8
     gTeamInfo[0][TI-TEAM-ADJECTIVE] = room4
     gTeamInfo[0][TI-TEAM-NOUN] = room5
 }

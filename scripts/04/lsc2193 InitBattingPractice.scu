@@ -1,10 +1,10 @@
 ; LSC2 4 2193 InitBattingPractice
 
 if (gPreviousRoom != 3) {
-    gTeamInfo[0][3] = 1
-    gTeamInfo[0][8] = 8
-    gTeamInfo[1][3] = 8
-    gTeamInfo[1][8] = 1
+    gTeamInfo[0][TI-PRIMARY-COLOR] = 1
+    gTeamInfo[0][TI-SECONDARY-COLOR] = 8
+    gTeamInfo[1][TI-PRIMARY-COLOR] = 8
+    gTeamInfo[1][TI-SECONDARY-COLOR] = 1
 }
 gBallWasHit = false
 gBatterKid = gBattingPracticeKid
@@ -20,6 +20,6 @@ if (!gBatterStance) {
     gBatterStance = gKidData[gBatterKid][KD-DEFAULT-STANCE]
 }
 run-script InitBatterActor [1]
-rBatterHandedness = shr (gKidData[gBatterKid][13] & 48) 4
+rBatterHandedness = shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4
 run-script BattingPracticeDoPitch []
 free-script

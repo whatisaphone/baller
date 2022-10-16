@@ -10,8 +10,8 @@ local variable batter_handedness: Handedness
 local variable batter_gender: Gender
 
 gCurrentSpeechScript = CastPitchBall
-batter_handedness = shr (gKidData[gBatterKid][13] & 48) 4
-batter_gender = gKidData[gBatterKid][KD-gender]
+batter_handedness = shr (gKidData[gBatterKid][KD-HANDEDNESS] & 48) 4
+batter_gender = gKidData[gBatterKid][KD-GENDER]
 if (random 1) {
     if (random 1) {
         case 1 {
@@ -204,7 +204,7 @@ label06c6:
         case random 7 {
             of 0 {
                 if (zone in [1, 2, 6, 7, 8, 14, 36, 42, 43, 44, 48, 49]) {
-                    if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                    if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT15659338,18132\x7f She tried the corner on this."
@@ -231,7 +231,7 @@ label06c6:
                 }
             }
             of 2 {
-                if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
                     goto label06c6
                 } else if ((zone in [1, 2, 8, 15]) && batter_handedness == RIGHT-HANDED || (zone in [6, 7, 14, 21]) && batter_handedness == LEFT-HANDED) {
                     xb8-xfe 1
@@ -258,7 +258,7 @@ label06c6:
             }
             of 4 {
                 if (zone > 0 && zone < 8 || zone == -1) {
-                    if (gKidData[pitcher_kid][KD-gender] == GIRL && (random 1)) {
+                    if (gKidData[pitcher_kid][KD-GENDER] == GIRL && (random 1)) {
                         xb8-xfe 1
                         xb8-x41 0 0
                         xb8-x4b "\x7fT15809013,28743\x7f  Looked she was tryin' to hit a bird or somethin'"
@@ -317,7 +317,7 @@ label0b89:
     } else {
         gPitchWasCasted = 1
         if (random 1) {
-            if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+            if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
                 xb8-xfe 1
                 xb8-x41 0 0
                 xb8-x4b "\x7fT15963747,20553\x7f  Tryin' to keep her cool out there."
@@ -326,7 +326,7 @@ label0b89:
                 xb8-x41 0 0
                 xb8-x4b "\x7fT15984300,37100\x7f  You can see his frustration level rising."
             }
-        } else if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+        } else if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT16021400,25696\x7f  She's trying not to let it get to her."
@@ -361,7 +361,7 @@ case random temp {
         xb8-x4b "\x7fT16096575,20457\x7f stroll down the first baseline"
     }
     of 3 {
-        if (gKidData[batter_kid][KD-gender] == GIRL) {
+        if (gKidData[batter_kid][KD-GENDER] == GIRL) {
             xb8-xfe 1
             xb8-x41 0 0
             xb8-x4b "\x7fT16117032,9909\x7f And she walks.."
@@ -463,7 +463,7 @@ if (!(random 2) || gNoGooch) {
                 xb8-x4b "\x7fT16431038,29200\x7f   Happens to the best of 'em from time to time."
             }
             of 5 {
-                if (gKidData[pitcher_kid][KD-gender] == GIRL) {
+                if (gKidData[pitcher_kid][KD-GENDER] == GIRL) {
                     xb8-xfe 1
                     xb8-x41 0 0
                     xb8-x4b "\x7fT16460238,54020\x7f  that's really tough on a pitcher's confidence level.  Let's hope this doesn't get to her."
