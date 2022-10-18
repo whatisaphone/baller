@@ -8,10 +8,10 @@ local variable local4
 local variable local5
 
 local5 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
-local1 = call-script 243 [264]
-local2 = call-script 244 [264]
-local3 = call-script 245 [264]
-local4 = call-script 246 [264]
+local1 = call-script CalcCardStatBatting [CUSTOM-KID-0]
+local2 = call-script CalcCardStatRunning [CUSTOM-KID-0]
+local3 = call-script CalcCardStatPitching [CUSTOM-KID-0]
+local4 = call-script CalcCardStatFielding [CUSTOM-KID-0]
 local5 = (local5 - 367) / 25
 local5 = max 0 local5
 case local0 {

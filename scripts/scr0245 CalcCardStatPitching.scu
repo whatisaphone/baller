@@ -1,0 +1,24 @@
+; SCRP 245 CalcCardStatPitching
+
+parameter kid: Kid
+parameter arg1
+
+local variable local2
+local variable local3
+local variable data: [Kid][KidData]
+
+if (!arg1) {
+    data = gBackupKidData
+} else {
+    data = gKidData
+}
+local2 = data[kid][KD-PITCH-HEAT] + data[kid][KD-PITCH-SLOWBALL] + data[kid][KD-PITCH-LEFT-HOOK] + data[kid][KD-PITCH-RIGHT-HOOK]
+local2 = local2 / 4
+local2 = 3 * local2 + data[kid][KD-STAMINA]
+local2 = local2 / 4
+local3 = (local2 - 20) * 100 / 50
+local3 = local3 * 10
+local3 = local3 / 100
+local3 = max 1 (min local3 10)
+return local3
+free-script

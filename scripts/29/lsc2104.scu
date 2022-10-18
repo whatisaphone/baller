@@ -12,10 +12,10 @@ local variable local8
 local variable local9
 local variable local10
 
-local0 = call-script 243 [264]
-local1 = call-script 244 [264]
-local2 = call-script 245 [264]
-local3 = call-script 246 [264]
+local0 = call-script CalcCardStatBatting [CUSTOM-KID-0]
+local1 = call-script CalcCardStatRunning [CUSTOM-KID-0]
+local2 = call-script CalcCardStatPitching [CUSTOM-KID-0]
+local3 = call-script CalcCardStatFielding [CUSTOM-KID-0]
 array-set local10 [local0, local1, local2, local3] 0
 xe2 local10
 local5 = 134 + global622

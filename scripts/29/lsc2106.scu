@@ -26,7 +26,7 @@ sprite-set-range global634[4] global634[4]
 sprite-x25 6
 run-script 2074 []
 run-script 2104 []
-room14 = 24 - (call-script 243 [264]) - (call-script 244 [264]) - (call-script 245 [264]) - (call-script 246 [264])
+room14 = 24 - (call-script CalcCardStatBatting [CUSTOM-KID-0]) - (call-script CalcCardStatRunning [CUSTOM-KID-0]) - (call-script CalcCardStatPitching [CUSTOM-KID-0]) - (call-script CalcCardStatFielding [CUSTOM-KID-0])
 rAwaitingFirstInput = 1
 room8 = call-script AllocPalette []
 room9 = call-script AllocPalette []
