@@ -1,6 +1,7 @@
 use crate::{
     config::Config,
     script::{decompile, disasm_to_string, get_script_name, Scope},
+    utils::vec::extend_insert_some,
     xor::XorStream,
 };
 use byteordered::byteorder::{ReadBytesExt, BE, LE};
@@ -18,6 +19,7 @@ use std::{
 use tracing::info_span;
 
 pub const NICE: u8 = 0x69;
+pub const FAIL: &str = "I have failed you";
 
 pub struct Index {
     pub lfl_disks: Vec<u8>,
@@ -25,6 +27,7 @@ pub struct Index {
     pub scripts: Directory,
     pub sounds: Directory,
     pub talkies: Directory,
+    pub room_names: Vec<Option<String>>,
 }
 
 pub struct Directory {
@@ -49,6 +52,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         scripts: None,
         sounds: None,
         talkies: None,
+        room_names: None,
     };
 
     scan_blocks(&mut s, &mut state, handle_index_block, len)?;
@@ -59,6 +63,7 @@ pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
         scripts: state.scripts.ok_or("index incomplete")?,
         sounds: state.sounds.ok_or("index incomplete")?,
         talkies: state.talkies.ok_or("index incomplete")?,
+        room_names: state.room_names.ok_or("index incomplete")?,
     })
 }
 
@@ -69,6 +74,7 @@ struct IndexState {
     scripts: Option<Directory>,
     sounds: Option<Directory>,
     talkies: Option<Directory>,
+    room_names: Option<Vec<Option<String>>>,
 }
 
 fn handle_index_block<R: Read>(
@@ -103,10 +109,31 @@ fn handle_index_block<R: Read>(
         b"DIRT" => {
             state.talkies = Some(read_directory(&mut r)?);
         }
+        b"RNAM" => {
+            let mut room_names = Vec::new();
+            let mut i = 0;
+            loop {
+                let number =
+                    i16::from_le_bytes(state.buf.get(i..i + 2).ok_or(FAIL)?.try_into().unwrap());
+                i += 2;
+                let number: usize = number.try_into()?;
+                if number == 0 {
+                    break;
+                }
+                let len = state.buf[i..].iter().position(|&b| b == 0).ok_or(FAIL)?;
+                let name = String::from_utf8(state.buf[i..i + len].to_vec())?;
+                i += len + 1;
+                extend_insert_some(&mut room_names, number, name)?;
+            }
+            state.room_names = Some(room_names);
+
+            r.seek(SeekFrom::Start(i.try_into().unwrap()))?;
+        }
         _ => {
             r.seek(SeekFrom::End(0))?;
         }
     }
+    debug_assert!(r.position() == state.buf.len().try_into().unwrap());
     Ok(())
 }
 
@@ -235,7 +262,8 @@ fn extract_recursive<R: Read + Seek>(
         b"LECF" => state.disk_number.into(),
         b"LFLF" => {
             state.current_room = find_lfl_number(state.disk_number, offset, state.index)
-                .ok_or("LFL not in index")?;
+                .ok_or("LFL not in index")?
+                .into();
             state.current_room
         }
         b"DIGI" | b"TALK" => {
@@ -451,7 +479,8 @@ fn output_script(
     Ok(())
 }
 
-fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<i32> {
+pub fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<u8> {
+    debug_assert!(index.lfl_disks.len() <= 255);
     for i in 0..index.lfl_disks.len() {
         if index.lfl_disks[i] == disk_number && Ok(index.lfl_offsets[i]) == offset.try_into() {
             return Some(i.try_into().unwrap());

@@ -1,6 +1,7 @@
 use std::ops::Range;
 
 pub mod byte_array;
+pub mod vec;
 
 pub fn subslice_offset(this: &[u8], other: &[u8]) -> usize {
     let Range { start, end } = this.as_ptr_range();

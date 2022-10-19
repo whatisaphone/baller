@@ -10,9 +10,11 @@
 #![cfg_attr(feature = "strict", deny(warnings))]
 
 use crate::{
+    blocks::{push_disk_number, strip_disk_number},
     build::{build, FsEntry},
     config::Config,
     extract::{dump_index, extract, read_index, Index},
+    extract2::extract2,
 };
 use clap::Parser;
 use std::{
@@ -25,9 +27,11 @@ use std::{
 #[macro_use]
 mod macros;
 
+mod blocks;
 mod build;
 mod config;
 mod extract;
+mod extract2;
 mod script;
 #[cfg(test)]
 mod tests;
@@ -38,6 +42,7 @@ mod xor;
 enum Command {
     Build(Build),
     Extract(Extract),
+    Extract2(Extract2),
 }
 
 fn main() {
@@ -59,6 +64,7 @@ fn main_thread() {
     let r = match Command::parse() {
         Command::Build(cmd) => cmd.run(),
         Command::Extract(cmd) => cmd.run(),
+        Command::Extract2(cmd) => cmd.run(),
     };
     r.unwrap();
 }
@@ -150,9 +156,7 @@ impl Extract {
         disk_number: u8,
         publish_scripts: bool,
     ) -> Result<(), Box<dyn Error>> {
-        input.push('(');
-        input.push((disk_number + b'a' - 1).into());
-        input.push(')');
+        push_disk_number(input, disk_number);
 
         let mut f = File::open(&input)?;
         extract(
@@ -161,16 +165,45 @@ impl Extract {
             config,
             publish_scripts,
             &mut f,
-            &mut |path, data| {
-                let path = output.join(path);
-                fs::create_dir_all(path.parent().unwrap())?;
-                fs::write(path, data)?;
-                Ok(())
-            },
+            &mut fs_writer(output),
         )?;
         drop(f);
 
-        input.truncate(input.len() - 3);
+        strip_disk_number(input);
+        Ok(())
+    }
+}
+
+#[derive(Parser)]
+struct Extract2 {
+    input: PathBuf,
+    #[clap(short, long)]
+    output: PathBuf,
+    #[clap(short, long = "config")]
+    config_path: Option<PathBuf>,
+}
+
+impl Extract2 {
+    fn run(self) -> Result<(), Box<dyn Error>> {
+        let input = self.input.into_os_string().into_string().unwrap();
+        if !input.ends_with("he0") {
+            return Err("input path must end with \"he0\"".into());
+        }
+
+        if !self.output.exists() {
+            fs::create_dir(&self.output)?;
+        }
+
+        extract2(input, &mut fs_writer(&self.output))?;
+        Ok(())
+    }
+}
+
+fn fs_writer(root: &Path) -> impl Fn(&str, &[u8]) -> Result<(), Box<dyn Error>> + '_ {
+    |path, data| {
+        let path = root.join(path);
+        fs::create_dir_all(path.parent().unwrap())?;
+        fs::write(path, data)?;
         Ok(())
     }
 }
