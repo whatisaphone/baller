@@ -11,10 +11,11 @@
 
 use crate::{
     blocks::{push_disk_number, strip_disk_number},
-    build::{build, FsEntry},
+    compiler::build_disk,
     config::Config,
     extract::{dump_index, extract, read_index, Index},
     extract2::extract2,
+    raw_build::{raw_build, FsEntry},
 };
 use clap::Parser;
 use std::{
@@ -28,10 +29,11 @@ use std::{
 mod macros;
 
 mod blocks;
-mod build;
+mod compiler;
 mod config;
 mod extract;
 mod extract2;
+mod raw_build;
 mod script;
 #[cfg(test)]
 mod tests;
@@ -43,6 +45,7 @@ enum Command {
     Build(Build),
     Extract(Extract),
     Extract2(Extract2),
+    RawBuild(RawBuild),
 }
 
 fn main() {
@@ -65,6 +68,7 @@ fn main_thread() {
         Command::Build(cmd) => cmd.run(),
         Command::Extract(cmd) => cmd.run(),
         Command::Extract2(cmd) => cmd.run(),
+        Command::RawBuild(cmd) => cmd.run(),
     };
     r.unwrap();
 }
@@ -73,25 +77,29 @@ fn main_thread() {
 struct Build {
     input: PathBuf,
     #[clap(short)]
-    output: PathBuf,
+    output: String,
+    #[clap(short, long)]
+    disk_number: u8,
 }
 
 impl Build {
     fn run(self) -> Result<(), Box<dyn Error>> {
+        build_disk(&self.output, self.disk_number, fs_reader(&self.input))
+    }
+}
+
+#[derive(Parser)]
+struct RawBuild {
+    input: PathBuf,
+    #[clap(short)]
+    output: PathBuf,
+}
+
+impl RawBuild {
+    fn run(self) -> Result<(), Box<dyn Error>> {
         let mut out = File::create(&self.output)?;
 
-        build(&mut out, |path| {
-            let path = self.input.join(path);
-            let metadata = fs::metadata(&path)?;
-            if metadata.is_dir() {
-                let names: Result<Vec<_>, Box<dyn Error>> = fs::read_dir(&path)?
-                    .map(|e| Ok(e?.file_name().into_string().unwrap()))
-                    .collect();
-                Ok(FsEntry::Dir(names?))
-            } else {
-                Ok(FsEntry::File(fs::read(path)?))
-            }
-        })
+        raw_build(&mut out, fs_reader(&self.input))
     }
 }
 
@@ -196,6 +204,21 @@ impl Extract2 {
 
         extract2(input, &mut fs_writer(&self.output))?;
         Ok(())
+    }
+}
+
+fn fs_reader(root: &Path) -> impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy + '_ {
+    |path| {
+        let path = root.join(path);
+        let metadata = fs::metadata(&path)?;
+        if metadata.is_dir() {
+            let names: Result<Vec<_>, Box<dyn Error>> = fs::read_dir(&path)?
+                .map(|e| Ok(e?.file_name().into_string().unwrap()))
+                .collect();
+            Ok(FsEntry::Dir(names?))
+        } else {
+            Ok(FsEntry::File(fs::read(path)?))
+        }
     }
 }
 

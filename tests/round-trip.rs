@@ -1,8 +1,9 @@
-use inside_baseball::{build, extract, read_index, Config, FsEntry};
+use inside_baseball::{build_disk, extract, extract2, raw_build, read_index, Config, FsEntry};
 use std::{
     collections::HashMap,
     env,
     error::Error,
+    fs,
     fs::File,
     io,
     io::{Read, Seek, SeekFrom},
@@ -11,18 +12,18 @@ use std::{
 };
 
 #[test]
-fn round_trip() {
+fn raw_round_trip() {
     // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
     // scripts. Run in a thread with a larger stack.
     thread::Builder::new()
         .stack_size(8 << 20)
-        .spawn(|| round_trip_thread().unwrap())
+        .spawn(|| raw_round_trip_thread().unwrap())
         .unwrap()
         .join()
         .unwrap();
 }
 
-fn round_trip_thread() -> Result<(), Box<dyn Error>> {
+fn raw_round_trip_thread() -> Result<(), Box<dyn Error>> {
     let input_path = fixture_path("baseball 2001.he0");
     let mut input = File::open(&input_path)?;
     let index = read_index(&mut input)?;
@@ -43,9 +44,35 @@ fn round_trip_thread() -> Result<(), Box<dyn Error>> {
     drop(input);
 
     let mut output = Vec::new();
-    build(&mut io::Cursor::new(&mut output), |path| fs_read(&fs, path))?;
+    raw_build(&mut io::Cursor::new(&mut output), |path| fs_read(&fs, path))?;
     assert_stream_eq(&input_path, &mut io::Cursor::new(&mut output))?;
     Ok(())
+}
+
+#[test]
+#[ignore = "TODO"]
+fn round_trip2() -> Result<(), Box<dyn Error>> {
+    let mut fs = HashMap::with_capacity(1 << 10);
+
+    extract2(
+        fixture_path("baseball 2001.he0")
+            .into_os_string()
+            .into_string()
+            .unwrap(),
+        &mut |path, data| fs_write(&mut fs, path, data.to_vec()),
+    )?;
+
+    let mut index_path = env::temp_dir().join("inside-baseball-test-round-trip");
+    if !index_path.exists() {
+        fs::create_dir(&index_path)?
+    }
+    index_path.push("baseball 2001.he0");
+    fs::copy(&fixture_path("baseball 2001.he0"), &index_path)?;
+
+    let index_path = index_path.into_os_string().into_string().unwrap();
+    let disk_number = 2;
+    build_disk(&index_path, disk_number, |path| fs_read(&fs, path))?;
+    todo!();
 }
 
 fn assert_stream_eq(path: &Path, s2: &mut (impl Read + Seek)) -> Result<bool, io::Error> {

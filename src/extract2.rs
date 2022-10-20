@@ -43,7 +43,7 @@ pub fn extract2(
             room_number, room.name, room.disk_number,
         )?;
     }
-    write_file("project.txt", project.as_bytes())?;
+    write_file("./project.txt", project.as_bytes())?;
     Ok(())
 }
 
@@ -100,7 +100,7 @@ fn decompile_disk(
 
             let id_str = str::from_utf8(&id)?;
             let number = *lflf_blocks.entry(id).and_modify(|x| *x += 1).or_insert(1);
-            write_file(&format!("{room_name}/{id_str}/{number}.bin"), &buf[..len])?;
+            write_file(&format!("./{room_name}/{id_str}/{number}.bin"), &buf[..len])?;
             writeln!(
                 room_scu,
                 r#"include-raw "{id_str}" "{id_str}/{number}.bin""#,
@@ -109,7 +109,7 @@ fn decompile_disk(
 
         scan_lflf.finish(&mut s)?;
 
-        write_file(&format!("{room_name}/room.scu"), room_scu.as_bytes())?;
+        write_file(&format!("./{room_name}/room.scu"), room_scu.as_bytes())?;
     }
 
     scan_lecf.finish(&mut s)?;

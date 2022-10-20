@@ -12,17 +12,22 @@
 #![cfg_attr(feature = "strict", deny(warnings))]
 
 pub use crate::{
-    build::{build, FsEntry},
+    compiler::build_disk,
     config::Config,
     extract::{dump_index, extract, read_index},
+    extract2::extract2,
+    raw_build::{raw_build, FsEntry},
 };
 
 #[macro_use]
 mod macros;
 
-mod build;
+mod blocks;
+mod compiler;
 mod config;
 mod extract;
+mod extract2;
+mod raw_build;
 mod script;
 #[cfg(test)]
 mod tests;

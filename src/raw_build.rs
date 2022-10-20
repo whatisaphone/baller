@@ -16,7 +16,7 @@ struct State {
     pending_lengths: Vec<(u64, i32)>,
 }
 
-pub fn build<S: Write + Seek>(
+pub fn raw_build<S: Write + Seek>(
     out: &mut S,
     read: impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy,
 ) -> Result<(), Box<dyn Error>> {
