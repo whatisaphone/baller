@@ -1,13 +1,14 @@
+use crate::compiler::loc::{Loc, SourceMap};
 use std::{io, io::Write};
 
 pub struct CompileError {
-    pub offset: u32,
+    pub loc: Loc,
     pub payload: CompileErrorPayload,
 }
 
 impl CompileError {
-    pub fn new(offset: u32, payload: CompileErrorPayload) -> Self {
-        Self { offset, payload }
+    pub fn new(loc: Loc, payload: CompileErrorPayload) -> Self {
+        Self { loc, payload }
     }
 }
 
@@ -16,6 +17,8 @@ pub enum CompileErrorPayload {
     UnexpectedToken { expected: &'static str },
     Duplicate,
     BadInteger,
+    CantReadFile,
+    InvalidUtf8,
 }
 
 impl CompileError {
@@ -33,14 +36,25 @@ impl CompileError {
             CompileErrorPayload::BadInteger => {
                 write!(w, "integer is either invalid or out of range")?;
             }
+            CompileErrorPayload::CantReadFile => {
+                write!(w, "can't read file")?;
+            }
+            CompileErrorPayload::InvalidUtf8 => {
+                write!(w, "file contains invalid UTF-8")?;
+            }
         }
         Ok(())
     }
 }
 
-pub fn output_error(error: &CompileError) -> io::Result<()> {
+pub fn report_error(map: &SourceMap, error: &CompileError) -> io::Result<()> {
     let mut w = io::stderr();
-    write!(w, "error at offset {}: ", error.offset)?;
+    write!(
+        w,
+        "{}:@{}: ",
+        map.file_path(error.loc.file),
+        error.loc.offset,
+    )?;
     error.write(&mut w)?;
     Ok(())
 }

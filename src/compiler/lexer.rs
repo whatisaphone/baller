@@ -1,16 +1,22 @@
 use crate::compiler::{
     errors::{CompileError, CompileErrorPayload},
+    loc::FileId,
     token::{Token, TokenKind, TokenPayload},
 };
 
 pub struct Lexer<'a> {
+    file: FileId,
     source: &'a str,
     pos: u32,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(source: &'a str) -> Self {
-        Self { source, pos: 0 }
+    pub fn new(file: FileId, source: &'a str) -> Self {
+        Self {
+            file,
+            source,
+            pos: 0,
+        }
     }
 
     pub fn next(&mut self) -> Result<Token, CompileError> {
@@ -29,13 +35,13 @@ impl<'a> Lexer<'a> {
             Some('0'..='9') => {
                 let len = 1 + scan(self.source, token_pos + 1, |ch| ('0'..='9').contains(&ch));
                 self.pos += len;
-                let value: i32 = substr(self.source, token_pos, len)
-                    .parse()
-                    .map_err(|_| CompileError::new(token_pos, CompileErrorPayload::BadInteger))?;
+                let value: i32 = substr(self.source, token_pos, len).parse().map_err(|_| {
+                    CompileError::new(self.file.at(token_pos), CompileErrorPayload::BadInteger)
+                })?;
                 Ok(Token::new(token_pos, TokenPayload::Integer { value }))
             }
             Some('"') => {
-                let len = scan_string(self.source, token_pos)?;
+                let len = scan_string(self.file, self.source, token_pos)?;
                 self.pos += len;
                 Ok(Token::new(token_pos, TokenPayload::String { len }))
             }
@@ -46,7 +52,7 @@ impl<'a> Lexer<'a> {
             }
             Some(ch) => {
                 Err(CompileError::new(
-                    token_pos,
+                    self.file.at(token_pos),
                     CompileErrorPayload::InvalidChar { char: ch },
                 ))
             }
@@ -71,7 +77,7 @@ impl<'a> Lexer<'a> {
             }
             _ => {
                 Err(CompileError::new(
-                    token.offset,
+                    self.file.at(token.offset),
                     CompileErrorPayload::UnexpectedToken { expected },
                 ))
             }
@@ -84,7 +90,7 @@ impl<'a> Lexer<'a> {
             TokenPayload::Integer { value } => Ok((token.offset, value)),
             _ => {
                 Err(CompileError::new(
-                    token.offset,
+                    self.file.at(token.offset),
                     CompileErrorPayload::UnexpectedToken {
                         expected: "integer",
                     },
@@ -103,7 +109,7 @@ impl<'a> Lexer<'a> {
             return Ok(token);
         }
         Err(CompileError::new(
-            token.offset,
+            self.file.at(token.offset),
             CompileErrorPayload::UnexpectedToken {
                 expected: diagnostic,
             },
@@ -116,7 +122,7 @@ impl<'a> Lexer<'a> {
             return Ok(());
         }
         Err(CompileError::new(
-            token.offset,
+            self.file.at(token.offset),
             CompileErrorPayload::UnexpectedToken {
                 expected: expected.describe(),
             },
@@ -129,7 +135,7 @@ impl<'a> Lexer<'a> {
             TokenPayload::String { len } => Ok((token.offset, len)),
             _ => {
                 Err(CompileError::new(
-                    token.offset,
+                    self.file.at(token.offset),
                     CompileErrorPayload::UnexpectedToken { expected: "string" },
                 ))
             }
@@ -155,20 +161,16 @@ fn scan_ident(source: &str, start: u32) -> u32 {
     len0 + scan(source, len0, is_ident_cont)
 }
 
-fn scan_string(source: &str, start: u32) -> Result<u32, CompileError> {
+fn scan_string(file: FileId, source: &str, start: u32) -> Result<u32, CompileError> {
     debug_assert!(source[start.try_into().unwrap()..].starts_with('"'));
     let len = scan(source, start + 1, |ch| ch != '"');
     let end = start + 1 + len;
     match source[end.try_into().unwrap()..].chars().next() {
         Some('"') => Ok(1 + len + 1),
-        Some(ch) => {
-            Err(CompileError::new(end, CompileErrorPayload::InvalidChar {
-                char: ch,
-            }))
-        }
+        Some(_) => unreachable!(),
         None => {
             Err(CompileError::new(
-                end,
+                file.at(end),
                 CompileErrorPayload::UnexpectedToken {
                     expected: "string closing quote",
                 },
@@ -181,6 +183,13 @@ pub fn substr(source: &str, start: u32, len: u32) -> &str {
     let start: usize = start.try_into().unwrap();
     let len: usize = len.try_into().unwrap();
     &source[start..start + len]
+}
+
+pub fn string_contents(source: &str, offset: u32, len: u32) -> &str {
+    debug_assert!(substr(source, offset, 1) == "\"");
+    debug_assert!(substr(source, offset + len - 1, 1) == "\"");
+    // TODO: character escapes and whatnot
+    &source[(offset + 1).try_into().unwrap()..(offset + len - 1).try_into().unwrap()]
 }
 
 fn is_ident_start(ch: char) -> bool {
