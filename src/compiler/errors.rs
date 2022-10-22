@@ -2,13 +2,20 @@ use crate::compiler::loc::{Loc, SourceMap};
 use std::{io, io::Write};
 
 pub struct CompileError {
-    pub loc: Loc,
+    pub loc: Option<Loc>,
     pub payload: CompileErrorPayload,
 }
 
 impl CompileError {
     pub fn new(loc: Loc, payload: CompileErrorPayload) -> Self {
-        Self { loc, payload }
+        Self {
+            loc: Some(loc),
+            payload,
+        }
+    }
+
+    pub fn new_without_loc(payload: CompileErrorPayload) -> Self {
+        Self { loc: None, payload }
     }
 }
 
@@ -18,7 +25,9 @@ pub enum CompileErrorPayload {
     Duplicate,
     BadInteger,
     CantReadFile,
+    CantWriteOutput,
     InvalidUtf8,
+    InvalidBlockId,
 }
 
 impl CompileError {
@@ -39,8 +48,14 @@ impl CompileError {
             CompileErrorPayload::CantReadFile => {
                 write!(w, "can't read file")?;
             }
+            CompileErrorPayload::CantWriteOutput => {
+                write!(w, "can't write output")?;
+            }
             CompileErrorPayload::InvalidUtf8 => {
                 write!(w, "file contains invalid UTF-8")?;
+            }
+            CompileErrorPayload::InvalidBlockId => {
+                write!(w, "block ID must be exactly four printable characters")?;
             }
         }
         Ok(())
@@ -49,12 +64,9 @@ impl CompileError {
 
 pub fn report_error(map: &SourceMap, error: &CompileError) -> io::Result<()> {
     let mut w = io::stderr();
-    write!(
-        w,
-        "{}:@{}: ",
-        map.file_path(error.loc.file),
-        error.loc.offset,
-    )?;
+    if let Some(loc) = error.loc {
+        write!(w, "{}:@{}: ", map.file_path(loc.file), loc.offset)?;
+    }
     error.write(&mut w)?;
     Ok(())
 }

@@ -50,7 +50,6 @@ fn raw_round_trip_thread() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "TODO"]
 fn round_trip2() -> Result<(), Box<dyn Error>> {
     let mut fs = HashMap::with_capacity(1 << 10);
 
@@ -62,23 +61,32 @@ fn round_trip2() -> Result<(), Box<dyn Error>> {
         &mut |path, data| fs_write(&mut fs, path, data.to_vec()),
     )?;
 
-    let mut index_path = env::temp_dir().join("inside-baseball-test-round-trip");
-    if !index_path.exists() {
-        fs::create_dir(&index_path)?
+    let root = env::temp_dir().join("inside-baseball-test-round-trip");
+    if root.exists() {
+        fs::remove_dir_all(&root)?;
     }
-    index_path.push("baseball 2001.he0");
+    fs::create_dir(&root)?;
+    let index_path = root.join("baseball 2001.he0");
     fs::copy(&fixture_path("baseball 2001.he0"), &index_path)?;
 
-    let index_path = index_path.into_os_string().into_string().unwrap();
     let disk_number = 2;
-    build_disk(&index_path, disk_number, |path| fs_read(&fs, path))?;
-    todo!();
+    build_disk(
+        index_path.into_os_string().into_string().unwrap(),
+        disk_number,
+        |path| fs_read(&fs, path),
+    )?;
+
+    assert_stream_eq(
+        &root.join("baseball 2001.(b)"),
+        &mut File::open(&fixture_path("baseball 2001.(b)"))?,
+    )?;
+    Ok(())
 }
 
-fn assert_stream_eq(path: &Path, s2: &mut (impl Read + Seek)) -> Result<bool, io::Error> {
+fn assert_stream_eq(path: &Path, s2: &mut (impl Read + Seek)) -> Result<(), io::Error> {
     let mut s1 = File::open(path)?;
     if streams_eq(&mut s1, s2)? {
-        return Ok(true);
+        return Ok(());
     }
     // Streams don't match. Dump for debugging, then panic
     s2.seek(SeekFrom::Start(0))?;

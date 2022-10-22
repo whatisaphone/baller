@@ -197,5 +197,5 @@ fn is_ident_start(ch: char) -> bool {
 }
 
 fn is_ident_cont(ch: char) -> bool {
-    matches!(ch, 'A'..='Z' | 'a'..='z' | '_' | '0'..='9')
+    matches!(ch, 'A'..='Z' | 'a'..='z' | '_' | '-' | '0'..='9')
 }

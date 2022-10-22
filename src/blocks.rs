@@ -1,7 +1,8 @@
-use byteordered::byteorder::{ReadBytesExt, BE};
+use byteordered::byteorder::{ReadBytesExt, WriteBytesExt, BE};
 use std::{
     error::Error,
-    io::{Read, Seek},
+    io,
+    io::{Read, Seek, Write},
 };
 
 pub type BlockId = [u8; 4];
@@ -77,6 +78,27 @@ impl BlockScanner {
         }
         Ok(())
     }
+}
+
+pub struct WritingBlock(u32);
+
+pub fn start_block(out: &mut (impl Write + Seek), id: BlockId) -> io::Result<WritingBlock> {
+    let start = out.stream_position()?;
+    out.write_all(&id)?;
+    out.write_i32::<BE>(0)?; // placeholder
+    Ok(WritingBlock(start.try_into().unwrap()))
+}
+
+pub fn finish_block(
+    out: &mut impl Seek,
+    WritingBlock(start): WritingBlock,
+    fixups: &mut Vec<(u32, i32)>,
+) -> io::Result<()> {
+    let end = out.stream_position()?;
+    let end: u32 = end.try_into().unwrap();
+    let length: i32 = (end - start).try_into().unwrap();
+    fixups.push((start + 4, length));
+    Ok(())
 }
 
 pub fn push_disk_number(path: &mut String, number: u8) {

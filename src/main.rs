@@ -84,7 +84,7 @@ struct Build {
 
 impl Build {
     fn run(self) -> Result<(), Box<dyn Error>> {
-        build_disk(&self.output, self.disk_number, fs_reader(&self.input))
+        build_disk(self.output, self.disk_number, fs_reader(&self.input))
     }
 }
 
