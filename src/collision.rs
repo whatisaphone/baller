@@ -132,8 +132,10 @@ $vpt = [0,1080,480];
 $vpr = [-34,0,0];
 $vpf = 45;
 
-face_color = [1,1,1,0.8];
 foul_line = 6;
+plain_color = [1,1,1,0.8];
+out_color = [1,0.75,0.75,0.8];
+eat_color = [0.5,0.75,1,0.8];
 
 // home, first, second, third, rubber
 color([1,1,1]) scale([1,-1,-1]) rotate([90,0,0]) linear_extrude(1) {
@@ -154,10 +156,18 @@ scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
 ",
     )?;
     for b in &field.boxes {
+        let color = if b.eat_ball != 0 {
+            "eat_color"
+        } else if b.end_play != 0 {
+            "out_color"
+        } else {
+            "plain_color"
+        };
         // face 1, p1-p3
         writeln!(
             out,
-            "    color(face_color) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            "    color({}) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            color,
             SVec3(b.p1.x, 0, b.p1.z),
             SVec3(b.p3.x, 0, b.p3.z),
             SVec3(b.p1.x, b.p3.y, b.p1.z),
@@ -166,7 +176,8 @@ scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
         // face 2, p1-p2
         writeln!(
             out,
-            "    color(face_color) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            "    color({}) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            color,
             SVec3(b.p1.x, 0, b.p1.z),
             SVec3(b.p2.x, 0, b.p2.z),
             SVec3(b.p1.x, b.p3.y, b.p1.z),
@@ -175,7 +186,8 @@ scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
         // face 3, p3-p4
         writeln!(
             out,
-            "    color(face_color) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            "    color({}) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            color,
             SVec3(b.p3.x, 0, b.p3.z),
             SVec3(b.p4.x, 0, b.p4.z),
             SVec3(b.p3.x, b.p3.y, b.p3.z),
@@ -184,7 +196,8 @@ scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
         // face 4, p2-p4
         writeln!(
             out,
-            "    color(face_color) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            "    color({}) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            color,
             SVec3(b.p2.x, 0, b.p2.z),
             SVec3(b.p4.x, 0, b.p4.z),
             SVec3(b.p2.x, b.p4.y, b.p2.z),
@@ -193,7 +206,8 @@ scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
         // face 5, p1-p2-p3-p4
         writeln!(
             out,
-            "    color(face_color) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            "    color({}) polyhedron([{},{},{},{}], [[0,1,3,2]]);",
+            color,
             SVec3(b.p1.x, b.p3.y, b.p1.z),
             SVec3(b.p2.x, b.p4.y, b.p2.z),
             SVec3(b.p3.x, b.p3.y, b.p3.z),
