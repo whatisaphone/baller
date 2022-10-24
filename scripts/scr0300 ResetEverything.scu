@@ -105,7 +105,7 @@ if (gStatsAuditWindow) {
     window-set-image 0
     window-xff
 }
-run-script smth_he9_free_all []
+run-script FreeCollisionData []
 gUIInputDevice = INPUT-DEVICE-MOUSE
 gGameInputDevice = INPUT-DEVICE-MOUSE
 run-script HideGamePadCursor []

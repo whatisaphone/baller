@@ -18,7 +18,7 @@ put-actor 3 -100 -100 gCurrentRoom
 actor-do-anim 4 20
 actor-select 4
 actor-x56 231 (palette-xd9 0 0 0)
-temp = call-script smth_actor_anim [3, -1, -1, -1]
+temp = call-script SetBallAnimation [3, -1, -1, -1]
 if (MODE-BATTING-PRACTICE == gGameMode) {
     exec-script BattingPracticeOverheadLoop []
 }

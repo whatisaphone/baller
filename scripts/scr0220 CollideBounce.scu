@@ -1,0 +1,97 @@
+; SCRP 220 CollideBounce
+
+parameter box_num
+parameter face: CollideFace
+
+local variable box: [][CollideBoxField]
+local variable nx
+local variable ny
+local variable nz
+local variable local16
+local variable local18
+
+box = gCollideBoxes[box_num]
+case face {
+    of FACE-FRONT {
+        nx = box[BOX-FRONT-NORMAL-X]
+        ny = box[BOX-FRONT-NORMAL-Y]
+        nz = box[BOX-FRONT-NORMAL-Z]
+    }
+    of FACE-LEFT {
+        nx = box[BOX-LEFT-NORMAL-X]
+        ny = box[BOX-LEFT-NORMAL-Y]
+        nz = box[BOX-LEFT-NORMAL-Z]
+    }
+    of FACE-RIGHT {
+        nx = box[BOX-RIGHT-NORMAL-X]
+        ny = box[BOX-RIGHT-NORMAL-Y]
+        nz = box[BOX-RIGHT-NORMAL-Z]
+    }
+    of FACE-BACK {
+        nx = box[BOX-BACK-NORMAL-X]
+        ny = box[BOX-BACK-NORMAL-Y]
+        nz = box[BOX-BACK-NORMAL-Z]
+    }
+    of FACE-TOP {
+        nx = box[BOX-TOP-NORMAL-X]
+        ny = box[BOX-TOP-NORMAL-Y]
+        nz = box[BOX-TOP-NORMAL-Z]
+    }
+}
+if (face == FACE-TOP) {
+    ny = -100
+}
+local16 = (nx * gCollideVelX + ny * gCollideVelY + nz * gCollideVelZ) / 100
+if (face != FACE-TOP) {
+    gCollideVelX = (gCollideVelX * 100 - local16 * 2 * nx) * 10 / box[BOX-BOUNCE]
+    gCollideVelY = gCollideVelY * 100 - local16 * 2 * ny
+    gCollideVelZ = (gCollideVelZ * 100 - local16 * 2 * nz) * 10 / box[BOX-BOUNCE]
+} else {
+    gCollideVelX = gCollideVelX * 100 - local16 * 2 * nx
+    gCollideVelZ = gCollideVelZ * 100 - local16 * 2 * nz
+    gCollideVelY = (gCollideVelY * 100 - local16 * 2 * ny) * 30 / box[BOX-BOUNCE]
+}
+if (gCollideVelY * 10 < 384000 * gGravity / 60) {
+    if (gCollideStuckTickCounter > 10) {
+        g_maybe_he9_play_could_end_soon = 1
+    }
+    if (gCollideStuckTickCounter > 60 / gGravity * 3) {
+        g_he9_play_ended = 1
+        gCollideVelY = 0
+        gBallHasBounced = 1
+        run-script CollideEndPlay []
+    }
+    if (face != FACE-TOP && gCollideStuckBoxNumber != box_num) {
+        gCollideIntersectY = gCollideCurPosY + 100
+        gCollideStuckTickCounter = 0
+    }
+}
+if (face == FACE-TOP && gCollideStuckBoxNumber == box_num) {
+    ++gCollideStuckTickCounter
+}
+gCollideCurPosX = gCollideIntersectX
+gCollideCurPosY = gCollideIntersectY
+gCollideCurPosZ = gCollideIntersectZ
+gCollideStuckBoxNumber = box_num
+case face {
+    of FACE-FRONT {
+        gCollideCurPosZ = gCollideCurPosZ - 1
+    }
+    of FACE-LEFT {
+        gCollideCurPosX = gCollideCurPosX - 1
+    }
+    of FACE-RIGHT {
+        gCollideCurPosX = gCollideCurPosX + 1
+    }
+    of FACE-BACK {
+        gCollideCurPosZ = gCollideCurPosZ + 1
+    }
+    of FACE-TOP {
+        gCollideCurPosY = gCollideCurPosY + 1
+    }
+}
+if (!g_maybe_he9_play_could_end_soon) {
+    local18 = call-script GetCollisionSound [box[BOX-MATERIAL]]
+    run-script PlayBounceSound [local18]
+}
+free-script

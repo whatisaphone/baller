@@ -1,89 +1,89 @@
 ; SCRP 221 smth_angle_from_he9
 
 parameter x1
-parameter y1
+parameter z1
 parameter x2
-parameter y2
+parameter z2
 
-local variable result
-local variable local5
-local variable local7
-local variable local8
-local variable ax1
-local variable ax2
-local variable ay1
-local variable ay2
-local variable local13
-local variable local15
-local variable local16
-local variable local17
+local variable result: Angle
+local variable cell_value
+local variable slot
+local variable box_num
+local variable px1
+local variable px2
+local variable pz1
+local variable pz2
+local variable box: [][CollideBoxField]
+local variable cell_x
+local variable cell_z
+local variable max_slot
 local variable local18
 local variable local19
 local variable local20
 local variable local21
-local variable local22
+local variable face: CollideFace
 
 pop-discard-2 0 "no trace"
 result = 0
 x2 = x2 * 10
 x1 = x1 * 10
-y2 = y2 * 10
-y1 = y1 * 10
+z2 = z2 * 10
+z1 = z1 * 10
 x2 = x2 + 23200
 x1 = x1 + 23200
-local15 = x2 / 2900
-local16 = y2 / 2900
-if (local15 < 16) {
-    if (local15 > -1) {
-        if (local16 < 16) {
-            if (local16 > -1) {
-                local5 = g_smth_he9_final_array[local15][local16]
-                if (local5) {
-                    local17 = 0
-                    if (local5 & 2113929216) {
-                        local17 = 5
-                    } else if (local5 & 33030144) {
-                        local17 = 4
-                    } else if (local5 & 516096) {
-                        local17 = 3
-                    } else if (local5 & 8064) {
-                        local17 = 2
+cell_x = x2 / 2900
+cell_z = z2 / 2900
+if (cell_x < 16) {
+    if (cell_x > -1) {
+        if (cell_z < 16) {
+            if (cell_z > -1) {
+                cell_value = gCollideCells[cell_x][cell_z]
+                if (cell_value) {
+                    max_slot = 0
+                    if (cell_value & 2113929216) {
+                        max_slot = 5
+                    } else if (cell_value & 33030144) {
+                        max_slot = 4
+                    } else if (cell_value & 516096) {
+                        max_slot = 3
+                    } else if (cell_value & 8064) {
+                        max_slot = 2
                     } else {
-                        local17 = 1
+                        max_slot = 1
                     }
-                    for local7 = 1 to local17 ++ {
-                        local8 = call-script smth_he9_flags [local7, local5]
-                        local13 = g_he9_array[local8]
-                        for local22 = 1 to 4 ++ {
-                            case local22 {
-                                of 1 {
-                                    ax1 = local13[0]
-                                    ay1 = local13[2]
-                                    ax2 = local13[7]
-                                    ay2 = local13[9]
+                    for slot = 1 to max_slot ++ {
+                        box_num = call-script DecodeSlotBoxNum [slot, cell_value]
+                        box = gCollideBoxes[box_num]
+                        for face = 1 to 4 ++ {
+                            case face {
+                                of FACE-FRONT {
+                                    px1 = box[BOX-P1-X]
+                                    pz1 = box[BOX-P1-Z]
+                                    px2 = box[BOX-P3-X]
+                                    pz2 = box[BOX-P3-Z]
                                 }
-                                of 2 {
-                                    ax1 = local13[0]
-                                    ay1 = local13[2]
-                                    ax2 = local13[4]
-                                    ay2 = local13[6]
+                                of FACE-LEFT {
+                                    px1 = box[BOX-P1-X]
+                                    pz1 = box[BOX-P1-Z]
+                                    px2 = box[BOX-P2-X]
+                                    pz2 = box[BOX-P2-Z]
                                 }
-                                of 3 {
-                                    ax1 = local13[7]
-                                    ay1 = local13[9]
-                                    ax2 = local13[10]
-                                    ay2 = local13[12]
+                                of FACE-RIGHT {
+                                    px1 = box[BOX-P3-X]
+                                    pz1 = box[BOX-P3-Z]
+                                    px2 = box[BOX-P4-X]
+                                    pz2 = box[BOX-P4-Z]
                                 }
-                                of 4 {
-                                    ax1 = local13[4]
-                                    ay1 = local13[6]
-                                    ax2 = local13[10]
-                                    ay2 = local13[12]
+                                of FACE-BACK {
+                                    px1 = box[BOX-P2-X]
+                                    pz1 = box[BOX-P2-Z]
+                                    px2 = box[BOX-P4-X]
+                                    pz2 = box[BOX-P4-Z]
                                 }
                             }
-                            local18 = (ax2 - ax1) * (y2 - ay1) - (ay2 - ay1) * (x2 - ax1)
-                            local20 = (ay2 - ay1) * (x1 - x2) - (ax2 - ax1) * (y1 - y2)
-                            local19 = (x1 - x2) * (y2 - ay1) - (y1 - y2) * (x2 - ax1)
+                            local18 = (px2 - px1) * (z2 - pz1) - (pz2 - pz1) * (x2 - px1)
+                            local20 = (pz2 - pz1) * (x1 - x2) - (px2 - px1) * (z1 - z2)
+                            local19 = (x1 - x2) * (z2 - pz1) - (z1 - z2) * (x2 - px1)
                             local21 = local20
                             if (local20 != 0) {
                                 if (local21 < 0 && local19 < 0) {
@@ -95,10 +95,10 @@ if (local15 < 16) {
                                     local18 = abs local18
                                 }
                                 if (local20 > local18 && local21 > local19 && !(local18 < 0) && !(local20 < 0) && !(local19 < 0) && !(local21 < 0)) {
-                                    if ((distance-2d ax1 ay1 2320 852) <= (distance-2d ax2 ay2 2320 852)) {
-                                        result = atan4 ax2 ay2 ax1 ay1
+                                    if ((distance-2d px1 pz1 2320 852) <= (distance-2d px2 pz2 2320 852)) {
+                                        result = atan4 px2 pz2 px1 pz1
                                     } else {
-                                        result = atan4 ax1 ay1 ax2 ay2
+                                        result = atan4 px1 pz1 px2 pz2
                                     }
                                     if (result == 0) {
                                         result = 360

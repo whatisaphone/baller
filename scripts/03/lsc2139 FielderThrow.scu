@@ -212,7 +212,7 @@ if (local11 > smth_kid_data_5) {
 smth_kid_data_5 = smth_kid_data_5 - 20
 local11 = local11 - 20
 angle_y = call-script smth_vector_math_gravity_angle [gWorld[fielder][X], gWorld[fielder][Z], to_x, to_z, local11]
-temp = call-script smth_actor_anim [3, -1, -1, -1]
+temp = call-script SetBallAnimation [3, -1, -1, -1]
 gBallVelPhysY = (sin angle_y) * local11 / 100
 local6 = 2 * gBallVelPhysY / 384000 * gGravity / 60
 if (gKidData[rFieldingOrder[fielder - 37]][KD-HEIGHT] > 3) {

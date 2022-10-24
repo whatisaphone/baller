@@ -93,7 +93,7 @@ do {
     }
     stop-script
     ++local4
-    if (g_nitrogen_vector_is_set || gBallIsFoul) {
+    if (gCollideIntersectValid || gBallIsFoul) {
         local4 = local5 + 1
     }
 } until (local4 > local5 || gFielderWithBall)

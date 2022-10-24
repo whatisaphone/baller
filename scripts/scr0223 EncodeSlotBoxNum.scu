@@ -1,0 +1,26 @@
+; SCRP 223 EncodeSlotBoxNum
+
+parameter slot
+parameter box_num
+
+local variable result
+
+case 1 {
+    of slot == 1 {
+        result = box_num
+    }
+    of slot == 2 {
+        result = box_num * 64 * 2
+    }
+    of slot == 3 {
+        result = box_num * 64 * 64 * 2
+    }
+    of slot == 4 {
+        result = box_num * 64 * 64 * 64 * 2
+    }
+    of slot == 5 {
+        result = box_num * 64 * 64 * 64 * 64 * 2
+    }
+}
+return result
+free-script

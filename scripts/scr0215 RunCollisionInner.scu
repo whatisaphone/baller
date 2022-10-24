@@ -1,0 +1,156 @@
+; SCRP 215 RunCollisionInner
+
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+
+local9 = gCollideNextPosX / 2900 - gCollideCellX
+local10 = gCollideNextPosZ / 2900 - gCollideCellZ
+local11 = gCollideCellX
+local12 = gCollideCellZ
+if (gCollideCellX < 16) {
+    if (gCollideCellZ < 16) {
+        if (gCollideCellX >= 0) {
+            if (gCollideCellZ >= 0) {
+                if (gCollideCells[gCollideCellX][gCollideCellZ]) {
+                    run-script CollideInCell [gCollideCellX, gCollideCellZ]
+                    g_he9_maybe_always_true = 1
+                    gCollideIntersectValid = false
+                }
+            }
+        }
+    }
+}
+if (!g_he9_maybe_always_true && local10 && local9) {
+    case 1 {
+        of local10 == 1 && local9 == -1 {
+            do {
+                if (local11 == gCollideCellX - 1 && local12 == gCollideCellZ + 1) {
+                    g_he9_maybe_always_true = 1
+                } else {
+                    if (local11 == gCollideCellX - 1) {
+                        local11 = gCollideCellX
+                        local12 = gCollideCellZ + 1
+                    } else {
+                        local11 = gCollideCellX - 1
+                    }
+                    if (local11 < 16) {
+                        if (local12 < 16) {
+                            if (local11 >= 0) {
+                                if (local12 >= 0) {
+                                    if (gCollideCells[local11][local12]) {
+                                        run-script CollideInCell [local11, local12]
+                                        g_he9_maybe_always_true = 1
+                                        gCollideIntersectValid = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } until (g_he9_maybe_always_true)
+        }
+        of local10 == 1 && local9 == 1 {
+            do {
+                if (local11 == gCollideCellX + 1 && local12 == gCollideCellZ + 1) {
+                    g_he9_maybe_always_true = 1
+                } else {
+                    if (local11 == gCollideCellX + 1) {
+                        local11 = gCollideCellX
+                        local12 = gCollideCellZ + 1
+                    } else {
+                        local11 = gCollideCellX + 1
+                    }
+                    if (local11 < 16) {
+                        if (local12 < 16) {
+                            if (local11 >= 0) {
+                                if (local12 >= 0) {
+                                    if (gCollideCells[local11][local12]) {
+                                        run-script CollideInCell [local11, local12]
+                                        g_he9_maybe_always_true = 1
+                                        gCollideIntersectValid = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } until (g_he9_maybe_always_true)
+        }
+        of local10 == -1 && local9 == -1 {
+            do {
+                if (local11 == gCollideCellX - 1 && local12 == gCollideCellZ - 1) {
+                    g_he9_maybe_always_true = 1
+                } else {
+                    if (local11 == gCollideCellX - 1) {
+                        local11 = gCollideCellX
+                        local12 = gCollideCellZ - 1
+                    } else {
+                        local11 = gCollideCellX - 1
+                    }
+                    if (local11 < 16) {
+                        if (local12 < 16) {
+                            if (local11 >= 0) {
+                                if (local12 >= 0) {
+                                    if (gCollideCells[local11][local12]) {
+                                        run-script CollideInCell [local11, local12]
+                                        g_he9_maybe_always_true = 1
+                                        gCollideIntersectValid = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } until (g_he9_maybe_always_true)
+        }
+        of local10 == -1 && local9 == 1 {
+            do {
+                if (local11 == gCollideCellX + 1 && local12 == gCollideCellZ - 1) {
+                    g_he9_maybe_always_true = 1
+                } else {
+                    if (local11 == gCollideCellX + 1) {
+                        local11 = gCollideCellX - 1
+                        local12 = gCollideCellZ - 1
+                    } else {
+                        local11 = gCollideCellX + 1
+                    }
+                    if (local11 < 16) {
+                        if (local12 < 16) {
+                            if (local11 >= 0) {
+                                if (local12 >= 0) {
+                                    if (gCollideCells[local11][local12]) {
+                                        run-script CollideInCell [local11, local12]
+                                        g_he9_maybe_always_true = 1
+                                        gCollideIntersectValid = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } until (g_he9_maybe_always_true)
+        }
+    }
+} else if ((local9 || local10) && !g_he9_maybe_always_true) {
+    local11 = gCollideCellX + local9
+    local12 = gCollideCellZ + local10
+    if (local11 < 16) {
+        if (local12 < 16) {
+            if (local11 >= 0) {
+                if (local12 >= 0) {
+                    if (gCollideCells[local11][local12]) {
+                        run-script CollideInCell [local11, local12]
+                        g_he9_maybe_always_true = 1
+                        gCollideIntersectValid = false
+                    }
+                }
+            }
+        }
+    }
+}
+if (gCollideIntersectX || gCollideIntersectY || gCollideIntersectZ) {
+    gCollideIntersectValid = true
+}
+free-script

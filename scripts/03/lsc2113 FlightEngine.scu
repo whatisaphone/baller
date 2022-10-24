@@ -68,7 +68,7 @@ do {
     gBallPosPhysZ = gBallPosPhysZ + gBallVelPhysZ * gVectorScaleNum / gVectorScaleDen
     gBallPosZ = gBallPosPhysZ / 1000
     rBallCatchDistance = (distance-2d 0 0 (gBallVelPhysX / 1000) (gBallVelPhysZ / 1000)) * 4 * gVectorScaleNum / gVectorScaleDen + 60
-    if (gBallPosPhysY <= 0 || g_nitrogen_vector_is_set) {
+    if (gBallPosPhysY <= 0 || gCollideIntersectValid) {
         if (!preflight_simulation) {
             if (gBallVelPhysX || gBallVelPhysZ) {
                 local10 = atan4 0 0 gBallVelPhysX gBallVelPhysZ
@@ -78,7 +78,7 @@ do {
             } else {
                 local9 = distance-2d 0 0 gBallVelPhysX gBallVelPhysZ
             }
-            local11 = call-script smth_actor_anim [3, local10, local9, local11]
+            local11 = call-script SetBallAnimation [3, local10, local9, local11]
             if (gBallPosPhysY <= 0) {
                 case 1 {
                     of (abs gBallVelPhysX) + (abs gBallVelPhysY) + (abs gBallVelPhysZ) > 160000 {
@@ -228,7 +228,7 @@ label054c:
             }
         }
         if (!gFielderWithBall) {
-            run-script smth_he9_run_collision []
+            run-script RunCollision []
         }
         gWorld[BALL][X] = gBallPosX
         gWorld[BALL][Y] = gBallPosY

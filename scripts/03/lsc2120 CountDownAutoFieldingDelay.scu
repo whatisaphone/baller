@@ -5,7 +5,7 @@ do {
     if (rAutoFieldeingDelay) {
         --rAutoFieldeingDelay
     }
-    if (g_nitrogen_vector_is_set) {
+    if (gCollideIntersectValid) {
         rAutoFieldeingDelay = 0
     }
 } until (rAutoFieldeingDelay < 1 || (gUserSelectedPlay in [BALL-SHADOW]) && gBallHasBounced)

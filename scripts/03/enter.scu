@@ -50,8 +50,8 @@ if (!(global348 == 1) || !gWorld) {
 }
 g_he9_play_ended = 0
 g_maybe_he9_play_could_end_soon = 0
-global382 = 0
-g_maybe_he9_end_play_counter = 0
+gCollideStuckBoxNumber = 0
+gCollideStuckTickCounter = 0
 run-script smth_field_specific_hacks []
 run-script 273 []
 if (gNetplayActive) {

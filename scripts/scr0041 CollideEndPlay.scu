@@ -1,0 +1,33 @@
+; SCRP 41 CollideEndPlay
+
+if (gPlayEndedReason != 0) {
+    free-running-script 0
+}
+if (gBallIsFoul) {
+    free-running-script 0
+}
+if (gBallHasBounced == 1) {
+    if (g_maybe_last_fielder_to_touch_ball != 0) {
+        gPlayEndedReason = PE-OUT-OF-PLAY
+        g_maybe_smth_play_is_alive = 0
+    } else if ((call-script IsFoulTerritory [gBallPosX, gBallPosZ]) && !gBallIsFair) {
+        gBallIsFoul = true
+    } else {
+        gPlayEndedReason = PE-GROUND-RULE-DOUBLE
+        gBallIsFair = true
+    }
+} else if (g_maybe_last_fielder_to_touch_ball != 0 || gStealing) {
+    if ((call-script IsFoulTerritory [gBallPosX, gBallPosZ]) || gStealing) {
+        gPlayEndedReason = PE-OUT-OF-PLAY
+        g_maybe_smth_play_is_alive = 0
+    } else {
+        gPlayEndedReason = PE-HOME-RUN
+        gBallIsFair = true
+    }
+} else if ((call-script IsFoulTerritory [gBallPosX, gBallPosZ]) && !gBallIsFair) {
+    gBallIsFoul = true
+} else {
+    gPlayEndedReason = PE-HOME-RUN
+    gBallIsFair = true
+}
+free-script

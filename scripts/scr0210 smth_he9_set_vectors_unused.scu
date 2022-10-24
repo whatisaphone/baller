@@ -7,25 +7,25 @@ local variable local2
 local variable local3
 local variable local4
 
-for local2 = 0 to (g_maybe_he9_count - 1) ++ {
+for local2 = 0 to (gCollideNumberOfBoxes - 1) ++ {
     if (arg1) {
-        g_he9_cur_row = g_he9_array[arg1]
+        gCurBox = gCollideBoxes[arg1]
         local4 = 0
         local3 = 0
         local2 = 999
     } else {
-        g_he9_cur_row = g_he9_array[local2 + 1]
+        gCurBox = gCollideBoxes[local2 + 1]
         local4 = 12 * local2
         local3 = 8 * local2
     }
-    array-set-row gWorld (58 + local3) [(g_he9_cur_row[0] - 23200) / 10, g_he9_cur_row[1] / 10, g_he9_cur_row[2] / 10]
-    array-set-row gWorld (59 + local3) [(g_he9_cur_row[4] - 23200) / 10, g_he9_cur_row[5] / 10, g_he9_cur_row[6] / 10]
-    array-set-row gWorld (60 + local3) [(g_he9_cur_row[0] - 23200) / 10, g_he9_cur_row[8] / 10, g_he9_cur_row[2] / 10]
-    array-set-row gWorld (61 + local3) [(g_he9_cur_row[4] - 23200) / 10, g_he9_cur_row[11] / 10, g_he9_cur_row[6] / 10]
-    array-set-row gWorld (62 + local3) [(g_he9_cur_row[7] - 23200) / 10, g_he9_cur_row[8] / 10, g_he9_cur_row[9] / 10]
-    array-set-row gWorld (63 + local3) [(g_he9_cur_row[10] - 23200) / 10, g_he9_cur_row[11] / 10, g_he9_cur_row[12] / 10]
-    array-set-row gWorld (64 + local3) [(g_he9_cur_row[7] - 23200) / 10, g_he9_cur_row[1] / 10, g_he9_cur_row[9] / 10]
-    array-set-row gWorld (65 + local3) [(g_he9_cur_row[10] - 23200) / 10, g_he9_cur_row[5] / 10, g_he9_cur_row[12] / 10]
+    array-set-row gWorld (58 + local3) [(gCurBox[BOX-P1-X] - 23200) / 10, gCurBox[BOX-P1-Y] / 10, gCurBox[BOX-P1-Z] / 10]
+    array-set-row gWorld (59 + local3) [(gCurBox[BOX-P2-X] - 23200) / 10, gCurBox[BOX-P2-Y] / 10, gCurBox[BOX-P2-Z] / 10]
+    array-set-row gWorld (60 + local3) [(gCurBox[BOX-P1-X] - 23200) / 10, gCurBox[BOX-P3-Y] / 10, gCurBox[BOX-P1-Z] / 10]
+    array-set-row gWorld (61 + local3) [(gCurBox[BOX-P2-X] - 23200) / 10, gCurBox[BOX-P4-Y] / 10, gCurBox[BOX-P2-Z] / 10]
+    array-set-row gWorld (62 + local3) [(gCurBox[BOX-P3-X] - 23200) / 10, gCurBox[BOX-P3-Y] / 10, gCurBox[BOX-P3-Z] / 10]
+    array-set-row gWorld (63 + local3) [(gCurBox[BOX-P4-X] - 23200) / 10, gCurBox[BOX-P4-Y] / 10, gCurBox[BOX-P4-Z] / 10]
+    array-set-row gWorld (64 + local3) [(gCurBox[BOX-P3-X] - 23200) / 10, gCurBox[BOX-P1-Y] / 10, gCurBox[BOX-P3-Z] / 10]
+    array-set-row gWorld (65 + local3) [(gCurBox[BOX-P4-X] - 23200) / 10, gCurBox[BOX-P2-Y] / 10, gCurBox[BOX-P4-Z] / 10]
     g_smth_he9_unused[50 + local4][0] = 1
     g_smth_he9_unused[50 + local4][1] = 58 + local3
     g_smth_he9_unused[50 + local4][2] = 59 + local3

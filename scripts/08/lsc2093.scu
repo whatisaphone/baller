@@ -142,10 +142,10 @@ if (gGameEnded) {
             run-script ShowGamePadCursor []
         }
     }
-    if (!g_he9_array) {
+    if (!gCollideBoxes) {
         run-script ReadHE9 []
         if (gDebug == 13) {
-            run-script smth_he9_fill_array []
+            run-script CollideCalculateNormals_unused []
         }
     }
 }

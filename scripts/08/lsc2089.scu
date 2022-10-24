@@ -137,7 +137,7 @@ if (gNoCommentary || gNetplayActive) {
         }
     }
 }
-run-script smth_he9_free_all []
+run-script FreeCollisionData []
 if (g_maybe_skipped_cutscene) {
     xd1
     if (gCurrentSpeechScript > 1) {

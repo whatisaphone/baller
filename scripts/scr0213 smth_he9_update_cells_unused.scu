@@ -1,0 +1,84 @@
+; SCRP 213 smth_he9_update_cells_unused
+
+local variable local0
+local variable local1
+local variable local2
+local variable local3
+local variable local4
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+
+for local4 = 1 to gCollideNumberOfBoxes ++ {
+    for local0 = 0 to 15 ++ {
+        local2 = 0
+        local3 = 0
+        local5 = 0
+        for local1 = 0 to 15 ++ {
+            local7 = gCollideCells[local1][local0]
+            local8 = 0
+            if (local7 & 2113929216) {
+                local8 = 5
+            } else if (local7 & 33030144) {
+                local8 = 4
+            } else if (local7 & 516096) {
+                local8 = 3
+            } else if (local7 & 8064) {
+                local8 = 2
+            } else {
+                local8 = 1
+            }
+            if (local7) {
+                for local9 = 1 to local8 ++ {
+                    local10 = call-script DecodeSlotBoxNum [local9, local7]
+                    if (local10 == local4) {
+                        if (!local5) {
+                            local2 = local1
+                            local5 = 1
+                        } else {
+                            local3 = local1
+                        }
+                    }
+                }
+            }
+        }
+        if (local3) {
+            for local1 = (local2 + 1) to local3 ++ {
+                local7 = gCollideCells[local1][local0]
+                local8 = 0
+                if (local7 & 2113929216) {
+                    local8 = 5
+                } else if (local7 & 33030144) {
+                    local8 = 4
+                } else if (local7 & 516096) {
+                    local8 = 3
+                } else if (local7 & 8064) {
+                    local8 = 2
+                } else {
+                    local8 = 1
+                }
+                if (local7) {
+                    if (local8 < 5) {
+                        for local9 = 1 to local8 ++ {
+                            local10 = call-script DecodeSlotBoxNum [local9, local7]
+                            if (local10 == local4) {
+                                local6 = 1
+                            }
+                        }
+                        if (!local6) {
+                            local7 = local7 + (call-script EncodeSlotBoxNum [local8 + 1, local4])
+                            gCollideCells[local1][local0] = local7
+                        }
+                        local6 = 0
+                    }
+                } else {
+                    gCollideCells[local1][local0] = local4
+                }
+            }
+        }
+    }
+}
+free-script

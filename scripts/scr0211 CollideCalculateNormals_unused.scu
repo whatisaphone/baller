@@ -1,0 +1,129 @@
+; SCRP 211 CollideCalculateNormals_unused
+
+local variable local1
+local variable local5
+local variable local6
+local variable local7
+local variable local8
+local variable local9
+local variable local10
+local variable local11
+local variable local12
+local variable local13
+local variable local14
+local variable local15
+local variable local16
+local variable dest: CollideBoxField
+local variable local18
+local variable local19
+local variable local20
+local variable local21
+
+for local16 = 1 to gCollideNumberOfBoxes ++ {
+    gCurBox = gCollideBoxes[local16]
+    for local1 = 1 to 5 ++ {
+        case local1 {
+            of 1 {
+                local5 = gCurBox[BOX-P1-X]
+                local6 = gCurBox[BOX-P1-Y]
+                local7 = gCurBox[BOX-P1-Z]
+                local8 = gCurBox[BOX-P3-X]
+                local9 = gCurBox[BOX-P1-Y]
+                local10 = gCurBox[BOX-P3-Z]
+                local11 = gCurBox[BOX-P1-X]
+                local12 = gCurBox[BOX-P3-Y]
+                local13 = gCurBox[BOX-P1-Z]
+                dest = BOX-FRONT-NORMAL-X
+            }
+            of 2 {
+                local5 = gCurBox[BOX-P2-X]
+                local6 = gCurBox[BOX-P2-Y]
+                local7 = gCurBox[BOX-P2-Z]
+                local8 = gCurBox[BOX-P1-X]
+                local9 = gCurBox[BOX-P1-Y]
+                local10 = gCurBox[BOX-P1-Z]
+                local11 = gCurBox[BOX-P2-X]
+                local12 = gCurBox[BOX-P4-Y]
+                local13 = gCurBox[BOX-P2-Z]
+                dest = BOX-LEFT-NORMAL-X
+            }
+            of 3 {
+                local5 = gCurBox[BOX-P3-X]
+                local6 = gCurBox[BOX-P3-Y]
+                local7 = gCurBox[BOX-P3-Z]
+                local8 = gCurBox[BOX-P3-X]
+                local9 = gCurBox[BOX-P1-Y]
+                local10 = gCurBox[BOX-P3-Z]
+                local11 = gCurBox[BOX-P4-X]
+                local12 = gCurBox[BOX-P4-Y]
+                local13 = gCurBox[BOX-P4-Z]
+                dest = BOX-RIGHT-NORMAL-X
+            }
+            of 4 {
+                local5 = gCurBox[BOX-P2-X]
+                local6 = gCurBox[BOX-P2-Y]
+                local7 = gCurBox[BOX-P2-Z]
+                local8 = gCurBox[BOX-P2-X]
+                local9 = gCurBox[BOX-P4-Y]
+                local10 = gCurBox[BOX-P2-Z]
+                local11 = gCurBox[BOX-P4-X]
+                local12 = gCurBox[BOX-P2-Y]
+                local13 = gCurBox[BOX-P4-Z]
+                dest = BOX-BACK-NORMAL-X
+            }
+            of 5 {
+                local5 = gCurBox[BOX-P4-X]
+                local6 = gCurBox[BOX-P4-Y]
+                local7 = gCurBox[BOX-P4-Z]
+                local8 = gCurBox[BOX-P2-X]
+                local9 = gCurBox[BOX-P4-Y]
+                local10 = gCurBox[BOX-P2-Z]
+                local11 = gCurBox[BOX-P3-X]
+                local12 = gCurBox[BOX-P3-Y]
+                local13 = gCurBox[BOX-P3-Z]
+                dest = BOX-TOP-NORMAL-X
+            }
+        }
+        local18 = local8 - local5
+        local19 = local9 - local6
+        local20 = local10 - local7
+        local8 = local11 - local5
+        local9 = local12 - local6
+        local10 = local13 - local7
+        local5 = local18
+        local6 = local19
+        local7 = local20
+        local14 = x21 (local5 * local5 + local6 * local6 + local7 * local7)
+        local15 = x21 (local8 * local8 + local9 * local9 + local10 * local10)
+        if (!local14 || !local15) {
+            local21 = 1
+            local5 = local5 * 10
+            local6 = local6 * 10
+            local7 = local7 * 10
+            local14 = x21 (local5 * local5 + local6 * local6 + local7 * local7)
+            local15 = x21 (local8 * local8 + local9 * local9 + local10 * local10)
+        }
+        local5 = local5 * 100 / local14
+        local6 = local6 * 100 / local14
+        local7 = local7 * 100 / local14
+        local8 = local8 * 100 / local15
+        local9 = local9 * 100 / local15
+        local10 = local10 * 100 / local15
+        local18 = (local6 * local10 - local9 * local7) / 100
+        local19 = (local5 * local10 - local8 * local7) * -1 / 100
+        local20 = (local5 * local9 - local8 * local6) / 100
+        local5 = local18
+        local6 = local19
+        local7 = local20
+        if (local21) {
+            local21 = 0
+            local5 = local5 / 10
+            local6 = local6 / 10
+            local7 = local7 / 10
+        }
+        gCurBox[dest] = local5
+        gCurBox[dest + 1] = local6
+        gCurBox[dest + 2] = local7
+    }
+}
+free-script

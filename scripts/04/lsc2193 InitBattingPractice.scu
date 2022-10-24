@@ -8,7 +8,7 @@ if (gPreviousRoom != 3) {
 }
 gBallWasHit = false
 gBatterKid = gBattingPracticeKid
-if (!g_he9_array) {
+if (!gCollideBoxes) {
     run-script ReadHE9 []
 }
 run-script SetFieldVars []

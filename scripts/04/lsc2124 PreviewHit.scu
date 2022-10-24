@@ -49,7 +49,7 @@ actor-select 9
 actor-x56 231 (palette-xd9 0 0 0)
 put-actor 9 -100 -200 gCurrentRoom
 actor-do-anim 9 20
-temp = call-script smth_actor_anim [8, -1, -1, -1]
+temp = call-script SetBallAnimation [8, -1, -1, -1]
 free-array global405
 dim array global405 i16[0...0][0...20] swap=2
 global406 = 1

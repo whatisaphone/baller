@@ -60,7 +60,7 @@ do {
         }
         local7 = distance-2d 0 0 gBallVelPhysX gBallVelPhysZ
         if (!g_maybe_he9_play_could_end_soon) {
-            local8 = call-script smth_actor_anim [8, local6, local7, local8]
+            local8 = call-script SetBallAnimation [8, local6, local7, local8]
         }
         gBallHasBounced = 1
         case 1 {
