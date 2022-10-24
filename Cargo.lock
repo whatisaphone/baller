@@ -139,6 +139,7 @@ dependencies = [
  "byteordered",
  "clap",
  "indexmap",
+ "memmap2",
  "tracing",
  "tracing-subscriber",
  "tracing-tree",
@@ -163,6 +164,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "memmap2"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95af15f345b17af2efc8ead6080fb8bc376f8cec1b35277b935637595fe77498"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

@@ -29,6 +29,7 @@ use std::{
 mod macros;
 
 mod blocks;
+mod collision;
 mod compiler;
 mod config;
 mod extract;
@@ -45,6 +46,7 @@ enum Command {
     Build(Build),
     Extract(Extract),
     Extract2(Extract2),
+    CollisionExtract(CollisionExtract),
     RawBuild(RawBuild),
 }
 
@@ -68,6 +70,7 @@ fn main_thread() {
         Command::Build(cmd) => cmd.run(),
         Command::Extract(cmd) => cmd.run(),
         Command::Extract2(cmd) => cmd.run(),
+        Command::CollisionExtract(cmd) => cmd.run(),
         Command::RawBuild(cmd) => cmd.run(),
     };
     r.unwrap();
@@ -203,6 +206,23 @@ impl Extract2 {
         }
 
         extract2(input, &mut fs_writer(&self.output))?;
+        Ok(())
+    }
+}
+
+#[derive(Parser)]
+struct CollisionExtract {
+    input: PathBuf,
+    output: PathBuf,
+}
+
+impl CollisionExtract {
+    fn run(self) -> Result<(), Box<dyn Error>> {
+        if !self.output.exists() {
+            fs::create_dir(&self.output)?;
+        }
+
+        collision::extract(&self.input, self.output)?;
         Ok(())
     }
 }
