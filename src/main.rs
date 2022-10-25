@@ -11,6 +11,7 @@
 
 use crate::{
     blocks::{push_disk_number, strip_disk_number},
+    collision::ExtractCollisionOptions,
     compiler::build_disk,
     config::Config,
     extract::{dump_index, extract, read_index, Index},
@@ -214,6 +215,10 @@ impl Extract2 {
 struct CollisionExtract {
     input: PathBuf,
     output: PathBuf,
+    #[clap(long)]
+    balls: bool,
+    #[clap(long)]
+    grid: bool,
 }
 
 impl CollisionExtract {
@@ -222,7 +227,10 @@ impl CollisionExtract {
             fs::create_dir(&self.output)?;
         }
 
-        collision::extract(&self.input, self.output)?;
+        collision::extract(&self.input, self.output, &ExtractCollisionOptions {
+            balls: self.balls,
+            grid: self.grid,
+        })?;
         Ok(())
     }
 }

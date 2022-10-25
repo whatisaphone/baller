@@ -11,6 +11,11 @@ use std::{
     slice,
 };
 
+pub struct ExtractCollisionOptions {
+    pub balls: bool,
+    pub grid: bool,
+}
+
 #[repr(packed)]
 struct Field {
     box_count: i16,
@@ -42,7 +47,11 @@ struct Vec3 {
     z: i32,
 }
 
-pub fn extract(input: &Path, mut output: PathBuf) -> Result<(), Box<dyn Error>> {
+pub fn extract(
+    input: &Path,
+    mut output: PathBuf,
+    options: &ExtractCollisionOptions,
+) -> Result<(), Box<dyn Error>> {
     debug_assert!(mem::size_of::<Field>() == 9218);
 
     let mut f = File::open(input)?;
@@ -59,7 +68,7 @@ pub fn extract(input: &Path, mut output: PathBuf) -> Result<(), Box<dyn Error>> 
 
     for (fi, field) in fields.iter().enumerate() {
         output.push(&format!("field{fi}.scad")); // yikes
-        write_scad(field, &output)?;
+        write_scad(field, &output, options)?;
         output.pop();
     }
 
@@ -122,7 +131,12 @@ fn dump_csv(fields: &[Field], out_path: &Path) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn write_scad(field: &Field, path: &Path) -> Result<(), Box<dyn Error>> {
+#[allow(clippy::too_many_lines)]
+fn write_scad(
+    field: &Field,
+    path: &Path,
+    options: &ExtractCollisionOptions,
+) -> Result<(), Box<dyn Error>> {
     let mut out = BufWriter::new(File::create(path)?);
     out.write_all(
         b"\
@@ -155,7 +169,42 @@ color([1,1,1,0.5]) scale([1,-1,-1]) rotate([90,0,0]) linear_extrude(1) {
 scale([0.1,0.1,-0.1]) translate([-23200,0,0]) {
 ",
     )?;
+
+    if options.grid {
+        // such jank
+        for z in 0..15 {
+            for x in 0..15 {
+                writeln!(
+                    out,
+                    "    color([1,1,1,0.25]) translate([{},0,{}]) cube([60,60,5400], center=true);",
+                    x * 2900,
+                    z * 2900
+                )?;
+                writeln!(
+                    out,
+                    "    color([1,1,1,0.25]) translate([{},0,{}]) cube([5400,60,60], center=true);",
+                    x * 2900,
+                    z * 2900
+                )?;
+            }
+        }
+    }
+
     for b in &field.boxes {
+        if options.balls {
+            for (f, c) in [&b.p1, &b.p2, &b.p3, &b.p4]
+                .into_iter()
+                .zip(["red", "yellow", "green", "blue"])
+            {
+                writeln!(
+                    out,
+                    "    color(\"{}\") translate({}) sphere(240);",
+                    c,
+                    SVec3(f.x, f.y, f.z),
+                )?;
+            }
+        }
+
         let color = if b.eat_ball != 0 {
             "eat_color"
         } else if b.end_play != 0 {
