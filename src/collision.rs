@@ -85,6 +85,7 @@ fn dump_csv(fields: &[Field], out_path: &Path) -> Result<(), Box<dyn Error>> {
     for (fi, field) in fields.iter().enumerate() {
         let boxes = &field.boxes[..field.box_count.try_into()?];
         for (bi, b) in boxes.iter().enumerate() {
+            let bi = bi + 1; // Boxes are 1-indexed
             write!(out, "{fi},{bi}")?;
             macro_rules! writ {
                 ($($f:tt)+) => {
