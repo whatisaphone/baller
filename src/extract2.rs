@@ -1,5 +1,5 @@
 use crate::{
-    blocks::{push_disk_number, strip_disk_number, BlockScanner},
+    blocks::{push_disk_number, strip_disk_number, BlockId, BlockScanner},
     extract::{find_lfl_number, read_index, Index, FAIL, NICE},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
@@ -91,20 +91,17 @@ fn decompile_disk(
             disk_number,
         })?;
 
+        let mut cx = Cx {
+            room_name,
+            lflf_blocks: &mut lflf_blocks,
+            buf: &mut buf,
+            room_scu: &mut room_scu,
+        };
+
         let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
 
         while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
-            let len: usize = len.try_into()?;
-            grow_with_default(&mut buf, len);
-            s.read_exact(&mut buf[..len])?;
-
-            let id_str = str::from_utf8(&id)?;
-            let number = *lflf_blocks.entry(id).and_modify(|x| *x += 1).or_insert(1);
-            write_file(&format!("./{room_name}/{id_str}/{number}.bin"), &buf[..len])?;
-            writeln!(
-                room_scu,
-                r#"include-raw "{id_str}" "{id_str}/{number}.bin""#,
-            )?;
+            decompile_raw(id, len.try_into()?, &mut s, write_file, &mut cx)?;
         }
 
         scan_lflf.finish(&mut s)?;
@@ -116,6 +113,36 @@ fn decompile_disk(
 
     scan_root.finish(&mut s)?;
 
+    Ok(())
+}
+
+struct Cx<'a> {
+    room_name: &'a str,
+    lflf_blocks: &'a mut HashMap<BlockId, i32>,
+    buf: &'a mut Vec<u8>,
+    room_scu: &'a mut String,
+}
+
+fn decompile_raw(
+    id: BlockId,
+    len: usize,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    grow_with_default(cx.buf, len);
+    let buf = &mut cx.buf[..len];
+    disk_read.read_exact(buf)?;
+
+    let room_name = cx.room_name;
+    let id_str = str::from_utf8(&id)?;
+    let number = cx.lflf_blocks.entry(id).or_insert(0);
+    *number += 1;
+    write_file(&format!("./{room_name}/{id_str}/{number}.bin"), buf)?;
+    writeln!(
+        cx.room_scu,
+        r#"include-raw "{id_str}" "{id_str}/{number}.bin""#,
+    )?;
     Ok(())
 }
 
