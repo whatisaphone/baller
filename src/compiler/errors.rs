@@ -28,6 +28,9 @@ pub enum CompileErrorPayload {
     CantWriteOutput,
     InvalidUtf8,
     InvalidBlockId,
+    BlockNumberIsZero,
+    GlobNumberRequired,
+    GlobNumberForbidden,
 }
 
 impl CompileError {
@@ -56,6 +59,15 @@ impl CompileError {
             }
             CompileErrorPayload::InvalidBlockId => {
                 write!(w, "block ID must be exactly four printable characters")?;
+            }
+            CompileErrorPayload::BlockNumberIsZero => {
+                write!(w, "block number cannot be zero")?;
+            }
+            CompileErrorPayload::GlobNumberRequired => {
+                write!(w, "this block ID needs a glob number")?;
+            }
+            CompileErrorPayload::GlobNumberForbidden => {
+                write!(w, "this block ID does not need a glob number")?;
             }
         }
         Ok(())

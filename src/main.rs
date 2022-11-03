@@ -14,8 +14,9 @@ use crate::{
     collision::ExtractCollisionOptions,
     compiler::build_disk,
     config::Config,
-    extract::{dump_index, extract, read_index, Index},
+    extract::extract,
     extract2::extract2,
+    index::{dump_index, read_index, Index},
     raw_build::{raw_build, FsEntry},
 };
 use clap::Parser;
@@ -35,6 +36,7 @@ mod compiler;
 mod config;
 mod extract;
 mod extract2;
+mod index;
 mod raw_build;
 mod script;
 #[cfg(test)]

@@ -2,7 +2,7 @@ use byteordered::byteorder::{ReadBytesExt, WriteBytesExt, BE};
 use std::{
     error::Error,
     io,
-    io::{Read, Seek, Write},
+    io::{Read, Seek, SeekFrom, Write},
 };
 
 pub type BlockId = [u8; 4];
@@ -93,11 +93,31 @@ pub fn finish_block(
     out: &mut impl Seek,
     WritingBlock(start): WritingBlock,
     fixups: &mut Vec<(u32, i32)>,
-) -> io::Result<()> {
+) -> io::Result<i32> {
     let end = out.stream_position()?;
     let end: u32 = end.try_into().unwrap();
     let length: i32 = (end - start).try_into().unwrap();
     fixups.push((start + 4, length));
+    Ok(length)
+}
+
+pub fn write_block<S: Write + Seek>(
+    out: &mut S,
+    id: BlockId,
+    fixups: &mut Vec<(u32, i32)>,
+    f: impl FnOnce(&mut S, &mut Vec<(u32, i32)>) -> io::Result<()>,
+) -> io::Result<()> {
+    let block = start_block(out, id)?;
+    f(out, fixups)?;
+    finish_block(out, block, fixups)?;
+    Ok(())
+}
+
+pub fn apply_fixups(out: &mut (impl Write + Seek), fixups: &[(u32, i32)]) -> io::Result<()> {
+    for &(offset, value) in fixups {
+        out.seek(SeekFrom::Start(offset.try_into().unwrap()))?;
+        out.write_i32::<BE>(value)?;
+    }
     Ok(())
 }
 
@@ -111,4 +131,8 @@ pub fn push_disk_number(path: &mut String, number: u8) {
 pub fn strip_disk_number(path: &mut String) {
     debug_assert!(path.ends_with("he0") || path.ends_with(')'));
     path.truncate(path.len() - 3);
+}
+
+pub fn push_index_ext(path: &mut String) {
+    path.push_str("he0");
 }

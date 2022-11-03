@@ -5,9 +5,10 @@ use crate::{
         errors::{CompileError, CompileErrorPayload},
         lexer::{string_contents, substr, Lexer},
         loc::FileId,
-        token::{TokenKind, TokenPayload},
+        token::{Token, TokenKind, TokenPayload},
     },
 };
+use std::num::NonZeroI32;
 
 pub fn parse_room(file: FileId, src: &str) -> Result<Ast, CompileError> {
     let mut ast = Ast {
@@ -54,15 +55,15 @@ fn parse_raw_block(
 
     let token = lexer.next()?;
     match token.payload {
-        TokenPayload::String { len } => {
-            parse_raw_block_file(lexer, block_id, token.offset, len, ast)
+        TokenPayload::Integer { .. } | TokenPayload::String { .. } => {
+            parse_raw_block_file(lexer, block_id, token, ast)
         }
         TokenPayload::BraceL => parse_raw_block_container(lexer, block_id, ast, scratch),
         _ => {
             Err(CompileError::new(
                 lexer.file.at(token.offset),
                 CompileErrorPayload::UnexpectedToken {
-                    expected: "string or '{'",
+                    expected: "number, string, or '{'",
                 },
             ))
         }
@@ -72,16 +73,41 @@ fn parse_raw_block(
 fn parse_raw_block_file(
     lexer: &mut Lexer,
     block_id: BlockId,
-    path_token_offset: u32,
-    path_token_len: u32,
+    mut token: Token,
     ast: &mut Ast,
 ) -> Result<AstNodeId, CompileError> {
+    let glob_number = match token.payload {
+        TokenPayload::Integer { value } => {
+            if value == 0 {
+                return Err(CompileError::new(
+                    lexer.file.at(token.offset),
+                    CompileErrorPayload::BlockNumberIsZero,
+                ));
+            }
+            token = lexer.next()?;
+            Some(NonZeroI32::new(value).unwrap())
+        }
+        _ => None,
+    };
+
+    let path_loc = lexer.file.at(token.offset);
+    let (path_offset, path_len) = match token.payload {
+        TokenPayload::String { len } => parse_string(lexer, token.offset, len, ast),
+        _ => {
+            return Err(CompileError::new(
+                lexer.file.at(token.offset),
+                CompileErrorPayload::UnexpectedToken { expected: "string" },
+            ));
+        }
+    };
+
     lexer.expect_token(TokenKind::Newline)?;
-    let (path_offset, path_len) = parse_string(lexer, path_token_offset, path_token_len, ast);
+
     let result: AstNodeId = ast.nodes.len().try_into().unwrap();
     ast.nodes.push(AstNode::RawBlockFile(RawBlockFile {
         block_id,
-        path_loc: lexer.file.at(path_token_offset),
+        glob_number,
+        path_loc,
         path_offset,
         path_len,
     }));

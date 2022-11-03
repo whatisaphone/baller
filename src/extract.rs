@@ -1,10 +1,10 @@
 use crate::{
     config::Config,
+    index::{Directory, Index},
     script::{decompile, disasm_to_string, get_script_name, Scope},
-    utils::vec::extend_insert_some,
     xor::XorStream,
 };
-use byteordered::byteorder::{ReadBytesExt, BE, LE};
+use byteordered::byteorder::{ReadBytesExt, BE};
 use std::{
     collections::HashMap,
     error::Error,
@@ -20,168 +20,6 @@ use tracing::info_span;
 
 pub const NICE: u8 = 0x69;
 pub const FAIL: &str = "I have failed you";
-
-pub struct Index {
-    pub lfl_disks: Vec<u8>,
-    pub lfl_offsets: Vec<i32>,
-    pub scripts: Directory,
-    pub sounds: Directory,
-    pub talkies: Directory,
-    pub room_names: Vec<Option<String>>,
-}
-
-pub struct Directory {
-    /// The game internally calls this "disk number"
-    pub room_numbers: Vec<u8>,
-    /// The game internally calls this "disk offset"
-    pub offsets: Vec<i32>,
-    pub glob_sizes: Vec<i32>,
-}
-
-pub fn read_index(s: &mut (impl Read + Seek)) -> Result<Index, Box<dyn Error>> {
-    let s = XorStream::new(s, NICE);
-    let mut s = BufReader::new(s);
-
-    let len = s.seek(SeekFrom::End(0))?;
-    s.rewind()?;
-
-    let mut state = IndexState {
-        buf: Vec::with_capacity(64 << 10),
-        lfl_disks: None,
-        lfl_offsets: None,
-        scripts: None,
-        sounds: None,
-        talkies: None,
-        room_names: None,
-    };
-
-    scan_blocks(&mut s, &mut state, handle_index_block, len)?;
-
-    Ok(Index {
-        lfl_disks: state.lfl_disks.ok_or("index incomplete")?,
-        lfl_offsets: state.lfl_offsets.ok_or("index incomplete")?,
-        scripts: state.scripts.ok_or("index incomplete")?,
-        sounds: state.sounds.ok_or("index incomplete")?,
-        talkies: state.talkies.ok_or("index incomplete")?,
-        room_names: state.room_names.ok_or("index incomplete")?,
-    })
-}
-
-struct IndexState {
-    buf: Vec<u8>,
-    lfl_disks: Option<Vec<u8>>,
-    lfl_offsets: Option<Vec<i32>>,
-    scripts: Option<Directory>,
-    sounds: Option<Directory>,
-    talkies: Option<Directory>,
-    room_names: Option<Vec<Option<String>>>,
-}
-
-fn handle_index_block<R: Read>(
-    stream: &mut R,
-    state: &mut IndexState,
-    id: [u8; 4],
-    len: u64,
-) -> Result<(), Box<dyn Error>> {
-    state.buf.resize(len.try_into().unwrap(), 0);
-    stream.read_exact(&mut state.buf)?;
-    let mut r = io::Cursor::new(&state.buf);
-
-    match &id {
-        b"DISK" => {
-            let count = r.read_i16::<LE>()?;
-            let mut list = vec![0; count.try_into()?];
-            r.read_exact(&mut list)?;
-            state.lfl_disks = Some(list);
-        }
-        b"DLFL" => {
-            let count = r.read_i16::<LE>()?;
-            let mut list = vec![0; count.try_into()?];
-            r.read_i32_into::<LE>(&mut list)?;
-            state.lfl_offsets = Some(list);
-        }
-        b"DIRS" => {
-            state.scripts = Some(read_directory(&mut r)?);
-        }
-        b"DIRN" => {
-            state.sounds = Some(read_directory(&mut r)?);
-        }
-        b"DIRT" => {
-            state.talkies = Some(read_directory(&mut r)?);
-        }
-        b"RNAM" => {
-            let mut room_names = Vec::new();
-            let mut i = 0;
-            loop {
-                let number =
-                    i16::from_le_bytes(state.buf.get(i..i + 2).ok_or(FAIL)?.try_into().unwrap());
-                i += 2;
-                let number: usize = number.try_into()?;
-                if number == 0 {
-                    break;
-                }
-                let len = state.buf[i..].iter().position(|&b| b == 0).ok_or(FAIL)?;
-                let name = String::from_utf8(state.buf[i..i + len].to_vec())?;
-                i += len + 1;
-                extend_insert_some(&mut room_names, number, name)?;
-            }
-            state.room_names = Some(room_names);
-
-            r.seek(SeekFrom::Start(i.try_into().unwrap()))?;
-        }
-        _ => {
-            r.seek(SeekFrom::End(0))?;
-        }
-    }
-    debug_assert!(r.position() == state.buf.len().try_into().unwrap());
-    Ok(())
-}
-
-fn read_directory(r: &mut impl Read) -> Result<Directory, Box<dyn Error>> {
-    let count = r.read_i16::<LE>()?;
-    let mut dir = Directory {
-        room_numbers: vec![0; count.try_into()?],
-        offsets: vec![0; count.try_into()?],
-        glob_sizes: vec![0; count.try_into()?],
-    };
-    r.read_exact(&mut dir.room_numbers)?;
-    r.read_i32_into::<LE>(&mut dir.offsets)?;
-    r.read_i32_into::<LE>(&mut dir.glob_sizes)?;
-    Ok(dir)
-}
-
-pub fn dump_index(w: &mut impl Write, index: &Index) -> fmt::Result {
-    w.write_str("lfl_disks:\n")?;
-    for (i, x) in index.lfl_disks.iter().enumerate() {
-        writeln!(w, "\t{i}\t{x}")?;
-    }
-    w.write_str("lfl_offsets:\n")?;
-    for (i, x) in index.lfl_disks.iter().enumerate() {
-        writeln!(w, "\t{i}\t{x}")?;
-    }
-    w.write_str("scripts:\n")?;
-    dump_directory(w, index, &index.scripts)?;
-    w.write_str("sounds:\n")?;
-    dump_directory(w, index, &index.sounds)?;
-    Ok(())
-}
-
-fn dump_directory(w: &mut impl Write, index: &Index, dir: &Directory) -> fmt::Result {
-    for i in 0..dir.room_numbers.len() {
-        let room: usize = dir.room_numbers[i].into();
-        writeln!(
-            w,
-            "\t{}\t{}\t{}\t{}\t{}\t{}",
-            i,
-            dir.room_numbers[i],
-            dir.offsets[i],
-            dir.glob_sizes[i],
-            index.lfl_disks[room],
-            index.lfl_offsets[room] + dir.offsets[i],
-        )?;
-    }
-    Ok(())
-}
 
 pub fn extract(
     index: &Index,
@@ -489,7 +327,12 @@ pub fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<u8
     None
 }
 
-fn find_object_number(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
+pub fn find_object_number(
+    index: &Index,
+    dir: &Directory,
+    disk_number: u8,
+    offset: u64,
+) -> Option<i32> {
     let offset: i32 = offset.try_into().ok()?;
     for i in 0..dir.room_numbers.len() {
         let room_number: usize = dir.room_numbers[i].into();

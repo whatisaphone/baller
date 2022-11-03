@@ -14,8 +14,9 @@
 pub use crate::{
     compiler::build_disk,
     config::Config,
-    extract::{dump_index, extract, read_index},
+    extract::extract,
     extract2::extract2,
+    index::{dump_index, read_index},
     raw_build::{raw_build, FsEntry},
 };
 
@@ -27,6 +28,7 @@ mod compiler;
 mod config;
 mod extract;
 mod extract2;
+mod index;
 mod raw_build;
 mod script;
 #[cfg(test)]

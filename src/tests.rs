@@ -11,7 +11,7 @@ pub fn read_scrp(number: usize) -> Result<Vec<u8>, Box<dyn Error>> {
 
     let room: usize = index.scripts.room_numbers[number].into();
     let mut offset: u64 = (index.lfl_offsets[room] + index.scripts.offsets[number]).try_into()?;
-    let mut len: usize = index.scripts.glob_sizes[number].try_into()?;
+    let mut len: usize = index.scripts.sizes[number].try_into()?;
 
     // skip block header
     offset += 8;

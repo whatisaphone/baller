@@ -66,8 +66,16 @@ fn round_trip2() -> Result<(), Box<dyn Error>> {
         fs::remove_dir_all(&root)?;
     }
     fs::create_dir(&root)?;
+
+    // Surgically clobber the index, to test that the builder can rebuild it.
+    let mut index = fs::read(&fixture_path("baseball 2001.he0"))?;
+    index[0x335] = 0;
+    index[0x4e4] = 0;
+    index[0xb94] = 0;
+    index[0x1502c] = 0;
+    index[0x150d7] = 0;
     let index_path = root.join("baseball 2001.he0");
-    fs::copy(&fixture_path("baseball 2001.he0"), &index_path)?;
+    fs::write(&index_path, index)?;
 
     let disk_number = 2;
     build_disk(
@@ -76,6 +84,10 @@ fn round_trip2() -> Result<(), Box<dyn Error>> {
         |path| fs_read(&fs, path),
     )?;
 
+    assert_stream_eq(
+        &root.join("baseball 2001.he0"),
+        &mut File::open(&fixture_path("baseball 2001.he0"))?,
+    )?;
     assert_stream_eq(
         &root.join("baseball 2001.(b)"),
         &mut File::open(&fixture_path("baseball 2001.(b)"))?,

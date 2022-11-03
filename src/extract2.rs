@@ -1,6 +1,7 @@
 use crate::{
     blocks::{push_disk_number, strip_disk_number, BlockId, BlockScanner},
-    extract::{find_lfl_number, read_index, Index, FAIL, NICE},
+    extract::{find_lfl_number, find_object_number, FAIL, NICE},
+    index::{directory_for_block_id, read_index, Directory, Index},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
 };
@@ -92,6 +93,8 @@ fn decompile_disk(
         })?;
 
         let mut cx = Cx {
+            index,
+            disk_number,
             room_name,
             lflf_blocks: &mut lflf_blocks,
             buf: &mut buf,
@@ -121,6 +124,8 @@ fn decompile_disk(
 }
 
 struct Cx<'a> {
+    index: &'a Index,
+    disk_number: u8,
     room_name: &'a str,
     lflf_blocks: &'a mut HashMap<BlockId, i32>,
     buf: &'a mut Vec<u8>,
@@ -158,24 +163,65 @@ fn decompile_raw(
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let offset = disk_read.stream_position()?;
+
     grow_with_default(cx.buf, len);
     let buf = &mut cx.buf[..len];
     disk_read.read_exact(buf)?;
 
     let room_name = cx.room_name;
     let id_str = str::from_utf8(&id)?;
-    let number = cx.lflf_blocks.entry(id).or_insert(0);
-    *number += 1;
+    let glob_number = find_block_glob_number(cx.index, id, cx.disk_number, offset)?;
+    let number = if let Some(n) = glob_number {
+        n
+    } else if let Some(n) = get_block_local_number(id, buf)? {
+        n
+    } else {
+        let n = cx.lflf_blocks.entry(id).or_insert(0);
+        *n += 1;
+        *n
+    };
     write_file(
         &format!("./{room_name}/{path_part}{id_str}/{number}.bin"),
         buf,
     )?;
+
     write_indent(cx.room_scu, cx.indent);
-    writeln!(
-        cx.room_scu,
-        r#"raw-block "{id_str}" "{path_part}{id_str}/{number}.bin""#,
-    )?;
+    write!(cx.room_scu, r#"raw-block "{id_str}""#)?;
+    if let Some(glob_number) = glob_number {
+        write!(cx.room_scu, " {glob_number}")?;
+    }
+    writeln!(cx.room_scu, r#" "{path_part}{id_str}/{number}.bin""#)?;
     Ok(())
+}
+
+fn find_block_glob_number(
+    index: &Index,
+    id: BlockId,
+    disk_number: u8,
+    offset: u64,
+) -> Result<Option<i32>, Box<dyn Error>> {
+    let directory = match directory_for_block_id(index, id) {
+        Some(directory) => directory,
+        None => return Ok(None),
+    };
+    Ok(Some(
+        find_glob_number(index, directory, disk_number, offset).ok_or("missing from index")?,
+    ))
+}
+
+fn find_glob_number(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
+    find_object_number(index, dir, disk_number, offset - 8)
+}
+
+fn get_block_local_number(id: BlockId, data: &[u8]) -> Result<Option<i32>, Box<dyn Error>> {
+    match &id {
+        b"LSC2" => {
+            let number_bytes = data.get(0..4).ok_or("local script too short")?;
+            Ok(Some(i32::from_le_bytes(number_bytes.try_into().unwrap())))
+        }
+        _ => Ok(None),
+    }
 }
 
 fn write_indent(out: &mut String, indent: i32) {

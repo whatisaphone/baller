@@ -1,4 +1,5 @@
 use crate::{blocks::BlockId, compiler::loc::Loc};
+use std::num::NonZeroI32;
 
 pub type AstNodeId = u32;
 
@@ -17,6 +18,7 @@ pub enum AstNode {
 
 pub struct RawBlockFile {
     pub block_id: BlockId,
+    pub glob_number: Option<NonZeroI32>,
     pub path_loc: Loc,
     pub path_offset: u32,
     pub path_len: u32,
