@@ -1,11 +1,11 @@
 use crate::{
-    blocks::{finish_block, push_disk_number, start_block, strip_disk_number, BlockId},
+    blocks::{finish_block, push_disk_number, start_block, strip_disk_number},
     compiler::{
+        ast::{Ast, AstNode, RawBlockContainer, RawBlockFile},
         errors::{report_error, CompileError, CompileErrorPayload},
-        lexer::{string_contents, substr, Lexer},
-        loc::{add_source_file, FileId, Loc, SourceMap},
+        loc::{add_source_file, FileId, SourceMap},
+        parse::parse_room,
         project::{read_project, Room},
-        token::{TokenKind, TokenPayload},
     },
     extract::{read_index, NICE},
     raw_build::FsEntry,
@@ -108,48 +108,19 @@ fn build_room(
     fixups: &mut Vec<(u32, i32)>,
     src_read: impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy,
 ) -> Result<(), CompileError> {
-    let lflf = start_block(out, *b"LFLF").map_err(cant_write)?;
-
     let scu_path = format!("./{}/room.scu", room.name);
     let (scu_file, scu_source) = add_source_file(scu_path, room.name_loc, map, src_read)?;
-    let mut lexer = Lexer::new(scu_file, &scu_source);
-    loop {
-        let token = lexer.next()?;
-        match token.payload {
-            TokenPayload::Eof => break,
-            TokenPayload::Ident { len }
-                if substr(&scu_source, token.offset, len) == "include-raw" =>
-            {
-                let (block_id_offset, block_id_len) = lexer.expect_string()?;
-                let (path_offset, path_len) = lexer.expect_string()?;
-                lexer.expect_choice(&[TokenKind::Newline, TokenKind::Eof], "newline or eof")?;
+    let ast = parse_room(scu_file, &scu_source)?;
 
-                let block_id = string_contents(&scu_source, block_id_offset, block_id_len);
-                let block_id = parse_block_id(block_id).map_err(|_| {
-                    CompileError::new(
-                        scu_file.at(block_id_offset),
-                        CompileErrorPayload::InvalidBlockId,
-                    )
-                })?;
+    let lflf = start_block(out, *b"LFLF").map_err(cant_write)?;
 
-                let path = string_contents(&scu_source, path_offset, path_len);
-                let path = format!("./{}/{}", room.name, path);
-                include_raw(
-                    &path,
-                    block_id,
-                    scu_file.at(path_offset),
-                    out,
-                    fixups,
-                    src_read,
-                )?;
+    for &node_id in ast.list(ast.root_start, ast.root_len) {
+        match ast.node(node_id) {
+            AstNode::RawBlockFile(node) => {
+                raw_block_file(room, &ast, node, out, fixups, src_read)?;
             }
-            _ => {
-                return Err(CompileError::new(
-                    scu_file.at(token.offset),
-                    CompileErrorPayload::UnexpectedToken {
-                        expected: "declaration",
-                    },
-                ));
+            AstNode::RawBlockContainer(node) => {
+                raw_block_container(room, &ast, node, out, fixups, src_read)?;
             }
         }
     }
@@ -159,35 +130,55 @@ fn build_room(
     Ok(())
 }
 
-fn include_raw(
-    path: &str,
-    block_id: BlockId,
-    path_loc: Loc,
+fn raw_block_file(
+    room: &Room,
+    ast: &Ast,
+    node: &RawBlockFile,
     out: &mut (impl Write + Seek),
     fixups: &mut Vec<(u32, i32)>,
     src_read: impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy,
 ) -> Result<(), CompileError> {
-    let blob = match src_read(path) {
+    let path = ast.string(node.path_offset, node.path_len);
+    let path = format!("./{}/{}", room.name, path);
+    let blob = match src_read(&path) {
         Ok(FsEntry::File(blob)) => blob,
         Ok(FsEntry::Dir(_)) | Err(_) => {
             return Err(CompileError::new(
-                path_loc,
+                node.path_loc,
                 CompileErrorPayload::CantReadFile,
             ));
         }
     };
 
-    let block = start_block(out, block_id).map_err(cant_write)?;
+    let block = start_block(out, node.block_id).map_err(cant_write)?;
     out.write_all(&blob).map_err(cant_write)?;
     finish_block(out, block, fixups).map_err(cant_write)?;
     Ok(())
 }
 
-fn parse_block_id(s: &str) -> Result<BlockId, ()> {
-    if !(s.len() == 4 && s.bytes().all(|b| (32..=126).contains(&b))) {
-        return Err(());
+fn raw_block_container(
+    room: &Room,
+    ast: &Ast,
+    node: &RawBlockContainer,
+    out: &mut (impl Write + Seek),
+    fixups: &mut Vec<(u32, i32)>,
+    src_read: impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy,
+) -> Result<(), CompileError> {
+    let block = start_block(out, node.block_id).map_err(cant_write)?;
+
+    for &child_id in ast.list(node.children_start, node.children_len) {
+        match ast.node(child_id) {
+            AstNode::RawBlockFile(n) => {
+                raw_block_file(room, ast, n, out, fixups, src_read)?;
+            }
+            AstNode::RawBlockContainer(n) => {
+                raw_block_container(room, ast, n, out, fixups, src_read)?;
+            }
+        }
     }
-    Ok(s.as_bytes().try_into().unwrap())
+
+    finish_block(out, block, fixups).map_err(cant_write)?;
+    Ok(())
 }
 
 fn cant_write(_: io::Error) -> CompileError {

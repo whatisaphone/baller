@@ -5,9 +5,9 @@ use crate::compiler::{
 };
 
 pub struct Lexer<'a> {
-    file: FileId,
-    source: &'a str,
-    pos: u32,
+    pub file: FileId,
+    pub source: &'a str,
+    pub pos: u32,
 }
 
 impl<'a> Lexer<'a> {
@@ -27,6 +27,14 @@ impl<'a> Lexer<'a> {
             Some('\n') => {
                 self.pos += 1;
                 Ok(Token::new(token_pos, TokenPayload::Newline))
+            }
+            Some('{') => {
+                self.pos += 1;
+                Ok(Token::new(token_pos, TokenPayload::BraceL))
+            }
+            Some('}') => {
+                self.pos += 1;
+                Ok(Token::new(token_pos, TokenPayload::BraceR))
             }
             Some('=') => {
                 self.pos += 1;

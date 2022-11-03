@@ -15,6 +15,8 @@ impl Token {
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum TokenKind {
+    BraceL,
+    BraceR,
     Eq,
     Integer,
     Ident,
@@ -24,6 +26,8 @@ pub enum TokenKind {
 }
 
 pub enum TokenPayload {
+    BraceL,
+    BraceR,
     Eq,
     Integer { value: i32 },
     Ident { len: u32 },
@@ -35,6 +39,8 @@ pub enum TokenPayload {
 impl TokenKind {
     pub fn describe(self) -> &'static str {
         match self {
+            TokenKind::BraceL => "'{'",
+            TokenKind::BraceR => "'}'",
             TokenKind::Eq => "'='",
             TokenKind::Integer => "integer",
             TokenKind::Ident => "identifier",
@@ -48,6 +54,8 @@ impl TokenKind {
 impl TokenPayload {
     pub fn kind(&self) -> TokenKind {
         match self {
+            TokenPayload::BraceL => TokenKind::BraceL,
+            TokenPayload::BraceR => TokenKind::BraceR,
             TokenPayload::Eq => TokenKind::Eq,
             TokenPayload::Integer { .. } => TokenKind::Integer,
             TokenPayload::Ident { .. } => TokenKind::Ident,

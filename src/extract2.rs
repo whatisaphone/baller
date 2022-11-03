@@ -96,12 +96,16 @@ fn decompile_disk(
             lflf_blocks: &mut lflf_blocks,
             buf: &mut buf,
             room_scu: &mut room_scu,
+            indent: 0,
         };
 
         let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
 
         while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
-            decompile_raw(id, len.try_into()?, &mut s, write_file, &mut cx)?;
+            match &id {
+                b"RMDA" => decompile_rmda(len, &mut s, write_file, &mut cx)?,
+                _ => decompile_raw(id, len.try_into()?, &mut s, write_file, &mut cx)?,
+            }
         }
 
         scan_lflf.finish(&mut s)?;
@@ -121,6 +125,29 @@ struct Cx<'a> {
     lflf_blocks: &'a mut HashMap<BlockId, i32>,
     buf: &'a mut Vec<u8>,
     room_scu: &'a mut String,
+    indent: i32,
+}
+
+fn decompile_rmda(
+    block_len: u64,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    write_indent(cx.room_scu, cx.indent);
+    cx.room_scu.push_str("raw-block \"RMDA\" {\n");
+    cx.indent += 1;
+
+    let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
+    while let Some((id, len)) = scan.next_block(disk_read)? {
+        decompile_raw(id, len.try_into()?, disk_read, write_file, cx)?;
+    }
+    scan.finish(disk_read)?;
+
+    cx.indent -= 1;
+    write_indent(cx.room_scu, cx.indent);
+    cx.room_scu.push_str("}\n");
+    Ok(())
 }
 
 fn decompile_raw(
@@ -139,11 +166,18 @@ fn decompile_raw(
     let number = cx.lflf_blocks.entry(id).or_insert(0);
     *number += 1;
     write_file(&format!("./{room_name}/{id_str}/{number}.bin"), buf)?;
+    write_indent(cx.room_scu, cx.indent);
     writeln!(
         cx.room_scu,
-        r#"include-raw "{id_str}" "{id_str}/{number}.bin""#,
+        r#"raw-block "{id_str}" "{id_str}/{number}.bin""#,
     )?;
     Ok(())
+}
+
+fn write_indent(out: &mut String, indent: i32) {
+    for _ in 0..indent * 4 {
+        out.push(' ');
+    }
 }
 
 struct Room {
