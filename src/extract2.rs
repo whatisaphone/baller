@@ -104,7 +104,7 @@ fn decompile_disk(
         while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
             match &id {
                 b"RMDA" => decompile_rmda(len, &mut s, write_file, &mut cx)?,
-                _ => decompile_raw(id, len.try_into()?, &mut s, write_file, &mut cx)?,
+                _ => decompile_raw(id, len.try_into()?, "", &mut s, write_file, &mut cx)?,
             }
         }
 
@@ -140,7 +140,7 @@ fn decompile_rmda(
 
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
-        decompile_raw(id, len.try_into()?, disk_read, write_file, cx)?;
+        decompile_raw(id, len.try_into()?, "RMDA/", disk_read, write_file, cx)?;
     }
     scan.finish(disk_read)?;
 
@@ -153,6 +153,7 @@ fn decompile_rmda(
 fn decompile_raw(
     id: BlockId,
     len: usize,
+    path_part: &str,
     disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
@@ -165,11 +166,14 @@ fn decompile_raw(
     let id_str = str::from_utf8(&id)?;
     let number = cx.lflf_blocks.entry(id).or_insert(0);
     *number += 1;
-    write_file(&format!("./{room_name}/{id_str}/{number}.bin"), buf)?;
+    write_file(
+        &format!("./{room_name}/{path_part}{id_str}/{number}.bin"),
+        buf,
+    )?;
     write_indent(cx.room_scu, cx.indent);
     writeln!(
         cx.room_scu,
-        r#"raw-block "{id_str}" "{id_str}/{number}.bin""#,
+        r#"raw-block "{id_str}" "{path_part}{id_str}/{number}.bin""#,
     )?;
     Ok(())
 }
