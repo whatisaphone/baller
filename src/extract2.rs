@@ -1,7 +1,9 @@
 use crate::{
     blocks::{push_disk_number, strip_disk_number, BlockId, BlockScanner},
+    config::Config,
     extract::{find_lfl_number, find_object_number, FAIL, NICE},
     index::{directory_for_block_id, read_index, Directory, Index},
+    script::{decompile, disasm_to_string, Scope},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
 };
@@ -13,9 +15,11 @@ use std::{
     io::{BufReader, Read, Seek, SeekFrom},
     str,
 };
+use tracing::info_span;
 
 pub fn extract2(
     mut path: String,
+    config: &Config,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut f = File::open(&path)?;
@@ -28,7 +32,7 @@ pub fn extract2(
         strip_disk_number(&mut path);
         push_disk_number(&mut path, disk_number);
         let mut f = File::open(&path)?;
-        decompile_disk(&index, disk_number, &mut f, &mut rooms, write_file)?;
+        decompile_disk(&index, disk_number, config, &mut f, &mut rooms, write_file)?;
         drop(f);
     }
 
@@ -51,6 +55,7 @@ pub fn extract2(
 fn decompile_disk(
     index: &Index,
     disk_number: u8,
+    config: &Config,
     s: &mut (impl Read + Seek),
     rooms: &mut Vec<Option<Room>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
@@ -93,6 +98,7 @@ fn decompile_disk(
         })?;
 
         let mut cx = Cx {
+            config,
             index,
             disk_number,
             room_name,
@@ -115,6 +121,7 @@ fn decompile_disk(
 }
 
 struct Cx<'a> {
+    config: &'a Config,
     index: &'a Index,
     disk_number: u8,
     room_name: &'a str,
@@ -134,7 +141,10 @@ fn decompile_lflf(
     while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
         match &id {
             b"RMDA" => decompile_rmda(len, s, write_file, cx)?,
-            _ => decompile_raw(id, len.try_into()?, "", s, write_file, cx)?,
+            b"SCRP" => decompile_scrp(len, s, write_file, cx)?,
+            _ => {
+                decompile_raw(id, len, "", s, write_file, cx)?;
+            }
         }
     }
     scan_lflf.finish(&mut s)?;
@@ -153,7 +163,7 @@ fn decompile_rmda(
 
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
-        decompile_raw(id, len.try_into()?, "RMDA/", disk_read, write_file, cx)?;
+        decompile_raw(id, len, "RMDA/", disk_read, write_file, cx)?;
     }
     scan.finish(disk_read)?;
 
@@ -163,16 +173,51 @@ fn decompile_rmda(
     Ok(())
 }
 
-fn decompile_raw(
-    id: BlockId,
-    len: usize,
-    path_part: &str,
+fn decompile_scrp(
+    block_len: u64,
     disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let number = decompile_raw(*b"SCRP", block_len, "", disk_read, write_file, cx)?;
+    let path = format!("./{}/SCRP/{}", cx.room_name, number);
+    let code = &cx.buf[..block_len.try_into().unwrap()];
+    decompile_script(path, code, Scope::Global(number), write_file, cx)?;
+    Ok(())
+}
+
+fn decompile_script(
+    mut path: String,
+    code: &[u8],
+    scope: Scope,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &Cx,
+) -> Result<(), Box<dyn Error>> {
+    let disasm = disasm_to_string(code);
+    path.push_str(".s");
+    write_file(&path, disasm.as_bytes())?;
+    path.truncate(path.len() - 2);
+
+    let decomp = {
+        let _span = info_span!("decompile", path).entered();
+        decompile(code, scope, cx.config)
+    };
+    path.push_str(".scu");
+    write_file(&path, decomp.as_bytes())?;
+    Ok(())
+}
+
+fn decompile_raw(
+    id: BlockId,
+    len: u64,
+    path_part: &str,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<i32, Box<dyn Error>> {
     let offset = disk_read.stream_position()?;
 
+    let len: usize = len.try_into()?;
     grow_with_default(cx.buf, len);
     let buf = &mut cx.buf[..len];
     disk_read.read_exact(buf)?;
@@ -200,7 +245,7 @@ fn decompile_raw(
         write!(cx.room_scu, " {glob_number}")?;
     }
     writeln!(cx.room_scu, r#" "{path_part}{id_str}/{number}.bin""#)?;
-    Ok(())
+    Ok(number)
 }
 
 fn find_block_glob_number(

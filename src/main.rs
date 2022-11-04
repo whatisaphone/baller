@@ -195,6 +195,8 @@ struct Extract2 {
     output: PathBuf,
     #[clap(short, long = "config")]
     config_path: Option<PathBuf>,
+    #[clap(long)]
+    aside: bool,
 }
 
 impl Extract2 {
@@ -204,11 +206,17 @@ impl Extract2 {
             return Err("input path must end with \"he0\"".into());
         }
 
+        let mut config = match self.config_path {
+            Some(path) => Config::from_ini(&fs::read_to_string(&path)?)?,
+            None => Config::default(),
+        };
+        config.aside = self.aside;
+
         if !self.output.exists() {
             fs::create_dir(&self.output)?;
         }
 
-        extract2(input, &mut fs_writer(&self.output))?;
+        extract2(input, &config, &mut fs_writer(&self.output))?;
         Ok(())
     }
 }
