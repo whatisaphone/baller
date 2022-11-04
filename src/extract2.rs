@@ -102,16 +102,7 @@ fn decompile_disk(
             indent: 0,
         };
 
-        let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
-
-        while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
-            match &id {
-                b"RMDA" => decompile_rmda(len, &mut s, write_file, &mut cx)?,
-                _ => decompile_raw(id, len.try_into()?, "", &mut s, write_file, &mut cx)?,
-            }
-        }
-
-        scan_lflf.finish(&mut s)?;
+        decompile_lflf(lflf_len, &mut s, write_file, &mut cx)?;
 
         write_file(&format!("./{room_name}/room.scu"), room_scu.as_bytes())?;
     }
@@ -131,6 +122,23 @@ struct Cx<'a> {
     buf: &'a mut Vec<u8>,
     room_scu: &'a mut String,
     indent: i32,
+}
+
+fn decompile_lflf(
+    lflf_len: u64,
+    mut s: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
+    while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
+        match &id {
+            b"RMDA" => decompile_rmda(len, s, write_file, cx)?,
+            _ => decompile_raw(id, len.try_into()?, "", s, write_file, cx)?,
+        }
+    }
+    scan_lflf.finish(&mut s)?;
+    Ok(())
 }
 
 fn decompile_rmda(
