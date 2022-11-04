@@ -168,6 +168,7 @@ fn fs_write(
     path: &str,
     data: Vec<u8>,
 ) -> Result<(), Box<dyn Error>> {
+    debug_assert!(path.len() < 100, "{path}"); // sanity check
     let (dir, file) = path.rsplit_once('/').unwrap();
     mkdirs(fs, dir)?.insert(file.to_string(), Entry::File(data));
     Ok(())

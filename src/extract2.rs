@@ -178,6 +178,7 @@ fn decompile_rmda(
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
         match &id {
+            b"OBCD" => decompile_obcd(len, disk_read, write_file, cx)?,
             b"ENCD" | b"EXCD" => decompile_enex(id, len, disk_read, write_file, cx)?,
             b"LSC2" => decompile_lsc2(len, disk_read, write_file, cx)?,
             _ => {
@@ -222,12 +223,16 @@ fn decompile_enex(
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let len = read_into_buf(block_len, disk_read, cx)?;
+
     match &block_id {
         b"ENCD" => cx.cur_path.push_str("ENCD"),
         b"EXCD" => cx.cur_path.push_str("EXCD"),
         _ => unreachable!(),
     }
-    decompile_raw_cur_path(block_id, block_len, disk_read, write_file, cx)?;
+    cx.cur_path.push_str(".bin");
+    emit_raw_block(block_id, 0..len, write_file, cx)?;
+    cx.cur_path.truncate(cx.cur_path.len() - 4);
 
     let scope = match &block_id {
         b"ENCD" => Scope::RoomEnter(cx.room_number.into()),
@@ -258,6 +263,108 @@ fn decompile_lsc2(
     pop_path_part(cx.cur_path);
     pop_path_part(cx.cur_path);
     Ok(())
+}
+
+fn decompile_obcd(
+    block_len: u64,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    write_indent(cx.room_scu, cx.indent);
+    cx.room_scu.push_str("raw-block \"OBCD\" {\n");
+    cx.indent += 1;
+
+    let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
+
+    // CDHD
+
+    let len = scan.next_block_must_be(disk_read, *b"CDHD")?.ok_or(FAIL)?;
+    let len = read_into_buf(len, disk_read, cx)?;
+    let object_number = i16::from_le_bytes(cx.buf[0..2].try_into().unwrap());
+
+    write!(cx.cur_path, "OBCD/{object_number}/CDHD.bin").unwrap();
+    emit_raw_block(*b"CDHD", 0..len, write_file, cx)?;
+    pop_path_part(cx.cur_path); // NB this is asymmetrical
+
+    // VERB
+
+    let len = scan.next_block_must_be(disk_read, *b"VERB")?.ok_or(FAIL)?;
+    let len = read_into_buf(len, disk_read, cx)?;
+
+    cx.cur_path.push_str("VERB.bin");
+    emit_raw_block(*b"VERB", 0..len, write_file, cx)?;
+    pop_path_part(cx.cur_path);
+
+    decompile_verb(object_number, len, write_file, cx)?;
+
+    // OBNA
+
+    let len = scan.next_block_must_be(disk_read, *b"OBNA")?.ok_or(FAIL)?;
+    let len = read_into_buf(len, disk_read, cx)?;
+
+    cx.cur_path.push_str("OBNA.bin");
+    emit_raw_block(*b"OBNA", 0..len, write_file, cx)?;
+    pop_path_part(cx.cur_path);
+
+    // Finish up
+
+    pop_path_part(cx.cur_path);
+    pop_path_part(cx.cur_path);
+
+    scan.finish(disk_read)?;
+
+    cx.indent -= 1;
+    write_indent(cx.room_scu, cx.indent);
+    cx.room_scu.push_str("}\n");
+    Ok(())
+}
+
+fn decompile_verb(
+    object_number: i16,
+    block_len: usize,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    let mut pos = 0;
+    while let Some(verb) = read_verb_header(&cx.buf[pos..])? {
+        pos += VERB_HEADER_SIZE;
+        let start: usize = (verb.offset - 8).try_into()?; // relative to block header
+        let end: usize = match read_verb_header(&cx.buf[pos..])? {
+            Some(next) => (next.offset - 8).try_into()?,
+            None => block_len,
+        };
+
+        if !(pos <= block_len && start <= block_len && end <= block_len && start < end) {
+            return Err(FAIL.into());
+        }
+
+        write!(cx.cur_path, "VERB_{:02}", verb.number).unwrap();
+        decompile_script(
+            start..end,
+            Scope::Verb(cx.room_number.into(), object_number.try_into()?),
+            write_file,
+            cx,
+        )?;
+        pop_path_part(cx.cur_path);
+    }
+    Ok(())
+}
+
+fn read_verb_header(buf: &[u8]) -> Result<Option<VerbHeader>, Box<dyn Error>> {
+    let number = *buf.get(0).ok_or(FAIL)?;
+    if number == 0 {
+        return Ok(None);
+    }
+    let offset = u16::from_le_bytes(buf.get(1..3).ok_or(FAIL)?.try_into().unwrap());
+    Ok(Some(VerbHeader { number, offset }))
+}
+
+const VERB_HEADER_SIZE: usize = 3;
+
+struct VerbHeader {
+    number: u8,
+    offset: u16,
 }
 
 fn decompile_script(
@@ -291,10 +398,8 @@ fn decompile_raw(
 ) -> Result<i32, Box<dyn Error>> {
     let offset = disk_read.stream_position()?;
 
-    let len: usize = len.try_into()?;
-    grow_with_default(cx.buf, len);
-    let buf = &mut cx.buf[..len];
-    disk_read.read_exact(buf)?;
+    let len = read_into_buf(len, disk_read, cx)?;
+    let buf = &cx.buf[..len];
 
     let id_str = str::from_utf8(&id)?;
     let glob_number = find_block_glob_number(cx.index, id, cx.disk_number, offset)?;
@@ -328,20 +433,15 @@ fn decompile_raw(
     Ok(number)
 }
 
-fn decompile_raw_cur_path(
+fn emit_raw_block(
     id: BlockId,
-    len: u64,
-    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    data_range: Range<usize>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
     debug_assert!(directory_for_block_id(cx.index, id).is_none());
 
-    let len: usize = len.try_into()?;
-    grow_with_default(cx.buf, len);
-    let buf = &mut cx.buf[..len];
-    disk_read.read_exact(buf)?;
-
+    let buf = &cx.buf[data_range];
     write_file(cx.cur_path, buf)?;
 
     let id_str = str::from_utf8(&id)?;
@@ -382,6 +482,18 @@ fn get_block_local_number(id: BlockId, data: &[u8]) -> Result<Option<i32>, Box<d
         }
         _ => Ok(None),
     }
+}
+
+fn read_into_buf(
+    len: u64,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    cx: &mut Cx,
+) -> Result<usize, Box<dyn Error>> {
+    let len: usize = len.try_into()?;
+    grow_with_default(cx.buf, len);
+    let buf = &mut cx.buf[..len];
+    disk_read.read_exact(buf)?;
+    Ok(len)
 }
 
 fn write_indent(out: &mut String, indent: i32) {
