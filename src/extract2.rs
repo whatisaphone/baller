@@ -13,6 +13,7 @@ use std::{
     fmt::Write,
     fs::File,
     io::{BufReader, Read, Seek, SeekFrom},
+    ops::Range,
     str,
 };
 use tracing::info_span;
@@ -69,6 +70,8 @@ fn decompile_disk(
     let mut buf = Vec::with_capacity(64 << 10);
     let mut lflf_blocks = HashMap::with_capacity(16);
     let mut room_scu = String::with_capacity(1 << 10);
+    let mut cur_path = String::with_capacity(64);
+    cur_path.push_str("./");
 
     let mut scan_root = BlockScanner::new(len);
     let lecf_len = scan_root
@@ -105,12 +108,19 @@ fn decompile_disk(
             lflf_blocks: &mut lflf_blocks,
             buf: &mut buf,
             room_scu: &mut room_scu,
+            cur_path: &mut cur_path,
             indent: 0,
         };
 
+        write!(cx.cur_path, "{}/", cx.room_name).unwrap();
+
         decompile_lflf(lflf_len, &mut s, write_file, &mut cx)?;
 
-        write_file(&format!("./{room_name}/room.scu"), room_scu.as_bytes())?;
+        cx.cur_path.push_str("room.scu");
+        write_file(cx.cur_path, cx.room_scu.as_bytes())?;
+        pop_path_part(cx.cur_path);
+
+        pop_path_part(cx.cur_path);
     }
 
     scan_lecf.finish(&mut s)?;
@@ -128,6 +138,7 @@ struct Cx<'a> {
     lflf_blocks: &'a mut HashMap<BlockId, i32>,
     buf: &'a mut Vec<u8>,
     room_scu: &'a mut String,
+    cur_path: &'a mut String,
     indent: i32,
 }
 
@@ -161,11 +172,15 @@ fn decompile_rmda(
     cx.room_scu.push_str("raw-block \"RMDA\" {\n");
     cx.indent += 1;
 
+    cx.cur_path.push_str("RMDA/");
+
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
         decompile_raw(id, len, "RMDA/", disk_read, write_file, cx)?;
     }
     scan.finish(disk_read)?;
+
+    pop_path_part(cx.cur_path);
 
     cx.indent -= 1;
     write_indent(cx.room_scu, cx.indent);
@@ -180,30 +195,37 @@ fn decompile_scrp(
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
     let number = decompile_raw(*b"SCRP", block_len, "", disk_read, write_file, cx)?;
-    let path = format!("./{}/SCRP/{}", cx.room_name, number);
-    let code = &cx.buf[..block_len.try_into().unwrap()];
-    decompile_script(path, code, Scope::Global(number), write_file, cx)?;
+    write!(cx.cur_path, "SCRP/{number}").unwrap();
+    decompile_script(
+        0..block_len.try_into().unwrap(),
+        Scope::Global(number),
+        write_file,
+        cx,
+    )?;
+    pop_path_part(cx.cur_path);
+    pop_path_part(cx.cur_path);
     Ok(())
 }
 
 fn decompile_script(
-    mut path: String,
-    code: &[u8],
+    code_range: Range<usize>,
     scope: Scope,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
-    cx: &Cx,
+    cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let code = &cx.buf[code_range];
+
     let disasm = disasm_to_string(code);
-    path.push_str(".s");
-    write_file(&path, disasm.as_bytes())?;
-    path.truncate(path.len() - 2);
+    cx.cur_path.push_str(".s");
+    write_file(cx.cur_path, disasm.as_bytes())?;
+    cx.cur_path.truncate(cx.cur_path.len() - 2);
 
     let decomp = {
-        let _span = info_span!("decompile", path).entered();
+        let _span = info_span!("decompile", cx.cur_path).entered();
         decompile(code, scope, cx.config)
     };
-    path.push_str(".scu");
-    write_file(&path, decomp.as_bytes())?;
+    cx.cur_path.push_str(".scu");
+    write_file(cx.cur_path, decomp.as_bytes())?;
     Ok(())
 }
 
@@ -222,7 +244,6 @@ fn decompile_raw(
     let buf = &mut cx.buf[..len];
     disk_read.read_exact(buf)?;
 
-    let room_name = cx.room_name;
     let id_str = str::from_utf8(&id)?;
     let glob_number = find_block_glob_number(cx.index, id, cx.disk_number, offset)?;
     let number = if let Some(n) = glob_number {
@@ -234,10 +255,10 @@ fn decompile_raw(
         *n += 1;
         *n
     };
-    write_file(
-        &format!("./{room_name}/{path_part}{id_str}/{number}.bin"),
-        buf,
-    )?;
+    write!(cx.cur_path, "{id_str}/{number}.bin").unwrap();
+    write_file(cx.cur_path, buf)?;
+    pop_path_part(cx.cur_path);
+    pop_path_part(cx.cur_path);
 
     write_indent(cx.room_scu, cx.indent);
     write!(cx.room_scu, r#"raw-block "{id_str}""#)?;
@@ -286,4 +307,11 @@ fn write_indent(out: &mut String, indent: i32) {
 struct Room {
     name: String,
     disk_number: u8,
+}
+
+fn pop_path_part(s: &mut String) {
+    s.pop();
+    while *s.as_bytes().last().unwrap() != b'/' {
+        s.pop();
+    }
 }
