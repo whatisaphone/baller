@@ -61,7 +61,7 @@ fn prepend_label_stmts(block: &mut StmtBlock, targets: &mut Vec<usize>, skip: Op
                 true_,
                 false_,
             } => {
-                let true_skip = false_.addrs.get(0).copied().unwrap_or(next_skip);
+                let true_skip = false_.addrs.first().copied().unwrap_or(next_skip);
                 prepend_label_stmts(true_, targets, Some(true_skip));
                 prepend_label_stmts(false_, targets, Some(next_skip));
             }

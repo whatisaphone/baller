@@ -364,6 +364,7 @@ fn decompile_verb(
 }
 
 fn read_verb_header(buf: &[u8]) -> Result<Option<VerbHeader>, Box<dyn Error>> {
+    #[allow(clippy::get_first)]
     let number = *buf.get(0).ok_or(FAIL)?;
     if number == 0 {
         return Ok(None);

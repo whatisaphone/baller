@@ -64,7 +64,7 @@ struct ExtractState<'a> {
     disk_number: DiskNumber,
     index: &'a Index,
     config: &'a Config,
-    write: &'a mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    write: &'a mut WriteFn<'a>,
     path: String,
     publish_scripts: bool,
     current_room: RoomNumber,
@@ -73,6 +73,8 @@ struct ExtractState<'a> {
     map: String,
     buf: Vec<u8>,
 }
+
+type WriteFn<'a> = dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>> + 'a;
 
 fn handle_extract_block<R: Read + Seek>(
     r: &mut R,
@@ -267,6 +269,7 @@ fn extract_verb(state: &mut ExtractState) -> Result<(), Box<dyn Error>> {
 }
 
 fn read_verb(buf: &[u8]) -> Option<(u8, u16)> {
+    #[allow(clippy::get_first)]
     let number = *buf.get(0)?;
     if number == 0 {
         return None;

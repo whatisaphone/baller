@@ -149,7 +149,7 @@ fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx:
     if !(name.ends_with("-script") || name.ends_with("-script-xc3")) {
         return;
     }
-    let &script_target_expr = match ins_args.get(0) {
+    let &script_target_expr = match ins_args.first() {
         Some(script) => script,
         None => return,
     };
