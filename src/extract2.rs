@@ -1,8 +1,17 @@
 use crate::{
-    blocks::{push_disk_number, strip_disk_number, BlockId, BlockScanner},
+    blocks::{
+        push_disk_number,
+        strip_disk_number,
+        BlockId,
+        BlockScanner,
+        DiskNumber,
+        ObjectNumber,
+        RoomNumber,
+        BLOCK_HEADER_SIZE,
+    },
     config::Config,
-    extract::{find_lfl_number, find_object_number, FAIL, NICE},
-    index::{directory_for_block_id, read_index, Directory, Index},
+    extract::{find_glob_number, find_lfl_number, FAIL, NICE},
+    index::{directory_for_block_id, read_index, Index},
     script::{decompile, disasm_to_string, Scope},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
@@ -55,7 +64,7 @@ pub fn extract2(
 
 fn decompile_disk(
     index: &Index,
-    disk_number: u8,
+    disk_number: DiskNumber,
     config: &Config,
     s: &mut (impl Read + Seek),
     rooms: &mut Vec<Option<Room>>,
@@ -88,7 +97,7 @@ fn decompile_disk(
         let mut room_named_by_number = String::new();
         let room_name = index
             .room_names
-            .get(usize::try_from(room_number)?)
+            .get(usize::from(room_number))
             .and_then(Option::as_deref)
             .unwrap_or_else(|| {
                 room_named_by_number = format!("room{room_number}");
@@ -133,8 +142,8 @@ fn decompile_disk(
 struct Cx<'a> {
     config: &'a Config,
     index: &'a Index,
-    disk_number: u8,
-    room_number: u8,
+    disk_number: DiskNumber,
+    room_number: RoomNumber,
     lflf_blocks: &'a mut HashMap<BlockId, i32>,
     buf: &'a mut Vec<u8>,
     room_scu: &'a mut String,
@@ -235,8 +244,8 @@ fn decompile_enex(
     cx.cur_path.truncate(cx.cur_path.len() - 4);
 
     let scope = match &block_id {
-        b"ENCD" => Scope::RoomEnter(cx.room_number.into()),
-        b"EXCD" => Scope::RoomExit(cx.room_number.into()),
+        b"ENCD" => Scope::RoomEnter(cx.room_number),
+        b"EXCD" => Scope::RoomExit(cx.room_number),
         _ => unreachable!(),
     };
     decompile_script(0..block_len.try_into().unwrap(), scope, write_file, cx)?;
@@ -256,7 +265,7 @@ fn decompile_lsc2(
     write!(cx.cur_path, "LSC2/{number}").unwrap();
     decompile_script(
         4..block_len.try_into().unwrap(),
-        Scope::RoomLocal(cx.room_number.into(), number),
+        Scope::RoomLocal(cx.room_number, number),
         write_file,
         cx,
     )?;
@@ -281,7 +290,7 @@ fn decompile_obcd(
 
     let len = scan.next_block_must_be(disk_read, *b"CDHD")?.ok_or(FAIL)?;
     let len = read_into_buf(len, disk_read, cx)?;
-    let object_number = i16::from_le_bytes(cx.buf[0..2].try_into().unwrap());
+    let object_number = ObjectNumber::from_le_bytes(cx.buf[0..2].try_into().unwrap());
 
     write!(cx.cur_path, "OBCD/{object_number}/CDHD.bin").unwrap();
     emit_raw_block(*b"CDHD", 0..len, write_file, cx)?;
@@ -321,17 +330,20 @@ fn decompile_obcd(
 }
 
 fn decompile_verb(
-    object_number: i16,
+    object_number: ObjectNumber,
     block_len: usize,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    #[allow(clippy::cast_possible_truncation)]
+    const BLK_HD_SZ: u16 = BLOCK_HEADER_SIZE as u16;
+
     let mut pos = 0;
     while let Some(verb) = read_verb_header(&cx.buf[pos..])? {
         pos += VERB_HEADER_SIZE;
-        let start: usize = (verb.offset - 8).try_into()?; // relative to block header
+        let start: usize = (verb.offset - BLK_HD_SZ).try_into()?; // relative to block header
         let end: usize = match read_verb_header(&cx.buf[pos..])? {
-            Some(next) => (next.offset - 8).try_into()?,
+            Some(next) => (next.offset - BLK_HD_SZ).try_into()?,
             None => block_len,
         };
 
@@ -342,7 +354,7 @@ fn decompile_verb(
         write!(cx.cur_path, "VERB_{:02}", verb.number).unwrap();
         decompile_script(
             start..end,
-            Scope::Verb(cx.room_number.into(), object_number.try_into()?),
+            Scope::Verb(cx.room_number, object_number),
             write_file,
             cx,
         )?;
@@ -458,7 +470,7 @@ fn emit_raw_block(
 fn find_block_glob_number(
     index: &Index,
     id: BlockId,
-    disk_number: u8,
+    disk_number: DiskNumber,
     offset: u64,
 ) -> Result<Option<i32>, Box<dyn Error>> {
     let directory = match directory_for_block_id(index, id) {
@@ -466,12 +478,9 @@ fn find_block_glob_number(
         None => return Ok(None),
     };
     Ok(Some(
-        find_glob_number(index, directory, disk_number, offset).ok_or("missing from index")?,
+        find_glob_number(index, directory, disk_number, offset - BLOCK_HEADER_SIZE)
+            .ok_or("missing from index")?,
     ))
-}
-
-fn find_glob_number(index: &Index, dir: &Directory, disk_number: u8, offset: u64) -> Option<i32> {
-    find_object_number(index, dir, disk_number, offset - 8)
 }
 
 fn get_block_local_number(id: BlockId, data: &[u8]) -> Result<Option<i32>, Box<dyn Error>> {
@@ -504,7 +513,7 @@ fn write_indent(out: &mut String, indent: i32) {
 
 struct Room {
     name: String,
-    disk_number: u8,
+    disk_number: DiskNumber,
 }
 
 fn pop_path_part(s: &mut String) {

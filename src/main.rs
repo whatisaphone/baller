@@ -10,7 +10,7 @@
 #![cfg_attr(feature = "strict", deny(warnings))]
 
 use crate::{
-    blocks::{push_disk_number, strip_disk_number},
+    blocks::{push_disk_number, strip_disk_number, DiskNumber},
     collision::ExtractCollisionOptions,
     compiler::build_disk,
     config::Config,
@@ -85,7 +85,7 @@ struct Build {
     #[clap(short)]
     output: String,
     #[clap(short, long)]
-    disk_number: u8,
+    disk_number: DiskNumber,
 }
 
 impl Build {
@@ -167,7 +167,7 @@ impl Extract {
         config: &Config,
         input: &mut String,
         output: &Path,
-        disk_number: u8,
+        disk_number: DiskNumber,
         publish_scripts: bool,
     ) -> Result<(), Box<dyn Error>> {
         push_disk_number(input, disk_number);

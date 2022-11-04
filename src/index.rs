@@ -1,5 +1,5 @@
 use crate::{
-    blocks::{apply_fixups, write_block, BlockId, BlockScanner},
+    blocks::{apply_fixups, write_block, BlockId, BlockScanner, DiskNumber, RoomNumber},
     extract::{FAIL, NICE},
     utils::vec::extend_insert_some,
     xor::{XorStream, XorWriteStream},
@@ -23,7 +23,7 @@ pub struct Index {
     pub images: Directory,
     pub talkies: Directory,
     pub lfl_offsets: Vec<i32>,
-    pub lfl_disks: Vec<u8>,
+    pub lfl_disks: Vec<DiskNumber>,
     pub room_names: Vec<Option<String>>,
     pub objects: Objects,
 }
@@ -54,7 +54,7 @@ pub struct Maxs {
 }
 
 pub struct Directory {
-    pub room_numbers: Vec<u8>,
+    pub room_numbers: Vec<RoomNumber>,
     pub offsets: Vec<i32>,
     pub sizes: Vec<i32>,
 }

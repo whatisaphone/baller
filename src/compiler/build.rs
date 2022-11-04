@@ -7,6 +7,8 @@ use crate::{
         start_block,
         strip_disk_number,
         BlockId,
+        DiskNumber,
+        RoomNumber,
     },
     compiler::{
         ast::{Ast, AstNode, RawBlockContainer, RawBlockFile},
@@ -31,7 +33,7 @@ use std::{
 
 pub fn build_disk(
     mut path: String,
-    disk_number: u8,
+    disk_number: DiskNumber,
     src_read: impl Fn(&str) -> Result<FsEntry, Box<dyn Error>> + Copy,
 ) -> Result<(), Box<dyn Error>> {
     let mut f = File::open(&path)?;
@@ -90,7 +92,7 @@ pub fn build_disk(
 fn compile_disk(
     project_file: FileId,
     project_source: &str,
-    disk_number: u8,
+    disk_number: DiskNumber,
     map: &mut SourceMap,
     out: &mut (impl Write + Seek),
     fixups: &mut Vec<(u32, i32)>,
@@ -100,7 +102,7 @@ fn compile_disk(
     let project = read_project(project_file, project_source)?;
 
     for (room_number, room) in project.rooms.iter().enumerate() {
-        let room_number: u8 = room_number.try_into().unwrap();
+        let room_number: RoomNumber = room_number.try_into().unwrap();
         let room = match room {
             Some(room) => room,
             None => continue,
@@ -115,7 +117,7 @@ fn compile_disk(
 }
 
 fn build_room(
-    room_number: u8,
+    room_number: RoomNumber,
     room: &Room,
     map: &mut SourceMap,
     out: &mut (impl Write + Seek),
@@ -161,7 +163,7 @@ struct Cx<'a> {
 }
 
 fn raw_block_file(
-    room_number: u8,
+    room_number: RoomNumber,
     room: &Room,
     ast: &Ast,
     node: &RawBlockFile,
@@ -198,7 +200,7 @@ fn raw_block_file(
 }
 
 fn raw_block_container(
-    room_number: u8,
+    room_number: RoomNumber,
     room: &Room,
     ast: &Ast,
     node: &RawBlockContainer,
@@ -227,7 +229,7 @@ fn update_index(
     loc: Loc,
     block_id: BlockId,
     glob_number: Option<NonZeroI32>,
-    room_number: u8,
+    room_number: RoomNumber,
     offset: i32,
     size: i32,
     cx: &mut Cx,

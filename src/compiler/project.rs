@@ -1,4 +1,5 @@
 use crate::{
+    blocks::{DiskNumber, RoomNumber},
     compiler::{
         errors::{CompileError, CompileErrorPayload},
         lexer::{string_contents, substr, Lexer},
@@ -14,7 +15,7 @@ pub struct Project<'a> {
 
 pub struct Room<'a> {
     pub name: &'a str,
-    pub disk_number: u8,
+    pub disk_number: DiskNumber,
     pub name_loc: Loc,
 }
 
@@ -37,7 +38,7 @@ pub fn read_project(file: FileId, source: &str) -> Result<Project, CompileError>
         }
 
         let (room_number_offset, room_number) = lexer.expect_integer()?;
-        let room_number: u8 = room_number.try_into().map_err(|_| {
+        let room_number: RoomNumber = room_number.try_into().map_err(|_| {
             CompileError::new(file.at(room_number_offset), CompileErrorPayload::BadInteger)
         })?;
 
@@ -46,7 +47,7 @@ pub fn read_project(file: FileId, source: &str) -> Result<Project, CompileError>
         lexer.expect_ident("disk")?;
         lexer.expect_token(TokenKind::Eq)?;
         let (disk_number_offset, disk_number) = lexer.expect_integer()?;
-        let disk_number: u8 = disk_number.try_into().map_err(|_| {
+        let disk_number: DiskNumber = disk_number.try_into().map_err(|_| {
             CompileError::new(file.at(disk_number_offset), CompileErrorPayload::BadInteger)
         })?;
         lexer.expect_choice(&[TokenKind::Newline, TokenKind::Eof], "newline or eof")?;

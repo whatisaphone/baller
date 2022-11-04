@@ -1,4 +1,4 @@
-use crate::{extract::NICE, read_index};
+use crate::{blocks::BLOCK_HEADER_SIZE, extract::NICE, read_index};
 use std::{
     error::Error,
     fs::File,
@@ -14,8 +14,8 @@ pub fn read_scrp(number: usize) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut len: usize = index.scripts.sizes[number].try_into()?;
 
     // skip block header
-    offset += 8;
-    len -= 8;
+    offset += BLOCK_HEADER_SIZE;
+    len -= usize::try_from(BLOCK_HEADER_SIZE).unwrap();
 
     assert!(index.lfl_disks[room] == 2);
     let mut disk = File::open(&fixture_path("baseball 2001.(b)"))?;

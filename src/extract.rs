@@ -1,4 +1,5 @@
 use crate::{
+    blocks::{DiskNumber, RoomNumber, BLOCK_HEADER_SIZE},
     config::Config,
     index::{Directory, Index},
     script::{decompile, disasm_to_string, get_script_name, Scope},
@@ -23,7 +24,7 @@ pub const FAIL: &str = "I have failed you";
 
 pub fn extract(
     index: &Index,
-    disk_number: u8,
+    disk_number: DiskNumber,
     config: &Config,
     publish_scripts: bool,
     s: &mut (impl Read + Seek),
@@ -60,13 +61,13 @@ pub fn extract(
 }
 
 struct ExtractState<'a> {
-    disk_number: u8,
+    disk_number: DiskNumber,
     index: &'a Index,
     config: &'a Config,
     write: &'a mut dyn FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     path: String,
     publish_scripts: bool,
-    current_room: i32,
+    current_room: RoomNumber,
     current_object: u16,
     block_numbers: HashMap<[u8; 4], i32>,
     map: String,
@@ -100,25 +101,24 @@ fn extract_recursive<R: Read + Seek>(
         b"LECF" => state.disk_number.into(),
         b"LFLF" => {
             state.current_room = find_lfl_number(state.disk_number, offset, state.index)
-                .ok_or("LFL not in index")?
-                .into();
-            state.current_room
+                .ok_or("LFL not in index")?;
+            state.current_room.into()
         }
         b"DIGI" | b"TALK" => {
-            find_object_number(
+            find_glob_number(
                 state.index,
                 &state.index.sounds,
                 state.disk_number,
-                offset - 8,
+                offset - BLOCK_HEADER_SIZE,
             )
             .ok_or("sound not in index")?
         }
         b"TLKE" => {
-            find_object_number(
+            find_glob_number(
                 state.index,
                 &state.index.talkies,
                 state.disk_number,
-                offset - 8,
+                offset - BLOCK_HEADER_SIZE,
             )
             .ok_or("talkie not in index")?
         }
@@ -177,11 +177,11 @@ fn extract_flat<R: Read + Seek>(
     let number = match &id {
         // SCRP number comes from index
         b"SCRP" => {
-            find_object_number(
+            find_glob_number(
                 state.index,
                 &state.index.scripts,
                 state.disk_number,
-                offset - 8,
+                offset - BLOCK_HEADER_SIZE,
             )
             .ok_or("script missing from index")?
         }
@@ -246,13 +246,16 @@ fn extract_script(
 }
 
 fn extract_verb(state: &mut ExtractState) -> Result<(), Box<dyn Error>> {
+    #[allow(clippy::cast_possible_truncation)]
+    const BLK_HD_SZ: u16 = BLOCK_HEADER_SIZE as u16;
+
     let mut pos = 0;
     while let Some((number, offset)) = read_verb(&state.buf[pos..]) {
-        let start = (offset - 8).try_into()?; // relative to block including type/len
+        let start = (offset - BLK_HD_SZ).try_into()?; // relative to block header
         pos += 3;
         let next_offset = read_verb(&state.buf[pos..]).map(|(_, o)| o);
         let end = match next_offset {
-            Some(o) => (o - 8).try_into()?,
+            Some(o) => (o - BLK_HD_SZ).try_into()?,
             None => state.buf.len(),
         };
 
@@ -317,7 +320,7 @@ fn output_script(
     Ok(())
 }
 
-pub fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<u8> {
+pub fn find_lfl_number(disk_number: DiskNumber, offset: u64, index: &Index) -> Option<RoomNumber> {
     debug_assert!(index.lfl_disks.len() <= 255);
     for i in 0..index.lfl_disks.len() {
         if index.lfl_disks[i] == disk_number && Ok(index.lfl_offsets[i]) == offset.try_into() {
@@ -327,10 +330,10 @@ pub fn find_lfl_number(disk_number: u8, offset: u64, index: &Index) -> Option<u8
     None
 }
 
-pub fn find_object_number(
+pub fn find_glob_number(
     index: &Index,
     dir: &Directory,
-    disk_number: u8,
+    disk_number: DiskNumber,
     offset: u64,
 ) -> Option<i32> {
     let offset: i32 = offset.try_into().ok()?;

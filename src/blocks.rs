@@ -6,6 +6,11 @@ use std::{
 };
 
 pub type BlockId = [u8; 4];
+pub type DiskNumber = u8;
+pub type RoomNumber = u8;
+pub type ObjectNumber = u16;
+
+pub const BLOCK_HEADER_SIZE: u64 = 8;
 
 pub struct BlockScanner {
     parent_end: u64,
@@ -121,7 +126,7 @@ pub fn apply_fixups(out: &mut (impl Write + Seek), fixups: &[(u32, i32)]) -> io:
     Ok(())
 }
 
-pub fn push_disk_number(path: &mut String, number: u8) {
+pub fn push_disk_number(path: &mut String, number: DiskNumber) {
     debug_assert!((1..=26).contains(&number));
     path.push('(');
     path.push((number + b'a' - 1).into());

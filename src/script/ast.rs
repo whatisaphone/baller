@@ -1,4 +1,5 @@
 use crate::{
+    blocks::{ObjectNumber, RoomNumber},
     config::{Config, EnumId, Script, Type, Var},
     script::{
         ins::{GenericArg, GenericIns, ItemSize, Variable},
@@ -143,10 +144,10 @@ pub struct WriteCx<'a> {
 #[derive(Copy, Clone)]
 pub enum Scope {
     Global(i32),
-    RoomLocal(i32, i32),
-    RoomEnter(i32),
-    RoomExit(i32),
-    Verb(i32, u16),
+    RoomLocal(RoomNumber, i32),
+    RoomEnter(RoomNumber),
+    RoomExit(RoomNumber),
+    Verb(RoomNumber, ObjectNumber),
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -790,7 +791,7 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
 }
 
 fn get_room_var<'a>(number: u16, cx: &WriteCx<'a>) -> Option<&'a Var> {
-    let room: usize = cx.scope.room()?.try_into().ok()?;
+    let room: usize = cx.scope.room()?.into();
     cx.config.rooms.get(room)?.vars.get(usize::from(number))
 }
 
@@ -867,7 +868,7 @@ pub fn resolve_script<'a>(number: i32, cx: &WriteCx<'a>) -> Option<&'a Script> {
     if number < LOCAL_SCRIPT_CUTOFF {
         return cx.config.scripts.get(number);
     }
-    let room: usize = cx.scope.room()?.try_into().ok()?;
+    let room: usize = cx.scope.room()?.into();
     cx.config.rooms.get(room)?.scripts.get(number)
 }
 
@@ -977,8 +978,8 @@ fn write_decomile_error(
 }
 
 impl Scope {
-    pub fn room(&self) -> Option<i32> {
-        match *self {
+    pub fn room(self) -> Option<RoomNumber> {
+        match self {
             Scope::Global(_) => None,
             Scope::RoomLocal(room, _)
             | Scope::RoomEnter(room)
