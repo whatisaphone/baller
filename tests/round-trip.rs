@@ -13,14 +13,7 @@ use std::{
 
 #[test]
 fn raw_round_trip() {
-    // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
-    // scripts. Run in a thread with a larger stack.
-    thread::Builder::new()
-        .stack_size(8 << 20)
-        .spawn(|| raw_round_trip_thread().unwrap())
-        .unwrap()
-        .join()
-        .unwrap();
+    more_stack(raw_round_trip_thread);
 }
 
 fn raw_round_trip_thread() -> Result<(), Box<dyn Error>> {
@@ -50,7 +43,11 @@ fn raw_round_trip_thread() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn round_trip2() -> Result<(), Box<dyn Error>> {
+fn round_trip2() {
+    more_stack(round_trip2_thread);
+}
+
+fn round_trip2_thread() -> Result<(), Box<dyn Error>> {
     let mut fs = HashMap::with_capacity(1 << 10);
 
     extract2(
@@ -136,6 +133,17 @@ fn fixture_path(name: &str) -> PathBuf {
     result.push("baseball2001");
     result.push(name);
     result
+}
+
+fn more_stack(f: impl FnOnce() -> Result<(), Box<dyn Error>> + Send + 'static) {
+    // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
+    // scripts. To mitigate, run in a thread with a larger stack.
+    thread::Builder::new()
+        .stack_size(8 << 20)
+        .spawn(|| f().unwrap())
+        .unwrap()
+        .join()
+        .unwrap();
 }
 
 enum Entry {

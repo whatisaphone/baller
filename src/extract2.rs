@@ -104,6 +104,7 @@ fn decompile_disk(
             config,
             index,
             disk_number,
+            room_number,
             room_name,
             lflf_blocks: &mut lflf_blocks,
             buf: &mut buf,
@@ -134,6 +135,7 @@ struct Cx<'a> {
     config: &'a Config,
     index: &'a Index,
     disk_number: u8,
+    room_number: u8,
     room_name: &'a str,
     lflf_blocks: &'a mut HashMap<BlockId, i32>,
     buf: &'a mut Vec<u8>,
@@ -176,7 +178,12 @@ fn decompile_rmda(
 
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
-        decompile_raw(id, len, "RMDA/", disk_read, write_file, cx)?;
+        match &id {
+            b"LSC2" => decompile_lsc2(len, disk_read, write_file, cx)?,
+            _ => {
+                decompile_raw(id, len, "RMDA/", disk_read, write_file, cx)?;
+            }
+        }
     }
     scan.finish(disk_read)?;
 
@@ -199,6 +206,25 @@ fn decompile_scrp(
     decompile_script(
         0..block_len.try_into().unwrap(),
         Scope::Global(number),
+        write_file,
+        cx,
+    )?;
+    pop_path_part(cx.cur_path);
+    pop_path_part(cx.cur_path);
+    Ok(())
+}
+
+fn decompile_lsc2(
+    block_len: u64,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    let number = decompile_raw(*b"LSC2", block_len, "RMDA/", disk_read, write_file, cx)?;
+    write!(cx.cur_path, "LSC2/{number}").unwrap();
+    decompile_script(
+        4..block_len.try_into().unwrap(),
+        Scope::RoomLocal(cx.room_number.into(), number),
         write_file,
         cx,
     )?;
