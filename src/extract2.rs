@@ -10,7 +10,7 @@ use crate::{
         BLOCK_HEADER_SIZE,
     },
     config::Config,
-    extract::{find_glob_number, find_lfl_number, FAIL, NICE},
+    extract_old::{find_glob_number, find_lfl_number, FAIL, NICE},
     index::{directory_for_block_id, read_index, Index},
     script::{decompile, disasm_to_string, Scope},
     utils::vec::{extend_insert_some, grow_with_default},

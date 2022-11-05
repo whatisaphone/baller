@@ -1,4 +1,4 @@
-use crate::{extract::NICE, xor::XorWriteStream};
+use crate::{extract_old::NICE, xor::XorWriteStream};
 use byteordered::byteorder::{WriteBytesExt, BE};
 use std::{
     error::Error,

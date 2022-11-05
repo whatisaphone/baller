@@ -1,4 +1,4 @@
-use crate::{blocks::BLOCK_HEADER_SIZE, extract::NICE, read_index};
+use crate::{blocks::BLOCK_HEADER_SIZE, extract_old::NICE, read_index};
 use std::{
     error::Error,
     fs::File,

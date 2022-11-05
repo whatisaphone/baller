@@ -1,6 +1,6 @@
 use crate::{
     blocks::{apply_fixups, write_block, BlockId, BlockScanner, DiskNumber, RoomNumber},
-    extract::{FAIL, NICE},
+    extract_old::{FAIL, NICE},
     utils::vec::extend_insert_some,
     xor::{XorStream, XorWriteStream},
 };

@@ -17,7 +17,7 @@ use crate::{
         parse::parse_room,
         project::{read_project, Room},
     },
-    extract::NICE,
+    extract_old::NICE,
     index::{directory_for_block_id_mut, read_index, write_index, Index},
     raw_build::FsEntry,
     utils::vec::grow_with_default,
