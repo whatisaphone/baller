@@ -16,7 +16,7 @@ use crate::{
     index::{dump_index, read_index, Index},
     raw_build::{raw_build, FsEntry},
 };
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use std::{
     error::Error,
     fs,
@@ -42,15 +42,6 @@ mod tests;
 mod utils;
 mod xor;
 
-#[derive(Parser)]
-enum Command {
-    Build(Build),
-    Extract(Extract),
-    Extract2(Extract2),
-    CollisionExtract(CollisionExtract),
-    RawBuild(RawBuild),
-}
-
 fn main() {
     // In debug builds, the stack overflows in `decompile_blocks` for deeply nested
     // scripts. Run in a thread with a larger stack.
@@ -67,35 +58,77 @@ fn main() {
 }
 
 fn main_thread() {
-    let r = match Command::parse() {
-        Command::Build(cmd) => cmd.run(),
-        Command::Extract(cmd) => cmd.run(),
-        Command::Extract2(cmd) => cmd.run(),
-        Command::CollisionExtract(cmd) => cmd.run(),
-        Command::RawBuild(cmd) => cmd.run(),
-    };
-    r.unwrap();
+    Main::parse().run().unwrap();
 }
 
+/// A modding tool for Backyard Baseball 2001
 #[derive(Parser)]
-struct Build {
+#[clap(disable_help_subcommand = true)]
+enum Main {
+    #[clap(subcommand)]
+    Project(Project),
+    #[clap(subcommand)]
+    Collision(Collision),
+    #[clap(hide = true)]
+    ExtractOld(ExtractOld),
+    RawBuild(RawBuild),
+}
+
+impl Main {
+    fn run(self) -> Result<(), Box<dyn Error>> {
+        match self {
+            Self::Project(cmd) => cmd.run(),
+            Self::Collision(cmd) => cmd.run(),
+            Self::ExtractOld(cmd) => cmd.run(),
+            Self::RawBuild(cmd) => cmd.run(),
+        }
+    }
+}
+
+/// Work with project files and compiled files - .he0/.(a)/.(b)
+#[derive(Subcommand)]
+enum Project {
+    Extract(ProjectExtract),
+    Update(ProjectUpdate),
+}
+
+impl Project {
+    fn run(self) -> Result<(), Box<dyn Error>> {
+        match self {
+            Self::Extract(cmd) => cmd.run(),
+            Self::Update(cmd) => cmd.run(),
+        }
+    }
+}
+
+/// Modify a compiled project in place
+#[derive(Parser)]
+struct ProjectUpdate {
+    /// The project directory which contains project.txt
+    #[clap(value_name = "INPUT")]
     input: PathBuf,
-    #[clap(short)]
+    /// The compiled index (.he0) to update
+    #[clap(short, long, value_name = "OUTPUT")]
     output: String,
-    #[clap(short, long)]
+    /// The number of the disk to rebuild
+    #[clap(short, long, value_name = "N")]
     disk_number: DiskNumber,
 }
 
-impl Build {
+impl ProjectUpdate {
     fn run(self) -> Result<(), Box<dyn Error>> {
         build_disk(self.output, self.disk_number, fs_reader(&self.input))
     }
 }
 
+/// Build an isolated resource file outside of a project
 #[derive(Parser)]
 struct RawBuild {
+    /// The directory containing raw block data
+    #[clap(value_name = "INPUT")]
     input: PathBuf,
-    #[clap(short)]
+    /// The output file to write
+    #[clap(short, long, value_name = "OUTPUT")]
     output: PathBuf,
 }
 
@@ -107,8 +140,11 @@ impl RawBuild {
     }
 }
 
+/// The deprecated version of the extract command.
+///
+/// This needs to stick around until --publish-scripts is ported.
 #[derive(Parser)]
-struct Extract {
+struct ExtractOld {
     input: PathBuf,
     #[clap(short, long)]
     output: PathBuf,
@@ -116,11 +152,11 @@ struct Extract {
     config_path: Option<PathBuf>,
     #[clap(long)]
     aside: bool,
-    #[clap(long, hide = true)]
+    #[clap(long)]
     publish_scripts: bool,
 }
 
-impl Extract {
+impl ExtractOld {
     fn run(self) -> Result<(), Box<dyn Error>> {
         let mut config = match self.config_path {
             Some(path) => Config::from_ini(&fs::read_to_string(&path)?)?,
@@ -186,18 +222,24 @@ impl Extract {
     }
 }
 
+/// Decompile a project
 #[derive(Parser)]
-struct Extract2 {
+struct ProjectExtract {
+    /// The index file (.he0) to extract
+    #[clap(value_name = "INPUT")]
     input: PathBuf,
-    #[clap(short, long)]
+    /// The directory in which to write the project
+    #[clap(short, long, value_name = "OUTPUT")]
     output: PathBuf,
-    #[clap(short, long = "config")]
+    /// Configuration for the script decompiler
+    #[clap(short, long = "config", value_name = "CONFIG")]
     config_path: Option<PathBuf>,
+    /// Emit numbers next to resolved names
     #[clap(long)]
     aside: bool,
 }
 
-impl Extract2 {
+impl ProjectExtract {
     fn run(mut self) -> Result<(), Box<dyn Error>> {
         let input = mem::take(&mut self.input)
             .into_os_string()
@@ -225,12 +267,33 @@ impl Extract2 {
     }
 }
 
+/// Work with collision files - .he9
+#[derive(Parser)]
+enum Collision {
+    Extract(CollisionExtract),
+}
+
+impl Collision {
+    fn run(self) -> Result<(), Box<dyn Error>> {
+        match self {
+            Self::Extract(cmd) => cmd.run(),
+        }
+    }
+}
+
+/// Extract collision data
 #[derive(Parser)]
 struct CollisionExtract {
+    /// The collision file (.he9) to be extracted
+    #[clap(value_name = "INPUT")]
     input: PathBuf,
+    /// The directory in which to write the output
+    #[clap(short, long, value_name = "OUTPUT")]
     output: PathBuf,
+    /// Add debugging balls to the 3D model
     #[clap(long)]
     balls: bool,
+    /// Add a debugging grid to the 3D model
     #[clap(long)]
     grid: bool,
 }
