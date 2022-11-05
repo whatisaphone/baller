@@ -18,11 +18,11 @@ strict = []
 [dependencies]
 arrayvec = "0.7.2"
 byteordered = "0.6.0"
-clap = { version = "3.2.19", features = ["derive"] }
+clap = { version = "4.0.18", features = ["derive"] }
 indexmap = "1.9.1"
 memmap2 = "0.5.7"
-tracing = "0.1.36"
-tracing-subscriber = "0.3.15"
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
 tracing-tree = "0.2.1"
 
 [profile.release]

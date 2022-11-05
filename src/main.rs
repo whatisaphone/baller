@@ -115,7 +115,7 @@ struct Extract {
     config_path: Option<PathBuf>,
     #[clap(long)]
     aside: bool,
-    #[clap(long, hidden(true))]
+    #[clap(long, hide = true)]
     publish_scripts: bool,
 }
 
