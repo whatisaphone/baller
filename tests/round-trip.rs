@@ -55,7 +55,7 @@ fn round_trip2_thread() -> Result<(), Box<dyn Error>> {
             .into_os_string()
             .into_string()
             .unwrap(),
-        &Config::default(),
+        Some(&Config::default()),
         &mut |path, data| fs_write(&mut fs, path, data.to_vec()),
     )?;
 

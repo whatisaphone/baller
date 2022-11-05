@@ -21,6 +21,7 @@ use std::{
     error::Error,
     fs,
     fs::File,
+    mem,
     path::{Path, PathBuf},
 };
 
@@ -197,24 +198,30 @@ struct Extract2 {
 }
 
 impl Extract2 {
-    fn run(self) -> Result<(), Box<dyn Error>> {
-        let input = self.input.into_os_string().into_string().unwrap();
+    fn run(mut self) -> Result<(), Box<dyn Error>> {
+        let input = mem::take(&mut self.input)
+            .into_os_string()
+            .into_string()
+            .unwrap();
         if !input.ends_with("he0") {
             return Err("input path must end with \"he0\"".into());
         }
 
-        let mut config = match self.config_path {
-            Some(path) => Config::from_ini(&fs::read_to_string(&path)?)?,
-            None => Config::default(),
-        };
-        config.aside = self.aside;
+        let config = self.load_config()?;
 
         if !self.output.exists() {
             fs::create_dir(&self.output)?;
         }
 
-        extract2(input, &config, &mut fs_writer(&self.output))?;
+        extract2(input, config.as_ref(), &mut fs_writer(&self.output))?;
         Ok(())
+    }
+
+    fn load_config(&self) -> Result<Option<Config>, Box<dyn Error>> {
+        let Some(path) = &self.config_path else { return Ok(None) };
+        let mut config = Config::from_ini(&fs::read_to_string(path)?)?;
+        config.aside = self.aside;
+        Ok(Some(config))
     }
 }
 

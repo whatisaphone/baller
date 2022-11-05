@@ -29,7 +29,7 @@ use tracing::info_span;
 
 pub fn extract2(
     mut path: String,
-    config: &Config,
+    config: Option<&Config>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut f = File::open(&path)?;
@@ -62,7 +62,7 @@ pub fn extract2(
 fn decompile_disk(
     index: &Index,
     disk_number: DiskNumber,
-    config: &Config,
+    config: Option<&Config>,
     s: &mut (impl Read + Seek),
     rooms: &mut Vec<Option<Room>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
@@ -137,7 +137,7 @@ fn decompile_disk(
 }
 
 struct Cx<'a> {
-    config: &'a Config,
+    config: Option<&'a Config>,
     index: &'a Index,
     disk_number: DiskNumber,
     room_number: RoomNumber,
@@ -383,6 +383,8 @@ fn decompile_script(
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let Some(config) = cx.config else { return Ok(()) };
+
     let code = &cx.buf[code_range];
 
     let disasm = disasm_to_string(code);
@@ -392,7 +394,7 @@ fn decompile_script(
 
     let decomp = {
         let _span = info_span!("decompile", cx.cur_path).entered();
-        decompile(code, scope, cx.config)
+        decompile(code, scope, config)
     };
     cx.cur_path.push_str(".scu");
     write_file(cx.cur_path, decomp.as_bytes())?;
