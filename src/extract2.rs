@@ -48,10 +48,7 @@ pub fn extract2(
 
     let mut project = String::with_capacity(1 << 10);
     for (room_number, room) in rooms.iter().enumerate() {
-        let room = match room {
-            Some(room) => room,
-            None => continue,
-        };
+        let Some(room) = room else { continue };
         writeln!(
             project,
             "room {} {:?} disk={}",
@@ -474,10 +471,7 @@ fn find_block_glob_number(
     disk_number: DiskNumber,
     offset: u64,
 ) -> Result<Option<i32>, Box<dyn Error>> {
-    let directory = match directory_for_block_id(index, id) {
-        Some(directory) => directory,
-        None => return Ok(None),
-    };
+    let Some(directory) = directory_for_block_id(index, id) else { return Ok(None) };
     Ok(Some(
         find_glob_number(index, directory, disk_number, offset - BLOCK_HEADER_SIZE)
             .ok_or("missing from index")?,

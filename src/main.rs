@@ -2,10 +2,7 @@
 #![allow(
     clippy::match_on_vec_items,
     clippy::match_wildcard_for_single_variants,
-    clippy::module_name_repetitions,
-    clippy::never_loop,
-    clippy::single_match,
-    clippy::single_match_else
+    clippy::module_name_repetitions
 )]
 #![cfg_attr(feature = "strict", deny(warnings))]
 

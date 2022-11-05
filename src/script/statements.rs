@@ -622,10 +622,7 @@ fn pop_string<'a>(
 }
 
 fn pop_list<'a>(script: &mut Scripto<'a>, stack: &mut Vec<ExprId>) -> Option<ExprId> {
-    let len = match script.exprs[stack.pop()?] {
-        Expr::Number(n) => n,
-        _ => return None,
-    };
+    let Expr::Number(len) = script.exprs[stack.pop()?] else { return None };
     let mut list = Vec::with_capacity(len.try_into().ok()?);
     for _ in 0..len {
         list.push(stack.pop()?);

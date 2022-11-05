@@ -63,10 +63,7 @@ impl BlockScanner {
         s: &mut (impl Read + Seek),
         expected_id: BlockId,
     ) -> Result<Option<u64>, Box<dyn Error>> {
-        let (id, len) = match self.next_block(s)? {
-            Some((id, len)) => (id, len),
-            None => return Ok(None),
-        };
+        let Some((id, len)) = self.next_block(s)? else { return Ok(None) };
         if id != expected_id {
             return Err("unexpected block".into());
         }

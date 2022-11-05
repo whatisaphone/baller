@@ -39,10 +39,7 @@ impl<'a> Typist<'a> {
     }
 
     fn set_ty(&mut self, id: ExprId, type_: Option<&'a Type>) {
-        let type_ = match type_ {
-            Some(type_) => type_,
-            None => return,
-        };
+        let Some(type_) = type_ else { return };
         if self.types.len() < id {
             self.types.resize_with(id, || None);
         }
@@ -141,30 +138,15 @@ impl Visitor for Typist<'_> {
 }
 
 fn type_generic(script: &mut Scripto, ins: &GenericIns, ins_args: &[ExprId], cx: &WriteCx) {
-    let name = match &ins.name {
-        Some(name) => name,
-        None => return,
-    };
+    let Some(name) = &ins.name else { return };
     // There has got to be a better way to do this
     if !(name.ends_with("-script") || name.ends_with("-script-xc3")) {
         return;
     }
-    let &script_target_expr = match ins_args.first() {
-        Some(script) => script,
-        None => return,
-    };
-    let &script_args_expr = match ins_args.last() {
-        Some(args) => args,
-        None => return,
-    };
-    let script_args = match &script.exprs[script_args_expr] {
-        Expr::List(xs) => xs,
-        _ => return,
-    };
-    let params = match resolve_script_params(script, script_target_expr, cx) {
-        Some(params) => params,
-        None => return,
-    };
+    let Some(&script_target_expr) = ins_args.first() else { return };
+    let Some(&script_args_expr) = ins_args.last() else { return };
+    let Expr::List(script_args) = &script.exprs[script_args_expr] else { return };
+    let Some(params) = resolve_script_params(script, script_target_expr, cx) else { return };
     let count = min(params.len(), script_args.len());
 
     // work around borrow checker
@@ -212,10 +194,7 @@ fn find_var_type<'a>(var: Variable, cx: &WriteCx<'a>) -> Option<&'a Type> {
 }
 
 fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, cx: &WriteCx) {
-    let ty = match ty {
-        Some(ty) => ty,
-        None => return,
-    };
+    let Some(ty) = ty else { return };
     match (ty, &script.exprs[id]) {
         (&Type::Enum(enum_id), &Expr::Number(number)) => {
             if !cx.config.enums[enum_id].values.contains_key(&number) {
@@ -234,16 +213,10 @@ fn specify(script: &mut Scripto, id: ExprId, ty: Option<&Type>, cx: &WriteCx) {
 }
 
 fn specify_list_items(script: &mut Scripto, id: ExprId, ty: Option<&Type>, cx: &WriteCx) {
-    let xs = match &script.exprs[id] {
-        Expr::List(xs) => xs,
-        _ => return,
-    };
+    let Expr::List(xs) = &script.exprs[id] else { return };
     let len = xs.len();
     for i in 0..len {
-        let xs = match &script.exprs[id] {
-            Expr::List(xs) => xs,
-            _ => unreachable!(),
-        };
+        let Expr::List(xs) = &script.exprs[id] else { unreachable!() };
         let e = xs[i];
         specify(script, e, ty, cx);
     }
@@ -256,10 +229,7 @@ fn specify_array_indices(
     x_index: usize,
     cx: &WriteCx,
 ) {
-    let ty = match find_var_type(var, cx) {
-        Some(ty) => ty,
-        None => return,
-    };
+    let Some(ty) = find_var_type(var, cx) else { return };
     let (y_ty, x_ty) = match ty {
         Type::Array { item: _, y, x } | Type::AssocArray { assoc: _, y, x } => (y, x),
         _ => return,

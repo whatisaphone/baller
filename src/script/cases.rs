@@ -51,14 +51,11 @@ pub fn build_cases(script: &Scripto, block: &mut StmtBlock) {
 }
 
 fn is_case(script: &Scripto, stmt: &Stmt) -> bool {
-    let (&condition, true_, false_) = match stmt {
-        Stmt::If {
-            condition,
-            true_,
-            false_,
-        } => (condition, true_, false_),
-        _ => return false,
-    };
+    let &Stmt::If {
+        condition,
+        ref true_,
+        ref false_,
+    } = stmt else { return false };
     match script.exprs[condition] {
         Expr::Equal(lhs, _rhs) | Expr::In(lhs, _rhs) => {
             if !matches!(script.exprs[lhs], Expr::StackDup(_)) {
@@ -103,14 +100,11 @@ fn append_case<'a>(
     value: &mut Option<ExprId>,
     cases: &mut Vec<Case<'a>>,
 ) {
-    let (&mut condition, true_, false_) = match stmt {
-        Stmt::If {
-            condition,
-            true_,
-            false_,
-        } => (condition, true_, false_),
-        _ => unreachable!(),
-    };
+    let &mut Stmt::If {
+        condition,
+        ref mut true_,
+        ref mut false_,
+    } = stmt else { unreachable!() };
     let cond = match script.exprs[condition] {
         Expr::Equal(lhs, rhs) => {
             debug_assert!(matches!(script.exprs[lhs], Expr::StackDup(_)));

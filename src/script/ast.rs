@@ -757,10 +757,8 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
         0x4000 => {
             // local
             let fallback = (VarName::Numbered("local", number), None);
-            let script = match get_script_config(cx) {
-                Some(script) => script,
-                None => return fallback,
-            };
+
+            let Some(script) = get_script_config(cx) else { return fallback };
             let (name, ty) = match script.locals.get(usize::from(number)) {
                 Some(var) => (var.name.as_deref(), var.ty.as_ref()),
                 None => (None, None),
@@ -776,10 +774,8 @@ pub fn resolve_variable<'a>(var: Variable, cx: &WriteCx<'a>) -> (VarName<'a>, Op
         0x8000 => {
             // room
             let fallback = (VarName::Numbered("room", number), None);
-            let var = match get_room_var(number, cx) {
-                Some(var) => var,
-                None => return fallback,
-            };
+
+            let Some(var) = get_room_var(number, cx) else { return fallback };
             let named = match &var.name {
                 Some(name) => VarName::Named(name),
                 None => fallback.0,
@@ -844,15 +840,9 @@ fn format_item_size(item_size: ItemSize) -> &'static str {
 }
 
 fn write_script_ref(w: &mut impl Write, number: i32, cx: &WriteCx) -> fmt::Result {
-    'have_script: loop {
-        let script = match resolve_script(number, cx) {
-            Some(script) => script,
-            None => break 'have_script,
-        };
-        let name = match &script.name {
-            Some(name) => name,
-            None => break 'have_script,
-        };
+    'have_script: {
+        let Some(script) = resolve_script(number, cx) else { break 'have_script };
+        let Some(name) = &script.name else { break 'have_script };
         w.write_str(name)?;
         write_aside_value(w, number, cx)?;
         return Ok(());

@@ -224,10 +224,7 @@ pub fn write_index(w: &mut (impl Write + Seek), index: &Index) -> io::Result<()>
 
     write_block(&mut w, *b"RNAM", &mut fixups, |w, _| {
         for (i, name) in index.room_names.iter().enumerate() {
-            let name = match name {
-                Some(name) => name,
-                None => continue,
-            };
+            let Some(name) = name else { continue };
             w.write_i16::<LE>(i.try_into().unwrap())?;
             w.write_all(name.as_bytes())?;
             w.write_all(b"\0")?;

@@ -4,10 +4,7 @@
     clippy::match_wildcard_for_single_variants,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
-    clippy::module_name_repetitions,
-    clippy::never_loop,
-    clippy::single_match,
-    clippy::single_match_else
+    clippy::module_name_repetitions
 )]
 #![cfg_attr(feature = "strict", deny(warnings))]
 

@@ -39,9 +39,7 @@ pub fn parse_room(file: FileId, src: &str) -> Result<Ast, CompileError> {
             }
         }
     }
-    let (root_start, root_len) = commit_scratch(&mut ast, &mut scratch, scratch_start);
-    ast.root_start = root_start;
-    ast.root_len = root_len;
+    (ast.root_start, ast.root_len) = commit_scratch(&mut ast, &mut scratch, scratch_start);
     Ok(ast)
 }
 

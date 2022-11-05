@@ -29,10 +29,7 @@ pub fn raw_build<S: Write + Seek>(
         src,
         pending_lengths: Vec::with_capacity(1 << 10),
     };
-    let dir = match read(&state.src)? {
-        FsEntry::Dir(names) => names,
-        FsEntry::File(_) => panic!(),
-    };
+    let FsEntry::Dir(dir) = read(&state.src)? else { panic!() };
     slurp_dir(&mut out, read, &mut state, &dir)?;
 
     for &(offset, value) in &state.pending_lengths {
@@ -49,9 +46,8 @@ fn slurp_dir<S: Write + Seek>(
     state: &mut State,
     names: &[String],
 ) -> Result<(), Box<dyn Error>> {
-    let map = match read(&format!("{}/.map", state.src)) {
-        Ok(FsEntry::File(data)) => data,
-        _ => return Err("missing map".into()),
+    let Ok(FsEntry::File(map)) = read(&format!("{}/.map", state.src)) else {
+        return Err("missing map".into());
     };
     for file in String::from_utf8(map)?.lines() {
         let file = names

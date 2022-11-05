@@ -85,7 +85,7 @@ pub fn basic_block_get_exact(
 }
 
 pub fn basic_blocks_get_index_by_end(blocks: &IndexMap<usize, BasicBlock>, addr: usize) -> usize {
-    let result = 'result: loop {
+    let result = 'result: {
         if let Some(index) = blocks.get_index_of(&addr) {
             break 'result index - 1;
         }

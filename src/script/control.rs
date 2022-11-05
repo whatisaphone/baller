@@ -78,10 +78,7 @@ pub fn build_control_structures(
         seq.push(block);
     }
 
-    let root_seq = match &mut controls[0].control {
-        Control::Sequence(root_seq) => root_seq,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(root_seq) = &mut controls[0].control else { unreachable!() };
     *root_seq = seq;
 
     // Run structuring passes one by one.
@@ -140,10 +137,7 @@ fn scan_forward_jumps_in_sequence(
     controls: &mut Vec<ControlBlock>,
     work: &mut Vec<usize>,
 ) {
-    let children = match &controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(children) = &controls[parent_index].control else { unreachable!() };
 
     for i in 0..children.len() {
         match &controls[children[i]].control {
@@ -176,10 +170,7 @@ fn scan_forward_jump(
     basics: &IndexMap<usize, BasicBlock>,
 ) -> Option<BuildForwardJump> {
     let parent = &controls[parent_index];
-    let children = match &parent.control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(children) = &parent.control else { unreachable!() };
     let cond_ctrl = &controls[children[seq_index]];
     let cond_block = basic_block_get_exact(basics, cond_ctrl.start, cond_ctrl.end);
 
@@ -250,10 +241,7 @@ fn build_if(
 
     // Drain the range of blocks which will form the body.
 
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &mut controls[parent_index].control else { unreachable!() };
     let mut drain = seq_blocks.drain(cond_seq..=body_seq_end);
     let condition = drain.next().unwrap();
     let body_blocks: Vec<_> = drain.collect();
@@ -299,10 +287,7 @@ fn build_if(
         }),
     });
 
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &mut controls[parent_index].control else { unreachable!() };
     seq_blocks.insert(cond_seq, result);
 }
 
@@ -335,10 +320,7 @@ fn scan_elses_in_sequence(
     controls: &mut Vec<ControlBlock>,
     work: &mut Vec<usize>,
 ) {
-    let children = match &controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(children) = &controls[parent_index].control else { unreachable!() };
 
     for i in 0..children.len() {
         match &controls[children[i]].control {
@@ -370,15 +352,9 @@ fn scan_else(
     controls: &[ControlBlock],
 ) -> Option<usize> {
     let parent = &controls[parent_index];
-    let parent_blocks = match &controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(parent_blocks) = &controls[parent_index].control else { unreachable!() };
     let if_index = parent_blocks[if_seq_index];
-    let if_ = match &controls[if_index].control {
-        Control::If(b) => b,
-        _ => return None,
-    };
+    let Control::If(if_) = &controls[if_index].control else { return None };
 
     // An if can only have one else, of course
     if if_.false_.is_some() {
@@ -414,10 +390,7 @@ fn build_else(
     else_end: usize,
     controls: &mut Vec<ControlBlock>,
 ) {
-    let children = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(children) = &mut controls[parent_index].control else { unreachable!() };
     let if_index = children[if_seq_index];
     let if_ctrl = &controls[if_index];
     let else_start = if_ctrl.end;
@@ -432,10 +405,7 @@ fn build_else(
     let else_seq_start = if_seq_index + 1;
     let else_seq_end = seq_index_ending_at_addr(parent_index, else_end, controls);
 
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &mut controls[parent_index].control else { unreachable!() };
     let else_blocks: Vec<_> = seq_blocks.drain(else_seq_start..=else_seq_end).collect();
 
     // Combine the list of else blocks into one.
@@ -457,10 +427,7 @@ fn build_else(
     // Grow the if block to contain the new else block.
 
     controls[if_index].end = else_end;
-    let mut if_ = match &mut controls[if_index].control {
-        Control::If(if_) => if_,
-        _ => unreachable!(),
-    };
+    let Control::If(if_) = &mut controls[if_index].control else { unreachable!() };
     if_.false_ = Some(else_);
 }
 
@@ -602,10 +569,7 @@ fn build_do(
 
     // Drain the range of blocks which will form the loop.
 
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &mut controls[parent_index].control else { unreachable!() };
     let mut drain = seq_blocks.drain(seq_start_index..=seq_end_index);
     let body_blocks: Vec<_> = drain
         .by_ref()
@@ -654,10 +618,7 @@ fn build_do(
         }),
     });
 
-    let seq_blocks = match &mut controls[parent_index].control {
-        Control::Sequence(blocks) => blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &mut controls[parent_index].control else { unreachable!() };
     seq_blocks.insert(seq_start_index, do_);
 }
 
@@ -667,10 +628,7 @@ fn seq_start_boundary(
     controls: &[ControlBlock],
 ) -> (usize, SeqBoundary) {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
-    let seq_blocks = match &controls[parent_index].control {
-        Control::Sequence(seq_blocks) => seq_blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &controls[parent_index].control else { unreachable!() };
     let i = seq_blocks
         .iter()
         .position(|&b| controls[b].end > addr)
@@ -691,10 +649,7 @@ fn seq_end_boundary(
     controls: &[ControlBlock],
 ) -> (usize, SeqBoundary) {
     debug_assert!(controls[parent_index].start <= addr && addr <= controls[parent_index].end);
-    let seq_blocks = match &controls[parent_index].control {
-        Control::Sequence(seq_blocks) => seq_blocks,
-        _ => unreachable!(),
-    };
+    let Control::Sequence(seq_blocks) = &controls[parent_index].control else { unreachable!() };
     let i = seq_blocks
         .iter()
         .rposition(|&b| controls[b].start < addr)
@@ -838,10 +793,7 @@ struct SeqBlock<'a>(usize, usize, &'a [ControlBlock]);
 impl fmt::Display for SeqBlock<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let &Self(parent_index, seq_index, controls) = self;
-        let children = match &controls[parent_index].control {
-            Control::Sequence(blocks) => blocks,
-            _ => unreachable!(),
-        };
+        let Control::Sequence(children) = &controls[parent_index].control else { unreachable!() };
         let block = children[seq_index];
         let ctrl = &controls[block];
         write!(
@@ -859,10 +811,7 @@ impl fmt::Display for SeqRange<'_> {
         let &Self(parent_index, ref seq_range, controls) = self;
         let seq_start = *seq_range.start();
         let seq_end = *seq_range.end();
-        let children = match &controls[parent_index].control {
-            Control::Sequence(blocks) => blocks,
-            _ => unreachable!(),
-        };
+        let Control::Sequence(children) = &controls[parent_index].control else { unreachable!() };
         let start = controls[children[seq_start]].start;
         let end = controls[children[seq_end]].end;
         write!(

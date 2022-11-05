@@ -52,9 +52,8 @@ pub fn build_disk(
     let lecf = start_block(&mut out, *b"LECF")?;
 
     let project_path = "./project.txt";
-    let project_source = match src_read(project_path)? {
-        FsEntry::Dir(_) => return Err("not a file".into()),
-        FsEntry::File(xs) => xs,
+    let FsEntry::File(project_source) = src_read(project_path)? else {
+        return Err("not a file".into());
     };
     let project_source = String::from_utf8(project_source)?;
     let project_file = map.add_file(project_path.to_string());
@@ -103,10 +102,7 @@ fn compile_disk(
 
     for (room_number, room) in project.rooms.iter().enumerate() {
         let room_number: RoomNumber = room_number.try_into().unwrap();
-        let room = match room {
-            Some(room) => room,
-            None => continue,
-        };
+        let Some(room) = room else { continue };
         if room.disk_number != disk_number {
             continue;
         }
@@ -173,14 +169,11 @@ fn raw_block_file(
 ) -> Result<(), CompileError> {
     let path = ast.string(node.path_offset, node.path_len);
     let path = format!("./{}/{}", room.name, path);
-    let blob = match src_read(&path) {
-        Ok(FsEntry::File(blob)) => blob,
-        Ok(FsEntry::Dir(_)) | Err(_) => {
-            return Err(CompileError::new(
-                node.path_loc,
-                CompileErrorPayload::CantReadFile,
-            ));
-        }
+    let Ok(FsEntry::File(blob)) = src_read(&path) else {
+        return Err(CompileError::new(
+            node.path_loc,
+            CompileErrorPayload::CantReadFile,
+        ));
     };
 
     let offset = out.stream_position().map_err(cant_write)?;
