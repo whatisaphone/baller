@@ -11,7 +11,7 @@ use crate::{
     collision::ExtractCollisionOptions,
     compiler::build_disk,
     config::Config,
-    extract2::extract2,
+    extract::extract2,
     extract_old::extract,
     index::{dump_index, read_index, Index},
     raw_build::{raw_build, FsEntry},
@@ -31,7 +31,7 @@ mod blocks;
 mod collision;
 mod compiler;
 mod config;
-mod extract2;
+mod extract;
 mod extract_old;
 mod index;
 mod raw_build;

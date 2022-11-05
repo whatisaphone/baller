@@ -11,7 +11,7 @@
 pub use crate::{
     compiler::build_disk,
     config::Config,
-    extract2::extract2,
+    extract::extract2,
     extract_old::extract,
     index::{dump_index, read_index},
     raw_build::{raw_build, FsEntry},
@@ -23,7 +23,7 @@ mod macros;
 mod blocks;
 mod compiler;
 mod config;
-mod extract2;
+mod extract;
 mod extract_old;
 mod index;
 mod raw_build;
