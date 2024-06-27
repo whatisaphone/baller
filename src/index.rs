@@ -251,6 +251,8 @@ pub fn write_index(w: &mut (impl Write + Seek), index: &Index) -> io::Result<()>
     })?;
 
     apply_fixups(&mut w, &fixups)?;
+
+    w.flush()?;
     Ok(())
 }
 
