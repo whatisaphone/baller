@@ -36,6 +36,7 @@ mod extract;
 mod extract_old;
 mod index;
 mod raw_build;
+mod resource;
 mod script;
 #[cfg(test)]
 mod tests;

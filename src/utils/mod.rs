@@ -1,5 +1,6 @@
 use std::ops::Range;
 
+pub mod bit_stream;
 pub mod byte_array;
 pub mod vec;
 

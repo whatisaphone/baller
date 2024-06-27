@@ -12,6 +12,7 @@ use crate::{
     config::Config,
     extract_old::{find_glob_number, find_lfl_number, FAIL, NICE},
     index::{directory_for_block_id, read_index, Index},
+    resource::rmim,
     script::{decompile, disasm_to_string, Scope},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
@@ -159,6 +160,7 @@ fn decompile_lflf(
     while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
         match &id {
             b"RMDA" => decompile_rmda(len, s, write_file, cx)?,
+            b"RMIM" => extract_rmim(len, s, write_file, cx)?,
             b"SCRP" => decompile_scrp(len, s, write_file, cx)?,
             _ => {
                 decompile_raw(id, len, s, write_file, cx)?;
@@ -398,6 +400,28 @@ fn decompile_script(
     };
     cx.cur_path.push_str(".scu");
     write_file(cx.cur_path, decomp.as_bytes())?;
+    Ok(())
+}
+
+fn extract_rmim(
+    len: u64,
+    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
+    cx: &mut Cx,
+) -> Result<(), Box<dyn Error>> {
+    decompile_raw(*b"RMIM", len, disk_read, write_file, cx)?;
+
+    let bmp = match rmim::decode(cx.buf) {
+        Ok(bmp) => bmp,
+        Err(err) => {
+            eprintln!("error decoding {} RMIM: {:?}", cx.cur_path, err);
+            return Ok(());
+        }
+    };
+
+    cx.cur_path.push_str("RMIM.bmp");
+    write_file(cx.cur_path, &bmp)?;
+    cx.cur_path.truncate(cx.cur_path.len() - 8);
     Ok(())
 }
 
