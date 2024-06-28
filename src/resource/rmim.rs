@@ -2,12 +2,31 @@ use crate::{blocks::BlockScanner, utils::bit_stream::BitStream};
 use byteordered::byteorder::{ReadBytesExt, WriteBytesExt, LE};
 use std::{
     error::Error,
-    io::{BufWriter, Cursor, Seek, SeekFrom, Write},
+    io::{self, BufWriter, Cursor, Seek, SeekFrom, Write},
 };
 
-pub fn decode(palette: &[u8], rmim_raw: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
-    let mut r = Cursor::new(rmim_raw);
-    let mut rmih_scanner = BlockScanner::new(rmim_raw.len().try_into().unwrap());
+pub fn convert_to_bmp(
+    width: u32,
+    height: u32,
+    palette: &[u8],
+    rmim_pixels: &[u8],
+) -> Result<Vec<u8>, Box<dyn Error>> {
+    let mut out = Vec::with_capacity(1024);
+    let mut w = BufWriter::new(&mut out);
+    write_bmp_header(&mut w, width, height)?;
+    write_bmp_palette(&mut w, palette)?;
+    w.write_all(rmim_pixels)?;
+    w.flush()?;
+    drop(w);
+    Ok(out)
+}
+
+pub fn decompress_pixels(raw: &[u8]) -> Result<Box<[u8]>, Box<dyn Error>> {
+    const DELTA: [i16; 8] = [-4, -3, -2, -1, 1, 2, 3, 4];
+
+    let mut r = Cursor::new(raw);
+
+    let mut rmih_scanner = BlockScanner::new(raw.len().try_into().unwrap());
     let rmih_len = rmih_scanner
         .next_block_must_be(&mut r, *b"RMIH")?
         .ok_or("expected RMIH")?
@@ -25,20 +44,14 @@ pub fn decode(palette: &[u8], rmim_raw: &[u8]) -> Result<Vec<u8>, Box<dyn Error>
         .ok_or("expected BMAP")?;
     let bmap_end = r.position() + bmap_len;
 
-    let mut out = Vec::with_capacity(1024);
-    let mut w = BufWriter::new(&mut out);
-    let width = 640; // TODO
-    let height = 480;
-    write_bmp_header(&mut w, width, height)?;
-    write_bmp_palette(&mut w, palette)?;
-
     let compression = r.read_u8()?;
     // for now, only supporting BMCOMP_NMAJMIN_H8
     if compression != 0x8a {
         return Err(format!("unsupported compression type 0x{:02x}", compression).into());
     }
 
-    let delta: [i16; 8] = [-4, -3, -2, -1, 1, 2, 3, 4];
+    let mut out = Vec::new();
+    let mut w = io::Cursor::new(&mut out);
 
     let mut color = r.read_u8()?;
     let mut bits = BitStream::new();
@@ -47,16 +60,13 @@ pub fn decode(palette: &[u8], rmim_raw: &[u8]) -> Result<Vec<u8>, Box<dyn Error>
         if bits.read_bit(&mut r)? {
             if bits.read_bit(&mut r)? {
                 let d: usize = bits.read_bits(&mut r, 3)?.into();
-                color = u8::try_from(i16::from(color) + delta[d])?;
+                color = u8::try_from(i16::from(color) + DELTA[d])?;
             } else {
                 color = bits.read_bits(&mut r, 8)?;
             }
         }
     }
-
-    w.flush()?;
-    drop(w);
-    Ok(out)
+    Ok(out.into_boxed_slice())
 }
 
 fn write_bmp_header(w: &mut impl Write, width: u32, height: u32) -> Result<(), Box<dyn Error>> {

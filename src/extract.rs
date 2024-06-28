@@ -156,19 +156,29 @@ fn decompile_lflf(
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
-    let mut pals = None;
-    let mut rmim = None;
-
     let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
+
+    let rmim_len = scan_lflf
+        .next_block_must_be(s, *b"RMIM")?
+        .ok_or("missing RMIM")?;
+    let rmim_end = s.stream_position()? + rmim_len;
+    decompile_raw(*b"RMIM", rmim_len, s, write_file, cx)?;
+    let rmim_pixels = match rmim::decompress_pixels(cx.buf) {
+        Ok(x) => Some(x),
+        Err(err) => {
+            eprintln!("error decoding {} RMIM: {:?}", cx.cur_path, err);
+            s.seek(SeekFrom::Start(rmim_end))?;
+            None
+        }
+    };
+
+    let rmda_len = scan_lflf
+        .next_block_must_be(s, *b"RMDA")?
+        .ok_or("missing RMDA")?;
+    let raw_pals = decompile_rmda(rmda_len, s, write_file, cx)?;
+
     while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
         match &id {
-            b"RMDA" => {
-                pals = decompile_rmda(len, s, write_file, cx)?;
-            }
-            b"RMIM" => {
-                decompile_raw(id, len, s, write_file, cx)?;
-                rmim = Some(cx.buf.clone());
-            }
             b"SCRP" => decompile_scrp(len, s, write_file, cx)?,
             _ => {
                 decompile_raw(id, len, s, write_file, cx)?;
@@ -177,18 +187,9 @@ fn decompile_lflf(
     }
     scan_lflf.finish(&mut s)?;
 
-    if let Some(rmim) = rmim {
-        if let Some(pals) = pals {
-            match extract_rmim(&pals, &rmim, write_file, cx) {
-                Ok(()) => {}
-                Err(err) => {
-                    eprintln!("error decoding {} RMIM: {:?}", cx.cur_path, err);
-                    return Ok(());
-                }
-            };
-        }
+    if let Some(rmim_pixels) = rmim_pixels {
+        extract_rmim(&raw_pals, &rmim_pixels, write_file, cx)?;
     }
-
     Ok(())
 }
 
@@ -197,7 +198,7 @@ fn decompile_rmda(
     disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
-) -> Result<Option<Vec<u8>>, Box<dyn Error>> {
+) -> Result<Vec<u8>, Box<dyn Error>> {
     let mut pals = None;
 
     write_indent(cx.room_scu, cx.indent);
@@ -232,6 +233,9 @@ fn decompile_rmda(
     write_indent(cx.room_scu, cx.indent);
     cx.room_scu.push_str("}\n");
 
+    let Some(pals) = pals else {
+        return Err("missing PALS".into());
+    };
     Ok(pals)
 }
 
@@ -436,12 +440,14 @@ fn decompile_script(
 
 fn extract_rmim(
     raw_pals: &[u8],
-    raw_rmim: &[u8],
+    rmim_pixels: &[u8],
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let width = 640; // TODO
+    let height = 480;
     let palette = pals::decode(raw_pals)?;
-    let bmp = rmim::decode(&palette, raw_rmim)?;
+    let bmp = rmim::convert_to_bmp(width, height, &palette, rmim_pixels)?;
 
     cx.cur_path.push_str("RMIM.bmp");
     write_file(cx.cur_path, &bmp)?;
