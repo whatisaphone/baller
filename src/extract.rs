@@ -12,7 +12,7 @@ use crate::{
     config::Config,
     extract_old::{find_glob_number, find_lfl_number, FAIL, NICE},
     index::{directory_for_block_id, read_index, Index},
-    resource::rmim,
+    resource::{pals, rmim},
     script::{decompile, disasm_to_string, Scope},
     utils::vec::{extend_insert_some, grow_with_default},
     xor::XorStream,
@@ -156,11 +156,19 @@ fn decompile_lflf(
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
+    let mut pals = None;
+    let mut rmim = None;
+
     let mut scan_lflf = BlockScanner::new(s.stream_position()? + lflf_len);
     while let Some((id, len)) = scan_lflf.next_block(&mut s)? {
         match &id {
-            b"RMDA" => decompile_rmda(len, s, write_file, cx)?,
-            b"RMIM" => extract_rmim(len, s, write_file, cx)?,
+            b"RMDA" => {
+                pals = decompile_rmda(len, s, write_file, cx)?;
+            }
+            b"RMIM" => {
+                decompile_raw(id, len, s, write_file, cx)?;
+                rmim = Some(cx.buf.clone());
+            }
             b"SCRP" => decompile_scrp(len, s, write_file, cx)?,
             _ => {
                 decompile_raw(id, len, s, write_file, cx)?;
@@ -168,6 +176,19 @@ fn decompile_lflf(
         }
     }
     scan_lflf.finish(&mut s)?;
+
+    if let Some(rmim) = rmim {
+        if let Some(pals) = pals {
+            match extract_rmim(&pals, &rmim, write_file, cx) {
+                Ok(()) => {}
+                Err(err) => {
+                    eprintln!("error decoding {} RMIM: {:?}", cx.cur_path, err);
+                    return Ok(());
+                }
+            };
+        }
+    }
+
     Ok(())
 }
 
@@ -176,7 +197,9 @@ fn decompile_rmda(
     disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<Option<Vec<u8>>, Box<dyn Error>> {
+    let mut pals = None;
+
     write_indent(cx.room_scu, cx.indent);
     cx.room_scu.push_str("raw-block \"RMDA\" {\n");
     cx.indent += 1;
@@ -186,6 +209,13 @@ fn decompile_rmda(
     let mut scan = BlockScanner::new(disk_read.stream_position()? + block_len);
     while let Some((id, len)) = scan.next_block(disk_read)? {
         match &id {
+            b"PALS" => {
+                decompile_raw(id, len, disk_read, write_file, cx)?;
+                if pals.is_some() {
+                    return Err("duplicate PALS".into());
+                }
+                pals = Some(cx.buf.clone());
+            }
             b"OBCD" => decompile_obcd(len, disk_read, write_file, cx)?,
             b"ENCD" | b"EXCD" => decompile_enex(id, len, disk_read, write_file, cx)?,
             b"LSC2" => decompile_lsc2(len, disk_read, write_file, cx)?,
@@ -201,7 +231,8 @@ fn decompile_rmda(
     cx.indent -= 1;
     write_indent(cx.room_scu, cx.indent);
     cx.room_scu.push_str("}\n");
-    Ok(())
+
+    Ok(pals)
 }
 
 fn decompile_scrp(
@@ -404,20 +435,13 @@ fn decompile_script(
 }
 
 fn extract_rmim(
-    len: u64,
-    disk_read: &mut BufReader<XorStream<&mut (impl Read + Seek)>>,
+    raw_pals: &[u8],
+    raw_rmim: &[u8],
     write_file: &mut impl FnMut(&str, &[u8]) -> Result<(), Box<dyn Error>>,
     cx: &mut Cx,
 ) -> Result<(), Box<dyn Error>> {
-    decompile_raw(*b"RMIM", len, disk_read, write_file, cx)?;
-
-    let bmp = match rmim::decode(cx.buf) {
-        Ok(bmp) => bmp,
-        Err(err) => {
-            eprintln!("error decoding {} RMIM: {:?}", cx.cur_path, err);
-            return Ok(());
-        }
-    };
+    let palette = pals::decode(raw_pals)?;
+    let bmp = rmim::decode(&palette, raw_rmim)?;
 
     cx.cur_path.push_str("RMIM.bmp");
     write_file(cx.cur_path, &bmp)?;
