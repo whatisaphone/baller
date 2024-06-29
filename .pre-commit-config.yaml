@@ -3,29 +3,22 @@
 repos:
   - repo: local
     hooks:
-      - id: fix
-        name: fix
-        language: system
-        files: '[.]rs$'
-        pass_filenames: false
-        entry: cargo clippy --all-targets --features strict --fix --allow-staged
-
-      - id: check
-        name: check
-        language: system
-        files: '[.]rs$'
-        pass_filenames: false
-        entry: cargo clippy --all-targets --features strict
-
       - id: fmt
         name: fmt
         language: system
-        files: '[.]rs$'
-        entry: rustup run --install nightly-2021-10-24 rustfmt
+        files: \.zig$
+        entry: zig fmt
+
+      - id: build
+        name: build
+        language: system
+        files: \.zig$
+        pass_filenames: false
+        entry: zig build
 
       - id: test
         name: test
         language: system
-        files: '[.]rs$'
+        files: \.zig$
         pass_filenames: false
-        entry: cargo test
+        entry: zig build test
