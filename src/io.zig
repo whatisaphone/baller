@@ -1,5 +1,13 @@
 const std = @import("std");
 
+pub fn requireEof(s: anytype) !void {
+    _ = s.reader().readByte() catch |err| switch (err) {
+        error.EndOfStream => return,
+        else => return err,
+    };
+    return error.StreamTooLong;
+}
+
 pub fn copy(input: anytype, output: anytype) !void {
     var input_mut = input;
 
