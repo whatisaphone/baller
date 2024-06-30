@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const fs = @import("fs.zig");
 const io = @import("io.zig");
 
 const xor_key = 0x69;
@@ -19,10 +20,7 @@ pub fn main() !void {
     if (!std.mem.endsWith(u8, input_path, ".he0"))
         return error.CommandLine;
 
-    std.fs.cwd().makeDirZ(output_path) catch |err| switch (err) {
-        error.PathAlreadyExists => {},
-        else => return err,
-    };
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path);
 
     var index = try readIndex(allocator, input_path);
     defer index.deinit(allocator);
@@ -36,7 +34,7 @@ pub fn main() !void {
         const disk_number: u8 = @intCast(disk_number_usize);
         input_path[input_path.len - 2] = 'a' - 1 + disk_number;
 
-        try extractDisk(input_path, disk_number, &index);
+        try extractDisk(allocator, input_path, output_path, disk_number, &index);
     }
 }
 
@@ -208,14 +206,22 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     };
 }
 
-fn extractDisk(path: [*:0]u8, disk_number: u8, index: *const Index) !void {
-    const file = try std.fs.cwd().openFileZ(path, .{});
+fn extractDisk(
+    allocator: std.mem.Allocator,
+    input_path: [*:0]u8,
+    output_path: []const u8,
+    disk_number: u8,
+    index: *const Index,
+) !void {
+    const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
 
     const xor_reader = io.xorReader(file.reader(), xor_key);
     const buf_reader = std.io.bufferedReader(xor_reader.reader());
     var reader = std.io.countingReader(buf_reader);
     const in = reader.reader();
+
+    var state = try State.init(output_path);
 
     var file_blocks = blockReader(&reader);
 
@@ -226,6 +232,7 @@ fn extractDisk(path: [*:0]u8, disk_number: u8, index: *const Index) !void {
 
     while (reader.bytes_read < lecf_end) {
         const lflf_len = try lecf_blocks.expectBlock("LFLF");
+        const lflf_end = reader.bytes_read + lflf_len;
 
         const room_number =
             for (0.., index.lfl_disks, index.lfl_offsets) |i, disk, offset|
@@ -236,9 +243,44 @@ fn extractDisk(path: [*:0]u8, disk_number: u8, index: *const Index) !void {
 
         const room_name = index.roomName(room_number) catch
             return error.BadData;
-        std.debug.print("{} {} {s}\n", .{ disk_number, room_number, room_name });
 
-        try in.skipBytes(lflf_len, .{});
+        const before_room_path_len = state.cur_path.len;
+        defer state.cur_path.len = before_room_path_len;
+
+        try state.cur_path.appendSlice(room_name);
+        try state.cur_path.append('\x00');
+        const room_dir_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+        try fs.makeDirIfNotExistZ(std.fs.cwd(), room_dir_path);
+        state.cur_path.buffer[state.cur_path.len - 1] = '/';
+
+        var lflf_blocks = blockReader(&reader);
+
+        var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
+        defer block_numbers.deinit(allocator);
+
+        while (reader.bytes_read < lflf_end) {
+            const id, const len = try lflf_blocks.next();
+
+            const block_number_entry = try block_numbers.getOrPutValue(allocator, id, 0);
+            block_number_entry.value_ptr.* += 1;
+            const block_number = block_number_entry.value_ptr.*;
+
+            const before_child_path_len = state.cur_path.len;
+            defer state.cur_path.len = before_child_path_len;
+
+            try state.cur_path.writer().print(
+                "{s}_{:0>4}.bin\x00",
+                .{ blockIdToStr(&id), block_number },
+            );
+            const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+
+            const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+            defer output_file.close();
+
+            try io.copy(std.io.limitedReader(in, len), output_file);
+        }
+
+        try lflf_blocks.checkSync();
     }
 
     try lecf_blocks.checkSync();
@@ -257,8 +299,10 @@ fn blockId(comptime str: []const u8) BlockId {
     comptime return std.mem.bytesToValue(BlockId, str);
 }
 
+const blockIdToStr = std.mem.asBytes;
+
 fn fmtBlockId(id: *const BlockId) @TypeOf(std.fmt.fmtSliceEscapeLower("")) {
-    return std.fmt.fmtSliceEscapeLower(std.mem.asBytes(id));
+    return std.fmt.fmtSliceEscapeLower(blockIdToStr(id));
 }
 
 fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
