@@ -3,6 +3,7 @@ const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
+const parseBlockId = @import("block_id.zig").parseBlockId;
 const io = @import("io.zig");
 
 pub const xor_key = 0x69;
@@ -23,22 +24,25 @@ pub fn run(allocator: std.mem.Allocator) !void {
     var project_txt_reader = std.io.bufferedReader(project_txt_file.reader());
     var project_txt_line_buf: [256]u8 = undefined;
 
+    var cur_path = std.BoundedArray(u8, 4095){};
+    try cur_path.appendSlice(project_txt_path);
+    popPathFile(&cur_path);
+
     var cur_state: ?DiskState = null;
 
     while (true) {
-        const line = project_txt_reader.reader()
+        const project_line = project_txt_reader.reader()
             .readUntilDelimiter(&project_txt_line_buf, '\n') catch |err| switch (err) {
             error.EndOfStream => break,
             else => return err,
         };
-        if (!std.mem.startsWith(u8, line, "room "))
+        if (!std.mem.startsWith(u8, project_line, "room "))
             return error.BadData;
-        var words = std.mem.splitScalar(u8, line[5..], ' ');
-        const disk_number_str = words.next() orelse return error.BadData;
-        const room_number_str = words.next() orelse return error.BadData;
-        const room_name = words.next() orelse return error.BadData;
-        _ = room_name; // autofix
-        if (words.next()) |_| return error.BadData;
+        var project_line_words = std.mem.splitScalar(u8, project_line[5..], ' ');
+        const disk_number_str = project_line_words.next() orelse return error.BadData;
+        const room_number_str = project_line_words.next() orelse return error.BadData;
+        const room_name = project_line_words.next() orelse return error.BadData;
+        if (project_line_words.next()) |_| return error.BadData;
 
         const disk_number = try std.fmt.parseInt(u8, disk_number_str, 10);
         if (disk_number < 1 or disk_number > 26) return error.BadData;
@@ -58,7 +62,54 @@ pub fn run(allocator: std.mem.Allocator) !void {
 
         const state = &cur_state.?;
 
+        try cur_path.appendSlice(room_name);
+        try cur_path.append('/');
+        defer cur_path.len -= @intCast(room_name.len + 1);
+
+        const room_file = room_file: {
+            try cur_path.appendSlice("room.txt\x00");
+            defer cur_path.len -= 9;
+
+            const room_txt_path = cur_path.buffer[0 .. cur_path.len - 1 :0];
+            break :room_file try std.fs.cwd().openFileZ(room_txt_path, .{});
+        };
+        defer room_file.close();
+
+        var room_reader = std.io.bufferedReader(room_file.reader());
+        var room_line_buf: [256]u8 = undefined;
+
         const lflf_fixup = try beginBlock(&state.writer, "LFLF");
+
+        while (true) {
+            const room_line = room_reader.reader()
+                .readUntilDelimiter(&room_line_buf, '\n') catch |err| switch (err) {
+                error.EndOfStream => break,
+                else => return err,
+            };
+            if (!std.mem.startsWith(u8, room_line, "raw-block "))
+                return error.BadData;
+            var room_line_words = std.mem.splitScalar(u8, room_line[10..], ' ');
+            const block_id_str = room_line_words.next() orelse return error.BadData;
+            const block_path_str = room_line_words.next() orelse return error.BadData;
+            if (room_line_words.next()) |_| return error.BadData;
+
+            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+            try cur_path.appendSlice(block_path_str);
+            try cur_path.append(0);
+            defer cur_path.len -= @intCast(block_path_str.len + 1);
+
+            const block_path = cur_path.buffer[0 .. cur_path.buffer.len - 1 :0];
+
+            const block_file = try std.fs.cwd().openFileZ(block_path, .{});
+            defer block_file.close();
+
+            const block_fixup = try beginBlockImpl(&state.writer, block_id);
+
+            try io.copy(block_file, state.writer.writer());
+
+            try endBlock(&state.writer, &state.fixups, block_fixup);
+        }
 
         try endBlock(&state.writer, &state.fixups, lflf_fixup);
     }
@@ -144,4 +195,9 @@ fn endBlock(stream: anytype, fixups: *std.ArrayList(Fixup), block_start: u32) !v
         .offset = block_start + 4,
         .value = stream_pos - block_start,
     });
+}
+
+fn popPathFile(str: *std.BoundedArray(u8, 4095)) void {
+    const slash = std.mem.lastIndexOfScalar(u8, str.slice(), '/');
+    str.len = if (slash) |s| @intCast(s + 1) else 0;
 }

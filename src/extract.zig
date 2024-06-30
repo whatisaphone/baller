@@ -276,6 +276,17 @@ fn extractDisk(
         try fs.makeDirIfNotExistZ(std.fs.cwd(), room_dir_path);
         state.cur_path.buffer[state.cur_path.len - 1] = '/';
 
+        const room_txt_file = room_txt_file: {
+            try state.cur_path.appendSlice("room.txt\x00");
+            defer state.cur_path.len -= 9;
+
+            const room_txt_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+            break :room_txt_file try std.fs.cwd().createFileZ(room_txt_path, .{});
+        };
+        defer room_txt_file.close();
+
+        var room_txt = std.io.bufferedWriter(room_txt_file.writer());
+
         var lflf_blocks = blockReader(&reader);
 
         var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
@@ -297,6 +308,11 @@ fn extractDisk(
             );
             const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
 
+            try room_txt.writer().print(
+                "raw-block {s} {s}\n",
+                .{ blockIdToStr(&id), cur_path[before_child_path_len..] },
+            );
+
             const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
             defer output_file.close();
 
@@ -304,6 +320,8 @@ fn extractDisk(
         }
 
         try lflf_blocks.checkSync();
+
+        try room_txt.flush();
     }
 
     try lecf_blocks.checkSync();

@@ -14,3 +14,12 @@ pub const blockIdToStr = std.mem.asBytes;
 pub fn fmtBlockId(id: *const BlockId) @TypeOf(std.fmt.fmtSliceEscapeLower("")) {
     return std.fmt.fmtSliceEscapeLower(blockIdToStr(id));
 }
+
+pub fn parseBlockId(str: []const u8) ?BlockId {
+    if (str.len != 4)
+        return null;
+    for (str) |ch|
+        if (!('A' <= ch and ch <= 'Z'))
+            return null;
+    return std.mem.bytesToValue(BlockId, str);
+}
