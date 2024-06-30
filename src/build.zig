@@ -4,6 +4,7 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
+const fs = @import("fs.zig");
 const io = @import("io.zig");
 
 pub const xor_key = 0x69;
@@ -17,6 +18,13 @@ pub fn run(allocator: std.mem.Allocator) !void {
 
     if (!std.mem.endsWith(u8, output_path, ".he0"))
         return error.CommandLine;
+
+    // Create output dir. Borrow the slash temporarily to get the dir name
+    const output_path_slash = std.mem.lastIndexOfScalar(u8, output_path, '/') orelse
+        return error.CommandLine;
+    output_path[output_path_slash] = 0;
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path[0..output_path_slash :0]);
+    output_path[output_path_slash] = '/';
 
     const project_txt_file = try std.fs.cwd().openFileZ(project_txt_path, .{});
     defer project_txt_file.close();
