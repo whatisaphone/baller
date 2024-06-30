@@ -20,3 +20,7 @@ pub fn main() !void {
         return error.CommandLine;
     }
 }
+
+test {
+    _ = @import("tests.zig");
+}
