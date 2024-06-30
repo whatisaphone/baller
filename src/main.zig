@@ -1,21 +1,38 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const BlockId = @import("block_id.zig").BlockId;
+const blockId = @import("block_id.zig").blockId;
+const blockIdToStr = @import("block_id.zig").blockIdToStr;
+const fmtBlockId = @import("block_id.zig").fmtBlockId;
+const build = @import("build.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-
-const xor_key = 0x69;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer std.debug.assert(gpa.deinit() == .ok);
 
-    if (std.os.argv.len != 1 + 2)
+    if (std.os.argv.len < 1 + 1)
         return error.CommandLine;
 
-    const input_path = std.mem.sliceTo(std.os.argv[1], 0);
-    const output_path = std.mem.sliceTo(std.os.argv[2], 0);
+    const command = std.mem.sliceTo(std.os.argv[1], 0);
+    if (std.mem.eql(u8, command, "build")) {
+        try build.run(allocator);
+    } else if (std.mem.eql(u8, command, "extract")) {
+        try extract(allocator);
+    } else {
+        return error.CommandLine;
+    }
+}
+
+fn extract(allocator: std.mem.Allocator) !void {
+    if (std.os.argv.len != 1 + 1 + 2)
+        return error.CommandLine;
+
+    const input_path = std.mem.sliceTo(std.os.argv[2], 0);
+    const output_path = std.mem.sliceTo(std.os.argv[3], 0);
 
     if (!std.mem.endsWith(u8, input_path, ".he0"))
         return error.CommandLine;
@@ -24,6 +41,18 @@ pub fn main() !void {
 
     var index = try readIndex(allocator, input_path);
     defer index.deinit(allocator);
+
+    const project_txt_path = try std.fmt.allocPrintZ(
+        allocator,
+        "{s}/project.txt",
+        .{output_path},
+    );
+    defer allocator.free(project_txt_path);
+
+    const project_txt_file = try std.fs.cwd().createFileZ(project_txt_path, .{});
+    defer project_txt_file.close();
+
+    var project_txt = std.io.bufferedWriter(project_txt_file.writer());
 
     // input_path will be modified to point to each disk file
     // e.g. "baseball 2001.(a)"
@@ -34,8 +63,17 @@ pub fn main() !void {
         const disk_number: u8 = @intCast(disk_number_usize);
         input_path[input_path.len - 2] = 'a' - 1 + disk_number;
 
-        try extractDisk(allocator, input_path, output_path, disk_number, &index);
+        try extractDisk(
+            allocator,
+            input_path,
+            output_path,
+            disk_number,
+            &project_txt,
+            &index,
+        );
     }
+
+    try project_txt.flush();
 }
 
 const State = struct {
@@ -109,7 +147,7 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     const file = try std.fs.cwd().openFileZ(path, .{});
     defer file.close();
 
-    const xor_reader = io.xorReader(file.reader(), xor_key);
+    const xor_reader = io.xorReader(file.reader(), build.xor_key);
     const buf_reader = std.io.bufferedReader(xor_reader.reader());
     var reader = std.io.countingReader(buf_reader);
     const in = reader.reader();
@@ -211,12 +249,13 @@ fn extractDisk(
     input_path: [*:0]u8,
     output_path: []const u8,
     disk_number: u8,
+    project_txt: anytype,
     index: *const Index,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
 
-    const xor_reader = io.xorReader(file.reader(), xor_key);
+    const xor_reader = io.xorReader(file.reader(), build.xor_key);
     const buf_reader = std.io.bufferedReader(xor_reader.reader());
     var reader = std.io.countingReader(buf_reader);
     const in = reader.reader();
@@ -243,6 +282,8 @@ fn extractDisk(
 
         const room_name = index.roomName(room_number) catch
             return error.BadData;
+
+        try project_txt.writer().print("room {} {} {s}\n", .{ disk_number, room_number, room_name });
 
         const before_room_path_len = state.cur_path.len;
         defer state.cur_path.len = before_room_path_len;
@@ -290,21 +331,6 @@ fn extractDisk(
     try io.requireEof(&reader);
 }
 
-const BlockId = u32;
-const block_id_len = @sizeOf(BlockId);
-
-fn blockId(comptime str: []const u8) BlockId {
-    if (str.len != 4)
-        @compileError("block IDs are four bytes long");
-    comptime return std.mem.bytesToValue(BlockId, str);
-}
-
-const blockIdToStr = std.mem.asBytes;
-
-fn fmtBlockId(id: *const BlockId) @TypeOf(std.fmt.fmtSliceEscapeLower("")) {
-    return std.fmt.fmtSliceEscapeLower(blockIdToStr(id));
-}
-
 fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
 }
@@ -319,8 +345,7 @@ fn BlockReader(Stream: type) type {
         fn next(self: *Self) !struct { BlockId, u32 } {
             try self.checkSync();
 
-            const id_bytes = try self.stream.reader().readBytesNoEof(block_id_len);
-            const id = std.mem.bytesToValue(BlockId, &id_bytes);
+            const id = try self.stream.reader().readInt(BlockId, .little);
 
             const full_len = try self.stream.reader().readInt(u32, .big);
             // The original value includes the id and length, but the caller

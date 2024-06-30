@@ -43,3 +43,29 @@ pub fn XorReader(Stream: type) type {
 pub fn xorReader(stream: anytype, key: u8) XorReader(@TypeOf(stream)) {
     return .{ .stream = stream, .key = key };
 }
+
+pub fn XorWriter(Stream: type) type {
+    return struct {
+        stream: Stream,
+        key: u8,
+
+        pub const Writer = std.io.GenericWriter(*const @This(), Stream.Error, write);
+
+        pub fn writer(self: *const @This()) Writer {
+            return .{ .context = self };
+        }
+
+        fn write(self: *const @This(), bytes: []const u8) Stream.Error!usize {
+            var buf: [4096]u8 = undefined;
+            const chunk_len = @min(bytes.len, buf.len);
+            @memcpy(buf[0..chunk_len], bytes[0..chunk_len]);
+            for (buf[0..chunk_len]) |*p|
+                p.* ^= self.key;
+            return self.stream.write(buf[0..chunk_len]);
+        }
+    };
+}
+
+pub fn xorWriter(stream: anytype, key: u8) XorWriter(@TypeOf(stream)) {
+    return .{ .stream = stream, .key = key };
+}
