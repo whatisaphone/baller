@@ -71,6 +71,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
         input_path[input_path.len - 2] = 'a' - 1 + disk_number;
 
         try extractDisk(
+            allocator,
             input_path,
             output_path,
             disk_number,
@@ -409,6 +410,7 @@ fn dumpIndexBlobs(index: *const Index, path_buf: *std.BoundedArray(u8, 4095)) !v
 }
 
 fn extractDisk(
+    allocator: std.mem.Allocator,
     input_path: [*:0]u8,
     output_path: []const u8,
     disk_number: u8,
@@ -469,6 +471,34 @@ fn extractDisk(
 
         var lflf_blocks = blockReader(&reader);
 
+        const rmim_offset, const rmim_data =
+            try readGlob(allocator, &lflf_blocks, comptime blockId("RMIM"), &reader);
+        defer allocator.free(rmim_data);
+
+        const rmda_offset, const rmda_data =
+            try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
+        defer allocator.free(rmda_data);
+
+        try writeGlob(
+            disk_number,
+            comptime blockId("RMIM"),
+            rmim_offset,
+            rmim_data,
+            index,
+            &state,
+            &room_txt,
+        );
+
+        try writeGlob(
+            disk_number,
+            comptime blockId("RMDA"),
+            rmda_offset,
+            rmda_data,
+            index,
+            &state,
+            &room_txt,
+        );
+
         while (reader.bytes_read < lflf_end) {
             const id, const len = try lflf_blocks.next();
             try extractGlob(disk_number, id, len, &reader, index, &state, &room_txt);
@@ -484,6 +514,20 @@ fn extractDisk(
     try file_blocks.checkSync();
 
     try io.requireEof(reader.reader());
+}
+
+fn readGlob(
+    allocator: std.mem.Allocator,
+    blocks: anytype,
+    block_id: BlockId,
+    reader: anytype,
+) !struct { u32, []u8 } {
+    const offset = reader.bytes_read;
+    const block_len = try blocks.expect(block_id);
+    const data = try allocator.alloc(u8, block_len);
+    errdefer allocator.free(data);
+    try reader.reader().readNoEof(data);
+    return .{ @intCast(offset), data };
 }
 
 fn extractGlob(
@@ -520,6 +564,43 @@ fn extractGlob(
     defer output_file.close();
 
     try io.copy(std.io.limitedReader(reader.reader(), len), output_file);
+}
+
+// TODO: this is mostly a copy/paste
+fn writeGlob(
+    disk_number: u8,
+    block_id: BlockId,
+    block_offset: u32,
+    data: []const u8,
+    index: *const Index,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    const glob_number = try findGlobNumber(
+        index,
+        block_id,
+        disk_number,
+        block_offset,
+    ) orelse return error.BadData;
+
+    const before_child_path_len = state.cur_path.len;
+    defer state.cur_path.len = before_child_path_len;
+
+    try state.cur_path.writer().print(
+        "{s}_{:0>4}.bin\x00",
+        .{ blockIdToStr(&block_id), glob_number },
+    );
+    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+
+    try room_txt.writer().print(
+        "raw-glob {s} {} {s}\n",
+        .{ blockIdToStr(&block_id), glob_number, cur_path[before_child_path_len..] },
+    );
+
+    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    defer output_file.close();
+
+    try output_file.writeAll(data);
 }
 
 fn findGlobNumber(
