@@ -1,6 +1,7 @@
 const std = @import("std");
 
-const test_options = @import("test_options");
+const build = @import("build.zig");
+const extract = @import("extract.zig");
 
 // Extract and rebuild, and verify the output is identical to the original.
 test "round trip" {
@@ -9,25 +10,15 @@ test "round trip" {
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
     const build_dir = "/tmp/baller-test-baseball-2001-build";
 
-    var extract = std.process.Child.init(&.{
-        test_options.exe_path,
-        "extract",
-        "src/fixtures/baseball2001/baseball 2001.he0",
-        extract_dir,
-    }, allocator);
-    const extract_term = try extract.spawnAndWait();
-    if (!(extract_term == .Exited and extract_term.Exited == 0))
-        return error.ExitStatus;
+    try extract.run(allocator, &.{
+        .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
+        .output_path = extract_dir,
+    });
 
-    var build = std.process.Child.init(&.{
-        test_options.exe_path,
-        "build",
-        extract_dir ++ "/project.txt",
-        build_dir ++ "/baseball 2001.he0",
-    }, allocator);
-    const build_term = try build.spawnAndWait();
-    if (!(build_term == .Exited and build_term.Exited == 0))
-        return error.ExitStatus;
+    try build.run(allocator, &.{
+        .project_txt_path = extract_dir ++ "/project.txt",
+        .output_path = build_dir ++ "/baseball 2001.he0",
+    });
 
     try expectFilesEqual(
         "src/fixtures/baseball2001/baseball 2001.he0",

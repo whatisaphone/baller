@@ -9,12 +9,31 @@ const io = @import("io.zig");
 
 pub const xor_key = 0x69;
 
-pub fn run(allocator: std.mem.Allocator) !void {
+pub fn runCli(allocator: std.mem.Allocator) !void {
     if (std.os.argv.len != 1 + 1 + 2)
         return error.CommandLine;
 
     const project_txt_path = std.mem.sliceTo(std.os.argv[2], 0);
     const output_path = std.mem.sliceTo(std.os.argv[3], 0);
+
+    try run(allocator, &.{
+        .project_txt_path = project_txt_path,
+        .output_path = output_path,
+    });
+}
+
+const Build = struct {
+    project_txt_path: [:0]const u8,
+    output_path: [:0]const u8,
+};
+
+pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
+    const project_txt_path = args.project_txt_path;
+
+    var output_path_buf = std.BoundedArray(u8, 4095){};
+    try output_path_buf.appendSlice(args.output_path);
+    try output_path_buf.append(0);
+    const output_path = output_path_buf.buffer[0 .. output_path_buf.len - 1 :0];
 
     if (!std.mem.endsWith(u8, output_path, ".he0"))
         return error.CommandLine;

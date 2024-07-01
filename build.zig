@@ -56,10 +56,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const test_options = b.addOptions();
-    test_options.addOptionPath("exe_path", exe.getEmittedBin());
-    exe_unit_tests.root_module.addOptions("test_options", test_options);
-
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     run_exe_unit_tests.has_side_effects = true;
 

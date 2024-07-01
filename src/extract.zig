@@ -9,12 +9,31 @@ const xor_key = @import("build.zig").xor_key;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 
-pub fn run(allocator: std.mem.Allocator) !void {
+pub fn runCli(allocator: std.mem.Allocator) !void {
     if (std.os.argv.len != 1 + 1 + 2)
         return error.CommandLine;
 
     const input_path = std.mem.sliceTo(std.os.argv[2], 0);
     const output_path = std.mem.sliceTo(std.os.argv[3], 0);
+
+    try run(allocator, &.{
+        .input_path = input_path,
+        .output_path = output_path,
+    });
+}
+
+const Extract = struct {
+    input_path: [:0]const u8,
+    output_path: [:0]const u8,
+};
+
+pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
+    var input_path_buf = std.BoundedArray(u8, 4095){};
+    try input_path_buf.appendSlice(args.input_path);
+    try input_path_buf.append(0);
+    const input_path = input_path_buf.buffer[0 .. input_path_buf.len - 1 :0];
+
+    const output_path = args.output_path;
 
     if (!std.mem.endsWith(u8, input_path, ".he0"))
         return error.CommandLine;

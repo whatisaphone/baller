@@ -13,9 +13,9 @@ pub fn main() !void {
 
     const command = std.mem.sliceTo(std.os.argv[1], 0);
     if (std.mem.eql(u8, command, "build")) {
-        try build.run(allocator);
+        try build.runCli(allocator);
     } else if (std.mem.eql(u8, command, "extract")) {
-        try extract.run(allocator);
+        try extract.runCli(allocator);
     } else {
         return error.CommandLine;
     }
