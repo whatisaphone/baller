@@ -24,6 +24,12 @@ pub fn run(allocator: std.mem.Allocator) !void {
     var index = try readIndex(allocator, input_path);
     defer index.deinit(allocator);
 
+    var path_buf = std.BoundedArray(u8, 4095){};
+    try path_buf.appendSlice(output_path);
+    try path_buf.append('/');
+
+    try dumpIndexBlobs(&index, &path_buf);
+
     const project_txt_path = try std.fmt.allocPrintZ(
         allocator,
         "{s}/project.txt",
@@ -46,7 +52,6 @@ pub fn run(allocator: std.mem.Allocator) !void {
         input_path[input_path.len - 2] = 'a' - 1 + disk_number;
 
         try extractDisk(
-            allocator,
             input_path,
             output_path,
             disk_number,
@@ -72,18 +77,24 @@ const State = struct {
 };
 
 const Index = struct {
+    maxs: *Maxs,
+    directories: Directories,
     lfl_offsets: []u32,
     lfl_disks: []u8,
     room_name_buf: []u8,
     room_name_starts: []u16,
     room_name_lens: []u8,
+    dobj: []u8,
 
-    fn deinit(self: *const Index, allocator: std.mem.Allocator) void {
+    fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+        allocator.free(self.dobj);
         allocator.free(self.room_name_lens);
         allocator.free(self.room_name_starts);
         allocator.free(self.room_name_buf);
         allocator.free(self.lfl_disks);
         allocator.free(self.lfl_offsets);
+        self.directories.deinit(allocator);
+        allocator.destroy(self.maxs);
     }
 
     fn roomName(self: *const Index, room_number: u8) ![]const u8 {
@@ -97,6 +108,28 @@ const Index = struct {
             return error.NotFound;
         const start = self.room_name_starts[room_index];
         return self.room_name_buf[start .. start + len];
+    }
+};
+
+const Directories = struct {
+    room_images: std.MultiArrayList(DirectoryEntry),
+    rooms: std.MultiArrayList(DirectoryEntry),
+    scripts: std.MultiArrayList(DirectoryEntry),
+    sounds: std.MultiArrayList(DirectoryEntry),
+    costumes: std.MultiArrayList(DirectoryEntry),
+    charsets: std.MultiArrayList(DirectoryEntry),
+    images: std.MultiArrayList(DirectoryEntry),
+    talkies: std.MultiArrayList(DirectoryEntry),
+
+    fn deinit(self: *Directories, allocator: std.mem.Allocator) void {
+        self.talkies.deinit(allocator);
+        self.images.deinit(allocator);
+        self.charsets.deinit(allocator);
+        self.costumes.deinit(allocator);
+        self.sounds.deinit(allocator);
+        self.scripts.deinit(allocator);
+        self.rooms.deinit(allocator);
+        self.room_images.deinit(allocator);
     }
 };
 
@@ -125,6 +158,14 @@ const Maxs = extern struct {
     talkies: u16,
 };
 
+const DirectoryEntry = struct {
+    const packed_size = 1 + 4 + 4;
+
+    room: u8,
+    offset: u32,
+    len: u32,
+};
+
 fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     const file = try std.fs.cwd().openFileZ(path, .{});
     defer file.close();
@@ -141,13 +182,40 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     const maxs_len = try blocks.expectBlock("MAXS");
     if (maxs_len != @sizeOf(Maxs))
         return error.BadData;
-    var maxs: Maxs = undefined;
-    try in.readNoEof(std.mem.asBytes(&maxs));
+    const maxs = try allocator.create(Maxs);
+    errdefer allocator.destroy(maxs);
+    try in.readNoEof(std.mem.asBytes(maxs));
     std.debug.assert(builtin.cpu.arch.endian() == .little);
+
+    // DIR*
+
+    const directory_info = .{
+        .{ "DIRI", .rooms, .room_images },
+        .{ "DIRR", .rooms, .rooms },
+        .{ "DIRS", .scripts, .scripts },
+        .{ "DIRN", .sounds, .sounds },
+        .{ "DIRC", .costumes, .costumes },
+        .{ "DIRF", .charsets, .charsets },
+        .{ "DIRM", .images, .images },
+        .{ "DIRT", .talkies, .talkies },
+    };
+
+    var directories: Directories = undefined;
+
+    inline for (directory_info) |info| {
+        const block_id, const maxs_field, const directories_field = info;
+        @field(directories, @tagName(directories_field)) = try readDirectory(
+            allocator,
+            in,
+            &blocks,
+            comptime blockId(block_id),
+            @field(maxs, @tagName(maxs_field)),
+        );
+    }
 
     // DLFL
 
-    const dlfl_len = try blocks.skipUntilBlock("DLFL");
+    const dlfl_len = try blocks.expectBlock("DLFL");
     if (dlfl_len != 2 + maxs.rooms * 4)
         return error.BadData;
     const dlfl_count = try in.readInt(u16, .little);
@@ -217,17 +285,111 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
             return error.Overflow;
     }
 
+    // DOBJ
+
+    const dobj_len = try blocks.expectBlock("DOBJ");
+
+    const dobj = try allocator.alloc(u8, dobj_len);
+    errdefer allocator.free(dobj);
+
+    try in.readNoEof(dobj);
+
+    // AARY
+
+    const aary_len = try blocks.expectBlock("AARY");
+    if (aary_len != 2)
+        return error.BadData;
+    if (try in.readInt(u16, .little) != 0)
+        return error.BadData;
+
+    // INIB
+
+    const inib_len = try blocks.expectBlock("INIB");
+    if (inib_len < 8)
+        return error.BadData;
+
+    var inib_blocks = blockReader(&reader);
+
+    const note_len = try inib_blocks.expectBlock("NOTE");
+    if (note_len != 2)
+        return error.BadData;
+    if (try in.readInt(u16, .little) != 0)
+        return error.BadData;
+
+    try inib_blocks.checkSync();
+
+    try blocks.checkSync();
+
+    // Phew, we made it.
+
+    try io.requireEof(reader.reader());
+
     return Index{
+        .maxs = maxs,
+        .directories = directories,
         .lfl_offsets = dlfl,
         .lfl_disks = disk,
         .room_name_buf = room_name_buf,
         .room_name_starts = room_name_starts,
         .room_name_lens = room_name_lens,
+        .dobj = dobj,
     };
 }
 
-fn extractDisk(
+fn readDirectory(
     allocator: std.mem.Allocator,
+    in: anytype,
+    blocks: anytype,
+    block_id: BlockId,
+    expected_count: u16,
+) !std.MultiArrayList(DirectoryEntry) {
+    const len = try blocks.expect(block_id);
+    if (len != 2 + expected_count * DirectoryEntry.packed_size)
+        return error.BadData;
+    const count = try in.readInt(u16, .little);
+    if (count != expected_count)
+        return error.BadData;
+
+    var result = std.MultiArrayList(DirectoryEntry){};
+    try result.setCapacity(allocator, count);
+    result.len = count;
+
+    const slice = result.slice();
+    try in.readNoEof(slice.items(.room));
+    try in.readNoEof(std.mem.sliceAsBytes(slice.items(.offset)));
+    try in.readNoEof(std.mem.sliceAsBytes(slice.items(.len)));
+    std.debug.assert(builtin.cpu.arch.endian() == .little);
+
+    return result;
+}
+
+// Let's see how long we can get away with this.
+fn dumpIndexBlobs(index: *const Index, path_buf: *std.BoundedArray(u8, 4095)) !void {
+    {
+        try path_buf.appendSlice("maxs.bin\x00");
+        defer path_buf.len -= 9;
+
+        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
+        const file = try std.fs.cwd().createFileZ(path, .{});
+        defer file.close();
+
+        try file.writeAll(std.mem.asBytes(index.maxs));
+        std.debug.assert(builtin.cpu.arch.endian() == .little);
+    }
+
+    {
+        try path_buf.appendSlice("dobj.bin\x00");
+        defer path_buf.len -= 9;
+
+        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
+        const file = try std.fs.cwd().createFileZ(path, .{});
+        defer file.close();
+
+        try file.writeAll(index.dobj);
+    }
+}
+
+fn extractDisk(
     input_path: [*:0]u8,
     output_path: []const u8,
     disk_number: u8,
@@ -289,28 +451,28 @@ fn extractDisk(
 
         var lflf_blocks = blockReader(&reader);
 
-        var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
-        defer block_numbers.deinit(allocator);
-
         while (reader.bytes_read < lflf_end) {
             const id, const len = try lflf_blocks.next();
 
-            const block_number_entry = try block_numbers.getOrPutValue(allocator, id, 0);
-            block_number_entry.value_ptr.* += 1;
-            const block_number = block_number_entry.value_ptr.*;
+            const glob_number = try findGlobNumber(
+                index,
+                id,
+                disk_number,
+                @intCast(reader.bytes_read - 8),
+            ) orelse return error.BadData;
 
             const before_child_path_len = state.cur_path.len;
             defer state.cur_path.len = before_child_path_len;
 
             try state.cur_path.writer().print(
                 "{s}_{:0>4}.bin\x00",
-                .{ blockIdToStr(&id), block_number },
+                .{ blockIdToStr(&id), glob_number },
             );
             const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
 
             try room_txt.writer().print(
-                "raw-block {s} {s}\n",
-                .{ blockIdToStr(&id), cur_path[before_child_path_len..] },
+                "raw-glob {s} {} {s}\n",
+                .{ blockIdToStr(&id), glob_number, cur_path[before_child_path_len..] },
             );
 
             const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
@@ -328,7 +490,43 @@ fn extractDisk(
 
     try file_blocks.checkSync();
 
-    try io.requireEof(&reader);
+    try io.requireEof(reader.reader());
+}
+
+fn findGlobNumber(
+    index: *const Index,
+    block_id: BlockId,
+    disk_number: u8,
+    offset: u32,
+) !?u32 {
+    const directory = directoryForBlockId(&index.directories, block_id) orelse
+        return null;
+    const slice = directory.slice();
+    for (0..slice.len) |i| {
+        const room = slice.items(.room)[i];
+        const d = index.lfl_disks[room];
+        const o = index.lfl_offsets[room] + slice.items(.offset)[i];
+        if (d == disk_number and o == offset)
+            return @intCast(i);
+    }
+    return error.BadData;
+}
+
+fn directoryForBlockId(
+    directories: *const Directories,
+    block_id: BlockId,
+) ?*const std.MultiArrayList(DirectoryEntry) {
+    return switch (block_id) {
+        blockId("RMIM") => &directories.room_images,
+        blockId("RMDA") => &directories.rooms,
+        blockId("SCRP") => &directories.scripts,
+        blockId("DIGI"), blockId("TALK") => &directories.sounds,
+        blockId("AKOS") => &directories.costumes,
+        blockId("CHAR") => &directories.charsets,
+        blockId("AWIZ"), blockId("MULT") => &directories.images,
+        blockId("TLKE") => &directories.talkies,
+        else => null,
+    };
 }
 
 fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {

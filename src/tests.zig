@@ -30,6 +30,10 @@ test "round trip" {
         return error.ExitStatus;
 
     try expectFilesEqual(
+        "src/fixtures/baseball2001/baseball 2001.he0",
+        build_dir ++ "/baseball 2001.he0",
+    );
+    try expectFilesEqual(
         "src/fixtures/baseball2001/baseball 2001.(a)",
         build_dir ++ "/baseball 2001.(a)",
     );

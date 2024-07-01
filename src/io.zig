@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn requireEof(s: anytype) !void {
-    _ = s.reader().readByte() catch |err| switch (err) {
+    _ = s.readByte() catch |err| switch (err) {
         error.EndOfStream => return,
         else => return err,
     };
