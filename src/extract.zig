@@ -8,6 +8,8 @@ const blockReader = @import("block_reader.zig").blockReader;
 const xor_key = @import("build.zig").xor_key;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const report = @import("report.zig");
+const rmim = @import("rmim.zig");
 
 pub fn runCli(allocator: std.mem.Allocator) !void {
     if (std.os.argv.len != 1 + 1 + 2)
@@ -479,6 +481,12 @@ fn extractDisk(
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
         defer allocator.free(rmda_data);
 
+        decodeRmim(allocator, rmim_data, rmda_data, &state) catch |err| {
+            if (err != error.DecompressBmap)
+                return err;
+            report.warn("could not decode {s} RMIM", .{room_name});
+        };
+
         try writeGlob(
             disk_number,
             comptime blockId("RMIM"),
@@ -514,6 +522,27 @@ fn extractDisk(
     try file_blocks.checkSync();
 
     try io.requireEof(reader.reader());
+}
+
+fn decodeRmim(
+    allocator: std.mem.Allocator,
+    rmim_raw: []const u8,
+    rmda_raw: []const u8,
+    state: *State,
+) !void {
+    var bmp = try rmim.decode(allocator, rmim_raw, rmda_raw);
+    defer bmp.deinit(allocator);
+
+    const before_child_path_len = state.cur_path.len;
+    defer state.cur_path.len = before_child_path_len;
+
+    try state.cur_path.appendSlice("RMIM.bmp\x00");
+    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+
+    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    defer output_file.close();
+
+    try output_file.writeAll(bmp.items);
 }
 
 fn readGlob(
