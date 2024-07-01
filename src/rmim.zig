@@ -8,10 +8,37 @@ pub fn decode(
     rmim_raw: []const u8,
     rmda_raw: []const u8,
 ) !std.ArrayListUnmanaged(u8) {
-    _ = rmda_raw; // autofix
-
     const width = 640; // TODO: use the real size
     const height = 480;
+
+    // RMDA
+
+    var rmda_buf_reader = std.io.fixedBufferStream(rmda_raw);
+    var rmda_reader = std.io.countingReader(rmda_buf_reader.reader());
+    var rmda_blocks = blockReader(&rmda_reader);
+
+    _ = try rmda_blocks.skipUntilBlock("PALS");
+    var pals_blocks = blockReader(&rmda_reader);
+
+    _ = try pals_blocks.expectBlock("WRAP");
+    var wrap_blocks = blockReader(&rmda_reader);
+
+    const offs_len = try wrap_blocks.expectBlock("OFFS");
+    try rmda_reader.reader().skipBytes(offs_len, .{});
+
+    const apal_len = try wrap_blocks.expectBlock("APAL");
+    if (apal_len != 0x300)
+        return error.BadData;
+    const apal = rmda_raw[rmda_reader.bytes_read..][0..0x300];
+    try rmda_reader.reader().skipBytes(apal_len, .{});
+
+    try wrap_blocks.checkSync();
+
+    try pals_blocks.checkSync();
+
+    try rmda_blocks.checkSync();
+
+    // RMIM
 
     var rmim_buf_reader = std.io.fixedBufferStream(rmim_raw);
     var rmim_reader = std.io.countingReader(rmim_buf_reader.reader());
@@ -31,6 +58,7 @@ pub fn decode(
     errdefer out.deinit(allocator);
 
     try writeBmpHeader(out.writer(allocator), width, height, bmp_size);
+    try writeBmpPalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
 
     try im00_blocks.checkSync();
@@ -53,8 +81,6 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
 
     var color = try in.readBitsNoEof(u8, 8);
     while (reader.bytes_read < end) {
-        try out.writeByte(color); // TODO: not gray
-        try out.writeByte(color);
         try out.writeByte(color);
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {
@@ -69,9 +95,14 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
 
 const bitmap_file_header_size = 14;
 const bitmap_info_header_size = 40;
+const num_colors = 256;
 
 fn calcBmpFileSize(width: u31, height: u31) u32 {
-    return bitmap_file_header_size + bitmap_info_header_size + width * height * 3;
+    return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors + width * height;
+}
+
+fn calcBmpDataStart() u32 {
+    return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors;
 }
 
 fn writeBmpHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
@@ -80,18 +111,28 @@ fn writeBmpHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
     try out.writeInt(u32, file_size, .little);
     try out.writeInt(u16, 0, .little);
     try out.writeInt(u16, 0, .little);
-    try out.writeInt(u32, bitmap_file_header_size + bitmap_info_header_size, .little);
+    try out.writeInt(u32, calcBmpDataStart(), .little);
 
     // BITMAPINFOHEADER
     try out.writeInt(u32, bitmap_info_header_size, .little);
     try out.writeInt(i32, width, .little);
     try out.writeInt(i32, -@as(i32, height), .little);
     try out.writeInt(u16, 1, .little);
-    try out.writeInt(u16, 24, .little);
+    try out.writeInt(u16, 8, .little);
     try out.writeInt(u32, 0, .little); // BI_RGB
     try out.writeInt(u32, 0, .little);
     try out.writeInt(i32, 0, .little);
     try out.writeInt(i32, 0, .little);
     try out.writeInt(u32, 0, .little);
     try out.writeInt(u32, 0, .little);
+}
+
+fn writeBmpPalette(out: anytype, pal: *const [0x300]u8) !void {
+    var i: usize = 0;
+    while (i < 0x300) {
+        // convert 24-bit colors to 32-bit
+        try out.writeAll(pal[i .. i + 3]);
+        try out.writeByte(0);
+        i += 3;
+    }
 }
