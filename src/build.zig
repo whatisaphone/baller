@@ -4,6 +4,10 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
+const Fixup = @import("block_writer.zig").Fixup;
+const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
+const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 
@@ -422,11 +426,6 @@ const DiskState = struct {
     fixups: std.ArrayList(Fixup),
 };
 
-const Fixup = struct {
-    offset: u32,
-    value: u32,
-};
-
 const Index = struct {
     maxs: []u8 = &.{},
     directories: Directories = .{},
@@ -497,29 +496,6 @@ fn directoryForBlockId(
         blockId("TLKE") => &directories.talkies,
         else => null,
     };
-}
-
-fn beginBlock(stream: anytype, comptime block_id: []const u8) !u32 {
-    const id = comptime blockId(block_id);
-    return beginBlockImpl(stream, id);
-}
-
-fn beginBlockImpl(stream: anytype, id: BlockId) !u32 {
-    const block_start: u32 = @intCast(stream.bytes_written);
-
-    try stream.writer().writeInt(BlockId, id, .little);
-    // Write the length as a placeholder to be filled in later
-    try stream.writer().writeAll(&@as([4]u8, undefined));
-
-    return block_start;
-}
-
-fn endBlock(stream: anytype, fixups: *std.ArrayList(Fixup), block_start: u32) !void {
-    const stream_pos: u32 = @intCast(stream.bytes_written);
-    try fixups.append(.{
-        .offset = block_start + 4,
-        .value = stream_pos - block_start,
-    });
 }
 
 fn growArrayList(
