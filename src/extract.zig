@@ -421,7 +421,6 @@ fn extractDisk(
     const xor_reader = io.xorReader(file.reader(), xor_key);
     const buf_reader = std.io.bufferedReader(xor_reader.reader());
     var reader = std.io.countingReader(buf_reader);
-    const in = reader.reader();
 
     var state = try State.init(output_path);
 
@@ -472,32 +471,7 @@ fn extractDisk(
 
         while (reader.bytes_read < lflf_end) {
             const id, const len = try lflf_blocks.next();
-
-            const glob_number = try findGlobNumber(
-                index,
-                id,
-                disk_number,
-                @intCast(reader.bytes_read - 8),
-            ) orelse return error.BadData;
-
-            const before_child_path_len = state.cur_path.len;
-            defer state.cur_path.len = before_child_path_len;
-
-            try state.cur_path.writer().print(
-                "{s}_{:0>4}.bin\x00",
-                .{ blockIdToStr(&id), glob_number },
-            );
-            const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-
-            try room_txt.writer().print(
-                "raw-glob {s} {} {s}\n",
-                .{ blockIdToStr(&id), glob_number, cur_path[before_child_path_len..] },
-            );
-
-            const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
-            defer output_file.close();
-
-            try io.copy(std.io.limitedReader(in, len), output_file);
+            try extractGlob(disk_number, id, len, &reader, index, &state, &room_txt);
         }
 
         try lflf_blocks.checkSync();
@@ -510,6 +484,42 @@ fn extractDisk(
     try file_blocks.checkSync();
 
     try io.requireEof(reader.reader());
+}
+
+fn extractGlob(
+    disk_number: u8,
+    id: BlockId,
+    len: u32,
+    reader: anytype,
+    index: *const Index,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    const glob_number = try findGlobNumber(
+        index,
+        id,
+        disk_number,
+        @intCast(reader.bytes_read - 8),
+    ) orelse return error.BadData;
+
+    const before_child_path_len = state.cur_path.len;
+    defer state.cur_path.len = before_child_path_len;
+
+    try state.cur_path.writer().print(
+        "{s}_{:0>4}.bin\x00",
+        .{ blockIdToStr(&id), glob_number },
+    );
+    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+
+    try room_txt.writer().print(
+        "raw-glob {s} {} {s}\n",
+        .{ blockIdToStr(&id), glob_number, cur_path[before_child_path_len..] },
+    );
+
+    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    defer output_file.close();
+
+    try io.copy(std.io.limitedReader(reader.reader(), len), output_file);
 }
 
 fn findGlobNumber(
