@@ -3,6 +3,8 @@ const std = @import("std");
 const blockReader = @import("block_reader.zig").blockReader;
 const io = @import("io.zig");
 
+pub const BMCOMP_NMAJMIN_H8 = 0x8a;
+
 pub fn decode(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
@@ -76,7 +78,7 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
 
     const compression = try in.readBitsNoEof(u8, 8);
     // for now, only supporting BMCOMP_NMAJMIN_H8
-    if (compression != 0x8a)
+    if (compression != BMCOMP_NMAJMIN_H8)
         return error.DecompressBmap;
 
     var color = try in.readBitsNoEof(u8, 8);

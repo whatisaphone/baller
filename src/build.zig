@@ -10,6 +10,7 @@ const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const rmim_encode = @import("rmim_encode.zig");
 
 pub const xor_key = 0x69;
 
@@ -152,6 +153,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 ),
+                .room_image => |room_image| try handleRoomImage(
+                    allocator,
+                    room_number,
+                    room_image,
+                    &cur_path,
+                    state,
+                    &index,
+                ),
             }
         }
 
@@ -238,26 +247,33 @@ const RoomLine = union(enum) {
         glob_number: u32,
         block_path: []const u8,
     },
+    room_image: struct {
+        path: []const u8,
+    },
 };
 
 fn parseRoomLine(line: []const u8) !RoomLine {
-    if (!std.mem.startsWith(u8, line, "raw-glob "))
+    if (std.mem.startsWith(u8, line, "raw-glob ")) {
+        var words = std.mem.splitScalar(u8, line[9..], ' ');
+        const block_id_str = words.next() orelse return error.BadData;
+        const glob_number_str = words.next() orelse return error.BadData;
+        const block_path = words.next() orelse return error.BadData;
+        if (words.next()) |_| return error.BadData;
+
+        const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+        const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+        return .{ .raw_glob = .{
+            .block_id = block_id,
+            .glob_number = glob_number,
+            .block_path = block_path,
+        } };
+    } else if (std.mem.startsWith(u8, line, "room-image ")) {
+        return .{ .room_image = .{ .path = line[11..] } };
+    } else {
         return error.BadData;
-    var words = std.mem.splitScalar(u8, line[9..], ' ');
-    const block_id_str = words.next() orelse return error.BadData;
-    const glob_number_str = words.next() orelse return error.BadData;
-    const block_path = words.next() orelse return error.BadData;
-    if (words.next()) |_| return error.BadData;
-
-    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
-
-    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
-
-    return .{ .raw_glob = .{
-        .block_id = block_id,
-        .glob_number = glob_number,
-        .block_path = block_path,
-    } };
+    }
 }
 
 fn handleRawGlob(
@@ -284,15 +300,73 @@ fn handleRawGlob(
     try endBlock(&state.writer, &state.fixups, block_fixup);
     const block_len = state.fixups.getLast().value;
 
-    const directory = directoryForBlockId(&index.directories, line.block_id) orelse
+    try addGlobToDirectory(
+        allocator,
+        index,
+        line.block_id,
+        room_number,
+        line.glob_number,
+        block_fixup,
+        block_len,
+    );
+}
+
+fn handleRoomImage(
+    allocator: std.mem.Allocator,
+    room_number: u8,
+    line: std.meta.FieldType(RoomLine, .room_image),
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    try cur_path.appendSlice(line.path);
+    try cur_path.append(0);
+    defer cur_path.len -= @intCast(line.path.len + 1);
+    const path = cur_path.buffer[0 .. cur_path.buffer.len - 1 :0];
+
+    const bmp_file = try std.fs.cwd().openFileZ(path, .{});
+    defer bmp_file.close();
+    const bmp_stat = try bmp_file.stat();
+    const bmp_raw = try allocator.alloc(u8, bmp_stat.size);
+    defer allocator.free(bmp_raw);
+    try bmp_file.reader().readNoEof(bmp_raw);
+
+    const block_fixup = try beginBlock(&state.writer, "RMIM");
+
+    try rmim_encode.encode(bmp_raw, &state.writer, &state.fixups);
+
+    try endBlock(&state.writer, &state.fixups, block_fixup);
+    const block_len = state.fixups.getLast().value;
+
+    try addGlobToDirectory(
+        allocator,
+        index,
+        comptime blockId("RMIM"),
+        room_number,
+        room_number,
+        block_fixup,
+        block_len,
+    );
+}
+
+fn addGlobToDirectory(
+    allocator: std.mem.Allocator,
+    index: *Index,
+    block_id: BlockId,
+    room_number: u8,
+    glob_number: u32,
+    block_start: u32,
+    block_len: u32,
+) !void {
+    const directory = directoryForBlockId(&index.directories, block_id) orelse
         return error.BadData;
-    try growMultiArrayList(DirectoryEntry, directory, allocator, line.glob_number + 1, .{
+    try growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
         .room = 0,
         .offset = 0,
         .len = 0,
     });
-    const offset = block_fixup - index.lfl_offsets.items[room_number];
-    directory.set(line.glob_number, .{
+    const offset = block_start - index.lfl_offsets.items[room_number];
+    directory.set(glob_number, .{
         .room = room_number,
         .offset = @intCast(offset),
         .len = block_len,

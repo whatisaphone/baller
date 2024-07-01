@@ -13,6 +13,7 @@ test "round trip" {
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = extract_dir,
+        .raw = true,
     });
 
     try build.run(allocator, &.{

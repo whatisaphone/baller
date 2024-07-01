@@ -21,12 +21,14 @@ pub fn runCli(allocator: std.mem.Allocator) !void {
     try run(allocator, &.{
         .input_path = input_path,
         .output_path = output_path,
+        .raw = false,
     });
 }
 
 const Extract = struct {
     input_path: [:0]const u8,
     output_path: [:0]const u8,
+    raw: bool,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
@@ -79,6 +81,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
             disk_number,
             &project_txt,
             &index,
+            args.raw,
         );
     }
 
@@ -418,6 +421,7 @@ fn extractDisk(
     disk_number: u8,
     project_txt: anytype,
     index: *const Index,
+    raw: bool,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
@@ -481,21 +485,27 @@ fn extractDisk(
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
         defer allocator.free(rmda_data);
 
-        decodeRmim(allocator, rmim_data, rmda_data, &state) catch |err| {
-            if (err != error.DecompressBmap)
-                return err;
-            report.warn("could not decode {s} RMIM", .{room_name});
+        const rmim_decoded = rmim_decoded: {
+            if (raw)
+                break :rmim_decoded false;
+            decodeRmim(allocator, rmim_data, rmda_data, &state, &room_txt) catch |err| {
+                if (err != error.DecompressBmap)
+                    return err;
+                report.warn("could not decode {s} RMIM", .{room_name});
+                break :rmim_decoded false;
+            };
+            break :rmim_decoded true;
         };
-
-        try writeGlob(
-            disk_number,
-            comptime blockId("RMIM"),
-            rmim_offset,
-            rmim_data,
-            index,
-            &state,
-            &room_txt,
-        );
+        if (!rmim_decoded)
+            try writeGlob(
+                disk_number,
+                comptime blockId("RMIM"),
+                rmim_offset,
+                rmim_data,
+                index,
+                &state,
+                &room_txt,
+            );
 
         try writeGlob(
             disk_number,
@@ -529,6 +539,7 @@ fn decodeRmim(
     rmim_raw: []const u8,
     rmda_raw: []const u8,
     state: *State,
+    room_txt: anytype,
 ) !void {
     var bmp = try rmim.decode(allocator, rmim_raw, rmda_raw);
     defer bmp.deinit(allocator);
@@ -543,6 +554,11 @@ fn decodeRmim(
     defer output_file.close();
 
     try output_file.writeAll(bmp.items);
+
+    try room_txt.writer().print(
+        "room-image {s}\n",
+        .{cur_path[before_child_path_len..]},
+    );
 }
 
 fn readGlob(
