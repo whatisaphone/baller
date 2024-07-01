@@ -134,52 +134,21 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
 
         while (true) {
-            const room_line = room_reader.reader()
+            const room_line_str = room_reader.reader()
                 .readUntilDelimiter(&room_line_buf, '\n') catch |err| switch (err) {
                 error.EndOfStream => break,
                 else => return err,
             };
-            if (!std.mem.startsWith(u8, room_line, "raw-glob "))
-                return error.BadData;
-            var room_line_words = std.mem.splitScalar(u8, room_line[9..], ' ');
-            const block_id_str = room_line_words.next() orelse return error.BadData;
-            const glob_number_str = room_line_words.next() orelse return error.BadData;
-            const block_path_str = room_line_words.next() orelse return error.BadData;
-            if (room_line_words.next()) |_| return error.BadData;
-
-            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
-
-            const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
-
-            try cur_path.appendSlice(block_path_str);
-            try cur_path.append(0);
-            defer cur_path.len -= @intCast(block_path_str.len + 1);
-
-            const block_path = cur_path.buffer[0 .. cur_path.buffer.len - 1 :0];
-
-            const block_file = try std.fs.cwd().openFileZ(block_path, .{});
-            defer block_file.close();
-
-            const block_fixup = try beginBlockImpl(&state.writer, block_id);
-
-            try io.copy(block_file, state.writer.writer());
-
-            try endBlock(&state.writer, &state.fixups, block_fixup);
-            const block_len = state.fixups.getLast().value;
-
-            const directory = directoryForBlockId(&index.directories, block_id) orelse
-                return error.BadData;
-            try growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
-                .room = 0,
-                .offset = 0,
-                .len = 0,
-            });
-            const offset = block_fixup - index.lfl_offsets.items[room_number];
-            directory.set(glob_number, .{
-                .room = room_number,
-                .offset = @intCast(offset),
-                .len = block_len,
-            });
+            switch (try parseRoomLine(room_line_str)) {
+                .raw_glob => |raw_glob| try handleRawGlob(
+                    allocator,
+                    room_number,
+                    raw_glob,
+                    &cur_path,
+                    state,
+                    &index,
+                ),
+            }
         }
 
         try endBlock(&state.writer, &state.fixups, lflf_fixup);
@@ -257,6 +226,73 @@ fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void 
         try file.seekTo(fixup.offset);
         try writer.writeInt(u32, fixup.value, .big);
     }
+}
+
+const RoomLine = union(enum) {
+    raw_glob: struct {
+        block_id: BlockId,
+        glob_number: u32,
+        block_path: []const u8,
+    },
+};
+
+fn parseRoomLine(line: []const u8) !RoomLine {
+    if (!std.mem.startsWith(u8, line, "raw-glob "))
+        return error.BadData;
+    var words = std.mem.splitScalar(u8, line[9..], ' ');
+    const block_id_str = words.next() orelse return error.BadData;
+    const glob_number_str = words.next() orelse return error.BadData;
+    const block_path = words.next() orelse return error.BadData;
+    if (words.next()) |_| return error.BadData;
+
+    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+    return .{ .raw_glob = .{
+        .block_id = block_id,
+        .glob_number = glob_number,
+        .block_path = block_path,
+    } };
+}
+
+fn handleRawGlob(
+    allocator: std.mem.Allocator,
+    room_number: u8,
+    line: std.meta.FieldType(RoomLine, .raw_glob),
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    try cur_path.appendSlice(line.block_path);
+    try cur_path.append(0);
+    defer cur_path.len -= @intCast(line.block_path.len + 1);
+
+    const block_path = cur_path.buffer[0 .. cur_path.buffer.len - 1 :0];
+
+    const block_file = try std.fs.cwd().openFileZ(block_path, .{});
+    defer block_file.close();
+
+    const block_fixup = try beginBlockImpl(&state.writer, line.block_id);
+
+    try io.copy(block_file, state.writer.writer());
+
+    try endBlock(&state.writer, &state.fixups, block_fixup);
+    const block_len = state.fixups.getLast().value;
+
+    const directory = directoryForBlockId(&index.directories, line.block_id) orelse
+        return error.BadData;
+    try growMultiArrayList(DirectoryEntry, directory, allocator, line.glob_number + 1, .{
+        .room = 0,
+        .offset = 0,
+        .len = 0,
+    });
+    const offset = block_fixup - index.lfl_offsets.items[room_number];
+    directory.set(line.glob_number, .{
+        .room = room_number,
+        .offset = @intCast(offset),
+        .len = block_len,
+    });
 }
 
 fn writeIndex(allocator: std.mem.Allocator, index: *Index, output_path: [:0]u8) !void {
