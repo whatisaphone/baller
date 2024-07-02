@@ -31,6 +31,12 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
         !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
         return error.BadData;
 
+    const width: u32 = @intCast(info_header.biWidth);
+    const height: u32, const top_down = if (info_header.biHeight < 0)
+        .{ @intCast(-info_header.biHeight), true }
+    else
+        .{ @intCast(info_header.biHeight), false };
+
     const rmih_fixup = try beginBlock(out, "RMIH");
     try out.writer().writeInt(u16, 0, .little);
     try endBlock(out, fixups, rmih_fixup);
@@ -40,20 +46,47 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
     const bmap_fixup = try beginBlock(out, "BMAP");
 
     try out.writer().writeByte(BMCOMP_NMAJMIN_H8);
-    try compressBmap(bmp_raw[pixels_start..], out.writer());
+    try compressBmap(width, height, top_down, bmp_raw[pixels_start..], out.writer());
 
     try endBlock(out, fixups, bmap_fixup);
 
     try endBlock(out, fixups, im00_fixup);
 }
 
-fn compressBmap(pixels: []const u8, writer: anytype) !void {
+fn compressBmap(
+    width: u32,
+    height: u32,
+    top_down: bool,
+    pixels: []const u8,
+    writer: anytype,
+) !void {
     var out = std.io.bitWriter(.little, writer);
-    // TODO: this doesn't actually compress
-    try out.writeBits(pixels[0], 8);
-    for (pixels[1..]) |pixel| {
+
+    var i = if (top_down) 0 else width * (height - 1);
+    const feed = if (top_down) 0 else width * 2;
+
+    try out.writeBits(pixels[i], 8);
+    i += 1;
+
+    var x = width - 1;
+    var y = height - 1;
+
+    while (true) {
+        const pixel = pixels[i];
+
+        // TODO: this doesn't actually compress
         try out.writeBits(@as(u2, 1), 2);
         try out.writeBits(pixel, 8);
+
+        i += 1;
+        x -= 1;
+        if (x == 0) {
+            y -= 1;
+            if (y == 0)
+                break;
+            x = width;
+            i -= feed;
+        }
     }
 }
 
