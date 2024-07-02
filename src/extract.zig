@@ -137,14 +137,14 @@ const Index = struct {
 };
 
 const Directories = struct {
-    room_images: std.MultiArrayList(DirectoryEntry),
-    rooms: std.MultiArrayList(DirectoryEntry),
-    scripts: std.MultiArrayList(DirectoryEntry),
-    sounds: std.MultiArrayList(DirectoryEntry),
-    costumes: std.MultiArrayList(DirectoryEntry),
-    charsets: std.MultiArrayList(DirectoryEntry),
-    images: std.MultiArrayList(DirectoryEntry),
-    talkies: std.MultiArrayList(DirectoryEntry),
+    room_images: std.MultiArrayList(DirectoryEntry) = .{},
+    rooms: std.MultiArrayList(DirectoryEntry) = .{},
+    scripts: std.MultiArrayList(DirectoryEntry) = .{},
+    sounds: std.MultiArrayList(DirectoryEntry) = .{},
+    costumes: std.MultiArrayList(DirectoryEntry) = .{},
+    charsets: std.MultiArrayList(DirectoryEntry) = .{},
+    images: std.MultiArrayList(DirectoryEntry) = .{},
+    talkies: std.MultiArrayList(DirectoryEntry) = .{},
 
     fn deinit(self: *Directories, allocator: std.mem.Allocator) void {
         self.talkies.deinit(allocator);
@@ -225,7 +225,8 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
         .{ "DIRT", .talkies, .talkies },
     };
 
-    var directories: Directories = undefined;
+    var directories: Directories = .{};
+    errdefer directories.deinit(allocator);
 
     inline for (directory_info) |info| {
         const block_id, const maxs_field, const directories_field = info;
