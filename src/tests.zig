@@ -4,7 +4,7 @@ const build = @import("build.zig");
 const extract = @import("extract.zig");
 
 // Extract and rebuild, and verify the output is identical to the original.
-test "round trip raw" {
+test "Backyard Baseball 2001 round trip raw" {
     const allocator = std.testing.allocator;
 
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
@@ -35,7 +35,7 @@ test "round trip raw" {
     );
 }
 
-test "round trip decode/encode" {
+test "Backyard Baseball 2001 round trip decode/encode" {
     const allocator = std.testing.allocator;
 
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
