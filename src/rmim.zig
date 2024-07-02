@@ -82,7 +82,7 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
         return error.DecompressBmap;
 
     var color = try in.readBitsNoEof(u8, 8);
-    while (reader.bytes_read < end) {
+    while (reader.bytes_read < end or in.bit_count != 0) {
         try out.writeByte(color);
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {

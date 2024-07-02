@@ -46,7 +46,7 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
     const bmap_fixup = try beginBlock(out, "BMAP");
 
     try out.writer().writeByte(BMCOMP_NMAJMIN_H8);
-    try compressBmap(width, height, top_down, bmp_raw[pixels_start..], out.writer());
+    try compressBmap(width, height, top_down, bmp_raw[file_header.bfOffBits..], out.writer());
 
     try endBlock(out, fixups, bmap_fixup);
 
@@ -70,7 +70,7 @@ fn compressBmap(
     i += 1;
 
     var x = width - 1;
-    var y = height - 1;
+    var y = height;
 
     while (true) {
         const pixel = pixels[i];
@@ -101,6 +101,8 @@ fn compressBmap(
             i -= feed;
         }
     }
+
+    try out.flushBits();
 }
 
 const bitmap_file_header_size = 14;
