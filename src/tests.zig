@@ -4,7 +4,7 @@ const build = @import("build.zig");
 const extract = @import("extract.zig");
 
 // Extract and rebuild, and verify the output is identical to the original.
-test "round trip" {
+test "round trip raw" {
     const allocator = std.testing.allocator;
 
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
@@ -14,6 +14,37 @@ test "round trip" {
         .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = extract_dir,
         .raw = true,
+    });
+
+    try build.run(allocator, &.{
+        .project_txt_path = extract_dir ++ "/project.txt",
+        .output_path = build_dir ++ "/baseball 2001.he0",
+    });
+
+    try expectFilesEqual(
+        "src/fixtures/baseball2001/baseball 2001.he0",
+        build_dir ++ "/baseball 2001.he0",
+    );
+    try expectFilesEqual(
+        "src/fixtures/baseball2001/baseball 2001.(a)",
+        build_dir ++ "/baseball 2001.(a)",
+    );
+    try expectFilesEqual(
+        "src/fixtures/baseball2001/baseball 2001.(b)",
+        build_dir ++ "/baseball 2001.(b)",
+    );
+}
+
+test "round trip decode/encode" {
+    const allocator = std.testing.allocator;
+
+    const extract_dir = "/tmp/baller-test-baseball-2001-extract";
+    const build_dir = "/tmp/baller-test-baseball-2001-build";
+
+    try extract.run(allocator, &.{
+        .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
+        .output_path = extract_dir,
+        .raw = false,
     });
 
     try build.run(allocator, &.{
