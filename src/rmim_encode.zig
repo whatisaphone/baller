@@ -65,7 +65,8 @@ fn compressBmap(
     var i = if (top_down) 0 else width * (height - 1);
     const feed = if (top_down) 0 else width * 2;
 
-    try out.writeBits(pixels[i], 8);
+    var current = pixels[i];
+    try out.writeBits(current, 8);
     i += 1;
 
     var x = width - 1;
@@ -74,9 +75,21 @@ fn compressBmap(
     while (true) {
         const pixel = pixels[i];
 
-        // TODO: this doesn't actually compress
-        try out.writeBits(@as(u2, 1), 2);
-        try out.writeBits(pixel, 8);
+        const diff = @as(i16, pixel) - current;
+        if (diff == 0) {
+            try out.writeBits(@as(u1, 0), 1);
+        } else if (-4 <= diff and diff < 0) {
+            try out.writeBits(@as(u2, 3), 2);
+            try out.writeBits(@as(u3, @intCast(diff + 4)), 3);
+        } else if (0 < diff and diff <= 4) {
+            try out.writeBits(@as(u2, 3), 2);
+            try out.writeBits(@as(u3, @intCast(diff + 3)), 3);
+        } else {
+            try out.writeBits(@as(u2, 1), 2);
+            try out.writeBits(pixel, 8);
+        }
+
+        current = pixel;
 
         i += 1;
         x -= 1;
