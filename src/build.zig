@@ -78,6 +78,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     try readIndexBlobs(allocator, &index, &cur_path);
 
     var cur_state: ?DiskState = null;
+    defer if (cur_state) |*state|
+        state.deinit();
 
     while (true) {
         const project_line = project_txt_reader.reader()
@@ -104,6 +106,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
         if (cur_state) |*state| if (state.disk_number != disk_number) {
             try finishDisk(state);
+            state.deinit();
             cur_state = null;
         };
 
@@ -167,8 +170,11 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         try endBlock(&state.writer, &state.fixups, lflf_fixup);
     }
 
-    if (cur_state) |*state|
+    if (cur_state) |*state| {
         try finishDisk(state);
+        state.deinit();
+        cur_state = null;
+    }
 
     try writeIndex(allocator, &index, output_path);
 }
@@ -229,9 +235,6 @@ fn finishDisk(state: *DiskState) !void {
     try state.buf_writer.flush();
 
     try writeFixups(state.file, state.xor_writer.writer(), state.fixups.items);
-    state.fixups.deinit();
-
-    state.file.close();
 }
 
 fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
@@ -498,6 +501,11 @@ const DiskState = struct {
     buf_writer: std.io.BufferedWriter(4096, io.XorWriter(std.fs.File.Writer).Writer),
     writer: std.io.CountingWriter(std.io.BufferedWriter(4096, io.XorWriter(std.fs.File.Writer).Writer).Writer),
     fixups: std.ArrayList(Fixup),
+
+    fn deinit(self: *const DiskState) void {
+        self.fixups.deinit();
+        self.file.close();
+    }
 };
 
 const Index = struct {
