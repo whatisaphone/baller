@@ -7,15 +7,20 @@ const io = @import("io.zig");
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
 
-test "Backyard Baseball 1997 fixture integrity" {
-    try expectFileHashEquals(
-        "src/fixtures/baseball1997/BASEBALL.HE0",
-        "6b701f415251a1d25fe91fb28c78193ac01b382b4292c377b0fd01e30a61c5da",
-    );
-    try expectFileHashEquals(
-        "src/fixtures/baseball1997/BASEBALL.HE1",
-        "f3e910f120433d318e30dae75e0fbd418f08338966cbf129487909e1f3cf5cd8",
-    );
+const fixture_hashes = .{
+    .@"baseball1997/BASEBALL.HE0" = "6b701f415251a1d25fe91fb28c78193ac01b382b4292c377b0fd01e30a61c5da",
+    .@"baseball1997/BASEBALL.HE1" = "f3e910f120433d318e30dae75e0fbd418f08338966cbf129487909e1f3cf5cd8",
+    .@"baseball2001/baseball 2001.he0" = "c89d5c17c58db55652b31828a4b27edfa9810dbfddcada428b8b2bf5fb85a5b9",
+    .@"baseball2001/baseball 2001.(a)" = "a2bd2d171c47a320fe31dd2e40cfcbecae01d46c5ecebc362fc998e4f0cb73ff",
+    .@"baseball2001/baseball 2001.(b)" = "dde0397d5c658f2acffdebb5b58b0d2770707619092a4319354b37512b513038",
+};
+
+test "fixture integrity" {
+    inline for (std.meta.fields(@TypeOf(fixture_hashes))) |field| {
+        const path = "src/fixtures/" ++ field.name;
+        const expected_hash_hex = @field(fixture_hashes, field.name);
+        try expectFileHashEquals(path, expected_hash_hex);
+    }
 }
 
 test "Backyard Baseball 1997 round trip raw" {
@@ -35,13 +40,13 @@ test "Backyard Baseball 1997 round trip raw" {
         .output_path = build_dir ++ "/BASEBALL.HE0",
     });
 
-    try expectFilesEqual(
-        "src/fixtures/baseball1997/BASEBALL.HE0",
+    try expectFileHashEquals(
         build_dir ++ "/BASEBALL.HE0",
+        fixture_hashes.@"baseball1997/BASEBALL.HE0",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball1997/BASEBALL.HE1",
+    try expectFileHashEquals(
         build_dir ++ "/BASEBALL.HE1",
+        fixture_hashes.@"baseball1997/BASEBALL.HE1",
     );
 }
 
@@ -62,28 +67,13 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         .output_path = build_dir ++ "/BASEBALL.HE0",
     });
 
-    try expectFilesEqual(
-        "src/fixtures/baseball1997/BASEBALL.HE0",
+    try expectFileHashEquals(
         build_dir ++ "/BASEBALL.HE0",
+        fixture_hashes.@"baseball1997/BASEBALL.HE0",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball1997/BASEBALL.HE1",
+    try expectFileHashEquals(
         build_dir ++ "/BASEBALL.HE1",
-    );
-}
-
-test "Backyard Baseball 2001 fixture integrity" {
-    try expectFileHashEquals(
-        "src/fixtures/baseball2001/baseball 2001.he0",
-        "c89d5c17c58db55652b31828a4b27edfa9810dbfddcada428b8b2bf5fb85a5b9",
-    );
-    try expectFileHashEquals(
-        "src/fixtures/baseball2001/baseball 2001.(a)",
-        "a2bd2d171c47a320fe31dd2e40cfcbecae01d46c5ecebc362fc998e4f0cb73ff",
-    );
-    try expectFileHashEquals(
-        "src/fixtures/baseball2001/baseball 2001.(b)",
-        "dde0397d5c658f2acffdebb5b58b0d2770707619092a4319354b37512b513038",
+        fixture_hashes.@"baseball1997/BASEBALL.HE1",
     );
 }
 
@@ -104,17 +94,17 @@ test "Backyard Baseball 2001 round trip raw" {
         .output_path = build_dir ++ "/baseball 2001.he0",
     });
 
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.he0",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.he0",
+        fixture_hashes.@"baseball2001/baseball 2001.he0",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.(a)",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.(a)",
+        fixture_hashes.@"baseball2001/baseball 2001.(a)",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.(b)",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.(b)",
+        fixture_hashes.@"baseball2001/baseball 2001.(b)",
     );
 }
 
@@ -135,17 +125,17 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         .output_path = build_dir ++ "/baseball 2001.he0",
     });
 
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.he0",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.he0",
+        fixture_hashes.@"baseball2001/baseball 2001.he0",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.(a)",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.(a)",
+        fixture_hashes.@"baseball2001/baseball 2001.(a)",
     );
-    try expectFilesEqual(
-        "src/fixtures/baseball2001/baseball 2001.(b)",
+    try expectFileHashEquals(
         build_dir ++ "/baseball 2001.(b)",
+        fixture_hashes.@"baseball2001/baseball 2001.(b)",
     );
 }
 
@@ -162,33 +152,4 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
 
     const actual_hash = hasher.finalResult();
     try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
-}
-
-fn expectFilesEqual(path1: [*:0]const u8, path2: [*:0]const u8) !void {
-    if (!try filesEqual(path1, path2))
-        return error.TestExpectedEqual;
-}
-
-fn filesEqual(path1: [*:0]const u8, path2: [*:0]const u8) !bool {
-    const file1 = try std.fs.cwd().openFileZ(path1, .{});
-    defer file1.close();
-
-    const file2 = try std.fs.cwd().openFileZ(path2, .{});
-    defer file2.close();
-
-    return streamsEqual(file1.reader(), file2.reader());
-}
-
-fn streamsEqual(s1: anytype, s2: anytype) !bool {
-    var buf1: [4096]u8 = undefined;
-    var buf2: [4096]u8 = undefined;
-    while (true) {
-        const len = try s1.read(&buf1);
-        if (len == 0)
-            return try s2.read(&buf2) == 0;
-
-        try s2.readNoEof(buf2[0..len]);
-        if (!std.mem.eql(u8, buf1[0..len], buf2[0..len]))
-            return false;
-    }
 }
