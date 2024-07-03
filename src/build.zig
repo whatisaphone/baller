@@ -9,6 +9,7 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
+const games = @import("games.zig");
 const io = @import("io.zig");
 const rmim_encode = @import("rmim_encode.zig");
 
@@ -40,8 +41,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     try output_path_buf.append(0);
     const output_path = output_path_buf.buffer[0 .. output_path_buf.len - 1 :0];
 
-    if (!std.mem.endsWith(u8, output_path, ".he0"))
-        return error.CommandLine;
+    const game = try games.detectGameOrFatal(output_path);
 
     // Create output dir. Borrow the slash temporarily to get the dir name
     const output_path_slash = std.mem.lastIndexOfScalar(u8, output_path, '/') orelse
@@ -112,7 +112,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
         if (cur_state == null) {
             cur_state = @as(DiskState, undefined); // TODO: is there a better way?
-            try startDisk(allocator, disk_number, output_path, &cur_state.?);
+            try startDisk(allocator, game, disk_number, output_path, &cur_state.?);
         }
 
         const state = &cur_state.?;
@@ -176,7 +176,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         cur_state = null;
     }
 
-    try writeIndex(allocator, &index, output_path);
+    try writeIndex(allocator, game, &index, output_path);
 }
 
 fn readIndexBlobs(
@@ -199,17 +199,24 @@ fn readIndexBlobs(
         const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
         index.dobj = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
     }
+
+    {
+        try cur_path.appendSlice("aary.bin\x00");
+        defer cur_path.len -= 9;
+
+        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
+        index.aary = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+    }
 }
 
 fn startDisk(
     allocator: std.mem.Allocator,
+    game: games.Game,
     disk_number: u8,
     output_path: [:0]u8,
     state: *DiskState,
 ) !void {
-    output_path[output_path.len - 3] = '(';
-    output_path[output_path.len - 2] = 'a' - 1 + disk_number;
-    output_path[output_path.len - 1] = ')';
+    games.pointPathToDisk(game, output_path, disk_number);
 
     state.disk_number = disk_number;
 
@@ -376,10 +383,13 @@ fn addGlobToDirectory(
     });
 }
 
-fn writeIndex(allocator: std.mem.Allocator, index: *Index, output_path: [:0]u8) !void {
-    output_path[output_path.len - 3] = 'h';
-    output_path[output_path.len - 2] = 'e';
-    output_path[output_path.len - 1] = '0';
+fn writeIndex(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    index: *Index,
+    output_path: [:0]u8,
+) !void {
+    games.pointPathToIndex(game, output_path);
 
     const file = try std.fs.cwd().createFileZ(output_path, .{});
     errdefer file.close();
@@ -402,25 +412,15 @@ fn writeIndex(allocator: std.mem.Allocator, index: *Index, output_path: [:0]u8) 
     for (0.., index.directories.rooms.items(.room)) |i, *room|
         room.* = @intCast(i);
 
-    const directory_info = .{
-        .{ "DIRI", .room_images },
-        .{ "DIRR", .rooms },
-        .{ "DIRS", .scripts },
-        .{ "DIRN", .sounds },
-        .{ "DIRC", .costumes },
-        .{ "DIRF", .charsets },
-        .{ "DIRM", .images },
-        .{ "DIRT", .talkies },
-    };
-    inline for (directory_info) |info| {
-        const block_id, const field = info;
-        try writeDirectory(
-            &writer,
-            block_id,
-            &@field(index.directories, @tagName(field)),
-            &fixups,
-        );
-    }
+    try writeDirectory(&writer, "DIRI", &index.directories.room_images, &fixups);
+    try writeDirectory(&writer, "DIRR", &index.directories.rooms, &fixups);
+    try writeDirectory(&writer, "DIRS", &index.directories.scripts, &fixups);
+    try writeDirectory(&writer, "DIRN", &index.directories.sounds, &fixups);
+    try writeDirectory(&writer, "DIRC", &index.directories.costumes, &fixups);
+    try writeDirectory(&writer, "DIRF", &index.directories.charsets, &fixups);
+    try writeDirectory(&writer, "DIRM", &index.directories.images, &fixups);
+    if (games.hasTalkies(game))
+        try writeDirectory(&writer, "DIRT", &index.directories.talkies, &fixups);
 
     const dlfl_fixup = try beginBlock(&writer, "DLFL");
     try writer.writer().writeInt(u16, @intCast(index.lfl_offsets.items.len), .little);
@@ -428,11 +428,13 @@ fn writeIndex(allocator: std.mem.Allocator, index: *Index, output_path: [:0]u8) 
     std.debug.assert(builtin.cpu.arch.endian() == .little);
     try endBlock(&writer, &fixups, dlfl_fixup);
 
-    const disk_fixup = try beginBlock(&writer, "DISK");
-    try writer.writer().writeInt(u16, @intCast(index.lfl_disks.items.len), .little);
-    try writer.writer().writeAll(index.lfl_disks.items);
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
-    try endBlock(&writer, &fixups, disk_fixup);
+    if (games.hasDisk(game)) {
+        const disk_fixup = try beginBlock(&writer, "DISK");
+        try writer.writer().writeInt(u16, @intCast(index.lfl_disks.items.len), .little);
+        try writer.writer().writeAll(index.lfl_disks.items);
+        std.debug.assert(builtin.cpu.arch.endian() == .little);
+        try endBlock(&writer, &fixups, disk_fixup);
+    }
 
     const rnam_fixup = try beginBlock(&writer, "RNAM");
     for (0.., index.room_names.items) |num, name| {
@@ -452,14 +454,16 @@ fn writeIndex(allocator: std.mem.Allocator, index: *Index, output_path: [:0]u8) 
     try endBlock(&writer, &fixups, dobj_fixup);
 
     const aary_fixup = try beginBlock(&writer, "AARY");
-    try writer.writer().writeInt(u16, 0, .little);
+    try writer.writer().writeAll(index.aary);
     try endBlock(&writer, &fixups, aary_fixup);
 
-    const inib_fixup = try beginBlock(&writer, "INIB");
-    const note_fixup = try beginBlock(&writer, "NOTE");
-    try writer.writer().writeInt(u16, 0, .little);
-    try endBlock(&writer, &fixups, note_fixup);
-    try endBlock(&writer, &fixups, inib_fixup);
+    if (games.hasIndexInib(game)) {
+        const inib_fixup = try beginBlock(&writer, "INIB");
+        const note_fixup = try beginBlock(&writer, "NOTE");
+        try writer.writer().writeInt(u16, 0, .little);
+        try endBlock(&writer, &fixups, note_fixup);
+        try endBlock(&writer, &fixups, inib_fixup);
+    }
 
     try buf_writer.flush();
 
@@ -515,8 +519,10 @@ const Index = struct {
     lfl_disks: std.ArrayListUnmanaged(u8) = .{},
     room_names: std.ArrayListUnmanaged([]u8) = .{},
     dobj: []u8 = &.{},
+    aary: []u8 = &.{},
 
     fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+        allocator.free(self.aary);
         allocator.free(self.dobj);
 
         var i = self.room_names.items.len;
@@ -571,7 +577,7 @@ fn directoryForBlockId(
         blockId("RMIM") => &directories.room_images,
         blockId("RMDA") => &directories.rooms,
         blockId("SCRP") => &directories.scripts,
-        blockId("DIGI"), blockId("TALK") => &directories.sounds,
+        blockId("DIGI"), blockId("SOUN"), blockId("TALK") => &directories.sounds,
         blockId("AKOS") => &directories.costumes,
         blockId("CHAR") => &directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &directories.images,

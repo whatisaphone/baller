@@ -7,6 +7,7 @@ const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const blockReader = @import("block_reader.zig").blockReader;
 const xor_key = @import("build.zig").xor_key;
 const fs = @import("fs.zig");
+const games = @import("games.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
 const rmim = @import("rmim.zig");
@@ -39,19 +40,18 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     const output_path = args.output_path;
 
-    if (!std.mem.endsWith(u8, input_path, ".he0"))
-        return error.CommandLine;
+    const game = try games.detectGameOrFatal(input_path);
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path);
 
-    var index = try readIndex(allocator, input_path);
+    var index = try readIndex(allocator, game, input_path);
     defer index.deinit(allocator);
 
     var path_buf = std.BoundedArray(u8, 4095){};
     try path_buf.appendSlice(output_path);
     try path_buf.append('/');
 
-    try dumpIndexBlobs(&index, &path_buf);
+    try dumpIndexBlobs(game, &index, &path_buf);
 
     const project_txt_path = try std.fmt.allocPrintZ(
         allocator,
@@ -65,19 +65,16 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     var project_txt = std.io.bufferedWriter(project_txt_file.writer());
 
-    // input_path will be modified to point to each disk file
-    // e.g. "baseball 2001.(a)"
-    input_path[input_path.len - 3] = '(';
-    input_path[input_path.len - 1] = ')';
-
-    for (1..2 + 1) |disk_number_usize| {
+    for (1..1 + games.numberOfDisks(game)) |disk_number_usize| {
         const disk_number: u8 = @intCast(disk_number_usize);
-        input_path[input_path.len - 2] = 'a' - 1 + disk_number;
+
+        games.pointPathToDisk(game, input_path, disk_number);
 
         try extractDisk(
             allocator,
             input_path,
             output_path,
+            game,
             disk_number,
             &project_txt,
             &index,
@@ -105,18 +102,21 @@ const Index = struct {
     maxs: *Maxs,
     directories: Directories,
     lfl_offsets: []u32,
-    lfl_disks: []u8,
+    lfl_disks: ?[]u8,
     room_name_buf: []u8,
     room_name_starts: []u16,
     room_name_lens: []u8,
     dobj: []u8,
+    aary: []u8,
 
     fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+        allocator.free(self.aary);
         allocator.free(self.dobj);
         allocator.free(self.room_name_lens);
         allocator.free(self.room_name_starts);
         allocator.free(self.room_name_buf);
-        allocator.free(self.lfl_disks);
+        if (self.lfl_disks) |d|
+            allocator.free(d);
         allocator.free(self.lfl_offsets);
         self.directories.deinit(allocator);
         allocator.destroy(self.maxs);
@@ -191,7 +191,7 @@ const DirectoryEntry = struct {
     len: u32,
 };
 
-fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
+fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Index {
     const file = try std.fs.cwd().openFileZ(path, .{});
     defer file.close();
 
@@ -205,39 +205,52 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     // MAXS
 
     const maxs_len = try blocks.expectBlock("MAXS");
-    if (maxs_len != @sizeOf(Maxs))
+    if (maxs_len != games.maxsLen(game))
         return error.BadData;
     const maxs = try allocator.create(Maxs);
     errdefer allocator.destroy(maxs);
-    try in.readNoEof(std.mem.asBytes(maxs));
+
+    // TODO: Figure out the layout of MAXS fields in other games. This is a huge
+    // hack, I'm not sure the fields are a strict prefix.
+    try in.readNoEof(std.mem.asBytes(maxs)[0..maxs_len]);
+    @memset(std.mem.asBytes(maxs)[maxs_len..@sizeOf(Maxs)], 0);
+
     std.debug.assert(builtin.cpu.arch.endian() == .little);
 
     // DIR*
 
-    const directory_info = .{
-        .{ "DIRI", .rooms, .room_images },
-        .{ "DIRR", .rooms, .rooms },
-        .{ "DIRS", .scripts, .scripts },
-        .{ "DIRN", .sounds, .sounds },
-        .{ "DIRC", .costumes, .costumes },
-        .{ "DIRF", .charsets, .charsets },
-        .{ "DIRM", .images, .images },
-        .{ "DIRT", .talkies, .talkies },
-    };
+    const read_dir = struct {
+        allocator: std.mem.Allocator,
+        in: @TypeOf(in),
+        blocks: *@TypeOf(blocks),
+
+        fn call(
+            self: *const @This(),
+            comptime block_id: []const u8,
+            expected_count: u16,
+        ) !std.MultiArrayList(DirectoryEntry) {
+            return readDirectory(
+                self.allocator,
+                self.in,
+                self.blocks,
+                comptime blockId(block_id),
+                expected_count,
+            );
+        }
+    }{ .allocator = allocator, .in = in, .blocks = &blocks };
 
     var directories: Directories = .{};
     errdefer directories.deinit(allocator);
 
-    inline for (directory_info) |info| {
-        const block_id, const maxs_field, const directories_field = info;
-        @field(directories, @tagName(directories_field)) = try readDirectory(
-            allocator,
-            in,
-            &blocks,
-            comptime blockId(block_id),
-            @field(maxs, @tagName(maxs_field)),
-        );
-    }
+    directories.room_images = try read_dir.call("DIRI", maxs.rooms);
+    directories.rooms = try read_dir.call("DIRR", maxs.rooms);
+    directories.scripts = try read_dir.call("DIRS", maxs.scripts);
+    directories.sounds = try read_dir.call("DIRN", maxs.sounds);
+    directories.costumes = try read_dir.call("DIRC", maxs.costumes);
+    directories.charsets = try read_dir.call("DIRF", maxs.charsets);
+    directories.images = try read_dir.call("DIRM", maxs.images);
+    if (games.hasTalkies(game))
+        directories.talkies = try read_dir.call("DIRT", maxs.talkies);
 
     // DLFL
 
@@ -256,17 +269,22 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
 
     // DISK
 
-    const disk_len = try blocks.expectBlock("DISK");
-    if (disk_len != 2 + maxs.rooms * 1)
-        return error.BadData;
-    const disk_count = try in.readInt(u16, .little);
-    if (disk_count != maxs.rooms)
-        return error.BadData;
+    const disk = if (games.hasDisk(game)) disk: {
+        const disk_len = try blocks.expectBlock("DISK");
+        if (disk_len != 2 + maxs.rooms * 1)
+            return error.BadData;
+        const disk_count = try in.readInt(u16, .little);
+        if (disk_count != maxs.rooms)
+            return error.BadData;
 
-    const disk = try allocator.alloc(u8, disk_count);
-    errdefer allocator.free(disk);
+        const disk = try allocator.alloc(u8, disk_count);
+        errdefer allocator.free(disk);
 
-    try in.readNoEof(disk);
+        try in.readNoEof(disk);
+        break :disk disk;
+    } else null;
+    errdefer if (disk) |d|
+        allocator.free(d);
 
     // RNAM
 
@@ -323,31 +341,33 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
     // AARY
 
     const aary_len = try blocks.expectBlock("AARY");
-    if (aary_len != 2)
-        return error.BadData;
-    if (try in.readInt(u16, .little) != 0)
-        return error.BadData;
+
+    const aary = try allocator.alloc(u8, aary_len);
+    errdefer allocator.free(aary);
+
+    try in.readNoEof(aary);
 
     // INIB
 
-    const inib_len = try blocks.expectBlock("INIB");
-    if (inib_len < 8)
-        return error.BadData;
+    if (games.hasIndexInib(game)) {
+        const inib_len = try blocks.expectBlock("INIB");
+        if (inib_len < 8)
+            return error.BadData;
 
-    var inib_blocks = blockReader(&reader);
+        var inib_blocks = blockReader(&reader);
 
-    const note_len = try inib_blocks.expectBlock("NOTE");
-    if (note_len != 2)
-        return error.BadData;
-    if (try in.readInt(u16, .little) != 0)
-        return error.BadData;
+        const note_len = try inib_blocks.expectBlock("NOTE");
+        if (note_len != 2)
+            return error.BadData;
+        if (try in.readInt(u16, .little) != 0)
+            return error.BadData;
 
-    try inib_blocks.checkSync();
-
-    try blocks.checkSync();
+        try inib_blocks.checkSync();
+    }
 
     // Phew, we made it.
 
+    try blocks.checkSync();
     try io.requireEof(reader.reader());
 
     return Index{
@@ -359,6 +379,7 @@ fn readIndex(allocator: std.mem.Allocator, path: [*:0]u8) !Index {
         .room_name_starts = room_name_starts,
         .room_name_lens = room_name_lens,
         .dobj = dobj,
+        .aary = aary,
     };
 }
 
@@ -390,7 +411,11 @@ fn readDirectory(
 }
 
 // Let's see how long we can get away with this.
-fn dumpIndexBlobs(index: *const Index, path_buf: *std.BoundedArray(u8, 4095)) !void {
+fn dumpIndexBlobs(
+    game: games.Game,
+    index: *const Index,
+    path_buf: *std.BoundedArray(u8, 4095),
+) !void {
     {
         try path_buf.appendSlice("maxs.bin\x00");
         defer path_buf.len -= 9;
@@ -399,7 +424,7 @@ fn dumpIndexBlobs(index: *const Index, path_buf: *std.BoundedArray(u8, 4095)) !v
         const file = try std.fs.cwd().createFileZ(path, .{});
         defer file.close();
 
-        try file.writeAll(std.mem.asBytes(index.maxs));
+        try file.writeAll(std.mem.asBytes(index.maxs)[0..games.maxsLen(game)]);
         std.debug.assert(builtin.cpu.arch.endian() == .little);
     }
 
@@ -413,12 +438,24 @@ fn dumpIndexBlobs(index: *const Index, path_buf: *std.BoundedArray(u8, 4095)) !v
 
         try file.writeAll(index.dobj);
     }
+
+    {
+        try path_buf.appendSlice("aary.bin\x00");
+        defer path_buf.len -= 9;
+
+        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
+        const file = try std.fs.cwd().createFileZ(path, .{});
+        defer file.close();
+
+        try file.writeAll(index.aary);
+    }
 }
 
 fn extractDisk(
     allocator: std.mem.Allocator,
     input_path: [*:0]u8,
     output_path: []const u8,
+    game: games.Game,
     disk_number: u8,
     project_txt: anytype,
     index: *const Index,
@@ -444,12 +481,12 @@ fn extractDisk(
         const lflf_len = try lecf_blocks.expectBlock("LFLF");
         const lflf_end = reader.bytes_read + lflf_len;
 
-        const room_number =
-            for (0.., index.lfl_disks, index.lfl_offsets) |i, disk, offset|
-        {
-            if (disk == disk_number and offset == reader.bytes_read)
-                break @as(u8, @intCast(i));
-        } else return error.BadData;
+        const room_number = try findLflfRoomNumber(
+            game,
+            index,
+            disk_number,
+            @intCast(reader.bytes_read),
+        );
 
         const room_name = index.roomName(room_number) catch
             return error.BadData;
@@ -533,6 +570,27 @@ fn extractDisk(
     try file_blocks.checkSync();
 
     try io.requireEof(reader.reader());
+}
+
+fn findLflfRoomNumber(
+    game: games.Game,
+    index: *const Index,
+    disk_number: u8,
+    lflf_data_offset: u32,
+) !u8 {
+    if (!games.hasDisk(game)) {
+        std.debug.assert(disk_number == 1);
+        for (0.., index.lfl_offsets) |i, offset| {
+            if (offset == lflf_data_offset)
+                return @intCast(i);
+        }
+    } else {
+        for (0.., index.lfl_disks.?, index.lfl_offsets) |i, disk, offset| {
+            if (disk == disk_number and offset == lflf_data_offset)
+                return @intCast(i);
+        }
+    }
+    return error.BadData;
 }
 
 fn decodeRmim(
@@ -655,15 +713,24 @@ fn findGlobNumber(
     disk_number: u8,
     offset: u32,
 ) !?u32 {
+    // Loop through the directory looking for an entry at the given offset.
     const directory = directoryForBlockId(&index.directories, block_id) orelse
         return null;
     const slice = directory.slice();
     for (0..slice.len) |i| {
         const room = slice.items(.room)[i];
-        const d = index.lfl_disks[room];
-        const o = index.lfl_offsets[room] + slice.items(.offset)[i];
-        if (d == disk_number and o == offset)
-            return @intCast(i);
+
+        // If the game uses disks, require the disk number to match.
+        if (index.lfl_disks) |lfl_disks| {
+            if (lfl_disks[room] != disk_number)
+                continue;
+        }
+
+        // Require the offset to match.
+        if (index.lfl_offsets[room] + slice.items(.offset)[i] != offset)
+            continue;
+
+        return @intCast(i);
     }
     return error.BadData;
 }
@@ -676,7 +743,7 @@ fn directoryForBlockId(
         blockId("RMIM") => &directories.room_images,
         blockId("RMDA") => &directories.rooms,
         blockId("SCRP") => &directories.scripts,
-        blockId("DIGI"), blockId("TALK") => &directories.sounds,
+        blockId("DIGI"), blockId("SOUN"), blockId("TALK") => &directories.sounds,
         blockId("AKOS") => &directories.costumes,
         blockId("CHAR") => &directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &directories.images,
