@@ -62,6 +62,20 @@ pub fn hasIndexInib(game: Game) bool {
     };
 }
 
+pub fn directoryNonPresentLen(game: Game) u32 {
+    return switch (game) {
+        .baseball_1997 => 0xffff_ffff,
+        .baseball_2001 => 0,
+    };
+}
+
+pub fn writeMultLen(game: Game) bool {
+    return switch (game) {
+        .baseball_1997 => false,
+        .baseball_2001 => true,
+    };
+}
+
 // TODO: this should be determined from the index DISK block (or lack thereof)
 pub fn numberOfDisks(game: Game) u8 {
     return switch (game) {

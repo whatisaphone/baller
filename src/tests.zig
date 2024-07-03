@@ -3,7 +3,63 @@ const std = @import("std");
 const build = @import("build.zig");
 const extract = @import("extract.zig");
 
-// Extract and rebuild, and verify the output is identical to the original.
+// Extract and rebuild every supported game, and verify the output is identical
+// to the original.
+
+test "Backyard Baseball 1997 round trip raw" {
+    const allocator = std.testing.allocator;
+
+    const extract_dir = "/tmp/baller-test-baseball-1997-extract";
+    const build_dir = "/tmp/baller-test-baseball-1997-build";
+
+    try extract.run(allocator, &.{
+        .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
+        .output_path = extract_dir,
+        .raw = true,
+    });
+
+    try build.run(allocator, &.{
+        .project_txt_path = extract_dir ++ "/project.txt",
+        .output_path = build_dir ++ "/BASEBALL.HE0",
+    });
+
+    try expectFilesEqual(
+        "src/fixtures/baseball1997/BASEBALL.HE0",
+        build_dir ++ "/BASEBALL.HE0",
+    );
+    try expectFilesEqual(
+        "src/fixtures/baseball1997/BASEBALL.HE1",
+        build_dir ++ "/BASEBALL.HE1",
+    );
+}
+
+test "Backyard Baseball 1997 round trip decode/encode" {
+    const allocator = std.testing.allocator;
+
+    const extract_dir = "/tmp/baller-test-baseball-1997-extract";
+    const build_dir = "/tmp/baller-test-baseball-1997-build";
+
+    try extract.run(allocator, &.{
+        .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
+        .output_path = extract_dir,
+        .raw = false,
+    });
+
+    try build.run(allocator, &.{
+        .project_txt_path = extract_dir ++ "/project.txt",
+        .output_path = build_dir ++ "/BASEBALL.HE0",
+    });
+
+    try expectFilesEqual(
+        "src/fixtures/baseball1997/BASEBALL.HE0",
+        build_dir ++ "/BASEBALL.HE0",
+    );
+    try expectFilesEqual(
+        "src/fixtures/baseball1997/BASEBALL.HE1",
+        build_dir ++ "/BASEBALL.HE1",
+    );
+}
+
 test "Backyard Baseball 2001 round trip raw" {
     const allocator = std.testing.allocator;
 

@@ -63,6 +63,16 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var index: Index = .{};
     defer index.deinit(allocator);
 
+    if (games.hasDisk(game))
+        index.lfl_disks = .{};
+
+    // Room numbers start at 1, so zero out the first room.
+    try index.directories.rooms.append(allocator, .{
+        .room = 0,
+        .offset = 0,
+        .len = 0,
+    });
+
     // Globs start at 1, so 0 doesn't exist, so set the sizes to 0xffff_ffff.
     inline for (std.meta.fields(Directories)) |field| {
         // (except for DIRR, for some reason)
@@ -135,8 +145,13 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
         const lflf_fixup = try beginBlock(&state.writer, "LFLF");
 
-        try growArrayList(u8, &index.lfl_disks, allocator, room_number + 1, 0);
-        index.lfl_disks.items[room_number] = disk_number;
+        if (index.lfl_disks) |*lfl_disks| {
+            try growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
+            lfl_disks.items[room_number] = disk_number;
+        } else {
+            if (disk_number != 1)
+                return error.BadData;
+        }
 
         try growArrayList(u32, &index.lfl_offsets, allocator, room_number + 1, 0);
         index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
@@ -150,6 +165,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             switch (try parseRoomLine(room_line_str)) {
                 .raw_glob => |raw_glob| try handleRawGlob(
                     allocator,
+                    game,
                     room_number,
                     raw_glob,
                     &cur_path,
@@ -158,6 +174,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                 ),
                 .room_image => |room_image| try handleRoomImage(
                     allocator,
+                    game,
                     room_number,
                     room_image,
                     &cur_path,
@@ -288,6 +305,7 @@ fn parseRoomLine(line: []const u8) !RoomLine {
 
 fn handleRawGlob(
     allocator: std.mem.Allocator,
+    game: games.Game,
     room_number: u8,
     line: std.meta.FieldType(RoomLine, .raw_glob),
     cur_path: *std.BoundedArray(u8, 4095),
@@ -312,6 +330,7 @@ fn handleRawGlob(
 
     try addGlobToDirectory(
         allocator,
+        game,
         index,
         line.block_id,
         room_number,
@@ -323,6 +342,7 @@ fn handleRawGlob(
 
 fn handleRoomImage(
     allocator: std.mem.Allocator,
+    game: games.Game,
     room_number: u8,
     line: std.meta.FieldType(RoomLine, .room_image),
     cur_path: *std.BoundedArray(u8, 4095),
@@ -350,6 +370,7 @@ fn handleRoomImage(
 
     try addGlobToDirectory(
         allocator,
+        game,
         index,
         comptime blockId("RMIM"),
         room_number,
@@ -361,6 +382,7 @@ fn handleRoomImage(
 
 fn addGlobToDirectory(
     allocator: std.mem.Allocator,
+    game: games.Game,
     index: *Index,
     block_id: BlockId,
     room_number: u8,
@@ -373,13 +395,17 @@ fn addGlobToDirectory(
     try growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
         .room = 0,
         .offset = 0,
-        .len = 0,
+        .len = games.directoryNonPresentLen(game),
     });
     const offset = block_start - index.lfl_offsets.items[room_number];
+    const len = if (block_id == (comptime blockId("MULT")) and !games.writeMultLen(game))
+        0xffff_ffff
+    else
+        block_len;
     directory.set(glob_number, .{
         .room = room_number,
         .offset = @intCast(offset),
-        .len = block_len,
+        .len = len,
     });
 }
 
@@ -428,10 +454,10 @@ fn writeIndex(
     std.debug.assert(builtin.cpu.arch.endian() == .little);
     try endBlock(&writer, &fixups, dlfl_fixup);
 
-    if (games.hasDisk(game)) {
+    if (index.lfl_disks) |*lfl_disks| {
         const disk_fixup = try beginBlock(&writer, "DISK");
-        try writer.writer().writeInt(u16, @intCast(index.lfl_disks.items.len), .little);
-        try writer.writer().writeAll(index.lfl_disks.items);
+        try writer.writer().writeInt(u16, @intCast(lfl_disks.items.len), .little);
+        try writer.writer().writeAll(lfl_disks.items);
         std.debug.assert(builtin.cpu.arch.endian() == .little);
         try endBlock(&writer, &fixups, disk_fixup);
     }
@@ -516,7 +542,7 @@ const Index = struct {
     maxs: []u8 = &.{},
     directories: Directories = .{},
     lfl_offsets: std.ArrayListUnmanaged(u32) = .{},
-    lfl_disks: std.ArrayListUnmanaged(u8) = .{},
+    lfl_disks: ?std.ArrayListUnmanaged(u8) = null,
     room_names: std.ArrayListUnmanaged([]u8) = .{},
     dobj: []u8 = &.{},
     aary: []u8 = &.{},
@@ -533,7 +559,8 @@ const Index = struct {
         }
         self.room_names.deinit(allocator);
 
-        self.lfl_disks.deinit(allocator);
+        if (self.lfl_disks) |*lfl_disks|
+            lfl_disks.deinit(allocator);
         self.lfl_offsets.deinit(allocator);
         self.directories.deinit(allocator);
         allocator.free(self.maxs);
