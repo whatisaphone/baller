@@ -29,6 +29,10 @@ test "Backyard Baseball 1997 round trip raw" {
     const extract_dir = "/tmp/baller-test-baseball-1997-extract";
     const build_dir = "/tmp/baller-test-baseball-1997-build";
 
+    // best effort cleanup
+    defer std.fs.cwd().deleteTree(extract_dir) catch {};
+    defer std.fs.cwd().deleteTree(build_dir) catch {};
+
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
         .output_path = extract_dir,
@@ -56,6 +60,10 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     const extract_dir = "/tmp/baller-test-baseball-1997-extract";
     const build_dir = "/tmp/baller-test-baseball-1997-build";
 
+    // best effort cleanup
+    defer std.fs.cwd().deleteTree(extract_dir) catch {};
+    defer std.fs.cwd().deleteTree(build_dir) catch {};
+
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
         .output_path = extract_dir,
@@ -82,6 +90,10 @@ test "Backyard Baseball 2001 round trip raw" {
 
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
     const build_dir = "/tmp/baller-test-baseball-2001-build";
+
+    // best effort cleanup
+    defer std.fs.cwd().deleteTree(extract_dir) catch {};
+    defer std.fs.cwd().deleteTree(build_dir) catch {};
 
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
@@ -113,6 +125,10 @@ test "Backyard Baseball 2001 round trip decode/encode" {
 
     const extract_dir = "/tmp/baller-test-baseball-2001-extract";
     const build_dir = "/tmp/baller-test-baseball-2001-build";
+
+    // best effort cleanup
+    defer std.fs.cwd().deleteTree(extract_dir) catch {};
+    defer std.fs.cwd().deleteTree(build_dir) catch {};
 
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
