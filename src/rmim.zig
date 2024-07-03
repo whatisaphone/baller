@@ -19,10 +19,12 @@ pub fn decode(
     var rmda_reader = std.io.countingReader(rmda_buf_reader.reader());
     var rmda_blocks = blockReader(&rmda_reader);
 
-    _ = try rmda_blocks.skipUntilBlock("PALS");
+    const pals_len = try rmda_blocks.skipUntilBlock("PALS");
+    const pals_end: u32 = @intCast(rmda_reader.bytes_read + pals_len);
     var pals_blocks = blockReader(&rmda_reader);
 
-    _ = try pals_blocks.expectBlock("WRAP");
+    const wrap_len = try pals_blocks.expectBlock("WRAP");
+    const wrap_end: u32 = @intCast(rmda_reader.bytes_read + wrap_len);
     var wrap_blocks = blockReader(&rmda_reader);
 
     const offs_len = try wrap_blocks.expectBlock("OFFS");
@@ -34,11 +36,11 @@ pub fn decode(
     const apal = rmda_raw[rmda_reader.bytes_read..][0..0x300];
     try rmda_reader.reader().skipBytes(apal_len, .{});
 
-    try wrap_blocks.checkSync();
+    try wrap_blocks.finish(wrap_end);
 
-    try pals_blocks.checkSync();
+    try pals_blocks.finish(pals_end);
 
-    try rmda_blocks.checkSync();
+    // Don't check EOF since we only care about PALS
 
     // RMIM
 
@@ -49,7 +51,8 @@ pub fn decode(
     const rmih_len = try rmim_blocks.expectBlock("RMIH");
     try rmim_reader.reader().skipBytes(rmih_len, .{});
 
-    _ = try rmim_blocks.expectBlock("IM00");
+    const im00_len = try rmim_blocks.expectBlock("IM00");
+    const im00_end: u32 = @intCast(rmim_reader.bytes_read + im00_len);
     var im00_blocks = blockReader(&rmim_reader);
 
     const bmap_len = try im00_blocks.expectBlock("BMAP");
@@ -63,10 +66,9 @@ pub fn decode(
     try writeBmpPalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
 
-    try im00_blocks.checkSync();
+    try im00_blocks.finish(im00_end);
 
-    try rmim_blocks.checkSync();
-    try io.requireEof(rmim_reader.reader());
+    try rmim_blocks.finishEof();
 
     return out;
 }

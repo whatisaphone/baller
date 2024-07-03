@@ -351,9 +351,9 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
 
     if (games.hasIndexInib(game)) {
         const inib_len = try blocks.expectBlock("INIB");
+        const inib_end: u32 = @intCast(reader.bytes_read + inib_len);
         if (inib_len < 8)
             return error.BadData;
-
         var inib_blocks = blockReader(&reader);
 
         const note_len = try inib_blocks.expectBlock("NOTE");
@@ -362,13 +362,12 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
         if (try in.readInt(u16, .little) != 0)
             return error.BadData;
 
-        try inib_blocks.checkSync();
+        try inib_blocks.finish(inib_end);
     }
 
     // Phew, we made it.
 
-    try blocks.checkSync();
-    try io.requireEof(reader.reader());
+    try blocks.finishEof();
 
     return Index{
         .maxs = maxs,
@@ -473,13 +472,13 @@ fn extractDisk(
     var file_blocks = blockReader(&reader);
 
     const lecf_len = try file_blocks.expectBlock("LECF");
-    const lecf_end = reader.bytes_read + lecf_len;
+    const lecf_end: u32 = @intCast(reader.bytes_read + lecf_len);
 
     var lecf_blocks = blockReader(&reader);
 
     while (reader.bytes_read < lecf_end) {
         const lflf_len = try lecf_blocks.expectBlock("LFLF");
-        const lflf_end = reader.bytes_read + lflf_len;
+        const lflf_end: u32 = @intCast(reader.bytes_read + lflf_len);
 
         const room_number = try findLflfRoomNumber(
             game,
@@ -560,16 +559,14 @@ fn extractDisk(
             try extractGlob(disk_number, id, len, &reader, index, &state, &room_txt);
         }
 
-        try lflf_blocks.checkSync();
+        try lflf_blocks.finish(lflf_end);
 
         try room_txt.flush();
     }
 
-    try lecf_blocks.checkSync();
+    try lecf_blocks.finish(lecf_end);
 
-    try file_blocks.checkSync();
-
-    try io.requireEof(reader.reader());
+    try file_blocks.finishEof();
 }
 
 fn findLflfRoomNumber(

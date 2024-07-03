@@ -3,6 +3,7 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
+const io = @import("io.zig");
 
 pub fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
@@ -66,10 +67,19 @@ fn BlockReader(Stream: type) type {
             return self.skipUntil(id);
         }
 
-        pub fn checkSync(self: *const Self) !void {
+        fn checkSync(self: *const Self) !void {
             const current_block_end = self.current_block_end orelse return;
             if (self.stream.bytes_read != current_block_end)
                 return error.BlockDesync;
+        }
+
+        pub fn finish(self: *const Self, expected_pos: u32) !void {
+            if (self.stream.bytes_read != expected_pos)
+                return error.BlockDesync;
+        }
+
+        pub fn finishEof(self: *const Self) !void {
+            try io.requireEof(self.stream.reader());
         }
     };
 }
