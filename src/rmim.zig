@@ -1,7 +1,9 @@
 const std = @import("std");
 
+const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const blockReader = @import("block_reader.zig").blockReader;
 const io = @import("io.zig");
+const report = @import("report.zig");
 
 pub const BMCOMP_NMAJMIN_H8 = 0x8a;
 
@@ -65,6 +67,12 @@ pub fn decode(
     try writeBmpHeader(out.writer(allocator), width, height, bmp_size);
     try writeBmpPalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
+
+    if (rmim_reader.bytes_read != im00_end) {
+        const id, _ = try im00_blocks.next();
+        report.warn("skipping RMIM due to trailing {s}", .{blockIdToStr(&id)});
+        return error.DecompressBmap;
+    }
 
     try im00_blocks.finish(im00_end);
 
