@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const build = @import("build.zig");
@@ -61,12 +62,32 @@ fn testRoundTrip(
 ) !void {
     const allocator = std.testing.allocator;
 
-    const extract_dir = "/tmp/baller-test-extract";
-    const build_dir = "/tmp/baller-build";
+    // Get OS temp dir
+
+    var env: std.process.EnvMap = undefined;
+    if (builtin.os.tag == .windows)
+        env = try std.process.getEnvMap(allocator);
+    defer if (builtin.os.tag == .windows)
+        env.deinit();
+
+    const tmp = if (builtin.os.tag == .windows)
+        env.get("TEMP") orelse return error.TestUnexpectedResult
+    else
+        "/tmp";
+
+    // Build temp dirs for this test
+
+    const extract_dir = try concatZ(allocator, &.{ tmp, "/baller-test-extract" });
+    defer allocator.free(extract_dir);
+
+    const build_dir = try concatZ(allocator, &.{ tmp, "/baller-test-build" });
+    defer allocator.free(build_dir);
 
     // best effort cleanup
     defer std.fs.cwd().deleteTree(extract_dir) catch {};
     defer std.fs.cwd().deleteTree(build_dir) catch {};
+
+    // Extract
 
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
@@ -74,17 +95,34 @@ fn testRoundTrip(
         .raw = raw,
     });
 
+    // Build
+
+    const project_txt_path = try concatZ(allocator, &.{ extract_dir, "/project.txt" });
+    defer allocator.free(project_txt_path);
+
+    const out_index_path = try concatZ(allocator, &.{ build_dir, "/", index_name });
+    defer allocator.free(out_index_path);
+
     try build.run(allocator, &.{
-        .project_txt_path = extract_dir ++ "/project.txt",
-        .output_path = build_dir ++ "/" ++ index_name,
+        .project_txt_path = project_txt_path,
+        .output_path = out_index_path,
     });
 
+    // Ensure the output files match
+
     inline for (fixture_names) |name| {
+        const built_file_path = try concatZ(allocator, &.{ build_dir, "/", name });
+        defer allocator.free(built_file_path);
+
         try expectFileHashEquals(
-            build_dir ++ "/" ++ name,
+            built_file_path,
             @field(fixture_hashes, fixture_dir ++ "/" ++ name),
         );
     }
+}
+
+fn concatZ(allocator: std.mem.Allocator, strs: []const []const u8) ![:0]const u8 {
+    return std.mem.concatWithSentinel(allocator, u8, strs, 0);
 }
 
 fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u8) !void {
