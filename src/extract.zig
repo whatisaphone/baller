@@ -528,7 +528,6 @@ fn extractDisk(
             decodeRmim(allocator, rmim_data, rmda_data, &state, &room_txt) catch |err| {
                 if (err != error.DecompressBmap)
                     return err;
-                report.warn("could not decode {s} RMIM", .{room_name});
                 break :rmim_decoded false;
             };
             break :rmim_decoded true;

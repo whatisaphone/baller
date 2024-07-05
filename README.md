@@ -27,8 +27,6 @@ Before you start of course, [download the latest release](https://github.com/wha
 
    This will write project.txt, some supporting files, and one directory per room.
 
-   (It may output some warnings; as long as the exit status is 0 you can ignore them.)
-
 4. Modify a script. The file `baseball/RMDA_0002.bin` contains the hover text for the main lobby. Open it in a hex editor, and at offset 0xf945 change "Meet the players" to "Meet the modders".
 
 5. Build the assets. This will **overwrite** `baseball 2001.he0` and other files in the output directory.
