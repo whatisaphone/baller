@@ -12,12 +12,12 @@ const io = @import("io.zig");
 const report = @import("report.zig");
 const rmim = @import("rmim.zig");
 
-pub fn runCli(allocator: std.mem.Allocator) !void {
-    if (std.os.argv.len != 1 + 1 + 2)
+pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
+    if (args.len != 2)
         return error.CommandLine;
 
-    const input_path = std.mem.sliceTo(std.os.argv[2], 0);
-    const output_path = std.mem.sliceTo(std.os.argv[3], 0);
+    const input_path = args[0];
+    const output_path = args[1];
 
     try run(allocator, &.{
         .input_path = input_path,

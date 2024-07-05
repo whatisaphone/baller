@@ -16,18 +16,21 @@ fn runCli() !void {
     const allocator = gpa.allocator();
     defer std.debug.assert(gpa.deinit() == .ok);
 
-    if (std.os.argv.len < 1 + 1)
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    if (args.len < 1 + 1)
         return error.CommandLine;
 
-    const command = std.mem.sliceTo(std.os.argv[1], 0);
+    const command = args[1];
 
     if (std.mem.eql(u8, command, "-h") or std.mem.eql(u8, command, "--help"))
         return std.io.getStdOut().writeAll(usage);
 
     if (std.mem.eql(u8, command, "build")) {
-        try build.runCli(allocator);
+        try build.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "extract")) {
-        try extract.runCli(allocator);
+        try extract.runCli(allocator, args[2..]);
     } else {
         return error.CommandLine;
     }

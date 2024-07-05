@@ -15,12 +15,12 @@ const rmim_encode = @import("rmim_encode.zig");
 
 pub const xor_key = 0x69;
 
-pub fn runCli(allocator: std.mem.Allocator) !void {
-    if (std.os.argv.len != 1 + 1 + 2)
+pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
+    if (args.len != 2)
         return error.CommandLine;
 
-    const project_txt_path = std.mem.sliceTo(std.os.argv[2], 0);
-    const output_path = std.mem.sliceTo(std.os.argv[3], 0);
+    const project_txt_path = args[0];
+    const output_path = args[1];
 
     try run(allocator, &.{
         .project_txt_path = project_txt_path,
