@@ -24,135 +24,67 @@ test "fixture integrity" {
 }
 
 test "Backyard Baseball 1997 round trip raw" {
-    const allocator = std.testing.allocator;
-
-    const extract_dir = "/tmp/baller-test-baseball-1997-extract";
-    const build_dir = "/tmp/baller-test-baseball-1997-build";
-
-    // best effort cleanup
-    defer std.fs.cwd().deleteTree(extract_dir) catch {};
-    defer std.fs.cwd().deleteTree(build_dir) catch {};
-
-    try extract.run(allocator, &.{
-        .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
-        .output_path = extract_dir,
-        .raw = true,
+    try testRoundTrip("baseball1997", "BASEBALL.HE0", true, &.{
+        "BASEBALL.HE0",
+        "BASEBALL.HE1",
     });
-
-    try build.run(allocator, &.{
-        .project_txt_path = extract_dir ++ "/project.txt",
-        .output_path = build_dir ++ "/BASEBALL.HE0",
-    });
-
-    try expectFileHashEquals(
-        build_dir ++ "/BASEBALL.HE0",
-        fixture_hashes.@"baseball1997/BASEBALL.HE0",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/BASEBALL.HE1",
-        fixture_hashes.@"baseball1997/BASEBALL.HE1",
-    );
 }
 
 test "Backyard Baseball 1997 round trip decode/encode" {
-    const allocator = std.testing.allocator;
-
-    const extract_dir = "/tmp/baller-test-baseball-1997-extract";
-    const build_dir = "/tmp/baller-test-baseball-1997-build";
-
-    // best effort cleanup
-    defer std.fs.cwd().deleteTree(extract_dir) catch {};
-    defer std.fs.cwd().deleteTree(build_dir) catch {};
-
-    try extract.run(allocator, &.{
-        .input_path = "src/fixtures/baseball1997/BASEBALL.HE0",
-        .output_path = extract_dir,
-        .raw = false,
+    try testRoundTrip("baseball1997", "BASEBALL.HE0", false, &.{
+        "BASEBALL.HE0",
+        "BASEBALL.HE1",
     });
-
-    try build.run(allocator, &.{
-        .project_txt_path = extract_dir ++ "/project.txt",
-        .output_path = build_dir ++ "/BASEBALL.HE0",
-    });
-
-    try expectFileHashEquals(
-        build_dir ++ "/BASEBALL.HE0",
-        fixture_hashes.@"baseball1997/BASEBALL.HE0",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/BASEBALL.HE1",
-        fixture_hashes.@"baseball1997/BASEBALL.HE1",
-    );
 }
 
 test "Backyard Baseball 2001 round trip raw" {
-    const allocator = std.testing.allocator;
-
-    const extract_dir = "/tmp/baller-test-baseball-2001-extract";
-    const build_dir = "/tmp/baller-test-baseball-2001-build";
-
-    // best effort cleanup
-    defer std.fs.cwd().deleteTree(extract_dir) catch {};
-    defer std.fs.cwd().deleteTree(build_dir) catch {};
-
-    try extract.run(allocator, &.{
-        .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
-        .output_path = extract_dir,
-        .raw = true,
+    try testRoundTrip("baseball2001", "baseball 2001.he0", true, &.{
+        "baseball 2001.he0",
+        "baseball 2001.(a)",
+        "baseball 2001.(b)",
     });
-
-    try build.run(allocator, &.{
-        .project_txt_path = extract_dir ++ "/project.txt",
-        .output_path = build_dir ++ "/baseball 2001.he0",
-    });
-
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.he0",
-        fixture_hashes.@"baseball2001/baseball 2001.he0",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.(a)",
-        fixture_hashes.@"baseball2001/baseball 2001.(a)",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.(b)",
-        fixture_hashes.@"baseball2001/baseball 2001.(b)",
-    );
 }
 
 test "Backyard Baseball 2001 round trip decode/encode" {
+    try testRoundTrip("baseball2001", "baseball 2001.he0", false, &.{
+        "baseball 2001.he0",
+        "baseball 2001.(a)",
+        "baseball 2001.(b)",
+    });
+}
+
+fn testRoundTrip(
+    comptime fixture_dir: []const u8,
+    comptime index_name: []const u8,
+    raw: bool,
+    comptime fixture_names: []const []const u8,
+) !void {
     const allocator = std.testing.allocator;
 
-    const extract_dir = "/tmp/baller-test-baseball-2001-extract";
-    const build_dir = "/tmp/baller-test-baseball-2001-build";
+    const extract_dir = "/tmp/baller-test-extract";
+    const build_dir = "/tmp/baller-build";
 
     // best effort cleanup
     defer std.fs.cwd().deleteTree(extract_dir) catch {};
     defer std.fs.cwd().deleteTree(build_dir) catch {};
 
     try extract.run(allocator, &.{
-        .input_path = "src/fixtures/baseball2001/baseball 2001.he0",
+        .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
         .output_path = extract_dir,
-        .raw = false,
+        .raw = raw,
     });
 
     try build.run(allocator, &.{
         .project_txt_path = extract_dir ++ "/project.txt",
-        .output_path = build_dir ++ "/baseball 2001.he0",
+        .output_path = build_dir ++ "/" ++ index_name,
     });
 
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.he0",
-        fixture_hashes.@"baseball2001/baseball 2001.he0",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.(a)",
-        fixture_hashes.@"baseball2001/baseball 2001.(a)",
-    );
-    try expectFileHashEquals(
-        build_dir ++ "/baseball 2001.(b)",
-        fixture_hashes.@"baseball2001/baseball 2001.(b)",
-    );
+    inline for (fixture_names) |name| {
+        try expectFileHashEquals(
+            build_dir ++ "/" ++ name,
+            @field(fixture_hashes, fixture_dir ++ "/" ++ name),
+        );
+    }
 }
 
 fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u8) !void {
