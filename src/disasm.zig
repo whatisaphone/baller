@@ -55,6 +55,7 @@ const Ins = struct {
 const Arg = enum {
     u8,
     i16,
+    i32,
     variable,
     string,
 };
@@ -84,24 +85,65 @@ fn buildLanguage() Language {
 
     lang.add(0x00, "push", &.{.u8});
     lang.add(0x01, "push", &.{.i16});
+    lang.add(0x02, "push", &.{.i32});
     lang.add(0x03, "push", &.{.variable});
     lang.add(0x04, "push", &.{.string});
-
+    lang.add(0x07, "get-array-item", &.{.variable});
     lang.add(0x0c, "dup", &.{});
+    lang.add(0x0d, "not", &.{});
+    lang.add(0x0e, "compare-equal", &.{});
+    lang.add(0x0f, "compare-not-equal", &.{});
+    lang.add(0x10, "compare-greater", &.{});
+    lang.add(0x11, "compare-less", &.{});
+    lang.add(0x12, "compare-less-or-equal", &.{});
+    lang.add(0x14, "add", &.{});
+    lang.add(0x15, "sub", &.{});
+    lang.add(0x19, "logical-or", &.{});
+    lang.add(0x1a, "pop", &.{});
+    lang.add(0x1b, "in-list", &.{});
 
+    lang.addNested(0x26, 0x39, "sprite-select-range", &.{});
+    lang.addNested(0x26, 0x7d, "sprite-class", &.{});
+    lang.addNested(0x26, 0x9e, "sprite-restart", &.{});
+
+    lang.add(0x37, "dim-array", &.{ .u8, .variable });
     lang.add(0x43, "assign", &.{.variable});
+    lang.add(0x47, "set-array-item", &.{.variable});
+    lang.add(0x4f, "inc", &.{.variable});
+    lang.add(0x5c, "jump-if", &.{.i16});
+    lang.add(0x5d, "jump-unless", &.{.i16});
+
+    lang.addNested(0x5e, 0x01, "start-script", &.{});
+
+    lang.add(0x66, "end", &.{});
 
     lang.addNested(0x6b, 0x91, "cursor-off", &.{});
     lang.addNested(0x6b, 0x93, "userput-off", &.{});
     lang.addNested(0x6b, 0x9c, "charset", &.{});
 
-    lang.addNested(0x9b, 0x75, "load-charset", &.{});
+    lang.add(0x6c, "break", &.{});
+    lang.add(0x73, "jump", &.{.i16});
+    lang.add(0x7b, "current-room", &.{});
+    lang.add(0x87, "random", &.{});
+
     lang.addNested(0x9b, 0x64, "load-script", &.{});
     lang.addNested(0x9b, 0x6c, "lock-script", &.{});
+    lang.addNested(0x9b, 0x75, "load-charset", &.{});
+
+    lang.addNested(0x9c, 0xb5, "fades", &.{});
 
     lang.addNested(0xa4, 0x07, "assign-string", &.{.variable});
+    lang.addNested(0xa4, 0xc2, "sprintf", &.{.variable});
+
+    lang.addNested(0xb6, 0x4b, "print-debug-string", &.{.string});
+    lang.addNested(0xb6, 0xfe, "print-debug-start", &.{});
 
     lang.addNested(0xbc, 0xcc, "undim", &.{.variable});
+
+    lang.add(0xd0, "get-time-date", &.{});
+
+    lang.addNested(0xf3, 0x06, "read-ini-int", &.{});
+    lang.addNested(0xf3, 0x07, "read-ini-string", &.{});
 
     lang.addNested(0xfa, 0xf3, "title-bar", &.{});
 
@@ -155,6 +197,10 @@ fn disasmArg(arg: *const Arg, reader: anytype, out: anytype) !void {
         },
         .i16 => {
             const n = try reader.reader().readInt(i16, .little);
+            try out.print("{}", .{n});
+        },
+        .i32 => {
+            const n = try reader.reader().readInt(i32, .little);
             try out.print("{}", .{n});
         },
         .variable => {
