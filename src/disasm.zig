@@ -4,7 +4,7 @@ const Language = struct {
     // TODO: don't hardcode maximum
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 16]Opcode = .{.unknown} ** (256 * 16),
+    opcodes: [256 * 32]Opcode = .{.unknown} ** (256 * 32),
     num_nested: u8 = 0,
 
     fn add(self: *Language, byte: u8, name: []const u8, args: []const Arg) void {
@@ -89,6 +89,7 @@ fn buildLanguage() Language {
     lang.add(0x03, "push", &.{.variable});
     lang.add(0x04, "push", &.{.string});
     lang.add(0x07, "get-array-item", &.{.variable});
+    lang.add(0x0b, "get-array-item-2d", &.{.variable});
     lang.add(0x0c, "dup", &.{});
     lang.add(0x0d, "not", &.{});
     lang.add(0x0e, "compare-equal", &.{});
@@ -96,11 +97,18 @@ fn buildLanguage() Language {
     lang.add(0x10, "compare-greater", &.{});
     lang.add(0x11, "compare-less", &.{});
     lang.add(0x12, "compare-less-or-equal", &.{});
+    lang.add(0x13, "compare-greater-or-equal", &.{});
     lang.add(0x14, "add", &.{});
     lang.add(0x15, "sub", &.{});
-    lang.add(0x19, "logical-or", &.{});
+    lang.add(0x16, "mul", &.{});
+    lang.add(0x17, "div", &.{});
+    lang.add(0x18, "and", &.{});
+    lang.add(0x19, "or", &.{});
     lang.add(0x1a, "pop", &.{});
     lang.add(0x1b, "in-list", &.{});
+
+    lang.addNested(0x25, 0x2d, "find-sprite", &.{});
+    lang.addNested(0x25, 0x7d, "sprite-class", &.{});
 
     lang.addNested(0x26, 0x39, "sprite-select-range", &.{});
     lang.addNested(0x26, 0x7d, "sprite-class", &.{});
@@ -110,21 +118,38 @@ fn buildLanguage() Language {
     lang.add(0x43, "assign", &.{.variable});
     lang.add(0x47, "set-array-item", &.{.variable});
     lang.add(0x4f, "inc", &.{.variable});
+    lang.add(0x57, "dec", &.{.variable});
+    lang.add(0x5a, "sound-position", &.{});
     lang.add(0x5c, "jump-if", &.{.i16});
     lang.add(0x5d, "jump-unless", &.{.i16});
 
     lang.addNested(0x5e, 0x01, "start-script", &.{});
+    lang.addNested(0x5e, 0xc3, "start-script-rec", &.{});
 
     lang.add(0x66, "end", &.{});
 
+    lang.addNested(0x6b, 0x13, "cursor-bw", &.{});
+    lang.addNested(0x6b, 0x14, "cursor-color", &.{});
     lang.addNested(0x6b, 0x91, "cursor-off", &.{});
     lang.addNested(0x6b, 0x93, "userput-off", &.{});
     lang.addNested(0x6b, 0x9c, "charset", &.{});
 
-    lang.add(0x6c, "break", &.{});
+    lang.add(0x6c, "break-here", &.{});
+    lang.add(0x6d, "class-of", &.{});
     lang.add(0x73, "jump", &.{.i16});
+
+    lang.addNested(0x74, 0x09, "sound-soft", &.{});
+    lang.addNested(0x74, 0xe6, "sound-channel", &.{});
+    lang.addNested(0x74, 0xe7, "sound-at", &.{});
+    lang.addNested(0x74, 0xe8, "sound-select", &.{});
+    lang.addNested(0x74, 0xff, "sound-start", &.{});
+
+    lang.add(0x75, "stop-sound", &.{});
     lang.add(0x7b, "current-room", &.{});
+    lang.add(0x7c, "end-script", &.{});
     lang.add(0x87, "random", &.{});
+    lang.add(0x88, "random-between", &.{});
+    lang.add(0x98, "sound-running", &.{});
 
     lang.addNested(0x9b, 0x64, "load-script", &.{});
     lang.addNested(0x9b, 0x6c, "lock-script", &.{});
@@ -132,18 +157,47 @@ fn buildLanguage() Language {
 
     lang.addNested(0x9c, 0xb5, "fades", &.{});
 
+    lang.add(0x9f, "find-actor", &.{});
+    lang.add(0xa0, "find-object", &.{});
+    lang.add(0xa3, "valid-verb", &.{});
+
     lang.addNested(0xa4, 0x07, "assign-string", &.{.variable});
+    lang.addNested(0xa4, 0x80, "array-assign-range", &.{.variable});
     lang.addNested(0xa4, 0xc2, "sprintf", &.{.variable});
+
+    lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
+
+    lang.add(0xad, "in2", &.{});
 
     lang.addNested(0xb6, 0x4b, "print-debug-string", &.{.string});
     lang.addNested(0xb6, 0xfe, "print-debug-start", &.{});
+    lang.addNested(0xb7, 0x4b, "print-system-string", &.{.string});
+    lang.addNested(0xb7, 0xfe, "print-system-start", &.{});
 
-    lang.addNested(0xbc, 0xcc, "undim", &.{.variable});
+    // TODO: first arg is item size; 0xcc means undim
+    lang.add(0xbc, "dim-array", &.{ .u8, .variable });
 
+    lang.add(0xbd, "return", &.{});
+    lang.add(0xbf, "call-script", &.{});
+    lang.add(0xc1, "debug", &.{});
+    lang.add(0xc4, "abs", &.{});
+    lang.add(0xca, "break-here-multi", &.{});
     lang.add(0xd0, "get-time-date", &.{});
+    lang.add(0xd4, "shuffle", &.{.variable});
+
+    lang.addNested(0xd5, 0x01, "chain-script", &.{});
+
+    lang.add(0xd6, "band", &.{});
+    lang.add(0xd7, "bor", &.{});
+    lang.add(0xe3, "pick-random", &.{.variable});
 
     lang.addNested(0xf3, 0x06, "read-ini-int", &.{});
     lang.addNested(0xf3, 0x07, "read-ini-string", &.{});
+
+    lang.addNested(0xf4, 0x06, "write-ini-int", &.{});
+    lang.addNested(0xf4, 0x07, "write-ini-string", &.{});
+
+    lang.addNested(0xf8, 0x0d, "sound-size", &.{});
 
     lang.addNested(0xfa, 0xf3, "title-bar", &.{});
 
