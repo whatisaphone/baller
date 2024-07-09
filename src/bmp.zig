@@ -16,7 +16,7 @@ const BITMAPFILEHEADER = packed struct {
     bfOffBits: u32,
 };
 
-const BITMAPINFOHEADER = packed struct {
+pub const BITMAPINFOHEADER = packed struct {
     biSize: u32,
     biWidth: i32,
     biHeight: i32,
@@ -51,6 +51,67 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
 
     return .{ info_header, bmp[file_header.bfOffBits..] };
 }
+
+pub const PixelIter = union(enum) {
+    top_down: struct {
+        pixels: []const u8,
+        i: u32,
+    },
+    bottom_up: struct {
+        pixels: []const u8,
+        i: u32,
+        width: u32,
+        x: u32,
+    },
+
+    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) PixelIter {
+        const width: u32 = @intCast(header.biWidth);
+        const top_down = header.biHeight < 0;
+
+        if (top_down)
+            return .{ .top_down = .{
+                .pixels = pixels,
+                .i = 0,
+            } };
+
+        const i: u32 = @intCast(pixels.len - 1);
+        return .{ .bottom_up = .{
+            .pixels = pixels,
+            .width = width,
+            .i = i,
+            .x = width - i % width,
+        } };
+    }
+
+    pub fn next(self: *PixelIter) ?u8 {
+        switch (self.*) {
+            .top_down => |*s| {
+                const result = s.pixels[s.i];
+
+                s.i += 1;
+                if (s.i >= s.pixels.len)
+                    return null;
+
+                return result;
+            },
+            .bottom_up => |*s| {
+                const result = s.pixels[s.i];
+
+                s.i += 1;
+                s.x -= 1;
+                if (s.x == 0) {
+                    const feed = s.width * 2;
+                    if (s.i < feed)
+                        return null;
+                    s.i -= feed;
+                    s.x = s.width;
+                }
+
+                return result;
+            },
+        }
+    }
+};
 
 pub fn calcFileSize(width: u31, height: u31) u32 {
     const stride = std.mem.alignForward(u31, width, row_align);

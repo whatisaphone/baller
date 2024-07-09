@@ -10,12 +10,9 @@ const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
 const num_colors = 256;
 
 pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
-    const info_header, const pixels = try bmp.readHeader(bmp_raw);
+    const header, const pixels = try bmp.readHeader(bmp_raw);
 
-    const width: u32 = @intCast(info_header.biWidth);
-    const top_down = info_header.biHeight < 0;
-
-    if (width & 3 != 0)
+    if (header.biWidth & 3 != 0)
         return error.BadData; // TODO: handle stride
 
     const rmih_fixup = try beginBlock(out, "RMIH");
@@ -27,17 +24,21 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
     const bmap_fixup = try beginBlock(out, "BMAP");
 
     try out.writer().writeByte(BMCOMP_NMAJMIN_H8);
-    try compressBmap(width, top_down, pixels, out.writer());
+    try compressBmap(header, pixels, out.writer());
 
     try endBlock(out, fixups, bmap_fixup);
 
     try endBlock(out, fixups, im00_fixup);
 }
 
-fn compressBmap(width: u32, top_down: bool, pixels: []const u8, writer: anytype) !void {
+fn compressBmap(
+    header: *align(1) const bmp.BITMAPINFOHEADER,
+    pixels: []const u8,
+    writer: anytype,
+) !void {
     var out = std.io.bitWriter(.little, writer);
 
-    var pixit = PixelIter.init(width, top_down, pixels);
+    var pixit = bmp.PixelIter.init(header, pixels);
 
     var current = pixit.next() orelse return error.EndOfStream;
     try out.writeBits(current, 8);
@@ -62,61 +63,3 @@ fn compressBmap(width: u32, top_down: bool, pixels: []const u8, writer: anytype)
 
     try out.flushBits();
 }
-
-const PixelIter = union(enum) {
-    top_down: struct {
-        pixels: []const u8,
-        i: u32,
-    },
-    bottom_up: struct {
-        pixels: []const u8,
-        i: u32,
-        width: u32,
-        x: u32,
-    },
-
-    fn init(width: u32, top_down: bool, pixels: []const u8) PixelIter {
-        if (top_down)
-            return .{ .top_down = .{
-                .pixels = pixels,
-                .i = 0,
-            } };
-
-        const i: u32 = @intCast(pixels.len - 1);
-        return .{ .bottom_up = .{
-            .pixels = pixels,
-            .width = width,
-            .i = i,
-            .x = width - i % width,
-        } };
-    }
-
-    fn next(self: *PixelIter) ?u8 {
-        switch (self.*) {
-            .top_down => |*s| {
-                const result = s.pixels[s.i];
-
-                s.i += 1;
-                if (s.i >= s.pixels.len)
-                    return null;
-
-                return result;
-            },
-            .bottom_up => |*s| {
-                const result = s.pixels[s.i];
-
-                s.i += 1;
-                s.x -= 1;
-                if (s.x == 0) {
-                    const feed = s.width * 2;
-                    if (s.i < feed)
-                        return null;
-                    s.i -= feed;
-                    s.x = s.width;
-                }
-
-                return result;
-            },
-        }
-    }
-};
