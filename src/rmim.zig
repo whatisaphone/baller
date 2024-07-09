@@ -16,36 +16,7 @@ pub fn decode(
     const width = 640; // TODO: use the real size
     const height = 480;
 
-    // RMDA
-
-    var rmda_buf_reader = std.io.fixedBufferStream(rmda_raw);
-    var rmda_reader = std.io.countingReader(rmda_buf_reader.reader());
-    var rmda_blocks = blockReader(&rmda_reader);
-
-    const pals_len = try rmda_blocks.skipUntilBlock("PALS");
-    const pals_end: u32 = @intCast(rmda_reader.bytes_read + pals_len);
-    var pals_blocks = blockReader(&rmda_reader);
-
-    const wrap_len = try pals_blocks.expectBlock("WRAP");
-    const wrap_end: u32 = @intCast(rmda_reader.bytes_read + wrap_len);
-    var wrap_blocks = blockReader(&rmda_reader);
-
-    const offs_len = try wrap_blocks.expectBlock("OFFS");
-    try rmda_reader.reader().skipBytes(offs_len, .{});
-
-    const apal_len = try wrap_blocks.expectBlock("APAL");
-    if (apal_len != 0x300)
-        return error.BadData;
-    const apal = rmda_raw[rmda_reader.bytes_read..][0..0x300];
-    try rmda_reader.reader().skipBytes(apal_len, .{});
-
-    try wrap_blocks.finish(wrap_end);
-
-    try pals_blocks.finish(pals_end);
-
-    // Don't check EOF since we only care about PALS
-
-    // RMIM
+    const apal = try findApalInRmda(rmda_raw);
 
     var rmim_buf_reader = std.io.fixedBufferStream(rmim_raw);
     var rmim_reader = std.io.countingReader(rmim_buf_reader.reader());
@@ -80,6 +51,38 @@ pub fn decode(
     try rmim_blocks.finishEof();
 
     return out;
+}
+
+pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
+    var rmda_buf_reader = std.io.fixedBufferStream(rmda_raw);
+    var rmda_reader = std.io.countingReader(rmda_buf_reader.reader());
+    var rmda_blocks = blockReader(&rmda_reader);
+
+    const pals_len = try rmda_blocks.skipUntilBlock("PALS");
+    const pals_end: u32 = @intCast(rmda_reader.bytes_read + pals_len);
+    var pals_blocks = blockReader(&rmda_reader);
+
+    const wrap_len = try pals_blocks.expectBlock("WRAP");
+    const wrap_end: u32 = @intCast(rmda_reader.bytes_read + wrap_len);
+    var wrap_blocks = blockReader(&rmda_reader);
+
+    const offs_len = try wrap_blocks.expectBlock("OFFS");
+    try rmda_reader.reader().skipBytes(offs_len, .{});
+
+    const apal_len = try wrap_blocks.expectBlock("APAL");
+    if (apal_len != 0x300)
+        return error.BadData;
+    const result = rmda_raw[rmda_reader.bytes_read..][0..0x300];
+    try rmda_reader.reader().skipBytes(apal_len, .{});
+
+    try wrap_blocks.finish(wrap_end);
+
+    try pals_blocks.finish(pals_end);
+
+    // Don't check EOF since we only care about PALS
+    try rmda_blocks.checkSync();
+
+    return result;
 }
 
 fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {

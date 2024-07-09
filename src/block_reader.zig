@@ -69,7 +69,7 @@ fn BlockReader(Stream: type) type {
             return self.skipUntil(id);
         }
 
-        fn checkSync(self: *const Self) !void {
+        pub fn checkSync(self: *const Self) !void {
             const current_block_end = self.current_block_end orelse return;
             if (self.stream.bytes_read != current_block_end)
                 return error.BlockDesync;
