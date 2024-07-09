@@ -577,6 +577,7 @@ fn extractDisk(
                 try decodeAwiz(
                     allocator,
                     disk_number,
+                    rmda_data,
                     offset,
                     data,
                     &state,
@@ -682,12 +683,13 @@ fn decodeScrp(
 fn decodeAwiz(
     allocator: std.mem.Allocator,
     disk_number: u8,
+    rmda_raw: []const u8,
     offset: u32,
     data: []const u8,
     state: *State,
     index: *const Index,
 ) !void {
-    const bmp = awiz.decode(allocator, data) catch |err| {
+    const bmp = awiz.decode(allocator, data, rmda_raw) catch |err| {
         if (err == error.DecodeAwiz)
             return;
         return err;

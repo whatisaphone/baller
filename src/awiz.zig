@@ -3,8 +3,15 @@ const std = @import("std");
 const blockReader = @import("block_reader.zig").blockReader;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
+const rmim = @import("rmim.zig");
 
-pub fn decode(allocator: std.mem.Allocator, awiz_raw: []const u8) ![]const u8 {
+pub fn decode(
+    allocator: std.mem.Allocator,
+    awiz_raw: []const u8,
+    rmda_raw: []const u8,
+) ![]const u8 {
+    const apal = try rmim.findApalInRmda(rmda_raw);
+
     var buf_reader = std.io.fixedBufferStream(awiz_raw);
     var reader = std.io.countingReader(buf_reader.reader());
     var awiz_blocks = blockReader(&reader);
@@ -35,12 +42,7 @@ pub fn decode(allocator: std.mem.Allocator, awiz_raw: []const u8) ![]const u8 {
     var bmp_writer = std.io.fixedBufferStream(bmp_buf);
 
     try bmp.writeHeader(bmp_writer.writer(), width, height, bmp_file_size);
-
-    // TODO: actual palette
-    for (0..256) |i_usize| {
-        const i: u8 = @intCast(i_usize);
-        try bmp_writer.writer().writeAll(&.{ i, i, i, 0 });
-    }
+    try bmp.writePalette(bmp_writer.writer(), apal);
 
     // based on ScummVM's auxDecompTRLEPrim
     for (0..height) |_| {
