@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
@@ -181,6 +182,15 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 ),
+                .awiz => |line| try handleAwiz(
+                    allocator,
+                    game,
+                    room_number,
+                    line,
+                    &cur_path,
+                    state,
+                    &index,
+                ),
             }
         }
 
@@ -277,6 +287,10 @@ const RoomLine = union(enum) {
     room_image: struct {
         path: []const u8,
     },
+    awiz: struct {
+        number: u32,
+        path: []const u8,
+    },
 };
 
 fn parseRoomLine(line: []const u8) !RoomLine {
@@ -298,6 +312,18 @@ fn parseRoomLine(line: []const u8) !RoomLine {
         } };
     } else if (std.mem.startsWith(u8, line, "room-image ")) {
         return .{ .room_image = .{ .path = line[11..] } };
+    } else if (std.mem.startsWith(u8, line, "awiz ")) {
+        var words = std.mem.splitScalar(u8, line[5..], ' ');
+        const number_str = words.next() orelse return error.BadData;
+        const path = words.next() orelse return error.BadData;
+        if (words.next()) |_| return error.BadData;
+
+        const number = try std.fmt.parseInt(u16, number_str, 10);
+
+        return .{ .awiz = .{
+            .number = number,
+            .path = path,
+        } };
     } else {
         return error.BadData;
     }
@@ -377,6 +403,45 @@ fn handleRoomImage(
         room_number,
         block_fixup,
         block_len,
+    );
+}
+
+fn handleAwiz(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    room_number: u8,
+    line: std.meta.FieldType(RoomLine, .awiz),
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    const prev_path_len = cur_path.len;
+    defer cur_path.len = prev_path_len;
+    try cur_path.appendSlice(line.path);
+    try cur_path.append(0);
+    const path = cur_path.buffer[0 .. cur_path.buffer.len - 1 :0];
+
+    const bmp_file = try std.fs.cwd().openFileZ(path, .{});
+    defer bmp_file.close();
+    const bmp_stat = try bmp_file.stat();
+    const bmp_raw = try allocator.alloc(u8, bmp_stat.size);
+    defer allocator.free(bmp_raw);
+    try bmp_file.reader().readNoEof(bmp_raw);
+
+    const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
+    try awiz.encode(bmp_raw, &state.writer, &state.fixups);
+    try endBlock(&state.writer, &state.fixups, awiz_fixup);
+    const awiz_len = state.fixups.getLast().value;
+
+    try addGlobToDirectory(
+        allocator,
+        game,
+        index,
+        comptime blockId("AWIZ"),
+        room_number,
+        line.number,
+        awiz_fixup,
+        awiz_len,
     );
 }
 

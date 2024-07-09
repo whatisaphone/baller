@@ -24,14 +24,18 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     try run(allocator, &.{
         .input_path = input_path,
         .output_path = output_path,
-        .raw = false,
+        .rmim_raw = false,
+        .scripts_raw = false,
+        .awiz_raw = false,
     });
 }
 
 const Extract = struct {
     input_path: [:0]const u8,
     output_path: [:0]const u8,
-    raw: bool,
+    rmim_raw: bool,
+    scripts_raw: bool,
+    awiz_raw: bool,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
@@ -80,7 +84,9 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
             disk_number,
             &project_txt,
             &index,
-            args.raw,
+            args.rmim_raw,
+            args.scripts_raw,
+            args.awiz_raw,
         );
     }
 
@@ -460,7 +466,9 @@ fn extractDisk(
     disk_number: u8,
     project_txt: anytype,
     index: *const Index,
-    raw: bool,
+    rmim_raw: bool,
+    scripts_raw: bool,
+    awiz_raw: bool,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
@@ -525,7 +533,7 @@ fn extractDisk(
         defer allocator.free(rmda_data);
 
         const rmim_decoded = rmim_decoded: {
-            if (raw)
+            if (rmim_raw)
                 break :rmim_decoded false;
             decodeRmim(allocator, rmim_data, rmda_data, &state, &room_txt) catch |err| {
                 if (err != error.DecompressBmap)
@@ -564,27 +572,40 @@ fn extractDisk(
 
             try reader.reader().readNoEof(data);
 
-            if (id == comptime blockId("SCRP"))
-                try decodeScrp(
-                    allocator,
-                    disk_number,
-                    offset,
-                    data,
-                    &state,
-                    index,
-                )
-            else if (id == comptime blockId("AWIZ"))
-                try decodeAwiz(
-                    allocator,
-                    disk_number,
-                    rmda_data,
-                    offset,
-                    data,
-                    &state,
-                    index,
-                );
+            var decoded = false;
+            if (id == comptime blockId("SCRP")) {
+                if (!scripts_raw) {
+                    try decodeScrp(
+                        allocator,
+                        disk_number,
+                        offset,
+                        data,
+                        &state,
+                        index,
+                    );
+                }
+            } else if (id == comptime blockId("AWIZ")) {
+                if (!awiz_raw) {
+                    if (decodeAwiz(
+                        allocator,
+                        disk_number,
+                        rmda_data,
+                        offset,
+                        data,
+                        &state,
+                        index,
+                        &room_txt,
+                    )) {
+                        decoded = true;
+                    } else |err| {
+                        if (err != error.DecodeAwiz)
+                            return err;
+                    }
+                }
+            }
 
-            try writeGlob(disk_number, id, offset, data, index, &state, &room_txt);
+            if (!decoded)
+                try writeGlob(disk_number, id, offset, data, index, &state, &room_txt);
         }
 
         try lflf_blocks.finish(lflf_end);
@@ -688,12 +709,9 @@ fn decodeAwiz(
     data: []const u8,
     state: *State,
     index: *const Index,
+    room_txt: anytype,
 ) !void {
-    const bmp = awiz.decode(allocator, data, rmda_raw) catch |err| {
-        if (err == error.DecodeAwiz)
-            return;
-        return err;
-    };
+    const bmp = try awiz.decode(allocator, data, rmda_raw);
     defer allocator.free(bmp);
 
     const glob_number = try findGlobNumber(
@@ -716,6 +734,11 @@ fn decodeAwiz(
     defer output_file.close();
 
     try output_file.writeAll(bmp);
+
+    try room_txt.writer().print(
+        "awiz {} {s}\n",
+        .{ glob_number, cur_path[prev_path_len..] },
+    );
 }
 
 fn readGlob(

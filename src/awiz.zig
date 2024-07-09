@@ -1,6 +1,9 @@
 const std = @import("std");
 
 const blockReader = @import("block_reader.zig").blockReader;
+const Fixup = @import("block_writer.zig").Fixup;
+const beginBlock = @import("block_writer.zig").beginBlock;
+const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const rmim = @import("rmim.zig");
@@ -74,4 +77,55 @@ pub fn decode(
     try awiz_blocks.finishEof();
 
     return bmp_buf;
+}
+
+pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+    const header, const pixels = try bmp.readHeader(bmp_raw);
+
+    const width: u31 = @intCast(header.biWidth);
+    // TODO: handle bottom-up
+    std.debug.assert(header.biHeight < 0);
+    const height: u31 = @intCast(-header.biHeight);
+
+    // TODO: all these numbers are hardcoded and wrong
+
+    const cnvs_fixup = try beginBlock(out, "CNVS");
+    try out.writer().writeInt(i32, 480, .little);
+    try out.writer().writeInt(i32, 120, .little);
+    try endBlock(out, fixups, cnvs_fixup);
+
+    const spot_fixup = try beginBlock(out, "SPOT");
+    try out.writer().writeInt(i32, 6, .little);
+    try out.writer().writeInt(i32, 5, .little);
+    try endBlock(out, fixups, spot_fixup);
+
+    const relo_fixup = try beginBlock(out, "RELO");
+    try out.writer().writeInt(i32, 448, .little);
+    try out.writer().writeInt(i32, 88, .little);
+    try endBlock(out, fixups, relo_fixup);
+
+    const wizh_fixup = try beginBlock(out, "WIZH");
+    try out.writer().writeInt(i32, 1, .little); // compression type RLE
+    try out.writer().writeInt(i32, width, .little);
+    try out.writer().writeInt(i32, height, .little);
+    try endBlock(out, fixups, wizh_fixup);
+
+    const wizd_fixup = try beginBlock(out, "WIZD");
+    try encodeRle(header, pixels, out.writer());
+    try endBlock(out, fixups, wizd_fixup);
+}
+
+fn encodeRle(
+    header: *align(1) const bmp.BITMAPINFOHEADER,
+    pixels: []const u8,
+    out: anytype,
+) !void {
+    var rows = bmp.RowIter.init(header, pixels);
+    while (rows.next()) |row| {
+        try out.writeInt(i16, @intCast(row.len * 2), .little);
+        for (row) |px| {
+            try out.writeByte(0);
+            try out.writeByte(px);
+        }
+    }
 }

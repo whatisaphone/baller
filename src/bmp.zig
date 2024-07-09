@@ -113,8 +113,40 @@ pub const PixelIter = union(enum) {
     }
 };
 
+pub const RowIter = struct {
+    pos: [*]const u8,
+    end: [*]const u8,
+    width: u31,
+    stride: u31,
+
+    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) RowIter {
+        const width: u31 = @intCast(header.biWidth);
+        const top_down = header.biHeight < 0;
+        std.debug.assert(top_down);
+
+        return .{
+            .pos = pixels.ptr,
+            .end = pixels[pixels.len..].ptr,
+            .width = width,
+            .stride = calcStride(width),
+        };
+    }
+
+    pub fn next(self: *RowIter) ?[]const u8 {
+        const result = self.pos[0..self.width];
+        self.pos += self.stride;
+        if (@intFromPtr(self.pos) > @intFromPtr(self.end))
+            return null;
+        return result;
+    }
+};
+
+fn calcStride(width: u31) u31 {
+    return std.mem.alignForward(u31, width, row_align);
+}
+
 pub fn calcFileSize(width: u31, height: u31) u32 {
-    const stride = std.mem.alignForward(u31, width, row_align);
+    const stride = calcStride(width);
     return calcDataStart() + stride * height;
 }
 

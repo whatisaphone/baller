@@ -92,7 +92,9 @@ fn testRoundTrip(
     try extract.run(allocator, &.{
         .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
         .output_path = extract_dir,
-        .raw = raw,
+        .rmim_raw = raw,
+        .scripts_raw = raw,
+        .awiz_raw = true, // TODO: AWIZ doesn't round trip yet
     });
 
     // Build
