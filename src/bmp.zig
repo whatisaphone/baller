@@ -39,8 +39,10 @@ pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void 
 pub fn writePalette(out: anytype, pal: *const [0x300]u8) !void {
     var i: usize = 0;
     while (i < 0x300) {
-        // convert 24-bit colors to 32-bit
-        try out.writeAll(pal[i .. i + 3]);
+        // convert from RGB to BGR0
+        try out.writeByte(pal[i + 2]);
+        try out.writeByte(pal[i + 1]);
+        try out.writeByte(pal[i]);
         try out.writeByte(0);
         i += 3;
     }
