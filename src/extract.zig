@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
@@ -571,6 +572,15 @@ fn extractDisk(
                     data,
                     &state,
                     index,
+                )
+            else if (id == comptime blockId("AWIZ"))
+                try decodeAwiz(
+                    allocator,
+                    disk_number,
+                    offset,
+                    data,
+                    &state,
+                    index,
                 );
 
             try writeGlob(disk_number, id, offset, data, index, &state, &room_txt);
@@ -666,6 +676,43 @@ fn decodeScrp(
     defer output_file.close();
 
     try output_file.writeAll(disassembly.items);
+}
+
+fn decodeAwiz(
+    allocator: std.mem.Allocator,
+    disk_number: u8,
+    offset: u32,
+    data: []const u8,
+    state: *State,
+    index: *const Index,
+) !void {
+    const bmp = awiz.decode(allocator, data) catch |err| {
+        if (err == error.DecodeAwiz)
+            return;
+        return err;
+    };
+    defer allocator.free(bmp);
+
+    const glob_number = try findGlobNumber(
+        index,
+        comptime blockId("AWIZ"),
+        disk_number,
+        offset,
+    ) orelse return error.BadData;
+
+    const prev_path_len = state.cur_path.len;
+    defer state.cur_path.len = prev_path_len;
+
+    try state.cur_path.writer().print(
+        "{s}_{:0>4}.bmp\x00",
+        .{ blockIdToStr(&comptime blockId("AWIZ")), glob_number },
+    );
+    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+
+    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    defer output_file.close();
+
+    try output_file.writeAll(bmp);
 }
 
 fn readGlob(

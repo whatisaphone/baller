@@ -10,6 +10,8 @@ pub fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
 }
 
 fn BlockReader(Stream: type) type {
+    comptime std.debug.assert(@typeInfo(Stream) == .Pointer);
+
     return struct {
         const Self = @This();
 
