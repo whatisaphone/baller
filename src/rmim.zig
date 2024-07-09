@@ -2,6 +2,7 @@ const std = @import("std");
 
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const blockReader = @import("block_reader.zig").blockReader;
+const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
 
@@ -60,12 +61,12 @@ pub fn decode(
     const bmap_len = try im00_blocks.expectBlock("BMAP");
     const bmap_end: u32 = @intCast(rmim_reader.bytes_read + bmap_len);
 
-    const bmp_size = calcBmpFileSize(width, height);
+    const bmp_size = bmp.calcFileSize(width, height);
     var out = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_size);
     errdefer out.deinit(allocator);
 
-    try writeBmpHeader(out.writer(allocator), width, height, bmp_size);
-    try writeBmpPalette(out.writer(allocator), apal);
+    try bmp.writeHeader(out.writer(allocator), width, height, bmp_size);
+    try bmp.writePalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
 
     if (rmim_reader.bytes_read != im00_end) {
@@ -102,49 +103,5 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
                 color = try in.readBitsNoEof(u8, 8);
             }
         }
-    }
-}
-
-const bitmap_file_header_size = 14;
-const bitmap_info_header_size = 40;
-const num_colors = 256;
-
-fn calcBmpFileSize(width: u31, height: u31) u32 {
-    return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors + width * height;
-}
-
-fn calcBmpDataStart() u32 {
-    return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors;
-}
-
-fn writeBmpHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
-    // BITMAPFILEHEADER
-    try out.writeAll("BM");
-    try out.writeInt(u32, file_size, .little);
-    try out.writeInt(u16, 0, .little);
-    try out.writeInt(u16, 0, .little);
-    try out.writeInt(u32, calcBmpDataStart(), .little);
-
-    // BITMAPINFOHEADER
-    try out.writeInt(u32, bitmap_info_header_size, .little);
-    try out.writeInt(i32, width, .little);
-    try out.writeInt(i32, -@as(i32, height), .little);
-    try out.writeInt(u16, 1, .little);
-    try out.writeInt(u16, 8, .little);
-    try out.writeInt(u32, 0, .little); // BI_RGB
-    try out.writeInt(u32, 0, .little);
-    try out.writeInt(i32, 0, .little);
-    try out.writeInt(i32, 0, .little);
-    try out.writeInt(u32, 0, .little);
-    try out.writeInt(u32, 0, .little);
-}
-
-fn writeBmpPalette(out: anytype, pal: *const [0x300]u8) !void {
-    var i: usize = 0;
-    while (i < 0x300) {
-        // convert 24-bit colors to 32-bit
-        try out.writeAll(pal[i .. i + 3]);
-        try out.writeByte(0);
-        i += 3;
     }
 }
