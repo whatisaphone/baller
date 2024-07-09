@@ -2,8 +2,55 @@ const std = @import("std");
 
 const bitmap_file_header_size = 14;
 const bitmap_info_header_size = 40;
+const magic = std.mem.bytesToValue(u16, "BM");
 const num_colors = 256;
 const row_align = 4;
+
+const BI_RGB = 0;
+
+const BITMAPFILEHEADER = packed struct {
+    bfType: u16,
+    bfSize: u32,
+    bfReserved1: u16,
+    bfReserved2: u16,
+    bfOffBits: u32,
+};
+
+const BITMAPINFOHEADER = packed struct {
+    biSize: u32,
+    biWidth: i32,
+    biHeight: i32,
+    biPlanes: u16,
+    biBitCount: u16,
+    biCompression: u32,
+    biSizeImage: u32,
+    biXPelsPerMeter: i32,
+    biYPelsPerMeter: i32,
+    biClrUsed: u32,
+    biClrImportant: u32,
+};
+
+pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, []const u8 } {
+    if (bmp.len < bitmap_file_header_size + bitmap_info_header_size)
+        return error.BadData;
+
+    const file_header = std.mem.bytesAsValue(BITMAPFILEHEADER, bmp);
+    if (file_header.bfType != magic)
+        return error.BadData;
+
+    const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[bitmap_file_header_size..]);
+
+    if (info_header.biSize != bitmap_info_header_size or
+        info_header.biBitCount != 8 or
+        info_header.biCompression != BI_RGB or
+        !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
+        return error.BadData;
+
+    if (file_header.bfOffBits > bmp.len)
+        return error.BadData;
+
+    return .{ info_header, bmp[file_header.bfOffBits..] };
+}
 
 pub fn calcFileSize(width: u31, height: u31) u32 {
     const stride = std.mem.alignForward(u31, width, row_align);
