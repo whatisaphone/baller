@@ -643,6 +643,7 @@ fn decodeRmim(
         .{cur_path[before_child_path_len..]},
     );
 }
+
 fn decodeScrp(
     allocator: std.mem.Allocator,
     disk_number: u8,
