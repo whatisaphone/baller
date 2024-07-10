@@ -1,5 +1,7 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
+const blockId = @import("block_id.zig").blockId;
 const blockReader = @import("block_reader.zig").blockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
@@ -11,22 +13,40 @@ const rmim = @import("rmim.zig");
 const max_supported_width = 640;
 const transparent = 255;
 
+pub const Extra = struct {
+    cnvs: ?[2]i32,
+    spot: ?[2]i32,
+    relo: ?[2]i32,
+};
+
 pub fn decode(
     allocator: std.mem.Allocator,
     awiz_raw: []const u8,
     rmda_raw: []const u8,
-) !std.ArrayListUnmanaged(u8) {
+) !struct { std.ArrayListUnmanaged(u8), Extra } {
     const apal = try rmim.findApalInRmda(rmda_raw);
 
     var buf_reader = std.io.fixedBufferStream(awiz_raw);
     var reader = std.io.countingReader(buf_reader.reader());
     var awiz_blocks = blockReader(&reader);
 
-    const wizh_len = awiz_blocks.skipUntilBlock("WIZH") catch |err| {
-        if (err == error.EndOfStream)
+    var extra = std.mem.zeroInit(Extra, .{});
+
+    const wizh_len = while (true) {
+        const id, const len = try awiz_blocks.next();
+        if (id == comptime blockId("CNVS")) {
+            try readBlockWithTwoInts(&reader, len, &extra.cnvs);
+        } else if (id == comptime blockId("SPOT")) {
+            try readBlockWithTwoInts(&reader, len, &extra.spot);
+        } else if (id == comptime blockId("RELO")) {
+            try readBlockWithTwoInts(&reader, len, &extra.relo);
+        } else if (id == comptime blockId("WIZH")) {
+            break len;
+        } else {
             return error.DecodeAwiz;
-        return err;
+        }
     };
+
     if (wizh_len != 12)
         return error.BadData;
     const compression = try reader.reader().readInt(i32, .little);
@@ -85,10 +105,25 @@ pub fn decode(
 
     try awiz_blocks.finishEof();
 
-    return bmp_buf;
+    return .{ bmp_buf, extra };
 }
 
-pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+fn readBlockWithTwoInts(reader: anytype, len: u32, two_ints: *?[2]i32) !void {
+    if (len != 8)
+        return error.BadData;
+    std.debug.assert(builtin.cpu.arch.endian() == .little);
+    two_ints.* = @as([2]i32, undefined); // TODO: is there a better way to do this?
+    try reader.reader().readNoEof(std.mem.asBytes(&two_ints.*.?));
+}
+
+pub fn encode(
+    cnvs: ?[2]i32,
+    spot: ?[2]i32,
+    relo: ?[2]i32,
+    bmp_raw: []const u8,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+) !void {
     const header, const pixels = try bmp.readHeader(bmp_raw);
 
     const width: u31 = @intCast(header.biWidth);
@@ -96,22 +131,26 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
     std.debug.assert(header.biHeight < 0);
     const height: u31 = @intCast(-header.biHeight);
 
-    // TODO: all these numbers are hardcoded and wrong
+    if (cnvs) |a| {
+        const cnvs_fixup = try beginBlock(out, "CNVS");
+        try out.writer().writeInt(i32, a[0], .little);
+        try out.writer().writeInt(i32, a[1], .little);
+        try endBlock(out, fixups, cnvs_fixup);
+    }
 
-    const cnvs_fixup = try beginBlock(out, "CNVS");
-    try out.writer().writeInt(i32, 480, .little);
-    try out.writer().writeInt(i32, 120, .little);
-    try endBlock(out, fixups, cnvs_fixup);
+    if (spot) |a| {
+        const spot_fixup = try beginBlock(out, "SPOT");
+        try out.writer().writeInt(i32, a[0], .little);
+        try out.writer().writeInt(i32, a[1], .little);
+        try endBlock(out, fixups, spot_fixup);
+    }
 
-    const spot_fixup = try beginBlock(out, "SPOT");
-    try out.writer().writeInt(i32, 6, .little);
-    try out.writer().writeInt(i32, 5, .little);
-    try endBlock(out, fixups, spot_fixup);
-
-    const relo_fixup = try beginBlock(out, "RELO");
-    try out.writer().writeInt(i32, 448, .little);
-    try out.writer().writeInt(i32, 88, .little);
-    try endBlock(out, fixups, relo_fixup);
+    if (relo) |a| {
+        const relo_fixup = try beginBlock(out, "RELO");
+        try out.writer().writeInt(i32, a[0], .little);
+        try out.writer().writeInt(i32, a[1], .little);
+        try endBlock(out, fixups, relo_fixup);
+    }
 
     const wizh_fixup = try beginBlock(out, "WIZH");
     try out.writer().writeInt(i32, 1, .little); // compression type RLE

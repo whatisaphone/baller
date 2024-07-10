@@ -289,6 +289,9 @@ const RoomLine = union(enum) {
     },
     awiz: struct {
         number: u32,
+        cnvs: ?[2]i32,
+        spot: ?[2]i32,
+        relo: ?[2]i32,
         path: []const u8,
     },
 };
@@ -314,19 +317,50 @@ fn parseRoomLine(line: []const u8) !RoomLine {
         return .{ .room_image = .{ .path = line[11..] } };
     } else if (std.mem.startsWith(u8, line, "awiz ")) {
         var words = std.mem.splitScalar(u8, line[5..], ' ');
-        const number_str = words.next() orelse return error.BadData;
-        const path = words.next() orelse return error.BadData;
-        if (words.next()) |_| return error.BadData;
 
+        const number_str = words.next() orelse return error.BadData;
         const number = try std.fmt.parseInt(u16, number_str, 10);
+
+        var cnvs: ?[2]i32 = null;
+        var spot: ?[2]i32 = null;
+        var relo: ?[2]i32 = null;
+        var path: ?[]const u8 = null;
+
+        while (words.next()) |word| {
+            if (std.mem.startsWith(u8, word, "cnvs=") and cnvs == null)
+                cnvs = try parseTwoInts(word[5..])
+            else if (std.mem.startsWith(u8, word, "spot=") and spot == null)
+                spot = try parseTwoInts(word[5..])
+            else if (std.mem.startsWith(u8, word, "relo=") and relo == null)
+                relo = try parseTwoInts(word[5..])
+            else if (std.mem.startsWith(u8, word, "path=") and path == null)
+                path = word[5..]
+            else
+                return error.BadData;
+        }
 
         return .{ .awiz = .{
             .number = number,
-            .path = path,
+            .cnvs = cnvs,
+            .spot = spot,
+            .relo = relo,
+            .path = path orelse return error.BadData,
         } };
     } else {
         return error.BadData;
     }
+}
+
+fn parseTwoInts(str: []const u8) ![2]i32 {
+    var split = std.mem.splitScalar(u8, str, ',');
+    const str1 = split.next() orelse return error.BadData;
+    const str2 = split.next() orelse return error.BadData;
+    if (split.next()) |_| return error.BadData;
+
+    return .{
+        try std.fmt.parseInt(i32, str1, 10),
+        try std.fmt.parseInt(i32, str2, 10),
+    };
 }
 
 fn handleRawGlob(
@@ -429,7 +463,14 @@ fn handleAwiz(
     try bmp_file.reader().readNoEof(bmp_raw);
 
     const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
-    try awiz.encode(bmp_raw, &state.writer, &state.fixups);
+    try awiz.encode(
+        line.cnvs,
+        line.spot,
+        line.relo,
+        bmp_raw,
+        &state.writer,
+        &state.fixups,
+    );
     try endBlock(&state.writer, &state.fixups, awiz_fixup);
     const awiz_len = state.fixups.getLast().value;
 

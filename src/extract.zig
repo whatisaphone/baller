@@ -643,14 +643,14 @@ fn extractGlob(
                 // not writing a line as of now, because no assembler exists
             },
             blockId("AWIZ") => {
-                decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
+                const extra = decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
                     if (err == error.DecodeAwiz)
                         continue;
                     return err;
                 };
 
                 if (!wrote_line) {
-                    try writeAwizLine(glob_number, state, room_txt);
+                    try writeAwizLine(glob_number, &extra, state, room_txt);
                     wrote_line = true;
                 }
             },
@@ -718,8 +718,8 @@ fn decodeAwiz(
     rmda_raw: []const u8,
     data: []const u8,
     state: *State,
-) !void {
-    var bmp = try awiz.decode(allocator, data, rmda_raw);
+) !awiz.Extra {
+    var bmp, const extra = try awiz.decode(allocator, data, rmda_raw);
     defer bmp.deinit(allocator);
 
     const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
@@ -729,13 +729,27 @@ fn decodeAwiz(
     defer output_file.close();
 
     try output_file.writeAll(bmp.items);
+
+    return extra;
 }
 
-fn writeAwizLine(glob_number: u32, state: *State, room_txt: anytype) !void {
+fn writeAwizLine(
+    glob_number: u32,
+    extra: *const awiz.Extra,
+    state: *State,
+    room_txt: anytype,
+) !void {
     const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    try room_txt.writer().print("awiz {} {s}\n", .{ glob_number, path.relative() });
+    try room_txt.writer().print("awiz {}", .{glob_number});
+    if (extra.cnvs) |cnvs|
+        try room_txt.writer().print(" cnvs={},{}", .{ cnvs[0], cnvs[1] });
+    if (extra.spot) |spot|
+        try room_txt.writer().print(" spot={},{}", .{ spot[0], spot[1] });
+    if (extra.relo) |relo|
+        try room_txt.writer().print(" relo={},{}", .{ relo[0], relo[1] });
+    try room_txt.writer().print(" path={s}\n", .{path.relative()});
 }
 
 fn readGlob(
