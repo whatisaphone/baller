@@ -711,8 +711,8 @@ fn decodeAwiz(
     index: *const Index,
     room_txt: anytype,
 ) !void {
-    const bmp = try awiz.decode(allocator, data, rmda_raw);
-    defer allocator.free(bmp);
+    var bmp = try awiz.decode(allocator, data, rmda_raw);
+    defer bmp.deinit(allocator);
 
     const glob_number = try findGlobNumber(
         index,
@@ -733,7 +733,7 @@ fn decodeAwiz(
     const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
     defer output_file.close();
 
-    try output_file.writeAll(bmp);
+    try output_file.writeAll(bmp.items);
 
     try room_txt.writer().print(
         "awiz {} {s}\n",
