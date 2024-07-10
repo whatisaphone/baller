@@ -12,6 +12,7 @@ const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
+const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
 
 pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
@@ -24,18 +25,23 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     try run(allocator, &.{
         .input_path = input_path,
         .output_path = output_path,
-        .rmim_raw = false,
-        .scripts_raw = false,
-        .awiz_raw = false,
+        .rmim_decode = true,
+        .script_modes = &.{ .decode, .raw },
+        .awiz_modes = &.{ .decode, .raw },
     });
 }
+
+const ResourceMode = enum {
+    raw,
+    decode,
+};
 
 const Extract = struct {
     input_path: [:0]const u8,
     output_path: [:0]const u8,
-    rmim_raw: bool,
-    scripts_raw: bool,
-    awiz_raw: bool,
+    rmim_decode: bool,
+    script_modes: []const ResourceMode,
+    awiz_modes: []const ResourceMode,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
@@ -84,9 +90,9 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
             disk_number,
             &project_txt,
             &index,
-            args.rmim_raw,
-            args.scripts_raw,
-            args.awiz_raw,
+            args.rmim_decode,
+            args.script_modes,
+            args.awiz_modes,
         );
     }
 
@@ -466,9 +472,9 @@ fn extractDisk(
     disk_number: u8,
     project_txt: anytype,
     index: *const Index,
-    rmim_raw: bool,
-    scripts_raw: bool,
-    awiz_raw: bool,
+    rmim_decode: bool,
+    script_modes: []const ResourceMode,
+    awiz_modes: []const ResourceMode,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
@@ -533,7 +539,7 @@ fn extractDisk(
         defer allocator.free(rmda_data);
 
         const rmim_decoded = rmim_decoded: {
-            if (rmim_raw)
+            if (!rmim_decode)
                 break :rmim_decoded false;
             decodeRmim(allocator, rmim_data, rmda_data, &state, &room_txt) catch |err| {
                 if (err != error.DecompressBmap)
@@ -568,34 +574,23 @@ fn extractDisk(
 
             const data = try allocator.alloc(u8, len);
             defer allocator.free(data);
-
             try reader.reader().readNoEof(data);
 
-            var decoded = false;
-            if (id == comptime blockId("SCRP")) {
-                if (!scripts_raw) {
-                    try decodeScrp(allocator, glob_number, data, &state);
-                }
-            } else if (id == comptime blockId("AWIZ")) {
-                if (!awiz_raw) {
-                    if (decodeAwiz(
-                        allocator,
-                        glob_number,
-                        rmda_data,
-                        data,
-                        &state,
-                        &room_txt,
-                    )) {
-                        decoded = true;
-                    } else |err| {
-                        if (err != error.DecodeAwiz)
-                            return err;
-                    }
-                }
-            }
-
-            if (!decoded)
-                try writeGlob(id, glob_number, data, &state, &room_txt);
+            const modes = switch (id) {
+                blockId("AWIZ") => awiz_modes,
+                blockId("SCRP") => script_modes,
+                else => &.{ResourceMode.raw},
+            };
+            try extractGlob(
+                allocator,
+                id,
+                glob_number,
+                data,
+                modes,
+                rmda_data,
+                &state,
+                &room_txt,
+            );
         }
 
         try lflf_blocks.finish(lflf_end);
@@ -629,6 +624,53 @@ fn findLflfRoomNumber(
     return error.BadData;
 }
 
+fn extractGlob(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number: u32,
+    data: []const u8,
+    modes: []const ResourceMode,
+    rmda_data: []const u8,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    var wrote_line = false;
+    for (modes) |mode| switch (mode) {
+        .decode => switch (block_id) {
+            blockId("SCRP") => {
+                try decodeScrp(allocator, glob_number, data, state);
+
+                // not writing a line as of now, because no assembler exists
+            },
+            blockId("AWIZ") => {
+                decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
+                    if (err == error.DecodeAwiz)
+                        continue;
+                    return err;
+                };
+
+                if (!wrote_line) {
+                    try writeAwizLine(glob_number, state, room_txt);
+                    wrote_line = true;
+                }
+            },
+            else => unreachable,
+        },
+        .raw => {
+            try writeRawGlobFile(block_id, glob_number, data, state);
+
+            if (!wrote_line) {
+                try writeRawGlobLine(block_id, glob_number, state, room_txt);
+                wrote_line = true;
+            }
+        },
+    };
+
+    // This should be unreachable as long as `raw` is in the mode list
+    if (!wrote_line)
+        return error.BadData;
+}
+
 fn decodeRmim(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
@@ -639,21 +681,15 @@ fn decodeRmim(
     var bmp = try rmim.decode(allocator, rmim_raw, rmda_raw);
     defer bmp.deinit(allocator);
 
-    const before_child_path_len = state.cur_path.len;
-    defer state.cur_path.len = before_child_path_len;
+    const path = try pathf.print(&state.cur_path, "RMIM.bmp", .{});
+    defer path.restore();
 
-    try state.cur_path.appendSlice("RMIM.bmp\x00");
-    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-
-    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer output_file.close();
 
     try output_file.writeAll(bmp.items);
 
-    try room_txt.writer().print(
-        "room-image {s}\n",
-        .{cur_path[before_child_path_len..]},
-    );
+    try room_txt.writer().print("room-image {s}\n", .{path.relative()});
 }
 
 fn decodeScrp(
@@ -667,16 +703,10 @@ fn decodeScrp(
 
     try disasm.disasm(data, disassembly.writer(allocator));
 
-    const prev_path_len = state.cur_path.len;
-    defer state.cur_path.len = prev_path_len;
+    const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
+    defer path.restore();
 
-    try state.cur_path.writer().print(
-        "{s}_{:0>4}.s\x00",
-        .{ blockIdToStr(&comptime blockId("SCRP")), glob_number },
-    );
-    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-
-    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer output_file.close();
 
     try output_file.writeAll(disassembly.items);
@@ -688,29 +718,24 @@ fn decodeAwiz(
     rmda_raw: []const u8,
     data: []const u8,
     state: *State,
-    room_txt: anytype,
 ) !void {
     var bmp = try awiz.decode(allocator, data, rmda_raw);
     defer bmp.deinit(allocator);
 
-    const prev_path_len = state.cur_path.len;
-    defer state.cur_path.len = prev_path_len;
+    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+    defer path.restore();
 
-    try state.cur_path.writer().print(
-        "{s}_{:0>4}.bmp\x00",
-        .{ blockIdToStr(&comptime blockId("AWIZ")), glob_number },
-    );
-    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-
-    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer output_file.close();
 
     try output_file.writeAll(bmp.items);
+}
 
-    try room_txt.writer().print(
-        "awiz {} {s}\n",
-        .{ glob_number, cur_path[prev_path_len..] },
-    );
+fn writeAwizLine(glob_number: u32, state: *State, room_txt: anytype) !void {
+    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+    defer path.restore();
+
+    try room_txt.writer().print("awiz {} {s}\n", .{ glob_number, path.relative() });
 }
 
 fn readGlob(
@@ -726,42 +751,6 @@ fn readGlob(
     return data;
 }
 
-fn extractGlob(
-    disk_number: u8,
-    id: BlockId,
-    len: u32,
-    reader: anytype,
-    index: *const Index,
-    state: *State,
-    room_txt: anytype,
-) !void {
-    const glob_number = try findGlobNumber(
-        index,
-        id,
-        disk_number,
-        @intCast(reader.bytes_read - 8),
-    ) orelse return error.BadData;
-
-    const before_child_path_len = state.cur_path.len;
-    defer state.cur_path.len = before_child_path_len;
-
-    try state.cur_path.writer().print(
-        "{s}_{:0>4}.bin\x00",
-        .{ blockIdToStr(&id), glob_number },
-    );
-    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-
-    try room_txt.writer().print(
-        "raw-glob {s} {} {s}\n",
-        .{ blockIdToStr(&id), glob_number, cur_path[before_child_path_len..] },
-    );
-
-    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
-    defer output_file.close();
-
-    try io.copy(std.io.limitedReader(reader.reader(), len), output_file);
-}
-
 // TODO: this is mostly a copy/paste
 fn writeGlob(
     block_id: BlockId,
@@ -770,24 +759,48 @@ fn writeGlob(
     state: *State,
     room_txt: anytype,
 ) !void {
-    const before_child_path_len = state.cur_path.len;
-    defer state.cur_path.len = before_child_path_len;
-
-    try state.cur_path.writer().print(
-        "{s}_{:0>4}.bin\x00",
-        .{ blockIdToStr(&block_id), glob_number },
-    );
-    const cur_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
+    const path = try appendGlobPath(state, block_id, glob_number, "bin");
+    defer path.restore();
 
     try room_txt.writer().print(
         "raw-glob {s} {} {s}\n",
-        .{ blockIdToStr(&block_id), glob_number, cur_path[before_child_path_len..] },
+        .{ blockIdToStr(&block_id), glob_number, path.relative() },
     );
 
-    const output_file = try std.fs.cwd().createFileZ(cur_path, .{});
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer output_file.close();
 
     try output_file.writeAll(data);
+}
+
+fn writeRawGlobFile(
+    block_id: BlockId,
+    glob_number: u32,
+    data: []const u8,
+    state: *State,
+) !void {
+    const path = try appendGlobPath(state, block_id, glob_number, "bin");
+    defer path.restore();
+
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
+    defer output_file.close();
+
+    try output_file.writeAll(data);
+}
+
+fn writeRawGlobLine(
+    block_id: BlockId,
+    glob_number: u32,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    const path = try appendGlobPath(state, block_id, glob_number, "bin");
+    defer path.restore();
+
+    try room_txt.writer().print(
+        "raw-glob {s} {} {s}\n",
+        .{ blockIdToStr(&block_id), glob_number, path.relative() },
+    );
 }
 
 fn findGlobNumber(
@@ -833,4 +846,17 @@ fn directoryForBlockId(
         blockId("TLKE") => &directories.talkies,
         else => null,
     };
+}
+
+fn appendGlobPath(
+    state: *State,
+    block_id: BlockId,
+    number: u32,
+    ext: []const u8,
+) !pathf.PrintedPath {
+    return pathf.print(
+        &state.cur_path,
+        "{s}_{:0>4}.{s}",
+        .{ blockIdToStr(&block_id), number, ext },
+    );
 }
