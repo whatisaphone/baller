@@ -524,11 +524,11 @@ fn extractDisk(
 
         var lflf_blocks = blockReader(&reader);
 
-        const rmim_offset, const rmim_data =
+        const rmim_data =
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMIM"), &reader);
         defer allocator.free(rmim_data);
 
-        const rmda_offset, const rmda_data =
+        const rmda_data =
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
         defer allocator.free(rmda_data);
 
@@ -544,21 +544,17 @@ fn extractDisk(
         };
         if (!rmim_decoded)
             try writeGlob(
-                disk_number,
                 comptime blockId("RMIM"),
-                rmim_offset,
+                room_number,
                 rmim_data,
-                index,
                 &state,
                 &room_txt,
             );
 
         try writeGlob(
-            disk_number,
             comptime blockId("RMDA"),
-            rmda_offset,
+            room_number,
             rmda_data,
-            index,
             &state,
             &room_txt,
         );
@@ -566,6 +562,9 @@ fn extractDisk(
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
             const id, const len = try lflf_blocks.next();
+
+            const glob_number = try findGlobNumber(index, id, disk_number, offset) orelse
+                return error.BadData;
 
             const data = try allocator.alloc(u8, len);
             defer allocator.free(data);
@@ -575,25 +574,16 @@ fn extractDisk(
             var decoded = false;
             if (id == comptime blockId("SCRP")) {
                 if (!scripts_raw) {
-                    try decodeScrp(
-                        allocator,
-                        disk_number,
-                        offset,
-                        data,
-                        &state,
-                        index,
-                    );
+                    try decodeScrp(allocator, glob_number, data, &state);
                 }
             } else if (id == comptime blockId("AWIZ")) {
                 if (!awiz_raw) {
                     if (decodeAwiz(
                         allocator,
-                        disk_number,
+                        glob_number,
                         rmda_data,
-                        offset,
                         data,
                         &state,
-                        index,
                         &room_txt,
                     )) {
                         decoded = true;
@@ -605,7 +595,7 @@ fn extractDisk(
             }
 
             if (!decoded)
-                try writeGlob(disk_number, id, offset, data, index, &state, &room_txt);
+                try writeGlob(id, glob_number, data, &state, &room_txt);
         }
 
         try lflf_blocks.finish(lflf_end);
@@ -668,23 +658,14 @@ fn decodeRmim(
 
 fn decodeScrp(
     allocator: std.mem.Allocator,
-    disk_number: u8,
-    offset: u32,
+    glob_number: u32,
     data: []const u8,
     state: *State,
-    index: *const Index,
 ) !void {
     var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
     try disasm.disasm(data, disassembly.writer(allocator));
-
-    const glob_number = try findGlobNumber(
-        index,
-        comptime blockId("SCRP"),
-        disk_number,
-        offset,
-    ) orelse return error.BadData;
 
     const prev_path_len = state.cur_path.len;
     defer state.cur_path.len = prev_path_len;
@@ -703,23 +684,14 @@ fn decodeScrp(
 
 fn decodeAwiz(
     allocator: std.mem.Allocator,
-    disk_number: u8,
+    glob_number: u32,
     rmda_raw: []const u8,
-    offset: u32,
     data: []const u8,
     state: *State,
-    index: *const Index,
     room_txt: anytype,
 ) !void {
     var bmp = try awiz.decode(allocator, data, rmda_raw);
     defer bmp.deinit(allocator);
-
-    const glob_number = try findGlobNumber(
-        index,
-        comptime blockId("AWIZ"),
-        disk_number,
-        offset,
-    ) orelse return error.BadData;
 
     const prev_path_len = state.cur_path.len;
     defer state.cur_path.len = prev_path_len;
@@ -746,13 +718,12 @@ fn readGlob(
     blocks: anytype,
     block_id: BlockId,
     reader: anytype,
-) !struct { u32, []u8 } {
-    const offset = reader.bytes_read;
+) ![]u8 {
     const block_len = try blocks.expect(block_id);
     const data = try allocator.alloc(u8, block_len);
     errdefer allocator.free(data);
     try reader.reader().readNoEof(data);
-    return .{ @intCast(offset), data };
+    return data;
 }
 
 fn extractGlob(
@@ -793,21 +764,12 @@ fn extractGlob(
 
 // TODO: this is mostly a copy/paste
 fn writeGlob(
-    disk_number: u8,
     block_id: BlockId,
-    block_offset: u32,
+    glob_number: u32,
     data: []const u8,
-    index: *const Index,
     state: *State,
     room_txt: anytype,
 ) !void {
-    const glob_number = try findGlobNumber(
-        index,
-        block_id,
-        disk_number,
-        block_offset,
-    ) orelse return error.BadData;
-
     const before_child_path_len = state.cur_path.len;
     defer state.cur_path.len = before_child_path_len;
 
