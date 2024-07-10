@@ -54,6 +54,8 @@ pub fn decode(
 
     // based on ScummVM's auxDecompTRLEPrim
     for (0..height) |_| {
+        const out_row_end = bmp_buf.items.len + width;
+
         const line_size = try reader.reader().readInt(u16, .little);
         const line_end = buf_reader.pos + line_size;
 
@@ -71,6 +73,8 @@ pub fn decode(
                 try io.copy(std.io.limitedReader(reader.reader(), count), bmp_writer);
             }
         }
+
+        try bmp_buf.appendNTimes(allocator, transparent, out_row_end - bmp_buf.items.len);
 
         try bmp.padRow(bmp_writer, width);
     }
@@ -140,20 +144,21 @@ fn encodeRle(
             const color = row[i];
             i += 1;
 
-            while (i < row.len and row[i] == color and i < 127) {
+            while (i < row.len and row[i] == color and i < 63) {
                 i += 1;
                 run_len += 1;
             }
 
             if (color == transparent) {
+                if (i == row.len and line_buf.len == 2)
+                    break;
                 const n = 1 | @shlExact(run_len, 1);
                 try line_buf.append(n);
             } else {
-                // TODO: this is not actually compressing, is it
-                for (0..run_len) |_| {
-                    try line_buf.append(0);
-                    try line_buf.append(color);
-                }
+                // TODO: this is incomplete
+                const n = 2 | @shlExact(run_len - 1, 2);
+                try line_buf.append(n);
+                try line_buf.append(color);
             }
         }
 
