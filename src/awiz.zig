@@ -127,9 +127,7 @@ pub fn encode(
     const header, const pixels = try bmp.readHeader(bmp_raw);
 
     const width: u31 = @intCast(header.biWidth);
-    // TODO: handle bottom-up
-    std.debug.assert(header.biHeight < 0);
-    const height: u31 = @intCast(-header.biHeight);
+    const height: u31 = @intCast(@abs(header.biHeight));
 
     if (cnvs) |a| {
         const cnvs_fixup = try beginBlock(out, "CNVS");
@@ -168,7 +166,7 @@ fn encodeRle(
     pixels: []const u8,
     out: anytype,
 ) !void {
-    var rows = bmp.RowIter.init(header, pixels);
+    var rows = try bmp.RowIter.init(header, pixels);
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte

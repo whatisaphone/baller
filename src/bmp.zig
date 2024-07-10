@@ -46,10 +46,23 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
         !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
         return error.BadData;
 
+    // Other code assumes width and height fit in 31 bits
+    const width = std.math.cast(u31, info_header.biWidth) orelse
+        return error.BadData;
+    const height: u31 = std.math.cast(u31, @abs(info_header.biHeight)) orelse
+        return error.BadData;
+    const stride = calcStride(width);
+
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
 
-    return .{ info_header, bmp[file_header.bfOffBits..] };
+    const pixels = bmp[file_header.bfOffBits..];
+    // For RMIM to round-trip, we need to allow extra trailing bytes. So it must
+    // be ok for the data to be too long, but at least check it's not too short.
+    if (pixels.len < stride * height)
+        return error.BadData;
+
+    return .{ info_header, pixels };
 }
 
 pub const PixelIter = union(enum) {
@@ -114,29 +127,48 @@ pub const PixelIter = union(enum) {
 };
 
 pub const RowIter = struct {
-    pos: [*]const u8,
-    end: [*]const u8,
+    pixels: []const u8,
+    pos: u32,
     width: u31,
-    stride: u31,
+    stride: i32,
 
-    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) RowIter {
+    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
         const width: u31 = @intCast(header.biWidth);
+        const stride = calcStride(width);
+
+        // Hopefully i never need to handle this
+        if (pixels.len % stride != 0)
+            return error.BadData;
+
         const top_down = header.biHeight < 0;
-        std.debug.assert(top_down);
+        if (top_down)
+            return .{
+                .pixels = pixels,
+                .pos = 0,
+                .width = width,
+                .stride = stride,
+            };
 
         return .{
-            .pos = pixels.ptr,
-            .end = pixels[pixels.len..].ptr,
+            .pixels = pixels,
+            .pos = @as(u32, @intCast(pixels.len)) - stride,
             .width = width,
-            .stride = calcStride(width),
+            .stride = -@as(i32, stride),
         };
     }
 
     pub fn next(self: *RowIter) ?[]const u8 {
-        const result = self.pos[0..self.width];
-        self.pos += self.stride;
-        if (@intFromPtr(self.pos) > @intFromPtr(self.end))
-            return null;
+        const result = self.pixels[self.pos..][0..self.width];
+
+        if (self.stride > 0) {
+            self.pos += @intCast(self.stride);
+            if (self.pos >= self.pixels.len)
+                return null;
+        } else {
+            self.pos = std.math.sub(u32, self.pos, @intCast(-self.stride)) catch
+                return null;
+        }
+
         return result;
     }
 };
