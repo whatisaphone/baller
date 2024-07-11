@@ -125,6 +125,16 @@ fn FixedBlockReader(Stream: type) type {
             return .{ id, len };
         }
 
+        pub fn peek(self: *const Self) !?BlockId {
+            try self.checkSync();
+
+            if (self.stream.pos == self.stream.buffer.len)
+                return null;
+
+            const id_buf = try io.peekInPlaceBytes(self.stream, 4);
+            return std.mem.readInt(BlockId, id_buf, .little);
+        }
+
         pub fn expect(self: *Self, expected_id: BlockId) !u32 {
             const id, const len = try self.next();
             if (id != expected_id) {
@@ -142,6 +152,17 @@ fn FixedBlockReader(Stream: type) type {
         pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
             const id = comptime blockId(expected_id);
             return self.expect(id);
+        }
+
+        pub fn assume(self: *Self, expected_id: BlockId) !u32 {
+            const id, const len = try self.next();
+            std.debug.assert(id == expected_id);
+            return len;
+        }
+
+        pub fn assumeBlock(self: *Self, comptime expected_id: []const u8) !u32 {
+            const id = comptime blockId(expected_id);
+            return self.assume(id);
         }
 
         pub fn skipUntil(self: *Self, block_id: BlockId) !u32 {

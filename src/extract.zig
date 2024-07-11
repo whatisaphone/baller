@@ -847,7 +847,10 @@ fn decodeMult(
     var stream = std.io.fixedBufferStream(mult_raw);
     var mult_blocks = fixedBlockReader(&stream);
 
-    const wrap_len = while (true) {
+    while (true) {
+        if (try mult_blocks.peek() == comptime blockId("WRAP"))
+            break;
+
         const id, const len = try mult_blocks.next();
         switch (id) {
             blockId("DEFA") => {
@@ -865,10 +868,11 @@ fn decodeMult(
                     .{ blockIdToStr(&id), path.relative() },
                 );
             },
-            blockId("WRAP") => break len,
             else => return error.BadData,
         }
-    };
+    }
+
+    const wrap_len = try mult_blocks.assumeBlock("WRAP");
     const wrap_end: u32 = @intCast(stream.pos + wrap_len);
     var wrap_blocks = fixedBlockReader(&stream);
 

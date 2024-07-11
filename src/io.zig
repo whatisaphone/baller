@@ -29,6 +29,18 @@ pub fn readInPlace(stream: anytype, len: usize) ![]const u8 {
     return result;
 }
 
+pub fn peekInPlace(stream: anytype, len: usize) ![]const u8 {
+    const end = stream.pos + len;
+    if (end > stream.buffer.len)
+        return error.EndOfStream;
+    return stream.buffer[stream.pos..][0..len];
+}
+
+pub fn peekInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
+    const result = try peekInPlace(stream, len);
+    return result[0..len];
+}
+
 pub fn XorReader(Stream: type) type {
     return struct {
         stream: Stream,
