@@ -1,10 +1,12 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockReader = @import("block_reader.zig").blockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
@@ -13,55 +15,87 @@ const rmim = @import("rmim.zig");
 const max_supported_width = 640;
 const transparent = 255;
 
-pub const Extra = struct {
-    cnvs: ?[2]i32,
-    spot: ?[2]i32,
-    relo: ?[2]i32,
+pub const Awiz = struct {
+    blocks: std.BoundedArray(Block, 5) = .{},
+
+    pub fn deinit(self: *Awiz, allocator: std.mem.Allocator) void {
+        for (self.blocks.slice()) |*block| switch (block.*) {
+            .two_ints, .wizh => {},
+            .wizd => |*a| a.deinit(allocator),
+        };
+    }
+};
+
+const Block = union(enum) {
+    two_ints: struct { id: BlockId, ints: [2]i32 },
+    wizh,
+    /// A raw BMP file
+    wizd: std.ArrayListUnmanaged(u8),
 };
 
 pub fn decode(
     allocator: std.mem.Allocator,
     awiz_raw: []const u8,
     rmda_raw: []const u8,
-) !struct { std.ArrayListUnmanaged(u8), Extra } {
-    const apal = try rmim.findApalInRmda(rmda_raw);
+) !Awiz {
+    var result: Awiz = .{};
+    var wizh_opt: ?struct {
+        compression: i32,
+        width: u31,
+        height: u31,
+    } = null;
 
     var buf_reader = std.io.fixedBufferStream(awiz_raw);
     var reader = std.io.countingReader(buf_reader.reader());
     var awiz_blocks = blockReader(&reader);
 
-    var extra = std.mem.zeroInit(Extra, .{});
-
-    const wizh_len = while (true) {
+    const wizd_len = while (true) {
         const id, const len = try awiz_blocks.next();
-        if (id == comptime blockId("CNVS")) {
-            try readBlockWithTwoInts(&reader, len, &extra.cnvs);
-        } else if (id == comptime blockId("SPOT")) {
-            try readBlockWithTwoInts(&reader, len, &extra.spot);
-        } else if (id == comptime blockId("RELO")) {
-            try readBlockWithTwoInts(&reader, len, &extra.relo);
-        } else if (id == comptime blockId("WIZH")) {
-            break len;
-        } else {
-            return error.DecodeAwiz;
+        switch (id) {
+            blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
+                if (len != 8)
+                    return error.BadData;
+                const int1 = try reader.reader().readInt(i32, .little);
+                const int2 = try reader.reader().readInt(i32, .little);
+
+                try result.blocks.append(.{
+                    .two_ints = .{
+                        .id = id,
+                        .ints = .{ int1, int2 },
+                    },
+                });
+            },
+            blockId("WIZH") => {
+                if (len != 12)
+                    return error.BadData;
+                const compression = try reader.reader().readInt(i32, .little);
+                const width_signed = try reader.reader().readInt(i32, .little);
+                const width = std.math.cast(u31, width_signed) orelse return error.BadData;
+                const height_signed = try reader.reader().readInt(i32, .little);
+                const height = std.math.cast(u31, height_signed) orelse return error.BadData;
+
+                wizh_opt = .{
+                    .compression = compression,
+                    .width = width,
+                    .height = height,
+                };
+
+                try result.blocks.append(.wizh);
+            },
+            blockId("WIZD") => break len,
+            else => return error.DecodeAwiz,
         }
     };
+    const wizd_end = buf_reader.pos + wizd_len;
 
-    if (wizh_len != 12)
-        return error.BadData;
-    const compression = try reader.reader().readInt(i32, .little);
-    const width_signed = try reader.reader().readInt(i32, .little);
-    const width = std.math.cast(u31, width_signed) orelse return error.BadData;
-    const height_signed = try reader.reader().readInt(i32, .little);
-    const height = std.math.cast(u31, height_signed) orelse return error.BadData;
+    const wizh = wizh_opt orelse return error.BadData;
+    const width = wizh.width;
+    const height = wizh.height;
 
     if (width > max_supported_width)
         return error.BadData;
-    if (compression != 1) // 1 is RLE
+    if (wizh.compression != 1) // 1 is RLE
         return error.BadData;
-
-    const wizd_len = try awiz_blocks.expectBlock("WIZD");
-    const wizd_end = buf_reader.pos + wizd_len;
 
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_buf = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_file_size);
@@ -70,6 +104,8 @@ pub fn decode(
     var bmp_writer = bmp_buf.writer(allocator);
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
+
+    const apal = try rmim.findApalInRmda(rmda_raw);
     try bmp.writePalette(bmp_writer, apal);
 
     // based on ScummVM's auxDecompTRLEPrim
@@ -103,62 +139,47 @@ pub fn decode(
     if (buf_reader.pos < wizd_end)
         _ = try reader.reader().readByte();
 
+    try result.blocks.append(.{ .wizd = bmp_buf });
+
     try awiz_blocks.finishEof();
 
-    return .{ bmp_buf, extra };
+    return result;
 }
 
-fn readBlockWithTwoInts(reader: anytype, len: u32, two_ints: *?[2]i32) !void {
-    if (len != 8)
-        return error.BadData;
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
-    two_ints.* = @as([2]i32, undefined); // TODO: is there a better way to do this?
-    try reader.reader().readNoEof(std.mem.asBytes(&two_ints.*.?));
-}
+pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+    // First find the bitmap block so we can preload all data before we start
 
-pub fn encode(
-    cnvs: ?[2]i32,
-    spot: ?[2]i32,
-    relo: ?[2]i32,
-    bmp_raw: []const u8,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
-) !void {
-    const header, const pixels = try bmp.readHeader(bmp_raw);
+    const bmp_raw = for (wiz.blocks.slice()) |block| {
+        if (block == .wizd)
+            break block.wizd;
+    } else return error.BadData;
 
+    const header, const pixels = try bmp.readHeader(bmp_raw.items);
     const width: u31 = @intCast(header.biWidth);
     const height: u31 = @intCast(@abs(header.biHeight));
 
-    if (cnvs) |a| {
-        const cnvs_fixup = try beginBlock(out, "CNVS");
-        try out.writer().writeInt(i32, a[0], .little);
-        try out.writer().writeInt(i32, a[1], .little);
-        try endBlock(out, fixups, cnvs_fixup);
-    }
+    // Now write the blocks in the requested order
 
-    if (spot) |a| {
-        const spot_fixup = try beginBlock(out, "SPOT");
-        try out.writer().writeInt(i32, a[0], .little);
-        try out.writer().writeInt(i32, a[1], .little);
-        try endBlock(out, fixups, spot_fixup);
-    }
-
-    if (relo) |a| {
-        const relo_fixup = try beginBlock(out, "RELO");
-        try out.writer().writeInt(i32, a[0], .little);
-        try out.writer().writeInt(i32, a[1], .little);
-        try endBlock(out, fixups, relo_fixup);
-    }
-
-    const wizh_fixup = try beginBlock(out, "WIZH");
-    try out.writer().writeInt(i32, 1, .little); // compression type RLE
-    try out.writer().writeInt(i32, width, .little);
-    try out.writer().writeInt(i32, height, .little);
-    try endBlock(out, fixups, wizh_fixup);
-
-    const wizd_fixup = try beginBlock(out, "WIZD");
-    try encodeRle(header, pixels, out.writer());
-    try endBlock(out, fixups, wizd_fixup);
+    for (wiz.blocks.slice()) |block| switch (block) {
+        .two_ints => |b| {
+            const fixup = try beginBlockImpl(out, b.id);
+            try out.writer().writeInt(i32, b.ints[0], .little);
+            try out.writer().writeInt(i32, b.ints[1], .little);
+            try endBlock(out, fixups, fixup);
+        },
+        .wizh => {
+            const fixup = try beginBlock(out, "WIZH");
+            try out.writer().writeInt(i32, 1, .little); // compression type RLE
+            try out.writer().writeInt(i32, width, .little);
+            try out.writer().writeInt(i32, height, .little);
+            try endBlock(out, fixups, fixup);
+        },
+        .wizd => |_| {
+            const fixup = try beginBlock(out, "WIZD");
+            try encodeRle(header, pixels, out.writer());
+            try endBlock(out, fixups, fixup);
+        },
+    };
 }
 
 fn encodeRle(

@@ -643,14 +643,15 @@ fn extractGlob(
                 // not writing a line as of now, because no assembler exists
             },
             blockId("AWIZ") => {
-                const extra = decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
+                var wiz = decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
                     if (err == error.DecodeAwiz)
                         continue;
                     return err;
                 };
+                defer wiz.deinit(allocator);
 
                 if (!wrote_line) {
-                    try writeAwizLine(glob_number, &extra, state, room_txt);
+                    try writeAwizLines(glob_number, &wiz, state, room_txt);
                     wrote_line = true;
                 }
             },
@@ -718,38 +719,54 @@ fn decodeAwiz(
     rmda_raw: []const u8,
     data: []const u8,
     state: *State,
-) !awiz.Extra {
-    var bmp, const extra = try awiz.decode(allocator, data, rmda_raw);
-    defer bmp.deinit(allocator);
+) !awiz.Awiz {
+    var wiz = try awiz.decode(allocator, data, rmda_raw);
+    errdefer wiz.deinit(allocator);
 
-    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
-    defer path.restore();
+    for (wiz.blocks.slice()) |block| switch (block) {
+        .two_ints, .wizh => {},
+        .wizd => |bmp_data| {
+            const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+            defer path.restore();
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
+            const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
+            defer output_file.close();
 
-    try output_file.writeAll(bmp.items);
+            try output_file.writeAll(bmp_data.items);
+        },
+    };
 
-    return extra;
+    return wiz;
 }
 
-fn writeAwizLine(
+fn writeAwizLines(
     glob_number: u32,
-    extra: *const awiz.Extra,
+    wiz: *const awiz.Awiz,
     state: *State,
     room_txt: anytype,
 ) !void {
-    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
-    defer path.restore();
+    try room_txt.writer().print("awiz {}\n", .{glob_number});
 
-    try room_txt.writer().print("awiz {}", .{glob_number});
-    if (extra.cnvs) |cnvs|
-        try room_txt.writer().print(" cnvs={},{}", .{ cnvs[0], cnvs[1] });
-    if (extra.spot) |spot|
-        try room_txt.writer().print(" spot={},{}", .{ spot[0], spot[1] });
-    if (extra.relo) |relo|
-        try room_txt.writer().print(" relo={},{}", .{ relo[0], relo[1] });
-    try room_txt.writer().print(" path={s}\n", .{path.relative()});
+    for (wiz.blocks.slice()) |block| switch (block) {
+        .two_ints => |b| {
+            try room_txt.writer().print(
+                "    {s} {} {}\n",
+                .{ blockIdToStr(&b.id), b.ints[0], b.ints[1] },
+            );
+        },
+        .wizh => {
+            try room_txt.writer().writeAll("    WIZH\n");
+        },
+        .wizd => {
+            const path =
+                try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+            defer path.restore();
+
+            try room_txt.writer().print("    WIZD {s}\n", .{path.relative()});
+        },
+    };
+
+    try room_txt.writer().writeAll("end-awiz\n");
 }
 
 fn readGlob(
