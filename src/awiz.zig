@@ -3,7 +3,7 @@ const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
-const blockReader = @import("block_reader.zig").blockReader;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
@@ -45,11 +45,10 @@ pub fn decode(
         height: u31,
     } = null;
 
-    var buf_reader = std.io.fixedBufferStream(awiz_raw);
-    var reader = std.io.countingReader(buf_reader.reader());
-    var awiz_blocks = blockReader(&reader);
+    var reader = std.io.fixedBufferStream(awiz_raw);
+    var awiz_blocks = fixedBlockReader(&reader);
 
-    const wizd_len = while (true) {
+    while (try awiz_blocks.peek() != comptime blockId("WIZD")) {
         const id, const len = try awiz_blocks.next();
         switch (id) {
             blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
@@ -82,11 +81,12 @@ pub fn decode(
 
                 try result.blocks.append(.wizh);
             },
-            blockId("WIZD") => break len,
             else => return error.DecodeAwiz,
         }
-    };
-    const wizd_end = buf_reader.pos + wizd_len;
+    }
+
+    const wizd_len = try awiz_blocks.assumeBlock("WIZD");
+    const wizd_end = reader.pos + wizd_len;
 
     const wizh = wizh_opt orelse return error.BadData;
     const width = wizh.width;
@@ -113,9 +113,9 @@ pub fn decode(
         const out_row_end = bmp_buf.items.len + width;
 
         const line_size = try reader.reader().readInt(u16, .little);
-        const line_end = buf_reader.pos + line_size;
+        const line_end = reader.pos + line_size;
 
-        while (buf_reader.pos < line_end) {
+        while (reader.pos < line_end) {
             const n = try reader.reader().readByte();
             if (n & 1 != 0) {
                 const count = n >> 1;
@@ -136,7 +136,7 @@ pub fn decode(
     }
 
     // Allow one byte of padding from the encoder
-    if (buf_reader.pos < wizd_end)
+    if (reader.pos < wizd_end)
         _ = try reader.reader().readByte();
 
     try result.blocks.append(.{ .wizd = bmp_buf });

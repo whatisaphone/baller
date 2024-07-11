@@ -39,8 +39,7 @@ pub fn decode(
     try bmp.writePalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
 
-    if (rmim_reader.pos != im00_end) {
-        const id, _ = try im00_blocks.next();
+    if (try im00_blocks.peek()) |id| {
         report.warn("skipping RMIM due to trailing {s}", .{blockIdToStr(&id)});
         return error.DecompressBmap;
     }
