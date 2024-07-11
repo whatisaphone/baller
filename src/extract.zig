@@ -6,6 +6,7 @@ const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const blockReader = @import("block_reader.zig").blockReader;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const xor_key = @import("build.zig").xor_key;
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
@@ -28,6 +29,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .rmim_decode = true,
         .script_modes = &.{ .decode, .raw },
         .awiz_modes = &.{ .decode, .raw },
+        .mult_modes = &.{ .decode, .raw },
     });
 }
 
@@ -42,6 +44,7 @@ const Extract = struct {
     rmim_decode: bool,
     script_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
+    mult_modes: []const ResourceMode,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
@@ -93,6 +96,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
             args.rmim_decode,
             args.script_modes,
             args.awiz_modes,
+            args.mult_modes,
         );
     }
 
@@ -475,6 +479,7 @@ fn extractDisk(
     rmim_decode: bool,
     script_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
+    mult_modes: []const ResourceMode,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
@@ -577,8 +582,9 @@ fn extractDisk(
             try reader.reader().readNoEof(data);
 
             const modes = switch (id) {
-                blockId("AWIZ") => awiz_modes,
                 blockId("SCRP") => script_modes,
+                blockId("AWIZ") => awiz_modes,
+                blockId("MULT") => mult_modes,
                 else => &.{ResourceMode.raw},
             };
             try extractGlob(
@@ -655,6 +661,19 @@ fn extractGlob(
                     wrote_line = true;
                 }
             },
+            blockId("MULT") => {
+                var mult = decodeMult(allocator, glob_number, rmda_data, data, state) catch |err| {
+                    if (err == error.DecodeAwiz)
+                        continue;
+                    return err;
+                };
+                defer mult.deinit(allocator);
+
+                if (!wrote_line) {
+                    try writeMultLines(&mult, room_txt);
+                    wrote_line = true;
+                }
+            },
             else => unreachable,
         },
         .raw => {
@@ -717,19 +736,28 @@ fn decodeAwiz(
     allocator: std.mem.Allocator,
     glob_number: u32,
     rmda_raw: []const u8,
-    data: []const u8,
+    awiz_raw: []const u8,
     state: *State,
 ) !awiz.Awiz {
-    var wiz = try awiz.decode(allocator, data, rmda_raw);
+    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+    defer path.restore();
+
+    return decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full());
+}
+
+fn decodeAwizIntoPath(
+    allocator: std.mem.Allocator,
+    rmda_raw: []const u8,
+    awiz_raw: []const u8,
+    path: [*:0]const u8,
+) !awiz.Awiz {
+    var wiz = try awiz.decode(allocator, awiz_raw, rmda_raw);
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {
         .two_ints, .wizh => {},
         .wizd => |bmp_data| {
-            const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
-            defer path.restore();
-
-            const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
+            const output_file = try std.fs.cwd().createFileZ(path, .{});
             defer output_file.close();
 
             try output_file.writeAll(bmp_data.items);
@@ -745,28 +773,149 @@ fn writeAwizLines(
     state: *State,
     room_txt: anytype,
 ) !void {
+    const path =
+        try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+    defer path.restore();
+
     try room_txt.writer().print("awiz {}\n", .{glob_number});
-
-    for (wiz.blocks.slice()) |block| switch (block) {
-        .two_ints => |b| {
-            try room_txt.writer().print(
-                "    {s} {} {}\n",
-                .{ blockIdToStr(&b.id), b.ints[0], b.ints[1] },
-            );
-        },
-        .wizh => {
-            try room_txt.writer().writeAll("    WIZH\n");
-        },
-        .wizd => {
-            const path =
-                try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
-            defer path.restore();
-
-            try room_txt.writer().print("    WIZD {s}\n", .{path.relative()});
-        },
-    };
-
+    try writeAwizChildrenGivenBmpPath(wiz, path.relative(), 1, room_txt.writer());
     try room_txt.writer().writeAll("end-awiz\n");
+}
+
+fn writeAwizChildrenGivenBmpPath(
+    wiz: *const awiz.Awiz,
+    bmp_relative_path: []const u8,
+    indent: u8,
+    out: anytype,
+) !void {
+    for (wiz.blocks.slice()) |block| {
+        for (0..indent * 4) |_|
+            try out.writeByte(' ');
+        switch (block) {
+            .two_ints => |b| {
+                try out.print(
+                    "{s} {} {}\n",
+                    .{ blockIdToStr(&b.id), b.ints[0], b.ints[1] },
+                );
+            },
+            .wizh => {
+                try out.writeAll("WIZH\n");
+            },
+            .wizd => {
+                try out.print("WIZD {s}\n", .{bmp_relative_path});
+            },
+        }
+    }
+}
+
+const Mult = struct {
+    wizs: std.ArrayListUnmanaged(awiz.Awiz) = .{},
+    room_lines: std.ArrayListUnmanaged(u8) = .{},
+
+    fn deinit(self: *Mult, allocator: std.mem.Allocator) void {
+        self.room_lines.deinit(allocator);
+
+        var i: usize = self.wizs.items.len;
+        while (i > 0) {
+            i -= 1;
+            self.wizs.items[i].deinit(allocator);
+        }
+        self.wizs.deinit(allocator);
+    }
+};
+
+fn decodeMult(
+    allocator: std.mem.Allocator,
+    glob_number: u32,
+    rmda_raw: []const u8,
+    mult_raw: []const u8,
+    state: *State,
+) !Mult {
+    var mult = Mult{};
+    errdefer mult.deinit(allocator);
+
+    const path = try pathf.print(
+        &state.cur_path,
+        "{s}_{:0>4}_",
+        .{ blockIdToStr(&comptime blockId("MULT")), glob_number },
+    );
+    defer path.restore();
+
+    try mult.room_lines.ensureTotalCapacity(allocator, 256);
+    try mult.room_lines.writer(allocator).print("mult {}\n", .{glob_number});
+
+    var stream = std.io.fixedBufferStream(mult_raw);
+    var mult_blocks = fixedBlockReader(&stream);
+
+    const wrap_len = while (true) {
+        const id, const len = try mult_blocks.next();
+        switch (id) {
+            blockId("DEFA") => {
+                const defa_raw = try io.readInPlace(&stream, len);
+
+                const path_end = try pathf.print(&state.cur_path, "{s}.bin", .{blockIdToStr(&id)});
+                defer path_end.restore();
+
+                const file = try std.fs.cwd().createFileZ(path.full(), .{});
+                defer file.close();
+                try file.writeAll(defa_raw);
+
+                try mult.room_lines.writer(allocator).print(
+                    "    raw-block {s} {s}\n",
+                    .{ blockIdToStr(&id), path.relative() },
+                );
+            },
+            blockId("WRAP") => break len,
+            else => return error.BadData,
+        }
+    };
+    const wrap_end: u32 = @intCast(stream.pos + wrap_len);
+    var wrap_blocks = fixedBlockReader(&stream);
+
+    const offs_len = try wrap_blocks.expectBlock("OFFS");
+    const count = std.math.divExact(u32, offs_len, 4) catch return error.BadData;
+    stream.pos += offs_len;
+
+    try mult.wizs.ensureTotalCapacityPrecise(allocator, count);
+
+    for (0..count) |i_usize| {
+        const i: u32 = @intCast(i_usize);
+
+        // Some WRAP blocks have fewer children than the number of offsets
+        // (such as Baseball 2001 MULT_0408)
+        if (stream.pos == stream.buffer.len)
+            break;
+
+        const awiz_len = try wrap_blocks.expectBlock("AWIZ");
+        const awiz_raw = try io.readInPlace(&stream, awiz_len);
+
+        const path2 = try appendGlobPath(state, comptime blockId("AWIZ"), i, "bmp");
+        defer path2.restore();
+
+        var wiz = try decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full());
+        mult.wizs.appendAssumeCapacity(wiz);
+
+        try mult.room_lines.appendSlice(allocator, "    awiz\n");
+        try writeAwizChildrenGivenBmpPath(
+            &wiz,
+            path.relative(),
+            2,
+            &mult.room_lines.writer(allocator),
+        );
+        try mult.room_lines.appendSlice(allocator, "    end-awiz\n");
+    }
+
+    try wrap_blocks.finish(wrap_end);
+
+    try mult_blocks.finishEof();
+
+    try mult.room_lines.appendSlice(allocator, "end-mult\n");
+
+    return mult;
+}
+
+fn writeMultLines(mult: *const Mult, room_txt: anytype) !void {
+    try room_txt.writer().writeAll(mult.room_lines.items);
 }
 
 fn readGlob(

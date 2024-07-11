@@ -22,11 +22,17 @@ pub fn endBlock(stream: anytype, fixups: *std.ArrayList(Fixup), block_start: u32
     const stream_pos: u32 = @intCast(stream.bytes_written);
     try fixups.append(.{
         .offset = block_start + 4,
-        .value = stream_pos - block_start,
+        .bytes = Fixup.encode(stream_pos - block_start, .big),
     });
 }
 
 pub const Fixup = struct {
     offset: u32,
-    value: u32,
+    bytes: [4]u8,
+
+    pub fn encode(bytes: u32, comptime endian: std.builtin.Endian) [4]u8 {
+        var buf: [4]u8 = undefined;
+        std.mem.writeInt(u32, &buf, bytes, endian);
+        return buf;
+    }
 };

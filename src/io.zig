@@ -20,6 +20,15 @@ pub fn copy(input: anytype, output: anytype) !void {
     }
 }
 
+pub fn readInPlace(stream: anytype, len: usize) ![]const u8 {
+    const end = stream.pos + len;
+    if (end > stream.buffer.len)
+        return error.EndOfStream;
+    const result = stream.buffer[stream.pos..][0..len];
+    stream.pos = end;
+    return result;
+}
+
 pub fn XorReader(Stream: type) type {
     return struct {
         stream: Stream,

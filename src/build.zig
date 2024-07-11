@@ -198,6 +198,18 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 )
+            else if (std.mem.eql(u8, keyword, "mult"))
+                try handleMult(
+                    allocator,
+                    game,
+                    room_number,
+                    room_line_split.rest(),
+                    &room_reader,
+                    &room_line_buf,
+                    &cur_path,
+                    state,
+                    &index,
+                )
             else
                 return error.BadData;
         }
@@ -282,7 +294,7 @@ fn finishDisk(state: *DiskState) !void {
 fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
     for (fixups) |fixup| {
         try file.seekTo(fixup.offset);
-        try writer.writeInt(u32, fixup.value, .big);
+        try writer.writeAll(&fixup.bytes);
     }
 }
 
@@ -322,7 +334,7 @@ fn handleRawGlob(
     try io.copy(block_file, state.writer.writer());
 
     try endBlock(&state.writer, &state.fixups, block_fixup);
-    const block_len = state.fixups.getLast().value;
+    const block_len = state.lastBlockLen();
 
     try addGlobToDirectory(
         allocator,
@@ -360,7 +372,7 @@ fn handleRoomImage(
     try rmim_encode.encode(bmp_raw, &state.writer, &state.fixups);
 
     try endBlock(&state.writer, &state.fixups, block_fixup);
-    const block_len = state.fixups.getLast().value;
+    const block_len = state.lastBlockLen();
 
     try addGlobToDirectory(
         allocator,
@@ -387,8 +399,34 @@ fn handleAwiz(
 ) !void {
     const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
 
-    var wiz = awiz.Awiz{};
+    var wiz = try readAwizLines(allocator, room_reader, room_line_buf, cur_path);
     defer wiz.deinit(allocator);
+
+    const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
+    try awiz.encode(&wiz, &state.writer, &state.fixups);
+    try endBlock(&state.writer, &state.fixups, awiz_fixup);
+    const awiz_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        game,
+        index,
+        comptime blockId("AWIZ"),
+        room_number,
+        glob_number,
+        awiz_fixup,
+        awiz_len,
+    );
+}
+
+fn readAwizLines(
+    allocator: std.mem.Allocator,
+    room_reader: anytype,
+    room_line_buf: *[256]u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+) !awiz.Awiz {
+    var wiz = awiz.Awiz{};
+    errdefer wiz.deinit(allocator);
 
     while (true) {
         const room_line =
@@ -441,21 +479,151 @@ fn handleAwiz(
         }
     }
 
-    const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
-    try awiz.encode(&wiz, &state.writer, &state.fixups);
-    try endBlock(&state.writer, &state.fixups, awiz_fixup);
-    const awiz_len = state.fixups.getLast().value;
+    return wiz;
+}
+
+fn handleMult(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    room_number: u8,
+    line: []const u8,
+    room_reader: anytype,
+    room_line_buf: *[256]u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+
+    const desc = try parseMult(
+        arena.allocator(),
+        line,
+        room_reader,
+        room_line_buf,
+        cur_path,
+    );
+
+    const mult_fixup = try beginBlock(&state.writer, "MULT");
+
+    for (desc.raws.items) |raw| {
+        const raw_fixup = try beginBlockImpl(&state.writer, raw.id);
+
+        // XXX: this assumes only one block per block ID in a MULT
+        const path = try pathf.print(cur_path, "{s}", .{raw.path});
+        defer path.restore();
+
+        const file = try std.fs.cwd().openFileZ(path.full(), .{});
+        defer file.close();
+
+        try io.copy(file, state.writer.writer());
+
+        try endBlock(&state.writer, &state.fixups, raw_fixup);
+    }
+
+    const wrap_fixup = try beginBlock(&state.writer, "WRAP");
+
+    const offs_fixup = try beginBlock(&state.writer, "OFFS");
+    // will be filled in using fixups
+    for (desc.wizs.items.len) |_|
+        try state.writer.writer().writeInt(i32, undefined, .little);
+    try endBlock(&state.writer, &state.fixups, offs_fixup);
+
+    for (desc.wizs.items, 0..) |*wiz, i_usize| {
+        const i: u32 = @intCast(i_usize);
+
+        const off: u32 = @intCast(state.writer.bytes_written - offs_fixup);
+        try state.fixups.append(.{
+            .offset = offs_fixup + 8 + i * 4,
+            .bytes = Fixup.encode(off, .little),
+        });
+
+        const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
+        try awiz.encode(wiz, &state.writer, &state.fixups);
+        try endBlock(&state.writer, &state.fixups, awiz_fixup);
+    }
+
+    try endBlock(&state.writer, &state.fixups, wrap_fixup);
+
+    try endBlock(&state.writer, &state.fixups, mult_fixup);
+    const mult_len = state.lastBlockLen();
 
     try addGlobToDirectory(
         allocator,
         game,
         index,
-        comptime blockId("AWIZ"),
+        comptime blockId("MULT"),
         room_number,
-        glob_number,
-        awiz_fixup,
-        awiz_len,
+        desc.glob_number,
+        mult_fixup,
+        mult_len,
     );
+}
+
+// leaks. use an arena.
+const Mult = struct {
+    glob_number: u32,
+    raws: std.ArrayListUnmanaged(MultRaw),
+    wizs: std.ArrayListUnmanaged(awiz.Awiz),
+};
+
+const MultRaw = struct {
+    id: BlockId,
+    path: []const u8,
+};
+
+fn parseMult(
+    arena: std.mem.Allocator,
+    first_line: []const u8,
+    room_reader: anytype,
+    room_line_buf: *[256]u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+) !Mult {
+    // Parse first line
+
+    var words = std.mem.splitScalar(u8, first_line, ' ');
+
+    const glob_number_str = words.next() orelse return error.BadData;
+    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+    if (words.next()) |_| return error.BadData;
+
+    // Parse remaining lines
+
+    var result = Mult{
+        .glob_number = glob_number,
+        .raws = .{},
+        .wizs = .{},
+    };
+
+    while (true) {
+        const room_line =
+            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
+        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
+        const keyword = tokens.next() orelse return error.BadData;
+        if (std.mem.eql(u8, keyword, "raw-block")) {
+            const block_id_str = tokens.next() orelse return error.BadData;
+            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+            const path = tokens.next() orelse return error.BadData;
+
+            if (tokens.next()) |_| return error.BadData;
+
+            const path_alloc = try arena.dupe(u8, path);
+            try result.raws.append(arena, .{
+                .id = block_id,
+                .path = path_alloc,
+            });
+        } else if (std.mem.eql(u8, keyword, "awiz")) {
+            const wiz = try readAwizLines(arena, room_reader, room_line_buf, cur_path);
+            try result.wizs.append(arena, wiz);
+        } else if (std.mem.eql(u8, keyword, "end-mult"))
+            break
+        else
+            return error.BadData;
+    }
+
+    return result;
 }
 
 fn addGlobToDirectory(
@@ -613,6 +781,10 @@ const DiskState = struct {
     fn deinit(self: *const DiskState) void {
         self.fixups.deinit();
         self.file.close();
+    }
+
+    fn lastBlockLen(self: *const DiskState) u32 {
+        return std.mem.readInt(u32, &self.fixups.getLast().bytes, .big);
     }
 };
 

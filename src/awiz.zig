@@ -12,7 +12,7 @@ const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const rmim = @import("rmim.zig");
 
-const max_supported_width = 640;
+const max_supported_width = 1280;
 const transparent = 255;
 
 pub const Awiz = struct {
