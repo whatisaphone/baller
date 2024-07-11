@@ -69,7 +69,7 @@ const LangOperand = enum {
     string,
 };
 
-const Variable = struct {
+pub const Variable = struct {
     raw: u16,
 
     const Decoded = union(enum) {
@@ -78,7 +78,7 @@ const Variable = struct {
         room: u16,
     };
 
-    fn decode(self: Variable) !Decoded {
+    pub fn decode(self: Variable) !Decoded {
         return switch (self.raw & 0xc000) {
             0x0000 => .{ .global = self.raw & 0x3fff },
             0x4000 => .{ .local = self.raw & 0x3fff },
@@ -363,7 +363,7 @@ const Ins = struct {
     operands: OperandArray,
 };
 
-const Operand = union(enum) {
+pub const Operand = union(enum) {
     u8: u8,
     i16: i16,
     i32: i32,
@@ -371,7 +371,7 @@ const Operand = union(enum) {
     string: []const u8,
 };
 
-const Disasm = struct {
+pub const Disasm = struct {
     lang: Language,
     reader: std.io.FixedBufferStream([]const u8),
     poison: bool,
@@ -486,42 +486,4 @@ fn readString(reader: anytype) ![]const u8 {
         return error.BadData;
     reader.pos = null_pos + 1;
     return reader.buffer[start..null_pos];
-}
-
-pub fn disassemble(bytecode: []const u8, out: anytype) !void {
-    var disasm = Disasm.init(bytecode);
-
-    while (try disasm.next()) |ins| {
-        try out.writeAll(ins.name);
-        for (ins.operands.slice()) |op| {
-            try out.writeByte(' ');
-            try emitOperand(op, out);
-        }
-        try out.writeByte('\n');
-    }
-}
-
-fn emitOperand(op: Operand, out: anytype) !void {
-    switch (op) {
-        .u8, .i16, .i32 => |n| {
-            try out.print("{}", .{n});
-        },
-        .variable => |v| {
-            try emitVariable(out, v);
-        },
-        .string => |s| {
-            // TODO: escaping
-            try out.writeByte('"');
-            try out.writeAll(s);
-            try out.writeByte('"');
-        },
-    }
-}
-
-fn emitVariable(out: anytype, variable: Variable) !void {
-    switch (try variable.decode()) {
-        .global => |num| try out.print("global{}", .{num}),
-        .local => |num| try out.print("local{}", .{num}),
-        .room => |num| try out.print("room{}", .{num}),
-    }
 }
