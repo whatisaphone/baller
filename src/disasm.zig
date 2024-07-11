@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const max_args = 2;
+
 const Language = struct {
     // TODO: don't hardcode maximum
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
@@ -13,7 +15,7 @@ const Language = struct {
 
         self.opcodes[byte] = .{ .ins = .{
             .name = name,
-            .args = std.BoundedArray(Arg, 2).fromSlice(args) catch unreachable,
+            .args = std.BoundedArray(Arg, max_args).fromSlice(args) catch unreachable,
         } };
     }
 
@@ -36,7 +38,7 @@ const Language = struct {
 
         self.opcodes[n << 8 | byte2] = .{ .ins = .{
             .name = name,
-            .args = std.BoundedArray(Arg, 2).fromSlice(args) catch unreachable,
+            .args = std.BoundedArray(Arg, max_args).fromSlice(args) catch unreachable,
         } };
     }
 };
@@ -49,7 +51,7 @@ const Opcode = union(enum) {
 
 const Ins = struct {
     name: []const u8,
-    args: std.BoundedArray(Arg, 2),
+    args: std.BoundedArray(Arg, max_args),
 };
 
 const Arg = enum {
@@ -347,68 +349,121 @@ fn buildLanguage() Language {
     return lang;
 }
 
-pub fn disasm(bytecode: []const u8, out: anytype) !void {
-    const lang = buildLanguage(); // TODO: cache this
+const DIns = struct {
+    start: u32,
+    end: u32,
+    name: []const u8,
+    args: std.BoundedArray(DArg, max_args),
+};
 
-    var reader = std.io.fixedBufferStream(bytecode);
+const DArg = union(enum) {
+    u8: u8,
+    i16: i16,
+    i32: i32,
+    variable: Variable,
+    string: []const u8,
+};
 
-    while (reader.pos < bytecode.len) {
-        const b1 = try reader.reader().readByte();
-        switch (lang.opcodes[b1]) {
-            .unknown => try flushUnknownBytes(&reader, out, 1),
-            .ins => |*ins| try disasmIns(ins, &reader, out),
+const Disasm = struct {
+    lang: Language,
+    reader: std.io.FixedBufferStream([]const u8),
+    poison: bool,
+
+    pub fn init(bytecode: []const u8) Disasm {
+        const lang = buildLanguage(); // TODO: cache this
+
+        const reader = std.io.fixedBufferStream(bytecode);
+
+        return .{
+            .lang = lang,
+            .reader = reader,
+            .poison = false,
+        };
+    }
+
+    pub fn next(self: *Disasm) !?DIns {
+        if (self.reader.pos == self.reader.buffer.len)
+            return null;
+
+        if (self.poison)
+            return unknownByte(&self.reader);
+
+        const b1 = self.reader.reader().readByte() catch unreachable;
+        return switch (self.lang.opcodes[b1]) {
+            .unknown => try self.becomePoison(1),
+            .ins => |*ins| try disasmIns(&self.reader, ins),
             .nested => |n| {
-                const b2 = try reader.reader().readByte();
-                switch (lang.opcodes[n << 8 | b2]) {
-                    .unknown => try flushUnknownBytes(&reader, out, 2),
-                    .ins => |*ins| try disasmIns(ins, &reader, out),
+                const b2 = try self.reader.reader().readByte();
+                return switch (self.lang.opcodes[n << 8 | b2]) {
+                    .unknown => try self.becomePoison(2),
+                    .ins => |*ins| try disasmIns(&self.reader, ins),
                     .nested => unreachable,
-                }
+                };
             },
-        }
+        };
     }
+
+    // The stream is not self-synchronizing, so if we fail to decode any byte,
+    // it's not possible to recover.
+    fn becomePoison(self: *Disasm, rewind: u8) !?DIns {
+        self.reader.pos -= rewind;
+        self.poison = true;
+        return unknownByte(&self.reader);
+    }
+};
+
+// precondition: not at EOF
+fn unknownByte(reader: anytype) !?DIns {
+    const start: u32 = @intCast(reader.pos);
+    const byte = reader.reader().readByte() catch unreachable;
+    const end: u32 = @intCast(reader.pos);
+    var args = std.BoundedArray(DArg, max_args){};
+    args.appendAssumeCapacity(.{ .u8 = byte });
+    return .{
+        .start = start,
+        .end = end,
+        .name = ".db",
+        .args = args,
+    };
 }
 
-fn flushUnknownBytes(reader: anytype, out: anytype, leading: u8) !void {
-    reader.pos -= leading;
-    while (reader.pos < reader.buffer.len) {
-        const b = try reader.reader().readByte();
-        try out.print(".db 0x{x:0>2}\n", .{b});
+fn disasmIns(reader: anytype, ins: *const Ins) !DIns {
+    const start: u32 = @intCast(reader.pos);
+    var args = std.BoundedArray(DArg, max_args){};
+    for (ins.args.slice()) |arg| {
+        const darg = try disasmArg(reader, arg);
+        args.appendAssumeCapacity(darg);
     }
+    const end: u32 = @intCast(reader.pos);
+    return .{
+        .start = start,
+        .end = end,
+        .name = ins.name,
+        .args = args,
+    };
 }
 
-fn disasmIns(ins: *const Ins, reader: anytype, out: anytype) !void {
-    try out.writeAll(ins.name);
-    for (ins.args.slice()) |*arg| {
-        try out.writeByte(' ');
-        try disasmArg(arg, reader, out);
-    }
-    try out.writeByte('\n');
-}
-
-fn disasmArg(arg: *const Arg, reader: anytype, out: anytype) !void {
-    switch (arg.*) {
+fn disasmArg(reader: anytype, arg: Arg) !DArg {
+    switch (arg) {
         .u8 => {
             const n = try reader.reader().readInt(u8, .little);
-            try out.print("{}", .{n});
+            return .{ .u8 = n };
         },
         .i16 => {
             const n = try reader.reader().readInt(i16, .little);
-            try out.print("{}", .{n});
+            return .{ .i16 = n };
         },
         .i32 => {
             const n = try reader.reader().readInt(i32, .little);
-            try out.print("{}", .{n});
+            return .{ .i32 = n };
         },
         .variable => {
             const variable = try readVariable(reader);
-            try emitVariable(out, variable);
+            return .{ .variable = variable };
         },
         .string => {
-            // TODO: escaping
-            try out.writeByte('"');
-            try out.writeAll(try readString(reader));
-            try out.writeByte('"');
+            const string = try readString(reader);
+            return .{ .string = string };
         },
     }
 }
@@ -418,18 +473,48 @@ fn readVariable(reader: anytype) !Variable {
     return .{ .raw = raw };
 }
 
-fn emitVariable(out: anytype, variable: Variable) !void {
-    switch (try variable.decode()) {
-        .global => |num| try out.print("global{}", .{num}),
-        .local => |num| try out.print("local{}", .{num}),
-        .room => |num| try out.print("room{}", .{num}),
-    }
-}
-
 fn readString(reader: anytype) ![]const u8 {
     const start = reader.pos;
     const null_pos = std.mem.indexOfScalarPos(u8, reader.buffer, start, 0) orelse
         return error.BadData;
     reader.pos = null_pos + 1;
     return reader.buffer[start..null_pos];
+}
+
+pub fn disassemble(bytecode: []const u8, out: anytype) !void {
+    var disasm = Disasm.init(bytecode);
+
+    while (try disasm.next()) |ins| {
+        try out.writeAll(ins.name);
+        for (ins.args.slice()) |arg| {
+            try out.writeByte(' ');
+            try emitArg(arg, out);
+        }
+        try out.writeByte('\n');
+    }
+}
+
+fn emitArg(arg: DArg, out: anytype) !void {
+    switch (arg) {
+        .u8, .i16, .i32 => |n| {
+            try out.print("{}", .{n});
+        },
+        .variable => |v| {
+            try emitVariable(out, v);
+        },
+        .string => |s| {
+            // TODO: escaping
+            try out.writeByte('"');
+            try out.writeAll(s);
+            try out.writeByte('"');
+        },
+    }
+}
+
+fn emitVariable(out: anytype, variable: Variable) !void {
+    switch (try variable.decode()) {
+        .global => |num| try out.print("global{}", .{num}),
+        .local => |num| try out.print("local{}", .{num}),
+        .room => |num| try out.print("room{}", .{num}),
+    }
 }

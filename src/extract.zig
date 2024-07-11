@@ -721,7 +721,7 @@ fn decodeScrp(
     var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
-    try disasm.disasm(data, disassembly.writer(allocator));
+    try disasm.disassemble(data, disassembly.writer(allocator));
 
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
     defer path.restore();
