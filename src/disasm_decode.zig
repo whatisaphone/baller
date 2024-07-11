@@ -69,26 +69,6 @@ const LangOperand = enum {
     string,
 };
 
-pub const Variable = struct {
-    raw: u16,
-
-    const Decoded = union(enum) {
-        global: u16,
-        local: u16,
-        room: u16,
-    };
-
-    pub fn decode(self: Variable) !Decoded {
-        return switch (self.raw & 0xc000) {
-            0x0000 => .{ .global = self.raw & 0x3fff },
-            0x4000 => .{ .local = self.raw & 0x3fff },
-            0x8000 => .{ .room = self.raw & 0x3fff },
-            0xc000 => error.BadData,
-            else => unreachable,
-        };
-    }
-};
-
 fn buildLanguage() Language {
     var lang = Language{};
 
@@ -369,6 +349,26 @@ pub const Operand = union(enum) {
     i32: i32,
     variable: Variable,
     string: []const u8,
+};
+
+pub const Variable = struct {
+    raw: u16,
+
+    const Decoded = union(enum) {
+        global: u16,
+        local: u16,
+        room: u16,
+    };
+
+    pub fn decode(self: Variable) !Decoded {
+        return switch (self.raw & 0xc000) {
+            0x0000 => .{ .global = self.raw & 0x3fff },
+            0x4000 => .{ .local = self.raw & 0x3fff },
+            0x8000 => .{ .room = self.raw & 0x3fff },
+            0xc000 => error.BadData,
+            else => unreachable,
+        };
+    }
 };
 
 pub const Disasm = struct {
