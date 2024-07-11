@@ -1,6 +1,8 @@
 const std = @import("std");
 
-const max_args = 2;
+const max_operands = 2;
+const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
+const OperandArray = std.BoundedArray(Operand, max_operands);
 
 const Language = struct {
     // TODO: don't hardcode maximum
@@ -9,13 +11,18 @@ const Language = struct {
     opcodes: [256 * 48]Opcode = .{.unknown} ** (256 * 48),
     num_nested: u8 = 0,
 
-    fn add(self: *Language, byte: u8, name: []const u8, args: []const Arg) void {
+    fn add(
+        self: *Language,
+        byte: u8,
+        name: []const u8,
+        operands: []const LangOperand,
+    ) void {
         if (self.opcodes[byte] != .unknown)
             unreachable;
 
         self.opcodes[byte] = .{ .ins = .{
             .name = name,
-            .args = std.BoundedArray(Arg, max_args).fromSlice(args) catch unreachable,
+            .operands = LangOperandArray.fromSlice(operands) catch unreachable,
         } };
     }
 
@@ -24,7 +31,7 @@ const Language = struct {
         byte1: u8,
         byte2: u8,
         name: []const u8,
-        args: []const Arg,
+        operands: []const LangOperand,
     ) void {
         const n = switch (self.opcodes[byte1]) {
             .unknown => n: {
@@ -38,23 +45,23 @@ const Language = struct {
 
         self.opcodes[n << 8 | byte2] = .{ .ins = .{
             .name = name,
-            .args = std.BoundedArray(Arg, max_args).fromSlice(args) catch unreachable,
+            .operands = LangOperandArray.fromSlice(operands) catch unreachable,
         } };
     }
 };
 
 const Opcode = union(enum) {
     unknown,
-    ins: Ins,
+    ins: LangIns,
     nested: u16,
 };
 
-const Ins = struct {
+const LangIns = struct {
     name: []const u8,
-    args: std.BoundedArray(Arg, max_args),
+    operands: LangOperandArray,
 };
 
-const Arg = enum {
+const LangOperand = enum {
     u8,
     i16,
     i32,
@@ -295,7 +302,7 @@ fn buildLanguage() Language {
     lang.addNested(0xb7, 0x4b, "print-system-string", &.{.string});
     lang.addNested(0xb7, 0xfe, "print-system-start", &.{});
 
-    // TODO: first arg is item size; 0xcc means undim
+    // TODO: first operand is item size; 0xcc means undim
     lang.add(0xbc, "dim-array", &.{ .u8, .variable });
 
     lang.add(0xbd, "return", &.{});
@@ -349,14 +356,14 @@ fn buildLanguage() Language {
     return lang;
 }
 
-const DIns = struct {
+const Ins = struct {
     start: u32,
     end: u32,
     name: []const u8,
-    args: std.BoundedArray(DArg, max_args),
+    operands: OperandArray,
 };
 
-const DArg = union(enum) {
+const Operand = union(enum) {
     u8: u8,
     i16: i16,
     i32: i32,
@@ -381,7 +388,7 @@ const Disasm = struct {
         };
     }
 
-    pub fn next(self: *Disasm) !?DIns {
+    pub fn next(self: *Disasm) !?Ins {
         if (self.reader.pos == self.reader.buffer.len)
             return null;
 
@@ -405,7 +412,7 @@ const Disasm = struct {
 
     // The stream is not self-synchronizing, so if we fail to decode any byte,
     // it's not possible to recover.
-    fn becomePoison(self: *Disasm, rewind: u8) !?DIns {
+    fn becomePoison(self: *Disasm, rewind: u8) !?Ins {
         self.reader.pos -= rewind;
         self.poison = true;
         return unknownByte(&self.reader);
@@ -413,38 +420,38 @@ const Disasm = struct {
 };
 
 // precondition: not at EOF
-fn unknownByte(reader: anytype) !?DIns {
+fn unknownByte(reader: anytype) !?Ins {
     const start: u32 = @intCast(reader.pos);
     const byte = reader.reader().readByte() catch unreachable;
     const end: u32 = @intCast(reader.pos);
-    var args = std.BoundedArray(DArg, max_args){};
-    args.appendAssumeCapacity(.{ .u8 = byte });
+    var operands = OperandArray{};
+    operands.appendAssumeCapacity(.{ .u8 = byte });
     return .{
         .start = start,
         .end = end,
         .name = ".db",
-        .args = args,
+        .operands = operands,
     };
 }
 
-fn disasmIns(reader: anytype, ins: *const Ins) !DIns {
+fn disasmIns(reader: anytype, ins: *const LangIns) !Ins {
     const start: u32 = @intCast(reader.pos);
-    var args = std.BoundedArray(DArg, max_args){};
-    for (ins.args.slice()) |arg| {
-        const darg = try disasmArg(reader, arg);
-        args.appendAssumeCapacity(darg);
+    var operands = OperandArray{};
+    for (ins.operands.slice()) |lang_op| {
+        const op = try disasmOperand(reader, lang_op);
+        operands.appendAssumeCapacity(op);
     }
     const end: u32 = @intCast(reader.pos);
     return .{
         .start = start,
         .end = end,
         .name = ins.name,
-        .args = args,
+        .operands = operands,
     };
 }
 
-fn disasmArg(reader: anytype, arg: Arg) !DArg {
-    switch (arg) {
+fn disasmOperand(reader: anytype, op: LangOperand) !Operand {
+    switch (op) {
         .u8 => {
             const n = try reader.reader().readInt(u8, .little);
             return .{ .u8 = n };
@@ -486,16 +493,16 @@ pub fn disassemble(bytecode: []const u8, out: anytype) !void {
 
     while (try disasm.next()) |ins| {
         try out.writeAll(ins.name);
-        for (ins.args.slice()) |arg| {
+        for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitArg(arg, out);
+            try emitOperand(op, out);
         }
         try out.writeByte('\n');
     }
 }
 
-fn emitArg(arg: DArg, out: anytype) !void {
-    switch (arg) {
+fn emitOperand(op: Operand, out: anytype) !void {
+    switch (op) {
         .u8, .i16, .i32 => |n| {
             try out.print("{}", .{n});
         },
