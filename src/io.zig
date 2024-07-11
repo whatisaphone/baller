@@ -29,6 +29,11 @@ pub fn readInPlace(stream: anytype, len: usize) ![]const u8 {
     return result;
 }
 
+pub fn readInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
+    const result = try readInPlace(stream, len);
+    return result[0..len];
+}
+
 pub fn peekInPlace(stream: anytype, len: usize) ![]const u8 {
     const end = stream.pos + len;
     if (end > stream.buffer.len)

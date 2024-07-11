@@ -878,7 +878,7 @@ fn decodeMult(
 
     const offs_len = try wrap_blocks.expectBlock("OFFS");
     const count = std.math.divExact(u32, offs_len, 4) catch return error.BadData;
-    stream.pos += offs_len;
+    _ = try io.readInPlace(&stream, offs_len);
 
     try mult.wizs.ensureTotalCapacityPrecise(allocator, count);
 

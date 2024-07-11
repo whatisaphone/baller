@@ -169,7 +169,7 @@ fn FixedBlockReader(Stream: type) type {
             while (true) {
                 const id, const len = try self.next();
                 if (id != block_id) {
-                    try self.stream.reader().skipBytes(len, .{});
+                    _ = try io.readInPlace(self.stream, len);
                     continue;
                 }
                 return len;

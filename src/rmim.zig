@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const blockReader = @import("block_reader.zig").blockReader;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
@@ -18,19 +18,18 @@ pub fn decode(
 
     const apal = try findApalInRmda(rmda_raw);
 
-    var rmim_buf_reader = std.io.fixedBufferStream(rmim_raw);
-    var rmim_reader = std.io.countingReader(rmim_buf_reader.reader());
-    var rmim_blocks = blockReader(&rmim_reader);
+    var rmim_reader = std.io.fixedBufferStream(rmim_raw);
+    var rmim_blocks = fixedBlockReader(&rmim_reader);
 
     const rmih_len = try rmim_blocks.expectBlock("RMIH");
-    try rmim_reader.reader().skipBytes(rmih_len, .{});
+    _ = try io.readInPlace(&rmim_reader, rmih_len);
 
     const im00_len = try rmim_blocks.expectBlock("IM00");
-    const im00_end: u32 = @intCast(rmim_reader.bytes_read + im00_len);
-    var im00_blocks = blockReader(&rmim_reader);
+    const im00_end: u32 = @intCast(rmim_reader.pos + im00_len);
+    var im00_blocks = fixedBlockReader(&rmim_reader);
 
     const bmap_len = try im00_blocks.expectBlock("BMAP");
-    const bmap_end: u32 = @intCast(rmim_reader.bytes_read + bmap_len);
+    const bmap_end: u32 = @intCast(rmim_reader.pos + bmap_len);
 
     const bmp_size = bmp.calcFileSize(width, height);
     var out = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_size);
@@ -40,7 +39,7 @@ pub fn decode(
     try bmp.writePalette(out.writer(allocator), apal);
     try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
 
-    if (rmim_reader.bytes_read != im00_end) {
+    if (rmim_reader.pos != im00_end) {
         const id, _ = try im00_blocks.next();
         report.warn("skipping RMIM due to trailing {s}", .{blockIdToStr(&id)});
         return error.DecompressBmap;
@@ -54,26 +53,25 @@ pub fn decode(
 }
 
 pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
-    var rmda_buf_reader = std.io.fixedBufferStream(rmda_raw);
-    var rmda_reader = std.io.countingReader(rmda_buf_reader.reader());
-    var rmda_blocks = blockReader(&rmda_reader);
+    var rmda_reader = std.io.fixedBufferStream(rmda_raw);
+    var rmda_blocks = fixedBlockReader(&rmda_reader);
 
     const pals_len = try rmda_blocks.skipUntilBlock("PALS");
-    const pals_end: u32 = @intCast(rmda_reader.bytes_read + pals_len);
-    var pals_blocks = blockReader(&rmda_reader);
+    const pals_end: u32 = @intCast(rmda_reader.pos + pals_len);
+    var pals_blocks = fixedBlockReader(&rmda_reader);
 
     const wrap_len = try pals_blocks.expectBlock("WRAP");
-    const wrap_end: u32 = @intCast(rmda_reader.bytes_read + wrap_len);
-    var wrap_blocks = blockReader(&rmda_reader);
+    const wrap_end: u32 = @intCast(rmda_reader.pos + wrap_len);
+    var wrap_blocks = fixedBlockReader(&rmda_reader);
 
     const offs_len = try wrap_blocks.expectBlock("OFFS");
-    try rmda_reader.reader().skipBytes(offs_len, .{});
+    _ = try io.readInPlace(&rmda_reader, offs_len);
 
     const apal_len = try wrap_blocks.expectBlock("APAL");
-    if (apal_len != 0x300)
+    const expected_apal_len = 0x300;
+    if (apal_len != expected_apal_len)
         return error.BadData;
-    const result = rmda_raw[rmda_reader.bytes_read..][0..0x300];
-    try rmda_reader.reader().skipBytes(apal_len, .{});
+    const result = try io.readInPlaceBytes(&rmda_reader, expected_apal_len);
 
     try wrap_blocks.finish(wrap_end);
 
@@ -96,7 +94,7 @@ fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
         return error.DecompressBmap;
 
     var color = try in.readBitsNoEof(u8, 8);
-    while (reader.bytes_read < end or in.bit_count != 0) {
+    while (reader.pos < end or in.bit_count != 0) {
         try out.writeByte(color);
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {
