@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const assemble = @import("assemble.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -178,6 +179,16 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                 )
             else if (std.mem.eql(u8, keyword, "room-image"))
                 try handleRoomImage(
+                    allocator,
+                    game,
+                    room_number,
+                    room_line_split.rest(),
+                    &cur_path,
+                    state,
+                    &index,
+                )
+            else if (std.mem.eql(u8, keyword, "scrp-asm"))
+                try handleScrpAsm(
                     allocator,
                     game,
                     room_number,
@@ -383,6 +394,60 @@ fn handleRoomImage(
         room_number,
         block_fixup,
         block_len,
+    );
+}
+
+fn handleScrpAsm(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    room_number: u8,
+    line: []const u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    // Parse line
+
+    var words = std.mem.splitScalar(u8, line, ' ');
+
+    const glob_number_str = words.next() orelse return error.BadData;
+    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+    const relative_path = words.next() orelse return error.BadData;
+
+    if (words.next()) |_| return error.BadData;
+
+    // Process block
+
+    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    defer path.restore();
+
+    const asm_file = try std.fs.cwd().openFileZ(path.full(), .{});
+    defer asm_file.close();
+    const asm_stat = try asm_file.stat();
+    const asm_string = try allocator.alloc(u8, asm_stat.size);
+    defer allocator.free(asm_string);
+    try asm_file.reader().readNoEof(asm_string);
+
+    const scrp_fixup = try beginBlock(&state.writer, "SCRP");
+
+    var bytecode = try assemble.assemble(allocator, asm_string);
+    defer bytecode.deinit(allocator);
+
+    try state.writer.writer().writeAll(bytecode.items);
+
+    try endBlock(&state.writer, &state.fixups, scrp_fixup);
+    const scrp_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        game,
+        index,
+        comptime blockId("SCRP"),
+        room_number,
+        glob_number,
+        scrp_fixup,
+        scrp_len,
     );
 }
 

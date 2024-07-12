@@ -4,7 +4,7 @@ const max_operands = 2;
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
 
-const Language = struct {
+pub const Language = struct {
     // TODO: don't hardcode maximum
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
@@ -65,18 +65,19 @@ const LangOperand = enum {
     u8,
     i16,
     i32,
+    relative_offset,
     variable,
     string,
 };
 
-fn buildLanguage() Language {
+pub fn buildLanguage() Language {
     var lang = Language{};
 
-    lang.add(0x00, "push", &.{.u8});
-    lang.add(0x01, "push", &.{.i16});
-    lang.add(0x02, "push", &.{.i32});
-    lang.add(0x03, "push", &.{.variable});
-    lang.add(0x04, "push", &.{.string});
+    lang.add(0x00, "push-u8", &.{.u8});
+    lang.add(0x01, "push-i16", &.{.i16});
+    lang.add(0x02, "push-i32", &.{.i32});
+    lang.add(0x03, "push-var", &.{.variable});
+    lang.add(0x04, "push-str", &.{.string});
     lang.add(0x07, "get-array-item", &.{.variable});
     lang.add(0x0b, "get-array-item-2d", &.{.variable});
     lang.add(0x0c, "dup", &.{});
@@ -155,7 +156,7 @@ fn buildLanguage() Language {
     lang.add(0x32, "shr", &.{});
     lang.add(0x34, "find-all-objects", &.{});
     lang.add(0x36, "iif", &.{});
-    lang.add(0x37, "dim-array", &.{ .u8, .variable });
+    lang.add(0x37, "dim-array-2d-range", &.{ .u8, .variable });
 
     lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
 
@@ -175,8 +176,8 @@ fn buildLanguage() Language {
     lang.add(0x57, "dec", &.{.variable});
     lang.add(0x5a, "sound-position", &.{});
     lang.add(0x5b, "dec-array-item", &.{.variable});
-    lang.add(0x5c, "jump-if", &.{.i16});
-    lang.add(0x5d, "jump-unless", &.{.i16});
+    lang.add(0x5c, "jump-if", &.{.relative_offset});
+    lang.add(0x5d, "jump-unless", &.{.relative_offset});
 
     lang.addNested(0x5e, 0x01, "start-script", &.{});
     lang.addNested(0x5e, 0xc3, "start-script-rec", &.{});
@@ -208,7 +209,7 @@ fn buildLanguage() Language {
     lang.add(0x6c, "break-here", &.{});
     lang.add(0x6d, "class-of", &.{});
     lang.add(0x6e, "object-set-class", &.{});
-    lang.add(0x73, "jump", &.{.i16});
+    lang.add(0x73, "jump", &.{.relative_offset});
 
     lang.addNested(0x74, 0x09, "sound-soft", &.{});
     lang.addNested(0x74, 0xe6, "sound-channel", &.{});
@@ -318,11 +319,11 @@ fn buildLanguage() Language {
     lang.add(0xee, "string-length", &.{});
     lang.add(0xef, "string-substr", &.{});
 
-    lang.addNested(0xf3, 0x06, "read-ini-int", &.{});
-    lang.addNested(0xf3, 0x07, "read-ini-string", &.{});
+    lang.addNested(0xf3, 0x06, "read-system-ini-int", &.{});
+    lang.addNested(0xf3, 0x07, "read-system-ini-string", &.{});
 
-    lang.addNested(0xf4, 0x06, "write-ini-int", &.{});
-    lang.addNested(0xf4, 0x07, "write-ini-string", &.{});
+    lang.addNested(0xf4, 0x06, "write-system-ini-int", &.{});
+    lang.addNested(0xf4, 0x07, "write-system-ini-string", &.{});
 
     lang.add(0xf5, "string-margin", &.{});
     lang.add(0xf6, "string-search", &.{});
@@ -343,10 +344,11 @@ const Ins = struct {
     operands: OperandArray,
 };
 
-pub const Operand = union(enum) {
+pub const Operand = union(LangOperand) {
     u8: u8,
     i16: i16,
     i32: i32,
+    relative_offset: i16,
     variable: Variable,
     string: []const u8,
 };
@@ -354,11 +356,25 @@ pub const Operand = union(enum) {
 pub const Variable = struct {
     raw: u16,
 
-    const Decoded = union(enum) {
+    pub const Kind = enum {
+        global,
+        local,
+        room,
+    };
+
+    const Decoded = union(Kind) {
         global: u16,
         local: u16,
         room: u16,
     };
+
+    pub fn init(variable: Decoded) Variable {
+        return switch (variable) {
+            .global => |n| .{ .raw = n | 0 },
+            .local => |n| .{ .raw = n | 0x4000 },
+            .room => |n| .{ .raw = n | 0x8000 },
+        };
+    }
 
     pub fn decode(self: Variable) !Decoded {
         return switch (self.raw & 0xc000) {
@@ -463,6 +479,10 @@ fn disasmOperand(reader: anytype, op: LangOperand) !Operand {
         .i32 => {
             const n = try reader.reader().readInt(i32, .little);
             return .{ .i32 = n };
+        },
+        .relative_offset => {
+            const n = try reader.reader().readInt(i16, .little);
+            return .{ .relative_offset = n };
         },
         .variable => {
             const variable = try readVariable(reader);

@@ -650,7 +650,10 @@ fn extractGlob(
                     return err;
                 };
 
-                // not writing a line as of now, because no assembler exists
+                if (!wrote_line) {
+                    try writeScrpAsmLine(glob_number, state, room_txt);
+                    wrote_line = true;
+                }
             },
             blockId("AWIZ") => {
                 var wiz = decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
@@ -734,6 +737,13 @@ fn decodeScrp(
     defer output_file.close();
 
     try output_file.writeAll(disassembly.items);
+}
+
+fn writeScrpAsmLine(glob_number: u32, state: *State, room_txt: anytype) !void {
+    const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
+    defer path.restore();
+
+    try room_txt.writer().print("scrp-asm {} {s}\n", .{ glob_number, path.relative() });
 }
 
 fn decodeAwiz(

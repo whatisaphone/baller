@@ -38,7 +38,7 @@ pub fn disassemble(
         try out.writeAll(ins.name);
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitOperand(op, out);
+            try emitOperand(op, ins.end, out);
         }
         try out.writeByte('\n');
     }
@@ -55,13 +55,13 @@ fn findJumpTargets(
 
     var dasm = disasm.Disasm.init(bytecode);
     while (try dasm.next()) |ins| {
-        // TODO: ew, string comparison?
-        const is_jump = std.mem.startsWith(u8, ins.name, "jump");
-        if (!is_jump) continue;
-        std.debug.assert(ins.operands.len == 1);
-        const rel = ins.operands.slice()[0].i16;
-        const abs = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+        // Check if it's a jump
+        if (ins.operands.len != 1) continue;
+        if (ins.operands.get(0) != .relative_offset) continue;
 
+        // Calc and store the absolute jump target
+        const rel = ins.operands.get(0).relative_offset;
+        const abs = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
         try insertSortedNoDup(allocator, &targets, abs);
     }
     std.debug.assert(std.sort.isSorted(u16, targets.items, {}, std.sort.asc(u16)));
@@ -83,10 +83,15 @@ fn emitLabel(pc: u16, out: anytype) !void {
     try out.print("L_{x:0>4}", .{pc});
 }
 
-fn emitOperand(op: disasm.Operand, out: anytype) !void {
+fn emitOperand(op: disasm.Operand, pc: u16, out: anytype) !void {
     switch (op) {
         .u8, .i16, .i32 => |n| {
             try out.print("{}", .{n});
+        },
+        .relative_offset => |rel| {
+            // This was already verified to be valid in findJumpTargets
+            const abs = utils.addUnsignedSigned(pc, rel).?;
+            try emitLabel(abs, out);
         },
         .variable => |v| {
             try emitVariable(out, v);
