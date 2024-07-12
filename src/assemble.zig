@@ -1,16 +1,16 @@
 const std = @import("std");
 
-const disasm = @import("disasm_decode.zig");
+const lang = @import("lang.zig");
 
 pub fn assemble(
     allocator: std.mem.Allocator,
     asm_str: []const u8,
 ) !std.ArrayListUnmanaged(u8) {
     // TODO: cache this
-    const lang = disasm.buildLanguage();
+    const language = lang.buildLanguage();
 
     // TODO: cache this!!
-    var inss = try buildInsMap(allocator, &lang);
+    var inss = try buildInsMap(allocator, &language);
     defer inss.deinit(allocator);
 
     // map from label name to offset
@@ -51,10 +51,10 @@ pub fn assemble(
         try bytecode.appendSlice(allocator, ins_bytes.slice());
 
         const opcode = switch (ins_bytes.len) {
-            1 => lang.opcodes[ins_bytes.get(0)],
+            1 => language.opcodes[ins_bytes.get(0)],
             2 => blk: {
-                const nest_start = lang.opcodes[ins_bytes.get(0)].nested;
-                break :blk lang.opcodes[nest_start << 8 | ins_bytes.get(1)];
+                const nest_start = language.opcodes[ins_bytes.get(0)].nested;
+                break :blk language.opcodes[nest_start << 8 | ins_bytes.get(1)];
             },
             else => unreachable,
         };
@@ -128,12 +128,12 @@ fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
     return .{ int, rest };
 }
 
-fn tokenizeVariable(str: []const u8) !struct { disasm.Variable, []const u8 } {
+fn tokenizeVariable(str: []const u8) !struct { lang.Variable, []const u8 } {
     var split = std.mem.tokenizeScalar(u8, str, ' ');
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
 
-    const kind: disasm.Variable.Kind, const num_str =
+    const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))
         .{ .global, var_str[6..] }
     else if (std.mem.startsWith(u8, var_str, "local"))
@@ -146,9 +146,9 @@ fn tokenizeVariable(str: []const u8) !struct { disasm.Variable, []const u8 } {
     const num = try std.fmt.parseInt(u14, num_str, 10);
 
     const variable = switch (kind) {
-        .global => disasm.Variable.init(.{ .global = num }),
-        .local => disasm.Variable.init(.{ .local = num }),
-        .room => disasm.Variable.init(.{ .room = num }),
+        .global => lang.Variable.init(.{ .global = num }),
+        .local => lang.Variable.init(.{ .local = num }),
+        .room => lang.Variable.init(.{ .room = num }),
     };
     return .{ variable, rest };
 }
@@ -162,7 +162,7 @@ fn tokenizeString(str: []const u8) !struct { []const u8, []const u8 } {
 
 fn buildInsMap(
     allocator: std.mem.Allocator,
-    lang: *const disasm.Language,
+    language: *const lang.Language,
 ) !std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) {
     var inss = std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)){};
     errdefer inss.deinit(allocator);
@@ -170,7 +170,7 @@ fn buildInsMap(
 
     for (0..256) |b1_usize| {
         const b1: u8 = @intCast(b1_usize);
-        switch (lang.opcodes[b1]) {
+        switch (language.opcodes[b1]) {
             .unknown => {},
             .ins => |ins| {
                 const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
@@ -179,7 +179,7 @@ fn buildInsMap(
             .nested => |n| {
                 for (0..256) |b2_usize| {
                     const b2: u8 = @intCast(b2_usize);
-                    switch (lang.opcodes[n << 8 | b2]) {
+                    switch (language.opcodes[n << 8 | b2]) {
                         .unknown => {},
                         .ins => |ins| {
                             const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;

@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const disasm = @import("disasm_decode.zig");
+const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
 pub fn disassemble(
@@ -12,7 +12,7 @@ pub fn disassemble(
     if (bytecode.len > 0xffff)
         return error.BadData;
 
-    var dasm = disasm.Disasm.init(bytecode);
+    var dasm = lang.Disasm.init(bytecode);
 
     var jump_targets = try findJumpTargets(allocator, bytecode);
     defer jump_targets.deinit(allocator);
@@ -53,7 +53,7 @@ fn findJumpTargets(
         try std.ArrayListUnmanaged(u16).initCapacity(allocator, initial_capacity);
     errdefer targets.deinit(allocator);
 
-    var dasm = disasm.Disasm.init(bytecode);
+    var dasm = lang.Disasm.init(bytecode);
     while (try dasm.next()) |ins| {
         // Check if it's a jump
         if (ins.operands.len != 1) continue;
@@ -83,7 +83,7 @@ fn emitLabel(pc: u16, out: anytype) !void {
     try out.print("L_{x:0>4}", .{pc});
 }
 
-fn emitOperand(op: disasm.Operand, pc: u16, out: anytype) !void {
+fn emitOperand(op: lang.Operand, pc: u16, out: anytype) !void {
     switch (op) {
         .u8, .i16, .i32 => |n| {
             try out.print("{}", .{n});
@@ -105,7 +105,7 @@ fn emitOperand(op: disasm.Operand, pc: u16, out: anytype) !void {
     }
 }
 
-fn emitVariable(out: anytype, variable: disasm.Variable) !void {
+fn emitVariable(out: anytype, variable: lang.Variable) !void {
     switch (try variable.decode()) {
         .global => |num| try out.print("global{}", .{num}),
         .local => |num| try out.print("local{}", .{num}),
