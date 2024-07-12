@@ -644,7 +644,11 @@ fn extractGlob(
     for (modes) |mode| switch (mode) {
         .decode => switch (block_id) {
             blockId("SCRP") => {
-                try decodeScrp(allocator, glob_number, data, state);
+                decodeScrp(allocator, glob_number, data, state) catch |err| {
+                    if (err == error.BadData)
+                        continue;
+                    return err;
+                };
 
                 // not writing a line as of now, because no assembler exists
             },
@@ -721,7 +725,7 @@ fn decodeScrp(
     var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
-    try disasm.disassemble(data, disassembly.writer(allocator));
+    try disasm.disassemble(allocator, data, disassembly.writer(allocator));
 
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
     defer path.restore();

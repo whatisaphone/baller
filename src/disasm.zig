@@ -1,9 +1,40 @@
-const disasm = @import("disasm_decode.zig");
+const std = @import("std");
 
-pub fn disassemble(bytecode: []const u8, out: anytype) !void {
+const disasm = @import("disasm_decode.zig");
+const utils = @import("utils.zig");
+
+pub fn disassemble(
+    allocator: std.mem.Allocator,
+    bytecode: []const u8,
+    out: anytype,
+) !void {
+    // Lots of stuff seems to assume pc fits in u16.
+    if (bytecode.len > 0xffff)
+        return error.BadData;
+
     var dasm = disasm.Disasm.init(bytecode);
 
+    var jump_targets = try findJumpTargets(allocator, bytecode);
+    defer jump_targets.deinit(allocator);
+
+    var next_jump_index: u16 = 0;
     while (try dasm.next()) |ins| {
+        // If we're at a jump target, emit the label
+        if (next_jump_index < jump_targets.items.len) {
+            const next_jump_target = jump_targets.items[next_jump_index];
+            if (ins.start == next_jump_target) {
+                try emitLabel(ins.start, out);
+                try out.writeAll(":\n");
+
+                next_jump_index += 1;
+            } else if (ins.start > next_jump_target) {
+                // This would mean jumping between opcodes?
+                return error.BadData;
+            }
+        }
+
+        // Emit the instruction
+        try out.writeAll("    ");
         try out.writeAll(ins.name);
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
@@ -11,6 +42,45 @@ pub fn disassemble(bytecode: []const u8, out: anytype) !void {
         }
         try out.writeByte('\n');
     }
+}
+
+fn findJumpTargets(
+    allocator: std.mem.Allocator,
+    bytecode: []const u8,
+) !std.ArrayListUnmanaged(u16) {
+    const initial_capacity = bytecode.len / 10;
+    var targets =
+        try std.ArrayListUnmanaged(u16).initCapacity(allocator, initial_capacity);
+    errdefer targets.deinit(allocator);
+
+    var dasm = disasm.Disasm.init(bytecode);
+    while (try dasm.next()) |ins| {
+        // TODO: ew, string comparison?
+        const is_jump = std.mem.startsWith(u8, ins.name, "jump");
+        if (!is_jump) continue;
+        std.debug.assert(ins.operands.len == 1);
+        const rel = ins.operands.slice()[0].i16;
+        const abs = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+
+        try insertSortedNoDup(allocator, &targets, abs);
+    }
+    std.debug.assert(std.sort.isSorted(u16, targets.items, {}, std.sort.asc(u16)));
+    return targets;
+}
+
+fn insertSortedNoDup(
+    allocator: std.mem.Allocator,
+    list: *std.ArrayListUnmanaged(u16),
+    item: u16,
+) !void {
+    const index = std.sort.upperBound(u16, item, list.items, {}, std.sort.asc(u16));
+    if (index > 0 and list.items[index - 1] == item)
+        return;
+    try list.insert(allocator, index, item);
+}
+
+fn emitLabel(pc: u16, out: anytype) !void {
+    try out.print("L_{x:0>4}", .{pc});
 }
 
 fn emitOperand(op: disasm.Operand, out: anytype) !void {

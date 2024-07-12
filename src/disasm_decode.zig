@@ -337,8 +337,8 @@ fn buildLanguage() Language {
 }
 
 const Ins = struct {
-    start: u32,
-    end: u32,
+    start: u16,
+    end: u16,
     name: []const u8,
     operands: OperandArray,
 };
@@ -395,15 +395,16 @@ pub const Disasm = struct {
         if (self.poison)
             return unknownByte(&self.reader);
 
+        const start: u16 = @intCast(self.reader.pos);
         const b1 = self.reader.reader().readByte() catch unreachable;
         return switch (self.lang.opcodes[b1]) {
             .unknown => try self.becomePoison(1),
-            .ins => |*ins| try disasmIns(&self.reader, ins),
+            .ins => |*ins| try disasmIns(&self.reader, start, ins),
             .nested => |n| {
                 const b2 = try self.reader.reader().readByte();
                 return switch (self.lang.opcodes[n << 8 | b2]) {
                     .unknown => try self.becomePoison(2),
-                    .ins => |*ins| try disasmIns(&self.reader, ins),
+                    .ins => |*ins| try disasmIns(&self.reader, start, ins),
                     .nested => unreachable,
                 };
             },
@@ -421,9 +422,9 @@ pub const Disasm = struct {
 
 // precondition: not at EOF
 fn unknownByte(reader: anytype) !?Ins {
-    const start: u32 = @intCast(reader.pos);
+    const start: u16 = @intCast(reader.pos);
     const byte = reader.reader().readByte() catch unreachable;
-    const end: u32 = @intCast(reader.pos);
+    const end: u16 = @intCast(reader.pos);
     var operands = OperandArray{};
     operands.appendAssumeCapacity(.{ .u8 = byte });
     return .{
@@ -434,14 +435,13 @@ fn unknownByte(reader: anytype) !?Ins {
     };
 }
 
-fn disasmIns(reader: anytype, ins: *const LangIns) !Ins {
-    const start: u32 = @intCast(reader.pos);
+fn disasmIns(reader: anytype, start: u16, ins: *const LangIns) !Ins {
     var operands = OperandArray{};
     for (ins.operands.slice()) |lang_op| {
         const op = try disasmOperand(reader, lang_op);
         operands.appendAssumeCapacity(op);
     }
-    const end: u32 = @intCast(reader.pos);
+    const end: u16 = @intCast(reader.pos);
     return .{
         .start = start,
         .end = end,
