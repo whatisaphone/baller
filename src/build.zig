@@ -144,7 +144,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         defer room_file.close();
 
         var room_reader = std.io.bufferedReader(room_file.reader());
-        var room_line_buf: [256]u8 = undefined;
+        var room_line_buf: [1024]u8 = undefined;
 
         const lflf_fixup = try beginBlock(&state.writer, "LFLF");
 
@@ -457,7 +457,7 @@ fn handleAwiz(
     room_number: u8,
     glob_number_str: []const u8,
     room_reader: anytype,
-    room_line_buf: *[256]u8,
+    room_line_buf: *[1024]u8,
     cur_path: *std.BoundedArray(u8, 4095),
     state: *DiskState,
     index: *Index,
@@ -487,7 +487,7 @@ fn handleAwiz(
 fn readAwizLines(
     allocator: std.mem.Allocator,
     room_reader: anytype,
-    room_line_buf: *[256]u8,
+    room_line_buf: *[1024]u8,
     cur_path: *std.BoundedArray(u8, 4095),
 ) !awiz.Awiz {
     var wiz = awiz.Awiz{};
@@ -553,7 +553,7 @@ fn handleMult(
     room_number: u8,
     line: []const u8,
     room_reader: anytype,
-    room_line_buf: *[256]u8,
+    room_line_buf: *[1024]u8,
     cur_path: *std.BoundedArray(u8, 4095),
     state: *DiskState,
     index: *Index,
@@ -590,22 +590,31 @@ fn handleMult(
 
     const offs_fixup = try beginBlock(&state.writer, "OFFS");
     // will be filled in using fixups
-    for (desc.wizs.items.len) |_|
+    for (desc.indices.items.len) |_|
         try state.writer.writer().writeInt(i32, undefined, .little);
     try endBlock(&state.writer, &state.fixups, offs_fixup);
 
-    for (desc.wizs.items, 0..) |*wiz, i_usize| {
-        const i: u32 = @intCast(i_usize);
+    var wiz_offsets = std.ArrayListUnmanaged(u32){};
+    defer wiz_offsets.deinit(allocator);
+    try wiz_offsets.ensureTotalCapacityPrecise(allocator, desc.wizs.items.len);
 
-        const off: u32 = @intCast(state.writer.bytes_written - offs_fixup);
-        try state.fixups.append(.{
-            .offset = offs_fixup + 8 + i * 4,
-            .bytes = Fixup.encode(off, .little),
-        });
+    for (desc.wizs.items) |*wiz| {
+        const wiz_offset: u32 = @intCast(state.writer.bytes_written - offs_fixup);
+        try wiz_offsets.append(allocator, wiz_offset);
 
         const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
         try awiz.encode(wiz, &state.writer, &state.fixups);
         try endBlock(&state.writer, &state.fixups, awiz_fixup);
+    }
+
+    // Go back and fill the OFFS with the offset corresponding to each index.
+    for (desc.indices.items, 0..) |wiz_index, off_index_usize| {
+        const off_index: u32 = @intCast(off_index_usize);
+        const offset = wiz_offsets.items[wiz_index];
+        try state.fixups.append(.{
+            .offset = offs_fixup + 8 + off_index * 4,
+            .bytes = Fixup.encode(offset, .little),
+        });
     }
 
     try endBlock(&state.writer, &state.fixups, wrap_fixup);
@@ -630,6 +639,7 @@ const Mult = struct {
     glob_number: u32,
     raws: std.ArrayListUnmanaged(MultRaw),
     wizs: std.ArrayListUnmanaged(awiz.Awiz),
+    indices: std.ArrayListUnmanaged(u32),
 };
 
 const MultRaw = struct {
@@ -641,7 +651,7 @@ fn parseMult(
     arena: std.mem.Allocator,
     first_line: []const u8,
     room_reader: anytype,
-    room_line_buf: *[256]u8,
+    room_line_buf: *[1024]u8,
     cur_path: *std.BoundedArray(u8, 4095),
 ) !Mult {
     // Parse first line
@@ -659,6 +669,7 @@ fn parseMult(
         .glob_number = glob_number,
         .raws = .{},
         .wizs = .{},
+        .indices = .{},
     };
 
     while (true) {
@@ -682,6 +693,14 @@ fn parseMult(
         } else if (std.mem.eql(u8, keyword, "awiz")) {
             const wiz = try readAwizLines(arena, room_reader, room_line_buf, cur_path);
             try result.wizs.append(arena, wiz);
+        } else if (std.mem.eql(u8, keyword, "indices")) {
+            if (result.indices.items.len != 0)
+                return error.BadData;
+            try result.indices.ensureTotalCapacityPrecise(arena, result.wizs.items.len);
+            while (tokens.next()) |num_str| {
+                const num = try std.fmt.parseInt(u32, num_str, 10);
+                try result.indices.append(arena, num);
+            }
         } else if (std.mem.eql(u8, keyword, "end-mult"))
             break
         else

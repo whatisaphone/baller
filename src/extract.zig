@@ -887,24 +887,32 @@ fn decodeMult(
     const wrap_end: u32 = @intCast(stream.pos + wrap_len);
     var wrap_blocks = fixedBlockReader(&stream);
 
+    const offs_start: u32 = @intCast(stream.pos);
     const offs_len = try wrap_blocks.expectBlock("OFFS");
-    const count = std.math.divExact(u32, offs_len, 4) catch return error.BadData;
-    _ = try io.readInPlace(&stream, offs_len);
+    const offs_count = std.math.divExact(u32, offs_len, 4) catch return error.BadData;
+    const offs_raw = try io.readInPlace(&stream, offs_len);
+    const offs = std.mem.bytesAsSlice(u32, offs_raw);
+    std.debug.assert(builtin.cpu.arch.endian() == .little);
 
-    try mult.wizs.ensureTotalCapacityPrecise(allocator, count);
+    var wiz_offsets = std.ArrayListUnmanaged(u32){};
+    defer wiz_offsets.deinit(allocator);
+    try wiz_offsets.ensureTotalCapacityPrecise(allocator, offs_count);
 
-    for (0..count) |i_usize| {
-        const i: u32 = @intCast(i_usize);
+    try mult.wizs.ensureTotalCapacityPrecise(allocator, offs_count);
 
-        // Some WRAP blocks have fewer children than the number of offsets
-        // (such as Baseball 2001 MULT_0408)
-        if (stream.pos == stream.buffer.len)
-            break;
+    while (stream.pos < wrap_end) {
+        const wiz_offset: u32 = @intCast(stream.pos - offs_start);
+        try wiz_offsets.append(allocator, wiz_offset);
 
         const awiz_len = try wrap_blocks.expectBlock("AWIZ");
         const awiz_raw = try io.readInPlace(&stream, awiz_len);
 
-        const path2 = try appendGlobPath(state, comptime blockId("AWIZ"), i, "bmp");
+        const path2 = try appendGlobPath(
+            state,
+            comptime blockId("AWIZ"),
+            @intCast(wiz_offsets.items.len - 1),
+            "bmp",
+        );
         defer path2.restore();
 
         var wiz = try decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full());
@@ -920,6 +928,14 @@ fn decodeMult(
         try mult.room_lines.appendSlice(allocator, "    end-awiz\n");
     }
 
+    try mult.room_lines.appendSlice(allocator, "    indices");
+    for (offs) |off| {
+        const index = std.sort.binarySearch(u32, off, wiz_offsets.items, {}, u32Order) orelse
+            return error.BadData;
+        try mult.room_lines.writer(allocator).print(" {}", .{index});
+    }
+    try mult.room_lines.append(allocator, '\n');
+
     try wrap_blocks.finish(wrap_end);
 
     try mult_blocks.finishEof();
@@ -927,6 +943,10 @@ fn decodeMult(
     try mult.room_lines.appendSlice(allocator, "end-mult\n");
 
     return mult;
+}
+
+fn u32Order(_: void, lhs: u32, rhs: u32) std.math.Order {
+    return std.math.order(lhs, rhs);
 }
 
 fn writeMultLines(mult: *const Mult, room_txt: anytype) !void {
