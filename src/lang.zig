@@ -100,7 +100,9 @@ pub fn buildLanguage() Language {
     lang.addNested(0x1c, 0x20, "image-set-width", &.{});
     lang.addNested(0x1c, 0x21, "image-set-height", &.{});
     lang.addNested(0x1c, 0x30, "image-draw", &.{});
+    lang.addNested(0x1c, 0x33, "image-capture", &.{});
     lang.addNested(0x1c, 0x34, "image-set-state", &.{});
+    lang.addNested(0x1c, 0x36, "image-palette-not-set", &.{});
     lang.addNested(0x1c, 0x39, "image-select", &.{});
     lang.addNested(0x1c, 0x41, "image-set-pos", &.{});
     lang.addNested(0x1c, 0x56, "image-set-palette", &.{});
@@ -185,6 +187,8 @@ pub fn buildLanguage() Language {
     lang.addNested(0x60, 0x01, "start-object", &.{});
     lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
 
+    lang.add(0x62, "print-image", &.{});
+
     lang.addNested(0x63, 0x01, "array-get-dim", &.{.variable});
     lang.addNested(0x63, 0x02, "array-get-dim-2d-height", &.{.variable});
     lang.addNested(0x63, 0x03, "array-get-dim-2d-width", &.{.variable});
@@ -203,6 +207,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x6b, 0x14, "cursor-color", &.{});
     lang.addNested(0x6b, 0x90, "cursor-on", &.{});
     lang.addNested(0x6b, 0x91, "cursor-off", &.{});
+    lang.addNested(0x6b, 0x92, "userput-on", &.{});
     lang.addNested(0x6b, 0x93, "userput-off", &.{});
     lang.addNested(0x6b, 0x9c, "charset", &.{});
 
@@ -230,6 +235,8 @@ pub fn buildLanguage() Language {
     lang.addNested(0x94, 0x42, "palette-color", &.{});
     lang.addNested(0x94, 0xd9, "rgb", &.{});
 
+    lang.add(0x95, "override", &.{ .u8, .i16 });
+    lang.add(0x96, "override-off", &.{});
     lang.add(0x98, "sound-running", &.{});
 
     lang.addNested(0x9b, 0x64, "load-script", &.{});
@@ -237,6 +244,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x9b, 0x67, "load-room", &.{});
     lang.addNested(0x9b, 0x6c, "lock-script", &.{});
     lang.addNested(0x9b, 0x75, "load-charset", &.{});
+    lang.addNested(0x9b, 0x7b, "preload-room", &.{});
     lang.addNested(0x9b, 0xc0, "nuke-image", &.{});
     lang.addNested(0x9b, 0xc9, "load-image", &.{});
 
@@ -269,6 +277,9 @@ pub fn buildLanguage() Language {
     lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
 
     lang.add(0xad, "in2", &.{});
+
+    lang.addNested(0xae, 0xa0, "quit", &.{});
+
     lang.add(0xb3, "stop-sentence", &.{});
 
     lang.addNested(0xb5, 0x41, "print-text-position", &.{});
