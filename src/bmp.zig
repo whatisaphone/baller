@@ -136,7 +136,8 @@ pub const RowIter = struct {
         const width: u31 = @intCast(header.biWidth);
         const stride = calcStride(width);
 
-        // Hopefully i never need to handle this
+        // It would be nice to check this in readHeader instead, but it skips
+        // the check so that RMIM is able to round-trip.
         if (pixels.len % stride != 0)
             return error.BadData;
 
