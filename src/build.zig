@@ -198,8 +198,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 )
-            else if (std.mem.eql(u8, keyword, "digi"))
-                try handleDigi(
+            else if (std.mem.eql(u8, keyword, "audio"))
+                try handleAudio(
                     allocator,
                     game,
                     room_number,
@@ -462,7 +462,7 @@ fn handleScrpAsm(
     );
 }
 
-fn handleDigi(
+fn handleAudio(
     allocator: std.mem.Allocator,
     game: games.Game,
     room_number: u8,
@@ -474,6 +474,9 @@ fn handleDigi(
     // Parse line
 
     var words = std.mem.splitScalar(u8, line, ' ');
+
+    const block_id_str = words.next() orelse return error.BadData;
+    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
 
     const glob_number_str = words.next() orelse return error.BadData;
     const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
@@ -491,7 +494,7 @@ fn handleDigi(
     defer wav_file.close();
     var wav_reader = std.io.bufferedReader(wav_file.reader());
 
-    const digi_fixup = try beginBlock(&state.writer, "DIGI");
+    const digi_fixup = try beginBlockImpl(&state.writer, block_id);
     try audio.encode(&wav_reader, &state.writer, &state.fixups);
     try endBlock(&state.writer, &state.fixups, digi_fixup);
     const digi_len = state.lastBlockLen();
@@ -500,7 +503,7 @@ fn handleDigi(
         allocator,
         game,
         index,
-        comptime blockId("DIGI"),
+        block_id,
         room_number,
         glob_number,
         digi_fixup,

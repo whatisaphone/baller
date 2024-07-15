@@ -588,7 +588,7 @@ fn extractDisk(
 
             const modes = switch (id) {
                 blockId("SCRP") => script_modes,
-                blockId("DIGI") => sound_modes,
+                blockId("DIGI"), blockId("TALK") => sound_modes,
                 blockId("AWIZ") => awiz_modes,
                 blockId("MULT") => mult_modes,
                 else => &.{ResourceMode.raw},
@@ -661,15 +661,15 @@ fn extractGlob(
                     wrote_line = true;
                 }
             },
-            blockId("DIGI") => {
-                decodeDigi(glob_number, data, state) catch |err| {
+            blockId("DIGI"), blockId("TALK") => {
+                decodeAudio(block_id, glob_number, data, state) catch |err| {
                     if (err == error.BadData)
                         continue;
                     return err;
                 };
 
                 if (!wrote_line) {
-                    try writeDigiLine(glob_number, state, room_txt);
+                    try writeDigiLine(block_id, glob_number, state, room_txt);
                     wrote_line = true;
                 }
             },
@@ -764,8 +764,13 @@ fn writeScrpAsmLine(glob_number: u32, state: *State, room_txt: anytype) !void {
     try room_txt.writer().print("scrp-asm {} {s}\n", .{ glob_number, path.relative() });
 }
 
-fn decodeDigi(glob_number: u32, data: []const u8, state: *State) !void {
-    const path = try appendGlobPath(state, comptime blockId("DIGI"), glob_number, "wav");
+fn decodeAudio(
+    block_id: BlockId,
+    glob_number: u32,
+    data: []const u8,
+    state: *State,
+) !void {
+    const path = try appendGlobPath(state, block_id, glob_number, "wav");
     defer path.restore();
 
     const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
@@ -777,11 +782,19 @@ fn decodeDigi(glob_number: u32, data: []const u8, state: *State) !void {
     try output_writer.flush();
 }
 
-fn writeDigiLine(glob_number: u32, state: *State, room_txt: anytype) !void {
-    const path = try appendGlobPath(state, comptime blockId("DIGI"), glob_number, "wav");
+fn writeDigiLine(
+    block_id: BlockId,
+    glob_number: u32,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    const path = try appendGlobPath(state, block_id, glob_number, "wav");
     defer path.restore();
 
-    try room_txt.writer().print("digi {} {s}\n", .{ glob_number, path.relative() });
+    try room_txt.writer().print(
+        "audio {s} {} {s}\n",
+        .{ blockIdToStr(&block_id), glob_number, path.relative() },
+    );
 }
 
 fn decodeAwiz(
