@@ -94,6 +94,7 @@ fn testRoundTrip(
         .output_path = extract_dir,
         .rmim_decode = !raw,
         .script_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
+        .sound_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
         // TODO: swap these once AWIZ round trips
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
         .mult_modes = if (raw) &.{.raw} else &.{ .raw, .decode },

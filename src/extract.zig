@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -28,6 +29,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .output_path = output_path,
         .rmim_decode = true,
         .script_modes = &.{ .decode, .raw },
+        .sound_modes = &.{ .decode, .raw },
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
     });
@@ -43,6 +45,7 @@ const Extract = struct {
     output_path: [:0]const u8,
     rmim_decode: bool,
     script_modes: []const ResourceMode,
+    sound_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
 };
@@ -95,6 +98,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
             &index,
             args.rmim_decode,
             args.script_modes,
+            args.sound_modes,
             args.awiz_modes,
             args.mult_modes,
         );
@@ -478,6 +482,7 @@ fn extractDisk(
     index: *const Index,
     rmim_decode: bool,
     script_modes: []const ResourceMode,
+    sound_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
 ) !void {
@@ -583,6 +588,7 @@ fn extractDisk(
 
             const modes = switch (id) {
                 blockId("SCRP") => script_modes,
+                blockId("DIGI") => sound_modes,
                 blockId("AWIZ") => awiz_modes,
                 blockId("MULT") => mult_modes,
                 else => &.{ResourceMode.raw},
@@ -652,6 +658,18 @@ fn extractGlob(
 
                 if (!wrote_line) {
                     try writeScrpAsmLine(glob_number, state, room_txt);
+                    wrote_line = true;
+                }
+            },
+            blockId("DIGI") => {
+                decodeDigi(glob_number, data, state) catch |err| {
+                    if (err == error.BadData)
+                        continue;
+                    return err;
+                };
+
+                if (!wrote_line) {
+                    try writeDigiLine(glob_number, state, room_txt);
                     wrote_line = true;
                 }
             },
@@ -744,6 +762,26 @@ fn writeScrpAsmLine(glob_number: u32, state: *State, room_txt: anytype) !void {
     defer path.restore();
 
     try room_txt.writer().print("scrp-asm {} {s}\n", .{ glob_number, path.relative() });
+}
+
+fn decodeDigi(glob_number: u32, data: []const u8, state: *State) !void {
+    const path = try appendGlobPath(state, comptime blockId("DIGI"), glob_number, "wav");
+    defer path.restore();
+
+    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
+    defer output_file.close();
+    var output_writer = std.io.bufferedWriter(output_file.writer());
+
+    try audio.decode(data, output_writer.writer());
+
+    try output_writer.flush();
+}
+
+fn writeDigiLine(glob_number: u32, state: *State, room_txt: anytype) !void {
+    const path = try appendGlobPath(state, comptime blockId("DIGI"), glob_number, "wav");
+    defer path.restore();
+
+    try room_txt.writer().print("digi {} {s}\n", .{ glob_number, path.relative() });
 }
 
 fn decodeAwiz(

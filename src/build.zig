@@ -2,6 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const assemble = @import("assemble.zig");
+const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -189,6 +190,16 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                 )
             else if (std.mem.eql(u8, keyword, "scrp-asm"))
                 try handleScrpAsm(
+                    allocator,
+                    game,
+                    room_number,
+                    room_line_split.rest(),
+                    &cur_path,
+                    state,
+                    &index,
+                )
+            else if (std.mem.eql(u8, keyword, "digi"))
+                try handleDigi(
                     allocator,
                     game,
                     room_number,
@@ -448,6 +459,52 @@ fn handleScrpAsm(
         glob_number,
         scrp_fixup,
         scrp_len,
+    );
+}
+
+fn handleDigi(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    room_number: u8,
+    line: []const u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    // Parse line
+
+    var words = std.mem.splitScalar(u8, line, ' ');
+
+    const glob_number_str = words.next() orelse return error.BadData;
+    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+    const relative_path = words.next() orelse return error.BadData;
+
+    if (words.next()) |_| return error.BadData;
+
+    // Process block
+
+    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    defer path.restore();
+
+    const wav_file = try std.fs.cwd().openFileZ(path.full(), .{});
+    defer wav_file.close();
+    var wav_reader = std.io.bufferedReader(wav_file.reader());
+
+    const digi_fixup = try beginBlock(&state.writer, "DIGI");
+    try audio.encode(&wav_reader, &state.writer, &state.fixups);
+    try endBlock(&state.writer, &state.fixups, digi_fixup);
+    const digi_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        game,
+        index,
+        comptime blockId("DIGI"),
+        room_number,
+        glob_number,
+        digi_fixup,
+        digi_len,
     );
 }
 
