@@ -120,6 +120,11 @@ const State = struct {
     }
 };
 
+const RoomState = struct {
+    room_path: pathf.PrintedPath,
+    room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
+};
+
 const Index = struct {
     maxs: *Maxs,
     directories: Directories,
@@ -518,14 +523,10 @@ fn extractDisk(
 
         try project_txt.writer().print("room {} {} {s}\n", .{ disk_number, room_number, room_name });
 
-        const before_room_path_len = state.cur_path.len;
-        defer state.cur_path.len = before_room_path_len;
+        const room_path = try pathf.print(&state.cur_path, "{s}/", .{room_name});
+        defer room_path.restore();
 
-        try state.cur_path.appendSlice(room_name);
-        try state.cur_path.append('\x00');
-        const room_dir_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-        try fs.makeDirIfNotExistZ(std.fs.cwd(), room_dir_path);
-        state.cur_path.buffer[state.cur_path.len - 1] = '/';
+        try fs.makeDirIfNotExistZ(std.fs.cwd(), room_path.full());
 
         const room_txt_file = room_txt_file: {
             try state.cur_path.appendSlice("room.txt\x00");
@@ -537,6 +538,11 @@ fn extractDisk(
         defer room_txt_file.close();
 
         var room_txt = std.io.bufferedWriter(room_txt_file.writer());
+
+        const room_state = RoomState{
+            .room_path = room_path,
+            .room_txt = room_txt.writer(),
+        };
 
         var lflf_blocks = blockReader(&reader);
 
@@ -551,7 +557,7 @@ fn extractDisk(
         const rmim_decoded = rmim_decoded: {
             if (!rmim_decode)
                 break :rmim_decoded false;
-            decodeRmim(allocator, rmim_data, rmda_data, &state, &room_txt) catch |err| {
+            decodeRmim(allocator, rmim_data, rmda_data, &state, &room_state) catch |err| {
                 if (err != error.DecompressBmap)
                     return err;
                 break :rmim_decoded false;
@@ -564,10 +570,10 @@ fn extractDisk(
                 room_number,
                 rmim_data,
                 &state,
-                &room_txt,
+                &room_state,
             );
 
-        try extractRmda(allocator, rmda_data, &state, &room_txt);
+        try extractRmda(allocator, rmda_data, &state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -595,7 +601,7 @@ fn extractDisk(
                 modes,
                 rmda_data,
                 &state,
-                &room_txt,
+                &room_state,
             );
         }
 
@@ -634,7 +640,7 @@ fn extractRmda(
     allocator: std.mem.Allocator,
     rmda_raw: []const u8,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     const path = try pathf.print(&state.cur_path, "RMDA/", .{});
     defer path.restore();
@@ -647,7 +653,7 @@ fn extractRmda(
     var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
     defer block_numbers.deinit(allocator);
 
-    try room_txt.writer().writeAll("rmda\n");
+    try room_state.room_txt.writeAll("rmda\n");
 
     while (reader.pos < rmda_raw.len) {
         const block_id, const block_len = try blocks.next();
@@ -664,7 +670,7 @@ fn extractRmda(
         defer block_file.close();
         try block_file.writeAll(block_raw);
 
-        try room_txt.writer().print(
+        try room_state.room_txt.print(
             "    raw-block {s} {s}\n",
             .{ blockIdToStr(&block_id), path.relative() },
         );
@@ -672,7 +678,7 @@ fn extractRmda(
 
     try blocks.finishEof();
 
-    try room_txt.writer().writeAll("end-rmda\n");
+    try room_state.room_txt.writeAll("end-rmda\n");
 }
 
 fn extractGlob(
@@ -683,7 +689,7 @@ fn extractGlob(
     modes: []const ResourceMode,
     rmda_data: []const u8,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     var wrote_line = false;
     for (modes) |mode| switch (mode) {
@@ -696,7 +702,7 @@ fn extractGlob(
                 };
 
                 if (!wrote_line) {
-                    try writeScrpAsmLine(glob_number, state, room_txt);
+                    try writeScrpAsmLine(glob_number, state, room_state);
                     wrote_line = true;
                 }
             },
@@ -708,7 +714,7 @@ fn extractGlob(
                 };
 
                 if (!wrote_line) {
-                    try writeDigiLine(block_id, glob_number, state, room_txt);
+                    try writeDigiLine(block_id, glob_number, state, room_state);
                     wrote_line = true;
                 }
             },
@@ -721,7 +727,7 @@ fn extractGlob(
                 defer wiz.deinit(allocator);
 
                 if (!wrote_line) {
-                    try writeAwizLines(glob_number, &wiz, state, room_txt);
+                    try writeAwizLines(glob_number, &wiz, state, room_state);
                     wrote_line = true;
                 }
             },
@@ -734,7 +740,7 @@ fn extractGlob(
                 defer mult.deinit(allocator);
 
                 if (!wrote_line) {
-                    try writeMultLines(&mult, room_txt);
+                    try writeMultLines(&mult, room_state);
                     wrote_line = true;
                 }
             },
@@ -744,7 +750,7 @@ fn extractGlob(
             try writeRawGlobFile(block_id, glob_number, data, state);
 
             if (!wrote_line) {
-                try writeRawGlobLine(block_id, glob_number, state, room_txt);
+                try writeRawGlobLine(block_id, glob_number, state, room_state);
                 wrote_line = true;
             }
         },
@@ -760,7 +766,7 @@ fn decodeRmim(
     rmim_raw: []const u8,
     rmda_raw: []const u8,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     var bmp = try rmim.decode(allocator, rmim_raw, rmda_raw);
     defer bmp.deinit(allocator);
@@ -773,7 +779,7 @@ fn decodeRmim(
 
     try output_file.writeAll(bmp.items);
 
-    try room_txt.writer().print("room-image {s}\n", .{path.relative()});
+    try room_state.room_txt.print("room-image {s}\n", .{path.relative()});
 }
 
 fn decodeScrp(
@@ -796,11 +802,18 @@ fn decodeScrp(
     try output_file.writeAll(disassembly.items);
 }
 
-fn writeScrpAsmLine(glob_number: u32, state: *State, room_txt: anytype) !void {
+fn writeScrpAsmLine(
+    glob_number: u32,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
     defer path.restore();
 
-    try room_txt.writer().print("scrp-asm {} {s}\n", .{ glob_number, path.relative() });
+    try room_state.room_txt.print(
+        "scrp-asm {} {s}\n",
+        .{ glob_number, path.relative() },
+    );
 }
 
 fn decodeAudio(
@@ -825,12 +838,12 @@ fn writeDigiLine(
     block_id: BlockId,
     glob_number: u32,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     const path = try appendGlobPath(state, block_id, glob_number, "wav");
     defer path.restore();
 
-    try room_txt.writer().print(
+    try room_state.room_txt.print(
         "audio {s} {} {s}\n",
         .{ blockIdToStr(&block_id), glob_number, path.relative() },
     );
@@ -875,15 +888,15 @@ fn writeAwizLines(
     glob_number: u32,
     wiz: *const awiz.Awiz,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     const path =
         try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    try room_txt.writer().print("awiz {}\n", .{glob_number});
-    try writeAwizChildrenGivenBmpPath(wiz, path.relative(), 1, room_txt.writer());
-    try room_txt.writer().writeAll("end-awiz\n");
+    try room_state.room_txt.print("awiz {}\n", .{glob_number});
+    try writeAwizChildrenGivenBmpPath(wiz, path.relative(), 1, room_state.room_txt);
+    try room_state.room_txt.writeAll("end-awiz\n");
 }
 
 fn writeAwizChildrenGivenBmpPath(
@@ -1039,8 +1052,8 @@ fn u32Order(_: void, lhs: u32, rhs: u32) std.math.Order {
     return std.math.order(lhs, rhs);
 }
 
-fn writeMultLines(mult: *const Mult, room_txt: anytype) !void {
-    try room_txt.writer().writeAll(mult.room_lines.items);
+fn writeMultLines(mult: *const Mult, room_state: *const RoomState) !void {
+    try room_state.room_txt.writeAll(mult.room_lines.items);
 }
 
 fn readGlob(
@@ -1062,12 +1075,12 @@ fn writeGlob(
     glob_number: u32,
     data: []const u8,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     const path = try appendGlobPath(state, block_id, glob_number, "bin");
     defer path.restore();
 
-    try room_txt.writer().print(
+    try room_state.room_txt.print(
         "raw-glob {s} {} {s}\n",
         .{ blockIdToStr(&block_id), glob_number, path.relative() },
     );
@@ -1097,12 +1110,12 @@ fn writeRawGlobLine(
     block_id: BlockId,
     glob_number: u32,
     state: *State,
-    room_txt: anytype,
+    room_state: *const RoomState,
 ) !void {
     const path = try appendGlobPath(state, block_id, glob_number, "bin");
     defer path.restore();
 
-    try room_txt.writer().print(
+    try room_state.room_txt.print(
         "raw-glob {s} {} {s}\n",
         .{ blockIdToStr(&block_id), glob_number, path.relative() },
     );
