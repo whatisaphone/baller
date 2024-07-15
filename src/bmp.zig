@@ -158,18 +158,18 @@ pub const RowIter = struct {
     }
 
     pub fn next(self: *RowIter) ?[]const u8 {
-        const result = self.pixels[self.pos..][0..self.width];
+        const pos = self.pos;
 
         if (self.stride > 0) {
             self.pos += @intCast(self.stride);
-            if (self.pos >= self.pixels.len)
+            if (self.pos > self.pixels.len)
                 return null;
         } else {
             self.pos = std.math.sub(u32, self.pos, @intCast(-self.stride)) catch
                 return null;
         }
 
-        return result;
+        return self.pixels[pos..][0..self.width];
     }
 };
 
