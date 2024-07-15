@@ -5,6 +5,7 @@ const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const endBlock = @import("block_writer.zig").endBlock;
 const io = @import("io.zig");
+const report = @import("report.zig");
 const wav = @import("wav.zig");
 
 const expected_hshd_len = 0x10;
@@ -36,7 +37,11 @@ pub fn decode(digi_raw: []const u8, out: anytype) !void {
 }
 
 pub fn encode(wav_in: anytype, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
-    try wav.readHeader(wav_in.reader());
+    wav.readHeader(wav_in.reader()) catch |err| {
+        if (err == error.WavFormat)
+            report.fatal("WAV must be 11025 KHz 8-bit mono", .{});
+        return err;
+    };
 
     const hshd_fixup = try beginBlock(out, "HSHD");
     try out.writer().writeAll(expected_hshd);

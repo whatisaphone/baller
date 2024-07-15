@@ -30,13 +30,13 @@ pub fn readHeader(in: anytype) !void {
     if (try in.readInt(u32, .little) != 16) return error.BadData;
 
     // WAVE_FORMAT_PCM
-    if (try in.readInt(u16, .little) != 1) return error.BadData;
-    if (try in.readInt(u16, .little) != 1) return error.BadData;
-    if (try in.readInt(u32, .little) != 11025) return error.BadData;
-    if (try in.readInt(u32, .little) != 11025) return error.BadData;
-    if (try in.readInt(u16, .little) != 1) return error.BadData;
+    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
+    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
+    if (try in.readInt(u32, .little) != 11025) return error.WavFormat;
+    if (try in.readInt(u32, .little) != 11025) return error.WavFormat;
+    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
     // PCM
-    if (try in.readInt(u16, .little) != 8) return error.BadData;
+    if (try in.readInt(u16, .little) != 8) return error.WavFormat;
 
     if (!try in.isBytes("data")) return error.BadData;
     _ = try in.readInt(u32, .little);
