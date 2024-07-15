@@ -178,6 +178,17 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 )
+            else if (std.mem.eql(u8, keyword, "rmda"))
+                try handleRmda(
+                    allocator,
+                    game,
+                    room_number,
+                    &room_reader,
+                    &room_line_buf,
+                    &cur_path,
+                    state,
+                    &index,
+                )
             else if (std.mem.eql(u8, keyword, "room-image"))
                 try handleRoomImage(
                     allocator,
@@ -367,6 +378,61 @@ fn handleRawGlob(
         glob_number,
         block_fixup,
         block_len,
+    );
+}
+
+fn handleRmda(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    room_number: u8,
+    room_reader: anytype,
+    room_line_buf: *[1024]u8,
+    cur_path: *std.BoundedArray(u8, 4095),
+    state: *DiskState,
+    index: *Index,
+) !void {
+    const rmda_fixup = try beginBlock(&state.writer, "RMDA");
+
+    while (true) {
+        const line = try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+        const keyword = tokens.next() orelse return error.BadData;
+        if (std.mem.eql(u8, keyword, "raw-block")) {
+            const block_id_str = tokens.next() orelse return error.BadData;
+            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+            const relative_path = tokens.next() orelse return error.BadData;
+
+            if (tokens.next()) |_| return error.BadData;
+
+            const path = try pathf.print(cur_path, "{s}", .{relative_path});
+            defer path.restore();
+
+            const file = try std.fs.cwd().openFileZ(path.full(), .{});
+            defer file.close();
+
+            const fixup = try beginBlockImpl(&state.writer, block_id);
+            try io.copy(file, state.writer.writer());
+            try endBlock(&state.writer, &state.fixups, fixup);
+        } else if (std.mem.eql(u8, keyword, "end-rmda")) {
+            break;
+        } else {
+            return error.BadData;
+        }
+    }
+
+    try endBlock(&state.writer, &state.fixups, rmda_fixup);
+    const rmda_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        game,
+        index,
+        comptime blockId("RMDA"),
+        room_number,
+        room_number,
+        rmda_fixup,
+        rmda_len,
     );
 }
 

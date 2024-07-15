@@ -567,13 +567,7 @@ fn extractDisk(
                 &room_txt,
             );
 
-        try writeGlob(
-            comptime blockId("RMDA"),
-            room_number,
-            rmda_data,
-            &state,
-            &room_txt,
-        );
+        try extractRmda(allocator, rmda_data, &state, &room_txt);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -634,6 +628,51 @@ fn findLflfRoomNumber(
         }
     }
     return error.BadData;
+}
+
+fn extractRmda(
+    allocator: std.mem.Allocator,
+    rmda_raw: []const u8,
+    state: *State,
+    room_txt: anytype,
+) !void {
+    const path = try pathf.print(&state.cur_path, "RMDA/", .{});
+    defer path.restore();
+
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), path.full());
+
+    var reader = std.io.fixedBufferStream(rmda_raw);
+    var blocks = fixedBlockReader(&reader);
+
+    var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
+    defer block_numbers.deinit(allocator);
+
+    try room_txt.writer().writeAll("rmda\n");
+
+    while (reader.pos < rmda_raw.len) {
+        const block_id, const block_len = try blocks.next();
+        const block_raw = try io.readInPlace(&reader, block_len);
+
+        const block_number_entry = try block_numbers.getOrPutValue(allocator, block_id, 0);
+        block_number_entry.value_ptr.* += 1;
+        const block_number = block_number_entry.value_ptr.*;
+
+        const path2 = try appendGlobPath(state, block_id, block_number, "bin");
+        defer path2.restore();
+
+        const block_file = try std.fs.cwd().createFileZ(path.full(), .{});
+        defer block_file.close();
+        try block_file.writeAll(block_raw);
+
+        try room_txt.writer().print(
+            "    raw-block {s} {s}\n",
+            .{ blockIdToStr(&block_id), path.relative() },
+        );
+    }
+
+    try blocks.finishEof();
+
+    try room_txt.writer().writeAll("end-rmda\n");
 }
 
 fn extractGlob(
