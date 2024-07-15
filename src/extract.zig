@@ -121,8 +121,13 @@ const State = struct {
 };
 
 const RoomState = struct {
-    room_path: pathf.PrintedPath,
+    path: *std.BoundedArray(u8, 4095),
+    path_start: u32,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
+
+    fn curPathRelative(self: *const RoomState) [:0]const u8 {
+        return self.path.buffer[self.path_start..self.path.len :0];
+    }
 };
 
 const Index = struct {
@@ -540,7 +545,8 @@ fn extractDisk(
         var room_txt = std.io.bufferedWriter(room_txt_file.writer());
 
         const room_state = RoomState{
-            .room_path = room_path,
+            .path = &state.cur_path,
+            .path_start = state.cur_path.len,
             .room_txt = room_txt.writer(),
         };
 
@@ -573,7 +579,7 @@ fn extractDisk(
                 &room_state,
             );
 
-        try extractRmda(allocator, rmda_data, &state, &room_state);
+        try extractRmda(allocator, rmda_data, script_modes, &state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -639,6 +645,7 @@ fn findLflfRoomNumber(
 fn extractRmda(
     allocator: std.mem.Allocator,
     rmda_raw: []const u8,
+    script_modes: []const ResourceMode,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -663,22 +670,70 @@ fn extractRmda(
         block_number_entry.value_ptr.* += 1;
         const block_number = block_number_entry.value_ptr.*;
 
-        const path2 = try appendGlobPath(state, block_id, block_number, "bin");
-        defer path2.restore();
-
-        const block_file = try std.fs.cwd().createFileZ(path.full(), .{});
-        defer block_file.close();
-        try block_file.writeAll(block_raw);
-
-        try room_state.room_txt.print(
-            "    raw-block {s} {s}\n",
-            .{ blockIdToStr(&block_id), path.relative() },
+        const modes = switch (block_id) {
+            blockId("LSC2") => script_modes,
+            else => &.{ResourceMode.raw},
+        };
+        try extractRmdaBlock(
+            allocator,
+            block_id,
+            block_number,
+            block_raw,
+            modes,
+            state,
+            room_state,
         );
     }
 
     try blocks.finishEof();
 
     try room_state.room_txt.writeAll("end-rmda\n");
+}
+
+fn extractRmdaBlock(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    block_seq: u32,
+    data: []const u8,
+    modes: []const ResourceMode,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
+    var wrote_line = false;
+    for (modes) |mode| switch (mode) {
+        .decode => switch (block_id) {
+            blockId("LSC2") => {
+                const lsc2_number = decodeLsc2(
+                    allocator,
+                    block_seq,
+                    data,
+                    state,
+                ) catch |err| {
+                    if (err == error.BadData)
+                        continue;
+                    return err;
+                };
+
+                if (!wrote_line) {
+                    try writeLsc2AsmLine(block_seq, lsc2_number, state, room_state);
+                    wrote_line = true;
+                }
+            },
+            else => unreachable,
+        },
+        .raw => {
+            try writeRawBlockFile(block_id, block_seq, data, state);
+
+            if (!wrote_line) {
+                try writeRawBlockLine(block_id, block_seq, state, room_state);
+                wrote_line = true;
+            }
+        },
+    };
+
+    // This should be unreachable as long as `raw` is in the mode list
+    if (!wrote_line)
+        return error.BadData;
 }
 
 fn extractGlob(
@@ -813,6 +868,50 @@ fn writeScrpAsmLine(
     try room_state.room_txt.print(
         "scrp-asm {} {s}\n",
         .{ glob_number, path.relative() },
+    );
+}
+
+fn decodeLsc2(
+    allocator: std.mem.Allocator,
+    glob_number: u32,
+    data: []const u8,
+    state: *State,
+) !u32 {
+    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    defer disassembly.deinit(allocator);
+
+    if (data.len < 4)
+        return error.BadData;
+    const lsc2_number = std.mem.readInt(u32, data[0..4], .little);
+    const bytecode = data[4..];
+
+    try disasm.disassemble(allocator, bytecode, disassembly.writer(allocator));
+
+    const path = try appendGlobPath(state, comptime blockId("LSC2"), glob_number, "s");
+    defer path.restore();
+
+    const file = try std.fs.cwd().createFileZ(path.full(), .{});
+    defer file.close();
+    try file.writeAll(disassembly.items);
+
+    return lsc2_number;
+}
+
+fn writeLsc2AsmLine(
+    block_seq: u32,
+    lsc2_number: u32,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
+    // TODO: use lsc2_number as the filename too. i'm not doing this yet because
+    // it would be inconsistent with the filenames when decoded as raw.
+
+    const path = try appendGlobPath(state, comptime blockId("LSC2"), block_seq, "s");
+    defer path.restore();
+
+    try room_state.room_txt.print(
+        "    lsc2-asm {} {s}\n",
+        .{ lsc2_number, room_state.curPathRelative() },
     );
 }
 
@@ -1117,7 +1216,24 @@ fn writeRawGlobLine(
 
     try room_state.room_txt.print(
         "raw-glob {s} {} {s}\n",
-        .{ blockIdToStr(&block_id), glob_number, path.relative() },
+        .{ blockIdToStr(&block_id), glob_number, room_state.curPathRelative() },
+    );
+}
+
+const writeRawBlockFile = writeRawGlobFile;
+
+fn writeRawBlockLine(
+    block_id: BlockId,
+    block_seq: u32,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
+    const path = try appendGlobPath(state, block_id, block_seq, "bin");
+    defer path.restore();
+
+    try room_state.room_txt.print(
+        "    raw-block {s} {s}\n",
+        .{ blockIdToStr(&block_id), room_state.curPathRelative() },
     );
 }
 

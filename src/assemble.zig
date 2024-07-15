@@ -100,7 +100,8 @@ pub fn assemble(
     for (label_fixups.items) |fixup| {
         const label_offset = label_offsets.get(fixup.label_name) orelse
             return error.BadData;
-        const rel = @as(i16, @intCast(label_offset)) - @as(i16, @intCast(fixup.offset)) - 2;
+        const rel32 = @as(i32, @intCast(label_offset)) - @as(i32, @intCast(fixup.offset)) - 2;
+        const rel = std.math.cast(i16, rel32) orelse return error.BadData;
         std.mem.writeInt(i16, bytecode.items[fixup.offset..][0..2], rel, .little);
     }
 

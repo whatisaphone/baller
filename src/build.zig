@@ -414,6 +414,31 @@ fn handleRmda(
             const fixup = try beginBlockImpl(&state.writer, block_id);
             try io.copy(file, state.writer.writer());
             try endBlock(&state.writer, &state.fixups, fixup);
+        } else if (std.mem.eql(u8, keyword, "lsc2-asm")) {
+            const lsc2_number_str = tokens.next() orelse return error.BadData;
+            const lsc2_number = try std.fmt.parseInt(u16, lsc2_number_str, 10);
+
+            const relative_path = tokens.next() orelse return error.BadData;
+
+            if (tokens.next()) |_| return error.BadData;
+
+            const path = try pathf.print(cur_path, "{s}", .{relative_path});
+            defer path.restore();
+
+            const file = try std.fs.cwd().openFileZ(path.full(), .{});
+            defer file.close();
+            const stat = try file.stat();
+            const asm_str = try allocator.alloc(u8, stat.size);
+            defer allocator.free(asm_str);
+            try file.reader().readNoEof(asm_str);
+
+            var bytecode = try assemble.assemble(allocator, asm_str);
+            defer bytecode.deinit(allocator);
+
+            const lsc2_fixup = try beginBlock(&state.writer, "LSC2");
+            try state.writer.writer().writeInt(u32, lsc2_number, .little);
+            try state.writer.writer().writeAll(bytecode.items);
+            try endBlock(&state.writer, &state.fixups, lsc2_fixup);
         } else if (std.mem.eql(u8, keyword, "end-rmda")) {
             break;
         } else {
