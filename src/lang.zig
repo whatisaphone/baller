@@ -108,6 +108,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
     lang.addNested(0x1c, 0x39, "image-select", &.{});
     lang.addNested(0x1c, 0x41, "image-set-pos", &.{});
+    lang.addNested(0x1c, 0x42, "image-huh", &.{});
     lang.addNested(0x1c, 0x56, "image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, "image-set-shadow", &.{});
     lang.addNested(0x1c, 0x85, "image-set-draw-box", &.{});
@@ -211,9 +212,13 @@ pub fn buildLanguage() Language {
     lang.add(0x4f, "inc", &.{.variable});
     lang.add(0x50, "override-off-off", &.{});
     lang.add(0x53, "inc-array-item", &.{.variable});
+    lang.add(0x54, "get-object-image-x", &.{});
+    lang.add(0x55, "get-object-image-y", &.{});
     lang.add(0x57, "dec", &.{.variable});
 
     lang.addNested(0x58, 0x0a, "timer", &.{});
+
+    lang.addNested(0x59, 0x9e, "timer2", &.{});
 
     lang.add(0x5a, "sound-position", &.{});
     lang.add(0x5b, "dec-array-item", &.{.variable});
@@ -227,6 +232,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
 
     lang.addNested(0x61, 0x3f, "draw-object", &.{});
+    lang.addNested(0x61, 0x41, "draw-object-at", &.{});
 
     lang.add(0x62, "print-image", &.{});
 
@@ -255,6 +261,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x6b, 0x94, "cursor-soft-on", &.{});
     lang.addNested(0x6b, 0x95, "cursor-soft-off", &.{});
     lang.addNested(0x6b, 0x9c, "charset", &.{});
+    lang.addNested(0x6b, 0x9d, "charset-color", &.{});
 
     lang.add(0x6c, "break-here", &.{});
     lang.add(0x6d, "class-of", &.{});
@@ -311,7 +318,9 @@ pub fn buildLanguage() Language {
     lang.addNested(0x9b, 0xcb, "preload-image", &.{});
 
     lang.addNested(0x9c, 0xaf, "palette-set", &.{});
+    lang.addNested(0x9c, 0xb3, "intensity", &.{});
     lang.addNested(0x9c, 0xb5, "fades", &.{});
+    lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
     lang.addNested(0x9c, 0xd5, "palette", &.{});
     lang.addNested(0x9c, 0xdd, "saveload-game", &.{});
 
@@ -376,8 +385,11 @@ pub fn buildLanguage() Language {
     lang.add(0xb3, "stop-sentence", &.{});
 
     lang.addNested(0xb5, 0x41, "print-text-position", &.{});
+    lang.addNested(0xb5, 0x43, "print-text-clipped", &.{});
     lang.addNested(0xb5, 0x45, "print-text-center", &.{});
+    lang.addNested(0xb5, 0x4b, "print-text-string", &.{.string});
     lang.addNested(0xb5, 0xc2, "print-text-printf", &.{.string});
+    lang.addNested(0xb5, 0xf9, "print-text-color", &.{});
     lang.addNested(0xb5, 0xfe, "print-text-start", &.{});
 
     lang.addNested(0xb6, 0x4b, "print-debug-string", &.{.string});
@@ -410,6 +422,7 @@ pub fn buildLanguage() Language {
     lang.add(0xc9, "kludge", &.{});
     lang.add(0xca, "break-here-multi", &.{});
     lang.add(0xcb, "pick", &.{});
+    lang.add(0xcd, "stamp-object", &.{});
     lang.add(0xcf, "debug-input", &.{});
     lang.add(0xd0, "get-time-date", &.{});
     lang.add(0xd1, "stop-line", &.{});
@@ -432,6 +445,7 @@ pub fn buildLanguage() Language {
 
     lang.add(0xdd, "find-all-objects2", &.{});
     lang.add(0xde, "delete-file", &.{});
+    lang.add(0xdf, "rename-file", &.{});
 
     lang.addNested(0xe0, 0x42, "array-line-draw", &.{});
 
