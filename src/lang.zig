@@ -281,6 +281,7 @@ pub fn buildLanguage() Language {
     lang.add(0x8c, "actor-room", &.{});
     lang.add(0x8d, "actor-x", &.{});
     lang.add(0x8e, "actor-y", &.{});
+    lang.add(0x8f, "actor-facing", &.{});
     lang.add(0x91, "actor-get-costume", &.{});
 
     lang.addNested(0x94, 0x42, "palette-color", &.{});
@@ -309,6 +310,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x9b, 0xca, "lock-image", &.{});
     lang.addNested(0x9b, 0xcb, "preload-image", &.{});
 
+    lang.addNested(0x9c, 0xaf, "palette-set", &.{});
     lang.addNested(0x9c, 0xb5, "fades", &.{});
     lang.addNested(0x9c, 0xd5, "palette", &.{});
     lang.addNested(0x9c, 0xdd, "saveload-game", &.{});
@@ -428,6 +430,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0xdc, 0x05, "write-file-int16", &.{});
     lang.addNested(0xdc, 0x08, "write-file-int8", &.{.u8});
 
+    lang.add(0xdd, "find-all-objects2", &.{});
     lang.add(0xde, "delete-file", &.{});
 
     lang.addNested(0xe0, 0x42, "array-line-draw", &.{});
