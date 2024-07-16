@@ -414,9 +414,12 @@ fn handleRmda(
             const fixup = try beginBlockImpl(&state.writer, block_id);
             try io.copy(file, state.writer.writer());
             try endBlock(&state.writer, &state.fixups, fixup);
-        } else if (std.mem.eql(u8, keyword, "lsc2-asm")) {
-            const lsc2_number_str = tokens.next() orelse return error.BadData;
-            const lsc2_number = try std.fmt.parseInt(u16, lsc2_number_str, 10);
+        } else if (std.mem.eql(u8, keyword, "lsc-asm")) {
+            const block_id_str = tokens.next() orelse return error.BadData;
+            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+            const lsc_number_str = tokens.next() orelse return error.BadData;
+            const lsc_number = try std.fmt.parseInt(u16, lsc_number_str, 10);
 
             const relative_path = tokens.next() orelse return error.BadData;
 
@@ -435,10 +438,19 @@ fn handleRmda(
             var bytecode = try assemble.assemble(allocator, asm_str);
             defer bytecode.deinit(allocator);
 
-            const lsc2_fixup = try beginBlock(&state.writer, "LSC2");
-            try state.writer.writer().writeInt(u32, lsc2_number, .little);
+            const fixup = try beginBlockImpl(&state.writer, block_id);
+            switch (block_id) {
+                blockId("LSCR") => {
+                    const num = std.math.cast(u8, lsc_number) orelse return error.BadData;
+                    try state.writer.writer().writeInt(u8, num, .little);
+                },
+                blockId("LSC2") => {
+                    try state.writer.writer().writeInt(u32, lsc_number, .little);
+                },
+                else => return error.BadData,
+            }
             try state.writer.writer().writeAll(bytecode.items);
-            try endBlock(&state.writer, &state.fixups, lsc2_fixup);
+            try endBlock(&state.writer, &state.fixups, fixup);
         } else if (std.mem.eql(u8, keyword, "end-rmda")) {
             break;
         } else {
