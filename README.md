@@ -27,7 +27,7 @@ Before you start of course, [download the latest release](https://github.com/wha
 
    This will write project.txt, some supporting files, and one directory per room.
 
-4. Modify a script. The file `baseball/RMDA_0002.bin` contains the hover text for the main lobby. Open it in a hex editor, and at offset 0xf945 change "Meet the players" to "Meet the modders".
+4. Modify a script. The file `baseball/RMDA/LSC2_0013.s` contains the hover text for the main lobby. Change line 105 from "Meet the players" to "Meet the modders".
 
 5. Build the assets. This will **overwrite** `baseball 2001.he0` and other files in the output directory.
 
@@ -38,6 +38,15 @@ Before you start of course, [download the latest release](https://github.com/wha
 Now when you run the game, it will use your changed text:
 
 ![Screenshot of game after rebuilding](docs/tutorial-finished.webp)
+
+### Talkies
+
+Modifying talkies is similar. Briefly:
+
+```sh
+baller talkie extract ~/bb2001game/baseball\ 2001.he2 ~/bb2001talkies
+baller talkie build ~/bb2001talkies/talkies.txt ~/bb2001game/baseball\ 2001.he2
+```
 
 ## Contributing
 
