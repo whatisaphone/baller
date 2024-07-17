@@ -20,7 +20,7 @@ pub fn writeHeader(data_len: u32, out: anytype) !void {
     try out.writeInt(u32, data_len, .little);
 }
 
-pub fn readHeader(in: anytype) !void {
+pub fn readHeader(in: anytype) !u32 {
     if (!try in.isBytes("RIFF")) return error.BadData;
     _ = try in.readInt(u32, .little);
 
@@ -39,5 +39,7 @@ pub fn readHeader(in: anytype) !void {
     if (try in.readInt(u16, .little) != 8) return error.WavFormat;
 
     if (!try in.isBytes("data")) return error.BadData;
-    _ = try in.readInt(u32, .little);
+    const data_size = try in.readInt(u32, .little);
+
+    return data_size;
 }

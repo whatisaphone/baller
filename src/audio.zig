@@ -37,7 +37,7 @@ pub fn decode(digi_raw: []const u8, out: anytype) !void {
 }
 
 pub fn encode(wav_in: anytype, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
-    wav.readHeader(wav_in.reader()) catch |err| {
+    _ = wav.readHeader(wav_in.reader()) catch |err| {
         if (err == error.WavFormat)
             report.fatal("WAV must be 11025 KHz 8-bit mono", .{});
         return err;

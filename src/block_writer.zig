@@ -36,3 +36,10 @@ pub const Fixup = struct {
         return buf;
     }
 };
+
+pub fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
+    for (fixups) |fixup| {
+        try file.seekTo(fixup.offset);
+        try writer.writeAll(&fixup.bytes);
+    }
+}

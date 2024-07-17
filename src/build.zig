@@ -11,6 +11,7 @@ const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
+const writeFixups = @import("block_writer.zig").writeFixups;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
@@ -62,7 +63,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
     var cur_path = std.BoundedArray(u8, 4095){};
     try cur_path.appendSlice(project_txt_path);
-    popPathFile(&cur_path);
+    pathf.popFile(&cur_path);
 
     var index: Index = .{};
     defer index.deinit(allocator);
@@ -322,13 +323,6 @@ fn finishDisk(state: *DiskState) !void {
     try state.buf_writer.flush();
 
     try writeFixups(state.file, state.xor_writer.writer(), state.fixups.items);
-}
-
-fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
-    for (fixups) |fixup| {
-        try file.seekTo(fixup.offset);
-        try writer.writeAll(&fixup.bytes);
-    }
 }
 
 fn handleRawGlob(
@@ -1139,9 +1133,4 @@ fn growMultiArrayList(
     try xs.ensureTotalCapacity(allocator, minimum_len);
     while (xs.len < minimum_len)
         xs.appendAssumeCapacity(fill);
-}
-
-fn popPathFile(str: *std.BoundedArray(u8, 4095)) void {
-    const slash = std.mem.lastIndexOfScalar(u8, str.slice(), '/');
-    str.len = if (slash) |s| @intCast(s + 1) else 0;
 }

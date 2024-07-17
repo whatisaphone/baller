@@ -1,6 +1,21 @@
 const std = @import("std");
 
+const blockIdToStr = @import("block_id.zig").blockIdToStr;
+const BlockId = @import("block_id.zig").BlockId;
+
 const Path = std.BoundedArray(u8, 4095);
+
+pub fn append(buf: *Path, items: []const u8) !PrintedPath {
+    const prev_len = buf.len;
+
+    try buf.appendSlice(items);
+
+    // append a null terminator, but don't include it in the len
+    try buf.append(0);
+    buf.len -= 1;
+
+    return .{ .buf = buf, .prev_len = prev_len };
+}
 
 pub fn print(buf: *Path, comptime format: []const u8, args: anytype) !PrintedPath {
     const prev_len = buf.len;
@@ -12,6 +27,20 @@ pub fn print(buf: *Path, comptime format: []const u8, args: anytype) !PrintedPat
     buf.len -= 1;
 
     return .{ .buf = buf, .prev_len = prev_len };
+}
+
+pub fn appendBlockPath(
+    buf: *Path,
+    block_id: BlockId,
+    number: u32,
+    ext: []const u8,
+) !PrintedPath {
+    return print(buf, "{s}_{:0>4}.{s}", .{ blockIdToStr(&block_id), number, ext });
+}
+
+pub fn popFile(buf: *Path) void {
+    const slash = std.mem.lastIndexOfScalar(u8, buf.slice(), '/');
+    buf.len = if (slash) |s| @intCast(s + 1) else 0;
 }
 
 pub const PrintedPath = struct {

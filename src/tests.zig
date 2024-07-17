@@ -4,6 +4,8 @@ const std = @import("std");
 const build = @import("build.zig");
 const extract = @import("extract.zig");
 const io = @import("io.zig");
+const talkie_build = @import("talkie_build.zig");
+const talkie_extract = @import("talkie_extract.zig");
 
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
@@ -11,9 +13,11 @@ const io = @import("io.zig");
 const fixture_hashes = .{
     .@"baseball1997/BASEBALL.HE0" = "6b701f415251a1d25fe91fb28c78193ac01b382b4292c377b0fd01e30a61c5da",
     .@"baseball1997/BASEBALL.HE1" = "f3e910f120433d318e30dae75e0fbd418f08338966cbf129487909e1f3cf5cd8",
+    .@"baseball1997/BASEBALL.HE2" = "216db30c5810b063aaf718defdf67ee11c2d6aaa7bf2cf64c7101e507f65647a",
     .@"baseball2001/baseball 2001.he0" = "c89d5c17c58db55652b31828a4b27edfa9810dbfddcada428b8b2bf5fb85a5b9",
     .@"baseball2001/baseball 2001.(a)" = "a2bd2d171c47a320fe31dd2e40cfcbecae01d46c5ecebc362fc998e4f0cb73ff",
     .@"baseball2001/baseball 2001.(b)" = "dde0397d5c658f2acffdebb5b58b0d2770707619092a4319354b37512b513038",
+    .@"baseball2001/baseball 2001.he2" = "583be6ee0ad30bdd1d4a78ddc006155d77f567a6c5467b22d8871c137e974927",
 };
 
 test "fixture integrity" {
@@ -38,6 +42,10 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     });
 }
 
+test "Backyard Baseball 1997 talkies round trip" {
+    try testRoundTripTalkies("baseball1997", "BASEBALL.HE2");
+}
+
 test "Backyard Baseball 2001 round trip raw" {
     try testRoundTrip("baseball2001", "baseball 2001.he0", true, &.{
         "baseball 2001.he0",
@@ -52,6 +60,10 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         "baseball 2001.(a)",
         "baseball 2001.(b)",
     });
+}
+
+test "Backyard Baseball 2001 talkies round trip" {
+    try testRoundTripTalkies("baseball2001", "baseball 2001.he2");
 }
 
 fn testRoundTrip(
@@ -124,6 +136,62 @@ fn testRoundTrip(
             @field(fixture_hashes, fixture_dir ++ "/" ++ name),
         );
     }
+}
+
+fn testRoundTripTalkies(
+    comptime fixture_dir: []const u8,
+    comptime fixture_name: []const u8,
+) !void {
+    const allocator = std.testing.allocator;
+
+    // Get OS temp dir
+
+    var env: std.process.EnvMap = undefined;
+    if (builtin.os.tag == .windows)
+        env = try std.process.getEnvMap(allocator);
+    defer if (builtin.os.tag == .windows)
+        env.deinit();
+
+    const tmp = if (builtin.os.tag == .windows)
+        env.get("TEMP") orelse return error.TestUnexpectedResult
+    else
+        "/tmp";
+
+    // Build temp dirs for this test
+
+    const extract_dir = try concatZ(allocator, &.{ tmp, "/baller-test-extract" });
+    defer allocator.free(extract_dir);
+
+    const output_path = try concatZ(allocator, &.{ tmp, "/baller-test-build.he2" });
+    defer allocator.free(output_path);
+
+    // best effort cleanup
+    defer std.fs.cwd().deleteTree(extract_dir) catch {};
+    defer std.fs.cwd().deleteFileZ(output_path) catch {};
+
+    // Extract
+
+    try talkie_extract.run(allocator, &.{
+        .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ fixture_name,
+        .output_path = extract_dir,
+    });
+
+    // Build
+
+    const manifest_path = try concatZ(allocator, &.{ extract_dir, "/talkies.txt" });
+    defer allocator.free(manifest_path);
+
+    try talkie_build.run(allocator, &.{
+        .manifest_path = manifest_path,
+        .output_path = output_path,
+    });
+
+    // Ensure the output file matches
+
+    try expectFileHashEquals(
+        output_path,
+        @field(fixture_hashes, fixture_dir ++ "/" ++ fixture_name),
+    );
 }
 
 fn concatZ(allocator: std.mem.Allocator, strs: []const []const u8) ![:0]const u8 {
