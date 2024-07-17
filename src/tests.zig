@@ -74,20 +74,10 @@ fn testRoundTrip(
 ) !void {
     const allocator = std.testing.allocator;
 
-    // Get OS temp dir
-
-    var env: std.process.EnvMap = undefined;
-    if (builtin.os.tag == .windows)
-        env = try std.process.getEnvMap(allocator);
-    defer if (builtin.os.tag == .windows)
-        env.deinit();
-
-    const tmp = if (builtin.os.tag == .windows)
-        env.get("TEMP") orelse return error.TestUnexpectedResult
-    else
-        "/tmp";
-
     // Build temp dirs for this test
+
+    const tmp = try getTempDir(allocator);
+    defer freeTempDir(allocator, tmp);
 
     const extract_dir = try concatZ(allocator, &.{ tmp, "/baller-test-extract" });
     defer allocator.free(extract_dir);
@@ -144,20 +134,10 @@ fn testRoundTripTalkies(
 ) !void {
     const allocator = std.testing.allocator;
 
-    // Get OS temp dir
-
-    var env: std.process.EnvMap = undefined;
-    if (builtin.os.tag == .windows)
-        env = try std.process.getEnvMap(allocator);
-    defer if (builtin.os.tag == .windows)
-        env.deinit();
-
-    const tmp = if (builtin.os.tag == .windows)
-        env.get("TEMP") orelse return error.TestUnexpectedResult
-    else
-        "/tmp";
-
     // Build temp dirs for this test
+
+    const tmp = try getTempDir(allocator);
+    defer freeTempDir(allocator, tmp);
 
     const extract_dir = try concatZ(allocator, &.{ tmp, "/baller-test-extract" });
     defer allocator.free(extract_dir);
@@ -196,6 +176,23 @@ fn testRoundTripTalkies(
 
 fn concatZ(allocator: std.mem.Allocator, strs: []const []const u8) ![:0]const u8 {
     return std.mem.concatWithSentinel(allocator, u8, strs, 0);
+}
+
+fn getTempDir(allocator: std.mem.Allocator) ![]const u8 {
+    if (builtin.os.tag != .windows)
+        return "/tmp";
+
+    var env = try std.process.getEnvMap(allocator);
+    defer env.deinit();
+
+    const tmp = env.get("TEMP") orelse return error.TestUnexpectedResult;
+    return allocator.dupe(u8, tmp);
+}
+
+fn freeTempDir(allocator: std.mem.Allocator, str: []const u8) void {
+    if (builtin.os.tag != .windows)
+        return;
+    allocator.free(str);
 }
 
 fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u8) !void {
