@@ -108,7 +108,8 @@ pub fn buildLanguage() Language {
     lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
     lang.addNested(0x1c, 0x39, "image-select", &.{});
     lang.addNested(0x1c, 0x41, "image-set-pos", &.{});
-    lang.addNested(0x1c, 0x42, "image-huh", &.{});
+    lang.addNested(0x1c, 0x42, "image-unknown-1c-42", &.{});
+    lang.addNested(0x1c, 0x43, "image-unknown-1c-43", &.{});
     lang.addNested(0x1c, 0x56, "image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, "image-set-shadow", &.{});
     lang.addNested(0x1c, 0x85, "image-set-draw-box", &.{});
@@ -135,6 +136,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x25, 0x25, "sprite-get-group", &.{});
     lang.addNested(0x25, 0x26, "sprite-get-object-draw-x", &.{});
     lang.addNested(0x25, 0x27, "sprite-get-object-draw-y", &.{});
+    lang.addNested(0x25, 0x2a, "sprite-get-property", &.{});
     lang.addNested(0x25, 0x2b, "sprite-get-order", &.{});
     lang.addNested(0x25, 0x2d, "find-sprite", &.{});
     lang.addNested(0x25, 0x34, "sprite-get-state", &.{});
@@ -152,6 +154,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x26, 0x39, "sprite-select-range", &.{});
     lang.addNested(0x26, 0x3f, "sprite-set-image", &.{});
     lang.addNested(0x26, 0x41, "sprite-set-position", &.{});
+    lang.addNested(0x26, 0x44, "sprite-erase", &.{});
     lang.addNested(0x26, 0x4d, "sprite-set-step-dist", &.{});
     lang.addNested(0x26, 0x52, "sprite-set-animation-type", &.{});
     lang.addNested(0x26, 0x56, "sprite-set-palette", &.{});
@@ -168,6 +171,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x27, 0x1e, "sprite-group-get-object-x", &.{});
     lang.addNested(0x27, 0x1f, "sprite-group-get-object-y", &.{});
 
+    lang.addNested(0x28, 0x25, "sprite-group-set-group", &.{});
     lang.addNested(0x28, 0x2c, "sprite-group-move", &.{});
     lang.addNested(0x28, 0x39, "sprite-group-select", &.{});
     lang.addNested(0x28, 0x41, "sprite-group-set-position", &.{});
@@ -184,6 +188,7 @@ pub fn buildLanguage() Language {
     lang.add(0x2a, "actor-get-property", &.{});
 
     lang.addNested(0x2b, 0x01, "start-script-order", &.{});
+    lang.addNested(0x2b, 0xc3, "start-script-rec-order", &.{});
 
     lang.addNested(0x2c, 0x01, "chain-script-order", &.{});
 
@@ -194,6 +199,7 @@ pub fn buildLanguage() Language {
     lang.add(0x36, "iif", &.{});
     lang.add(0x37, "dim-array-2d-range", &.{ .u8, .variable });
     lang.add(0x38, "redim-array-range", &.{ .u8, .variable });
+    lang.add(0x39, "find-segment-intersection", &.{ .variable, .variable });
 
     lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
 
@@ -308,6 +314,7 @@ pub fn buildLanguage() Language {
     lang.addNested(0x9b, 0x6e, "lock-costume", &.{});
     lang.addNested(0x9b, 0x72, "unlock-costume", &.{});
     lang.addNested(0x9b, 0x75, "load-charset", &.{});
+    lang.addNested(0x9b, 0x78, "preload-script", &.{});
     lang.addNested(0x9b, 0x79, "preload-sound", &.{});
     lang.addNested(0x9b, 0x7a, "preload-costume", &.{});
     lang.addNested(0x9b, 0x7b, "preload-room", &.{});
@@ -322,12 +329,14 @@ pub fn buildLanguage() Language {
     lang.addNested(0x9c, 0xb5, "fades", &.{});
     lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
     lang.addNested(0x9c, 0xd5, "palette", &.{});
+    lang.addNested(0x9c, 0xdc, "copy-palette", &.{});
     lang.addNested(0x9c, 0xdd, "saveload-game", &.{});
 
     lang.addNested(0x9d, 0x15, "actor-set-condition", &.{});
     lang.addNested(0x9d, 0x2b, "actor-set-order", &.{});
     lang.addNested(0x9d, 0x40, "actor-set-clipped", &.{});
     lang.addNested(0x9d, 0x41, "actor-set-position", &.{});
+    lang.addNested(0x9d, 0x44, "actor-erase", &.{});
     lang.addNested(0x9d, 0x43, "actor-set-clip", &.{});
     lang.addNested(0x9d, 0x4c, "actor-set-costume", &.{});
     lang.addNested(0x9d, 0x4e, "actor-set-sounds", &.{});
@@ -461,6 +470,7 @@ pub fn buildLanguage() Language {
     lang.add(0xf1, "string-compare", &.{});
 
     lang.addNested(0xf2, 0xe3, "costume-loaded", &.{});
+    lang.addNested(0xf2, 0xe4, "sound-loaded", &.{});
 
     lang.addNested(0xf3, 0x06, "read-system-ini-int", &.{});
     lang.addNested(0xf3, 0x07, "read-system-ini-string", &.{});
@@ -477,6 +487,7 @@ pub fn buildLanguage() Language {
 
     lang.addNested(0xfa, 0xf3, "title-bar", &.{});
 
+    lang.addNested(0xfb, 0xf6, "set-polygon-2", &.{});
     lang.addNested(0xfb, 0xf7, "delete-polygon", &.{});
     lang.addNested(0xfb, 0xf8, "set-polygon", &.{});
 
