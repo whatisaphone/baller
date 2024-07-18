@@ -18,6 +18,8 @@ const fixture_hashes = .{
     .@"baseball2001/baseball 2001.(a)" = "a2bd2d171c47a320fe31dd2e40cfcbecae01d46c5ecebc362fc998e4f0cb73ff",
     .@"baseball2001/baseball 2001.(b)" = "dde0397d5c658f2acffdebb5b58b0d2770707619092a4319354b37512b513038",
     .@"baseball2001/baseball 2001.he2" = "583be6ee0ad30bdd1d4a78ddc006155d77f567a6c5467b22d8871c137e974927",
+    .@"soccer/SOCCER.HE0" = "44d5de043628bbe5db166f00e8cb9b0398800dc30b0868ae0ce4c8eba96ec9f9",
+    .@"soccer/SOCCER.(A)" = "8cdd016013493bbc22bda8e3fa3d62ece7a61e4ee346fd85d7288e3de385bf79",
 };
 
 test "fixture integrity" {
@@ -64,6 +66,20 @@ test "Backyard Baseball 2001 round trip decode/encode" {
 
 test "Backyard Baseball 2001 talkies round trip" {
     try testRoundTripTalkies("baseball2001", "baseball 2001.he2");
+}
+
+test "Backyard Soccer round trip raw" {
+    try testRoundTrip("soccer", "SOCCER.HE0", true, &.{
+        "SOCCER.HE0",
+        "SOCCER.(A)",
+    });
+}
+
+test "Backyard Soccer round trip decode/encode" {
+    try testRoundTrip("soccer", "SOCCER.HE0", false, &.{
+        "SOCCER.HE0",
+        "SOCCER.(A)",
+    });
 }
 
 fn testRoundTrip(

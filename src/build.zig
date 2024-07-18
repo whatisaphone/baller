@@ -167,8 +167,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                 error.EndOfStream => break,
                 else => return err,
             };
-            var room_line_split = std.mem.splitScalar(u8, room_line, ' ');
-            const keyword = room_line_split.first();
+            var room_line_split = std.mem.tokenizeScalar(u8, room_line, ' ');
+            const keyword = room_line_split.next() orelse return error.BadData;
             if (std.mem.eql(u8, keyword, "raw-glob"))
                 try handleRawGlob(
                     allocator,
@@ -179,6 +179,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     state,
                     &index,
                 )
+            else if (std.mem.eql(u8, keyword, "raw-block"))
+                try handleRawBlock(room_line_split.rest(), &cur_path, state)
             else if (std.mem.eql(u8, keyword, "rmda"))
                 try handleRmda(
                     allocator,
@@ -373,6 +375,30 @@ fn handleRawGlob(
         block_fixup,
         block_len,
     );
+}
+
+fn handleRawBlock(line: []const u8, cur_path: *std.BoundedArray(u8, 4095), state: *DiskState) !void {
+    // Parse line
+
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+
+    const block_id_str = tokens.next() orelse return error.BadData;
+    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+    const relative_path = tokens.next() orelse return error.BadData;
+
+    if (tokens.next()) |_| return error.BadData;
+
+    // Process block
+
+    const path = try pathf.append(cur_path, relative_path);
+    defer path.restore();
+    const file = try std.fs.cwd().openFileZ(path.full(), .{});
+    defer file.close();
+
+    const start = try beginBlockImpl(&state.writer, block_id);
+    try io.copy(file, state.writer.writer());
+    try endBlock(&state.writer, &state.fixups, start);
 }
 
 fn handleRmda(

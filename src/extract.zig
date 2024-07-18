@@ -585,8 +585,7 @@ fn extractDisk(
             const offset: u32 = @intCast(reader.bytes_read);
             const id, const len = try lflf_blocks.next();
 
-            const glob_number = try findGlobNumber(index, id, disk_number, offset) orelse
-                return error.BadData;
+            const glob_number = try findGlobNumber(index, id, disk_number, offset);
 
             const data = try allocator.alloc(u8, len);
             defer allocator.free(data);
@@ -740,42 +739,46 @@ fn extractRmdaBlock(
 fn extractGlob(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number: u32,
+    glob_number_opt: ?u32,
     data: []const u8,
     modes: []const ResourceMode,
     rmda_data: []const u8,
     state: *State,
     room_state: *const RoomState,
 ) !void {
+    // HACK: this only works for one block per block id per room. it's needed
+    // for a strange CHAR block in backyard soccer.
+    const block_number = glob_number_opt orelse 0;
+
     var wrote_line = false;
     for (modes) |mode| switch (mode) {
         .decode => switch (block_id) {
             blockId("SCRP") => {
-                decodeScrp(allocator, glob_number, data, state) catch |err| {
+                decodeScrp(allocator, block_number, data, state) catch |err| {
                     if (err == error.BadData)
                         continue;
                     return err;
                 };
 
                 if (!wrote_line) {
-                    try writeScrpAsmLine(glob_number, state, room_state);
+                    try writeScrpAsmLine(block_number, state, room_state);
                     wrote_line = true;
                 }
             },
             blockId("DIGI"), blockId("TALK") => {
-                decodeAudio(block_id, glob_number, data, state) catch |err| {
+                decodeAudio(block_id, block_number, data, state) catch |err| {
                     if (err == error.BadData)
                         continue;
                     return err;
                 };
 
                 if (!wrote_line) {
-                    try writeDigiLine(block_id, glob_number, state, room_state);
+                    try writeDigiLine(block_id, block_number, state, room_state);
                     wrote_line = true;
                 }
             },
             blockId("AWIZ") => {
-                var wiz = decodeAwiz(allocator, glob_number, rmda_data, data, state) catch |err| {
+                var wiz = decodeAwiz(allocator, block_number, rmda_data, data, state) catch |err| {
                     if (err == error.DecodeAwiz)
                         continue;
                     return err;
@@ -783,12 +786,12 @@ fn extractGlob(
                 defer wiz.deinit(allocator);
 
                 if (!wrote_line) {
-                    try writeAwizLines(glob_number, &wiz, state, room_state);
+                    try writeAwizLines(block_number, &wiz, state, room_state);
                     wrote_line = true;
                 }
             },
             blockId("MULT") => {
-                var mult = decodeMult(allocator, glob_number, rmda_data, data, state) catch |err| {
+                var mult = decodeMult(allocator, block_number, rmda_data, data, state) catch |err| {
                     if (err == error.DecodeAwiz)
                         continue;
                     return err;
@@ -803,11 +806,20 @@ fn extractGlob(
             else => unreachable,
         },
         .raw => {
-            try writeRawGlobFile(block_id, glob_number, data, state);
+            if (glob_number_opt) |glob_number| {
+                try writeRawGlobFile(block_id, glob_number, data, state);
 
-            if (!wrote_line) {
-                try writeRawGlobLine(block_id, glob_number, state, room_state);
-                wrote_line = true;
+                if (!wrote_line) {
+                    try writeRawGlobLine(block_id, glob_number, state, room_state);
+                    wrote_line = true;
+                }
+            } else {
+                try writeRawBlockFile(block_id, block_number, data, state);
+
+                if (!wrote_line) {
+                    try writeRawBlockLine(block_id, block_number, state, room_state);
+                    wrote_line = true;
+                }
             }
         },
     };
@@ -1274,7 +1286,7 @@ fn findGlobNumber(
 
         return @intCast(i);
     }
-    return error.BadData;
+    return null;
 }
 
 fn directoryForBlockId(

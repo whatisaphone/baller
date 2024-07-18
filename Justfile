@@ -42,3 +42,14 @@ baseball2001-talkie-extract:
 
 baseball2001-talkie-build:
   zig build run -- talkie build /tmp/bb2001talk/talkies.txt /tmp/bb2001build/baseball\ 2001.he2
+
+soccer: \
+  soccer-extract \
+  soccer-build \
+  test
+
+soccer-extract:
+  zig build run -- extract src/fixtures/soccer/SOCCER.HE0 /tmp/soccer
+
+soccer-build:
+  zig build run -- build /tmp/soccer/project.txt /tmp/soccerbuild/SOCCER.HE0
