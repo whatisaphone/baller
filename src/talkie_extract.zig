@@ -39,21 +39,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     try fs.makeDirIfNotExistZ(std.fs.cwd(), out_dir.full());
     try cur_path_buf.append('/');
 
-    const talkies_txt_file = blk: {
-        const path = try pathf.append(&cur_path_buf, "talkies.txt");
-        defer path.restore();
-        break :blk try std.fs.cwd().createFileZ(path.full(), .{});
-    };
-    defer talkies_txt_file.close();
-    var talkies_txt = std.io.bufferedWriter(talkies_txt_file.writer());
-
     var streaming_parsers = std.AutoArrayHashMapUnmanaged(BlockId, StreamingBlockParser){};
     defer streaming_parsers.deinit(allocator);
     try streaming_parsers.putNoClobber(allocator, comptime blockId("TLKB"), .{ .parse = parseTlkb });
-    try streaming_parsers.putNoClobber(allocator, comptime blockId("TALK"), .{ .parse = parseTalk });
+    try streaming_parsers.putNoClobber(allocator, comptime blockId("TALK"), .{ .parse = parseAsFixed });
 
     var fixed_parsers = std.AutoArrayHashMapUnmanaged(BlockId, FixedBlockParser){};
     defer fixed_parsers.deinit(allocator);
+    try fixed_parsers.putNoClobber(allocator, comptime blockId("TALK"), .{ .parse = parseTalkFixed });
 
     var block_seqs = std.AutoArrayHashMapUnmanaged(BlockId, u32){};
     defer block_seqs.deinit(allocator);
@@ -66,11 +59,12 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
         .block_seqs = &block_seqs,
         .cur_path = &cur_path_buf,
         .path_rel_start = cur_path_buf.len,
-        .manifest = talkies_txt.writer(),
+        .manifest = .{},
         .indent = 0,
         .block_buf = .{},
     };
     defer state.block_buf.deinit(allocator);
+    defer state.manifest.deinit(allocator);
 
     var file_blocks = blockReader(&reader);
 
@@ -80,7 +74,11 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     try file_blocks.finishEof();
 
-    try talkies_txt.flush();
+    const path = try pathf.append(&cur_path_buf, "talkies.txt");
+    defer path.restore();
+    const file = try std.fs.cwd().createFileZ(path.full(), .{});
+    defer file.close();
+    try file.writeAll(state.manifest.items);
 }
 
 const State = struct {
@@ -91,7 +89,7 @@ const State = struct {
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
     cur_path: *std.BoundedArray(u8, 4095),
     path_rel_start: u32,
-    manifest: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
+    manifest: std.ArrayListUnmanaged(u8),
     indent: u8,
     block_buf: std.ArrayListUnmanaged(u8),
 
@@ -129,9 +127,13 @@ const State = struct {
         return self.cur_path.buffer[self.path_rel_start..self.cur_path.len :0];
     }
 
-    fn writeIndent(self: *const State) !void {
+    fn writeIndent(self: *State, allocator: std.mem.Allocator) !void {
+        try self.writeIndentTo(self.manifest.writer(allocator));
+    }
+
+    fn writeIndentTo(self: *const State, writer: anytype) !void {
         for (0..self.indent * 4) |_|
-            try self.manifest.writeByte(' ');
+            try writer.writeByte(' ');
     }
 };
 
@@ -152,6 +154,30 @@ const FixedBlockParser = struct {
         state: *State,
     ) anyerror!void,
 };
+
+/// Try decoding the block, and if that fails, dump it as raw data instead.
+fn parseFixedFallback(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    block_raw: []const u8,
+    state: *State,
+) !void {
+    if (state.fixed_parsers.get(block_id)) |parser| {
+        const prev_manifest_len = state.manifest.items.len;
+        const prev_indent = state.indent;
+
+        if (parser.parse(allocator, block_id, block_raw, state))
+            return
+        else |err| if (err != error.BlockFallbackToRaw)
+            return err;
+
+        // Rollback
+        state.manifest.shrinkRetainingCapacity(prev_manifest_len);
+        state.indent = prev_indent;
+    }
+
+    try parseFixedRaw(allocator, block_id, block_raw, state);
+}
 
 fn parseChildBlocks(
     allocator: std.mem.Allocator,
@@ -179,15 +205,15 @@ fn parseStreamingRaw(
 ) !void {
     const seq = try state.nextSeq(allocator, block_id);
 
-    const path = try pathf.appendBlockPath(state.cur_path, block_id, seq, ".bin");
+    const path = try pathf.appendBlockPath(state.cur_path, block_id, seq, "bin");
     defer path.restore();
 
     const file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer file.close();
     try io.copy(std.io.limitedReader(state.reader.reader(), block_len), file);
 
-    try state.writeIndent();
-    try state.manifest.print(
+    try state.writeIndent(allocator);
+    try state.manifest.writer(allocator).print(
         "raw-block {s} {s}\n",
         .{ blockIdToStr(&block_id), state.curPathRelative() },
     );
@@ -201,15 +227,15 @@ fn parseFixedRaw(
 ) !void {
     const seq = try state.nextSeq(allocator, block_id);
 
-    const path = try pathf.appendBlockPath(state.cur_path, block_id, seq, ".bin");
+    const path = try pathf.appendBlockPath(state.cur_path, block_id, seq, "bin");
     defer path.restore();
 
     const file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer file.close();
     try file.writeAll(block_raw);
 
-    try state.writeIndent();
-    try state.manifest.print(
+    try state.writeIndent(allocator);
+    try state.manifest.writer(allocator).print(
         "raw-block {s} {s}\n",
         .{ blockIdToStr(&block_id), state.curPathRelative() },
     );
@@ -224,20 +250,29 @@ fn parseTlkb(
     try parseChildBlocks(allocator, tlkb_len, state);
 }
 
-fn parseTalk(
+fn parseAsFixed(
     allocator: std.mem.Allocator,
-    _: BlockId,
+    block_id: BlockId,
     talk_len: u32,
     state: *State,
 ) !void {
-    const talk_raw = try state.fillBlockBuf(allocator, talk_len);
+    const raw = try state.fillBlockBuf(allocator, talk_len);
     defer state.doneWithBlockBuf();
 
+    try parseFixedFallback(allocator, block_id, raw, state);
+}
+
+fn parseTalkFixed(
+    allocator: std.mem.Allocator,
+    _: BlockId,
+    talk_raw: []const u8,
+    state: *State,
+) !void {
     var talk_stream = std.io.fixedBufferStream(talk_raw);
     var talk_blocks = fixedBlockReader(&talk_stream);
 
-    try state.writeIndent();
-    try state.manifest.writeAll("talk\n");
+    try state.writeIndent(allocator);
+    try state.manifest.appendSlice(allocator, "talk\n");
     state.indent += 1;
 
     const talk_seq = try state.nextSeq(allocator, comptime blockId("TALK"));
@@ -247,6 +282,10 @@ fn parseTalk(
 
     while (try talk_blocks.peek() != comptime blockId("SDAT")) {
         const block_id, const block_len = try talk_blocks.next();
+        // Soccer has one TALK block with some weird corrupt(?) data
+        if (block_len > 0x00ff_ffff)
+            return error.BlockFallbackToRaw;
+
         const block_raw = try io.readInPlace(&talk_stream, block_len);
         const parser = state.fixedParserFor(block_id);
         try parser.parse(allocator, block_id, block_raw, state);
@@ -265,8 +304,8 @@ fn parseTalk(
     try wav_stream.writer().writeAll(sdat_raw);
     try wav_stream.flush();
 
-    try state.writeIndent();
-    try state.manifest.print(
+    try state.writeIndent(allocator);
+    try state.manifest.writer(allocator).print(
         "wav-sdat {} {s}\n",
         .{ sdat_raw.len, state.curPathRelative() },
     );
@@ -274,6 +313,6 @@ fn parseTalk(
     try talk_blocks.finishEof();
 
     state.indent -= 1;
-    try state.writeIndent();
-    try state.manifest.writeAll("end-talk\n");
+    try state.writeIndent(allocator);
+    try state.manifest.appendSlice(allocator, "end-talk\n");
 }

@@ -64,9 +64,12 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             error.EndOfStream => break,
             else => return err,
         };
-        if (!std.mem.eql(u8, line, "talk"))
+        if (std.mem.startsWith(u8, line, "raw-block "))
+            try buildRawBlock(&state, line[10..])
+        else if (std.mem.eql(u8, line, "talk"))
+            try buildTalk(&state)
+        else
             return error.BadData;
-        try buildTalk(&state);
     }
 
     try endBlock(state.output_writer, &state.fixups, tlkb_start);
@@ -83,6 +86,30 @@ const State = struct {
     output_writer: *std.io.CountingWriter(std.io.BufferedWriter(4096, std.fs.File.Writer).Writer),
     fixups: std.ArrayList(Fixup),
 };
+
+fn buildRawBlock(state: *State, line: []const u8) !void {
+    // Parse line
+
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+
+    const block_id_str = tokens.next() orelse return error.BadData;
+    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+
+    const relative_path = tokens.next() orelse return error.BadData;
+
+    if (tokens.next()) |_| return error.BadData;
+
+    // Write block
+
+    const path = try pathf.append(state.cur_path, relative_path);
+    defer path.restore();
+    const file = try std.fs.cwd().openFileZ(path.full(), .{});
+    defer file.close();
+
+    const start = try beginBlockImpl(state.output_writer, block_id);
+    try io.copy(file, state.output_writer.writer());
+    try endBlock(state.output_writer, &state.fixups, start);
+}
 
 fn buildTalk(state: *State) !void {
     const RawBlock = struct {

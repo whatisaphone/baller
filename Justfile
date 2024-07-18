@@ -46,6 +46,8 @@ baseball2001-talkie-build:
 soccer: \
   soccer-extract \
   soccer-build \
+  soccer-talkie-extract \
+  soccer-talkie-build \
   test
 
 soccer-extract:
@@ -53,3 +55,9 @@ soccer-extract:
 
 soccer-build:
   zig build run -- build /tmp/soccer/project.txt /tmp/soccerbuild/SOCCER.HE0
+
+soccer-talkie-extract:
+  zig build run -- talkie extract src/fixtures/soccer/SOCCER.HE2 /tmp/soccertalk
+
+soccer-talkie-build:
+  zig build run -- talkie build /tmp/soccertalk/talkies.txt /tmp/soccerbuild/SOCCER.HE2
