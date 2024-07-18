@@ -1,12 +1,15 @@
 # ⚾ Baller
 
-Modding tools for Backyard Baseball 2001.
+Modding tools for Backyard Sports, with support for:
 
-If you don't want to download anything, you can always [browse the scripts online](https://github.com/whatisaphone/baller/tree/browse).
+- Backyard Baseball 1997/2001
+- Backyard Soccer
+
+This project also hosts a [decompilation of Backyard Baseball 2001](https://github.com/whatisaphone/baller/tree/browse).
 
 ## Tutorial
 
-Let's extract the game scripts, modify one of them, and rebuild the game.
+Let's extract Backyard Baseball 2001's scripts, modify one of them, and rebuild the game.
 
 Before you start of course, [download the latest release](https://github.com/whatisaphone/baller/releases). Open a terminal and run `baller --help` to make sure it works.
 
