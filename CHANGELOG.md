@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added support for Backyard Soccer
+
 ## v0.3.0 – 2024-07-17
 
 v0.3.0 is a rewrite from scratch. It _should_ support everything the previous version did, except for the script decompiler, which is replaced with a disassembler/assembler combo.
