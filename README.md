@@ -4,6 +4,7 @@ Modding tools for Backyard Sports, with support for:
 
 - Backyard Baseball 1997/2001
 - Backyard Soccer
+- Backyard Football
 
 This project also hosts a [decompilation of Backyard Baseball 2001](https://github.com/whatisaphone/baller/tree/browse).
 
