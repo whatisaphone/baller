@@ -7,12 +7,22 @@ const io = @import("io.zig");
 const report = @import("report.zig");
 
 pub const BMCOMP_NMAJMIN_H8 = 0x8a;
+pub const BMCOMP_NMAJMIN_HT8 = 0x94;
+
+const Rmim = struct {
+    compression: u8,
+    bmp: std.ArrayListUnmanaged(u8),
+
+    pub fn deinit(self: *Rmim, allocator: std.mem.Allocator) void {
+        self.bmp.deinit(allocator);
+    }
+};
 
 pub fn decode(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
     rmda_raw: []const u8,
-) !std.ArrayListUnmanaged(u8) {
+) !Rmim {
     const width = 640; // TODO: use the real size
     const height = 480;
 
@@ -31,13 +41,15 @@ pub fn decode(
     const bmap_len = try im00_blocks.expectBlock("BMAP");
     const bmap_end: u32 = @intCast(rmim_reader.pos + bmap_len);
 
+    const compression = try rmim_reader.reader().readByte();
+
     const bmp_size = bmp.calcFileSize(width, height);
     var out = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_size);
     errdefer out.deinit(allocator);
 
     try bmp.writeHeader(out.writer(allocator), width, height, bmp_size);
     try bmp.writePalette(out.writer(allocator), apal);
-    try decompressBmap(&rmim_reader, bmap_end, out.writer(allocator));
+    try decompressBmap(compression, &rmim_reader, bmap_end, out.writer(allocator));
 
     if (try im00_blocks.peek()) |id| {
         report.warn("skipping RMIM due to trailing {s}", .{blockIdToStr(&id)});
@@ -48,7 +60,10 @@ pub fn decode(
 
     try rmim_blocks.finishEof();
 
-    return out;
+    return .{
+        .compression = compression,
+        .bmp = out,
+    };
 }
 
 pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
@@ -82,14 +97,13 @@ pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
     return result;
 }
 
-fn decompressBmap(reader: anytype, end: u32, out: anytype) !void {
+fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
     var in = std.io.bitReader(.little, reader.reader());
 
-    const compression = try in.readBitsNoEof(u8, 8);
-    // for now, only supporting BMCOMP_NMAJMIN_H8
-    if (compression != BMCOMP_NMAJMIN_H8)
+    // only these are implemented
+    if (compression != BMCOMP_NMAJMIN_H8 and compression != BMCOMP_NMAJMIN_HT8)
         return error.DecompressBmap;
 
     var color = try in.readBitsNoEof(u8, 8);

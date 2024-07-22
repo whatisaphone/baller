@@ -836,8 +836,8 @@ fn decodeRmim(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    var bmp = try rmim.decode(allocator, rmim_raw, rmda_raw);
-    defer bmp.deinit(allocator);
+    var decoded = try rmim.decode(allocator, rmim_raw, rmda_raw);
+    defer decoded.deinit(allocator);
 
     const path = try pathf.print(&state.cur_path, "RMIM.bmp", .{});
     defer path.restore();
@@ -845,9 +845,12 @@ fn decodeRmim(
     const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer output_file.close();
 
-    try output_file.writeAll(bmp.items);
+    try output_file.writeAll(decoded.bmp.items);
 
-    try room_state.room_txt.print("room-image {s}\n", .{path.relative()});
+    try room_state.room_txt.print(
+        "room-image {} {s}\n",
+        .{ decoded.compression, path.relative() },
+    );
 }
 
 fn decodeScrp(

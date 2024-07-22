@@ -47,20 +47,23 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
         return error.BadData;
 
     // Other code assumes width and height fit in 31 bits
-    const width = std.math.cast(u31, info_header.biWidth) orelse
+    _ = std.math.cast(u31, info_header.biWidth) orelse
         return error.BadData;
-    const height: u31 = std.math.cast(u31, @abs(info_header.biHeight)) orelse
+    _ = std.math.cast(u31, @abs(info_header.biHeight)) orelse
         return error.BadData;
-    const stride = calcStride(width);
 
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
 
     const pixels = bmp[file_header.bfOffBits..];
-    // For RMIM to round-trip, we need to allow extra trailing bytes. So it must
-    // be ok for the data to be too long, but at least check it's not too short.
-    if (pixels.len < stride * height)
-        return error.BadData;
+
+    // RMIM sometimes encodes too many/too few bytes. For it to round-trip, we
+    // need to either figure out the reasoning, or preserve the mismatch
+    // somehow. Right now that data is preserved by creating a bitmap with the
+    // wrong number of pixels. Probably not the best way to do it.
+    //
+    // Anyway, that's why we skip checking pixels.len here and do it in the
+    // iterators instead.
 
     return .{ info_header, pixels };
 }
@@ -134,10 +137,13 @@ pub const RowIter = struct {
 
     pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
         const width: u31 = @intCast(header.biWidth);
+        const height: u31 = @intCast(@abs(header.biHeight));
         const stride = calcStride(width);
 
-        // It would be nice to check this in readHeader instead, but it skips
-        // the check so that RMIM is able to round-trip.
+        // It would be nice to check these in readHeader instead, but that
+        // function skips some sanity checks so that RMIM is able to round-trip.
+        if (pixels.len != stride * height)
+            return error.BadData;
         if (pixels.len % stride != 0)
             return error.BadData;
 

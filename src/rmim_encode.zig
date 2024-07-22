@@ -6,10 +6,16 @@ const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
+const BMCOMP_NMAJMIN_HT8 = @import("rmim.zig").BMCOMP_NMAJMIN_HT8;
 
 const num_colors = 256;
 
-pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+pub fn encode(
+    compression: u8,
+    bmp_raw: []const u8,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+) !void {
     const header, const pixels = try bmp.readHeader(bmp_raw);
 
     if (header.biWidth & 3 != 0)
@@ -23,7 +29,10 @@ pub fn encode(bmp_raw: []const u8, out: anytype, fixups: *std.ArrayList(Fixup)) 
 
     const bmap_fixup = try beginBlock(out, "BMAP");
 
-    try out.writer().writeByte(BMCOMP_NMAJMIN_H8);
+    // only these are implemented
+    if (compression != BMCOMP_NMAJMIN_H8 and compression != BMCOMP_NMAJMIN_HT8)
+        return error.BadData;
+    try out.writer().writeByte(compression);
     try compressBmap(header, pixels, out.writer());
 
     try endBlock(out, fixups, bmap_fixup);

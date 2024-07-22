@@ -497,11 +497,24 @@ fn handleRoomImage(
     allocator: std.mem.Allocator,
     game: games.Game,
     room_number: u8,
-    relative_path: []const u8,
+    line: []const u8,
     cur_path: *std.BoundedArray(u8, 4095),
     state: *DiskState,
     index: *Index,
 ) !void {
+    // Parse line
+
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+
+    const compression_str = tokens.next() orelse return error.BadData;
+    const compression = try std.fmt.parseInt(u8, compression_str, 10);
+
+    const relative_path = tokens.next() orelse return error.BadData;
+
+    if (tokens.next()) |_| return error.BadData;
+
+    // Write block
+
     const path = try pathf.print(cur_path, "{s}", .{relative_path});
     defer path.restore();
 
@@ -514,7 +527,7 @@ fn handleRoomImage(
 
     const block_fixup = try beginBlock(&state.writer, "RMIM");
 
-    try rmim_encode.encode(bmp_raw, &state.writer, &state.fixups);
+    try rmim_encode.encode(compression, bmp_raw, &state.writer, &state.fixups);
 
     try endBlock(&state.writer, &state.fixups, block_fixup);
     const block_len = state.lastBlockLen();
