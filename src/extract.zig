@@ -835,7 +835,7 @@ fn extractGlob(
             },
             blockId("AWIZ") => {
                 var wiz = decodeAwiz(allocator, block_number, rmda_data, data, state) catch |err| {
-                    if (err == error.DecodeAwiz)
+                    if (err == error.BlockFallbackToRaw)
                         continue;
                     return err;
                 };
@@ -848,7 +848,7 @@ fn extractGlob(
             },
             blockId("MULT") => {
                 var mult = decodeMult(allocator, block_number, rmda_data, data, state) catch |err| {
-                    if (err == error.DecodeAwiz)
+                    if (err == error.BlockFallbackToRaw)
                         continue;
                     return err;
                 };
@@ -1050,7 +1050,11 @@ fn decodeAwizIntoPath(
     awiz_raw: []const u8,
     path: [*:0]const u8,
 ) !awiz.Awiz {
-    var wiz = try awiz.decode(allocator, awiz_raw, rmda_raw);
+    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw) catch |err| {
+        if (err == error.BadData)
+            return error.BlockFallbackToRaw;
+        return err;
+    };
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {

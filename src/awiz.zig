@@ -81,7 +81,7 @@ pub fn decode(
 
                 try result.blocks.append(.wizh);
             },
-            else => return error.DecodeAwiz,
+            else => return error.BadData,
         }
     }
 

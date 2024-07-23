@@ -8,6 +8,17 @@ pub fn disassemble(
     bytecode: []const u8,
     out: anytype,
 ) !void {
+    disassembleInner(allocator, bytecode, out) catch |err| switch (err) {
+        error.BadData, error.EndOfStream => return error.BadData,
+        else => return err,
+    };
+}
+
+pub fn disassembleInner(
+    allocator: std.mem.Allocator,
+    bytecode: []const u8,
+    out: anytype,
+) !void {
     // Lots of stuff seems to assume pc fits in u16.
     if (bytecode.len > 0xffff)
         return error.BadData;
@@ -42,6 +53,11 @@ pub fn disassemble(
         }
         try out.writeByte('\n');
     }
+
+    // If we didn't reach the last jump target, it means an instruction jumped
+    // beyond the end of the script? Not good.
+    if (next_jump_index != jump_targets.items.len)
+        return error.BadData;
 }
 
 fn findJumpTargets(
