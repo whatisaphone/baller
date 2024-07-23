@@ -48,6 +48,7 @@ const Extract = struct {
     sound_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
+    dump_index: bool = false,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
@@ -65,11 +66,17 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     var index = try readIndex(allocator, game, input_path);
     defer index.deinit(allocator);
 
+    if (args.dump_index) {
+        var buf = std.io.bufferedWriter(std.io.getStdOut().writer());
+        try dumpIndex(&index, buf.writer());
+        try buf.flush();
+    }
+
     var path_buf = std.BoundedArray(u8, 4095){};
     try path_buf.appendSlice(output_path);
     try path_buf.append('/');
 
-    try dumpIndexBlobs(game, &index, &path_buf);
+    try writeIndexBlobs(game, &index, &path_buf);
 
     const project_txt_path = try std.fmt.allocPrintZ(
         allocator,
@@ -140,8 +147,11 @@ const Index = struct {
     room_name_lens: []u8,
     dobj: []u8,
     aary: []u8,
+    sver: ?[]u8,
 
     fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+        if (self.sver) |sver|
+            allocator.free(sver);
         allocator.free(self.aary);
         allocator.free(self.dobj);
         allocator.free(self.room_name_lens);
@@ -318,6 +328,16 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
     errdefer if (disk) |d|
         allocator.free(d);
 
+    const sver = if (games.hasIndexSver(game)) blk: {
+        const sver_len = try blocks.expectBlock("SVER");
+        const sver = try allocator.alloc(u8, sver_len);
+        errdefer allocator.free(sver);
+        try in.readNoEof(sver);
+        break :blk sver;
+    } else null;
+    errdefer if (sver) |x|
+        allocator.free(x);
+
     // RNAM
 
     const rnam_len = try blocks.expectBlock("RNAM");
@@ -411,6 +431,7 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
         .room_name_lens = room_name_lens,
         .dobj = dobj,
         .aary = aary,
+        .sver = sver,
     };
 }
 
@@ -442,7 +463,7 @@ fn readDirectory(
 }
 
 // Let's see how long we can get away with this.
-fn dumpIndexBlobs(
+fn writeIndexBlobs(
     game: games.Game,
     index: *const Index,
     path_buf: *std.BoundedArray(u8, 4095),
@@ -480,6 +501,41 @@ fn dumpIndexBlobs(
 
         try file.writeAll(index.aary);
     }
+
+    if (index.sver) |sver| {
+        try path_buf.appendSlice("sver.bin\x00");
+        defer path_buf.len -= 9;
+
+        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
+        const file = try std.fs.cwd().createFileZ(path, .{});
+        defer file.close();
+
+        try file.writeAll(sver);
+    }
+}
+
+fn dumpIndex(index: *const Index, out: anytype) !void {
+    inline for (comptime std.meta.fieldNames(Directories)) |name|
+        try dumpDirectory(name, &@field(index.directories, name), out);
+    for (0.., index.lfl_offsets) |i, off|
+        try out.print("{s}.{},0x{x}\n", .{ "lfl_offset", i, off });
+    if (index.lfl_disks) |disks|
+        for (0.., disks) |i, disk|
+            try out.print("{s}.{},{}\n", .{ "lfl_disk", i, disk });
+}
+
+fn dumpDirectory(
+    name: []const u8,
+    directory: *const std.MultiArrayList(DirectoryEntry),
+    out: anytype,
+) !void {
+    const slice = directory.slice();
+    for (slice.items(.room), 0..) |value, i|
+        try out.print("{s}.{s}.{},{}\n", .{ name, "room", i, value });
+    for (slice.items(.offset), 0..) |value, i|
+        try out.print("{s}.{s}.{},0x{x}\n", .{ name, "offset", i, value });
+    for (slice.items(.len), 0..) |value, i|
+        try out.print("{s}.{s}.{},0x{x}\n", .{ name, "len", i, value });
 }
 
 fn extractDisk(
@@ -1300,7 +1356,11 @@ fn directoryForBlockId(
         blockId("RMIM") => &directories.room_images,
         blockId("RMDA") => &directories.rooms,
         blockId("SCRP") => &directories.scripts,
-        blockId("DIGI"), blockId("SOUN"), blockId("TALK") => &directories.sounds,
+        blockId("DIGI"),
+        blockId("SOUN"),
+        blockId("TALK"),
+        blockId("WSOU"),
+        => &directories.sounds,
         blockId("AKOS") => &directories.costumes,
         blockId("CHAR") => &directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &directories.images,

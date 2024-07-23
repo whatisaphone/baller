@@ -25,6 +25,9 @@ const fixture_hashes = .{
     .@"football/FOOTBALL.(A)" = "4d406cbe8243f84bac39a743495b6377879afc9d7a187e203d7f58cd8bc59742",
     .@"football/FOOTBALL.(B)" = "42cf15534b9a707ec1cec54a09d30211da07b226a084e802c3b049701751a2f1",
     .@"football/FOOTBALL.HE2" = "fc5ab3c7d917eaaa9cb2e7cee6ca73bef0958d939e6349498bb17ae752f691ef",
+    .@"basketball/Basketball.he0" = "9a767514bc5bf00743648111d6bf31e886e8f4fc8401be30447ee69126c997b2",
+    .@"basketball/Basketball.(a)" = "b90c8b7c4d906d568647cd049d15b0c360a5945418c2807fcd22dcdc64decb84",
+    .@"basketball/Basketball.(b)" = "7551d6465bd4cc8e0c0b97357ca28825d18bb2d645ccf30c5f56a810abd62e4c",
 };
 
 test "fixture integrity" {
@@ -109,6 +112,14 @@ test "Backyard Football round trip decode/encode" {
 
 test "Backyard Football talkies round trip" {
     try testRoundTripTalkies("football", "FOOTBALL.HE2");
+}
+
+test "Backyard Basketball round trip raw" {
+    try testRoundTrip("basketball", "Basketball.he0", true, &.{
+        "Basketball.he0",
+        "Basketball.(a)",
+        "Basketball.(b)",
+    });
 }
 
 fn testRoundTrip(

@@ -90,7 +90,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         }
     }
 
-    try readIndexBlobs(allocator, &index, &cur_path);
+    try readIndexBlobs(allocator, game, &index, &cur_path);
 
     var cur_state: ?DiskState = null;
     defer if (cur_state) |*state|
@@ -264,6 +264,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
 fn readIndexBlobs(
     allocator: std.mem.Allocator,
+    game: games.Game,
     index: *Index,
     cur_path: *std.BoundedArray(u8, 4095),
 ) !void {
@@ -289,6 +290,14 @@ fn readIndexBlobs(
 
         const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
         index.aary = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+    }
+
+    if (games.hasIndexSver(game)) {
+        try cur_path.appendSlice("sver.bin\x00");
+        defer cur_path.len -= 9;
+
+        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
+        index.sver = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
     }
 }
 
@@ -988,6 +997,12 @@ fn writeIndex(
         try endBlock(&writer, &fixups, disk_fixup);
     }
 
+    if (index.sver) |sver| {
+        const start = try beginBlock(&writer, "SVER");
+        try writer.writer().writeAll(sver);
+        try endBlock(&writer, &fixups, start);
+    }
+
     const rnam_fixup = try beginBlock(&writer, "RNAM");
     for (0.., index.room_names.items) |num, name| {
         if (name.len == 0)
@@ -1076,8 +1091,11 @@ const Index = struct {
     room_names: std.ArrayListUnmanaged([]u8) = .{},
     dobj: []u8 = &.{},
     aary: []u8 = &.{},
+    sver: ?[]u8 = null,
 
     fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+        if (self.sver) |sver|
+            allocator.free(sver);
         allocator.free(self.aary);
         allocator.free(self.dobj);
 
@@ -1134,7 +1152,11 @@ fn directoryForBlockId(
         blockId("RMIM") => &directories.room_images,
         blockId("RMDA") => &directories.rooms,
         blockId("SCRP") => &directories.scripts,
-        blockId("DIGI"), blockId("SOUN"), blockId("TALK") => &directories.sounds,
+        blockId("DIGI"),
+        blockId("SOUN"),
+        blockId("TALK"),
+        blockId("WSOU"),
+        => &directories.sounds,
         blockId("AKOS") => &directories.costumes,
         blockId("CHAR") => &directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &directories.images,
