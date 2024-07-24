@@ -63,18 +63,19 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var project_txt_reader = std.io.bufferedReader(project_txt_file.reader());
     var project_txt_line_buf: [256]u8 = undefined;
 
-    var cur_path = std.BoundedArray(u8, 4095){};
-    try cur_path.appendSlice(project_txt_path);
-    pathf.popFile(&cur_path);
+    var prst = ProjectState{
+        .game = game,
+    };
+    defer prst.deinit(allocator);
 
-    var index: Index = .{};
-    defer index.deinit(allocator);
+    try prst.cur_path.appendSlice(project_txt_path);
+    pathf.popFile(&prst.cur_path);
 
     if (games.hasDisk(game))
-        index.lfl_disks = .{};
+        prst.index.lfl_disks = .{};
 
     // Room numbers start at 1, so zero out the first room.
-    try index.directories.rooms.append(allocator, .{
+    try prst.index.directories.rooms.append(allocator, .{
         .room = 0,
         .offset = 0,
         .len = 0,
@@ -84,7 +85,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     inline for (std.meta.fields(Directories)) |field| {
         // (except for DIRR, for some reason)
         if (!std.meta.eql(field.name, "rooms")) {
-            try @field(index.directories, field.name).append(allocator, .{
+            try @field(prst.index.directories, field.name).append(allocator, .{
                 .room = 0,
                 .offset = 0,
                 .len = 0xffff_ffff,
@@ -92,7 +93,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         }
     }
 
-    try readIndexBlobs(allocator, game, &index, &cur_path);
+    try readIndexBlobs(allocator, &prst);
 
     var cur_state: ?DiskState = null;
     defer if (cur_state) |*state|
@@ -118,8 +119,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         const room_number = try std.fmt.parseInt(u8, room_number_str, 10);
         if (room_number < 1) return error.BadData;
 
-        try growArrayList([]u8, &index.room_names, allocator, room_number + 1, &.{});
-        index.room_names.items[room_number] = try allocator.dupe(u8, room_name);
+        try growArrayList([]u8, &prst.index.room_names, allocator, room_number + 1, &.{});
+        prst.index.room_names.items[room_number] = try allocator.dupe(u8, room_name);
 
         if (cur_state) |*state| if (state.disk_number != disk_number) {
             try finishDisk(state);
@@ -129,20 +130,20 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
         if (cur_state == null) {
             cur_state = @as(DiskState, undefined); // TODO: is there a better way?
-            try startDisk(allocator, game, disk_number, output_path, &cur_state.?);
+            try startDisk(allocator, disk_number, output_path, &prst, &cur_state.?);
         }
 
         const state = &cur_state.?;
 
-        try cur_path.appendSlice(room_name);
-        try cur_path.append('/');
-        defer cur_path.len -= @intCast(room_name.len + 1);
+        try prst.cur_path.appendSlice(room_name);
+        try prst.cur_path.append('/');
+        defer prst.cur_path.len -= @intCast(room_name.len + 1);
 
         const room_file = room_file: {
-            try cur_path.appendSlice("room.txt\x00");
-            defer cur_path.len -= 9;
+            try prst.cur_path.appendSlice("room.txt\x00");
+            defer prst.cur_path.len -= 9;
 
-            const room_txt_path = cur_path.buffer[0 .. cur_path.len - 1 :0];
+            const room_txt_path = prst.cur_path.buffer[0 .. prst.cur_path.len - 1 :0];
             break :room_file try std.fs.cwd().openFileZ(room_txt_path, .{});
         };
         defer room_file.close();
@@ -152,7 +153,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
         const lflf_fixup = try beginBlock(&state.writer, "LFLF");
 
-        if (index.lfl_disks) |*lfl_disks| {
+        if (prst.index.lfl_disks) |*lfl_disks| {
             try growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
             lfl_disks.items[room_number] = disk_number;
         } else {
@@ -160,8 +161,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                 return error.BadData;
         }
 
-        try growArrayList(u32, &index.lfl_offsets, allocator, room_number + 1, 0);
-        index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
+        try growArrayList(u32, &prst.index.lfl_offsets, allocator, room_number + 1, 0);
+        prst.index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
 
         while (true) {
             const room_line = room_reader.reader()
@@ -174,79 +175,65 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             if (std.mem.eql(u8, keyword, "raw-glob"))
                 try handleRawGlob(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "raw-block"))
-                try handleRawBlock(room_line_split.rest(), &cur_path, state)
+                try handleRawBlock(room_line_split.rest(), &prst, state)
             else if (std.mem.eql(u8, keyword, "rmda"))
                 try handleRmda(
                     allocator,
-                    game,
                     room_number,
                     &room_reader,
                     &room_line_buf,
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "room-image"))
                 try handleRoomImage(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "scrp-asm"))
                 try handleScrpAsm(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "audio"))
                 try handleAudio(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "awiz"))
                 try handleAwiz(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
                     &room_reader,
                     &room_line_buf,
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else if (std.mem.eql(u8, keyword, "mult"))
                 try handleMult(
                     allocator,
-                    game,
                     room_number,
                     room_line_split.rest(),
                     &room_reader,
                     &room_line_buf,
-                    &cur_path,
+                    &prst,
                     state,
-                    &index,
                 )
             else
                 return error.BadData;
@@ -261,40 +248,35 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         cur_state = null;
     }
 
-    try writeIndex(allocator, game, &index, output_path, args.attribution);
+    try writeIndex(allocator, &prst, output_path, args.attribution);
 }
 
-fn readIndexBlobs(
-    allocator: std.mem.Allocator,
-    game: games.Game,
-    index: *Index,
-    cur_path: *std.BoundedArray(u8, 4095),
-) !void {
-    index.maxs = try readIndexBlob(allocator, cur_path, "maxs.bin");
-    index.dobj = try readIndexBlob(allocator, cur_path, "dobj.bin");
-    index.aary = try readIndexBlob(allocator, cur_path, "aary.bin");
-    if (games.hasIndexSver(game))
-        index.sver = try readIndexBlob(allocator, cur_path, "sver.bin");
+fn readIndexBlobs(allocator: std.mem.Allocator, prst: *ProjectState) !void {
+    prst.index.maxs = try readIndexBlob(allocator, prst, "maxs.bin");
+    prst.index.dobj = try readIndexBlob(allocator, prst, "dobj.bin");
+    prst.index.aary = try readIndexBlob(allocator, prst, "aary.bin");
+    if (games.hasIndexSver(prst.game))
+        prst.index.sver = try readIndexBlob(allocator, prst, "sver.bin");
 }
 
 fn readIndexBlob(
     allocator: std.mem.Allocator,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     filename: []const u8,
 ) ![]u8 {
-    const path = try pathf.append(cur_path, filename);
+    const path = try pathf.append(&prst.cur_path, filename);
     defer path.restore();
     return fs.readFileZ(allocator, std.fs.cwd(), path.full());
 }
 
 fn startDisk(
     allocator: std.mem.Allocator,
-    game: games.Game,
     disk_number: u8,
     output_path: [:0]u8,
+    prst: *ProjectState,
     state: *DiskState,
 ) !void {
-    games.pointPathToDisk(game, output_path, disk_number);
+    games.pointPathToDisk(prst.game, output_path, disk_number);
 
     state.disk_number = disk_number;
 
@@ -324,12 +306,10 @@ fn finishDisk(state: *DiskState) !void {
 
 fn handleRawGlob(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     line: []const u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     // Parse line
 
@@ -349,7 +329,7 @@ fn handleRawGlob(
 
     const block_fixup = try beginBlockImpl(&state.writer, block_id);
 
-    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
     defer path.restore();
 
     try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -359,8 +339,7 @@ fn handleRawGlob(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         block_id,
         room_number,
         glob_number,
@@ -369,7 +348,11 @@ fn handleRawGlob(
     );
 }
 
-fn handleRawBlock(line: []const u8, cur_path: *std.BoundedArray(u8, 4095), state: *DiskState) !void {
+fn handleRawBlock(
+    line: []const u8,
+    prst: *ProjectState,
+    state: *DiskState,
+) !void {
     // Parse line
 
     var tokens = std.mem.tokenizeScalar(u8, line, ' ');
@@ -385,7 +368,7 @@ fn handleRawBlock(line: []const u8, cur_path: *std.BoundedArray(u8, 4095), state
 
     const start = try beginBlockImpl(&state.writer, block_id);
 
-    const path = try pathf.append(cur_path, relative_path);
+    const path = try pathf.append(&prst.cur_path, relative_path);
     defer path.restore();
 
     try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -395,13 +378,11 @@ fn handleRawBlock(line: []const u8, cur_path: *std.BoundedArray(u8, 4095), state
 
 fn handleRmda(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     const rmda_fixup = try beginBlock(&state.writer, "RMDA");
 
@@ -419,7 +400,7 @@ fn handleRmda(
 
             const fixup = try beginBlockImpl(&state.writer, block_id);
 
-            const path = try pathf.print(cur_path, "{s}", .{relative_path});
+            const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
             defer path.restore();
 
             try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -436,7 +417,7 @@ fn handleRmda(
 
             if (tokens.next()) |_| return error.BadData;
 
-            const path = try pathf.print(cur_path, "{s}", .{relative_path});
+            const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
             defer path.restore();
 
             const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -470,8 +451,7 @@ fn handleRmda(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         comptime blockId("RMDA"),
         room_number,
         room_number,
@@ -482,12 +462,10 @@ fn handleRmda(
 
 fn handleRoomImage(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     line: []const u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     // Parse line
 
@@ -502,7 +480,7 @@ fn handleRoomImage(
 
     // Write block
 
-    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
     defer path.restore();
 
     const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -517,8 +495,7 @@ fn handleRoomImage(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         comptime blockId("RMIM"),
         room_number,
         room_number,
@@ -529,12 +506,10 @@ fn handleRoomImage(
 
 fn handleScrpAsm(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     line: []const u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     // Parse line
 
@@ -549,7 +524,7 @@ fn handleScrpAsm(
 
     // Process block
 
-    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
     defer path.restore();
 
     const asm_string = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -567,8 +542,7 @@ fn handleScrpAsm(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         comptime blockId("SCRP"),
         room_number,
         glob_number,
@@ -579,12 +553,10 @@ fn handleScrpAsm(
 
 fn handleAudio(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     line: []const u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     // Parse line
 
@@ -602,7 +574,7 @@ fn handleAudio(
 
     // Process block
 
-    const path = try pathf.print(cur_path, "{s}", .{relative_path});
+    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
     defer path.restore();
 
     const wav_file = try std.fs.cwd().openFileZ(path.full(), .{});
@@ -616,8 +588,7 @@ fn handleAudio(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         block_id,
         room_number,
         glob_number,
@@ -628,18 +599,16 @@ fn handleAudio(
 
 fn handleAwiz(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     glob_number_str: []const u8,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
 
-    var wiz = try readAwizLines(allocator, room_reader, room_line_buf, cur_path);
+    var wiz = try readAwizLines(allocator, room_reader, room_line_buf, prst);
     defer wiz.deinit(allocator);
 
     const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
@@ -649,8 +618,7 @@ fn handleAwiz(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         comptime blockId("AWIZ"),
         room_number,
         glob_number,
@@ -663,7 +631,7 @@ fn readAwizLines(
     allocator: std.mem.Allocator,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
 ) !awiz.Awiz {
     var wiz = awiz.Awiz{};
     errdefer wiz.deinit(allocator);
@@ -701,7 +669,7 @@ fn readAwizLines(
                 const relative_path = split.next() orelse return error.BadData;
                 if (split.next()) |_| return error.BadData;
 
-                const path = try pathf.print(cur_path, "{s}", .{relative_path});
+                const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
                 defer path.restore();
 
                 const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -720,14 +688,12 @@ fn readAwizLines(
 
 fn handleMult(
     allocator: std.mem.Allocator,
-    game: games.Game,
     room_number: u8,
     line: []const u8,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
     state: *DiskState,
-    index: *Index,
 ) !void {
     var arena = std.heap.ArenaAllocator.init(allocator);
     defer arena.deinit();
@@ -737,7 +703,7 @@ fn handleMult(
         line,
         room_reader,
         room_line_buf,
-        cur_path,
+        prst,
     );
 
     const mult_fixup = try beginBlock(&state.writer, "MULT");
@@ -746,7 +712,7 @@ fn handleMult(
         const raw_fixup = try beginBlockImpl(&state.writer, raw.id);
 
         // XXX: this assumes only one block per block ID in a MULT
-        const path = try pathf.print(cur_path, "{s}", .{raw.path});
+        const path = try pathf.print(&prst.cur_path, "{s}", .{raw.path});
         defer path.restore();
 
         try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -792,8 +758,7 @@ fn handleMult(
 
     try addGlobToDirectory(
         allocator,
-        game,
-        index,
+        prst,
         comptime blockId("MULT"),
         room_number,
         desc.glob_number,
@@ -820,7 +785,7 @@ fn parseMult(
     first_line: []const u8,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    prst: *ProjectState,
 ) !Mult {
     // Parse first line
 
@@ -859,7 +824,7 @@ fn parseMult(
                 .path = path_alloc,
             });
         } else if (std.mem.eql(u8, keyword, "awiz")) {
-            const wiz = try readAwizLines(arena, room_reader, room_line_buf, cur_path);
+            const wiz = try readAwizLines(arena, room_reader, room_line_buf, prst);
             try result.wizs.append(arena, wiz);
         } else if (std.mem.eql(u8, keyword, "indices")) {
             if (result.indices.items.len != 0)
@@ -880,23 +845,22 @@ fn parseMult(
 
 fn addGlobToDirectory(
     allocator: std.mem.Allocator,
-    game: games.Game,
-    index: *Index,
+    prst: *ProjectState,
     block_id: BlockId,
     room_number: u8,
     glob_number: u32,
     block_start: u32,
     block_len: u32,
 ) !void {
-    const directory = directoryForBlockId(&index.directories, block_id) orelse
+    const directory = directoryForBlockId(&prst.index.directories, block_id) orelse
         return error.BadData;
     try growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
         .room = 0,
         .offset = 0,
-        .len = games.directoryNonPresentLen(game),
+        .len = games.directoryNonPresentLen(prst.game),
     });
-    const offset = block_start - index.lfl_offsets.items[room_number];
-    const len = if (block_id == (comptime blockId("MULT")) and !games.writeMultLen(game))
+    const offset = block_start - prst.index.lfl_offsets.items[room_number];
+    const len = if (block_id == (comptime blockId("MULT")) and !games.writeMultLen(prst.game))
         0xffff_ffff
     else
         block_len;
@@ -909,12 +873,11 @@ fn addGlobToDirectory(
 
 fn writeIndex(
     allocator: std.mem.Allocator,
-    game: games.Game,
-    index: *Index,
+    prst: *ProjectState,
     output_path: [:0]u8,
     attribution: bool,
 ) !void {
-    games.pointPathToIndex(game, output_path);
+    games.pointPathToIndex(prst.game, output_path);
 
     const file = try std.fs.cwd().createFileZ(output_path, .{});
     errdefer file.close();
@@ -927,33 +890,33 @@ fn writeIndex(
     defer fixups.deinit();
 
     const maxs_fixup = try beginBlock(&writer, "MAXS");
-    try writer.writer().writeAll(index.maxs);
+    try writer.writer().writeAll(prst.index.maxs);
     try endBlock(&writer, &fixups, maxs_fixup);
 
     // SCUMM outputs sequential room numbers for these whether or not the room
     // actually exists.
-    for (0.., index.directories.room_images.items(.room)) |i, *room|
+    for (0.., prst.index.directories.room_images.items(.room)) |i, *room|
         room.* = @intCast(i);
-    for (0.., index.directories.rooms.items(.room)) |i, *room|
+    for (0.., prst.index.directories.rooms.items(.room)) |i, *room|
         room.* = @intCast(i);
 
-    try writeDirectory(&writer, "DIRI", &index.directories.room_images, &fixups);
-    try writeDirectory(&writer, "DIRR", &index.directories.rooms, &fixups);
-    try writeDirectory(&writer, "DIRS", &index.directories.scripts, &fixups);
-    try writeDirectory(&writer, "DIRN", &index.directories.sounds, &fixups);
-    try writeDirectory(&writer, "DIRC", &index.directories.costumes, &fixups);
-    try writeDirectory(&writer, "DIRF", &index.directories.charsets, &fixups);
-    try writeDirectory(&writer, "DIRM", &index.directories.images, &fixups);
-    if (games.hasTalkies(game))
-        try writeDirectory(&writer, "DIRT", &index.directories.talkies, &fixups);
+    try writeDirectory(&writer, "DIRI", &prst.index.directories.room_images, &fixups);
+    try writeDirectory(&writer, "DIRR", &prst.index.directories.rooms, &fixups);
+    try writeDirectory(&writer, "DIRS", &prst.index.directories.scripts, &fixups);
+    try writeDirectory(&writer, "DIRN", &prst.index.directories.sounds, &fixups);
+    try writeDirectory(&writer, "DIRC", &prst.index.directories.costumes, &fixups);
+    try writeDirectory(&writer, "DIRF", &prst.index.directories.charsets, &fixups);
+    try writeDirectory(&writer, "DIRM", &prst.index.directories.images, &fixups);
+    if (games.hasTalkies(prst.game))
+        try writeDirectory(&writer, "DIRT", &prst.index.directories.talkies, &fixups);
 
     const dlfl_fixup = try beginBlock(&writer, "DLFL");
-    try writer.writer().writeInt(u16, @intCast(index.lfl_offsets.items.len), .little);
-    try writer.writer().writeAll(std.mem.sliceAsBytes(index.lfl_offsets.items));
+    try writer.writer().writeInt(u16, @intCast(prst.index.lfl_offsets.items.len), .little);
+    try writer.writer().writeAll(std.mem.sliceAsBytes(prst.index.lfl_offsets.items));
     std.debug.assert(builtin.cpu.arch.endian() == .little);
     try endBlock(&writer, &fixups, dlfl_fixup);
 
-    if (index.lfl_disks) |*lfl_disks| {
+    if (prst.index.lfl_disks) |*lfl_disks| {
         const disk_fixup = try beginBlock(&writer, "DISK");
         try writer.writer().writeInt(u16, @intCast(lfl_disks.items.len), .little);
         try writer.writer().writeAll(lfl_disks.items);
@@ -961,14 +924,14 @@ fn writeIndex(
         try endBlock(&writer, &fixups, disk_fixup);
     }
 
-    if (index.sver) |sver| {
+    if (prst.index.sver) |sver| {
         const start = try beginBlock(&writer, "SVER");
         try writer.writer().writeAll(sver);
         try endBlock(&writer, &fixups, start);
     }
 
     const rnam_fixup = try beginBlock(&writer, "RNAM");
-    for (0.., index.room_names.items) |num, name| {
+    for (0.., prst.index.room_names.items) |num, name| {
         if (name.len == 0)
             continue;
         try writer.writer().writeInt(u16, @intCast(num), .little);
@@ -981,14 +944,14 @@ fn writeIndex(
     try endBlock(&writer, &fixups, rnam_fixup);
 
     const dobj_fixup = try beginBlock(&writer, "DOBJ");
-    try writer.writer().writeAll(index.dobj);
+    try writer.writer().writeAll(prst.index.dobj);
     try endBlock(&writer, &fixups, dobj_fixup);
 
     const aary_fixup = try beginBlock(&writer, "AARY");
-    try writer.writer().writeAll(index.aary);
+    try writer.writer().writeAll(prst.index.aary);
     try endBlock(&writer, &fixups, aary_fixup);
 
-    if (games.hasIndexInib(game)) {
+    if (games.hasIndexInib(prst.game)) {
         const inib_fixup = try beginBlock(&writer, "INIB");
         const note_fixup = try beginBlock(&writer, "NOTE");
         const note = if (attribution)
@@ -1038,6 +1001,16 @@ fn writeDirectoryImpl(
 
     try endBlock(stream, fixups, block_fixup);
 }
+
+const ProjectState = struct {
+    game: games.Game,
+    cur_path: std.BoundedArray(u8, 4095) = .{},
+    index: Index = .{},
+
+    fn deinit(self: *ProjectState, allocator: std.mem.Allocator) void {
+        self.index.deinit(allocator);
+    }
+};
 
 const DiskState = struct {
     disk_number: u8,
