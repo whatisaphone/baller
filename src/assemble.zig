@@ -4,14 +4,13 @@ const lang = @import("lang.zig");
 
 pub fn assemble(
     allocator: std.mem.Allocator,
+    language_stuff: struct {
+        *const lang.Language,
+        *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    },
     asm_str: []const u8,
 ) !std.ArrayListUnmanaged(u8) {
-    // TODO: cache this
-    const language = lang.buildLanguage();
-
-    // TODO: cache this!!
-    var inss = try buildInsMap(allocator, &language);
-    defer inss.deinit(allocator);
+    const language, const inss = language_stuff;
 
     // map from label name to offset
     var label_offsets = std.StringHashMapUnmanaged(u16){};
@@ -159,39 +158,4 @@ fn tokenizeString(str: []const u8) !struct { []const u8, []const u8 } {
         return error.BadData;
     const end = std.mem.indexOfScalarPos(u8, str, 1, '"') orelse return error.BadData;
     return .{ str[1..end], str[end + 1 ..] };
-}
-
-fn buildInsMap(
-    allocator: std.mem.Allocator,
-    language: *const lang.Language,
-) !std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) {
-    var inss = std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)){};
-    errdefer inss.deinit(allocator);
-    try inss.ensureUnusedCapacity(allocator, 256);
-
-    for (0..256) |b1_usize| {
-        const b1: u8 = @intCast(b1_usize);
-        switch (language.opcodes[b1]) {
-            .unknown => {},
-            .ins => |ins| {
-                const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
-                try inss.putNoClobber(allocator, ins.name, bytes);
-            },
-            .nested => |n| {
-                for (0..256) |b2_usize| {
-                    const b2: u8 = @intCast(b2_usize);
-                    switch (language.opcodes[n << 8 | b2]) {
-                        .unknown => {},
-                        .ins => |ins| {
-                            const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;
-                            try inss.putNoClobber(allocator, ins.name, bytes);
-                        },
-                        .nested => unreachable,
-                    }
-                }
-            },
-        }
-    }
-
-    return inss;
 }

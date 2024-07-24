@@ -496,6 +496,41 @@ pub fn buildLanguage() Language {
     return lang;
 }
 
+pub fn buildInsMap(
+    allocator: std.mem.Allocator,
+    language: *const Language,
+) !std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) {
+    var inss = std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)){};
+    errdefer inss.deinit(allocator);
+    try inss.ensureUnusedCapacity(allocator, 256);
+
+    for (0..256) |b1_usize| {
+        const b1: u8 = @intCast(b1_usize);
+        switch (language.opcodes[b1]) {
+            .unknown => {},
+            .ins => |ins| {
+                const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
+                try inss.putNoClobber(allocator, ins.name, bytes);
+            },
+            .nested => |n| {
+                for (0..256) |b2_usize| {
+                    const b2: u8 = @intCast(b2_usize);
+                    switch (language.opcodes[n << 8 | b2]) {
+                        .unknown => {},
+                        .ins => |ins| {
+                            const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;
+                            try inss.putNoClobber(allocator, ins.name, bytes);
+                        },
+                        .nested => unreachable,
+                    }
+                }
+            },
+        }
+    }
+
+    return inss;
+}
+
 const Ins = struct {
     start: u16,
     end: u16,

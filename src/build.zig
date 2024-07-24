@@ -15,6 +15,7 @@ const writeFixups = @import("block_writer.zig").writeFixups;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const lang = @import("lang.zig");
 const pathf = @import("pathf.zig");
 const rmim_encode = @import("rmim_encode.zig");
 
@@ -63,9 +64,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var project_txt_reader = std.io.bufferedReader(project_txt_file.reader());
     var project_txt_line_buf: [256]u8 = undefined;
 
-    var prst = ProjectState{
-        .game = game,
-    };
+    var prst = try ProjectState.init(allocator, game);
     defer prst.deinit(allocator);
 
     try prst.cur_path.appendSlice(project_txt_path);
@@ -423,7 +422,7 @@ fn handleRmda(
             const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
             defer allocator.free(asm_str);
 
-            var bytecode = try assemble.assemble(allocator, asm_str);
+            var bytecode = try assemble.assemble(allocator, prst.languageStuff(), asm_str);
             defer bytecode.deinit(allocator);
 
             const fixup = try beginBlockImpl(&state.writer, block_id);
@@ -532,7 +531,7 @@ fn handleScrpAsm(
 
     const scrp_fixup = try beginBlock(&state.writer, "SCRP");
 
-    var bytecode = try assemble.assemble(allocator, asm_string);
+    var bytecode = try assemble.assemble(allocator, prst.languageStuff(), asm_string);
     defer bytecode.deinit(allocator);
 
     try state.writer.writer().writeAll(bytecode.items);
@@ -1004,11 +1003,32 @@ fn writeDirectoryImpl(
 
 const ProjectState = struct {
     game: games.Game,
-    cur_path: std.BoundedArray(u8, 4095) = .{},
-    index: Index = .{},
+    cur_path: std.BoundedArray(u8, 4095),
+    index: Index,
+    language: lang.Language,
+    ins_map: std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+
+    fn init(allocator: std.mem.Allocator, game: games.Game) !ProjectState {
+        var result: ProjectState = undefined;
+        result.game = game;
+        result.cur_path = .{};
+        result.index = .{};
+        result.language = lang.buildLanguage();
+        result.ins_map = try lang.buildInsMap(allocator, &result.language);
+        errdefer result.ins_map.deinit(allocator);
+        return result;
+    }
 
     fn deinit(self: *ProjectState, allocator: std.mem.Allocator) void {
+        self.ins_map.deinit(allocator);
         self.index.deinit(allocator);
+    }
+
+    fn languageStuff(self: *const ProjectState) struct {
+        *const lang.Language,
+        *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    } {
+        return .{ &self.language, &self.ins_map };
     }
 };
 
