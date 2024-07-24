@@ -269,35 +269,27 @@ fn readIndexBlobs(
     cur_path: *std.BoundedArray(u8, 4095),
 ) !void {
     {
-        try cur_path.appendSlice("maxs.bin\x00");
-        defer cur_path.len -= 9;
-
-        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
-        index.maxs = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+        const path = try pathf.append(cur_path, "maxs.bin");
+        defer path.restore();
+        index.maxs = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     }
 
     {
-        try cur_path.appendSlice("dobj.bin\x00");
-        defer cur_path.len -= 9;
-
-        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
-        index.dobj = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+        const path = try pathf.append(cur_path, "dobj.bin");
+        defer path.restore();
+        index.dobj = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     }
 
     {
-        try cur_path.appendSlice("aary.bin\x00");
-        defer cur_path.len -= 9;
-
-        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
-        index.aary = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+        const path = try pathf.append(cur_path, "aary.bin");
+        defer path.restore();
+        index.aary = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     }
 
     if (games.hasIndexSver(game)) {
-        try cur_path.appendSlice("sver.bin\x00");
-        defer cur_path.len -= 9;
-
-        const path = cur_path.buffer[0 .. cur_path.len - 1 :0];
-        index.sver = try std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+        const path = try pathf.append(cur_path, "sver.bin");
+        defer path.restore();
+        index.sver = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     }
 }
 
@@ -457,12 +449,8 @@ fn handleRmda(
             const path = try pathf.print(cur_path, "{s}", .{relative_path});
             defer path.restore();
 
-            const file = try std.fs.cwd().openFileZ(path.full(), .{});
-            defer file.close();
-            const stat = try file.stat();
-            const asm_str = try allocator.alloc(u8, stat.size);
+            const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
             defer allocator.free(asm_str);
-            try file.reader().readNoEof(asm_str);
 
             var bytecode = try assemble.assemble(allocator, asm_str);
             defer bytecode.deinit(allocator);
@@ -527,12 +515,8 @@ fn handleRoomImage(
     const path = try pathf.print(cur_path, "{s}", .{relative_path});
     defer path.restore();
 
-    const bmp_file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer bmp_file.close();
-    const bmp_stat = try bmp_file.stat();
-    const bmp_raw = try allocator.alloc(u8, bmp_stat.size);
+    const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     defer allocator.free(bmp_raw);
-    try bmp_file.reader().readNoEof(bmp_raw);
 
     const block_fixup = try beginBlock(&state.writer, "RMIM");
 
@@ -578,12 +562,8 @@ fn handleScrpAsm(
     const path = try pathf.print(cur_path, "{s}", .{relative_path});
     defer path.restore();
 
-    const asm_file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer asm_file.close();
-    const asm_stat = try asm_file.stat();
-    const asm_string = try allocator.alloc(u8, asm_stat.size);
+    const asm_string = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
     defer allocator.free(asm_string);
-    try asm_file.reader().readNoEof(asm_string);
 
     const scrp_fixup = try beginBlock(&state.writer, "SCRP");
 
@@ -734,12 +714,8 @@ fn readAwizLines(
                 const path = try pathf.print(cur_path, "{s}", .{relative_path});
                 defer path.restore();
 
-                const bmp_file = try std.fs.cwd().openFileZ(path.full(), .{});
-                defer bmp_file.close();
-                const bmp_stat = try bmp_file.stat();
-                const bmp_raw = try allocator.alloc(u8, bmp_stat.size);
+                const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
                 errdefer allocator.free(bmp_raw);
-                try bmp_file.reader().readNoEof(bmp_raw);
 
                 try wiz.blocks.append(.{
                     .wizd = std.ArrayListUnmanaged(u8).fromOwnedSlice(bmp_raw),

@@ -488,48 +488,31 @@ fn writeIndexBlobs(
     path_buf: *std.BoundedArray(u8, 4095),
 ) !void {
     {
-        try path_buf.appendSlice("maxs.bin\x00");
-        defer path_buf.len -= 9;
+        const path = try pathf.append(path_buf, "maxs.bin");
+        defer path.restore();
 
-        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
-        const file = try std.fs.cwd().createFileZ(path, .{});
-        defer file.close();
-
-        try file.writeAll(std.mem.asBytes(index.maxs)[0..games.maxsLen(game)]);
         std.debug.assert(builtin.cpu.arch.endian() == .little);
+        const maxs_data = std.mem.asBytes(index.maxs)[0..games.maxsLen(game)];
+
+        try fs.writeFileZ(std.fs.cwd(), path.full(), maxs_data);
     }
 
     {
-        try path_buf.appendSlice("dobj.bin\x00");
-        defer path_buf.len -= 9;
-
-        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
-        const file = try std.fs.cwd().createFileZ(path, .{});
-        defer file.close();
-
-        try file.writeAll(index.dobj);
+        const path = try pathf.append(path_buf, "dobj.bin");
+        defer path.restore();
+        try fs.writeFileZ(std.fs.cwd(), path.full(), index.dobj);
     }
 
     {
-        try path_buf.appendSlice("aary.bin\x00");
-        defer path_buf.len -= 9;
-
-        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
-        const file = try std.fs.cwd().createFileZ(path, .{});
-        defer file.close();
-
-        try file.writeAll(index.aary);
+        const path = try pathf.append(path_buf, "aary.bin");
+        defer path.restore();
+        try fs.writeFileZ(std.fs.cwd(), path.full(), index.aary);
     }
 
     if (index.sver) |sver| {
-        try path_buf.appendSlice("sver.bin\x00");
-        defer path_buf.len -= 9;
-
-        const path = path_buf.buffer[0 .. path_buf.len - 1 :0];
-        const file = try std.fs.cwd().createFileZ(path, .{});
-        defer file.close();
-
-        try file.writeAll(sver);
+        const path = try pathf.append(path_buf, "sver.bin");
+        defer path.restore();
+        try fs.writeFileZ(std.fs.cwd(), path.full(), sver);
     }
 }
 
@@ -930,10 +913,7 @@ fn decodeRmim(
     const path = try pathf.print(&state.cur_path, "RMIM.bmp", .{});
     defer path.restore();
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
-
-    try output_file.writeAll(decoded.bmp.items);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), decoded.bmp.items);
 
     try room_state.room_txt.print(
         "room-image {} {s}\n",
@@ -955,10 +935,7 @@ fn decodeScrp(
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
     defer path.restore();
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
-
-    try output_file.writeAll(disassembly.items);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
 }
 
 fn writeScrpAsmLine(
@@ -1004,9 +981,7 @@ fn decodeLsc(
     const path = try appendGlobPath(state, block_id, block_seq, "s");
     defer path.restore();
 
-    const file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer file.close();
-    try file.writeAll(disassembly.items);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
 
     return lsc_number;
 }
@@ -1092,10 +1067,7 @@ fn decodeAwizIntoPath(
     for (wiz.blocks.slice()) |block| switch (block) {
         .two_ints, .wizh => {},
         .wizd => |bmp_data| {
-            const output_file = try std.fs.cwd().createFileZ(path, .{});
-            defer output_file.close();
-
-            try output_file.writeAll(bmp_data.items);
+            try fs.writeFileZ(std.fs.cwd(), path, bmp_data.items);
         },
     };
 
@@ -1191,9 +1163,7 @@ fn decodeMult(
                 const path_end = try pathf.print(&state.cur_path, "{s}.bin", .{blockIdToStr(&id)});
                 defer path_end.restore();
 
-                const file = try std.fs.cwd().createFileZ(path.full(), .{});
-                defer file.close();
-                try file.writeAll(defa_raw);
+                try fs.writeFileZ(std.fs.cwd(), path.full(), defa_raw);
 
                 try mult.room_lines.writer(allocator).print(
                     "    raw-block {s} {s}\n",
@@ -1303,10 +1273,7 @@ fn writeGlob(
         .{ blockIdToStr(&block_id), glob_number, path.relative() },
     );
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
-
-    try output_file.writeAll(data);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), data);
 }
 
 fn writeRawGlobFile(
@@ -1318,10 +1285,7 @@ fn writeRawGlobFile(
     const path = try appendGlobPath(state, block_id, glob_number, "bin");
     defer path.restore();
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
-
-    try output_file.writeAll(data);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), data);
 }
 
 fn writeRawGlobLine(

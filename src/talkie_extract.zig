@@ -76,9 +76,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     const path = try pathf.append(&cur_path_buf, "talkies.txt");
     defer path.restore();
-    const file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer file.close();
-    try file.writeAll(state.manifest.items);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), state.manifest.items);
 }
 
 const State = struct {
@@ -230,9 +228,7 @@ fn parseFixedRaw(
     const path = try pathf.appendBlockPath(state.cur_path, block_id, seq, "bin");
     defer path.restore();
 
-    const file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer file.close();
-    try file.writeAll(block_raw);
+    try fs.writeFileZ(std.fs.cwd(), path.full(), block_raw);
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(
