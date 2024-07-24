@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const io = @import("io.zig");
+
 pub fn readFileZ(
     allocator: std.mem.Allocator,
     dir: std.fs.Dir,
@@ -21,6 +23,13 @@ pub fn writeFileZ(dir: std.fs.Dir, sub_path: [*:0]const u8, bytes: []const u8) !
     defer file.close();
 
     try file.writeAll(bytes);
+}
+
+pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: anytype) !void {
+    const file = try dir.openFileZ(sub_path, .{});
+    defer file.close();
+
+    try io.copy(file, output);
 }
 
 pub fn makeDirIfNotExistZ(dir: std.fs.Dir, sub_path: [*:0]const u8) !void {

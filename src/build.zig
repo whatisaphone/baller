@@ -353,15 +353,12 @@ fn handleRawGlob(
 
     // Process block
 
+    const block_fixup = try beginBlockImpl(&state.writer, block_id);
+
     const path = try pathf.print(cur_path, "{s}", .{relative_path});
     defer path.restore();
 
-    const block_file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer block_file.close();
-
-    const block_fixup = try beginBlockImpl(&state.writer, block_id);
-
-    try io.copy(block_file, state.writer.writer());
+    try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
 
     try endBlock(&state.writer, &state.fixups, block_fixup);
     const block_len = state.lastBlockLen();
@@ -392,13 +389,13 @@ fn handleRawBlock(line: []const u8, cur_path: *std.BoundedArray(u8, 4095), state
 
     // Process block
 
+    const start = try beginBlockImpl(&state.writer, block_id);
+
     const path = try pathf.append(cur_path, relative_path);
     defer path.restore();
-    const file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer file.close();
 
-    const start = try beginBlockImpl(&state.writer, block_id);
-    try io.copy(file, state.writer.writer());
+    try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
+
     try endBlock(&state.writer, &state.fixups, start);
 }
 
@@ -426,14 +423,13 @@ fn handleRmda(
 
             if (tokens.next()) |_| return error.BadData;
 
+            const fixup = try beginBlockImpl(&state.writer, block_id);
+
             const path = try pathf.print(cur_path, "{s}", .{relative_path});
             defer path.restore();
 
-            const file = try std.fs.cwd().openFileZ(path.full(), .{});
-            defer file.close();
+            try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
 
-            const fixup = try beginBlockImpl(&state.writer, block_id);
-            try io.copy(file, state.writer.writer());
             try endBlock(&state.writer, &state.fixups, fixup);
         } else if (std.mem.eql(u8, keyword, "lsc-asm")) {
             const block_id_str = tokens.next() orelse return error.BadData;
@@ -759,10 +755,7 @@ fn handleMult(
         const path = try pathf.print(cur_path, "{s}", .{raw.path});
         defer path.restore();
 
-        const file = try std.fs.cwd().openFileZ(path.full(), .{});
-        defer file.close();
-
-        try io.copy(file, state.writer.writer());
+        try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
 
         try endBlock(&state.writer, &state.fixups, raw_fixup);
     }

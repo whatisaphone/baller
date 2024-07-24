@@ -101,13 +101,13 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 
     // Write block
 
+    const start = try beginBlockImpl(state.output_writer, block_id);
+
     const path = try pathf.append(state.cur_path, relative_path);
     defer path.restore();
-    const file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer file.close();
 
-    const start = try beginBlockImpl(state.output_writer, block_id);
-    try io.copy(file, state.output_writer.writer());
+    try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.output_writer.writer());
+
     try endBlock(state.output_writer, &state.fixups, start);
 }
 
@@ -170,13 +170,13 @@ fn buildTalk(state: *State) !void {
     const talk_start = try beginBlock(state.output_writer, "TALK");
 
     for (raw_blocks.slice()) |raw_block| {
+        const block_start = try beginBlockImpl(state.output_writer, raw_block.id);
+
         const raw_path = try pathf.append(state.cur_path, raw_block.path.slice());
         defer raw_path.restore();
-        const raw_file = try std.fs.cwd().openFileZ(raw_path.full(), .{});
-        defer raw_file.close();
 
-        const block_start = try beginBlockImpl(state.output_writer, raw_block.id);
-        try io.copy(raw_file, state.output_writer.writer());
+        try fs.readFileIntoZ(std.fs.cwd(), raw_path.full(), state.output_writer.writer());
+
         try endBlock(state.output_writer, &state.fixups, block_start);
     }
 

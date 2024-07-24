@@ -6,7 +6,7 @@ const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const build = @import("build.zig");
 const extract = @import("extract.zig");
-const io = @import("io.zig");
+const fs = @import("fs.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
@@ -333,10 +333,7 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
 
     var hasher = std.crypto.hash.sha2.Sha256.init(.{});
 
-    const file = try std.fs.cwd().openFileZ(path, .{});
-    defer file.close();
-
-    try io.copy(file, hasher.writer());
+    try fs.readFileIntoZ(std.fs.cwd(), path, hasher.writer());
 
     const actual_hash = hasher.finalResult();
     try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
