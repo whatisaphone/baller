@@ -768,6 +768,9 @@ fn extractRmdaBlock(
     state: *State,
     room_state: *const RoomState,
 ) !void {
+    const block_stat = try state.blockStat(allocator, block_id);
+    block_stat.total += 1;
+
     var wrote_line = false;
     for (modes) |mode| switch (mode) {
         .decode => switch (block_id) {
@@ -784,6 +787,7 @@ fn extractRmdaBlock(
                     return err;
                 };
 
+                block_stat.decoded += 1;
                 if (!wrote_line) {
                     try writeLscAsmLine(block_id, block_seq, lsc_number, state, room_state);
                     wrote_line = true;
@@ -794,6 +798,7 @@ fn extractRmdaBlock(
         .raw => {
             try writeRawBlockFile(block_id, block_seq, data, state);
 
+            block_stat.raw += 1;
             if (!wrote_line) {
                 try writeRawBlockLine(block_id, block_seq, state, room_state);
                 wrote_line = true;

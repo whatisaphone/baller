@@ -61,14 +61,26 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 7);
+    try std.testing.expectEqual(result.block_stats.count(), 19);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 16);
+    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
+    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
+    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
+    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
+    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
+    try expectStatDecodedAll(&result.block_stats, "LSCR");
     try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedCount(&result.block_stats, "SOUN", 0);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 962);
+    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
+    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "MULT");
+    try expectStatDecodedAll(&result.block_stats, "LSC2");
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -99,8 +111,15 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 9);
+    try std.testing.expectEqual(result.block_stats.count(), 20);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 5);
+    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
+    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
+    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
+    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
+    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedCount(&result.block_stats, "DIGI", 3652);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
@@ -108,7 +127,11 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedCount(&result.block_stats, "TALK", 529);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
+    try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedAll(&result.block_stats, "SCRP");
+    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -137,15 +160,27 @@ test "Backyard Soccer round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 8);
+    try std.testing.expectEqual(result.block_stats.count(), 20);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 22);
+    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
+    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
+    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
+    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
+    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
+    try expectStatDecodedAll(&result.block_stats, "LSCR");
     try expectStatDecodedAll(&result.block_stats, "SCRP");
     try expectStatDecodedCount(&result.block_stats, "DIGI", 1594);
     try expectStatDecodedCount(&result.block_stats, "TALK", 141);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 1109);
+    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedAll(&result.block_stats, "MULT");
+    try expectStatDecodedAll(&result.block_stats, "LSC2");
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -176,15 +211,26 @@ test "Backyard Football round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 8);
+    try std.testing.expectEqual(result.block_stats.count(), 19);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 14);
+    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
+    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
+    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
+    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
+    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedCount(&result.block_stats, "DIGI", 554);
+    try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1109);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 922);
     try expectStatDecodedCount(&result.block_stats, "TALK", 549);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
     try expectStatDecodedAll(&result.block_stats, "SCRP");
+    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 148);
 }
@@ -215,15 +261,26 @@ test "Backyard Basketball round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 8);
+    try std.testing.expectEqual(result.block_stats.count(), 19);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 12);
+    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
+    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
+    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
+    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
+    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedCount(&result.block_stats, "WSOU", 0);
+    try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 113);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
     try expectStatDecodedAll(&result.block_stats, "SCRP");
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
+    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
+    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 1805);
 }
