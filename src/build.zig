@@ -30,12 +30,14 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     try run(allocator, &.{
         .project_txt_path = project_txt_path,
         .output_path = output_path,
+        .attribution = true,
     });
 }
 
 const Build = struct {
     project_txt_path: [:0]const u8,
     output_path: [:0]const u8,
+    attribution: bool,
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
@@ -259,7 +261,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         cur_state = null;
     }
 
-    try writeIndex(allocator, game, &index, output_path);
+    try writeIndex(allocator, game, &index, output_path, args.attribution);
 }
 
 fn readIndexBlobs(
@@ -910,6 +912,7 @@ fn writeIndex(
     game: games.Game,
     index: *Index,
     output_path: [:0]u8,
+    attribution: bool,
 ) !void {
     games.pointPathToIndex(game, output_path);
 
@@ -988,7 +991,11 @@ fn writeIndex(
     if (games.hasIndexInib(game)) {
         const inib_fixup = try beginBlock(&writer, "INIB");
         const note_fixup = try beginBlock(&writer, "NOTE");
-        try writer.writer().writeInt(u16, 0, .little);
+        const note = if (attribution)
+            "Modded with Baller <https://github.com/whatisaphone/baller>"
+        else
+            "";
+        try writeLengthPrefixedString(writer.writer(), note);
         try endBlock(&writer, &fixups, note_fixup);
         try endBlock(&writer, &fixups, inib_fixup);
     }
@@ -996,6 +1003,12 @@ fn writeIndex(
     try buf_writer.flush();
 
     try writeFixups(file, xor_writer.writer(), fixups.items);
+}
+
+fn writeLengthPrefixedString(writer: anytype, str: []const u8) !void {
+    const len = std.math.cast(u16, str.len) orelse return error.Overflow;
+    try writer.writeInt(u16, len, .little);
+    try writer.writeAll(str);
 }
 
 fn writeDirectory(

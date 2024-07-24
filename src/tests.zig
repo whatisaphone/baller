@@ -243,6 +243,7 @@ fn testRoundTrip(
     try build.run(allocator, &.{
         .project_txt_path = project_txt_path,
         .output_path = out_index_path,
+        .attribution = false,
     });
 
     // Ensure the output files match
