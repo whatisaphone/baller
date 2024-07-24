@@ -2,9 +2,12 @@ const std = @import("std");
 
 const Game = @import("games.zig").Game;
 
-const max_operands = 2;
+pub const unknown_byte_ins = ".db";
+
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
+
+const max_operands = 2;
 
 pub const Language = struct {
     // TODO: don't hardcode maximum
@@ -651,7 +654,7 @@ fn unknownByte(reader: anytype) !?Ins {
     return .{
         .start = start,
         .end = end,
-        .name = ".db",
+        .name = unknown_byte_ins,
         .operands = operands,
     };
 }

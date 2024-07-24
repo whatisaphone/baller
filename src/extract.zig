@@ -25,7 +25,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     const input_path = args[0];
     const output_path = args[1];
 
-    var block_stats = try run(allocator, &.{
+    var result = try run(allocator, &.{
         .input_path = input_path,
         .output_path = output_path,
         .rmim_decode = true,
@@ -34,7 +34,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
     });
-    defer block_stats.deinit(allocator);
+    defer result.deinit(allocator);
 }
 
 const ResourceMode = enum {
@@ -53,10 +53,16 @@ const Extract = struct {
     dump_index: bool = false,
 };
 
-pub fn run(
-    allocator: std.mem.Allocator,
-    args: *const Extract,
-) !std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) {
+pub const Result = struct {
+    block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat),
+    scripts_with_unknown_byte: u32,
+
+    pub fn deinit(self: *Result, allocator: std.mem.Allocator) void {
+        self.block_stats.deinit(allocator);
+    }
+};
+
+pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     var input_path_buf = std.BoundedArray(u8, 4095){};
     try input_path_buf.appendSlice(args.input_path);
     try input_path_buf.append(0);
@@ -127,13 +133,17 @@ pub fn run(
 
     try project_txt.flush();
 
-    return state.block_stats;
+    return .{
+        .block_stats = state.block_stats,
+        .scripts_with_unknown_byte = state.scripts_with_unknown_byte,
+    };
 }
 
 const State = struct {
     cur_path: std.BoundedArray(u8, 4095) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
     language: ?lang.Language = null,
+    scripts_with_unknown_byte: u32 = 0,
 
     fn deinit(self: *State, allocator: std.mem.Allocator) void {
         self.block_stats.deinit(allocator);
@@ -142,6 +152,10 @@ const State = struct {
     fn blockStat(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !*BlockStat {
         const entry = try self.block_stats.getOrPutValue(allocator, block_id, .{});
         return entry.value_ptr;
+    }
+
+    pub fn warnScriptUnknownByte(self: *State) void {
+        self.scripts_with_unknown_byte += 1;
     }
 };
 
@@ -929,6 +943,7 @@ fn decodeScrp(
         &state.language.?,
         data,
         disassembly.writer(allocator),
+        state,
     );
 
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
@@ -980,6 +995,7 @@ fn decodeLsc(
         &state.language.?,
         bytecode,
         disassembly.writer(allocator),
+        state,
     );
 
     const path = try appendGlobPath(state, block_id, block_seq, "s");

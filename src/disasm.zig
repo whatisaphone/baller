@@ -8,8 +8,9 @@ pub fn disassemble(
     language: *const lang.Language,
     bytecode: []const u8,
     out: anytype,
+    diagnostic: anytype,
 ) !void {
-    disassembleInner(allocator, language, bytecode, out) catch |err| switch (err) {
+    disassembleInner(allocator, language, bytecode, out, diagnostic) catch |err| switch (err) {
         error.BadData, error.EndOfStream => return error.BadData,
         else => return err,
     };
@@ -20,7 +21,10 @@ pub fn disassembleInner(
     language: *const lang.Language,
     bytecode: []const u8,
     out: anytype,
+    diagnostic: anytype,
 ) !void {
+    var warned_for_unknown_byte = false;
+
     // Lots of stuff seems to assume pc fits in u16.
     if (bytecode.len > 0xffff)
         return error.BadData;
@@ -44,6 +48,11 @@ pub fn disassembleInner(
                 // This would mean jumping between opcodes?
                 return error.BadData;
             }
+        }
+
+        if (std.mem.eql(u8, ins.name, lang.unknown_byte_ins) and !warned_for_unknown_byte) {
+            warned_for_unknown_byte = true;
+            diagnostic.warnScriptUnknownByte();
         }
 
         // Emit the instruction
