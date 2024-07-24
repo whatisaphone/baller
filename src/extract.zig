@@ -24,7 +24,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     const input_path = args[0];
     const output_path = args[1];
 
-    try run(allocator, &.{
+    var block_stats = try run(allocator, &.{
         .input_path = input_path,
         .output_path = output_path,
         .rmim_decode = true,
@@ -33,6 +33,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
     });
+    defer block_stats.deinit(allocator);
 }
 
 const ResourceMode = enum {
@@ -51,7 +52,10 @@ const Extract = struct {
     dump_index: bool = false,
 };
 
-pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
+pub fn run(
+    allocator: std.mem.Allocator,
+    args: *const Extract,
+) !std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) {
     var input_path_buf = std.BoundedArray(u8, 4095){};
     try input_path_buf.appendSlice(args.input_path);
     try input_path_buf.append(0);
@@ -90,6 +94,12 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     var project_txt = std.io.bufferedWriter(project_txt_file.writer());
 
+    var state: State = .{};
+    errdefer state.deinit(allocator);
+
+    try state.cur_path.appendSlice(output_path);
+    try state.cur_path.append('/');
+
     for (1..1 + games.numberOfDisks(game)) |disk_number_usize| {
         const disk_number: u8 = @intCast(disk_number_usize);
 
@@ -97,8 +107,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
         try extractDisk(
             allocator,
+            &state,
             input_path,
-            output_path,
             game,
             disk_number,
             &project_txt,
@@ -112,19 +122,28 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     }
 
     try project_txt.flush();
+
+    return state.block_stats;
 }
 
 const State = struct {
     cur_path: std.BoundedArray(u8, 4095) = .{},
+    block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
 
-    fn init(output_path: []const u8) !State {
-        var result = State{
-            .cur_path = .{},
-        };
-        try result.cur_path.appendSlice(output_path);
-        try result.cur_path.append('/');
-        return result;
+    fn deinit(self: *State, allocator: std.mem.Allocator) void {
+        self.block_stats.deinit(allocator);
     }
+
+    fn blockStat(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !*BlockStat {
+        const entry = try self.block_stats.getOrPutValue(allocator, block_id, .{});
+        return entry.value_ptr;
+    }
+};
+
+pub const BlockStat = struct {
+    raw: u32 = 0,
+    decoded: u32 = 0,
+    total: u32 = 0,
 };
 
 const RoomState = struct {
@@ -540,8 +559,8 @@ fn dumpDirectory(
 
 fn extractDisk(
     allocator: std.mem.Allocator,
+    state: *State,
     input_path: [*:0]u8,
-    output_path: []const u8,
     game: games.Game,
     disk_number: u8,
     project_txt: anytype,
@@ -558,8 +577,6 @@ fn extractDisk(
     const xor_reader = io.xorReader(file.reader(), xor_key);
     const buf_reader = std.io.bufferedReader(xor_reader.reader());
     var reader = std.io.countingReader(buf_reader);
-
-    var state = try State.init(output_path);
 
     var file_blocks = blockReader(&reader);
 
@@ -616,26 +633,32 @@ fn extractDisk(
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
         defer allocator.free(rmda_data);
 
+        const rmim_stat = try state.blockStat(allocator, comptime blockId("RMIM"));
+        rmim_stat.total += 1;
+
         const rmim_decoded = rmim_decoded: {
             if (!rmim_decode)
                 break :rmim_decoded false;
-            decodeRmim(allocator, rmim_data, rmda_data, &state, &room_state) catch |err| {
+            decodeRmim(allocator, rmim_data, rmda_data, state, &room_state) catch |err| {
                 if (err != error.DecompressBmap)
                     return err;
                 break :rmim_decoded false;
             };
+            rmim_stat.decoded += 1;
             break :rmim_decoded true;
         };
-        if (!rmim_decoded)
+        if (!rmim_decoded) {
             try writeGlob(
                 comptime blockId("RMIM"),
                 room_number,
                 rmim_data,
-                &state,
+                state,
                 &room_state,
             );
+            rmim_stat.raw += 1;
+        }
 
-        try extractRmda(allocator, rmda_data, script_modes, &state, &room_state);
+        try extractRmda(allocator, rmda_data, script_modes, state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -661,7 +684,7 @@ fn extractDisk(
                 data,
                 modes,
                 rmda_data,
-                &state,
+                state,
                 &room_state,
             );
         }
@@ -802,6 +825,9 @@ fn extractGlob(
     state: *State,
     room_state: *const RoomState,
 ) !void {
+    const block_stat = try state.blockStat(allocator, block_id);
+    block_stat.total += 1;
+
     // HACK: this only works for one block per block id per room. it's needed
     // for a strange CHAR block in backyard soccer.
     const block_number = glob_number_opt orelse 0;
@@ -816,6 +842,7 @@ fn extractGlob(
                     return err;
                 };
 
+                block_stat.decoded += 1;
                 if (!wrote_line) {
                     try writeScrpAsmLine(block_number, state, room_state);
                     wrote_line = true;
@@ -828,6 +855,7 @@ fn extractGlob(
                     return err;
                 };
 
+                block_stat.decoded += 1;
                 if (!wrote_line) {
                     try writeDigiLine(block_id, block_number, state, room_state);
                     wrote_line = true;
@@ -841,6 +869,7 @@ fn extractGlob(
                 };
                 defer wiz.deinit(allocator);
 
+                block_stat.decoded += 1;
                 if (!wrote_line) {
                     try writeAwizLines(block_number, &wiz, state, room_state);
                     wrote_line = true;
@@ -854,6 +883,7 @@ fn extractGlob(
                 };
                 defer mult.deinit(allocator);
 
+                block_stat.decoded += 1;
                 if (!wrote_line) {
                     try writeMultLines(&mult, room_state);
                     wrote_line = true;
@@ -865,6 +895,7 @@ fn extractGlob(
             if (glob_number_opt) |glob_number| {
                 try writeRawGlobFile(block_id, glob_number, data, state);
 
+                block_stat.raw += 1;
                 if (!wrote_line) {
                     try writeRawGlobLine(block_id, glob_number, state, room_state);
                     wrote_line = true;
@@ -872,6 +903,7 @@ fn extractGlob(
             } else {
                 try writeRawBlockFile(block_id, block_number, data, state);
 
+                block_stat.raw += 1;
                 if (!wrote_line) {
                     try writeRawBlockLine(block_id, block_number, state, room_state);
                     wrote_line = true;

@@ -1,6 +1,9 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const BlockId = @import("block_id.zig").BlockId;
+const blockId = @import("block_id.zig").blockId;
+const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const build = @import("build.zig");
 const extract = @import("extract.zig");
 const io = @import("io.zig");
@@ -39,17 +42,33 @@ test "fixture integrity" {
 }
 
 test "Backyard Baseball 1997 round trip raw" {
-    try testRoundTrip("baseball1997", "BASEBALL.HE0", true, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "baseball1997", "BASEBALL.HE0", true, &.{
         "BASEBALL.HE0",
         "BASEBALL.HE1",
     });
+    defer stats.deinit(allocator);
 }
 
 test "Backyard Baseball 1997 round trip decode/encode" {
-    try testRoundTrip("baseball1997", "BASEBALL.HE0", false, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "baseball1997", "BASEBALL.HE0", false, &.{
         "BASEBALL.HE0",
         "BASEBALL.HE1",
     });
+    defer stats.deinit(allocator);
+
+    errdefer dumpBlockStats(&stats);
+    try std.testing.expectEqual(stats.count(), 7);
+    try expectStatDecodedCount(&stats, "RMIM", 16);
+    try expectStatDecodedAll(&stats, "SCRP");
+    try expectStatDecodedAll(&stats, "MULT");
+    try expectStatDecodedCount(&stats, "SOUN", 0);
+    try expectStatDecodedCount(&stats, "CHAR", 0);
+    try expectStatDecodedCount(&stats, "AKOS", 0);
+    try expectStatDecodedCount(&stats, "AWIZ", 962);
 }
 
 test "Backyard Baseball 1997 talkies round trip" {
@@ -57,19 +76,37 @@ test "Backyard Baseball 1997 talkies round trip" {
 }
 
 test "Backyard Baseball 2001 round trip raw" {
-    try testRoundTrip("baseball2001", "baseball 2001.he0", true, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "baseball2001", "baseball 2001.he0", true, &.{
         "baseball 2001.he0",
         "baseball 2001.(a)",
         "baseball 2001.(b)",
     });
+    defer stats.deinit(allocator);
 }
 
 test "Backyard Baseball 2001 round trip decode/encode" {
-    try testRoundTrip("baseball2001", "baseball 2001.he0", false, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "baseball2001", "baseball 2001.he0", false, &.{
         "baseball 2001.he0",
         "baseball 2001.(a)",
         "baseball 2001.(b)",
     });
+    defer stats.deinit(allocator);
+
+    errdefer dumpBlockStats(&stats);
+    try std.testing.expectEqual(stats.count(), 9);
+    try expectStatDecodedCount(&stats, "RMIM", 5);
+    try expectStatDecodedCount(&stats, "DIGI", 3652);
+    try expectStatDecodedCount(&stats, "TLKE", 0);
+    try expectStatDecodedCount(&stats, "AKOS", 0);
+    try expectStatDecodedCount(&stats, "AWIZ", 637);
+    try expectStatDecodedAll(&stats, "MULT");
+    try expectStatDecodedCount(&stats, "TALK", 529);
+    try expectStatDecodedCount(&stats, "CHAR", 0);
+    try expectStatDecodedAll(&stats, "SCRP");
 }
 
 test "Backyard Baseball 2001 talkies round trip" {
@@ -77,17 +114,34 @@ test "Backyard Baseball 2001 talkies round trip" {
 }
 
 test "Backyard Soccer round trip raw" {
-    try testRoundTrip("soccer", "SOCCER.HE0", true, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "soccer", "SOCCER.HE0", true, &.{
         "SOCCER.HE0",
         "SOCCER.(A)",
     });
+    defer stats.deinit(allocator);
 }
 
 test "Backyard Soccer round trip decode/encode" {
-    try testRoundTrip("soccer", "SOCCER.HE0", false, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "soccer", "SOCCER.HE0", false, &.{
         "SOCCER.HE0",
         "SOCCER.(A)",
     });
+    defer stats.deinit(allocator);
+
+    errdefer dumpBlockStats(&stats);
+    try std.testing.expectEqual(stats.count(), 8);
+    try expectStatDecodedCount(&stats, "RMIM", 22);
+    try expectStatDecodedAll(&stats, "SCRP");
+    try expectStatDecodedCount(&stats, "DIGI", 1594);
+    try expectStatDecodedCount(&stats, "TALK", 141);
+    try expectStatDecodedCount(&stats, "CHAR", 0);
+    try expectStatDecodedCount(&stats, "AWIZ", 1109);
+    try expectStatDecodedCount(&stats, "AKOS", 0);
+    try expectStatDecodedAll(&stats, "MULT");
 }
 
 test "Backyard Soccer talkies round trip" {
@@ -95,19 +149,36 @@ test "Backyard Soccer talkies round trip" {
 }
 
 test "Backyard Football round trip raw" {
-    try testRoundTrip("football", "FOOTBALL.HE0", true, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "football", "FOOTBALL.HE0", true, &.{
         "FOOTBALL.HE0",
         "FOOTBALL.(A)",
         "FOOTBALL.(B)",
     });
+    defer stats.deinit(allocator);
 }
 
 test "Backyard Football round trip decode/encode" {
-    try testRoundTrip("football", "FOOTBALL.HE0", false, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "football", "FOOTBALL.HE0", false, &.{
         "FOOTBALL.HE0",
         "FOOTBALL.(A)",
         "FOOTBALL.(B)",
     });
+    defer stats.deinit(allocator);
+
+    errdefer dumpBlockStats(&stats);
+    try std.testing.expectEqual(stats.count(), 8);
+    try expectStatDecodedCount(&stats, "RMIM", 14);
+    try expectStatDecodedCount(&stats, "DIGI", 554);
+    try expectStatDecodedCount(&stats, "AKOS", 0);
+    try expectStatDecodedCount(&stats, "MULT", 1109);
+    try expectStatDecodedCount(&stats, "AWIZ", 922);
+    try expectStatDecodedCount(&stats, "TALK", 549);
+    try expectStatDecodedCount(&stats, "CHAR", 0);
+    try expectStatDecodedAll(&stats, "SCRP");
 }
 
 test "Backyard Football talkies round trip" {
@@ -115,21 +186,23 @@ test "Backyard Football talkies round trip" {
 }
 
 test "Backyard Basketball round trip raw" {
-    try testRoundTrip("basketball", "Basketball.he0", true, &.{
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "basketball", "Basketball.he0", true, &.{
         "Basketball.he0",
         "Basketball.(a)",
         "Basketball.(b)",
     });
+    defer stats.deinit(allocator);
 }
 
 fn testRoundTrip(
+    allocator: std.mem.Allocator,
     comptime fixture_dir: []const u8,
     comptime index_name: []const u8,
     raw: bool,
     comptime fixture_names: []const []const u8,
-) !void {
-    const allocator = std.testing.allocator;
-
+) !std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat) {
     // Build temp dirs for this test
 
     const tmp = try getTempDir(allocator);
@@ -147,7 +220,7 @@ fn testRoundTrip(
 
     // Extract
 
-    try extract.run(allocator, &.{
+    var extract_stats = try extract.run(allocator, &.{
         .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
         .output_path = extract_dir,
         .rmim_decode = !raw,
@@ -157,6 +230,7 @@ fn testRoundTrip(
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
         .mult_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
     });
+    errdefer extract_stats.deinit(allocator);
 
     // Build
 
@@ -182,6 +256,8 @@ fn testRoundTrip(
             @field(fixture_hashes, fixture_dir ++ "/" ++ name),
         );
     }
+
+    return extract_stats;
 }
 
 fn testRoundTripTalkies(
@@ -264,4 +340,35 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
 
     const actual_hash = hasher.finalResult();
     try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
+}
+
+fn expectStatDecodedAll(
+    stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
+    comptime block_id_str: []const u8,
+) !void {
+    const block_id = comptime blockId(block_id_str);
+    const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(stat.decoded, stat.total);
+}
+
+fn expectStatDecodedCount(
+    stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
+    comptime block_id_str: []const u8,
+    expected_count: u32,
+) !void {
+    const block_id = comptime blockId(block_id_str);
+    const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(stat.decoded, expected_count);
+
+    // If this is true, use expectStatDecodedAll instead.
+    try std.testing.expect(expected_count != stat.total);
+}
+
+fn dumpBlockStats(
+    stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
+) void {
+    var it = stats.iterator();
+    while (it.next()) |entry| {
+        std.debug.print("{s}: {any}\n", .{ blockIdToStr(entry.key_ptr), entry.value_ptr });
+    }
 }
