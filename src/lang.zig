@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const Game = @import("games.zig").Game;
+
 const max_operands = 2;
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
@@ -70,7 +72,14 @@ const LangOperand = enum {
     string,
 };
 
-pub fn buildLanguage() Language {
+pub fn buildLanguage(game: Game) Language {
+    return if (game != .basketball)
+        buildNormalLanguage()
+    else
+        builtBasketballLanguage();
+}
+
+fn buildNormalLanguage() Language {
     var lang = Language{};
 
     lang.add(0x00, "push-u8", &.{.u8});
@@ -494,6 +503,10 @@ pub fn buildLanguage() Language {
     lang.add(0xfc, "find-polygon", &.{});
 
     return lang;
+}
+
+fn builtBasketballLanguage() Language {
+    return .{};
 }
 
 pub fn buildInsMap(

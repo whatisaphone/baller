@@ -1011,7 +1011,7 @@ const ProjectState = struct {
         result.game = game;
         result.cur_path = .{};
         result.index = .{};
-        result.language = lang.buildLanguage();
+        result.language = lang.buildLanguage(game);
         result.ins_map = try lang.buildInsMap(allocator, &result.language);
         errdefer result.ins_map.deinit(allocator);
         return result;

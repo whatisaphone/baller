@@ -196,6 +196,28 @@ test "Backyard Basketball round trip raw" {
     defer stats.deinit(allocator);
 }
 
+test "Backyard Basketball round trip decode/encode" {
+    const allocator = std.testing.allocator;
+
+    var stats = try testRoundTrip(allocator, "basketball", "Basketball.he0", false, &.{
+        "Basketball.he0",
+        "Basketball.(a)",
+        "Basketball.(b)",
+    });
+    defer stats.deinit(allocator);
+
+    errdefer dumpBlockStats(&stats);
+    try std.testing.expectEqual(stats.count(), 8);
+    try expectStatDecodedCount(&stats, "RMIM", 12);
+    try expectStatDecodedCount(&stats, "WSOU", 0);
+    try expectStatDecodedCount(&stats, "AKOS", 0);
+    try expectStatDecodedCount(&stats, "MULT", 1245);
+    try expectStatDecodedCount(&stats, "AWIZ", 113);
+    try expectStatDecodedCount(&stats, "TLKE", 0);
+    try expectStatDecodedAll(&stats, "SCRP");
+    try expectStatDecodedCount(&stats, "CHAR", 0);
+}
+
 fn testRoundTrip(
     allocator: std.mem.Allocator,
     comptime fixture_dir: []const u8,

@@ -102,7 +102,7 @@ pub fn run(
     try state.cur_path.append('/');
 
     if (std.mem.indexOfScalar(ResourceMode, args.script_modes, .decode)) |_|
-        state.language = lang.buildLanguage();
+        state.language = lang.buildLanguage(game);
 
     for (1..1 + games.numberOfDisks(game)) |disk_number_usize| {
         const disk_number: u8 = @intCast(disk_number_usize);
