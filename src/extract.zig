@@ -13,6 +13,7 @@ const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const lang = @import("lang.zig");
 const report = @import("report.zig");
 const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
@@ -100,6 +101,9 @@ pub fn run(
     try state.cur_path.appendSlice(output_path);
     try state.cur_path.append('/');
 
+    if (std.mem.indexOfScalar(ResourceMode, args.script_modes, .decode)) |_|
+        state.language = lang.buildLanguage();
+
     for (1..1 + games.numberOfDisks(game)) |disk_number_usize| {
         const disk_number: u8 = @intCast(disk_number_usize);
 
@@ -129,6 +133,7 @@ pub fn run(
 const State = struct {
     cur_path: std.BoundedArray(u8, 4095) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
+    language: ?lang.Language = null,
 
     fn deinit(self: *State, allocator: std.mem.Allocator) void {
         self.block_stats.deinit(allocator);
@@ -921,7 +926,12 @@ fn decodeScrp(
     var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
-    try disasm.disassemble(allocator, data, disassembly.writer(allocator));
+    try disasm.disassemble(
+        allocator,
+        &state.language.?,
+        data,
+        disassembly.writer(allocator),
+    );
 
     const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
     defer path.restore();
@@ -967,7 +977,12 @@ fn decodeLsc(
         },
         else => unreachable,
     };
-    try disasm.disassemble(allocator, bytecode, disassembly.writer(allocator));
+    try disasm.disassemble(
+        allocator,
+        &state.language.?,
+        bytecode,
+        disassembly.writer(allocator),
+    );
 
     const path = try appendGlobPath(state, block_id, block_seq, "s");
     defer path.restore();

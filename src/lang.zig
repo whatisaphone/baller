@@ -547,13 +547,11 @@ pub const Variable = struct {
 };
 
 pub const Disasm = struct {
-    lang: Language,
+    lang: *const Language,
     reader: std.io.FixedBufferStream([]const u8),
     poison: bool,
 
-    pub fn init(bytecode: []const u8) Disasm {
-        const lang = buildLanguage(); // TODO: cache this
-
+    pub fn init(lang: *const Language, bytecode: []const u8) Disasm {
         const reader = std.io.fixedBufferStream(bytecode);
 
         return .{

@@ -5,10 +5,11 @@ const utils = @import("utils.zig");
 
 pub fn disassemble(
     allocator: std.mem.Allocator,
+    language: *const lang.Language,
     bytecode: []const u8,
     out: anytype,
 ) !void {
-    disassembleInner(allocator, bytecode, out) catch |err| switch (err) {
+    disassembleInner(allocator, language, bytecode, out) catch |err| switch (err) {
         error.BadData, error.EndOfStream => return error.BadData,
         else => return err,
     };
@@ -16,6 +17,7 @@ pub fn disassemble(
 
 pub fn disassembleInner(
     allocator: std.mem.Allocator,
+    language: *const lang.Language,
     bytecode: []const u8,
     out: anytype,
 ) !void {
@@ -23,9 +25,9 @@ pub fn disassembleInner(
     if (bytecode.len > 0xffff)
         return error.BadData;
 
-    var dasm = lang.Disasm.init(bytecode);
+    var dasm = lang.Disasm.init(language, bytecode);
 
-    var jump_targets = try findJumpTargets(allocator, bytecode);
+    var jump_targets = try findJumpTargets(allocator, language, bytecode);
     defer jump_targets.deinit(allocator);
 
     var next_jump_index: u16 = 0;
@@ -62,6 +64,7 @@ pub fn disassembleInner(
 
 fn findJumpTargets(
     allocator: std.mem.Allocator,
+    language: *const lang.Language,
     bytecode: []const u8,
 ) !std.ArrayListUnmanaged(u16) {
     const initial_capacity = bytecode.len / 10;
@@ -69,7 +72,7 @@ fn findJumpTargets(
         try std.ArrayListUnmanaged(u16).initCapacity(allocator, initial_capacity);
     errdefer targets.deinit(allocator);
 
-    var dasm = lang.Disasm.init(bytecode);
+    var dasm = lang.Disasm.init(language, bytecode);
     while (try dasm.next()) |ins| {
         // Check if it's a jump
         if (ins.operands.len != 1) continue;
