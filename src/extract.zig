@@ -586,11 +586,9 @@ fn extractDisk(
         try fs.makeDirIfNotExistZ(std.fs.cwd(), room_path.full());
 
         const room_txt_file = room_txt_file: {
-            try state.cur_path.appendSlice("room.txt\x00");
-            defer state.cur_path.len -= 9;
-
-            const room_txt_path = state.cur_path.buffer[0 .. state.cur_path.len - 1 :0];
-            break :room_txt_file try std.fs.cwd().createFileZ(room_txt_path, .{});
+            const path = try pathf.append(&state.cur_path, "room.txt");
+            defer path.restore();
+            break :room_txt_file try std.fs.cwd().createFileZ(path.full(), .{});
         };
         defer room_txt_file.close();
 

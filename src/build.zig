@@ -139,11 +139,9 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         defer prst.cur_path.len -= @intCast(room_name.len + 1);
 
         const room_file = room_file: {
-            try prst.cur_path.appendSlice("room.txt\x00");
-            defer prst.cur_path.len -= 9;
-
-            const room_txt_path = prst.cur_path.buffer[0 .. prst.cur_path.len - 1 :0];
-            break :room_file try std.fs.cwd().openFileZ(room_txt_path, .{});
+            const path = try pathf.append(&prst.cur_path, "room.txt");
+            defer path.restore();
+            break :room_file try std.fs.cwd().openFileZ(path.full(), .{});
         };
         defer room_file.close();
 
