@@ -487,33 +487,24 @@ fn writeIndexBlobs(
     index: *const Index,
     path_buf: *std.BoundedArray(u8, 4095),
 ) !void {
-    {
-        const path = try pathf.append(path_buf, "maxs.bin");
-        defer path.restore();
+    std.debug.assert(builtin.cpu.arch.endian() == .little);
+    const maxs_data = std.mem.asBytes(index.maxs)[0..games.maxsLen(game)];
+    try writeIndexBlob(path_buf, "maxs.bin", maxs_data);
 
-        std.debug.assert(builtin.cpu.arch.endian() == .little);
-        const maxs_data = std.mem.asBytes(index.maxs)[0..games.maxsLen(game)];
+    try writeIndexBlob(path_buf, "dobj.bin", index.dobj);
+    try writeIndexBlob(path_buf, "aary.bin", index.aary);
+    if (index.sver) |sver|
+        try writeIndexBlob(path_buf, "sver.bin", sver);
+}
 
-        try fs.writeFileZ(std.fs.cwd(), path.full(), maxs_data);
-    }
-
-    {
-        const path = try pathf.append(path_buf, "dobj.bin");
-        defer path.restore();
-        try fs.writeFileZ(std.fs.cwd(), path.full(), index.dobj);
-    }
-
-    {
-        const path = try pathf.append(path_buf, "aary.bin");
-        defer path.restore();
-        try fs.writeFileZ(std.fs.cwd(), path.full(), index.aary);
-    }
-
-    if (index.sver) |sver| {
-        const path = try pathf.append(path_buf, "sver.bin");
-        defer path.restore();
-        try fs.writeFileZ(std.fs.cwd(), path.full(), sver);
-    }
+fn writeIndexBlob(
+    path_buf: *std.BoundedArray(u8, 4095),
+    filename: []const u8,
+    bytes: []const u8,
+) !void {
+    const path = try pathf.append(path_buf, filename);
+    defer path.restore();
+    try fs.writeFileZ(std.fs.cwd(), path.full(), bytes);
 }
 
 fn dumpIndex(index: *const Index, out: anytype) !void {

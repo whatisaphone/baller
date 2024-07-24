@@ -268,29 +268,21 @@ fn readIndexBlobs(
     index: *Index,
     cur_path: *std.BoundedArray(u8, 4095),
 ) !void {
-    {
-        const path = try pathf.append(cur_path, "maxs.bin");
-        defer path.restore();
-        index.maxs = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    }
+    index.maxs = try readIndexBlob(allocator, cur_path, "maxs.bin");
+    index.dobj = try readIndexBlob(allocator, cur_path, "dobj.bin");
+    index.aary = try readIndexBlob(allocator, cur_path, "aary.bin");
+    if (games.hasIndexSver(game))
+        index.sver = try readIndexBlob(allocator, cur_path, "sver.bin");
+}
 
-    {
-        const path = try pathf.append(cur_path, "dobj.bin");
-        defer path.restore();
-        index.dobj = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    }
-
-    {
-        const path = try pathf.append(cur_path, "aary.bin");
-        defer path.restore();
-        index.aary = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    }
-
-    if (games.hasIndexSver(game)) {
-        const path = try pathf.append(cur_path, "sver.bin");
-        defer path.restore();
-        index.sver = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    }
+fn readIndexBlob(
+    allocator: std.mem.Allocator,
+    cur_path: *std.BoundedArray(u8, 4095),
+    filename: []const u8,
+) ![]u8 {
+    const path = try pathf.append(cur_path, filename);
+    defer path.restore();
+    return fs.readFileZ(allocator, std.fs.cwd(), path.full());
 }
 
 fn startDisk(
