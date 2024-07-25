@@ -125,10 +125,12 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x56, "image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, "image-set-shadow", &.{});
     lang.addNested(0x1c, 0x85, "image-set-draw-box", &.{});
+    lang.addNested(0x1c, 0x86, "image-set-draw-line", &.{});
     lang.addNested(0x1c, 0x89, "image-set-render-image", &.{});
     lang.addNested(0x1c, 0x9a, "image-set-hotspot", &.{});
     lang.addNested(0x1c, 0xd9, "image-new", &.{});
     lang.addNested(0x1c, 0xf6, "image-set-polygon", &.{});
+    lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
     lang.addNested(0x1c, 0xff, "image-commit", &.{});
 
     lang.add(0x1d, "min", &.{});
@@ -153,6 +155,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x25, 0x2d, "find-sprite", &.{});
     lang.addNested(0x25, 0x34, "sprite-get-state", &.{});
     lang.addNested(0x25, 0x3f, "sprite-get-image", &.{});
+    lang.addNested(0x25, 0x52, "sprite-get-animation", &.{});
     lang.addNested(0x25, 0x56, "sprite-get-palette", &.{});
     lang.addNested(0x25, 0x7c, "sprite-get-update-type", &.{});
     lang.addNested(0x25, 0x7d, "sprite-class", &.{});
@@ -179,11 +182,14 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0xc6, "sprite-variable-range", &.{});
     lang.addNested(0x26, 0xd9, "sprite-new", &.{});
 
+    lang.addNested(0x27, 0x02, "sprite-group-unknown-27-02", &.{});
     lang.addNested(0x27, 0x08, "sprite-group-get", &.{});
     lang.addNested(0x27, 0x1e, "sprite-group-get-object-x", &.{});
     lang.addNested(0x27, 0x1f, "sprite-group-get-object-y", &.{});
+    lang.addNested(0x27, 0x2b, "sprite-group-get-priority", &.{});
 
     lang.addNested(0x28, 0x25, "sprite-group-set-group", &.{});
+    lang.addNested(0x28, 0x2b, "sprite-group-set-priority", &.{});
     lang.addNested(0x28, 0x2c, "sprite-group-move", &.{});
     lang.addNested(0x28, 0x39, "sprite-group-select", &.{});
     lang.addNested(0x28, 0x41, "sprite-group-set-position", &.{});
@@ -255,8 +261,12 @@ fn buildNormalLanguage() Language {
     lang.add(0x62, "print-image", &.{});
 
     lang.addNested(0x63, 0x01, "array-get-dim", &.{.variable});
-    lang.addNested(0x63, 0x02, "array-get-dim-2d-height", &.{.variable});
-    lang.addNested(0x63, 0x03, "array-get-dim-2d-width", &.{.variable});
+    lang.addNested(0x63, 0x02, "array-get-height", &.{.variable});
+    lang.addNested(0x63, 0x03, "array-get-width", &.{.variable});
+    lang.addNested(0x63, 0x04, "array-get-x-start", &.{.variable});
+    lang.addNested(0x63, 0x05, "array-get-x-end", &.{.variable});
+    lang.addNested(0x63, 0x06, "array-get-y-start", &.{.variable});
+    lang.addNested(0x63, 0x07, "array-get-y-end", &.{.variable});
 
     lang.add(0x64, "free-arrays", &.{});
     lang.add(0x66, "end", &.{});
@@ -296,6 +306,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x74, 0xff, "sound-start", &.{});
 
     lang.add(0x75, "stop-sound", &.{});
+    lang.add(0x77, "stop-object", &.{});
     lang.add(0x7b, "current-room", &.{});
     lang.add(0x7c, "end-script", &.{});
     lang.add(0x7f, "put-actor", &.{});
@@ -343,6 +354,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9c, 0xd5, "palette", &.{});
     lang.addNested(0x9c, 0xdc, "copy-palette", &.{});
     lang.addNested(0x9c, 0xdd, "saveload-game", &.{});
+    lang.addNested(0x9c, 0xea, "object-order", &.{});
 
     lang.addNested(0x9d, 0x15, "actor-set-condition", &.{});
     lang.addNested(0x9d, 0x2b, "actor-set-order", &.{});
@@ -385,6 +397,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa4, 0x7e, "array-assign-list", &.{.variable});
     lang.addNested(0xa4, 0x7f, "array-assign-slice", &.{ .variable, .variable });
     lang.addNested(0xa4, 0x80, "array-assign-range", &.{.variable});
+    lang.addNested(0xa4, 0x8a, "array-math", &.{ .variable, .variable });
     lang.addNested(0xa4, 0xc2, "sprintf", &.{.variable});
     lang.addNested(0xa4, 0xd0, "array-assign", &.{.variable});
     lang.addNested(0xa4, 0xd4, "array-set-row", &.{.variable});
@@ -397,6 +410,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xaa, "actor-get-scale", &.{});
     lang.add(0xad, "in2", &.{});
 
+    lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
     lang.addNested(0xae, 0x1a, "update-screen", &.{});
     lang.addNested(0xae, 0xa0, "quit", &.{});
     lang.addNested(0xae, 0xf4, "quit-quit", &.{});
@@ -423,6 +437,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb7, 0xfe, "print-system-start", &.{});
 
     lang.addNested(0xb8, 0x41, "say-line-position", &.{});
+    lang.addNested(0xb8, 0x45, "say-line-center", &.{});
     lang.addNested(0xb8, 0x4b, "say-line-string", &.{.string});
     lang.addNested(0xb8, 0xe1, "say-line-talkie", &.{});
     lang.addNested(0xb8, 0xf9, "say-line-color", &.{});
@@ -479,6 +494,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xed, "string-width", &.{});
     lang.add(0xee, "string-length", &.{});
     lang.add(0xef, "string-substr", &.{});
+    lang.add(0xf0, "string-concat", &.{});
     lang.add(0xf1, "string-compare", &.{});
 
     lang.addNested(0xf2, 0xe3, "costume-loaded", &.{});

@@ -233,7 +233,7 @@ test "Backyard Football round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
 
-    try std.testing.expectEqual(result.scripts_with_unknown_byte, 148);
+    try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
 
 test "Backyard Football talkies round trip" {
