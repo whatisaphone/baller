@@ -334,7 +334,7 @@ fn handleRawGlob(
 
     const block_fixup = try beginBlockImpl(&state.writer, block_id);
 
-    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+    const path = try pathf.append(&prst.cur_path, relative_path);
     defer path.restore();
 
     try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -405,7 +405,7 @@ fn handleRmda(
 
             const fixup = try beginBlockImpl(&state.writer, block_id);
 
-            const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+            const path = try pathf.append(&prst.cur_path, relative_path);
             defer path.restore();
 
             try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
@@ -422,7 +422,7 @@ fn handleRmda(
 
             if (tokens.next()) |_| return error.BadData;
 
-            const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+            const path = try pathf.append(&prst.cur_path, relative_path);
             defer path.restore();
 
             const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -485,7 +485,7 @@ fn handleRoomImage(
 
     // Write block
 
-    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+    const path = try pathf.append(&prst.cur_path, relative_path);
     defer path.restore();
 
     const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -529,7 +529,7 @@ fn handleScrpAsm(
 
     // Process block
 
-    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+    const path = try pathf.append(&prst.cur_path, relative_path);
     defer path.restore();
 
     const asm_string = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -579,7 +579,7 @@ fn handleAudio(
 
     // Process block
 
-    const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+    const path = try pathf.append(&prst.cur_path, relative_path);
     defer path.restore();
 
     const wav_file = try std.fs.cwd().openFileZ(path.full(), .{});
@@ -714,7 +714,7 @@ fn readAwizLines(
                 const relative_path = split.next() orelse return error.BadData;
                 if (split.next()) |_| return error.BadData;
 
-                const path = try pathf.print(&prst.cur_path, "{s}", .{relative_path});
+                const path = try pathf.append(&prst.cur_path, relative_path);
                 defer path.restore();
 
                 const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
@@ -757,7 +757,7 @@ fn handleMult(
         const raw_fixup = try beginBlockImpl(&state.writer, raw.id);
 
         // XXX: this assumes only one block per block ID in a MULT
-        const path = try pathf.print(&prst.cur_path, "{s}", .{raw.path});
+        const path = try pathf.append(&prst.cur_path, raw.path);
         defer path.restore();
 
         try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
