@@ -529,18 +529,32 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x01, "add", &.{});
 
+    lang.addNested(0x03, 0x86, "array-sort", &.{.variable});
+
     lang.addNested(0x04, 0x23, "sprintf", &.{.variable});
     lang.addNested(0x04, 0x4d, "assign-string", &.{.variable});
 
+    lang.add(0x06, "bor", &.{});
     lang.add(0x07, "break-here", &.{});
+    lang.add(0x08, "break-here-multi", &.{});
+    lang.add(0x09, "shl", &.{});
     lang.add(0x0e, "current-room", &.{});
+
+    lang.addNested(0x11, 0x5a, "chain-script", &.{});
+    lang.addNested(0x11, 0x82, "chain-script-rec", &.{});
+
     lang.add(0x13, "close-file", &.{});
+    lang.add(0x19, "debug", &.{});
+    lang.add(0x1b, "dec", &.{.variable});
     // TODO: first operand is item size; 0x87 means undim
     lang.add(0x1f, "dim-array", &.{ .u8, .variable });
+    lang.add(0x20, "div", &.{});
     lang.add(0x28, "dup", &.{});
     lang.add(0x2c, "end", &.{});
     lang.add(0x2d, "eq", &.{});
+    lang.add(0x30, "ge", &.{});
     lang.add(0x31, "get-time-date", &.{});
+    lang.add(0x33, "gt", &.{});
 
     lang.addNested(0x34, 0x0e, "resource-charset", &.{});
     lang.addNested(0x34, 0x28, "resource-image", &.{});
@@ -552,12 +566,20 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x35, "jump-if", &.{.relative_offset});
     lang.add(0x36, "jump-unless", &.{.relative_offset});
+
+    lang.addNested(0x37, 0x00, "image-select", &.{});
+
     lang.add(0x38, "in-list", &.{});
     lang.add(0x39, "inc", &.{.variable});
     lang.add(0x3b, "jump", &.{.relative_offset});
+    lang.add(0x3d, "and", &.{});
     lang.add(0x3e, "le", &.{});
     lang.add(0x40, "get-array-item", &.{.variable});
+    lang.add(0x41, "get-array-item-2d", &.{.variable});
     lang.add(0x42, "or", &.{});
+    lang.add(0x43, "lt", &.{});
+    lang.add(0x45, "mul", &.{});
+    lang.add(0x46, "ne", &.{});
     lang.add(0x47, "dim-array-2d-range", &.{ .u8, .variable });
     lang.add(0x4a, "not", &.{});
     lang.add(0x53, "pop", &.{});
@@ -567,25 +589,38 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x54, 0x5b, "print-debug-start", &.{});
 
     lang.addNested(0x57, 0x23, "print-system-printf", &.{.string});
+    lang.addNested(0x57, 0x4f, "print-system-string", &.{.string});
     lang.addNested(0x57, 0x5b, "print-system-start", &.{});
 
     lang.add(0x5c, "push-u8", &.{.u8});
     lang.add(0x5e, "push-str", &.{.string});
     lang.add(0x5f, "push-i16", &.{.i16});
     lang.add(0x60, "push-var", &.{.variable});
+    lang.add(0x66, "end2", &.{});
 
     lang.addNested(0x68, 0x83, "fades", &.{});
 
+    lang.add(0x6e, "seek-file", &.{});
+
     lang.addNested(0x72, 0x50, "title-bar", &.{});
+
+    lang.addNested(0x77, 0x06, "sound-at", &.{});
+    lang.addNested(0x77, 0x5c, "sound-start", &.{});
+    lang.addNested(0x77, 0x81, "sound-channel", &.{});
+    lang.addNested(0x77, 0x86, "sound-select", &.{});
+    lang.addNested(0x77, 0x87, "sound-soft", &.{});
 
     lang.addNested(0x79, 0x00, "sprite-select", &.{});
     lang.addNested(0x79, 0x10, "sprite-set-class", &.{});
 
     lang.addNested(0x7c, 0x5a, "start-script", &.{});
+    lang.addNested(0x7c, 0x82, "start-script-rec", &.{});
 
     lang.add(0x80, "stop-script", &.{});
+    lang.add(0x82, "stop-sound", &.{});
     lang.add(0x84, "assign", &.{.variable});
     lang.add(0x85, "set-array-item", &.{.variable});
+    lang.add(0x86, "set-array-item-2d", &.{.variable});
     lang.add(0x87, "sub", &.{});
 
     lang.addNested(0x88, 0x85, "quit-quit", &.{});
@@ -594,15 +629,40 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x8b, 0x87, "cursor-off", &.{});
     lang.addNested(0x8b, 0x8c, "userput-off", &.{});
 
+    lang.addNested(0x8d, 0x82, "wait-for-message", &.{});
+
     lang.addNested(0x91, 0x4d, "write-system-ini-string", &.{});
 
+    lang.add(0xa6, "iif", &.{});
+
+    lang.addNested(0xb3, 0x00, "font-enumerate-start", &.{});
+    lang.addNested(0xb3, 0x3c, "font-enumerate-property", &.{});
+
     lang.add(0xb4, "free-arrays", &.{});
+
+    lang.addNested(0xb5, 0x02, "array-get-height", &.{.variable});
+    lang.addNested(0xb5, 0x05, "array-get-x-end", &.{.variable});
+
+    lang.addNested(0xb7, 0x48, "sound-size", &.{});
+
     lang.add(0xc5, "open-file", &.{});
+    lang.add(0xcb, "pick-random", &.{.variable});
     lang.add(0xd0, "random", &.{});
+    lang.add(0xd1, "random-between", &.{});
+
+    lang.addNested(0xd3, 0x05, "read-file-int8", &.{.u8});
 
     lang.addNested(0xd4, 0x2b, "read-system-ini-int", &.{});
     lang.addNested(0xd4, 0x4d, "read-system-ini-string", &.{});
 
+    lang.addNested(0xd5, 0x2b, "read-ini-int", &.{});
+    lang.addNested(0xd5, 0x4d, "read-ini-string", &.{});
+
+    lang.add(0xd6, "script-running", &.{});
+    lang.add(0xd8, "sound-position", &.{});
+    lang.add(0xd9, "sound-running", &.{});
+    lang.add(0xde, "call-script", &.{});
+    lang.add(0xe2, "string-substr", &.{});
     lang.add(0xe4, "string-length", &.{});
     lang.add(0xe7, "string-search", &.{});
 
