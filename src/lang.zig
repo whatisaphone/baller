@@ -308,7 +308,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x75, "stop-sound", &.{});
     lang.add(0x77, "stop-object", &.{});
     lang.add(0x7b, "current-room", &.{});
-    lang.add(0x7c, "end-script", &.{});
+    lang.add(0x7c, "stop-script", &.{});
     lang.add(0x7f, "put-actor", &.{});
     lang.add(0x82, "do-animation", &.{});
     lang.add(0x87, "random", &.{});
