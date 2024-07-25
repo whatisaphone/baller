@@ -37,7 +37,7 @@ pub fn decode(digi_raw: []const u8, out: anytype) !void {
 }
 
 pub fn encode(wav_in: anytype, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
-    const header = try wav.readHeader(wav_in.reader());
+    const header = try wav.readHeader(wav_in);
 
     if (header.channels != 1 or
         header.samples_per_sec != 11025 or
@@ -47,11 +47,13 @@ pub fn encode(wav_in: anytype, out: anytype, fixups: *std.ArrayList(Fixup)) !voi
         return error.BadData;
     }
 
+    const data_len = try wav.findData(wav_in);
+
     const hshd_fixup = try beginBlock(out, "HSHD");
     try out.writer().writeAll(expected_hshd);
     try endBlock(out, fixups, hshd_fixup);
 
     const sdat_fixup = try beginBlock(out, "SDAT");
-    try io.copy(wav_in, out.writer());
+    try io.copy(std.io.limitedReader(wav_in, data_len), out.writer());
     try endBlock(out, fixups, sdat_fixup);
 }

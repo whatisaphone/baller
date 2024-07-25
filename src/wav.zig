@@ -1,10 +1,11 @@
+const blockId = @import("block_id.zig").blockId;
+
 const WAVE_FORMAT_PCM = 1;
 
 const Header = struct {
     channels: u16,
     samples_per_sec: u32,
     bits_per_sample: u16,
-    data_size: u32,
 };
 
 pub fn writeHeader(data_len: u32, out: anytype) !void {
@@ -45,13 +46,21 @@ pub fn readHeader(in: anytype) !Header {
     // PCM
     const bits_per_sample = try in.readInt(u16, .little);
 
-    if (!try in.isBytes("data")) return error.BadData;
-    const data_size = try in.readInt(u32, .little);
-
     return .{
         .channels = channels,
         .samples_per_sec = samples_per_sec,
         .bits_per_sample = bits_per_sample,
-        .data_size = data_size,
     };
+}
+
+pub fn findData(in: anytype) !u32 {
+    while (true) {
+        const chunk_id = try in.readInt(u32, .little);
+        const chunk_len = try in.readInt(u32, .little);
+        // We're looking for the data chunk
+        if (chunk_id == comptime blockId("data"))
+            return chunk_len;
+        // If that wasn't it, skip over it and try the next one
+        try in.skipBytes(chunk_len, .{});
+    }
 }

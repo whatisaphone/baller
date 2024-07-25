@@ -188,7 +188,6 @@ fn buildTalk(state: *State) !void {
         var wav_reader = std.io.bufferedReader(wav_file.reader());
 
         const wav_header = try wav.readHeader(wav_reader.reader());
-
         if (wav_header.channels != 1 or
             wav_header.samples_per_sec != 11025 or
             wav_header.bits_per_sample != 8)
@@ -197,7 +196,8 @@ fn buildTalk(state: *State) !void {
             return error.BadData;
         }
 
-        if (wav_header.data_size != sdat.expected_len) {
+        const data_size = try wav.findData(wav_reader.reader());
+        if (data_size != sdat.expected_len) {
             report.fatal(
                 "{s} must be {} samples long",
                 .{ wav_path.full(), sdat.expected_len },
@@ -206,7 +206,10 @@ fn buildTalk(state: *State) !void {
         }
 
         const sdat_start = try beginBlock(state.output_writer, "SDAT");
-        try io.copy(wav_reader, state.output_writer.writer());
+        try io.copy(
+            std.io.limitedReader(wav_reader, data_size),
+            state.output_writer.writer(),
+        );
         try endBlock(state.output_writer, &state.fixups, sdat_start);
     }
 

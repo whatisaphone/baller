@@ -587,7 +587,7 @@ fn handleAudio(
     var wav_reader = std.io.bufferedReader(wav_file.reader());
 
     const digi_fixup = try beginBlockImpl(&state.writer, block_id);
-    try audio.encode(&wav_reader, &state.writer, &state.fixups);
+    try audio.encode(wav_reader.reader(), &state.writer, &state.fixups);
     try endBlock(&state.writer, &state.fixups, digi_fixup);
     const digi_len = state.lastBlockLen();
 
