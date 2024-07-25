@@ -187,15 +187,17 @@ fn buildTalk(state: *State) !void {
         defer wav_file.close();
         var wav_reader = std.io.bufferedReader(wav_file.reader());
 
-        const wav_data_size = wav.readHeader(wav_reader.reader()) catch |err| {
-            if (err == error.WavFormat)
-                report.fatal(
-                    "{s} must be 11025 KHz 8-bit mono",
-                    .{wav_path.full()},
-                );
-            return err;
-        };
-        if (wav_data_size != sdat.expected_len) {
+        const wav_header = try wav.readHeader(wav_reader.reader());
+
+        if (wav_header.channels != 1 or
+            wav_header.samples_per_sec != 11025 or
+            wav_header.bits_per_sample != 8)
+        {
+            report.fatal("{s} must be 11025 KHz 8-bit mono", .{wav_path.full()});
+            return error.BadData;
+        }
+
+        if (wav_header.data_size != sdat.expected_len) {
             report.fatal(
                 "{s} must be {} samples long",
                 .{ wav_path.full(), sdat.expected_len },

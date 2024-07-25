@@ -1,3 +1,12 @@
+const WAVE_FORMAT_PCM = 1;
+
+const Header = struct {
+    channels: u16,
+    samples_per_sec: u32,
+    bits_per_sample: u16,
+    data_size: u32,
+};
+
 pub fn writeHeader(data_len: u32, out: anytype) !void {
     try out.writeAll("RIFF");
     try out.writeInt(u32, 44 + data_len, .little);
@@ -7,8 +16,7 @@ pub fn writeHeader(data_len: u32, out: anytype) !void {
     try out.writeAll("fmt ");
     try out.writeInt(u32, 16, .little);
 
-    // WAVE_FORMAT_PCM
-    try out.writeInt(u16, 1, .little);
+    try out.writeInt(u16, WAVE_FORMAT_PCM, .little);
     try out.writeInt(u16, 1, .little);
     try out.writeInt(u32, 11025, .little);
     try out.writeInt(u32, 11025, .little);
@@ -20,7 +28,7 @@ pub fn writeHeader(data_len: u32, out: anytype) !void {
     try out.writeInt(u32, data_len, .little);
 }
 
-pub fn readHeader(in: anytype) !u32 {
+pub fn readHeader(in: anytype) !Header {
     if (!try in.isBytes("RIFF")) return error.BadData;
     _ = try in.readInt(u32, .little);
 
@@ -29,17 +37,21 @@ pub fn readHeader(in: anytype) !u32 {
     if (!try in.isBytes("fmt ")) return error.BadData;
     if (try in.readInt(u32, .little) != 16) return error.BadData;
 
-    // WAVE_FORMAT_PCM
-    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
-    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
-    if (try in.readInt(u32, .little) != 11025) return error.WavFormat;
-    if (try in.readInt(u32, .little) != 11025) return error.WavFormat;
-    if (try in.readInt(u16, .little) != 1) return error.WavFormat;
+    if (try in.readInt(u16, .little) != WAVE_FORMAT_PCM) return error.WavFormat;
+    const channels = try in.readInt(u16, .little);
+    const samples_per_sec = try in.readInt(u32, .little);
+    _ = try in.readInt(u32, .little);
+    _ = try in.readInt(u16, .little);
     // PCM
-    if (try in.readInt(u16, .little) != 8) return error.WavFormat;
+    const bits_per_sample = try in.readInt(u16, .little);
 
     if (!try in.isBytes("data")) return error.BadData;
     const data_size = try in.readInt(u32, .little);
 
-    return data_size;
+    return .{
+        .channels = channels,
+        .samples_per_sec = samples_per_sec,
+        .bits_per_sample = bits_per_sample,
+        .data_size = data_size,
+    };
 }

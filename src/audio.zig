@@ -37,11 +37,15 @@ pub fn decode(digi_raw: []const u8, out: anytype) !void {
 }
 
 pub fn encode(wav_in: anytype, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
-    _ = wav.readHeader(wav_in.reader()) catch |err| {
-        if (err == error.WavFormat)
-            report.fatal("WAV must be 11025 KHz 8-bit mono", .{});
-        return err;
-    };
+    const header = try wav.readHeader(wav_in.reader());
+
+    if (header.channels != 1 or
+        header.samples_per_sec != 11025 or
+        header.bits_per_sample != 8)
+    {
+        report.fatal("WAV must be 11025 KHz 8-bit mono", .{});
+        return error.BadData;
+    }
 
     const hshd_fixup = try beginBlock(out, "HSHD");
     try out.writer().writeAll(expected_hshd);
