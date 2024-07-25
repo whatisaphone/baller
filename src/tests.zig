@@ -31,6 +31,7 @@ const fixture_hashes = .{
     .@"basketball/Basketball.he0" = "9a767514bc5bf00743648111d6bf31e886e8f4fc8401be30447ee69126c997b2",
     .@"basketball/Basketball.(a)" = "b90c8b7c4d906d568647cd049d15b0c360a5945418c2807fcd22dcdc64decb84",
     .@"basketball/Basketball.(b)" = "7551d6465bd4cc8e0c0b97357ca28825d18bb2d645ccf30c5f56a810abd62e4c",
+    .@"basketball/Basketball.he2" = "d5c7cba5ecf5849452b45f781e700781d3c98da242d865337e0d964c21f31a97",
 };
 
 test "fixture integrity" {
@@ -283,6 +284,10 @@ test "Backyard Basketball round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 1805);
+}
+
+test "Backyard Basketball talkies round trip" {
+    try testRoundTripTalkies("basketball", "Basketball.he2");
 }
 
 fn testRoundTrip(

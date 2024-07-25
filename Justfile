@@ -45,13 +45,21 @@ baseball2001-talkie-build:
 
 basketball: \
   basketball-extract \
-  basketball-build
+  basketball-build \
+  basketball-talkie-extract \
+  basketball-talkie-build
 
 basketball-extract:
   zig build run -- extract src/fixtures/basketball/Basketball.he0 /tmp/basketball
 
 basketball-build:
   zig build run -- build /tmp/basketball/project.txt /tmp/basketballbuild/Basketball.he0
+
+basketball-talkie-extract:
+  zig build run -- talkie extract src/fixtures/basketball/Basketball.he2 /tmp/basketballtalk
+
+basketball-talkie-build:
+  zig build run -- talkie build /tmp/basketballtalk/talkies.txt /tmp/basketballbuild/Basketball.he2
 
 football: \
   football-extract \
