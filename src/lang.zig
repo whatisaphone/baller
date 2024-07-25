@@ -525,7 +525,22 @@ fn buildNormalLanguage() Language {
 }
 
 fn builtBasketballLanguage() Language {
-    return .{};
+    var lang = Language{};
+
+    lang.add(0x2d, "eq", &.{});
+    lang.add(0x36, "jump-unless", &.{.relative_offset});
+    lang.add(0x3b, "jump", &.{.relative_offset});
+
+    lang.addNested(0x54, 0x23, "print-debug-printf", &.{.string});
+    lang.addNested(0x54, 0x5b, "print-debug-start", &.{});
+
+    lang.add(0x5c, "push-u8", &.{.u8});
+    lang.add(0x60, "push-var", &.{.variable});
+
+    lang.addNested(0x8b, 0x87, "cursor-off", &.{});
+    lang.addNested(0x8b, 0x8c, "userput-off", &.{});
+
+    return lang;
 }
 
 pub fn buildInsMap(
