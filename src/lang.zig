@@ -95,18 +95,18 @@ fn buildNormalLanguage() Language {
     lang.add(0x0b, "get-array-item-2d", &.{.variable});
     lang.add(0x0c, "dup", &.{});
     lang.add(0x0d, "not", &.{});
-    lang.add(0x0e, "compare-equal", &.{});
-    lang.add(0x0f, "compare-not-equal", &.{});
-    lang.add(0x10, "compare-greater", &.{});
-    lang.add(0x11, "compare-less", &.{});
-    lang.add(0x12, "compare-less-or-equal", &.{});
-    lang.add(0x13, "compare-greater-or-equal", &.{});
+    lang.add(0x0e, "eq", &.{});
+    lang.add(0x0f, "ne", &.{});
+    lang.add(0x10, "gt", &.{});
+    lang.add(0x11, "lt", &.{});
+    lang.add(0x12, "le", &.{});
+    lang.add(0x13, "ge", &.{});
     lang.add(0x14, "add", &.{});
     lang.add(0x15, "sub", &.{});
     lang.add(0x16, "mul", &.{});
     lang.add(0x17, "div", &.{});
-    lang.add(0x18, "and", &.{});
-    lang.add(0x19, "or", &.{});
+    lang.add(0x18, "land", &.{});
+    lang.add(0x19, "lor", &.{});
     lang.add(0x1a, "pop", &.{});
     lang.add(0x1b, "in-list", &.{});
 
@@ -221,7 +221,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
 
-    lang.add(0x43, "assign", &.{.variable});
+    lang.add(0x43, "set", &.{.variable});
     lang.add(0x46, "file-size", &.{});
     lang.add(0x47, "set-array-item", &.{.variable});
     lang.add(0x48, "string-number", &.{});
@@ -572,11 +572,11 @@ fn builtBasketballLanguage() Language {
     lang.add(0x38, "in-list", &.{});
     lang.add(0x39, "inc", &.{.variable});
     lang.add(0x3b, "jump", &.{.relative_offset});
-    lang.add(0x3d, "and", &.{});
+    lang.add(0x3d, "land", &.{});
     lang.add(0x3e, "le", &.{});
     lang.add(0x40, "get-array-item", &.{.variable});
     lang.add(0x41, "get-array-item-2d", &.{.variable});
-    lang.add(0x42, "or", &.{});
+    lang.add(0x42, "lor", &.{});
     lang.add(0x43, "lt", &.{});
     lang.add(0x45, "mul", &.{});
     lang.add(0x46, "ne", &.{});
@@ -618,7 +618,7 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x80, "stop-script", &.{});
     lang.add(0x82, "stop-sound", &.{});
-    lang.add(0x84, "assign", &.{.variable});
+    lang.add(0x84, "set", &.{.variable});
     lang.add(0x85, "set-array-item", &.{.variable});
     lang.add(0x86, "set-array-item-2d", &.{.variable});
     lang.add(0x87, "sub", &.{});
