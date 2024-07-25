@@ -527,18 +527,84 @@ fn buildNormalLanguage() Language {
 fn builtBasketballLanguage() Language {
     var lang = Language{};
 
+    lang.add(0x01, "add", &.{});
+
+    lang.addNested(0x04, 0x23, "sprintf", &.{.variable});
+    lang.addNested(0x04, 0x4d, "assign-string", &.{.variable});
+
+    lang.add(0x07, "break-here", &.{});
+    lang.add(0x0e, "current-room", &.{});
+    lang.add(0x13, "close-file", &.{});
+    // TODO: first operand is item size; 0x87 means undim
+    lang.add(0x1f, "dim-array", &.{ .u8, .variable });
+    lang.add(0x28, "dup", &.{});
+    lang.add(0x2c, "end", &.{});
     lang.add(0x2d, "eq", &.{});
+    lang.add(0x31, "get-time-date", &.{});
+
+    lang.addNested(0x34, 0x0e, "resource-charset", &.{});
+    lang.addNested(0x34, 0x28, "resource-image", &.{});
+    lang.addNested(0x34, 0x2f, "resource-load", &.{});
+    lang.addNested(0x34, 0x3e, "resource-room", &.{});
+    lang.addNested(0x34, 0x42, "resource-script", &.{});
+    lang.addNested(0x34, 0x48, "resource-sound", &.{});
+    lang.addNested(0x34, 0x84, "resource-lock", &.{});
+
+    lang.add(0x35, "jump-if", &.{.relative_offset});
     lang.add(0x36, "jump-unless", &.{.relative_offset});
+    lang.add(0x38, "in-list", &.{});
+    lang.add(0x39, "inc", &.{.variable});
     lang.add(0x3b, "jump", &.{.relative_offset});
+    lang.add(0x3e, "le", &.{});
+    lang.add(0x40, "get-array-item", &.{.variable});
+    lang.add(0x42, "or", &.{});
+    lang.add(0x47, "dim-array-2d-range", &.{ .u8, .variable });
+    lang.add(0x4a, "not", &.{});
+    lang.add(0x53, "pop", &.{});
 
     lang.addNested(0x54, 0x23, "print-debug-printf", &.{.string});
+    lang.addNested(0x54, 0x4f, "print-debug-string", &.{.string});
     lang.addNested(0x54, 0x5b, "print-debug-start", &.{});
 
+    lang.addNested(0x57, 0x23, "print-system-printf", &.{.string});
+    lang.addNested(0x57, 0x5b, "print-system-start", &.{});
+
     lang.add(0x5c, "push-u8", &.{.u8});
+    lang.add(0x5e, "push-str", &.{.string});
+    lang.add(0x5f, "push-i16", &.{.i16});
     lang.add(0x60, "push-var", &.{.variable});
 
+    lang.addNested(0x68, 0x83, "fades", &.{});
+
+    lang.addNested(0x72, 0x50, "title-bar", &.{});
+
+    lang.addNested(0x79, 0x00, "sprite-select", &.{});
+    lang.addNested(0x79, 0x10, "sprite-set-class", &.{});
+
+    lang.addNested(0x7c, 0x5a, "start-script", &.{});
+
+    lang.add(0x80, "stop-script", &.{});
+    lang.add(0x84, "assign", &.{.variable});
+    lang.add(0x85, "set-array-item", &.{.variable});
+    lang.add(0x87, "sub", &.{});
+
+    lang.addNested(0x88, 0x85, "quit-quit", &.{});
+
+    lang.addNested(0x8b, 0x0e, "cursor-charset", &.{});
     lang.addNested(0x8b, 0x87, "cursor-off", &.{});
     lang.addNested(0x8b, 0x8c, "userput-off", &.{});
+
+    lang.addNested(0x91, 0x4d, "write-system-ini-string", &.{});
+
+    lang.add(0xb4, "free-arrays", &.{});
+    lang.add(0xc5, "open-file", &.{});
+    lang.add(0xd0, "random", &.{});
+
+    lang.addNested(0xd4, 0x2b, "read-system-ini-int", &.{});
+    lang.addNested(0xd4, 0x4d, "read-system-ini-string", &.{});
+
+    lang.add(0xe4, "string-length", &.{});
+    lang.add(0xe7, "string-search", &.{});
 
     return lang;
 }
