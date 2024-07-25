@@ -232,6 +232,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
                     &prst,
                     state,
                 )
+            else if (std.mem.eql(u8, keyword, "wsou"))
+                try handleWsou(
+                    allocator,
+                    room_number,
+                    room_line_split.rest(),
+                    &prst,
+                    state,
+                )
             else
                 return error.BadData;
         }
@@ -591,6 +599,46 @@ fn handleAudio(
         glob_number,
         digi_fixup,
         digi_len,
+    );
+}
+
+fn handleWsou(
+    allocator: std.mem.Allocator,
+    room_number: u8,
+    line: []const u8,
+    prst: *ProjectState,
+    state: *DiskState,
+) !void {
+    // Parse line
+
+    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+
+    const glob_number_str = tokens.next() orelse return error.BadData;
+    const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
+
+    const relative_path = tokens.next() orelse return error.BadData;
+
+    if (tokens.next()) |_| return error.BadData;
+
+    // Process block
+
+    const block_start = try beginBlock(&state.writer, "WSOU");
+
+    const path = try pathf.append(&prst.cur_path, relative_path);
+    defer path.restore();
+    try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
+
+    try endBlock(&state.writer, &state.fixups, block_start);
+    const block_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        prst,
+        comptime blockId("WSOU"),
+        room_number,
+        glob_number,
+        block_start,
+        block_len,
     );
 }
 

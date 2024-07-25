@@ -663,7 +663,7 @@ fn extractDisk(
 
             const modes = switch (id) {
                 blockId("SCRP") => script_modes,
-                blockId("DIGI"), blockId("TALK") => sound_modes,
+                blockId("DIGI"), blockId("TALK"), blockId("WSOU") => sound_modes,
                 blockId("AWIZ") => awiz_modes,
                 blockId("MULT") => mult_modes,
                 else => &.{ResourceMode.raw},
@@ -885,6 +885,14 @@ fn extractGlob(
                     wrote_line = true;
                 }
             },
+            blockId("WSOU") => {
+                try decodeWsou(block_id, block_number, data, state);
+                block_stat.decoded += 1;
+                if (!wrote_line) {
+                    try writeWsouLine(block_id, block_number, state, room_state);
+                    wrote_line = true;
+                }
+            },
             else => unreachable,
         },
         .raw => {
@@ -1060,6 +1068,33 @@ fn writeDigiLine(
     try room_state.room_txt.print(
         "audio {s} {} {s}\n",
         .{ blockIdToStr(&block_id), glob_number, path.relative() },
+    );
+}
+
+fn decodeWsou(
+    block_id: BlockId,
+    glob_number: u32,
+    data: []const u8,
+    state: *State,
+) !void {
+    std.debug.assert(block_id == comptime blockId("WSOU"));
+    const path = try appendGlobPath(state, block_id, glob_number, "wav");
+    defer path.restore();
+    try fs.writeFileZ(std.fs.cwd(), path.full(), data);
+}
+
+fn writeWsouLine(
+    block_id: BlockId,
+    glob_number: u32,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
+    std.debug.assert(block_id == comptime blockId("WSOU"));
+    const path = try appendGlobPath(state, block_id, glob_number, "wav");
+    defer path.restore();
+    try room_state.room_txt.print(
+        "wsou {} {s}\n",
+        .{ glob_number, room_state.curPathRelative() },
     );
 }
 

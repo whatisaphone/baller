@@ -270,7 +270,7 @@ test "Backyard Basketball round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
     try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
     try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedCount(&result.block_stats, "WSOU", 0);
+    try expectStatDecodedAll(&result.block_stats, "WSOU");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
