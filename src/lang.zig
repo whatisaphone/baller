@@ -240,9 +240,9 @@ fn buildNormalLanguage() Language {
     lang.add(0x55, "get-object-image-y", &.{});
     lang.add(0x57, "dec", &.{.variable});
 
-    lang.addNested(0x58, 0x0a, "timer", &.{});
+    lang.addNested(0x58, 0x0a, "get-timer", &.{});
 
-    lang.addNested(0x59, 0x9e, "timer2", &.{});
+    lang.addNested(0x59, 0x9e, "set-timer", &.{});
 
     lang.add(0x5a, "sound-position", &.{});
     lang.add(0x5b, "dec-array-item", &.{.variable});
@@ -529,6 +529,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x00, 0x19, "actor-set-costume", &.{});
     lang.addNested(0x00, 0x35, "actor-new", &.{});
+    lang.addNested(0x00, 0x53, "actor-set-variable", &.{});
     lang.addNested(0x00, 0x81, "actor-select", &.{});
     lang.addNested(0x00, 0x87, "actor-ignore-boxes", &.{});
 
@@ -556,13 +557,15 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x12, "object-set-class", &.{});
     lang.add(0x13, "close-file", &.{});
+    lang.add(0x16, "create-directory", &.{});
     lang.add(0x19, "debug", &.{});
     lang.add(0x1b, "dec", &.{.variable});
     lang.add(0x1c, "dec-array-item", &.{.variable});
-    lang.add(0x1e, "redim-array-range", &.{ .u8, .variable });
+    lang.add(0x1e, "dim-array-2d", &.{ .u8, .variable });
     // TODO: first operand is item size; 0x87 means undim
     lang.add(0x1f, "dim-array", &.{ .u8, .variable });
     lang.add(0x20, "div", &.{});
+    lang.add(0x21, "do-animation", &.{});
     lang.add(0x23, "draw-box", &.{});
     lang.add(0x28, "dup", &.{});
     lang.add(0x29, "dup-multi", &.{.i16});
@@ -589,6 +592,8 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x34, 0x48, "resource-sound", &.{});
     lang.addNested(0x34, 0x84, "resource-lock", &.{});
     lang.addNested(0x34, 0x85, "resource-nuke", &.{});
+    lang.addNested(0x34, 0x86, "resource-off-heap", &.{});
+    lang.addNested(0x34, 0x87, "resource-on-heap", &.{});
 
     lang.add(0x35, "jump-if", &.{.relative_offset});
     lang.add(0x36, "jump-unless", &.{.relative_offset});
@@ -628,6 +633,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x45, "mul", &.{});
     lang.add(0x46, "ne", &.{});
     lang.add(0x47, "dim-array-2d-range", &.{ .u8, .variable });
+    lang.add(0x49, "redim-array-range", &.{ .u8, .variable });
     lang.add(0x4a, "not", &.{});
     lang.add(0x4e, "override-off-off", &.{});
 
@@ -660,10 +666,16 @@ fn builtBasketballLanguage() Language {
     lang.add(0x5f, "push-i16", &.{.i16});
     lang.add(0x60, "push-var", &.{.variable});
     lang.add(0x62, "put-actor", &.{});
+    lang.add(0x64, "redim-array", &.{ .u8, .variable });
     lang.add(0x66, "return", &.{});
 
     lang.addNested(0x68, 0x83, "fades", &.{});
 
+    lang.addNested(0x69, 0x06, "say-line-position", &.{});
+    lang.addNested(0x69, 0x4e, "say-line-talkie", &.{});
+    lang.addNested(0x69, 0x5b, "say-line-start", &.{});
+
+    lang.add(0x6b, "say-line-actor", &.{.string});
     lang.add(0x6e, "seek-file", &.{});
 
     lang.addNested(0x72, 0x50, "title-bar", &.{});
@@ -671,8 +683,10 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x77, 0x06, "sound-at", &.{});
     lang.addNested(0x77, 0x5c, "sound-start", &.{});
     lang.addNested(0x77, 0x81, "sound-channel", &.{});
+    lang.addNested(0x77, 0x84, "sound-select-modify", &.{});
     lang.addNested(0x77, 0x86, "sound-select", &.{});
     lang.addNested(0x77, 0x87, "sound-soft", &.{});
+    lang.addNested(0x77, 0x88, "sound-volume", &.{});
 
     lang.addNested(0x79, 0x00, "sprite-select", &.{});
     lang.addNested(0x79, 0x03, "sprite-set-animation-type", &.{});
@@ -709,6 +723,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x88, 0x84, "quit", &.{});
     lang.addNested(0x88, 0x85, "quit-quit", &.{});
+    lang.addNested(0x88, 0x88, "update-screen", &.{});
 
     lang.add(0x89, "unknown-89", &.{.u8});
 
@@ -722,6 +737,8 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x8c, 0x00, "video-select", &.{});
     lang.addNested(0x8c, 0x13, "video-close", &.{});
+    lang.addNested(0x8c, 0x2f, "video-load", &.{});
+    lang.addNested(0x8c, 0x43, "video-set-flags", &.{});
     lang.addNested(0x8c, 0x5c, "video-commit", &.{});
 
     lang.addNested(0x8d, 0x82, "wait-for-message", &.{});
@@ -731,9 +748,12 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x91, 0x2b, "write-system-ini-int", &.{});
     lang.addNested(0x91, 0x4d, "write-system-ini-string", &.{});
 
+    lang.addNested(0x92, 0x4d, "write-ini-string", &.{});
+
     lang.add(0x93, "abs", &.{});
     lang.add(0x95, "actor-get-costume", &.{});
     lang.add(0x9a, "actor-room", &.{});
+    lang.add(0x9c, "actor-moving", &.{});
     lang.add(0x9e, "actor-x", &.{});
     lang.add(0x9f, "actor-y", &.{});
     lang.add(0xa4, "class-of", &.{});
@@ -749,6 +769,8 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0xb5, 0x01, "array-get-dim", &.{.variable});
     lang.addNested(0xb5, 0x02, "array-get-height", &.{.variable});
+    lang.addNested(0xb5, 0x03, "array-get-width", &.{.variable});
+    lang.addNested(0xb5, 0x04, "array-get-x-start", &.{.variable});
     lang.addNested(0xb5, 0x05, "array-get-x-end", &.{.variable});
     lang.addNested(0xb5, 0x06, "array-get-y-start", &.{.variable});
     lang.addNested(0xb5, 0x07, "array-get-y-end", &.{.variable});
@@ -813,7 +835,12 @@ fn builtBasketballLanguage() Language {
     lang.add(0xe6, "string-number", &.{});
     lang.add(0xe7, "string-search", &.{});
     lang.add(0xe8, "string-width", &.{});
+
+    lang.addNested(0xea, 0x32, "get-timer", &.{});
+
     lang.add(0xeb, "valid-verb", &.{});
+
+    lang.addNested(0xec, 0x49, "video-get-cur-frame", &.{});
 
     return lang;
 }
