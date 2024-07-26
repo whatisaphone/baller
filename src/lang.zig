@@ -565,6 +565,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x20, "div", &.{});
     lang.add(0x23, "draw-box", &.{});
     lang.add(0x28, "dup", &.{});
+    lang.add(0x29, "dup-multi", &.{.i16});
     lang.add(0x2c, "end", &.{});
     lang.add(0x2d, "eq", &.{});
     lang.add(0x30, "ge", &.{});
@@ -572,6 +573,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x32, 0x00, "sprite-group-select", &.{});
     lang.addNested(0x32, 0x06, "sprite-group-set-position", &.{});
+    lang.addNested(0x32, 0x12, "sprite-group-set-clip", &.{});
     lang.addNested(0x32, 0x31, "sprite-group-move", &.{});
     lang.addNested(0x32, 0x35, "sprite-group-new", &.{});
     lang.addNested(0x32, 0x3b, "sprite-group-set-order", &.{});
@@ -593,13 +595,15 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x37, 0x00, "image-select", &.{});
     lang.addNested(0x37, 0x06, "image-set-pos", &.{});
+    lang.addNested(0x37, 0x0b, "image-capture", &.{});
     lang.addNested(0x37, 0x1d, "image-draw", &.{});
     lang.addNested(0x37, 0x27, "image-set-height", &.{});
+    lang.addNested(0x37, 0x2f, "image-load-external", &.{});
     lang.addNested(0x37, 0x35, "image-new", &.{});
     lang.addNested(0x37, 0x39, "image-set-palette", &.{});
     lang.addNested(0x37, 0x43, "image-set-flags", &.{});
     lang.addNested(0x37, 0x49, "image-set-state", &.{});
-    lang.addNested(0x37, 0x54, "image-set-property", &.{});
+    lang.addNested(0x37, 0x54, "image-set-width", &.{});
     lang.addNested(0x37, 0x5c, "image-commit", &.{});
     lang.addNested(0x37, 0x80, "image-font-create", &.{});
     lang.addNested(0x37, 0x81, "image-font-end", &.{});
@@ -630,6 +634,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x50, 0x00, "palette-select", &.{});
     lang.addNested(0x50, 0x28, "palette-from-image", &.{});
     lang.addNested(0x50, 0x35, "palette-new", &.{});
+    lang.addNested(0x50, 0x51, "palette-set-color", &.{});
     lang.addNested(0x50, 0x5c, "palette-commit", &.{});
 
     lang.add(0x53, "pop", &.{});
@@ -637,6 +642,8 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x54, 0x23, "print-debug-printf", &.{.string});
     lang.addNested(0x54, 0x4f, "print-debug-string", &.{.string});
     lang.addNested(0x54, 0x5b, "print-debug-start", &.{});
+
+    lang.add(0x55, "print-image", &.{});
 
     lang.addNested(0x57, 0x23, "print-system-printf", &.{.string});
     lang.addNested(0x57, 0x4f, "print-system-string", &.{.string});
@@ -670,16 +677,20 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x79, 0x00, "sprite-select", &.{});
     lang.addNested(0x79, 0x03, "sprite-set-animation-type", &.{});
     lang.addNested(0x79, 0x06, "sprite-set-position", &.{});
+    lang.addNested(0x79, 0x07, "sprite-set-source-image", &.{});
     lang.addNested(0x79, 0x10, "sprite-set-class", &.{});
     lang.addNested(0x79, 0x20, "sprite-erase", &.{});
     lang.addNested(0x79, 0x26, "sprite-set-group", &.{});
     lang.addNested(0x79, 0x28, "sprite-mask-image", &.{});
+    lang.addNested(0x79, 0x31, "sprite-move", &.{});
     lang.addNested(0x79, 0x35, "sprite-new", &.{});
+    lang.addNested(0x79, 0x36, "sprite-set-property2", &.{});
     lang.addNested(0x79, 0x39, "sprite-set-palette", &.{});
     lang.addNested(0x79, 0x3b, "sprite-set-order", &.{});
     lang.addNested(0x79, 0x3c, "sprite-set-property", &.{});
     lang.addNested(0x79, 0x49, "sprite-set-state", &.{});
     lang.addNested(0x79, 0x52, "sprite-set-update-type", &.{});
+    lang.addNested(0x79, 0x53, "sprite-set-variable", &.{});
 
     lang.addNested(0x7b, 0x5a, "start-object", &.{});
     lang.addNested(0x7b, 0x82, "start-object-rec", &.{});
@@ -696,6 +707,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x86, "set-array-item-2d", &.{.variable});
     lang.add(0x87, "sub", &.{});
 
+    lang.addNested(0x88, 0x84, "quit", &.{});
     lang.addNested(0x88, 0x85, "quit-quit", &.{});
 
     lang.add(0x89, "unknown-89", &.{.u8});
@@ -705,6 +717,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x8b, 0x81, "cursor-color", &.{});
     lang.addNested(0x8b, 0x86, "cursor-on", &.{});
     lang.addNested(0x8b, 0x87, "cursor-off", &.{});
+    lang.addNested(0x8b, 0x8b, "userput-on", &.{});
     lang.addNested(0x8b, 0x8c, "userput-off", &.{});
 
     lang.addNested(0x8c, 0x00, "video-select", &.{});
@@ -737,6 +750,8 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0xb5, 0x01, "array-get-dim", &.{.variable});
     lang.addNested(0xb5, 0x02, "array-get-height", &.{.variable});
     lang.addNested(0xb5, 0x05, "array-get-x-end", &.{.variable});
+    lang.addNested(0xb5, 0x06, "array-get-y-start", &.{.variable});
+    lang.addNested(0xb5, 0x07, "array-get-y-end", &.{.variable});
 
     lang.addNested(0xb7, 0x48, "sound-size", &.{});
 
@@ -744,7 +759,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0xba, 0x1a, "image-get-state-count", &.{});
     lang.addNested(0xba, 0x27, "image-get-height", &.{});
-    lang.addNested(0xba, 0x36, "image-get-property", &.{});
+    lang.addNested(0xba, 0x36, "image-get-property2", &.{});
     lang.addNested(0xba, 0x54, "image-get-width", &.{});
     lang.addNested(0xba, 0x55, "image-get-object-x", &.{});
     lang.addNested(0xba, 0x56, "image-get-object-y", &.{});
@@ -757,6 +772,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0xc2, "get-object-image-y", &.{});
     lang.add(0xc5, "open-file", &.{});
 
+    lang.addNested(0xc8, 0x14, "palette-color", &.{});
     lang.addNested(0xc8, 0x35, "rgb", &.{});
 
     lang.add(0xcb, "pick-random", &.{.variable});
@@ -776,17 +792,21 @@ fn builtBasketballLanguage() Language {
     lang.add(0xd9, "sound-running", &.{});
 
     lang.addNested(0xdb, 0x10, "sprite-class", &.{});
+    lang.addNested(0xdb, 0x1a, "sprite-get-state-count", &.{});
     lang.addNested(0xdb, 0x1e, "sprite-get-object-draw-x", &.{});
     lang.addNested(0xdb, 0x1f, "sprite-get-object-draw-y", &.{});
     lang.addNested(0xdb, 0x21, "find-sprite", &.{});
+    lang.addNested(0xdb, 0x27, "sprite-get-height", &.{});
     lang.addNested(0xdb, 0x28, "sprite-get-image", &.{});
     lang.addNested(0xdb, 0x3b, "sprite-get-order", &.{});
     lang.addNested(0xdb, 0x49, "sprite-get-state", &.{});
     lang.addNested(0xdb, 0x53, "sprite-get-variable", &.{});
+    lang.addNested(0xdb, 0x54, "sprite-get-width", &.{});
     lang.addNested(0xdb, 0x55, "sprite-get-object-x", &.{});
     lang.addNested(0xdb, 0x56, "sprite-get-object-y", &.{});
 
     lang.add(0xde, "call-script", &.{});
+    lang.add(0xe1, "string-copy", &.{});
     lang.add(0xe2, "string-substr", &.{});
     lang.add(0xe4, "string-length", &.{});
     lang.add(0xe5, "string-margin", &.{});
