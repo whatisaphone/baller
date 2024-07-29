@@ -532,6 +532,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x00, 0x3f, "actor-set-room-palette", &.{});
     lang.addNested(0x00, 0x53, "actor-set-variable", &.{});
     lang.addNested(0x00, 0x81, "actor-select", &.{});
+    lang.addNested(0x00, 0x82, "actor-set-sounds", &.{});
     lang.addNested(0x00, 0x87, "actor-ignore-boxes", &.{});
 
     lang.add(0x01, "add", &.{});
@@ -562,6 +563,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x19, "debug", &.{});
     lang.add(0x1b, "dec", &.{.variable});
     lang.add(0x1c, "dec-array-item", &.{.variable});
+    lang.add(0x1d, "delete-file", &.{});
     lang.add(0x1e, "dim-array-2d", &.{ .u8, .variable });
     // TODO: first operand is item size; 0x87 means undim
     lang.add(0x1f, "dim-array", &.{ .u8, .variable });
@@ -595,6 +597,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x34, 0x85, "resource-nuke", &.{});
     lang.addNested(0x34, 0x86, "resource-off-heap", &.{});
     lang.addNested(0x34, 0x87, "resource-on-heap", &.{});
+    lang.addNested(0x34, 0x88, "resource-preload", &.{});
 
     lang.add(0x35, "jump-if", &.{.relative_offset});
     lang.add(0x36, "jump-unless", &.{.relative_offset});
@@ -698,7 +701,9 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x77, 0x06, "sound-at", &.{});
     lang.addNested(0x77, 0x5c, "sound-start", &.{});
     lang.addNested(0x77, 0x81, "sound-channel", &.{});
+    lang.addNested(0x77, 0x83, "sound-looping", &.{});
     lang.addNested(0x77, 0x84, "sound-select-modify", &.{});
+    lang.addNested(0x77, 0x85, "sound-pan", &.{});
     lang.addNested(0x77, 0x86, "sound-select", &.{});
     lang.addNested(0x77, 0x87, "sound-soft", &.{});
     lang.addNested(0x77, 0x88, "sound-volume", &.{});
@@ -762,6 +767,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x8d, 0x82, "wait-for-message", &.{});
 
     lang.addNested(0x90, 0x05, "write-file-int8", &.{.u8});
+    lang.addNested(0x90, 0x2b, "write-file-int32", &.{});
 
     lang.addNested(0x91, 0x2b, "write-system-ini-int", &.{});
     lang.addNested(0x91, 0x4d, "write-system-ini-string", &.{});
@@ -824,6 +830,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0xd1, "random-between", &.{});
 
     lang.addNested(0xd3, 0x05, "read-file-int8", &.{.u8});
+    lang.addNested(0xd3, 0x2b, "read-file-int32", &.{});
 
     lang.addNested(0xd4, 0x2b, "read-system-ini-int", &.{});
     lang.addNested(0xd4, 0x4d, "read-system-ini-string", &.{});
@@ -836,6 +843,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0xd8, "sound-position", &.{});
     lang.add(0xd9, "sound-running", &.{});
 
+    lang.addNested(0xdb, 0x07, "sprite-get-image-at", &.{});
     lang.addNested(0xdb, 0x10, "sprite-class", &.{});
     lang.addNested(0xdb, 0x1a, "sprite-get-state-count", &.{});
     lang.addNested(0xdb, 0x1e, "sprite-get-object-draw-x", &.{});
@@ -852,6 +860,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0xdb, 0x56, "sprite-get-object-y", &.{});
 
     lang.add(0xde, "call-script", &.{});
+    lang.add(0xe0, "string-compare", &.{});
     lang.add(0xe1, "string-copy", &.{});
     lang.add(0xe2, "string-substr", &.{});
     lang.add(0xe4, "string-length", &.{});
@@ -859,6 +868,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0xe6, "string-number", &.{});
     lang.add(0xe7, "string-search", &.{});
     lang.add(0xe8, "string-width", &.{});
+    lang.add(0xe9, "tell-file", &.{});
 
     lang.addNested(0xea, 0x32, "get-timer", &.{});
 
