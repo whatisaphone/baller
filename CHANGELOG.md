@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added support for Backyard Soccer
+- Added support for Backyard Soccer, Football, and Basketball
 
 ## v0.3.0 – 2024-07-17
 
