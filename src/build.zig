@@ -51,12 +51,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
     const game = try games.detectGameOrFatal(output_path);
 
-    // Create output dir. Borrow the slash temporarily to get the dir name
-    const output_path_slash = std.mem.lastIndexOfScalar(u8, output_path, '/') orelse
-        return error.CommandLine;
-    output_path[output_path_slash] = 0;
-    try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path[0..output_path_slash :0]);
-    output_path[output_path_slash] = '/';
+    try fs.makeParentDirIfNotExist(std.fs.cwd(), output_path);
 
     const project_txt_file = try std.fs.cwd().openFileZ(project_txt_path, .{});
     defer project_txt_file.close();
@@ -68,7 +63,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     defer prst.deinit(allocator);
 
     try prst.cur_path.appendSlice(project_txt_path);
-    pathf.popFile(&prst.cur_path);
+    try pathf.popFile(&prst.cur_path);
 
     if (games.hasDisk(game))
         prst.index.lfl_disks = .{};

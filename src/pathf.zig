@@ -40,9 +40,9 @@ pub fn appendBlockPath(
     return print(buf, "{s}_{:0>4}.{s}", .{ blockIdToStr(&block_id), number, ext });
 }
 
-pub fn popFile(buf: *Path) void {
-    const slash = std.mem.lastIndexOfScalar(u8, buf.slice(), '/');
-    buf.len = if (slash) |s| @intCast(s + 1) else 0;
+pub fn popFile(buf: *Path) !void {
+    const dirname = std.fs.path.dirname(buf.slice()) orelse return error.BadPathName;
+    buf.len = @intCast(dirname.len + 1);
 }
 
 pub const PrintedPath = struct {

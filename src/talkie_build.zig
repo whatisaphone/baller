@@ -40,7 +40,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
     var cur_path = std.BoundedArray(u8, 4095){};
     try cur_path.appendSlice(args.manifest_path);
-    pathf.popFile(&cur_path);
+    try pathf.popFile(&cur_path);
 
     const output_file = try std.fs.cwd().createFileZ(args.output_path, .{});
     defer output_file.close();

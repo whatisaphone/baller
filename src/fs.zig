@@ -38,3 +38,15 @@ pub fn makeDirIfNotExistZ(dir: std.fs.Dir, sub_path: [*:0]const u8) !void {
         else => return err,
     };
 }
+
+pub fn makeParentDirIfNotExist(dir: std.fs.Dir, sub_path: []u8) !void {
+    const dirname = std.fs.path.dirname(sub_path) orelse return error.BadPathName;
+    const slash_index = dirname.len;
+
+    // Borrow the slash character temporarily to get a null-terminated dirname.
+    const old_slash = sub_path[slash_index];
+    sub_path[slash_index] = 0;
+    defer sub_path[slash_index] = old_slash;
+
+    try makeDirIfNotExistZ(dir, sub_path[0..slash_index :0]);
+}
