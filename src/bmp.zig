@@ -96,7 +96,7 @@ pub const Bmp = struct {
         return @intCast(@abs(self.header.biHeight));
     }
 
-    pub fn iterPixels(self: *const Bmp) PixelIter {
+    pub fn iterPixels(self: *const Bmp) !PixelIter {
         return PixelIter.init(self.header, self.pixels);
     }
 
@@ -117,9 +117,12 @@ pub const PixelIter = union(enum) {
         x: u32,
     },
 
-    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) PixelIter {
+    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !PixelIter {
         const width: u32 = @intCast(header.biWidth);
         const top_down = header.biHeight < 0;
+
+        if (width & 3 != 0)
+            return error.BadData; // TODO: handle stride
 
         if (top_down)
             return .{ .top_down = .{

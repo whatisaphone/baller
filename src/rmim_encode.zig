@@ -18,9 +18,6 @@ pub fn encode(
 ) !void {
     const header = try bmp.readHeader(bmp_raw);
 
-    if (header.width() & 3 != 0)
-        return error.BadData; // TODO: handle stride
-
     const rmih_fixup = try beginBlock(out, "RMIH");
     try out.writer().writeInt(u16, 0, .little);
     try endBlock(out, fixups, rmih_fixup);
@@ -43,7 +40,7 @@ pub fn encode(
 fn compressBmap(header: bmp.Bmp, writer: anytype) !void {
     var out = std.io.bitWriter(.little, writer);
 
-    var pixit = header.iterPixels();
+    var pixit = try header.iterPixels();
 
     var current = pixit.next() orelse return error.EndOfStream;
     try out.writeBits(current, 8);
