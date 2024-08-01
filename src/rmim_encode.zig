@@ -16,9 +16,9 @@ pub fn encode(
     out: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    const header, const pixels = try bmp.readHeader(bmp_raw);
+    const header = try bmp.readHeader(bmp_raw);
 
-    if (header.biWidth & 3 != 0)
+    if (header.width() & 3 != 0)
         return error.BadData; // TODO: handle stride
 
     const rmih_fixup = try beginBlock(out, "RMIH");
@@ -33,21 +33,17 @@ pub fn encode(
     if (compression != BMCOMP_NMAJMIN_H8 and compression != BMCOMP_NMAJMIN_HT8)
         return error.BadData;
     try out.writer().writeByte(compression);
-    try compressBmap(header, pixels, out.writer());
+    try compressBmap(header, out.writer());
 
     try endBlock(out, fixups, bmap_fixup);
 
     try endBlock(out, fixups, im00_fixup);
 }
 
-fn compressBmap(
-    header: *align(1) const bmp.BITMAPINFOHEADER,
-    pixels: []const u8,
-    writer: anytype,
-) !void {
+fn compressBmap(header: bmp.Bmp, writer: anytype) !void {
     var out = std.io.bitWriter(.little, writer);
 
-    var pixit = bmp.PixelIter.init(header, pixels);
+    var pixit = header.iterPixels();
 
     var current = pixit.next() orelse return error.EndOfStream;
     try out.writeBits(current, 8);

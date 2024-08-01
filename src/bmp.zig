@@ -30,7 +30,14 @@ pub const BITMAPINFOHEADER = packed struct {
     biClrImportant: u32,
 };
 
-pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, []const u8 } {
+const RGBQUAD = extern struct {
+    rgbBlue: u8,
+    rgbGreen: u8,
+    rgbRed: u8,
+    rgbReserved: u8,
+};
+
+pub fn readHeader(bmp: []const u8) !Bmp {
     if (bmp.len < bitmap_file_header_size + bitmap_info_header_size)
         return error.BadData;
 
@@ -46,7 +53,7 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
         !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
         return error.BadData;
 
-    // Other code assumes width and height fit in 31 bits
+    // Bmp.width/height assumes these fit in 31 bits
     _ = std.math.cast(u31, info_header.biWidth) orelse
         return error.BadData;
     _ = std.math.cast(u31, @abs(info_header.biHeight)) orelse
@@ -54,6 +61,10 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
 
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
+
+    const palette_start = bitmap_file_header_size + bitmap_info_header_size;
+    const palette: *const [num_colors]RGBQUAD =
+        @ptrCast(bmp[palette_start..][0 .. num_colors * @sizeOf(RGBQUAD)]);
 
     const pixels = bmp[file_header.bfOffBits..];
 
@@ -65,8 +76,34 @@ pub fn readHeader(bmp: []const u8) !struct { *align(1) const BITMAPINFOHEADER, [
     // Anyway, that's why we skip checking pixels.len here and do it in the
     // iterators instead.
 
-    return .{ info_header, pixels };
+    return .{
+        .header = info_header,
+        .palette = palette,
+        .pixels = pixels,
+    };
 }
+
+pub const Bmp = struct {
+    header: *align(1) const BITMAPINFOHEADER,
+    palette: *const [num_colors]RGBQUAD,
+    pixels: []const u8,
+
+    pub fn width(self: *const Bmp) u31 {
+        return @intCast(self.header.biWidth);
+    }
+
+    pub fn height(self: *const Bmp) u31 {
+        return @intCast(@abs(self.header.biHeight));
+    }
+
+    pub fn iterPixels(self: *const Bmp) PixelIter {
+        return PixelIter.init(self.header, self.pixels);
+    }
+
+    pub fn iterRows(self: *const Bmp) !RowIter {
+        return RowIter.init(self.header, self.pixels);
+    }
+};
 
 pub const PixelIter = union(enum) {
     top_down: struct {
@@ -80,7 +117,7 @@ pub const PixelIter = union(enum) {
         x: u32,
     },
 
-    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) PixelIter {
+    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) PixelIter {
         const width: u32 = @intCast(header.biWidth);
         const top_down = header.biHeight < 0;
 
@@ -135,7 +172,7 @@ pub const RowIter = struct {
     width: u31,
     stride: i32,
 
-    pub fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
+    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
         const width: u31 = @intCast(header.biWidth);
         const height: u31 = @intCast(@abs(header.biHeight));
         const stride = calcStride(width);

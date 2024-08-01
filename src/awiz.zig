@@ -161,9 +161,7 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
             break block.wizd;
     } else return error.BadData;
 
-    const header, const pixels = try bmp.readHeader(bmp_raw.items);
-    const width: u31 = @intCast(header.biWidth);
-    const height: u31 = @intCast(@abs(header.biHeight));
+    const header = try bmp.readHeader(bmp_raw.items);
 
     // Now write the blocks in the requested order
 
@@ -177,24 +175,20 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
         .wizh => {
             const fixup = try beginBlock(out, "WIZH");
             try out.writer().writeInt(i32, 1, .little); // compression type RLE
-            try out.writer().writeInt(i32, width, .little);
-            try out.writer().writeInt(i32, height, .little);
+            try out.writer().writeInt(i32, header.width(), .little);
+            try out.writer().writeInt(i32, header.height(), .little);
             try endBlock(out, fixups, fixup);
         },
         .wizd => |_| {
             const fixup = try beginBlock(out, "WIZD");
-            try encodeRle(header, pixels, out.writer());
+            try encodeRle(header, out.writer());
             try endBlock(out, fixups, fixup);
         },
     };
 }
 
-fn encodeRle(
-    header: *align(1) const bmp.BITMAPINFOHEADER,
-    pixels: []const u8,
-    out: anytype,
-) !void {
-    var rows = try bmp.RowIter.init(header, pixels);
+fn encodeRle(header: bmp.Bmp, out: anytype) !void {
+    var rows = try header.iterRows();
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte
