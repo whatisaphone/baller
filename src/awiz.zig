@@ -20,13 +20,14 @@ pub const Awiz = struct {
 
     pub fn deinit(self: *Awiz, allocator: std.mem.Allocator) void {
         for (self.blocks.slice()) |*block| switch (block.*) {
-            .two_ints, .wizh => {},
+            .rgbs, .two_ints, .wizh => {},
             .wizd => |*a| a.deinit(allocator),
         };
     }
 };
 
 const Block = union(enum) {
+    rgbs,
     two_ints: struct { id: BlockId, ints: [2]i32 },
     wizh,
     /// A raw BMP file
@@ -57,6 +58,8 @@ pub fn decode(
                 if (len != expected_rgbs_len)
                     return error.BadData;
                 rgbs_opt = try io.readInPlaceBytes(&reader, expected_rgbs_len);
+
+                try result.blocks.append(.rgbs);
             },
             blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
                 if (len != 8)
@@ -166,6 +169,11 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
     // Now write the blocks in the requested order
 
     for (wiz.blocks.slice()) |block| switch (block) {
+        .rgbs => {
+            const fixup = try beginBlock(out, "RGBS");
+            try writeRgbs(header, out);
+            try endBlock(out, fixups, fixup);
+        },
         .two_ints => |b| {
             const fixup = try beginBlockImpl(out, b.id);
             try out.writer().writeInt(i32, b.ints[0], .little);
@@ -185,6 +193,14 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
             try endBlock(out, fixups, fixup);
         },
     };
+}
+
+fn writeRgbs(header: bmp.Bmp, out: anytype) !void {
+    for (header.palette) |color| {
+        try out.writer().writeByte(color.rgbRed);
+        try out.writer().writeByte(color.rgbGreen);
+        try out.writer().writeByte(color.rgbBlue);
+    }
 }
 
 fn encodeRle(header: bmp.Bmp, out: anytype) !void {

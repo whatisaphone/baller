@@ -1125,7 +1125,7 @@ fn decodeAwizIntoPath(
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {
-        .two_ints, .wizh => {},
+        .rgbs, .two_ints, .wizh => {},
         .wizd => |bmp_data| {
             try fs.writeFileZ(std.fs.cwd(), path, bmp_data.items);
         },
@@ -1159,6 +1159,9 @@ fn writeAwizChildrenGivenBmpPath(
         for (0..indent * 4) |_|
             try out.writeByte(' ');
         switch (block) {
+            .rgbs => {
+                try out.writeAll("RGBS\n");
+            },
             .two_ints => |b| {
                 try out.print(
                     "{s} {} {}\n",

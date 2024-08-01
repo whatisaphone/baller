@@ -686,6 +686,9 @@ fn readAwizLines(
             break;
         const block_id = parseBlockId(keyword) orelse return error.BadData;
         switch (block_id) {
+            blockId("RGBS") => {
+                try wiz.blocks.append(.rgbs);
+            },
             blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
                 const str1 = split.next() orelse return error.BadData;
                 const str2 = split.next() orelse return error.BadData;
