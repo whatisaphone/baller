@@ -8,8 +8,6 @@ const io = @import("io.zig");
 const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
 const BMCOMP_NMAJMIN_HT8 = @import("rmim.zig").BMCOMP_NMAJMIN_HT8;
 
-const num_colors = 256;
-
 pub fn encode(
     compression: u8,
     bmp_raw: []const u8,
