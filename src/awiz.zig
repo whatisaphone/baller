@@ -39,6 +39,7 @@ pub fn decode(
     rmda_raw: []const u8,
 ) !Awiz {
     var result: Awiz = .{};
+    var rgbs_opt: ?*const [0x300]u8 = null;
     var wizh_opt: ?struct {
         compression: i32,
         width: u31,
@@ -51,6 +52,12 @@ pub fn decode(
     while (try awiz_blocks.peek() != comptime blockId("WIZD")) {
         const id, const len = try awiz_blocks.next();
         switch (id) {
+            blockId("RGBS") => {
+                const expected_rgbs_len = 0x300;
+                if (len != expected_rgbs_len)
+                    return error.BadData;
+                rgbs_opt = try io.readInPlaceBytes(&reader, expected_rgbs_len);
+            },
             blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
                 if (len != 8)
                     return error.BadData;
@@ -105,8 +112,8 @@ pub fn decode(
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
 
-    const apal = try rmim.findApalInRmda(rmda_raw);
-    try bmp.writePalette(bmp_writer, apal);
+    const palette = rgbs_opt orelse try rmim.findApalInRmda(rmda_raw);
+    try bmp.writePalette(bmp_writer, palette);
 
     // based on ScummVM's auxDecompTRLEPrim
     for (0..height) |_| {

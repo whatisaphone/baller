@@ -75,7 +75,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     try expectStatDecodedAll(&result.block_stats, "SCRP");
     try expectStatDecodedCount(&result.block_stats, "SOUN", 0);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 962);
+    try expectStatDecodedCount(&result.block_stats, "AWIZ", 988);
     try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
@@ -124,7 +124,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "DIGI", 3652);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 637);
+    try expectStatDecodedCount(&result.block_stats, "AWIZ", 747);
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedCount(&result.block_stats, "TALK", 529);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
@@ -175,7 +175,7 @@ test "Backyard Soccer round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "DIGI", 1594);
     try expectStatDecodedCount(&result.block_stats, "TALK", 141);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 1109);
+    try expectStatDecodedCount(&result.block_stats, "AWIZ", 1167);
     try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
@@ -225,7 +225,7 @@ test "Backyard Football round trip decode/encode" {
     try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1109);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 922);
+    try expectStatDecodedCount(&result.block_stats, "AWIZ", 1030);
     try expectStatDecodedCount(&result.block_stats, "TALK", 549);
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
     try expectStatDecodedAll(&result.block_stats, "SCRP");
@@ -275,7 +275,7 @@ test "Backyard Basketball round trip decode/encode" {
     try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 113);
+    try expectStatDecodedCount(&result.block_stats, "AWIZ", 160);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
     try expectStatDecodedAll(&result.block_stats, "SCRP");
     try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
