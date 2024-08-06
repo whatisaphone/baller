@@ -25,3 +25,35 @@ fn AddUnsignedSigned(X: type, Y: type) type {
         .bits = bits,
     } });
 }
+
+pub fn growArrayList(
+    T: type,
+    xs: *std.ArrayListUnmanaged(T),
+    allocator: std.mem.Allocator,
+    minimum_len: usize,
+    fill: T,
+) !void {
+    if (xs.items.len >= minimum_len)
+        return;
+
+    try xs.ensureTotalCapacity(allocator, minimum_len);
+    @memset(xs.allocatedSlice()[xs.items.len..minimum_len], fill);
+    xs.items.len = minimum_len;
+}
+
+pub fn growMultiArrayList(
+    T: type,
+    xs: *std.MultiArrayList(T),
+    allocator: std.mem.Allocator,
+    minimum_len: usize,
+    fill: T,
+) !void {
+    if (xs.len >= minimum_len)
+        return;
+
+    // XXX: This could be more efficient by setting each field array all at once.
+    try xs.ensureTotalCapacity(allocator, minimum_len);
+    while (xs.len < minimum_len)
+        xs.appendAssumeCapacity(fill);
+}
+

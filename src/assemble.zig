@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 
 pub fn assemble(
@@ -9,6 +10,7 @@ pub fn assemble(
         *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     },
     asm_str: []const u8,
+    symbols: *const Symbols,
 ) !std.ArrayListUnmanaged(u8) {
     const language, const inss = language_stuff;
 
@@ -81,7 +83,7 @@ pub fn assemble(
                     _ = try bytecode.addManyAsSlice(allocator, 2);
                 },
                 .variable => {
-                    const variable, rest = try tokenizeVariable(rest);
+                    const variable, rest = try tokenizeVariable(rest, symbols);
                     try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
                 },
                 .string => {
@@ -128,10 +130,20 @@ fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
     return .{ int, rest };
 }
 
-fn tokenizeVariable(str: []const u8) !struct { lang.Variable, []const u8 } {
+fn tokenizeVariable(
+    str: []const u8,
+    symbols: *const Symbols,
+) !struct { lang.Variable, []const u8 } {
     var split = std.mem.tokenizeScalar(u8, str, ' ');
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
+    const variable = try parseVariable(var_str, symbols);
+    return .{ variable, rest };
+}
+
+fn parseVariable(var_str: []const u8, symbols: *const Symbols) !lang.Variable {
+    if (symbols.global_names.get(var_str)) |num|
+        return lang.Variable.init(.{ .global = num });
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))
@@ -145,12 +157,11 @@ fn tokenizeVariable(str: []const u8) !struct { lang.Variable, []const u8 } {
 
     const num = try std.fmt.parseInt(u14, num_str, 10);
 
-    const variable = switch (kind) {
+    return switch (kind) {
         .global => lang.Variable.init(.{ .global = num }),
         .local => lang.Variable.init(.{ .local = num }),
         .room => lang.Variable.init(.{ .room = num }),
     };
-    return .{ variable, rest };
 }
 
 fn tokenizeString(str: []const u8) !struct { []const u8, []const u8 } {

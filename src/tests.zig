@@ -50,6 +50,7 @@ test "Backyard Baseball 1997 round trip raw" {
         "baseball1997",
         "BASEBALL.HE0",
         true,
+        null,
         &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
     );
     defer result.deinit(allocator);
@@ -63,6 +64,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         "baseball1997",
         "BASEBALL.HE0",
         false,
+        null,
         &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
     );
     defer result.deinit(allocator);
@@ -104,11 +106,13 @@ test "Backyard Baseball 2001 round trip raw" {
         "baseball2001",
         "baseball 2001.he0",
         true,
+        null,
         &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
     );
     defer result.deinit(allocator);
 }
 
+// NOTE: this is the only one that tests symbols.
 test "Backyard Baseball 2001 round trip decode/encode" {
     const allocator = std.testing.allocator;
 
@@ -117,6 +121,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         "baseball2001",
         "baseball 2001.he0",
         false,
+        "fixtures/baseball2001-symbols.ini",
         &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
     );
     defer result.deinit(allocator);
@@ -159,6 +164,7 @@ test "Backyard Soccer round trip raw" {
         "soccer",
         "SOCCER.HE0",
         true,
+        null,
         &.{ "SOCCER.HE0", "SOCCER.(A)" },
     );
     defer result.deinit(allocator);
@@ -172,6 +178,7 @@ test "Backyard Soccer round trip decode/encode" {
         "soccer",
         "SOCCER.HE0",
         false,
+        null,
         &.{ "SOCCER.HE0", "SOCCER.(A)" },
     );
     defer result.deinit(allocator);
@@ -214,6 +221,7 @@ test "Backyard Football round trip raw" {
         "football",
         "FOOTBALL.HE0",
         true,
+        null,
         &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
     );
     defer result.deinit(allocator);
@@ -227,6 +235,7 @@ test "Backyard Football round trip decode/encode" {
         "football",
         "FOOTBALL.HE0",
         false,
+        null,
         &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
     );
     defer result.deinit(allocator);
@@ -268,6 +277,7 @@ test "Backyard Basketball round trip raw" {
         "basketball",
         "Basketball.he0",
         true,
+        null,
         &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
     );
     defer result.deinit(allocator);
@@ -281,6 +291,7 @@ test "Backyard Basketball round trip decode/encode" {
         "basketball",
         "Basketball.he0",
         false,
+        null,
         &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
     );
     defer result.deinit(allocator);
@@ -319,6 +330,7 @@ fn testRoundTrip(
     comptime fixture_dir: []const u8,
     comptime index_name: []const u8,
     raw: bool,
+    comptime symbols_path: ?[]const u8,
     comptime fixture_names: []const []const u8,
 ) !extract.Result {
     // Build temp dirs for this test
@@ -338,6 +350,8 @@ fn testRoundTrip(
 
     // Extract
 
+    const symbols_text = if (symbols_path) |path| @embedFile(path) else "";
+
     var result = try extract.run(allocator, &.{
         .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
         .output_path = extract_dir,
@@ -347,6 +361,7 @@ fn testRoundTrip(
         // TODO: swap these once AWIZ round trips
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
         .mult_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
+        .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);
 

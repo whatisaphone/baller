@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Symbols = @import("Symbols.zig");
 const assemble = @import("assemble.zig");
 const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
@@ -18,6 +19,7 @@ const io = @import("io.zig");
 const lang = @import("lang.zig");
 const pathf = @import("pathf.zig");
 const rmim_encode = @import("rmim_encode.zig");
+const utils = @import("utils.zig");
 
 pub const xor_key = 0x69;
 
@@ -99,9 +101,12 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             error.EndOfStream => break,
             else => return err,
         };
-        if (!std.mem.startsWith(u8, project_line, "room "))
+        if (std.mem.startsWith(u8, project_line, "symbols "))
+            try loadSymbols(allocator, project_line[8..], &prst)
+        else if (std.mem.startsWith(u8, project_line, "room "))
+            try buildRoom(allocator, project_line[5..], &prst, &cur_state, output_path)
+        else
             return error.BadData;
-        try buildRoom(allocator, project_line[5..], &prst, &cur_state, output_path);
     }
 
     if (cur_state) |*state| {
@@ -111,6 +116,22 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     }
 
     try writeIndex(allocator, &prst, output_path, args.attribution);
+}
+
+fn loadSymbols(
+    allocator: std.mem.Allocator,
+    relative_path: []const u8,
+    prst: *ProjectState,
+) !void {
+    const path = try pathf.append(&prst.cur_path, relative_path);
+    defer path.restore();
+
+    // don't load symbols more than once
+    if (prst.symbols_text.len != 0)
+        return error.BadData;
+
+    prst.symbols_text = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
+    prst.symbols = try Symbols.parse(allocator, prst.symbols_text);
 }
 
 fn buildRoom(
@@ -132,7 +153,7 @@ fn buildRoom(
     const room_number = try std.fmt.parseInt(u8, room_number_str, 10);
     if (room_number < 1) return error.BadData;
 
-    try growArrayList([]u8, &prst.index.room_names, allocator, room_number + 1, &.{});
+    try utils.growArrayList([]u8, &prst.index.room_names, allocator, room_number + 1, &.{});
     prst.index.room_names.items[room_number] = try allocator.dupe(u8, room_name);
 
     if (cur_state.*) |*state| if (state.disk_number != disk_number) {
@@ -165,14 +186,14 @@ fn buildRoom(
     const lflf_fixup = try beginBlock(&state.writer, "LFLF");
 
     if (prst.index.lfl_disks) |*lfl_disks| {
-        try growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
+        try utils.growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
         lfl_disks.items[room_number] = disk_number;
     } else {
         if (disk_number != 1)
             return error.BadData;
     }
 
-    try growArrayList(u32, &prst.index.lfl_offsets, allocator, room_number + 1, 0);
+    try utils.growArrayList(u32, &prst.index.lfl_offsets, allocator, room_number + 1, 0);
     prst.index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
 
     while (true) {
@@ -433,7 +454,12 @@ fn handleRmda(
             const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
             defer allocator.free(asm_str);
 
-            var bytecode = try assemble.assemble(allocator, prst.languageStuff(), asm_str);
+            var bytecode = try assemble.assemble(
+                allocator,
+                prst.languageStuff(),
+                asm_str,
+                &prst.symbols,
+            );
             defer bytecode.deinit(allocator);
 
             const fixup = try beginBlockImpl(&state.writer, block_id);
@@ -542,7 +568,12 @@ fn handleScrpAsm(
 
     const scrp_fixup = try beginBlock(&state.writer, "SCRP");
 
-    var bytecode = try assemble.assemble(allocator, prst.languageStuff(), asm_string);
+    var bytecode = try assemble.assemble(
+        allocator,
+        prst.languageStuff(),
+        asm_string,
+        &prst.symbols,
+    );
     defer bytecode.deinit(allocator);
 
     try state.writer.writer().writeAll(bytecode.items);
@@ -907,7 +938,7 @@ fn addGlobToDirectory(
 ) !void {
     const directory = directoryForBlockId(&prst.index.directories, block_id) orelse
         return error.BadData;
-    try growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
+    try utils.growMultiArrayList(DirectoryEntry, directory, allocator, glob_number + 1, .{
         .room = 0,
         .offset = 0,
         .len = games.directoryNonPresentLen(prst.game),
@@ -1061,6 +1092,8 @@ const ProjectState = struct {
     index: Index,
     language: lang.Language,
     ins_map: std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    symbols_text: []const u8,
+    symbols: Symbols,
 
     fn init(allocator: std.mem.Allocator, game: games.Game) !ProjectState {
         var result: ProjectState = undefined;
@@ -1070,10 +1103,14 @@ const ProjectState = struct {
         result.language = lang.buildLanguage(game);
         result.ins_map = try lang.buildInsMap(allocator, &result.language);
         errdefer result.ins_map.deinit(allocator);
+        result.symbols_text = "";
+        result.symbols = .{};
         return result;
     }
 
     fn deinit(self: *ProjectState, allocator: std.mem.Allocator) void {
+        self.symbols.deinit(allocator);
+        allocator.free(self.symbols_text);
         self.ins_map.deinit(allocator);
         self.index.deinit(allocator);
     }
@@ -1184,35 +1221,4 @@ fn directoryForBlockId(
         blockId("TLKE") => &directories.talkies,
         else => null,
     };
-}
-
-fn growArrayList(
-    T: type,
-    xs: *std.ArrayListUnmanaged(T),
-    allocator: std.mem.Allocator,
-    minimum_len: usize,
-    fill: T,
-) !void {
-    if (xs.items.len >= minimum_len)
-        return;
-
-    try xs.ensureTotalCapacity(allocator, minimum_len);
-    @memset(xs.allocatedSlice()[xs.items.len..minimum_len], fill);
-    xs.items.len = minimum_len;
-}
-
-fn growMultiArrayList(
-    T: type,
-    xs: *std.MultiArrayList(T),
-    allocator: std.mem.Allocator,
-    minimum_len: usize,
-    fill: T,
-) !void {
-    if (xs.len >= minimum_len)
-        return;
-
-    // XXX: This could be more efficient by setting each field array all at once.
-    try xs.ensureTotalCapacity(allocator, minimum_len);
-    while (xs.len < minimum_len)
-        xs.appendAssumeCapacity(fill);
 }

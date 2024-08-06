@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
@@ -7,10 +8,18 @@ pub fn disassemble(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
     bytecode: []const u8,
+    symbols: *const Symbols,
     out: anytype,
     diagnostic: anytype,
 ) !void {
-    disassembleInner(allocator, language, bytecode, out, diagnostic) catch |err| switch (err) {
+    disassembleInner(
+        allocator,
+        language,
+        bytecode,
+        symbols,
+        out,
+        diagnostic,
+    ) catch |err| switch (err) {
         error.BadData, error.EndOfStream => return error.BadData,
         else => return err,
     };
@@ -20,6 +29,7 @@ pub fn disassembleInner(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
     bytecode: []const u8,
+    symbols: *const Symbols,
     out: anytype,
     diagnostic: anytype,
 ) !void {
@@ -60,7 +70,7 @@ pub fn disassembleInner(
         try out.writeAll(ins.name);
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitOperand(op, ins.end, out);
+            try emitOperand(op, ins.end, out, symbols);
         }
         try out.writeByte('\n');
     }
@@ -111,7 +121,7 @@ fn emitLabel(pc: u16, out: anytype) !void {
     try out.print("L_{x:0>4}", .{pc});
 }
 
-fn emitOperand(op: lang.Operand, pc: u16, out: anytype) !void {
+fn emitOperand(op: lang.Operand, pc: u16, out: anytype, config: *const Symbols) !void {
     switch (op) {
         .u8, .i16, .i32 => |n| {
             try out.print("{}", .{n});
@@ -122,7 +132,7 @@ fn emitOperand(op: lang.Operand, pc: u16, out: anytype) !void {
             try emitLabel(abs, out);
         },
         .variable => |v| {
-            try emitVariable(out, v);
+            try emitVariable(out, v, config);
         },
         .string => |s| {
             // TODO: escaping
@@ -133,9 +143,18 @@ fn emitOperand(op: lang.Operand, pc: u16, out: anytype) !void {
     }
 }
 
-fn emitVariable(out: anytype, variable: lang.Variable) !void {
+fn emitVariable(out: anytype, variable: lang.Variable, symbols: *const Symbols) !void {
     switch (try variable.decode()) {
-        .global => |num| try out.print("global{}", .{num}),
+        .global => |num| {
+            const name_opt = if (num < symbols.globals.items.len)
+                symbols.globals.items[num]
+            else
+                null;
+            if (name_opt) |name|
+                try out.writeAll(name)
+            else
+                try out.print("global{}", .{num});
+        },
         .local => |num| try out.print("local{}", .{num}),
         .room => |num| try out.print("room{}", .{num}),
     }

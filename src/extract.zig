@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Symbols = @import("Symbols.zig");
 const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -9,6 +10,7 @@ const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const blockReader = @import("block_reader.zig").blockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const xor_key = @import("build.zig").xor_key;
+const cliargs = @import("cliargs.zig");
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
@@ -19,11 +21,41 @@ const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
 
 pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
-    if (args.len != 2)
-        return error.CommandLine;
+    var input_path_opt: ?[:0]const u8 = null;
+    var output_path_opt: ?[:0]const u8 = null;
+    var symbols_path: ?[:0]const u8 = null;
 
-    const input_path = args[0];
-    const output_path = args[1];
+    var it = cliargs.Iterator.init(args);
+    while (it.next()) |arg| switch (arg) {
+        .long_option => |opt| {
+            if (std.mem.eql(u8, opt.flag, "symbols")) {
+                if (symbols_path == null)
+                    symbols_path = opt.value
+                else
+                    return arg.reportUnexpected();
+            } else {
+                return arg.reportUnexpected();
+            }
+        },
+        .positional => |str| {
+            if (input_path_opt == null)
+                input_path_opt = str
+            else if (output_path_opt == null)
+                output_path_opt = str
+            else
+                return arg.reportUnexpected();
+        },
+        else => return arg.reportUnexpected(),
+    };
+
+    const input_path = input_path_opt orelse return cliargs.reportMissing("index");
+    const output_path = output_path_opt orelse return cliargs.reportMissing("output");
+
+    var symbols_text: []const u8 = &.{};
+    defer allocator.free(symbols_text);
+
+    if (symbols_path) |path|
+        symbols_text = try fs.readFileZ(allocator, std.fs.cwd(), path);
 
     var result = try run(allocator, &.{
         .input_path = input_path,
@@ -33,6 +65,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .sound_modes = &.{ .decode, .raw },
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
+        .symbols_text = symbols_text,
     });
     defer result.deinit(allocator);
 }
@@ -50,6 +83,7 @@ const Extract = struct {
     sound_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
+    symbols_text: []const u8,
     dump_index: bool = false,
 };
 
@@ -74,6 +108,15 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path);
 
+    var state: State = .{};
+    errdefer state.deinit(allocator);
+
+    try state.cur_path.appendSlice(output_path);
+    try state.cur_path.append('/');
+
+    state.symbols = try Symbols.parse(allocator, args.symbols_text);
+    defer state.symbols.deinit(allocator);
+
     var index = try readIndex(allocator, game, input_path);
     defer index.deinit(allocator);
 
@@ -83,29 +126,26 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
         try buf.flush();
     }
 
-    var path_buf = std.BoundedArray(u8, 4095){};
-    try path_buf.appendSlice(output_path);
-    try path_buf.append('/');
+    try writeIndexBlobs(game, &index, &state.cur_path);
 
-    try writeIndexBlobs(game, &index, &path_buf);
+    const project_txt_file = project_txt_file: {
+        const path = try pathf.append(&state.cur_path, "project.txt");
+        defer path.restore();
 
-    const project_txt_path = try std.fmt.allocPrintZ(
-        allocator,
-        "{s}/project.txt",
-        .{output_path},
-    );
-    defer allocator.free(project_txt_path);
-
-    const project_txt_file = try std.fs.cwd().createFileZ(project_txt_path, .{});
+        break :project_txt_file try std.fs.cwd().createFileZ(path.full(), .{});
+    };
     defer project_txt_file.close();
 
     var project_txt = std.io.bufferedWriter(project_txt_file.writer());
 
-    var state: State = .{};
-    errdefer state.deinit(allocator);
+    if (args.symbols_text.len != 0) {
+        const path = try pathf.append(&state.cur_path, "symbols.ini");
+        defer path.restore();
 
-    try state.cur_path.appendSlice(output_path);
-    try state.cur_path.append('/');
+        try fs.writeFileZ(std.fs.cwd(), path.full(), args.symbols_text);
+
+        try project_txt.writer().writeAll("symbols symbols.ini\n");
+    }
 
     if (std.mem.indexOfScalar(ResourceMode, args.script_modes, .decode)) |_|
         state.language = lang.buildLanguage(game);
@@ -141,12 +181,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
 const State = struct {
     cur_path: std.BoundedArray(u8, 4095) = .{},
+    symbols: Symbols = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
     language: ?lang.Language = null,
     scripts_with_unknown_byte: u32 = 0,
 
     fn deinit(self: *State, allocator: std.mem.Allocator) void {
         self.block_stats.deinit(allocator);
+        self.symbols.deinit(allocator);
     }
 
     fn blockStat(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !*BlockStat {
@@ -955,6 +997,7 @@ fn decodeScrp(
         allocator,
         &state.language.?,
         data,
+        &state.symbols,
         disassembly.writer(allocator),
         state,
     );
@@ -1007,6 +1050,7 @@ fn decodeLsc(
         allocator,
         &state.language.?,
         bytecode,
+        &state.symbols,
         disassembly.writer(allocator),
         state,
     );
