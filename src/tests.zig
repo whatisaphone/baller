@@ -45,20 +45,26 @@ test "fixture integrity" {
 test "Backyard Baseball 1997 round trip raw" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "baseball1997", "BASEBALL.HE0", true, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "baseball1997",
         "BASEBALL.HE0",
-        "BASEBALL.HE1",
-    });
+        true,
+        &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
+    );
     defer result.deinit(allocator);
 }
 
 test "Backyard Baseball 1997 round trip decode/encode" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "baseball1997", "BASEBALL.HE0", false, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "baseball1997",
         "BASEBALL.HE0",
-        "BASEBALL.HE1",
-    });
+        false,
+        &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
+    );
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
@@ -93,22 +99,26 @@ test "Backyard Baseball 1997 talkies round trip" {
 test "Backyard Baseball 2001 round trip raw" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "baseball2001", "baseball 2001.he0", true, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "baseball2001",
         "baseball 2001.he0",
-        "baseball 2001.(a)",
-        "baseball 2001.(b)",
-    });
+        true,
+        &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
+    );
     defer result.deinit(allocator);
 }
 
 test "Backyard Baseball 2001 round trip decode/encode" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "baseball2001", "baseball 2001.he0", false, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "baseball2001",
         "baseball 2001.he0",
-        "baseball 2001.(a)",
-        "baseball 2001.(b)",
-    });
+        false,
+        &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
+    );
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
@@ -144,20 +154,26 @@ test "Backyard Baseball 2001 talkies round trip" {
 test "Backyard Soccer round trip raw" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "soccer", "SOCCER.HE0", true, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "soccer",
         "SOCCER.HE0",
-        "SOCCER.(A)",
-    });
+        true,
+        &.{ "SOCCER.HE0", "SOCCER.(A)" },
+    );
     defer result.deinit(allocator);
 }
 
 test "Backyard Soccer round trip decode/encode" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "soccer", "SOCCER.HE0", false, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "soccer",
         "SOCCER.HE0",
-        "SOCCER.(A)",
-    });
+        false,
+        &.{ "SOCCER.HE0", "SOCCER.(A)" },
+    );
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
@@ -193,22 +209,26 @@ test "Backyard Soccer talkies round trip" {
 test "Backyard Football round trip raw" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "football", "FOOTBALL.HE0", true, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "football",
         "FOOTBALL.HE0",
-        "FOOTBALL.(A)",
-        "FOOTBALL.(B)",
-    });
+        true,
+        &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
+    );
     defer result.deinit(allocator);
 }
 
 test "Backyard Football round trip decode/encode" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "football", "FOOTBALL.HE0", false, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "football",
         "FOOTBALL.HE0",
-        "FOOTBALL.(A)",
-        "FOOTBALL.(B)",
-    });
+        false,
+        &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
+    );
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
@@ -243,22 +263,26 @@ test "Backyard Football talkies round trip" {
 test "Backyard Basketball round trip raw" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "basketball", "Basketball.he0", true, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "basketball",
         "Basketball.he0",
-        "Basketball.(a)",
-        "Basketball.(b)",
-    });
+        true,
+        &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
+    );
     defer result.deinit(allocator);
 }
 
 test "Backyard Basketball round trip decode/encode" {
     const allocator = std.testing.allocator;
 
-    var result = try testRoundTrip(allocator, "basketball", "Basketball.he0", false, &.{
+    var result = try testRoundTrip(
+        allocator,
+        "basketball",
         "Basketball.he0",
-        "Basketball.(a)",
-        "Basketball.(b)",
-    });
+        false,
+        &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
+    );
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
