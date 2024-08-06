@@ -38,17 +38,22 @@ const RGBQUAD = extern struct {
 };
 
 pub fn readHeader(bmp: []const u8) !Bmp {
-    if (bmp.len < bitmap_file_header_size + bitmap_info_header_size)
+    if (bmp.len < bitmap_file_header_size + 4)
         return error.BadData;
 
     const file_header = std.mem.bytesAsValue(BITMAPFILEHEADER, bmp);
     if (file_header.bfType != magic)
         return error.BadData;
 
+    const header_size = std.mem.readInt(u32, bmp[bitmap_file_header_size..][0..4], .little);
+    if (header_size != 0x28 and // BITMAPINFOHEADER
+        header_size != 0x6c and // BITMAPV4HEADER
+        header_size != 0x7c) // BITMAPV5HEADER
+        return error.BadData;
+    // BITMAPINFOHEADER is a prefix of all the above header types
     const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[bitmap_file_header_size..]);
 
-    if (info_header.biSize != bitmap_info_header_size or
-        info_header.biBitCount != 8 or
+    if (info_header.biBitCount != 8 or
         info_header.biCompression != BI_RGB or
         !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
         return error.BadData;
@@ -62,7 +67,7 @@ pub fn readHeader(bmp: []const u8) !Bmp {
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
 
-    const palette_start = bitmap_file_header_size + bitmap_info_header_size;
+    const palette_start = bitmap_file_header_size + header_size;
     const palette: *const [num_colors]RGBQUAD =
         @ptrCast(bmp[palette_start..][0 .. num_colors * @sizeOf(RGBQUAD)]);
 
