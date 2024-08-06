@@ -101,145 +101,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         };
         if (!std.mem.startsWith(u8, project_line, "room "))
             return error.BadData;
-        var project_line_words = std.mem.splitScalar(u8, project_line[5..], ' ');
-        const disk_number_str = project_line_words.next() orelse return error.BadData;
-        const room_number_str = project_line_words.next() orelse return error.BadData;
-        const room_name = project_line_words.next() orelse return error.BadData;
-        if (project_line_words.next()) |_| return error.BadData;
-
-        const disk_number = try std.fmt.parseInt(u8, disk_number_str, 10);
-        if (disk_number < 1 or disk_number > 26) return error.BadData;
-
-        const room_number = try std.fmt.parseInt(u8, room_number_str, 10);
-        if (room_number < 1) return error.BadData;
-
-        try growArrayList([]u8, &prst.index.room_names, allocator, room_number + 1, &.{});
-        prst.index.room_names.items[room_number] = try allocator.dupe(u8, room_name);
-
-        if (cur_state) |*state| if (state.disk_number != disk_number) {
-            try finishDisk(state);
-            state.deinit();
-            cur_state = null;
-        };
-
-        if (cur_state == null) {
-            cur_state = @as(DiskState, undefined); // TODO: is there a better way?
-            try startDisk(allocator, disk_number, output_path, &prst, &cur_state.?);
-        }
-
-        const state = &cur_state.?;
-
-        try prst.cur_path.appendSlice(room_name);
-        try prst.cur_path.append('/');
-        defer prst.cur_path.len -= @intCast(room_name.len + 1);
-
-        const room_file = room_file: {
-            const path = try pathf.append(&prst.cur_path, "room.txt");
-            defer path.restore();
-            break :room_file try std.fs.cwd().openFileZ(path.full(), .{});
-        };
-        defer room_file.close();
-
-        var room_reader = std.io.bufferedReader(room_file.reader());
-        var room_line_buf: [1024]u8 = undefined;
-
-        const lflf_fixup = try beginBlock(&state.writer, "LFLF");
-
-        if (prst.index.lfl_disks) |*lfl_disks| {
-            try growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
-            lfl_disks.items[room_number] = disk_number;
-        } else {
-            if (disk_number != 1)
-                return error.BadData;
-        }
-
-        try growArrayList(u32, &prst.index.lfl_offsets, allocator, room_number + 1, 0);
-        prst.index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
-
-        while (true) {
-            const room_line = room_reader.reader()
-                .readUntilDelimiter(&room_line_buf, '\n') catch |err| switch (err) {
-                error.EndOfStream => break,
-                else => return err,
-            };
-            var room_line_split = std.mem.tokenizeScalar(u8, room_line, ' ');
-            const keyword = room_line_split.next() orelse return error.BadData;
-            if (std.mem.eql(u8, keyword, "raw-glob"))
-                try handleRawGlob(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "raw-block"))
-                try handleRawBlock(room_line_split.rest(), &prst, state)
-            else if (std.mem.eql(u8, keyword, "rmda"))
-                try handleRmda(
-                    allocator,
-                    room_number,
-                    &room_reader,
-                    &room_line_buf,
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "room-image"))
-                try handleRoomImage(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "scrp-asm"))
-                try handleScrpAsm(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "audio"))
-                try handleAudio(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "awiz"))
-                try handleAwiz(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &room_reader,
-                    &room_line_buf,
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "mult"))
-                try handleMult(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &room_reader,
-                    &room_line_buf,
-                    &prst,
-                    state,
-                )
-            else if (std.mem.eql(u8, keyword, "wsou"))
-                try handleWsou(
-                    allocator,
-                    room_number,
-                    room_line_split.rest(),
-                    &prst,
-                    state,
-                )
-            else
-                return error.BadData;
-        }
-
-        try endBlock(&state.writer, &state.fixups, lflf_fixup);
+        try buildRoom(allocator, project_line[5..], &prst, &cur_state, output_path);
     }
 
     if (cur_state) |*state| {
@@ -249,6 +111,154 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     }
 
     try writeIndex(allocator, &prst, output_path, args.attribution);
+}
+
+fn buildRoom(
+    allocator: std.mem.Allocator,
+    project_line: []const u8,
+    prst: *ProjectState,
+    cur_state: *?DiskState,
+    output_path: [:0]u8,
+) !void {
+    var project_line_words = std.mem.splitScalar(u8, project_line, ' ');
+    const disk_number_str = project_line_words.next() orelse return error.BadData;
+    const room_number_str = project_line_words.next() orelse return error.BadData;
+    const room_name = project_line_words.next() orelse return error.BadData;
+    if (project_line_words.next()) |_| return error.BadData;
+
+    const disk_number = try std.fmt.parseInt(u8, disk_number_str, 10);
+    if (disk_number < 1 or disk_number > 26) return error.BadData;
+
+    const room_number = try std.fmt.parseInt(u8, room_number_str, 10);
+    if (room_number < 1) return error.BadData;
+
+    try growArrayList([]u8, &prst.index.room_names, allocator, room_number + 1, &.{});
+    prst.index.room_names.items[room_number] = try allocator.dupe(u8, room_name);
+
+    if (cur_state.*) |*state| if (state.disk_number != disk_number) {
+        try finishDisk(state);
+        state.deinit();
+        cur_state.* = null;
+    };
+
+    if (cur_state.* == null) {
+        cur_state.* = @as(DiskState, undefined); // TODO: is there a better way?
+        try startDisk(allocator, disk_number, output_path, prst, &cur_state.*.?);
+    }
+
+    const state = &cur_state.*.?;
+
+    try prst.cur_path.appendSlice(room_name);
+    try prst.cur_path.append('/');
+    defer prst.cur_path.len -= @intCast(room_name.len + 1);
+
+    const room_file = room_file: {
+        const path = try pathf.append(&prst.cur_path, "room.txt");
+        defer path.restore();
+        break :room_file try std.fs.cwd().openFileZ(path.full(), .{});
+    };
+    defer room_file.close();
+
+    var room_reader = std.io.bufferedReader(room_file.reader());
+    var room_line_buf: [1024]u8 = undefined;
+
+    const lflf_fixup = try beginBlock(&state.writer, "LFLF");
+
+    if (prst.index.lfl_disks) |*lfl_disks| {
+        try growArrayList(u8, lfl_disks, allocator, room_number + 1, 0);
+        lfl_disks.items[room_number] = disk_number;
+    } else {
+        if (disk_number != 1)
+            return error.BadData;
+    }
+
+    try growArrayList(u32, &prst.index.lfl_offsets, allocator, room_number + 1, 0);
+    prst.index.lfl_offsets.items[room_number] = @intCast(state.writer.bytes_written);
+
+    while (true) {
+        const room_line = room_reader.reader()
+            .readUntilDelimiter(&room_line_buf, '\n') catch |err| switch (err) {
+            error.EndOfStream => break,
+            else => return err,
+        };
+        var room_line_split = std.mem.tokenizeScalar(u8, room_line, ' ');
+        const keyword = room_line_split.next() orelse return error.BadData;
+        if (std.mem.eql(u8, keyword, "raw-glob"))
+            try handleRawGlob(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "raw-block"))
+            try handleRawBlock(room_line_split.rest(), prst, state)
+        else if (std.mem.eql(u8, keyword, "rmda"))
+            try handleRmda(
+                allocator,
+                room_number,
+                &room_reader,
+                &room_line_buf,
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "room-image"))
+            try handleRoomImage(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "scrp-asm"))
+            try handleScrpAsm(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "audio"))
+            try handleAudio(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "awiz"))
+            try handleAwiz(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                &room_reader,
+                &room_line_buf,
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "mult"))
+            try handleMult(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                &room_reader,
+                &room_line_buf,
+                prst,
+                state,
+            )
+        else if (std.mem.eql(u8, keyword, "wsou"))
+            try handleWsou(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                prst,
+                state,
+            )
+        else
+            return error.BadData;
+    }
+
+    try endBlock(&state.writer, &state.fixups, lflf_fixup);
 }
 
 fn readIndexBlobs(allocator: std.mem.Allocator, prst: *ProjectState) !void {
