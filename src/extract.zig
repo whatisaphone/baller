@@ -117,6 +117,9 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     state.symbols = try Symbols.parse(allocator, args.symbols_text);
     defer state.symbols.deinit(allocator);
 
+    try state.block_seqs.ensureTotalCapacity(allocator, 16);
+    defer state.block_seqs.deinit(allocator);
+
     var index = try readIndex(allocator, game, input_path);
     defer index.deinit(allocator);
 
@@ -182,6 +185,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 const State = struct {
     cur_path: std.BoundedArray(u8, 4095) = .{},
     symbols: Symbols = .{},
+    block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
     language: ?lang.Language = null,
     scripts_with_unknown_byte: u32 = 0,
@@ -656,6 +660,9 @@ fn extractDisk(
             .room_txt = room_txt.writer(),
         };
 
+        // Block seqs start over for each room
+        state.block_seqs.clearRetainingCapacity();
+
         var lflf_blocks = blockReader(&reader);
 
         const rmim_data =
@@ -768,16 +775,14 @@ fn extractRmda(
     var reader = std.io.fixedBufferStream(rmda_raw);
     var blocks = fixedBlockReader(&reader);
 
-    var block_numbers = std.AutoArrayHashMapUnmanaged(BlockId, u16){};
-    defer block_numbers.deinit(allocator);
-
     try room_state.room_txt.writeAll("rmda\n");
 
     while (reader.pos < rmda_raw.len) {
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
-        const block_number_entry = try block_numbers.getOrPutValue(allocator, block_id, 0);
+        const block_number_entry =
+            try state.block_seqs.getOrPutValue(allocator, block_id, 0);
         block_number_entry.value_ptr.* += 1;
         const block_number = block_number_entry.value_ptr.*;
 
