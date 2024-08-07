@@ -108,9 +108,17 @@ pub fn assemble(
                 },
             }
         }
+
         // Don't allow extra unparsed operands
-        if (rest.len != 0)
-            return error.BadData;
+
+        if (rest.len == 0) // empty string: ok
+            continue;
+
+        const token, rest = try tokenizeKeyword(rest);
+        if (token[0] == ';') // comment: ok
+            continue;
+
+        return error.BadData; // anything else: not ok
     }
 
     for (label_fixups.items) |fixup| {
