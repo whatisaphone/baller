@@ -5,18 +5,36 @@ const utils = @import("utils.zig");
 
 const Symbols = @This();
 
-const Script = struct {
-    name: ?[]const u8 = null,
+pub const ScriptId = union(enum) {
+    global: u32,
+    local: struct { room: u8, number: u32 },
 };
 
-/// Map from number to name
+pub const Script = struct {
+    name: ?[]const u8 = null,
+    /// Lookup table from number to name
+    locals: ArrayMap([]const u8) = .{},
+
+    fn deinit(self: *Script, allocator: std.mem.Allocator) void {
+        self.locals.deinit(allocator);
+    }
+};
+
+/// Lookup table from number to name
 globals: ArrayMap([]const u8) = .{},
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .{},
 scripts: ArrayMap(Script) = .{},
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
+    var i = self.scripts.len();
+    while (i > 0) {
+        i -= 1;
+        const script = self.scripts.getPtr(i) orelse continue;
+        script.deinit(allocator);
+    }
     self.scripts.deinit(allocator);
+
     self.global_names.deinit(allocator);
     self.globals.deinit(allocator);
 }
@@ -40,6 +58,13 @@ pub fn parse(allocator: std.mem.Allocator, ini_text: []const u8) !Symbols {
     return result;
 }
 
+const Cx = struct {
+    allocator: std.mem.Allocator,
+    key_parts: std.mem.SplitIterator(u8, .scalar),
+    value: []const u8,
+    result: *Symbols,
+};
+
 fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !void {
     if (line.len == 0) // skip empty lines
         return;
@@ -50,34 +75,69 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
     const key = std.mem.trim(u8, line[0..eq], " ");
     const value = std.mem.trim(u8, line[eq + 1 ..], " ");
 
-    var key_parts = std.mem.splitScalar(u8, key, '.');
-    const first_part = key_parts.first();
-    if (std.mem.eql(u8, first_part, "global")) {
-        const number_str = key_parts.next() orelse return error.BadData;
-        const number = try std.fmt.parseInt(u16, number_str, 10);
-
-        if (key_parts.next()) |_| return error.BadData;
-
-        try result.globals.putNew(allocator, number, value);
-
-        const entry = try result.global_names.getOrPut(allocator, value);
-        if (entry.found_existing)
-            return error.BadData;
-        entry.value_ptr.* = number;
-    } else if (std.mem.eql(u8, first_part, "script")) {
-        const number_str = key_parts.next() orelse return error.BadData;
-        const number = try std.fmt.parseInt(u16, number_str, 10);
-
-        if (key_parts.next()) |_| return error.BadData;
-
-        const script_opt = try result.scripts.getOrPut(allocator, number);
-        if (script_opt.* == null) script_opt.* = .{};
-        const script = &script_opt.*.?;
-
-        if (script.name != null)
-            return error.BadData;
-        script.name = value;
-    } else {
+    var cx = Cx{
+        .allocator = allocator,
+        .key_parts = std.mem.splitScalar(u8, key, '.'),
+        .value = value,
+        .result = result,
+    };
+    const part = cx.key_parts.first();
+    if (std.mem.eql(u8, part, "global"))
+        try handleGlobal(&cx)
+    else if (std.mem.eql(u8, part, "script"))
+        try handleScript(&cx)
+    else
         return error.BadData;
-    }
+}
+
+fn handleGlobal(cx: *Cx) !void {
+    const number_str = cx.key_parts.next() orelse return error.BadData;
+    const number = try std.fmt.parseInt(u16, number_str, 10);
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    try cx.result.globals.putNew(cx.allocator, number, cx.value);
+
+    const entry = try cx.result.global_names.getOrPut(cx.allocator, cx.value);
+    if (entry.found_existing)
+        return error.BadData;
+    entry.value_ptr.* = number;
+}
+
+fn handleScript(cx: *Cx) !void {
+    const number_str = cx.key_parts.next() orelse return error.BadData;
+    const number = try std.fmt.parseInt(u16, number_str, 10);
+
+    const script_entry = try cx.result.scripts.getOrPut(cx.allocator, number);
+    if (script_entry.* == null)
+        script_entry.* = .{};
+    const script = &script_entry.*.?;
+
+    const part_opt = cx.key_parts.next();
+    const part = part_opt orelse
+        return handleScriptName(cx, script);
+    if (std.mem.eql(u8, part, "local"))
+        return handleScriptLocal(cx, script);
+}
+
+fn handleScriptName(cx: *Cx, script: *Script) !void {
+    if (script.name != null)
+        return error.BadData;
+    script.name = cx.value;
+}
+
+fn handleScriptLocal(cx: *Cx, script: *Script) !void {
+    const number_str = cx.key_parts.next() orelse return error.BadData;
+    const number = try std.fmt.parseInt(u16, number_str, 10);
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    try script.locals.putNew(cx.allocator, number, cx.value);
+}
+
+pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
+    return switch (id) {
+        .global => |num| self.scripts.getPtr(num),
+        .local => |_| null,
+    };
 }

@@ -459,6 +459,7 @@ fn handleRmda(
                 prst.languageStuff(),
                 asm_str,
                 &prst.symbols,
+                .{ .local = .{ .room = room_number, .number = lsc_number } },
             );
             defer bytecode.deinit(allocator);
 
@@ -573,6 +574,7 @@ fn handleScrpAsm(
         prst.languageStuff(),
         asm_string,
         &prst.symbols,
+        .{ .global = glob_number },
     );
     defer bytecode.deinit(allocator);
 

@@ -11,6 +11,7 @@ pub fn assemble(
     },
     asm_str: []const u8,
     symbols: *const Symbols,
+    id: Symbols.ScriptId,
 ) !std.ArrayListUnmanaged(u8) {
     const language, const inss = language_stuff;
 
@@ -20,6 +21,9 @@ pub fn assemble(
 
     var label_fixups = std.ArrayListUnmanaged(Fixup){};
     defer label_fixups.deinit(allocator);
+
+    var locals = std.ArrayListUnmanaged([]const u8){};
+    defer locals.deinit(allocator);
 
     var bytecode = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 256);
     errdefer bytecode.deinit(allocator);
@@ -50,6 +54,12 @@ pub fn assemble(
         if (std.mem.eql(u8, ins_name, ".db")) {
             const byte = try std.fmt.parseInt(u8, rest, 10);
             try bytecode.append(allocator, byte);
+            continue;
+        } else if (std.mem.eql(u8, ins_name, ".local")) {
+            const local_name, rest = try tokenizeKeyword(rest);
+            if (rest.len != 0)
+                return error.BadData;
+            try locals.append(allocator, local_name);
             continue;
         }
 
@@ -88,7 +98,7 @@ pub fn assemble(
                     _ = try bytecode.addManyAsSlice(allocator, 2);
                 },
                 .variable => {
-                    const variable, rest = try tokenizeVariable(rest, symbols);
+                    const variable, rest = try tokenizeVariable(rest, symbols, id);
                     try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
                 },
                 .string => {
@@ -138,17 +148,24 @@ fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
 fn tokenizeVariable(
     str: []const u8,
     symbols: *const Symbols,
+    id: Symbols.ScriptId,
 ) !struct { lang.Variable, []const u8 } {
     var split = std.mem.tokenizeScalar(u8, str, ' ');
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
-    const variable = try parseVariable(var_str, symbols);
+    const variable = try parseVariable(var_str, symbols, id);
     return .{ variable, rest };
 }
 
-fn parseVariable(var_str: []const u8, symbols: *const Symbols) !lang.Variable {
+fn parseVariable(var_str: []const u8, symbols: *const Symbols, id: Symbols.ScriptId) !lang.Variable {
     if (symbols.global_names.get(var_str)) |num|
         return lang.Variable.init(.{ .global = num });
+
+    if (symbols.getScript(id)) |script|
+        for (0..script.locals.len()) |i|
+            if (script.locals.get(i)) |name|
+                if (std.mem.eql(u8, name, var_str))
+                    return lang.Variable.init(.{ .local = @intCast(i) });
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))

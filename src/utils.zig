@@ -56,4 +56,3 @@ pub fn growMultiArrayList(
     while (xs.len < minimum_len)
         xs.appendAssumeCapacity(fill);
 }
-

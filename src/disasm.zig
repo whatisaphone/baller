@@ -4,15 +4,10 @@ const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
-pub const ScriptId = union(enum) {
-    global: u32,
-    local: struct { room: u8, number: u32 },
-};
-
 pub fn disassemble(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
-    id: ScriptId,
+    id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
@@ -35,7 +30,7 @@ pub fn disassemble(
 pub fn disassembleInner(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
-    id: ScriptId,
+    id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
@@ -47,7 +42,7 @@ pub fn disassembleInner(
     if (bytecode.len > 0xffff)
         return error.BadData;
 
-    try writeScriptName(id, symbols, out);
+    try writePreamble(id, symbols, out);
 
     var dasm = lang.Disasm.init(language, bytecode);
 
@@ -80,7 +75,7 @@ pub fn disassembleInner(
         try out.writeAll(ins.name);
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitOperand(op, ins.end, out, symbols);
+            try emitOperand(op, ins.end, out, symbols, id);
         }
         try out.writeByte('\n');
     }
@@ -91,14 +86,21 @@ pub fn disassembleInner(
         return error.BadData;
 }
 
-fn writeScriptName(id: ScriptId, symbols: *const Symbols, out: anytype) !void {
-    const script_opt = switch (id) {
-        .global => |num| symbols.scripts.getPtr(num),
-        .local => |_| null,
-    };
-    const script = script_opt orelse return;
-    const name = script.name orelse return;
-    try out.print("; {s}\n", .{name});
+fn writePreamble(id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !void {
+    const script = symbols.getScript(id) orelse return;
+
+    if (script.name) |name|
+        try out.print("; {s}\n\n", .{name});
+
+    if (script.locals.len() != 0) {
+        for (0..script.locals.len()) |i| {
+            const variable = lang.Variable.init(.{ .local = @intCast(i) });
+            try out.writeAll(".local ");
+            try emitVariable(out, variable, symbols, id);
+            try out.writeByte('\n');
+        }
+        try out.writeByte('\n');
+    }
 }
 
 fn findJumpTargets(
@@ -141,7 +143,13 @@ fn emitLabel(pc: u16, out: anytype) !void {
     try out.print("L_{x:0>4}", .{pc});
 }
 
-fn emitOperand(op: lang.Operand, pc: u16, out: anytype, config: *const Symbols) !void {
+fn emitOperand(
+    op: lang.Operand,
+    pc: u16,
+    out: anytype,
+    symbols: *const Symbols,
+    id: Symbols.ScriptId,
+) !void {
     switch (op) {
         .u8, .i16, .i32 => |n| {
             try out.print("{}", .{n});
@@ -152,7 +160,7 @@ fn emitOperand(op: lang.Operand, pc: u16, out: anytype, config: *const Symbols) 
             try emitLabel(abs, out);
         },
         .variable => |v| {
-            try emitVariable(out, v, config);
+            try emitVariable(out, v, symbols, id);
         },
         .string => |s| {
             // TODO: escaping
@@ -163,7 +171,12 @@ fn emitOperand(op: lang.Operand, pc: u16, out: anytype, config: *const Symbols) 
     }
 }
 
-fn emitVariable(out: anytype, variable: lang.Variable, symbols: *const Symbols) !void {
+fn emitVariable(
+    out: anytype,
+    variable: lang.Variable,
+    symbols: *const Symbols,
+    id: Symbols.ScriptId,
+) !void {
     switch (try variable.decode()) {
         .global => |num| {
             const name_opt = symbols.globals.get(num);
@@ -172,7 +185,15 @@ fn emitVariable(out: anytype, variable: lang.Variable, symbols: *const Symbols) 
             else
                 try out.print("global{}", .{num});
         },
-        .local => |num| try out.print("local{}", .{num}),
+        .local => |num| {
+            if (symbols.getScript(id)) |script| {
+                if (script.locals.get(num)) |name| {
+                    try out.writeAll(name);
+                    return;
+                }
+            }
+            try out.print("local{}", .{num});
+        },
         .room => |num| try out.print("room{}", .{num}),
     }
 }
