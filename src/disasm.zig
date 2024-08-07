@@ -92,11 +92,12 @@ pub fn disassembleInner(
 }
 
 fn writeScriptName(id: ScriptId, symbols: *const Symbols, out: anytype) !void {
-    const name_opt = switch (id) {
+    const script_opt = switch (id) {
         .global => |num| if (num < symbols.scripts.items.len) symbols.scripts.items[num] else null,
         .local => |_| null,
     };
-    const name = name_opt orelse return;
+    const script = script_opt orelse return;
+    const name = script.name orelse return;
     try out.print("; {s}\n", .{name});
 }
 

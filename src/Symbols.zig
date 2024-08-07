@@ -4,11 +4,15 @@ const utils = @import("utils.zig");
 
 const Symbols = @This();
 
+const Script = struct {
+    name: ?[]const u8 = null,
+};
+
 /// Lookup table from number to name
 globals: std.ArrayListUnmanaged(?[]const u8) = .{},
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .{},
-scripts: std.ArrayListUnmanaged(?[]const u8) = .{},
+scripts: std.ArrayListUnmanaged(?Script) = .{},
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.scripts.deinit(allocator);
@@ -53,7 +57,7 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
 
         if (key_parts.next()) |_| return error.BadData;
 
-        try setTableValue(allocator, &result.globals, number, value);
+        try setTableValue([]const u8, allocator, &result.globals, number, value);
 
         const entry = try result.global_names.getOrPut(allocator, value);
         if (entry.found_existing)
@@ -65,20 +69,37 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
 
         if (key_parts.next()) |_| return error.BadData;
 
-        try setTableValue(allocator, &result.scripts, number, value);
+        const script_opt = try getOrPut(Script, allocator, &result.scripts, number);
+        if (script_opt.* == null) script_opt.* = .{};
+        const script = &script_opt.*.?;
+
+        if (script.name != null)
+            return error.BadData;
+        script.name = value;
     } else {
         return error.BadData;
     }
 }
 
-fn setTableValue(
+fn getOrPut(
+    T: type,
     allocator: std.mem.Allocator,
-    xs: *std.ArrayListUnmanaged(?[]const u8),
+    xs: *std.ArrayListUnmanaged(?T),
     index: usize,
-    value: []const u8,
+) !*?T {
+    try utils.growArrayList(?T, xs, allocator, index + 1, null);
+    return &xs.items[index];
+}
+
+fn setTableValue(
+    T: type,
+    allocator: std.mem.Allocator,
+    xs: *std.ArrayListUnmanaged(?T),
+    index: usize,
+    value: T,
 ) !void {
-    try utils.growArrayList(?[]const u8, xs, allocator, index + 1, null);
-    if (xs.items[index] != null)
+    const ptr = try getOrPut(T, allocator, xs, index);
+    if (ptr.* != null)
         return error.BadData;
-    xs.items[index] = value;
+    ptr.* = value;
 }
