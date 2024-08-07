@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const ArrayMap = @import("array_map.zig").ArrayMap;
 const utils = @import("utils.zig");
 
 const Symbols = @This();
@@ -8,11 +9,11 @@ const Script = struct {
     name: ?[]const u8 = null,
 };
 
-/// Lookup table from number to name
-globals: std.ArrayListUnmanaged(?[]const u8) = .{},
+/// Map from number to name
+globals: ArrayMap([]const u8) = .{},
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .{},
-scripts: std.ArrayListUnmanaged(?Script) = .{},
+scripts: ArrayMap(Script) = .{},
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.scripts.deinit(allocator);
@@ -57,7 +58,7 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
 
         if (key_parts.next()) |_| return error.BadData;
 
-        try setTableValue([]const u8, allocator, &result.globals, number, value);
+        try result.globals.putNew(allocator, number, value);
 
         const entry = try result.global_names.getOrPut(allocator, value);
         if (entry.found_existing)
@@ -69,7 +70,7 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
 
         if (key_parts.next()) |_| return error.BadData;
 
-        const script_opt = try getOrPut(Script, allocator, &result.scripts, number);
+        const script_opt = try result.scripts.getOrPut(allocator, number);
         if (script_opt.* == null) script_opt.* = .{};
         const script = &script_opt.*.?;
 
@@ -79,27 +80,4 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
     } else {
         return error.BadData;
     }
-}
-
-fn getOrPut(
-    T: type,
-    allocator: std.mem.Allocator,
-    xs: *std.ArrayListUnmanaged(?T),
-    index: usize,
-) !*?T {
-    try utils.growArrayList(?T, xs, allocator, index + 1, null);
-    return &xs.items[index];
-}
-
-fn setTableValue(
-    T: type,
-    allocator: std.mem.Allocator,
-    xs: *std.ArrayListUnmanaged(?T),
-    index: usize,
-    value: T,
-) !void {
-    const ptr = try getOrPut(T, allocator, xs, index);
-    if (ptr.* != null)
-        return error.BadData;
-    ptr.* = value;
 }

@@ -93,7 +93,7 @@ pub fn disassembleInner(
 
 fn writeScriptName(id: ScriptId, symbols: *const Symbols, out: anytype) !void {
     const script_opt = switch (id) {
-        .global => |num| if (num < symbols.scripts.items.len) symbols.scripts.items[num] else null,
+        .global => |num| symbols.scripts.getPtr(num),
         .local => |_| null,
     };
     const script = script_opt orelse return;
@@ -166,10 +166,7 @@ fn emitOperand(op: lang.Operand, pc: u16, out: anytype, config: *const Symbols) 
 fn emitVariable(out: anytype, variable: lang.Variable, symbols: *const Symbols) !void {
     switch (try variable.decode()) {
         .global => |num| {
-            const name_opt = if (num < symbols.globals.items.len)
-                symbols.globals.items[num]
-            else
-                null;
+            const name_opt = symbols.globals.get(num);
             if (name_opt) |name|
                 try out.writeAll(name)
             else
