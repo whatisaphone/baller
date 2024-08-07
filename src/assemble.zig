@@ -3,6 +3,8 @@ const std = @import("std");
 const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 
+const horizontal_whitespace = " \t";
+
 pub fn assemble(
     allocator: std.mem.Allocator,
     language_stuff: struct {
@@ -30,7 +32,7 @@ pub fn assemble(
 
     var lines = std.mem.tokenizeScalar(u8, asm_str, '\n');
     while (lines.next()) |line_full| {
-        var line = std.mem.trim(u8, line_full, " ");
+        var line = std.mem.trim(u8, line_full, horizontal_whitespace);
 
         if (line.len == 0) // skip blank lines
             continue;
@@ -138,13 +140,13 @@ const Fixup = struct {
 };
 
 fn tokenizeKeyword(str: []const u8) !struct { []const u8, []const u8 } {
-    var split = std.mem.tokenizeScalar(u8, str, ' ');
+    var split = std.mem.tokenizeAny(u8, str, horizontal_whitespace);
     const keyword = split.next() orelse return error.BadData;
     return .{ keyword, split.rest() };
 }
 
 fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
-    var split = std.mem.tokenizeScalar(u8, str, ' ');
+    var split = std.mem.tokenizeAny(u8, str, horizontal_whitespace);
     const int_str = split.next() orelse return error.BadData;
     const rest = split.rest();
 
@@ -158,7 +160,7 @@ fn tokenizeVariable(
     symbols: *const Symbols,
     id: Symbols.ScriptId,
 ) !struct { lang.Variable, []const u8 } {
-    var split = std.mem.tokenizeScalar(u8, str, ' ');
+    var split = std.mem.tokenizeAny(u8, str, horizontal_whitespace);
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
     const variable = try parseVariable(var_str, symbols, id);
