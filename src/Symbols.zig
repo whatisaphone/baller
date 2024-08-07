@@ -91,15 +91,22 @@ const Cx = struct {
     result: *Symbols,
 };
 
-fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !void {
+fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbols) !void {
+    var line = full_line;
+
+    // chop off comments
+    const comment_start = std.mem.indexOfScalar(u8, full_line, ';');
+    if (comment_start) |i|
+        line = line[0..i];
+
+    line = std.mem.trim(u8, line, " ");
+
     if (line.len == 0) // skip empty lines
-        return;
-    if (line[0] == ';') // skip comments
         return;
 
     const eq = std.mem.indexOfScalar(u8, line, '=') orelse return error.BadData;
-    const key = std.mem.trim(u8, line[0..eq], " ");
-    const value = std.mem.trim(u8, line[eq + 1 ..], " ");
+    const key = std.mem.trimRight(u8, line[0..eq], " ");
+    const value = std.mem.trimLeft(u8, line[eq + 1 ..], " ");
 
     var cx = Cx{
         .allocator = allocator,
