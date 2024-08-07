@@ -4,9 +4,15 @@ const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
+pub const ScriptId = union(enum) {
+    global: u32,
+    local: struct { room: u8, number: u32 },
+};
+
 pub fn disassemble(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
+    id: ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
@@ -15,6 +21,7 @@ pub fn disassemble(
     disassembleInner(
         allocator,
         language,
+        id,
         bytecode,
         symbols,
         out,
@@ -28,6 +35,7 @@ pub fn disassemble(
 pub fn disassembleInner(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
+    id: ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
@@ -38,6 +46,8 @@ pub fn disassembleInner(
     // Lots of stuff seems to assume pc fits in u16.
     if (bytecode.len > 0xffff)
         return error.BadData;
+
+    try writeScriptName(id, symbols, out);
 
     var dasm = lang.Disasm.init(language, bytecode);
 
@@ -79,6 +89,15 @@ pub fn disassembleInner(
     // beyond the end of the script? Not good.
     if (next_jump_index != jump_targets.items.len)
         return error.BadData;
+}
+
+fn writeScriptName(id: ScriptId, symbols: *const Symbols, out: anytype) !void {
+    const name_opt = switch (id) {
+        .global => |num| if (num < symbols.scripts.items.len) symbols.scripts.items[num] else null,
+        .local => |_| null,
+    };
+    const name = name_opt orelse return;
+    try out.print("; {s}\n", .{name});
 }
 
 fn findJumpTargets(

@@ -218,6 +218,7 @@ pub const BlockStat = struct {
 };
 
 const RoomState = struct {
+    room_number: u8,
     path: *std.BoundedArray(u8, 4095),
     path_start: u32,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
@@ -661,6 +662,7 @@ fn extractDisk(
         var room_txt = std.io.bufferedWriter(room_txt_file.writer());
 
         const room_state = RoomState{
+            .room_number = room_number,
             .path = &state.cur_path,
             .path_start = state.cur_path.len,
             .room_txt = room_txt.writer(),
@@ -825,6 +827,7 @@ fn extractRmdaBlock(
                     block_number,
                     data,
                     state,
+                    room_state,
                 ) catch |err| {
                     if (err == error.BadData)
                         continue;
@@ -998,6 +1001,7 @@ fn decodeScrp(
     try disasm.disassemble(
         allocator,
         &state.language.?,
+        .{ .global = glob_number },
         data,
         &state.symbols,
         disassembly.writer(allocator),
@@ -1046,6 +1050,7 @@ fn decodeLsc(
     block_number: u32,
     data: []const u8,
     state: *State,
+    room_state: *const RoomState,
 ) !void {
     var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
@@ -1060,6 +1065,7 @@ fn decodeLsc(
     try disasm.disassemble(
         allocator,
         &state.language.?,
+        .{ .local = .{ .room = room_state.room_number, .number = block_number } },
         bytecode,
         &state.symbols,
         disassembly.writer(allocator),

@@ -8,8 +8,10 @@ const Symbols = @This();
 globals: std.ArrayListUnmanaged(?[]const u8) = .{},
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .{},
+scripts: std.ArrayListUnmanaged(?[]const u8) = .{},
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
+    self.scripts.deinit(allocator);
     self.global_names.deinit(allocator);
     self.globals.deinit(allocator);
 }
@@ -43,19 +45,40 @@ fn parseLine(allocator: std.mem.Allocator, line: []const u8, result: *Symbols) !
     const key = std.mem.trim(u8, line[0..eq], " ");
     const value = std.mem.trim(u8, line[eq + 1 ..], " ");
 
-    if (std.mem.startsWith(u8, key, "global.")) {
-        const number = try std.fmt.parseInt(u16, key[7..], 10);
+    var key_parts = std.mem.splitScalar(u8, key, '.');
+    const first_part = key_parts.first();
+    if (std.mem.eql(u8, first_part, "global")) {
+        const number_str = key_parts.next() orelse return error.BadData;
+        const number = try std.fmt.parseInt(u16, number_str, 10);
 
-        try utils.growArrayList(?[]const u8, &result.globals, allocator, number + 1, null);
-        if (result.globals.items[number] != null)
-            return error.BadData;
-        result.globals.items[number] = value;
+        if (key_parts.next()) |_| return error.BadData;
+
+        try setTableValue(allocator, &result.globals, number, value);
 
         const entry = try result.global_names.getOrPut(allocator, value);
         if (entry.found_existing)
             return error.BadData;
         entry.value_ptr.* = number;
+    } else if (std.mem.eql(u8, first_part, "script")) {
+        const number_str = key_parts.next() orelse return error.BadData;
+        const number = try std.fmt.parseInt(u16, number_str, 10);
+
+        if (key_parts.next()) |_| return error.BadData;
+
+        try setTableValue(allocator, &result.scripts, number, value);
     } else {
         return error.BadData;
     }
+}
+
+fn setTableValue(
+    allocator: std.mem.Allocator,
+    xs: *std.ArrayListUnmanaged(?[]const u8),
+    index: usize,
+    value: []const u8,
+) !void {
+    try utils.growArrayList(?[]const u8, xs, allocator, index + 1, null);
+    if (xs.items[index] != null)
+        return error.BadData;
+    xs.items[index] = value;
 }

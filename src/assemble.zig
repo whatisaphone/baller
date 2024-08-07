@@ -28,6 +28,11 @@ pub fn assemble(
     while (lines.next()) |line_full| {
         var line = std.mem.trim(u8, line_full, " ");
 
+        if (line.len == 0) // skip blank lines
+            continue;
+        if (line[0] == ';') // skip comments
+            continue;
+
         // If we find a label, store its offset so jumps can be fixed up later.
         if (std.mem.indexOfScalar(u8, line, ' ') == null and
             line[line.len - 1] == ':')
