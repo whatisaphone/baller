@@ -195,6 +195,12 @@ const State = struct {
         self.symbols.deinit(allocator);
     }
 
+    fn incBlockSeq(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !u16 {
+        const entry = try self.block_seqs.getOrPutValue(allocator, block_id, 0);
+        entry.value_ptr.* += 1;
+        return entry.value_ptr.*;
+    }
+
     fn blockStat(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !*BlockStat {
         const entry = try self.block_stats.getOrPutValue(allocator, block_id, .{});
         return entry.value_ptr;
@@ -781,24 +787,11 @@ fn extractRmda(
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
-        const block_number_entry =
-            try state.block_seqs.getOrPutValue(allocator, block_id, 0);
-        block_number_entry.value_ptr.* += 1;
-        const block_number = block_number_entry.value_ptr.*;
-
         const modes = switch (block_id) {
             blockId("LSCR"), blockId("LSC2") => script_modes,
             else => &.{ResourceMode.raw},
         };
-        try extractRmdaBlock(
-            allocator,
-            block_id,
-            block_number,
-            block_raw,
-            modes,
-            state,
-            room_state,
-        );
+        try extractRmdaBlock(allocator, block_id, block_raw, modes, state, room_state);
     }
 
     try blocks.finishEof();
@@ -809,7 +802,6 @@ fn extractRmda(
 fn extractRmdaBlock(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    block_seq: u32,
     data: []const u8,
     modes: []const ResourceMode,
     state: *State,
@@ -818,14 +810,19 @@ fn extractRmdaBlock(
     const block_stat = try state.blockStat(allocator, block_id);
     block_stat.total += 1;
 
+    const block_number = switch (block_id) {
+        blockId("LSCR"), blockId("LSC2") => try getLscBlockNumber(block_id, data),
+        else => try state.incBlockSeq(allocator, block_id),
+    };
+
     var wrote_line = false;
     for (modes) |mode| switch (mode) {
         .decode => switch (block_id) {
             blockId("LSCR"), blockId("LSC2") => {
-                const lsc_number = decodeLsc(
+                decodeLsc(
                     allocator,
                     block_id,
-                    block_seq,
+                    block_number,
                     data,
                     state,
                 ) catch |err| {
@@ -836,18 +833,18 @@ fn extractRmdaBlock(
 
                 block_stat.decoded += 1;
                 if (!wrote_line) {
-                    try writeLscAsmLine(block_id, block_seq, lsc_number, state, room_state);
+                    try writeLscAsmLine(block_id, block_number, state, room_state);
                     wrote_line = true;
                 }
             },
             else => unreachable,
         },
         .raw => {
-            try writeRawBlockFile(block_id, block_seq, data, state);
+            try writeRawBlockFile(block_id, block_number, data, state);
 
             block_stat.raw += 1;
             if (!wrote_line) {
-                try writeRawBlockLine(block_id, block_seq, state, room_state);
+                try writeRawBlockLine(block_id, block_number, state, room_state);
                 wrote_line = true;
             }
         },
@@ -1027,30 +1024,39 @@ fn writeScrpAsmLine(
     );
 }
 
-fn decodeLsc(
-    allocator: std.mem.Allocator,
-    block_id: BlockId,
-    block_seq: u32,
-    data: []const u8,
-    state: *State,
-) !u32 {
-    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
-    defer disassembly.deinit(allocator);
-
-    const lsc_number, const bytecode = switch (block_id) {
-        blockId("LSCR") => blk: {
+fn getLscBlockNumber(block_id: BlockId, data: []const u8) !u32 {
+    return switch (block_id) {
+        blockId("LSCR") => {
             if (data.len < 1)
                 return error.BadData;
-            break :blk .{ data[0], data[1..] };
+            return data[0];
         },
-        blockId("LSC2") => blk: {
+        blockId("LSC2") => {
             if (data.len < 4)
                 return error.BadData;
-            const number = std.mem.readInt(u32, data[0..4], .little);
-            break :blk .{ number, data[4..] };
+            return std.mem.readInt(u32, data[0..4], .little);
         },
         else => unreachable,
     };
+}
+
+fn decodeLsc(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    block_number: u32,
+    data: []const u8,
+    state: *State,
+) !void {
+    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    defer disassembly.deinit(allocator);
+
+    const bytecode_offset: u8 = switch (block_id) {
+        blockId("LSCR") => 1,
+        blockId("LSC2") => 4,
+        else => unreachable,
+    };
+    const bytecode = data[bytecode_offset..];
+
     try disasm.disassemble(
         allocator,
         &state.language.?,
@@ -1060,30 +1066,24 @@ fn decodeLsc(
         state,
     );
 
-    const path = try appendGlobPath(state, block_id, block_seq, "s");
+    const path = try appendGlobPath(state, block_id, block_number, "s");
     defer path.restore();
 
     try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
-
-    return lsc_number;
 }
 
 fn writeLscAsmLine(
     block_id: BlockId,
-    block_seq: u32,
-    lsc_number: u32,
+    block_number: u32,
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    // TODO: use lsc_number as the filename too. i'm not doing this yet because
-    // it would be inconsistent with the filenames when decoded as raw.
-
-    const path = try appendGlobPath(state, block_id, block_seq, "s");
+    const path = try appendGlobPath(state, block_id, block_number, "s");
     defer path.restore();
 
     try room_state.room_txt.print(
         "    lsc-asm {s} {} {s}\n",
-        .{ blockIdToStr(&block_id), lsc_number, room_state.curPathRelative() },
+        .{ blockIdToStr(&block_id), block_number, room_state.curPathRelative() },
     );
 }
 
