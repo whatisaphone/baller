@@ -323,7 +323,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x94, 0x42, "palette-color", &.{});
     lang.addNested(0x94, 0xd9, "rgb", &.{});
 
-    lang.add(0x95, "override", &.{ .u8, .i16 });
+    lang.add(0x95, "override", &.{ .u8, .relative_offset });
     lang.add(0x96, "override-off", &.{});
     lang.add(0x98, "sound-running", &.{});
 
@@ -662,7 +662,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x47, "dim-array-2d-range", &.{ .u8, .variable });
     lang.add(0x49, "redim-array-range", &.{ .u8, .variable });
     lang.add(0x4a, "not", &.{});
-    lang.add(0x4c, "override", &.{ .u8, .i16 });
+    lang.add(0x4c, "override", &.{ .u8, .relative_offset });
     lang.add(0x4d, "override-off", &.{});
     lang.add(0x4e, "override-off-off", &.{});
 

@@ -75,7 +75,7 @@ pub fn disassembleInner(
         try out.writeAll(ins.name);
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitOperand(op, ins.end, out, symbols, id);
+            try emitOperand(op, ins.end, jump_targets.items, out, symbols, id);
         }
         try out.writeByte('\n');
     }
@@ -116,11 +116,12 @@ fn findJumpTargets(
     var dasm = lang.Disasm.init(language, bytecode);
     while (try dasm.next()) |ins| {
         // Check if it's a jump
-        if (ins.operands.len != 1) continue;
-        if (ins.operands.get(0) != .relative_offset) continue;
+        if (ins.operands.len == 0) continue;
+        const op = ins.operands.get(ins.operands.len - 1);
+        if (op != .relative_offset) continue;
+        const rel = op.relative_offset;
 
         // Calc and store the absolute jump target
-        const rel = ins.operands.get(0).relative_offset;
         const abs = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
         try insertSortedNoDup(allocator, &targets, abs);
     }
@@ -146,6 +147,7 @@ fn emitLabel(pc: u16, out: anytype) !void {
 fn emitOperand(
     op: lang.Operand,
     pc: u16,
+    jump_targets: []const u16,
     out: anytype,
     symbols: *const Symbols,
     id: Symbols.ScriptId,
@@ -155,8 +157,9 @@ fn emitOperand(
             try out.print("{}", .{n});
         },
         .relative_offset => |rel| {
-            // This was already verified to be valid in findJumpTargets
+            // This was already verified not to overflow in findJumpTargets
             const abs = utils.addUnsignedSigned(pc, rel).?;
+            std.debug.assert(std.mem.indexOfScalar(u16, jump_targets, abs) != null);
             try emitLabel(abs, out);
         },
         .variable => |v| {
