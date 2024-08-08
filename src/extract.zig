@@ -722,6 +722,7 @@ fn extractDisk(
                 glob_number,
                 data,
                 rmda_data,
+                glob_decoders,
                 state,
                 &room_state,
             );
@@ -842,12 +843,38 @@ fn extractRmdaBlock(
         return error.BadData;
 }
 
+const BlockDecoder = *const fn (
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) anyerror!void;
+
+const BlockDecoderPair = struct {
+    id: BlockId,
+    decoder: BlockDecoder,
+};
+
+const glob_decoders: []const BlockDecoderPair = &.{
+    .{ .id = blockId("SCRP"), .decoder = decodeScrp },
+    .{ .id = blockId("DIGI"), .decoder = decodeAudio },
+    .{ .id = blockId("TALK"), .decoder = decodeAudio },
+    .{ .id = blockId("AWIZ"), .decoder = decodeAwiz },
+    .{ .id = blockId("MULT"), .decoder = decodeMult },
+    .{ .id = blockId("WSOU"), .decoder = decodeWsou },
+};
+
 fn extractGlob(
     allocator: std.mem.Allocator,
     block_id: BlockId,
     glob_number_opt: ?u32,
     data: []const u8,
     rmda_data: []const u8,
+    decoders: []const BlockDecoderPair,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -860,70 +887,28 @@ fn extractGlob(
 
     var wrote_line = false;
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
-        .decode => switch (block_id) {
-            blockId("SCRP") => {
-                decodeScrp(allocator, block_number, data, state) catch |err| {
-                    if (err == error.BadData)
-                        continue;
-                    return err;
-                };
+        .decode => {
+            const decoder = for (decoders) |p| {
+                if (p.id == block_id)
+                    break p.decoder;
+            } else continue;
 
-                block_stat.decoded += 1;
-                if (!wrote_line) {
-                    try writeScrpAsmLine(block_number, state, room_state);
-                    wrote_line = true;
-                }
-            },
-            blockId("DIGI"), blockId("TALK") => {
-                decodeAudio(block_id, block_number, data, state) catch |err| {
-                    if (err == error.BadData)
-                        continue;
-                    return err;
-                };
-
-                block_stat.decoded += 1;
-                if (!wrote_line) {
-                    try writeDigiLine(block_id, block_number, state, room_state);
-                    wrote_line = true;
-                }
-            },
-            blockId("AWIZ") => {
-                var wiz = decodeAwiz(allocator, block_number, rmda_data, data, state) catch |err| {
-                    if (err == error.BlockFallbackToRaw)
-                        continue;
-                    return err;
-                };
-                defer wiz.deinit(allocator);
-
-                block_stat.decoded += 1;
-                if (!wrote_line) {
-                    try writeAwizLines(block_number, &wiz, state, room_state);
-                    wrote_line = true;
-                }
-            },
-            blockId("MULT") => {
-                var mult = decodeMult(allocator, block_number, rmda_data, data, state) catch |err| {
-                    if (err == error.BlockFallbackToRaw)
-                        continue;
-                    return err;
-                };
-                defer mult.deinit(allocator);
-
-                block_stat.decoded += 1;
-                if (!wrote_line) {
-                    try writeMultLines(&mult, room_state);
-                    wrote_line = true;
-                }
-            },
-            blockId("WSOU") => {
-                try decodeWsou(block_id, block_number, data, state);
-                block_stat.decoded += 1;
-                if (!wrote_line) {
-                    try writeWsouLine(block_id, block_number, state, room_state);
-                    wrote_line = true;
-                }
-            },
-            else => unreachable,
+            decoder(
+                allocator,
+                block_id,
+                glob_number_opt,
+                data,
+                state,
+                room_state,
+                rmda_data,
+                !wrote_line,
+            ) catch |err| {
+                if (err == error.BadData or err == error.BlockFallbackToRaw)
+                    continue;
+                return err;
+            };
+            wrote_line = true;
+            block_stat.decoded += 1;
         },
         .raw => {
             if (glob_number_opt) |glob_number| {
@@ -983,6 +968,24 @@ fn decodeRmim(
 }
 
 fn decodeScrp(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) !void {
+    _ = rmda_raw;
+    std.debug.assert(block_id == comptime blockId("SCRP"));
+    const glob_number = glob_number_opt orelse return error.BadData;
+    try decodeScrpData(allocator, glob_number, block_raw, state);
+    if (write_room_lines)
+        try writeScrpAsmLine(glob_number, state, room_state);
+}
+
+fn decodeScrpData(
     allocator: std.mem.Allocator,
     glob_number: u32,
     data: []const u8,
@@ -1087,6 +1090,24 @@ fn writeLscAsmLine(
 }
 
 fn decodeAudio(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) !void {
+    _ = allocator;
+    _ = rmda_raw;
+    const glob_number = glob_number_opt orelse return error.BadData;
+    try decodeAudioData(block_id, glob_number, block_raw, state);
+    if (write_room_lines)
+        try writeAudioLine(block_id, glob_number, state, room_state);
+}
+
+fn decodeAudioData(
     block_id: BlockId,
     glob_number: u32,
     data: []const u8,
@@ -1104,7 +1125,7 @@ fn decodeAudio(
     try output_writer.flush();
 }
 
-fn writeDigiLine(
+fn writeAudioLine(
     block_id: BlockId,
     glob_number: u32,
     state: *State,
@@ -1120,6 +1141,25 @@ fn writeDigiLine(
 }
 
 fn decodeWsou(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) !void {
+    _ = allocator;
+    _ = rmda_raw;
+    std.debug.assert(block_id == comptime blockId("WSOU"));
+    const glob_number = glob_number_opt orelse return error.BadData;
+    try decodeWsouData(block_id, glob_number, block_raw, state);
+    if (write_room_lines)
+        try writeWsouLine(block_id, glob_number, state, room_state);
+}
+
+fn decodeWsouData(
     block_id: BlockId,
     glob_number: u32,
     data: []const u8,
@@ -1147,6 +1187,27 @@ fn writeWsouLine(
 }
 
 fn decodeAwiz(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) !void {
+    std.debug.assert(block_id == comptime blockId("AWIZ"));
+
+    const glob_number = glob_number_opt orelse return error.BadData;
+
+    var wiz = try decodeAwizData(allocator, glob_number, rmda_raw, block_raw, state);
+    defer wiz.deinit(allocator);
+
+    if (write_room_lines)
+        try writeAwizLines(glob_number, &wiz, state, room_state);
+}
+
+fn decodeAwizData(
     allocator: std.mem.Allocator,
     glob_number: u32,
     rmda_raw: []const u8,
@@ -1226,6 +1287,27 @@ fn writeAwizChildrenGivenBmpPath(
     }
 }
 
+fn decodeMult(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number_opt: ?u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    rmda_raw: []const u8,
+    write_room_lines: bool,
+) !void {
+    std.debug.assert(block_id == comptime blockId("MULT"));
+
+    const glob_number = glob_number_opt orelse return error.BadData;
+
+    var mult = try decodeMultData(allocator, glob_number, rmda_raw, block_raw, state);
+    defer mult.deinit(allocator);
+
+    if (write_room_lines)
+        try writeMultLines(&mult, room_state);
+}
+
 const Mult = struct {
     wizs: std.ArrayListUnmanaged(awiz.Awiz) = .{},
     room_lines: std.ArrayListUnmanaged(u8) = .{},
@@ -1242,7 +1324,7 @@ const Mult = struct {
     }
 };
 
-fn decodeMult(
+fn decodeMultData(
     allocator: std.mem.Allocator,
     glob_number: u32,
     rmda_raw: []const u8,
