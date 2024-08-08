@@ -1318,7 +1318,7 @@ fn decodeMult(
         defer path2.restore();
 
         var wiz = try decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full());
-        mult.wizs.appendAssumeCapacity(wiz);
+        try mult.wizs.append(allocator, wiz);
 
         try mult.room_lines.appendSlice(allocator, "    awiz\n");
         try writeAwizChildrenGivenBmpPath(
