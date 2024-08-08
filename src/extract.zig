@@ -502,11 +502,13 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
             return error.BadData;
         var inib_blocks = blockReader(&reader);
 
-        const note_len = try inib_blocks.expectBlock("NOTE");
-        if (note_len != 2)
+        const note_block_len = try inib_blocks.expectBlock("NOTE");
+        if (note_block_len < 2)
             return error.BadData;
-        if (try in.readInt(u16, .little) != 0)
+        const note_str_len = note_block_len - 2;
+        if (try in.readInt(u16, .little) != note_str_len)
             return error.BadData;
+        try in.skipBytes(note_str_len, .{});
 
         try inib_blocks.finish(inib_end);
     }
