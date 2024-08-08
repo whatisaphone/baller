@@ -108,7 +108,9 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path);
 
-    var state: State = .{};
+    var state: State = .{
+        .options = args,
+    };
     errdefer state.deinit(allocator);
 
     try state.cur_path.appendSlice(output_path);
@@ -164,11 +166,6 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
             disk_number,
             &project_txt,
             &index,
-            args.rmim_decode,
-            args.script_modes,
-            args.sound_modes,
-            args.awiz_modes,
-            args.mult_modes,
         );
     }
 
@@ -185,6 +182,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 }
 
 const State = struct {
+    options: *const Extract,
     cur_path: std.BoundedArray(u8, 4095) = .{},
     symbols: Symbols = .{},
     block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
@@ -616,11 +614,6 @@ fn extractDisk(
     disk_number: u8,
     project_txt: anytype,
     index: *const Index,
-    rmim_decode: bool,
-    script_modes: []const ResourceMode,
-    sound_modes: []const ResourceMode,
-    awiz_modes: []const ResourceMode,
-    mult_modes: []const ResourceMode,
 ) !void {
     const file = try std.fs.cwd().openFileZ(input_path, .{});
     defer file.close();
@@ -690,7 +683,7 @@ fn extractDisk(
         rmim_stat.total += 1;
 
         const rmim_decoded = rmim_decoded: {
-            if (!rmim_decode)
+            if (!state.options.rmim_decode)
                 break :rmim_decoded false;
             decodeRmim(allocator, rmim_data, rmda_data, state, &room_state) catch |err| {
                 if (err != error.DecompressBmap)
@@ -711,7 +704,7 @@ fn extractDisk(
             rmim_stat.raw += 1;
         }
 
-        try extractRmda(allocator, rmda_data, script_modes, state, &room_state);
+        try extractRmda(allocator, rmda_data, state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -723,19 +716,11 @@ fn extractDisk(
             defer allocator.free(data);
             try reader.reader().readNoEof(data);
 
-            const modes = switch (id) {
-                blockId("SCRP") => script_modes,
-                blockId("DIGI"), blockId("TALK"), blockId("WSOU") => sound_modes,
-                blockId("AWIZ") => awiz_modes,
-                blockId("MULT") => mult_modes,
-                else => &.{ResourceMode.raw},
-            };
             try extractGlob(
                 allocator,
                 id,
                 glob_number,
                 data,
-                modes,
                 rmda_data,
                 state,
                 &room_state,
@@ -776,7 +761,6 @@ fn findLflfRoomNumber(
 fn extractRmda(
     allocator: std.mem.Allocator,
     rmda_raw: []const u8,
-    script_modes: []const ResourceMode,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -794,11 +778,7 @@ fn extractRmda(
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
-        const modes = switch (block_id) {
-            blockId("LSCR"), blockId("LSC2") => script_modes,
-            else => &.{ResourceMode.raw},
-        };
-        try extractRmdaBlock(allocator, block_id, block_raw, modes, state, room_state);
+        try extractRmdaBlock(allocator, block_id, block_raw, state, room_state);
     }
 
     try blocks.finishEof();
@@ -810,7 +790,6 @@ fn extractRmdaBlock(
     allocator: std.mem.Allocator,
     block_id: BlockId,
     data: []const u8,
-    modes: []const ResourceMode,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -823,7 +802,7 @@ fn extractRmdaBlock(
     };
 
     var wrote_line = false;
-    for (modes) |mode| switch (mode) {
+    for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => switch (block_id) {
             blockId("LSCR"), blockId("LSC2") => {
                 decodeLsc(
@@ -868,7 +847,6 @@ fn extractGlob(
     block_id: BlockId,
     glob_number_opt: ?u32,
     data: []const u8,
-    modes: []const ResourceMode,
     rmda_data: []const u8,
     state: *State,
     room_state: *const RoomState,
@@ -881,7 +859,7 @@ fn extractGlob(
     const block_number = glob_number_opt orelse 0;
 
     var wrote_line = false;
-    for (modes) |mode| switch (mode) {
+    for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => switch (block_id) {
             blockId("SCRP") => {
                 decodeScrp(allocator, block_number, data, state) catch |err| {
@@ -971,6 +949,16 @@ fn extractGlob(
     // This should be unreachable as long as `raw` is in the mode list
     if (!wrote_line)
         return error.BadData;
+}
+
+fn getBlockModes(block_id: BlockId, state: *const State) []const ResourceMode {
+    return switch (block_id) {
+        blockId("SCRP"), blockId("LSCR"), blockId("LSC2") => state.options.script_modes,
+        blockId("DIGI"), blockId("TALK"), blockId("WSOU") => state.options.sound_modes,
+        blockId("AWIZ") => state.options.awiz_modes,
+        blockId("MULT") => state.options.mult_modes,
+        else => &.{ResourceMode.raw},
+    };
 }
 
 fn decodeRmim(
