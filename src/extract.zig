@@ -115,10 +115,8 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     try state.cur_path.append('/');
 
     state.symbols = try Symbols.parse(allocator, args.symbols_text);
-    defer state.symbols.deinit(allocator);
 
     try state.block_seqs.ensureTotalCapacity(allocator, 16);
-    defer state.block_seqs.deinit(allocator);
 
     var index = try readIndex(allocator, game, input_path);
     defer index.deinit(allocator);
@@ -176,6 +174,10 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
     try project_txt.flush();
 
+    // partial deinit/move of state
+    state.block_seqs.deinit(allocator);
+    state.symbols.deinit(allocator);
+
     return .{
         .block_stats = state.block_stats,
         .scripts_with_unknown_byte = state.scripts_with_unknown_byte,
@@ -192,6 +194,7 @@ const State = struct {
 
     fn deinit(self: *State, allocator: std.mem.Allocator) void {
         self.block_stats.deinit(allocator);
+        self.block_seqs.deinit(allocator);
         self.symbols.deinit(allocator);
     }
 
