@@ -859,7 +859,7 @@ fn extractRmdaBlock(
 const BlockDecoder = *const fn (
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    block_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
@@ -904,10 +904,12 @@ fn extractGlob(
                     break p.decoder;
             } else continue;
 
+            const glob_number = glob_number_opt orelse return error.BadData;
+
             decoder(
                 allocator,
                 block_id,
-                glob_number_opt,
+                glob_number,
                 data,
                 state,
                 room_state,
@@ -979,14 +981,13 @@ fn decodeRmim(
 fn decodeScrp(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    glob_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
     write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("SCRP"));
-    const glob_number = glob_number_opt orelse return error.BadData;
     try decodeScrpData(allocator, glob_number, block_raw, state);
     if (write_room_lines)
         try writeScrpAsmLine(glob_number, state, room_state);
@@ -1050,13 +1051,12 @@ fn getLscBlockNumber(block_id: BlockId, data: []const u8) !u32 {
 fn decodeLsc(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    block_number_opt: ?u32,
+    block_number: u32,
     data: []const u8,
     state: *State,
     room_state: *const RoomState,
     write_room_lines: bool,
 ) !void {
-    const block_number = block_number_opt.?;
     try decodeLscData(allocator, block_id, block_number, data, state, room_state);
     if (write_room_lines)
         try writeLscAsmLine(block_id, block_number, state, room_state);
@@ -1114,14 +1114,13 @@ fn writeLscAsmLine(
 fn decodeAudio(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    glob_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
     write_room_lines: bool,
 ) !void {
     _ = allocator;
-    const glob_number = glob_number_opt orelse return error.BadData;
     try decodeAudioData(block_id, glob_number, block_raw, state);
     if (write_room_lines)
         try writeAudioLine(block_id, glob_number, state, room_state);
@@ -1163,7 +1162,7 @@ fn writeAudioLine(
 fn decodeWsou(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    glob_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
@@ -1171,7 +1170,6 @@ fn decodeWsou(
 ) !void {
     _ = allocator;
     std.debug.assert(block_id == comptime blockId("WSOU"));
-    const glob_number = glob_number_opt orelse return error.BadData;
     try decodeWsouData(block_id, glob_number, block_raw, state);
     if (write_room_lines)
         try writeWsouLine(block_id, glob_number, state, room_state);
@@ -1207,15 +1205,13 @@ fn writeWsouLine(
 fn decodeAwiz(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    glob_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
     write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("AWIZ"));
-
-    const glob_number = glob_number_opt orelse return error.BadData;
 
     var wiz = try decodeAwizData(
         allocator,
@@ -1313,15 +1309,13 @@ fn writeAwizChildrenGivenBmpPath(
 fn decodeMult(
     allocator: std.mem.Allocator,
     block_id: BlockId,
-    glob_number_opt: ?u32,
+    glob_number: u32,
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
     write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("MULT"));
-
-    const glob_number = glob_number_opt orelse return error.BadData;
 
     var mult = try decodeMultData(
         allocator,
