@@ -111,14 +111,35 @@ pub fn decode(
     var bmp_buf = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_file_size);
     errdefer bmp_buf.deinit(allocator);
 
-    var bmp_writer = bmp_buf.writer(allocator);
+    const bmp_writer = bmp_buf.writer(allocator);
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
 
     const palette = rgbs_opt orelse try rmim.findApalInRmda(rmda_raw);
     try bmp.writePalette(bmp_writer, palette);
 
-    // based on ScummVM's auxDecompTRLEPrim
+    try decodeRle(allocator, width, height, &reader, &bmp_buf, bmp_writer);
+
+    // Allow one byte of padding from the encoder
+    if (reader.pos < wizd_end)
+        _ = try reader.reader().readByte();
+
+    try result.blocks.append(.{ .wizd = bmp_buf });
+
+    try awiz_blocks.finishEof();
+
+    return result;
+}
+
+// based on ScummVM's auxDecompTRLEPrim
+fn decodeRle(
+    allocator: std.mem.Allocator,
+    width: u31,
+    height: u31,
+    reader: anytype,
+    bmp_buf: *std.ArrayListUnmanaged(u8),
+    bmp_writer: anytype,
+) !void {
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
 
@@ -144,16 +165,6 @@ pub fn decode(
 
         try bmp.padRow(bmp_writer, width);
     }
-
-    // Allow one byte of padding from the encoder
-    if (reader.pos < wizd_end)
-        _ = try reader.reader().readByte();
-
-    try result.blocks.append(.{ .wizd = bmp_buf });
-
-    try awiz_blocks.finishEof();
-
-    return result;
 }
 
 pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
