@@ -201,6 +201,9 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
         .wizd => |_| {
             const fixup = try beginBlock(out, "WIZD");
             try encodeRle(header, out.writer());
+            // Pad output to a multiple of 2 bytes
+            if ((out.bytes_written - fixup) & 1 != 0)
+                try out.writer().writeByte(0);
             try endBlock(out, fixups, fixup);
         },
     };
