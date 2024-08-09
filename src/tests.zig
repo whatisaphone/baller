@@ -360,7 +360,7 @@ fn testRoundTrip(
         .sound_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
         // TODO: swap these once AWIZ round trips
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
-        .mult_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
+        .mult_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);

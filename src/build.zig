@@ -797,7 +797,6 @@ fn handleMult(
     for (desc.raws.items) |raw| {
         const raw_fixup = try beginBlockImpl(&state.writer, raw.id);
 
-        // XXX: this assumes only one block per block ID in a MULT
         const path = try pathf.append(&prst.cur_path, raw.path);
         defer path.restore();
 
@@ -823,13 +822,25 @@ fn handleMult(
         try wiz_offsets.append(allocator, wiz_offset);
 
         const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
-        try awiz.encode(wiz, &state.writer, &state.fixups);
+
+        switch (wiz.*) {
+            .wiz => |*img| try awiz.encode(img, &state.writer, &state.fixups),
+            .raw => |*raw| {
+                const path = try pathf.append(&prst.cur_path, raw.path);
+                defer path.restore();
+
+                try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
+            },
+        }
+
         try endBlock(&state.writer, &state.fixups, awiz_fixup);
     }
 
     // Go back and fill the OFFS with the offset corresponding to each index.
     for (desc.indices.items, 0..) |wiz_index, off_index_usize| {
         const off_index: u32 = @intCast(off_index_usize);
+        if (wiz_index >= wiz_offsets.items.len)
+            return error.BadData;
         const offset = wiz_offsets.items[wiz_index];
         try state.fixups.append(.{
             .offset = offs_fixup + 8 + off_index * 4,
@@ -857,7 +868,7 @@ fn handleMult(
 const Mult = struct {
     glob_number: u32,
     raws: std.ArrayListUnmanaged(MultRaw),
-    wizs: std.ArrayListUnmanaged(awiz.Awiz),
+    wizs: std.ArrayListUnmanaged(union(enum) { wiz: awiz.Awiz, raw: MultRaw }),
     indices: std.ArrayListUnmanaged(u32),
 };
 
@@ -905,13 +916,17 @@ fn parseMult(
             if (tokens.next()) |_| return error.BadData;
 
             const path_alloc = try arena.dupe(u8, path);
-            try result.raws.append(arena, .{
+            const raw = MultRaw{
                 .id = block_id,
                 .path = path_alloc,
-            });
+            };
+            if (block_id == comptime blockId("AWIZ"))
+                try result.wizs.append(arena, .{ .raw = raw })
+            else
+                try result.raws.append(arena, raw);
         } else if (std.mem.eql(u8, keyword, "awiz")) {
             const wiz = try readAwizLines(arena, room_reader, room_line_buf, prst);
-            try result.wizs.append(arena, wiz);
+            try result.wizs.append(arena, .{ .wiz = wiz });
         } else if (std.mem.eql(u8, keyword, "indices")) {
             if (result.indices.items.len != 0)
                 return error.BadData;

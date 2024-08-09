@@ -1503,11 +1503,17 @@ fn extractMultChild(
             block_stat.decoded += 1;
         },
         .raw => {
-            try writeRawBlockFile(block_id, block_number, data, state);
+            const path = try appendGlobPath(state, block_id, block_number, "bin");
+            defer path.restore();
+
+            try fs.writeFileZ(std.fs.cwd(), path.full(), data);
 
             block_stat.raw += 1;
             if (!wrote_line) {
-                try writeRawBlockLine(block_id, block_number, state, room_state);
+                try cx.room_lines.writer(allocator).print(
+                    "    raw-block {s} {s}\n",
+                    .{ blockIdToStr(&block_id), room_state.curPathRelative() },
+                );
                 wrote_line = true;
             }
         },
