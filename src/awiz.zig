@@ -226,13 +226,28 @@ fn encodeRle(header: bmp.Bmp, out: anytype) !void {
 
         var i: usize = 0;
         while (i < row.len) {
-            var run_len: u8 = 1;
             const color = row[i];
             i += 1;
-
-            while (i < row.len and row[i] == color and i < 63) {
-                i += 1;
-                run_len += 1;
+            var run_len: u8 = 1;
+            var blit_len: u8 = 1;
+            if (i == row.len) {
+                // end of line, nothing more to scan
+            } else if (color == transparent or row[i] == color) {
+                while (i < row.len and run_len < 64) {
+                    if (row[i] != color)
+                        break;
+                    i += 1;
+                    run_len += 1;
+                }
+            } else {
+                while (i < row.len and blit_len < 64) {
+                    if (row[i] == transparent)
+                        break;
+                    if (i + 2 < row.len and row[i + 1] == row[i] and row[i + 2] == row[i + 1])
+                        break;
+                    i += 1;
+                    blit_len += 1;
+                }
             }
 
             if (color == transparent) {
@@ -240,11 +255,14 @@ fn encodeRle(header: bmp.Bmp, out: anytype) !void {
                     break;
                 const n = 1 | @shlExact(run_len, 1);
                 try line_buf.append(n);
-            } else {
-                // TODO: this is incomplete
+            } else if (run_len != 1) {
                 const n = 2 | @shlExact(run_len - 1, 2);
                 try line_buf.append(n);
                 try line_buf.append(color);
+            } else {
+                const n = @shlExact(blit_len - 1, 2);
+                try line_buf.append(n);
+                try line_buf.appendSlice(row[i - blit_len .. i]);
             }
         }
 
