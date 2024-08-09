@@ -232,7 +232,14 @@ fn encodeRle(header: bmp.Bmp, out: anytype) !void {
             var blit_len: u8 = 1;
             if (i == row.len) {
                 // end of line, nothing more to scan
-            } else if (color == transparent or row[i] == color) {
+            } else if (color == transparent) {
+                while (i < row.len and run_len < 127) {
+                    if (row[i] != color)
+                        break;
+                    i += 1;
+                    run_len += 1;
+                }
+            } else if (row[i] == color) {
                 while (i < row.len and run_len < 64) {
                     if (row[i] != color)
                         break;
