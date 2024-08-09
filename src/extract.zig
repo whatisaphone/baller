@@ -223,6 +223,7 @@ const RoomState = struct {
     path: *std.BoundedArray(u8, 4095),
     path_start: u32,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
+    rmda: union { pending: void, raw: []const u8 },
 
     fn curPathRelative(self: *const RoomState) [:0]const u8 {
         return self.path.buffer[self.path_start..self.path.len :0];
@@ -659,11 +660,12 @@ fn extractDisk(
 
         var room_txt = std.io.bufferedWriter(room_txt_file.writer());
 
-        const room_state = RoomState{
+        var room_state = RoomState{
             .room_number = room_number,
             .path = &state.cur_path,
             .path_start = state.cur_path.len,
             .room_txt = room_txt.writer(),
+            .rmda = .{ .pending = {} },
         };
 
         // Block seqs start over for each room
@@ -677,7 +679,8 @@ fn extractDisk(
 
         const rmda_data =
             try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
-        defer allocator.free(rmda_data);
+        room_state.rmda = .{ .raw = rmda_data };
+        defer allocator.free(room_state.rmda.raw);
 
         const rmim_stat = try state.blockStat(allocator, comptime blockId("RMIM"));
         rmim_stat.total += 1;
@@ -685,7 +688,7 @@ fn extractDisk(
         const rmim_decoded = rmim_decoded: {
             if (!state.options.rmim_decode)
                 break :rmim_decoded false;
-            decodeRmim(allocator, rmim_data, rmda_data, state, &room_state) catch |err| {
+            decodeRmim(allocator, rmim_data, state, &room_state) catch |err| {
                 if (err != error.DecompressBmap)
                     return err;
                 break :rmim_decoded false;
@@ -704,7 +707,7 @@ fn extractDisk(
             rmim_stat.raw += 1;
         }
 
-        try extractRmda(allocator, rmda_data, state, &room_state);
+        try extractRmda(allocator, state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -721,7 +724,6 @@ fn extractDisk(
                 id,
                 glob_number,
                 data,
-                rmda_data,
                 glob_decoders,
                 state,
                 &room_state,
@@ -761,7 +763,6 @@ fn findLflfRoomNumber(
 
 fn extractRmda(
     allocator: std.mem.Allocator,
-    rmda_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -770,12 +771,12 @@ fn extractRmda(
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), path.full());
 
-    var reader = std.io.fixedBufferStream(rmda_raw);
+    var reader = std.io.fixedBufferStream(room_state.rmda.raw);
     var blocks = fixedBlockReader(&reader);
 
     try room_state.room_txt.writeAll("rmda\n");
 
-    while (reader.pos < rmda_raw.len) {
+    while (reader.pos < room_state.rmda.raw.len) {
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
@@ -850,7 +851,6 @@ const BlockDecoder = *const fn (
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) anyerror!void;
 
@@ -873,7 +873,6 @@ fn extractGlob(
     block_id: BlockId,
     glob_number_opt: ?u32,
     data: []const u8,
-    rmda_data: []const u8,
     decoders: []const BlockDecoderPair,
     state: *State,
     room_state: *const RoomState,
@@ -900,7 +899,6 @@ fn extractGlob(
                 data,
                 state,
                 room_state,
-                rmda_data,
                 !wrote_line,
             ) catch |err| {
                 if (err == error.BadData or err == error.BlockFallbackToRaw)
@@ -949,11 +947,10 @@ fn getBlockModes(block_id: BlockId, state: *const State) []const ResourceMode {
 fn decodeRmim(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
-    rmda_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    var decoded = try rmim.decode(allocator, rmim_raw, rmda_raw);
+    var decoded = try rmim.decode(allocator, rmim_raw, room_state.rmda.raw);
     defer decoded.deinit(allocator);
 
     const path = try pathf.print(&state.cur_path, "RMIM.bmp", .{});
@@ -974,10 +971,8 @@ fn decodeScrp(
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) !void {
-    _ = rmda_raw;
     std.debug.assert(block_id == comptime blockId("SCRP"));
     const glob_number = glob_number_opt orelse return error.BadData;
     try decodeScrpData(allocator, glob_number, block_raw, state);
@@ -1096,11 +1091,9 @@ fn decodeAudio(
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) !void {
     _ = allocator;
-    _ = rmda_raw;
     const glob_number = glob_number_opt orelse return error.BadData;
     try decodeAudioData(block_id, glob_number, block_raw, state);
     if (write_room_lines)
@@ -1147,11 +1140,9 @@ fn decodeWsou(
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) !void {
     _ = allocator;
-    _ = rmda_raw;
     std.debug.assert(block_id == comptime blockId("WSOU"));
     const glob_number = glob_number_opt orelse return error.BadData;
     try decodeWsouData(block_id, glob_number, block_raw, state);
@@ -1193,14 +1184,19 @@ fn decodeAwiz(
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("AWIZ"));
 
     const glob_number = glob_number_opt orelse return error.BadData;
 
-    var wiz = try decodeAwizData(allocator, glob_number, rmda_raw, block_raw, state);
+    var wiz = try decodeAwizData(
+        allocator,
+        glob_number,
+        room_state.rmda.raw,
+        block_raw,
+        state,
+    );
     defer wiz.deinit(allocator);
 
     if (write_room_lines)
@@ -1294,14 +1290,19 @@ fn decodeMult(
     block_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    rmda_raw: []const u8,
     write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("MULT"));
 
     const glob_number = glob_number_opt orelse return error.BadData;
 
-    var mult = try decodeMultData(allocator, glob_number, rmda_raw, block_raw, state);
+    var mult = try decodeMultData(
+        allocator,
+        glob_number,
+        room_state.rmda.raw,
+        block_raw,
+        state,
+    );
     defer mult.deinit(allocator);
 
     if (write_room_lines)
