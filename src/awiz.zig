@@ -228,6 +228,11 @@ fn encodeRle(header: bmp.Bmp, out: anytype) !void {
         line_buf.len = 2;
 
         var i: usize = 0;
+
+        // skip encoding fully transparent rows
+        if (std.mem.allEqual(u8, row, transparent))
+            i = row.len;
+
         while (i < row.len) {
             const color = row[i];
             i += 1;
@@ -261,8 +266,6 @@ fn encodeRle(header: bmp.Bmp, out: anytype) !void {
             }
 
             if (color == transparent) {
-                if (i == row.len and line_buf.len == 2)
-                    break;
                 const n = 1 | @shlExact(run_len, 1);
                 try line_buf.append(n);
             } else if (run_len != 1) {
