@@ -177,6 +177,11 @@ fn parseVariable(var_str: []const u8, symbols: *const Symbols, id: Symbols.Scrip
                 if (std.mem.eql(u8, name, var_str))
                     return lang.Variable.init(.{ .local = @intCast(i) });
 
+    if (id == .local)
+        if (symbols.getRoom(id.local.room)) |room|
+            if (room.var_names.get(var_str)) |num|
+                return lang.Variable.init(.{ .room = num });
+
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))
         .{ .global, var_str[6..] }

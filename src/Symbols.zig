@@ -24,6 +24,10 @@ pub const Script = struct {
 };
 
 const Room = struct {
+    /// Lookup table from number to name
+    vars: ArrayMap([]const u8) = .{},
+    /// Map from name to number
+    var_names: std.StringHashMapUnmanaged(u16) = .{},
     scripts: ArrayMap(Script) = .{},
 
     fn deinit(self: *Room, allocator: std.mem.Allocator) void {
@@ -34,6 +38,9 @@ const Room = struct {
             script.deinit(allocator);
         }
         self.scripts.deinit(allocator);
+
+        self.var_names.deinit(allocator);
+        self.vars.deinit(allocator);
     }
 };
 
@@ -187,10 +194,26 @@ fn handleRoom(cx: *Cx) !void {
 
     const part = cx.key_parts.next() orelse
         return error.BadData;
-    if (std.mem.eql(u8, part, "script"))
+    if (std.mem.eql(u8, part, "var"))
+        try handleRoomVar(cx, room)
+    else if (std.mem.eql(u8, part, "script"))
         try handleRoomScript(cx, room)
     else
         return error.BadData;
+}
+
+fn handleRoomVar(cx: *Cx, room: *Room) !void {
+    const number_str = cx.key_parts.next() orelse return error.BadData;
+    const number = try std.fmt.parseInt(u16, number_str, 10);
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    try room.vars.putNew(cx.allocator, number, cx.value);
+
+    const entry = try room.var_names.getOrPut(cx.allocator, cx.value);
+    if (entry.found_existing)
+        return error.BadData;
+    entry.value_ptr.* = number;
 }
 
 fn handleRoomScript(cx: *Cx, room: *Room) !void {
@@ -210,8 +233,12 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
     return switch (id) {
         .global => |num| self.scripts.getPtr(num),
         .local => |s| {
-            const room = self.rooms.get(s.room - first_room) orelse return null;
+            const room = self.getRoom(s.room) orelse return null;
             return room.scripts.getPtr(s.number - first_local_script);
         },
     };
+}
+
+pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {
+    return self.rooms.getPtr(number - first_room);
 }
