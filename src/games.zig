@@ -106,3 +106,10 @@ pub fn pointPathToDisk(game: Game, path: []u8, disk_number: u8) void {
         },
     }
 }
+
+pub fn firstLocalScript(game: Game) u16 {
+    return if (@intFromEnum(game) <= @intFromEnum(Game.soccer_1998))
+        200
+    else
+        2048;
+}

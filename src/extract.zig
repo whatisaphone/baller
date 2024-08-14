@@ -110,13 +110,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
     var state: State = .{
         .options = args,
+        .symbols = .{ .game = game },
     };
     errdefer state.deinit(allocator);
 
     try state.cur_path.appendSlice(output_path);
     try state.cur_path.append('/');
 
-    state.symbols = try Symbols.parse(allocator, args.symbols_text);
+    state.symbols = try Symbols.parse(allocator, game, args.symbols_text);
 
     try state.block_seqs.ensureTotalCapacity(allocator, 16);
 
@@ -184,7 +185,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 const State = struct {
     options: *const Extract,
     cur_path: std.BoundedArray(u8, 4095) = .{},
-    symbols: Symbols = .{},
+    symbols: Symbols,
     block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
     language: ?lang.Language = null,

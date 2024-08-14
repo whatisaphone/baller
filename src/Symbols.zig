@@ -1,12 +1,12 @@
 const std = @import("std");
 
 const ArrayMap = @import("array_map.zig").ArrayMap;
+const games = @import("games.zig");
 const utils = @import("utils.zig");
 
 const Symbols = @This();
 
 const first_room = 1;
-const first_local_script = 2048;
 
 pub const ScriptId = union(enum) {
     global: u32,
@@ -44,6 +44,7 @@ const Room = struct {
     }
 };
 
+game: games.Game,
 /// Lookup table from number to name
 globals: ArrayMap([]const u8) = .{},
 /// Map from name to number
@@ -72,8 +73,14 @@ pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.globals.deinit(allocator);
 }
 
-pub fn parse(allocator: std.mem.Allocator, ini_text: []const u8) !Symbols {
-    var result = Symbols{};
+pub fn parse(
+    allocator: std.mem.Allocator,
+    game: games.Game,
+    ini_text: []const u8,
+) !Symbols {
+    var result = Symbols{
+        .game = game,
+    };
     errdefer result.deinit(allocator);
 
     var line_number: u32 = 0;
@@ -220,7 +227,7 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
     const number_str = cx.key_parts.next() orelse return error.BadData;
     const number = try std.fmt.parseInt(u16, number_str, 10);
 
-    const index = number - first_local_script;
+    const index = try std.math.sub(u16, number, games.firstLocalScript(cx.result.game));
     const script_entry = try room.scripts.getOrPut(cx.allocator, index);
     if (script_entry.* == null)
         script_entry.* = .{};
@@ -234,7 +241,8 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
         .global => |num| self.scripts.getPtr(num),
         .local => |s| {
             const room = self.getRoom(s.room) orelse return null;
-            return room.scripts.getPtr(s.number - first_local_script);
+            const index = s.number - games.firstLocalScript(self.game);
+            return room.scripts.getPtr(index);
         },
     };
 }

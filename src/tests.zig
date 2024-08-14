@@ -64,7 +64,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         "baseball1997",
         "BASEBALL.HE0",
         false,
-        null,
+        "fixtures/baseball1997-symbols.ini",
         &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
     );
     defer result.deinit(allocator);
@@ -112,7 +112,7 @@ test "Backyard Baseball 2001 round trip raw" {
     defer result.deinit(allocator);
 }
 
-// NOTE: this is the only one that tests symbols.
+// NOTE: this is the main one that tests symbols.
 test "Backyard Baseball 2001 round trip decode/encode" {
     const allocator = std.testing.allocator;
 

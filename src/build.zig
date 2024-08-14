@@ -102,7 +102,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             else => return err,
         };
         if (std.mem.startsWith(u8, project_line, "symbols "))
-            try loadSymbols(allocator, project_line[8..], &prst)
+            try loadSymbols(allocator, game, project_line[8..], &prst)
         else if (std.mem.startsWith(u8, project_line, "room "))
             try buildRoom(allocator, project_line[5..], &prst, &cur_state, output_path)
         else
@@ -120,6 +120,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 
 fn loadSymbols(
     allocator: std.mem.Allocator,
+    game: games.Game,
     relative_path: []const u8,
     prst: *ProjectState,
 ) !void {
@@ -131,7 +132,7 @@ fn loadSymbols(
         return error.BadData;
 
     prst.symbols_text = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    prst.symbols = try Symbols.parse(allocator, prst.symbols_text);
+    prst.symbols = try Symbols.parse(allocator, game, prst.symbols_text);
 }
 
 fn buildRoom(
@@ -1121,7 +1122,7 @@ const ProjectState = struct {
         result.ins_map = try lang.buildInsMap(allocator, &result.language);
         errdefer result.ins_map.deinit(allocator);
         result.symbols_text = "";
-        result.symbols = .{};
+        result.symbols = .{ .game = game };
         return result;
     }
 
