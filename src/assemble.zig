@@ -100,7 +100,7 @@ pub fn assemble(
                     _ = try bytecode.addManyAsSlice(allocator, 2);
                 },
                 .variable => {
-                    const variable, rest = try tokenizeVariable(rest, symbols, id);
+                    const variable, rest = try tokenizeVariable(rest, locals.items, symbols, id);
                     try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
                 },
                 .string => {
@@ -157,25 +157,29 @@ fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
 
 fn tokenizeVariable(
     str: []const u8,
+    locals: []const []const u8,
     symbols: *const Symbols,
     id: Symbols.ScriptId,
 ) !struct { lang.Variable, []const u8 } {
     var split = std.mem.tokenizeAny(u8, str, horizontal_whitespace);
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
-    const variable = try parseVariable(var_str, symbols, id);
+    const variable = try parseVariable(var_str, locals, symbols, id);
     return .{ variable, rest };
 }
 
-fn parseVariable(var_str: []const u8, symbols: *const Symbols, id: Symbols.ScriptId) !lang.Variable {
+fn parseVariable(
+    var_str: []const u8,
+    locals: []const []const u8,
+    symbols: *const Symbols,
+    id: Symbols.ScriptId,
+) !lang.Variable {
     if (symbols.global_names.get(var_str)) |num|
         return lang.Variable.init(.{ .global = num });
 
-    if (symbols.getScript(id)) |script|
-        for (0..script.locals.len()) |i|
-            if (script.locals.get(i)) |name|
-                if (std.mem.eql(u8, name, var_str))
-                    return lang.Variable.init(.{ .local = @intCast(i) });
+    for (0.., locals) |i, name|
+        if (std.mem.eql(u8, name, var_str))
+            return lang.Variable.init(.{ .local = @intCast(i) });
 
     if (id == .local)
         if (symbols.getRoom(id.local.room)) |room|
