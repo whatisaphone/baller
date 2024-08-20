@@ -408,7 +408,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
 
     lang.add(0xaa, "actor-get-scale", &.{});
-    lang.add(0xad, "in2", &.{});
+    lang.add(0xad, "in", &.{});
 
     lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
     lang.addNested(0xae, 0x1a, "update-screen", &.{});
@@ -859,7 +859,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0xba, 0x56, "image-get-object-y", &.{});
     lang.addNested(0xba, 0x83, "image-get-font-start", &.{});
 
-    lang.add(0xbc, "in2", &.{});
+    lang.add(0xbc, "in", &.{});
     lang.add(0xbe, "kludge-call", &.{});
     lang.add(0xbf, "max", &.{});
     lang.add(0xc0, "min", &.{});
