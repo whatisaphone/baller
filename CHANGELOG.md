@@ -9,6 +9,10 @@ Added:
 - Allow naming scripts and variables in script assembler
 - Allow comments in script assembler
 
+Breaking changes:
+
+- Renamed `in2` instruction to `in`
+
 Fixed:
 
 - Fix override instruction
