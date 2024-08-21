@@ -135,12 +135,11 @@ pub const PixelIter = union(enum) {
                 .i = 0,
             } };
 
-        const i: u32 = @intCast(pixels.len - 1);
         return .{ .bottom_up = .{
             .pixels = pixels,
             .width = width,
-            .i = i,
-            .x = width - i % width,
+            .i = @intCast(pixels.len - width),
+            .x = width,
         } };
     }
 
