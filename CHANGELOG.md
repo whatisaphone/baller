@@ -2,7 +2,18 @@
 
 ## Unreleased
 
-- Added support for Backyard Soccer, Football, and Basketball
+Added:
+
+- Support Backyard Soccer, Football, and Basketball
+- Support AWIZ with embedded palette
+- Allow naming scripts and variables in script assembler
+- Allow comments in script assembler
+
+Fixed:
+
+- Fix override instruction
+- Make the AWIZ encoder work with SPUTM (previously it only worked with ScummVM)
+- Fix incomplete pixel data for RMIM and AWIZ
 
 ## v0.3.0 – 2024-07-17
 
