@@ -203,25 +203,28 @@ pub const RowIter = struct {
 
         return .{
             .pixels = pixels,
-            .pos = @as(u32, @intCast(pixels.len)) - stride,
+            .pos = @as(u32, @intCast(pixels.len)),
             .width = width,
             .stride = -@as(i32, stride),
         };
     }
 
     pub fn next(self: *RowIter) ?[]const u8 {
-        const pos = self.pos;
-
         if (self.stride > 0) {
+            const pos = self.pos;
+
             self.pos += @intCast(self.stride);
             if (self.pos > self.pixels.len)
                 return null;
+
+            return self.pixels[pos..][0..self.width];
         } else {
+            // std.debug.print("self.pos = {}\n", .{self.pos});
             self.pos = std.math.sub(u32, self.pos, @intCast(-self.stride)) catch
                 return null;
-        }
 
-        return self.pixels[pos..][0..self.width];
+            return self.pixels[self.pos..][0..self.width];
+        }
     }
 };
 
