@@ -64,9 +64,11 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
             error.EndOfStream => break,
             else => return err,
         };
-        if (std.mem.startsWith(u8, line, "raw-block "))
-            try buildRawBlock(&state, line[10..])
-        else if (std.mem.eql(u8, line, "talk"))
+        var tokens = std.mem.tokenizeScalar(u8, line, ' ');
+        const keyword = tokens.next() orelse return error.BadData;
+        if (std.mem.eql(u8, keyword, "raw-block"))
+            try buildRawBlock(&state, tokens.rest())
+        else if (std.mem.eql(u8, keyword, "talk"))
             try buildTalk(&state)
         else
             return error.BadData;

@@ -120,12 +120,15 @@ const StreamingBlockParser = *const fn (
     state: *State,
 ) anyerror!void;
 
-const FixedBlockParser = *const fn (
-    allocator: std.mem.Allocator,
-    block_id: BlockId,
-    block_raw: []const u8,
-    state: *State,
-) anyerror!void;
+fn FixedBlockParser(Cx: type) type {
+    return *const fn (
+        allocator: std.mem.Allocator,
+        block_id: BlockId,
+        block_raw: []const u8,
+        cx: Cx,
+        state: *State,
+    ) anyerror!void;
+}
 
 const StreamingBlockParserForId = struct {
     block_id: BlockId,
@@ -134,16 +137,18 @@ const StreamingBlockParserForId = struct {
 
 /// Try decoding the block, and if that fails, dump it as raw data instead.
 fn parseFixedFallback(
+    Cx: type,
     allocator: std.mem.Allocator,
     block_id: BlockId,
     block_raw: []const u8,
-    parser: FixedBlockParser,
+    parser: FixedBlockParser(Cx),
+    cx: Cx,
     state: *State,
 ) !void {
     const prev_manifest_len = state.manifest.items.len;
     const prev_indent = state.indent;
 
-    if (parser(allocator, block_id, block_raw, state))
+    if (parser(allocator, block_id, block_raw, cx, state))
         return
     else |err| if (err != error.BlockFallbackToRaw)
         return err;
@@ -235,23 +240,30 @@ fn parseTalk(
     talk_len: u32,
     state: *State,
 ) !void {
+    // Subtract 8 to point at block header again
+    const offset = state.readerPos() - 8;
+
     const raw = try state.fillBlockBuf(allocator, talk_len);
     defer state.doneWithBlockBuf();
 
-    try parseFixedFallback(allocator, block_id, raw, parseTalkFixed, state);
+    try parseFixedFallback(u32, allocator, block_id, raw, parseTalkFixed, offset, state);
 }
 
 fn parseTalkFixed(
     allocator: std.mem.Allocator,
     _: BlockId,
     talk_raw: []const u8,
+    talk_offset: u32,
     state: *State,
 ) !void {
     var talk_stream = std.io.fixedBufferStream(talk_raw);
     var talk_blocks = fixedBlockReader(&talk_stream);
 
     try state.writeIndent(allocator);
-    try state.manifest.appendSlice(allocator, "talk\n");
+    try state.manifest.writer(allocator).print("talk ; T{},{}\n", .{
+        talk_offset,
+        talk_raw.len + 8, // Add 8 so len includes block header
+    });
     state.indent += 1;
 
     const talk_seq = try state.nextSeq(allocator, comptime blockId("TALK"));
