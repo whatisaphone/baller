@@ -87,7 +87,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "AKOS");
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
 
@@ -138,7 +138,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedCount(&result.block_stats, "DIGI", 3652);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "AKOS");
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 15130);
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedCount(&result.block_stats, "TALK", 529);
@@ -202,7 +202,7 @@ test "Backyard Soccer round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "AKOS");
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
 
@@ -252,7 +252,7 @@ test "Backyard Football round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedCount(&result.block_stats, "DIGI", 554);
     try expectStatDecodedAll(&result.block_stats, "LSC2");
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "AKOS");
     try expectStatDecodedCount(&result.block_stats, "MULT", 1109);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 11429);
     try expectStatDecodedCount(&result.block_stats, "TALK", 549);
@@ -308,7 +308,7 @@ test "Backyard Basketball round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
     try expectStatDecodedAll(&result.block_stats, "WSOU");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
+    try expectStatDecodedAll(&result.block_stats, "AKOS");
     try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 15282);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
@@ -361,6 +361,7 @@ fn testRoundTrip(
         // TODO: swap these once AWIZ round trips
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
         .mult_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
+        .akos_modes = if (raw) &.{.raw} else &.{.decode},
         .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);

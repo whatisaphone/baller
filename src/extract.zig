@@ -65,6 +65,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .sound_modes = &.{ .decode, .raw },
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
+        .akos_modes = &.{.decode},
         .symbols_text = symbols_text,
     });
     defer result.deinit(allocator);
@@ -83,6 +84,7 @@ const Extract = struct {
     sound_modes: []const ResourceMode,
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
+    akos_modes: []const ResourceMode,
     symbols_text: []const u8,
     dump_index: bool = false,
 };
@@ -885,6 +887,7 @@ const glob_decoders: []const BlockDecoderPair(void) = &.{
     .{ .id = blockId("AWIZ"), .decoder = decodeAwiz },
     .{ .id = blockId("MULT"), .decoder = decodeMult },
     .{ .id = blockId("WSOU"), .decoder = decodeWsou },
+    .{ .id = blockId("AKOS"), .decoder = decodeAkos },
 };
 
 fn extractGlob(
@@ -962,6 +965,7 @@ fn getBlockModes(block_id: BlockId, state: *const State) []const ResourceMode {
         blockId("DIGI"), blockId("TALK"), blockId("WSOU") => state.options.sound_modes,
         blockId("AWIZ") => state.options.awiz_modes,
         blockId("MULT") => state.options.mult_modes,
+        blockId("AKOS") => state.options.akos_modes,
         else => &.{ResourceMode.raw},
     };
 }
@@ -1567,6 +1571,64 @@ fn u32Order(_: void, lhs: u32, rhs: u32) std.math.Order {
 
 fn writeMultLines(mult: *const Mult, room_state: *const RoomState) !void {
     try room_state.room_txt.writeAll(mult.room_lines.items);
+}
+
+fn decodeAkos(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    glob_number: u32,
+    block_raw: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+    _: void,
+    write_room_lines: bool,
+) !void {
+    std.debug.assert(block_id == comptime blockId("AKOS"));
+
+    const akos_path = try pathf.print(&state.cur_path, "AKOS_{:0>4}/", .{glob_number});
+    defer akos_path.restore();
+
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), akos_path.full());
+
+    var stream = std.io.fixedBufferStream(block_raw);
+    var blocks = fixedBlockReader(&stream);
+
+    var manifest_buf = std.ArrayListUnmanaged(u8){};
+    defer manifest_buf.deinit(allocator);
+
+    if (write_room_lines)
+        try manifest_buf.writer(allocator).print("akos {}\n", .{glob_number});
+
+    while (stream.pos < block_raw.len) {
+        const child_id, const child_len = try blocks.next();
+        const child_data = try io.readInPlace(&stream, child_len);
+
+        const path = try pathf.print(
+            &state.cur_path,
+            "{s}.bin",
+            .{blockIdToStr(&child_id)},
+        );
+        defer path.restore();
+
+        try fs.writeFileZ(std.fs.cwd(), path.full(), child_data);
+
+        if (write_room_lines)
+            try manifest_buf.writer(allocator).print(
+                "    raw-block {s} {s}\n",
+                .{ blockIdToStr(&child_id), room_state.curPathRelative() },
+            );
+    }
+
+    try blocks.finishEof();
+
+    if (write_room_lines)
+        try manifest_buf.appendSlice(allocator, "end-akos\n");
+
+    if (write_room_lines)
+        try room_state.room_txt.writeAll(manifest_buf.items)
+    else
+        // Make sure we don't waste cycles writing unused data.
+        std.debug.assert(manifest_buf.items.len == 0);
 }
 
 fn readGlob(

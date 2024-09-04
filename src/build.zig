@@ -276,6 +276,16 @@ fn buildRoom(
                 prst,
                 state,
             )
+        else if (std.mem.eql(u8, keyword, "akos"))
+            try handleAkos(
+                allocator,
+                room_number,
+                room_line_split.rest(),
+                &room_reader,
+                &room_line_buf,
+                prst,
+                state,
+            )
         else
             return error.BadData;
     }
@@ -943,6 +953,47 @@ fn parseMult(
     }
 
     return result;
+}
+
+fn handleAkos(
+    allocator: std.mem.Allocator,
+    room_number: u8,
+    glob_number_str: []const u8,
+    room_reader: anytype,
+    room_line_buf: *[1024]u8,
+    prst: *ProjectState,
+    state: *DiskState,
+) !void {
+    const glob_number = try std.fmt.parseInt(u32, glob_number_str, 10);
+
+    const akos_fixup = try beginBlock(&state.writer, "AKOS");
+
+    while (true) {
+        const room_line =
+            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
+        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
+        const keyword = tokens.next() orelse return error.BadData;
+        if (std.mem.eql(u8, keyword, "raw-block")) {
+            try handleRawBlock(tokens.rest(), prst, state);
+        } else if (std.mem.eql(u8, keyword, "end-akos")) {
+            break;
+        } else {
+            return error.BadData;
+        }
+    }
+
+    try endBlock(&state.writer, &state.fixups, akos_fixup);
+    const akos_len = state.lastBlockLen();
+
+    try addGlobToDirectory(
+        allocator,
+        prst,
+        comptime blockId("AKOS"),
+        room_number,
+        glob_number,
+        akos_fixup,
+        akos_len,
+    );
 }
 
 fn addGlobToDirectory(
