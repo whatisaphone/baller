@@ -25,6 +25,23 @@ pub fn writeFileZ(dir: std.fs.Dir, sub_path: [*:0]const u8, bytes: []const u8) !
     try file.writeAll(bytes);
 }
 
+pub fn readFileIntoSliceZ(
+    dir: std.fs.Dir,
+    sub_path: [*:0]const u8,
+    buf: []u8,
+) !void {
+    const file = try dir.openFileZ(sub_path, .{});
+    defer file.close();
+
+    const stat = try file.stat();
+    if (stat.size < buf.len)
+        return error.EndOfStream;
+    if (stat.size > buf.len)
+        return error.StreamTooLong;
+
+    try file.reader().readNoEof(buf);
+}
+
 pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: anytype) !void {
     const file = try dir.openFileZ(sub_path, .{});
     defer file.close();

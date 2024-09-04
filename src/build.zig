@@ -2,6 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
+const akos = @import("akos.zig");
 const assemble = @import("assemble.zig");
 const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
@@ -967,21 +968,14 @@ fn handleAkos(
     const glob_number = try std.fmt.parseInt(u32, glob_number_str, 10);
 
     const akos_fixup = try beginBlock(&state.writer, "AKOS");
-
-    while (true) {
-        const room_line =
-            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
-        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
-        const keyword = tokens.next() orelse return error.BadData;
-        if (std.mem.eql(u8, keyword, "raw-block")) {
-            try handleRawBlock(tokens.rest(), prst, state);
-        } else if (std.mem.eql(u8, keyword, "end-akos")) {
-            break;
-        } else {
-            return error.BadData;
-        }
-    }
-
+    try akos.encode(
+        allocator,
+        room_reader,
+        room_line_buf,
+        &prst.cur_path,
+        &state.writer,
+        &state.fixups,
+    );
     try endBlock(&state.writer, &state.fixups, akos_fixup);
     const akos_len = state.lastBlockLen();
 

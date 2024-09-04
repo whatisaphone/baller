@@ -3,7 +3,7 @@ const std = @import("std");
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const BlockId = @import("block_id.zig").BlockId;
 
-const Path = std.BoundedArray(u8, 4095);
+pub const Path = std.BoundedArray(u8, 4095);
 
 pub fn append(buf: *Path, items: []const u8) !PrintedPath {
     const prev_len = buf.len;

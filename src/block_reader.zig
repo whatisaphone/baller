@@ -125,6 +125,12 @@ fn FixedBlockReader(Stream: type) type {
             return .{ id, len };
         }
 
+        pub fn nextAsSlice(self: *Self) !struct { BlockId, []const u8 } {
+            const id, const len = try self.next();
+            const raw = try io.readInPlace(self.stream, len);
+            return .{ id, raw };
+        }
+
         pub fn peek(self: *const Self) !?BlockId {
             try self.checkSync();
 
@@ -152,6 +158,23 @@ fn FixedBlockReader(Stream: type) type {
         pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
             const id = comptime blockId(expected_id);
             return self.expect(id);
+        }
+
+        pub fn expectBlockAsSlice(self: *Self, comptime expected_id: []const u8) ![]const u8 {
+            const len = try self.expectBlock(expected_id);
+            return try io.readInPlace(self.stream, len);
+        }
+
+        pub fn expectBlockAsValue(
+            self: *Self,
+            comptime expected_id: []const u8,
+            T: type,
+        ) !*align(1) const T {
+            const expected_len = @sizeOf(T);
+            const len = try self.expectBlock(expected_id);
+            if (len != expected_len)
+                return error.BadData;
+            return try io.readInPlaceAsValue(self.stream, T);
         }
 
         pub fn assume(self: *Self, expected_id: BlockId) !u32 {

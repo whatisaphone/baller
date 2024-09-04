@@ -1,5 +1,30 @@
 const std = @import("std");
 
+pub const null_allocator = std.mem.Allocator{
+    .ptr = undefined,
+    .vtable = &.{
+        .alloc = struct {
+            fn alloc(ctx: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
+                _ = .{ ctx, len, ptr_align, ret_addr };
+                return null;
+            }
+        }.alloc,
+
+        .resize = struct {
+            fn resize(ctx: *anyopaque, buf: []u8, buf_align: u8, new_len: usize, ret_addr: usize) bool {
+                _ = .{ ctx, buf, buf_align, new_len, ret_addr };
+                return false;
+            }
+        }.resize,
+
+        .free = struct {
+            fn free(ctx: *anyopaque, buf: []u8, buf_align: u8, ret_addr: usize) void {
+                _ = .{ ctx, buf, buf_align, ret_addr };
+            }
+        }.free,
+    },
+};
+
 pub fn addUnsignedSigned(
     x: anytype,
     y: anytype,
