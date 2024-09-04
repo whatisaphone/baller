@@ -2,6 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
+const akos = @import("akos.zig");
 const audio = @import("audio.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -1590,36 +1591,18 @@ fn decodeAkos(
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), akos_path.full());
 
-    var stream = std.io.fixedBufferStream(block_raw);
-    var blocks = fixedBlockReader(&stream);
-
     var manifest_buf = std.ArrayListUnmanaged(u8){};
     defer manifest_buf.deinit(allocator);
 
     if (write_room_lines)
         try manifest_buf.writer(allocator).print("akos {}\n", .{glob_number});
 
-    while (stream.pos < block_raw.len) {
-        const child_id, const child_len = try blocks.next();
-        const child_data = try io.readInPlace(&stream, child_len);
-
-        const path = try pathf.print(
-            &state.cur_path,
-            "{s}.bin",
-            .{blockIdToStr(&child_id)},
-        );
-        defer path.restore();
-
-        try fs.writeFileZ(std.fs.cwd(), path.full(), child_data);
-
-        if (write_room_lines)
-            try manifest_buf.writer(allocator).print(
-                "    raw-block {s} {s}\n",
-                .{ blockIdToStr(&child_id), room_state.curPathRelative() },
-            );
-    }
-
-    try blocks.finishEof();
+    try akos.decode(
+        allocator,
+        block_raw,
+        akos_path,
+        if (write_room_lines) &manifest_buf else null,
+    );
 
     if (write_room_lines)
         try manifest_buf.appendSlice(allocator, "end-akos\n");
