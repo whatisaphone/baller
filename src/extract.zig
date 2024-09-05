@@ -203,9 +203,17 @@ const State = struct {
         return entry.value_ptr.*;
     }
 
-    fn blockStat(self: *State, allocator: std.mem.Allocator, block_id: BlockId) !*BlockStat {
+    fn incrBlockStat(
+        self: *State,
+        allocator: std.mem.Allocator,
+        block_id: BlockId,
+        stat: std.meta.FieldEnum(BlockStat),
+    ) !void {
         const entry = try self.block_stats.getOrPutValue(allocator, block_id, .{});
-        return entry.value_ptr;
+        const stat_ptr = switch (stat) {
+            inline else => |s| &@field(entry.value_ptr, @tagName(s)),
+        };
+        stat_ptr.* += 1;
     }
 
     pub fn warnScriptUnknownByte(self: *State) void {
@@ -683,8 +691,7 @@ fn extractDisk(
         room_state.rmda = .{ .raw = rmda_data };
         defer allocator.free(room_state.rmda.raw);
 
-        const rmim_stat = try state.blockStat(allocator, comptime blockId("RMIM"));
-        rmim_stat.total += 1;
+        try state.incrBlockStat(allocator, comptime blockId("RMIM"), .total);
 
         const rmim_decoded = rmim_decoded: {
             if (!state.options.rmim_decode)
@@ -694,7 +701,7 @@ fn extractDisk(
                     return err;
                 break :rmim_decoded false;
             };
-            rmim_stat.decoded += 1;
+            try state.incrBlockStat(allocator, comptime blockId("RMIM"), .decoded);
             break :rmim_decoded true;
         };
         if (!rmim_decoded) {
@@ -705,7 +712,7 @@ fn extractDisk(
                 state,
                 &room_state,
             );
-            rmim_stat.raw += 1;
+            try state.incrBlockStat(allocator, comptime blockId("RMIM"), .raw);
         }
 
         try extractRmda(allocator, state, &room_state);
@@ -809,8 +816,7 @@ fn extractRmdaBlock(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    const block_stat = try state.blockStat(allocator, block_id);
-    block_stat.total += 1;
+    try state.incrBlockStat(allocator, block_id, .total);
 
     const block_number = switch (block_id) {
         blockId("LSCR"), blockId("LSC2") => try getLscBlockNumber(block_id, data),
@@ -840,12 +846,12 @@ fn extractRmdaBlock(
                 return err;
             };
             wrote_line = true;
-            block_stat.decoded += 1;
+            try state.incrBlockStat(allocator, block_id, .decoded);
         },
         .raw => {
             try writeRawBlockFile(block_id, block_number, data, state);
 
-            block_stat.raw += 1;
+            try state.incrBlockStat(allocator, block_id, .raw);
             if (!wrote_line) {
                 try writeRawBlockLine(block_id, block_number, state, room_state);
                 wrote_line = true;
@@ -896,8 +902,7 @@ fn extractGlob(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    const block_stat = try state.blockStat(allocator, block_id);
-    block_stat.total += 1;
+    try state.incrBlockStat(allocator, block_id, .total);
 
     // HACK: this only works for one block per block id per room. it's needed
     // for a strange CHAR block in backyard soccer.
@@ -928,13 +933,13 @@ fn extractGlob(
                 return err;
             };
             wrote_line = true;
-            block_stat.decoded += 1;
+            try state.incrBlockStat(allocator, block_id, .decoded);
         },
         .raw => {
             if (glob_number_opt) |glob_number| {
                 try writeRawGlobFile(block_id, glob_number, data, state);
 
-                block_stat.raw += 1;
+                try state.incrBlockStat(allocator, block_id, .raw);
                 if (!wrote_line) {
                     try writeRawGlobLine(block_id, glob_number, state, room_state);
                     wrote_line = true;
@@ -942,7 +947,7 @@ fn extractGlob(
             } else {
                 try writeRawBlockFile(block_id, block_number, data, state);
 
-                block_stat.raw += 1;
+                try state.incrBlockStat(allocator, block_id, .raw);
                 if (!wrote_line) {
                     try writeRawBlockLine(block_id, block_number, state, room_state);
                     wrote_line = true;
@@ -1475,8 +1480,7 @@ fn extractMultChild(
     cx: *Mult,
     write_room_lines: bool,
 ) !void {
-    const block_stat = try state.blockStat(allocator, block_id);
-    block_stat.total += 1;
+    try state.incrBlockStat(allocator, block_id, .total);
 
     var wrote_line = !write_room_lines;
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
@@ -1501,7 +1505,7 @@ fn extractMultChild(
                 return err;
             };
             wrote_line = true;
-            block_stat.decoded += 1;
+            try state.incrBlockStat(allocator, block_id, .decoded);
         },
         .raw => {
             const path = try appendGlobPath(state, block_id, block_number, "bin");
@@ -1509,7 +1513,7 @@ fn extractMultChild(
 
             try fs.writeFileZ(std.fs.cwd(), path.full(), data);
 
-            block_stat.raw += 1;
+            try state.incrBlockStat(allocator, block_id, .raw);
             if (!wrote_line) {
                 try cx.room_lines.writer(allocator).print(
                     "    raw-block {s} {s}\n",
