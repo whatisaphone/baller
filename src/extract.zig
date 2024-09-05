@@ -823,7 +823,6 @@ fn extractRmdaBlock(
         else => try state.incBlockSeq(allocator, block_id),
     };
 
-    var wrote_line = false;
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => {
             const decoder = for (decoders) |p| {
@@ -839,29 +838,24 @@ fn extractRmdaBlock(
                 state,
                 room_state,
                 {},
-                !wrote_line,
             ) catch |err| {
                 if (err == error.BadData)
                     continue;
                 return err;
             };
-            wrote_line = true;
             try state.incrBlockStat(allocator, block_id, .decoded);
+            return;
         },
         .raw => {
             try writeRawBlockFile(block_id, block_number, data, state);
-
+            try writeRawBlockLine(block_id, block_number, state, room_state);
             try state.incrBlockStat(allocator, block_id, .raw);
-            if (!wrote_line) {
-                try writeRawBlockLine(block_id, block_number, state, room_state);
-                wrote_line = true;
-            }
+            return;
         },
     };
 
     // This should be unreachable as long as `raw` is in the mode list
-    if (!wrote_line)
-        return error.BadData;
+    return error.BadData;
 }
 
 fn BlockDecoder(Cx: type) type {
@@ -873,7 +867,6 @@ fn BlockDecoder(Cx: type) type {
         state: *State,
         room_state: *const RoomState,
         cx: Cx,
-        write_room_lines: bool,
     ) anyerror!void;
 }
 
@@ -908,7 +901,6 @@ fn extractGlob(
     // for a strange CHAR block in backyard soccer.
     const block_number = glob_number_opt orelse 0;
 
-    var wrote_line = false;
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => {
             const decoder = for (decoders) |p| {
@@ -926,39 +918,29 @@ fn extractGlob(
                 state,
                 room_state,
                 {},
-                !wrote_line,
             ) catch |err| {
                 if (err == error.BadData or err == error.BlockFallbackToRaw)
                     continue;
                 return err;
             };
-            wrote_line = true;
             try state.incrBlockStat(allocator, block_id, .decoded);
+            return;
         },
         .raw => {
             if (glob_number_opt) |glob_number| {
                 try writeRawGlobFile(block_id, glob_number, data, state);
-
-                try state.incrBlockStat(allocator, block_id, .raw);
-                if (!wrote_line) {
-                    try writeRawGlobLine(block_id, glob_number, state, room_state);
-                    wrote_line = true;
-                }
+                try writeRawGlobLine(block_id, glob_number, state, room_state);
             } else {
                 try writeRawBlockFile(block_id, block_number, data, state);
-
-                try state.incrBlockStat(allocator, block_id, .raw);
-                if (!wrote_line) {
-                    try writeRawBlockLine(block_id, block_number, state, room_state);
-                    wrote_line = true;
-                }
+                try writeRawBlockLine(block_id, block_number, state, room_state);
             }
+            try state.incrBlockStat(allocator, block_id, .raw);
+            return;
         },
     };
 
     // This should be unreachable as long as `raw` is in the mode list
-    if (!wrote_line)
-        return error.BadData;
+    return error.BadData;
 }
 
 fn getBlockModes(block_id: BlockId, state: *const State) []const ResourceMode {
@@ -999,12 +981,10 @@ fn decodeScrp(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("SCRP"));
     try decodeScrpData(allocator, glob_number, block_raw, state);
-    if (write_room_lines)
-        try writeScrpAsmLine(glob_number, state, room_state);
+    try writeScrpAsmLine(glob_number, state, room_state);
 }
 
 fn decodeScrpData(
@@ -1070,11 +1050,9 @@ fn decodeLsc(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     try decodeLscData(allocator, block_id, block_number, data, state, room_state);
-    if (write_room_lines)
-        try writeLscAsmLine(block_id, block_number, state, room_state);
+    try writeLscAsmLine(block_id, block_number, state, room_state);
 }
 
 fn decodeLscData(
@@ -1134,12 +1112,10 @@ fn decodeAudio(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     _ = allocator;
     try decodeAudioData(block_id, glob_number, block_raw, state);
-    if (write_room_lines)
-        try writeAudioLine(block_id, glob_number, state, room_state);
+    try writeAudioLine(block_id, glob_number, state, room_state);
 }
 
 fn decodeAudioData(
@@ -1183,13 +1159,11 @@ fn decodeWsou(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     _ = allocator;
     std.debug.assert(block_id == comptime blockId("WSOU"));
     try decodeWsouData(block_id, glob_number, block_raw, state);
-    if (write_room_lines)
-        try writeWsouLine(block_id, glob_number, state, room_state);
+    try writeWsouLine(block_id, glob_number, state, room_state);
 }
 
 fn decodeWsouData(
@@ -1227,7 +1201,6 @@ fn decodeAwiz(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("AWIZ"));
 
@@ -1240,8 +1213,7 @@ fn decodeAwiz(
     );
     defer wiz.deinit(allocator);
 
-    if (write_room_lines)
-        try writeAwizLines(glob_number, &wiz, state, room_state);
+    try writeAwizLines(glob_number, &wiz, state, room_state);
 }
 
 fn decodeAwizData(
@@ -1332,7 +1304,6 @@ fn decodeMult(
     state: *State,
     room_state: *const RoomState,
     _: void,
-    write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("MULT"));
 
@@ -1342,12 +1313,10 @@ fn decodeMult(
         block_raw,
         state,
         room_state,
-        write_room_lines,
     );
     defer mult.deinit(allocator);
 
-    if (write_room_lines)
-        try writeMultLines(&mult, room_state);
+    try writeMultLines(&mult, room_state);
 }
 
 const Mult = struct {
@@ -1364,7 +1333,6 @@ fn decodeMultData(
     mult_raw: []const u8,
     state: *State,
     room_state: *const RoomState,
-    write_room_lines: bool,
 ) !Mult {
     var mult = Mult{};
     errdefer mult.deinit(allocator);
@@ -1376,10 +1344,8 @@ fn decodeMultData(
     );
     defer path.restore();
 
-    if (write_room_lines) {
-        try mult.room_lines.ensureTotalCapacity(allocator, 256);
-        try mult.room_lines.writer(allocator).print("mult {}\n", .{glob_number});
-    }
+    try mult.room_lines.ensureTotalCapacity(allocator, 256);
+    try mult.room_lines.writer(allocator).print("mult {}\n", .{glob_number});
 
     var stream = std.io.fixedBufferStream(mult_raw);
     var mult_blocks = fixedBlockReader(&stream);
@@ -1395,12 +1361,10 @@ fn decodeMultData(
 
                 try fs.writeFileZ(std.fs.cwd(), path.full(), defa_raw);
 
-                if (write_room_lines) {
-                    try mult.room_lines.writer(allocator).print(
-                        "    raw-block {s} {s}\n",
-                        .{ blockIdToStr(&id), path.relative() },
-                    );
-                }
+                try mult.room_lines.writer(allocator).print(
+                    "    raw-block {s} {s}\n",
+                    .{ blockIdToStr(&id), path.relative() },
+                );
             },
             else => return error.BadData,
         }
@@ -1440,7 +1404,6 @@ fn decodeMultData(
             state,
             room_state,
             &mult,
-            write_room_lines,
         );
     }
 
@@ -1448,19 +1411,13 @@ fn decodeMultData(
 
     try mult_blocks.finishEof();
 
-    if (write_room_lines) {
-        try mult.room_lines.appendSlice(allocator, "    indices");
-        for (offs) |off| {
-            const index = std.sort.binarySearch(u32, off, wiz_offsets.items, {}, u32Order) orelse
-                return error.BadData;
-            try mult.room_lines.writer(allocator).print(" {}", .{index});
-        }
-        try mult.room_lines.appendSlice(allocator, "\nend-mult\n");
+    try mult.room_lines.appendSlice(allocator, "    indices");
+    for (offs) |off| {
+        const index = std.sort.binarySearch(u32, off, wiz_offsets.items, {}, u32Order) orelse
+            return error.BadData;
+        try mult.room_lines.writer(allocator).print(" {}", .{index});
     }
-
-    // Make sure I didn't forget to check write_room_lines anywhere
-    if (!write_room_lines)
-        std.debug.assert(mult.room_lines.items.len == 0);
+    try mult.room_lines.appendSlice(allocator, "\nend-mult\n");
 
     return mult;
 }
@@ -1478,11 +1435,9 @@ fn extractMultChild(
     state: *State,
     room_state: *const RoomState,
     cx: *Mult,
-    write_room_lines: bool,
 ) !void {
     try state.incrBlockStat(allocator, block_id, .total);
 
-    var wrote_line = !write_room_lines;
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => {
             const decoder = for (decoders) |p| {
@@ -1498,14 +1453,13 @@ fn extractMultChild(
                 state,
                 room_state,
                 cx,
-                !wrote_line,
             ) catch |err| {
                 if (err == error.BadData)
                     continue;
                 return err;
             };
-            wrote_line = true;
             try state.incrBlockStat(allocator, block_id, .decoded);
+            return;
         },
         .raw => {
             const path = try appendGlobPath(state, block_id, block_number, "bin");
@@ -1513,20 +1467,17 @@ fn extractMultChild(
 
             try fs.writeFileZ(std.fs.cwd(), path.full(), data);
 
+            try cx.room_lines.writer(allocator).print(
+                "    raw-block {s} {s}\n",
+                .{ blockIdToStr(&block_id), room_state.curPathRelative() },
+            );
             try state.incrBlockStat(allocator, block_id, .raw);
-            if (!wrote_line) {
-                try cx.room_lines.writer(allocator).print(
-                    "    raw-block {s} {s}\n",
-                    .{ blockIdToStr(&block_id), room_state.curPathRelative() },
-                );
-                wrote_line = true;
-            }
+            return;
         },
     };
 
     // This should be unreachable as long as `raw` is in the mode list
-    if (!wrote_line)
-        return error.BadData;
+    return error.BadData;
 }
 
 fn decodeMultAwiz(
@@ -1537,7 +1488,6 @@ fn decodeMultAwiz(
     state: *State,
     room_state: *const RoomState,
     cx: *Mult,
-    write_room_lines: bool,
 ) !void {
     std.debug.assert(block_id == comptime blockId("AWIZ"));
 
@@ -1551,9 +1501,6 @@ fn decodeMultAwiz(
         path.full(),
     );
     defer wiz.deinit(allocator);
-
-    if (!write_room_lines)
-        return;
 
     try cx.room_lines.appendSlice(allocator, "    awiz\n");
     try writeAwizChildrenGivenBmpPath(
