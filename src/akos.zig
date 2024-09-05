@@ -10,6 +10,7 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const Fixup = @import("block_writer.zig").Fixup;
+const bmp = @import("bmp.zig");
 const ResourceMode = @import("extract.zig").ResourceMode;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -55,6 +56,15 @@ pub fn decode(
         manifest,
     );
 
+    const akpl = try blocks.expectBlockAsSlice("AKPL");
+    try decodeAsRawBlock(
+        allocator,
+        comptime blockId("AKPL"),
+        akpl,
+        cur_path,
+        manifest,
+    );
+
     while (try blocks.peek() != comptime blockId("AKOF")) {
         const block_id, const block_raw = try blocks.nextAsSlice();
         try decodeAsRawBlock(allocator, block_id, block_raw, cur_path, manifest);
@@ -92,7 +102,7 @@ pub fn decode(
             .info = cel_info.*,
             .data = cel_data,
         };
-        try decodeCel(allocator, cel, akcd_modes, cur_path, manifest, diagnostic);
+        try decodeCel(allocator, akhd, akpl, cel, akcd_modes, cur_path, manifest, diagnostic);
     }
 
     while (stream.pos < akos_raw.len) {
@@ -111,6 +121,8 @@ const Cel = struct {
 
 fn decodeCel(
     allocator: std.mem.Allocator,
+    akhd: *align(1) const Akhd,
+    akpl: []const u8,
     cel: Cel,
     akcd_modes: []const ResourceMode,
     cur_path: pathf.PrintedPath,
@@ -126,10 +138,91 @@ fn decodeCel(
             break;
         },
         .decode => {
-            continue; // TODO
+            decodeCelAsBmp(allocator, akhd, akpl, cel, cur_path, manifest) catch |err| {
+                if (err == error.CelDecode)
+                    continue;
+                return err;
+            };
+            try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .decoded);
+            break;
         },
     } else {
         return error.BadData;
+    }
+}
+
+// based on ScummVM's AkosRenderer::paintCelByleRLE
+fn decodeCelAsBmp(
+    allocator: std.mem.Allocator,
+    akhd: *align(1) const Akhd,
+    akpl: []const u8,
+    cel: Cel,
+    cur_path: pathf.PrintedPath,
+    manifest: ?*std.ArrayListUnmanaged(u8),
+) !void {
+    _ = manifest;
+
+    // only supports AKOS_BYLE_RLE_CODEC
+    if (akhd.cel_compression_codec != 1)
+        return error.CelDecode;
+
+    const stride = bmp.calcStride(cel.info.width);
+    const bmp_size = bmp.calcFileSize(cel.info.width, cel.info.height);
+
+    const bmp_buf = try allocator.alloc(u8, bmp_size);
+    defer allocator.free(bmp_buf);
+
+    var bmp_stream = std.io.fixedBufferStream(bmp_buf);
+    const bmp_writer = bmp_stream.writer();
+
+    try bmp.writeHeader(bmp_writer, cel.info.width, cel.info.height, bmp_size);
+
+    try bmp.writePlaceholderPalette(bmp_writer);
+
+    try decodeCelRle(akpl, cel, bmp_buf[bmp_stream.pos..], stride);
+
+    const bmp_path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bmp", .{cel.index});
+    defer bmp_path.restore();
+
+    try fs.writeFileZ(std.fs.cwd(), bmp_path.full(), bmp_buf);
+
+    return error.CelDecode; // encoder not built yet
+}
+
+fn decodeCelRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
+    const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
+        16 => .{ 0xf, 4 },
+        32 => .{ 0x7, 3 },
+        64 => .{ 0x3, 2 },
+        else => return error.CelDecode,
+    };
+
+    var in_stream = std.io.fixedBufferStream(cel.data);
+    var in = in_stream.reader();
+
+    var i: u32 = 0;
+    var x: u16 = 0;
+    var y = cel.info.height;
+
+    while (true) {
+        const b = try in.readByte();
+        var run = b & run_mask;
+        const color = b >> color_shift;
+        if (run == 0)
+            run = try in.readByte();
+
+        for (0..run) |_| {
+            pixels[i] = color;
+            i += stride;
+            y -= 1;
+            if (y == 0) {
+                y = cel.info.height;
+                x += 1;
+                if (x == cel.info.width)
+                    return;
+                i = x; // Move to pixel `x` in the first row
+            }
+        }
     }
 }
 

@@ -227,7 +227,7 @@ pub const RowIter = struct {
     }
 };
 
-fn calcStride(width: u31) u31 {
+pub fn calcStride(width: u31) u31 {
     return std.mem.alignForward(u31, width, row_align);
 }
 
@@ -272,6 +272,16 @@ pub fn writePalette(out: anytype, pal: *const [0x300]u8) !void {
         try out.writeByte(0);
         i += 3;
     }
+}
+
+pub fn writePlaceholderPalette(out: anytype) !void {
+    for (0..4) |b| for (0..8) |g| for (0..8) |r|
+        try out.writeAll(&.{
+            @intCast(255 * b / 3),
+            @intCast(255 * g / 7),
+            @intCast(255 * r / 7),
+            0,
+        });
 }
 
 pub fn padRow(out: anytype, width: u31) !void {
