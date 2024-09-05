@@ -70,7 +70,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
+    try std.testing.expectEqual(result.block_stats.count(), 20);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 16);
     try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
     try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
@@ -88,6 +88,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
     try expectStatDecodedAll(&result.block_stats, "AKOS");
+    try expectStatDecodedCount(&result.block_stats, "AKCD", 0);
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
 
@@ -127,7 +128,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 20);
+    try std.testing.expectEqual(result.block_stats.count(), 21);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 5);
     try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
     try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
@@ -139,6 +140,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "DIGI", 3652);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
     try expectStatDecodedAll(&result.block_stats, "AKOS");
+    try expectStatDecodedCount(&result.block_stats, "AKCD", 0);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 15130);
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedCount(&result.block_stats, "TALK", 529);
@@ -184,7 +186,7 @@ test "Backyard Soccer round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 20);
+    try std.testing.expectEqual(result.block_stats.count(), 21);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 22);
     try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
     try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
@@ -203,6 +205,7 @@ test "Backyard Soccer round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
     try expectStatDecodedCount(&result.block_stats, "POLD", 0);
     try expectStatDecodedAll(&result.block_stats, "AKOS");
+    try expectStatDecodedCount(&result.block_stats, "AKCD", 0);
     try expectStatDecodedAll(&result.block_stats, "MULT");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
 
@@ -241,7 +244,7 @@ test "Backyard Football round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
+    try std.testing.expectEqual(result.block_stats.count(), 20);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 14);
     try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
     try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
@@ -253,6 +256,7 @@ test "Backyard Football round trip decode/encode" {
     try expectStatDecodedCount(&result.block_stats, "DIGI", 554);
     try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedAll(&result.block_stats, "AKOS");
+    try expectStatDecodedCount(&result.block_stats, "AKCD", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1109);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 11429);
     try expectStatDecodedCount(&result.block_stats, "TALK", 549);
@@ -297,7 +301,7 @@ test "Backyard Basketball round trip decode/encode" {
     defer result.deinit(allocator);
 
     errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
+    try std.testing.expectEqual(result.block_stats.count(), 20);
     try expectStatDecodedCount(&result.block_stats, "RMIM", 12);
     try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
     try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
@@ -309,6 +313,7 @@ test "Backyard Basketball round trip decode/encode" {
     try expectStatDecodedAll(&result.block_stats, "WSOU");
     try expectStatDecodedAll(&result.block_stats, "LSC2");
     try expectStatDecodedAll(&result.block_stats, "AKOS");
+    try expectStatDecodedCount(&result.block_stats, "AKCD", 0);
     try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
     try expectStatDecodedCount(&result.block_stats, "AWIZ", 15282);
     try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
@@ -362,6 +367,9 @@ fn testRoundTrip(
         .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
         .mult_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
         .akos_modes = if (raw) &.{.raw} else &.{.decode},
+        // TODO: test akos:raw + akcd:decode. probably one test per level of
+        // nesting would be useful.
+        .akcd_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);

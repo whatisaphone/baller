@@ -10,6 +10,7 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const Fixup = @import("block_writer.zig").Fixup;
+const ResourceMode = @import("extract.zig").ResourceMode;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const pathf = @import("pathf.zig");
@@ -37,8 +38,10 @@ const Akci = extern struct {
 pub fn decode(
     allocator: std.mem.Allocator,
     akos_raw: []const u8,
+    akcd_modes: []const ResourceMode,
     cur_path: pathf.PrintedPath,
     manifest: ?*std.ArrayListUnmanaged(u8),
+    diagnostic: anytype,
 ) !void {
     var stream = std.io.fixedBufferStream(akos_raw);
     var blocks = fixedBlockReader(&stream);
@@ -84,16 +87,12 @@ pub fn decode(
         else
             akcd_raw[cd_start..];
 
-        const path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bin", .{cel_index});
-        defer path.restore();
-
-        try fs.writeFileZ(std.fs.cwd(), path.full(), cel_data);
-
-        if (manifest) |m|
-            try m.writer(allocator).print(
-                "    cel {} {} {s}\n",
-                .{ cel_info.width, cel_info.height, cur_path.relative() },
-            );
+        const cel = Cel{
+            .index = cel_index,
+            .info = cel_info.*,
+            .data = cel_data,
+        };
+        try decodeCel(allocator, cel, akcd_modes, cur_path, manifest, diagnostic);
     }
 
     while (stream.pos < akos_raw.len) {
@@ -102,6 +101,54 @@ pub fn decode(
     }
 
     try blocks.finishEof();
+}
+
+const Cel = struct {
+    index: usize,
+    info: Akci,
+    data: []const u8,
+};
+
+fn decodeCel(
+    allocator: std.mem.Allocator,
+    cel: Cel,
+    akcd_modes: []const ResourceMode,
+    cur_path: pathf.PrintedPath,
+    manifest: ?*std.ArrayListUnmanaged(u8),
+    diagnostic: anytype,
+) !void {
+    try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .total);
+
+    for (akcd_modes) |mode| switch (mode) {
+        .raw => {
+            try decodeCelAsRaw(allocator, cel, cur_path, manifest);
+            try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .raw);
+            break;
+        },
+        .decode => {
+            continue; // TODO
+        },
+    } else {
+        return error.BadData;
+    }
+}
+
+fn decodeCelAsRaw(
+    allocator: std.mem.Allocator,
+    cel: Cel,
+    cur_path: pathf.PrintedPath,
+    manifest: ?*std.ArrayListUnmanaged(u8),
+) !void {
+    const path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bin", .{cel.index});
+    defer path.restore();
+
+    try fs.writeFileZ(std.fs.cwd(), path.full(), cel.data);
+
+    if (manifest) |m|
+        try m.writer(allocator).print(
+            "    cel {} {} {s}\n",
+            .{ cel.info.width, cel.info.height, cur_path.relative() },
+        );
 }
 
 fn decodeAsRawBlock(

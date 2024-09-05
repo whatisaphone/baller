@@ -67,12 +67,13 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
         .akos_modes = &.{.decode},
+        .akcd_modes = &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });
     defer result.deinit(allocator);
 }
 
-const ResourceMode = enum {
+pub const ResourceMode = enum {
     raw,
     decode,
 };
@@ -86,6 +87,7 @@ const Extract = struct {
     awiz_modes: []const ResourceMode,
     mult_modes: []const ResourceMode,
     akos_modes: []const ResourceMode,
+    akcd_modes: []const ResourceMode,
     symbols_text: []const u8,
     dump_index: bool = false,
 };
@@ -206,7 +208,7 @@ const State = struct {
         return entry.value_ptr.*;
     }
 
-    fn incrBlockStat(
+    pub fn incrBlockStat(
         self: *State,
         allocator: std.mem.Allocator,
         block_id: BlockId,
@@ -1604,8 +1606,10 @@ fn decodeAkos(
     try akos.decode(
         allocator,
         block_raw,
+        state.options.akcd_modes,
         akos_path,
         if (write_room_lines) &manifest_buf else null,
+        state,
     );
 
     if (write_room_lines)
