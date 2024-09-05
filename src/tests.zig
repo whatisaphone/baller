@@ -4,6 +4,7 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
+const parseBlockId = @import("block_id.zig").parseBlockId;
 const build = @import("build.zig");
 const extract = @import("extract.zig");
 const fs = @import("fs.zig");
@@ -69,27 +70,27 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     );
     defer result.deinit(allocator);
 
-    errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
-    try expectStatDecodedCount(&result.block_stats, "RMIM", 16);
-    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
-    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
-    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
-    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
-    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedAll(&result.block_stats, "LSCR");
-    try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedCount(&result.block_stats, "SOUN", 0);
-    try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 1761);
-    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedAll(&result.block_stats, "MULT");
-    try expectStatDecodedAll(&result.block_stats, "LSC2");
+    try expectBlockStats(&result.block_stats, &.{
+        .{ "RMIM", 16, 30 },
+        .{ "RMHD", 0, 30 },
+        .{ "CYCL", 0, 30 },
+        .{ "TRNS", 0, 30 },
+        .{ "PALS", 0, 30 },
+        .{ "EXCD", 0, 30 },
+        .{ "ENCD", 0, 30 },
+        .{ "NLSC", 0, 30 },
+        .{ "LSCR", 375, 375 },
+        .{ "SCRP", 193, 193 },
+        .{ "SOUN", 0, 1805 },
+        .{ "CHAR", 0, 11 },
+        .{ "AWIZ", 1761, 1812 },
+        .{ "OBIM", 0, 268 },
+        .{ "OBCD", 0, 268 },
+        .{ "POLD", 0, 8 },
+        .{ "AKOS", 0, 406 },
+        .{ "MULT", 184, 184 },
+        .{ "LSC2", 202, 202 },
+    });
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -126,28 +127,28 @@ test "Backyard Baseball 2001 round trip decode/encode" {
     );
     defer result.deinit(allocator);
 
-    errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 20);
-    try expectStatDecodedCount(&result.block_stats, "RMIM", 5);
-    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
-    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
-    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
-    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
-    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedCount(&result.block_stats, "DIGI", 3652);
-    try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 15130);
-    try expectStatDecodedAll(&result.block_stats, "MULT");
-    try expectStatDecodedCount(&result.block_stats, "TALK", 529);
-    try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedAll(&result.block_stats, "LSC2");
-    try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
+    try expectBlockStats(&result.block_stats, &.{
+        .{ "RMIM", 5, 37 },
+        .{ "RMHD", 0, 37 },
+        .{ "CYCL", 0, 37 },
+        .{ "TRNS", 0, 37 },
+        .{ "PALS", 0, 37 },
+        .{ "EXCD", 0, 37 },
+        .{ "ENCD", 0, 37 },
+        .{ "NLSC", 0, 37 },
+        .{ "DIGI", 3652, 3662 },
+        .{ "TLKE", 0, 2508 },
+        .{ "AKOS", 0, 645 },
+        .{ "AWIZ", 15130, 15133 },
+        .{ "MULT", 659, 659 },
+        .{ "TALK", 529, 617 },
+        .{ "CHAR", 0, 7 },
+        .{ "LSC2", 1529, 1529 },
+        .{ "SCRP", 417, 417 },
+        .{ "OBIM", 0, 68 },
+        .{ "OBCD", 0, 68 },
+        .{ "POLD", 0, 6 },
+    });
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -183,28 +184,28 @@ test "Backyard Soccer round trip decode/encode" {
     );
     defer result.deinit(allocator);
 
-    errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 20);
-    try expectStatDecodedCount(&result.block_stats, "RMIM", 22);
-    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
-    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
-    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
-    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
-    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedAll(&result.block_stats, "LSCR");
-    try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedCount(&result.block_stats, "DIGI", 1594);
-    try expectStatDecodedCount(&result.block_stats, "TALK", 141);
-    try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 2668);
-    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedAll(&result.block_stats, "MULT");
-    try expectStatDecodedAll(&result.block_stats, "LSC2");
+    try expectBlockStats(&result.block_stats, &.{
+        .{ "RMIM", 22, 29 },
+        .{ "RMHD", 0, 29 },
+        .{ "CYCL", 0, 29 },
+        .{ "TRNS", 0, 29 },
+        .{ "PALS", 0, 29 },
+        .{ "EXCD", 0, 29 },
+        .{ "ENCD", 0, 29 },
+        .{ "NLSC", 0, 29 },
+        .{ "LSCR", 384, 384 },
+        .{ "SCRP", 135, 135 },
+        .{ "DIGI", 1594, 1686 },
+        .{ "TALK", 141, 2146 },
+        .{ "CHAR", 0, 10 },
+        .{ "AWIZ", 2668, 3117 },
+        .{ "OBIM", 0, 197 },
+        .{ "OBCD", 0, 197 },
+        .{ "POLD", 0, 6 },
+        .{ "AKOS", 0, 323 },
+        .{ "MULT", 389, 389 },
+        .{ "LSC2", 143, 143 },
+    });
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -240,27 +241,27 @@ test "Backyard Football round trip decode/encode" {
     );
     defer result.deinit(allocator);
 
-    errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
-    try expectStatDecodedCount(&result.block_stats, "RMIM", 14);
-    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
-    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
-    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
-    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
-    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedCount(&result.block_stats, "DIGI", 554);
-    try expectStatDecodedAll(&result.block_stats, "LSC2");
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedCount(&result.block_stats, "MULT", 1109);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 11429);
-    try expectStatDecodedCount(&result.block_stats, "TALK", 549);
-    try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
+    try expectBlockStats(&result.block_stats, &.{
+        .{ "RMIM", 14, 56 },
+        .{ "RMHD", 0, 56 },
+        .{ "CYCL", 0, 56 },
+        .{ "TRNS", 0, 56 },
+        .{ "PALS", 0, 56 },
+        .{ "EXCD", 0, 56 },
+        .{ "ENCD", 0, 56 },
+        .{ "NLSC", 0, 56 },
+        .{ "DIGI", 554, 1599 },
+        .{ "LSC2", 890, 890 },
+        .{ "AKOS", 0, 311 },
+        .{ "MULT", 1109, 1145 },
+        .{ "AWIZ", 11429, 11594 },
+        .{ "TALK", 549, 2768 },
+        .{ "CHAR", 0, 13 },
+        .{ "SCRP", 388, 388 },
+        .{ "OBIM", 0, 290 },
+        .{ "OBCD", 0, 290 },
+        .{ "POLD", 0, 9 },
+    });
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -296,27 +297,27 @@ test "Backyard Basketball round trip decode/encode" {
     );
     defer result.deinit(allocator);
 
-    errdefer dumpBlockStats(&result.block_stats);
-    try std.testing.expectEqual(result.block_stats.count(), 19);
-    try expectStatDecodedCount(&result.block_stats, "RMIM", 12);
-    try expectStatDecodedCount(&result.block_stats, "RMHD", 0);
-    try expectStatDecodedCount(&result.block_stats, "CYCL", 0);
-    try expectStatDecodedCount(&result.block_stats, "TRNS", 0);
-    try expectStatDecodedCount(&result.block_stats, "PALS", 0);
-    try expectStatDecodedCount(&result.block_stats, "EXCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "ENCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "NLSC", 0);
-    try expectStatDecodedAll(&result.block_stats, "WSOU");
-    try expectStatDecodedAll(&result.block_stats, "LSC2");
-    try expectStatDecodedCount(&result.block_stats, "AKOS", 0);
-    try expectStatDecodedCount(&result.block_stats, "MULT", 1245);
-    try expectStatDecodedCount(&result.block_stats, "AWIZ", 15282);
-    try expectStatDecodedCount(&result.block_stats, "TLKE", 0);
-    try expectStatDecodedAll(&result.block_stats, "SCRP");
-    try expectStatDecodedCount(&result.block_stats, "CHAR", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBIM", 0);
-    try expectStatDecodedCount(&result.block_stats, "OBCD", 0);
-    try expectStatDecodedCount(&result.block_stats, "POLD", 0);
+    try expectBlockStats(&result.block_stats, &.{
+        .{ "RMIM", 12, 33 },
+        .{ "RMHD", 0, 33 },
+        .{ "CYCL", 0, 33 },
+        .{ "TRNS", 0, 33 },
+        .{ "PALS", 0, 33 },
+        .{ "EXCD", 0, 33 },
+        .{ "ENCD", 0, 33 },
+        .{ "NLSC", 0, 33 },
+        .{ "WSOU", 3731, 3731 },
+        .{ "LSC2", 1142, 1142 },
+        .{ "AKOS", 0, 396 },
+        .{ "MULT", 1245, 1579 },
+        .{ "AWIZ", 15282, 15622 },
+        .{ "TLKE", 0, 1487 },
+        .{ "SCRP", 663, 663 },
+        .{ "CHAR", 0, 5 },
+        .{ "OBIM", 0, 12 },
+        .{ "OBCD", 0, 12 },
+        .{ "POLD", 0, 1 },
+    });
 
     try std.testing.expectEqual(result.scripts_with_unknown_byte, 0);
 }
@@ -473,26 +474,20 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
     try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
 }
 
-fn expectStatDecodedAll(
+fn expectBlockStats(
     stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
-    comptime block_id_str: []const u8,
+    // block id, decoded, total
+    expected: []const struct { []const u8, u32, u32 },
 ) !void {
-    const block_id = comptime blockId(block_id_str);
-    const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(stat.decoded, stat.total);
-}
-
-fn expectStatDecodedCount(
-    stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
-    comptime block_id_str: []const u8,
-    expected_count: u32,
-) !void {
-    const block_id = comptime blockId(block_id_str);
-    const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(stat.decoded, expected_count);
-
-    // If this is true, use expectStatDecodedAll instead.
-    try std.testing.expect(expected_count != stat.total);
+    errdefer dumpBlockStats(stats);
+    try std.testing.expectEqual(stats.count(), expected.len);
+    for (expected) |exp| {
+        const block_id_str, const exp_decoded, const exp_total = exp;
+        const block_id = parseBlockId(block_id_str) orelse return error.TestUnexpectedResult;
+        const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(stat.decoded, exp_decoded);
+        try std.testing.expectEqual(stat.total, exp_total);
+    }
 }
 
 fn dumpBlockStats(
