@@ -1,4 +1,3 @@
-const builtin = @import("builtin");
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
@@ -1060,14 +1059,12 @@ fn writeIndex(
     const dlfl_fixup = try beginBlock(&writer, "DLFL");
     try writer.writer().writeInt(u16, @intCast(prst.index.lfl_offsets.items.len), .little);
     try writer.writer().writeAll(std.mem.sliceAsBytes(prst.index.lfl_offsets.items));
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
     try endBlock(&writer, &fixups, dlfl_fixup);
 
     if (prst.index.lfl_disks) |*lfl_disks| {
         const disk_fixup = try beginBlock(&writer, "DISK");
         try writer.writer().writeInt(u16, @intCast(lfl_disks.items.len), .little);
         try writer.writer().writeAll(lfl_disks.items);
-        std.debug.assert(builtin.cpu.arch.endian() == .little);
         try endBlock(&writer, &fixups, disk_fixup);
     }
 
@@ -1144,7 +1141,6 @@ fn writeDirectoryImpl(
     try stream.writer().writeAll(slice.items(.room));
     try stream.writer().writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
     try stream.writer().writeAll(std.mem.sliceAsBytes(slice.items(.len)));
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
 
     try endBlock(stream, fixups, block_fixup);
 }

@@ -1,4 +1,3 @@
-const builtin = @import("builtin");
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
@@ -86,7 +85,6 @@ pub fn decode(
         const off = &akof[cel_index];
         const cel_info: *align(1) const Akci =
             @ptrCast(akci_raw[off.akci..][0..@sizeOf(Akci)]);
-        std.debug.assert(builtin.cpu.arch.endian() == .little);
         const cd_start = off.akcd;
         const cd_end = if (cel_index != akhd.cels_count - 1)
             akof[cel_index + 1].akcd
@@ -298,7 +296,6 @@ pub fn encode(
         defer path.restore();
 
         var akhd: Akhd = undefined;
-        std.debug.assert(builtin.cpu.arch.endian() == .little);
         try fs.readFileIntoSliceZ(std.fs.cwd(), path.full(), std.mem.asBytes(&akhd));
 
         const start = try beginBlock(writer, "AKHD");
@@ -381,7 +378,6 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
             .akci = @intCast(i * @sizeOf(Akci)),
             .akcd = cd_off,
         };
-        std.debug.assert(builtin.cpu.arch.endian() == .little);
         try out.writer().writeAll(std.mem.asBytes(&off));
     }
     try endBlock(out, fixups, akof_start);

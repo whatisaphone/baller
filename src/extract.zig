@@ -1,4 +1,3 @@
-const builtin = @import("builtin");
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
@@ -364,8 +363,6 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
     try in.readNoEof(std.mem.asBytes(maxs)[0..maxs_len]);
     @memset(std.mem.asBytes(maxs)[maxs_len..@sizeOf(Maxs)], 0);
 
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
-
     // DIR*
 
     const read_dir = struct {
@@ -414,7 +411,6 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
     errdefer allocator.free(dlfl);
 
     try in.readNoEof(std.mem.sliceAsBytes(dlfl));
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
 
     // DISK
 
@@ -566,7 +562,6 @@ fn readDirectory(
     try in.readNoEof(slice.items(.room));
     try in.readNoEof(std.mem.sliceAsBytes(slice.items(.offset)));
     try in.readNoEof(std.mem.sliceAsBytes(slice.items(.len)));
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
 
     return result;
 }
@@ -577,7 +572,6 @@ fn writeIndexBlobs(
     index: *const Index,
     path_buf: *std.BoundedArray(u8, 4095),
 ) !void {
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
     const maxs_data = std.mem.asBytes(index.maxs)[0..games.maxsLen(game)];
     try writeIndexBlob(path_buf, "maxs.bin", maxs_data);
 
@@ -1386,7 +1380,6 @@ fn decodeMultData(
     const offs_count = std.math.divExact(u32, offs_len, 4) catch return error.BadData;
     const offs_raw = try io.readInPlace(&stream, offs_len);
     const offs = std.mem.bytesAsSlice(u32, offs_raw);
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
 
     var wiz_offsets = std.ArrayListUnmanaged(u32){};
     defer wiz_offsets.deinit(allocator);

@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const build = @import("build.zig");
@@ -86,6 +87,11 @@ const usage =
     \\    <output>      Path to output file ending in .he2
     \\
 ;
+
+comptime {
+    // Sorry, IBM mainframe users
+    std.debug.assert(builtin.cpu.arch.endian() == .little);
+}
 
 test {
     _ = @import("tests.zig");

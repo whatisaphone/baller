@@ -1,4 +1,3 @@
-const builtin = @import("builtin");
 const std = @import("std");
 
 pub fn requireEof(s: anytype) !void {
@@ -37,7 +36,6 @@ pub fn readInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
 
 pub fn readInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
     const data = try readInPlace(stream, @sizeOf(T));
-    std.debug.assert(builtin.cpu.arch.endian() == .little);
     return std.mem.bytesAsValue(T, data);
 }
 
