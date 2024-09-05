@@ -41,7 +41,7 @@ pub fn decode(
     akos_raw: []const u8,
     akcd_modes: []const ResourceMode,
     cur_path: pathf.PrintedPath,
-    manifest: ?*std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayListUnmanaged(u8),
     diagnostic: anytype,
 ) !void {
     var stream = std.io.fixedBufferStream(akos_raw);
@@ -126,7 +126,7 @@ fn decodeCel(
     cel: Cel,
     akcd_modes: []const ResourceMode,
     cur_path: pathf.PrintedPath,
-    manifest: ?*std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayListUnmanaged(u8),
     diagnostic: anytype,
 ) !void {
     try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .total);
@@ -158,7 +158,7 @@ fn decodeCelAsBmp(
     akpl: []const u8,
     cel: Cel,
     cur_path: pathf.PrintedPath,
-    manifest: ?*std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
     _ = manifest;
 
@@ -230,18 +230,17 @@ fn decodeCelAsRaw(
     allocator: std.mem.Allocator,
     cel: Cel,
     cur_path: pathf.PrintedPath,
-    manifest: ?*std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
     const path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bin", .{cel.index});
     defer path.restore();
 
     try fs.writeFileZ(std.fs.cwd(), path.full(), cel.data);
 
-    if (manifest) |m|
-        try m.writer(allocator).print(
-            "    cel {} {} {s}\n",
-            .{ cel.info.width, cel.info.height, cur_path.relative() },
-        );
+    try manifest.writer(allocator).print(
+        "    cel {} {} {s}\n",
+        .{ cel.info.width, cel.info.height, cur_path.relative() },
+    );
 }
 
 fn decodeAsRawBlock(
@@ -249,18 +248,17 @@ fn decodeAsRawBlock(
     block_id: BlockId,
     block_raw: []const u8,
     cur_path: pathf.PrintedPath,
-    manifest: ?*std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
     const block_path = try pathf.print(cur_path.buf, "{s}.bin", .{blockIdToStr(&block_id)});
     defer block_path.restore();
 
     try fs.writeFileZ(std.fs.cwd(), block_path.full(), block_raw);
 
-    if (manifest) |m|
-        try m.writer(allocator).print(
-            "    raw-block {s} {s}\n",
-            .{ blockIdToStr(&block_id), cur_path.relative() },
-        );
+    try manifest.writer(allocator).print(
+        "    raw-block {s} {s}\n",
+        .{ blockIdToStr(&block_id), cur_path.relative() },
+    );
 }
 
 const EncodeState = struct {

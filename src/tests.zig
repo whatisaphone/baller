@@ -50,11 +50,28 @@ test "Backyard Baseball 1997 round trip raw" {
         allocator,
         "baseball1997",
         "BASEBALL.HE0",
-        true,
+        .raw,
         null,
         &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
     );
     defer result.deinit(allocator);
+}
+
+test "Backyard Baseball 1997 round trip imperfect" {
+    const allocator = std.testing.allocator;
+
+    var result = try testRoundTrip(
+        allocator,
+        "baseball1997",
+        "BASEBALL.HE0",
+        .decode_imperfect,
+        null,
+        &.{},
+    );
+    defer result.deinit(allocator);
+
+    try expectBlockStat(&result.block_stats, "AWIZ", 1761, 1812);
+    try expectBlockStat(&result.block_stats, "MULT", 184, 184);
 }
 
 test "Backyard Baseball 1997 round trip decode/encode" {
@@ -64,7 +81,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         allocator,
         "baseball1997",
         "BASEBALL.HE0",
-        false,
+        .decode,
         "fixtures/baseball1997-symbols.ini",
         &.{ "BASEBALL.HE0", "BASEBALL.HE1" },
     );
@@ -83,7 +100,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         .{ "SCRP", 193, 193 },
         .{ "SOUN", 0, 1805 },
         .{ "CHAR", 0, 11 },
-        .{ "AWIZ", 1761, 1812 },
+        .{ "AWIZ", 0, 1812 },
         .{ "OBIM", 0, 268 },
         .{ "OBCD", 0, 268 },
         .{ "POLD", 0, 8 },
@@ -107,11 +124,28 @@ test "Backyard Baseball 2001 round trip raw" {
         allocator,
         "baseball2001",
         "baseball 2001.he0",
-        true,
+        .raw,
         null,
         &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
     );
     defer result.deinit(allocator);
+}
+
+test "Backyard Baseball 2001 round trip imperfect" {
+    const allocator = std.testing.allocator;
+
+    var result = try testRoundTrip(
+        allocator,
+        "baseball2001",
+        "baseball 2001.he0",
+        .decode_imperfect,
+        null,
+        &.{},
+    );
+    defer result.deinit(allocator);
+
+    try expectBlockStat(&result.block_stats, "AWIZ", 15130, 15133);
+    try expectBlockStat(&result.block_stats, "MULT", 659, 659);
 }
 
 // NOTE: this is the main one that tests symbols.
@@ -122,7 +156,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         allocator,
         "baseball2001",
         "baseball 2001.he0",
-        false,
+        .decode,
         "fixtures/baseball2001-symbols.ini",
         &.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" },
     );
@@ -141,7 +175,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         .{ "TLKE", 0, 2508 },
         .{ "AKOS", 645, 645 },
         .{ "AKCD", 0, 105313 },
-        .{ "AWIZ", 15130, 15133 },
+        .{ "AWIZ", 0, 15133 },
         .{ "MULT", 659, 659 },
         .{ "TALK", 529, 617 },
         .{ "CHAR", 0, 7 },
@@ -166,11 +200,28 @@ test "Backyard Soccer round trip raw" {
         allocator,
         "soccer",
         "SOCCER.HE0",
-        true,
+        .raw,
         null,
         &.{ "SOCCER.HE0", "SOCCER.(A)" },
     );
     defer result.deinit(allocator);
+}
+
+test "Backyard Soccer round trip imperfect" {
+    const allocator = std.testing.allocator;
+
+    var result = try testRoundTrip(
+        allocator,
+        "soccer",
+        "SOCCER.HE0",
+        .decode_imperfect,
+        null,
+        &.{},
+    );
+    defer result.deinit(allocator);
+
+    try expectBlockStat(&result.block_stats, "AWIZ", 2668, 3117);
+    try expectBlockStat(&result.block_stats, "MULT", 389, 389);
 }
 
 test "Backyard Soccer round trip decode/encode" {
@@ -180,7 +231,7 @@ test "Backyard Soccer round trip decode/encode" {
         allocator,
         "soccer",
         "SOCCER.HE0",
-        false,
+        .decode,
         null,
         &.{ "SOCCER.HE0", "SOCCER.(A)" },
     );
@@ -200,7 +251,7 @@ test "Backyard Soccer round trip decode/encode" {
         .{ "DIGI", 1594, 1686 },
         .{ "TALK", 141, 2146 },
         .{ "CHAR", 0, 10 },
-        .{ "AWIZ", 2668, 3117 },
+        .{ "AWIZ", 0, 3117 },
         .{ "OBIM", 0, 197 },
         .{ "OBCD", 0, 197 },
         .{ "POLD", 0, 6 },
@@ -224,11 +275,28 @@ test "Backyard Football round trip raw" {
         allocator,
         "football",
         "FOOTBALL.HE0",
-        true,
+        .raw,
         null,
         &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
     );
     defer result.deinit(allocator);
+}
+
+test "Backyard Football round trip imperfect" {
+    const allocator = std.testing.allocator;
+
+    var result = try testRoundTrip(
+        allocator,
+        "football",
+        "FOOTBALL.HE0",
+        .decode_imperfect,
+        null,
+        &.{},
+    );
+    defer result.deinit(allocator);
+
+    try expectBlockStat(&result.block_stats, "MULT", 1109, 1145);
+    try expectBlockStat(&result.block_stats, "AWIZ", 11429, 11594);
 }
 
 test "Backyard Football round trip decode/encode" {
@@ -238,7 +306,7 @@ test "Backyard Football round trip decode/encode" {
         allocator,
         "football",
         "FOOTBALL.HE0",
-        false,
+        .decode,
         null,
         &.{ "FOOTBALL.HE0", "FOOTBALL.(A)", "FOOTBALL.(B)" },
     );
@@ -257,8 +325,8 @@ test "Backyard Football round trip decode/encode" {
         .{ "LSC2", 890, 890 },
         .{ "AKOS", 311, 311 },
         .{ "AKCD", 0, 75689 },
-        .{ "MULT", 1109, 1145 },
-        .{ "AWIZ", 11429, 11594 },
+        .{ "MULT", 1145, 1145 },
+        .{ "AWIZ", 0, 11594 },
         .{ "TALK", 549, 2768 },
         .{ "CHAR", 0, 13 },
         .{ "SCRP", 388, 388 },
@@ -281,11 +349,28 @@ test "Backyard Basketball round trip raw" {
         allocator,
         "basketball",
         "Basketball.he0",
-        true,
+        .raw,
         null,
         &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
     );
     defer result.deinit(allocator);
+}
+
+test "Backyard Basketball round trip imperfect" {
+    const allocator = std.testing.allocator;
+
+    var result = try testRoundTrip(
+        allocator,
+        "basketball",
+        "Basketball.he0",
+        .decode_imperfect,
+        null,
+        &.{},
+    );
+    defer result.deinit(allocator);
+
+    try expectBlockStat(&result.block_stats, "MULT", 1245, 1579);
+    try expectBlockStat(&result.block_stats, "AWIZ", 15282, 15622);
 }
 
 test "Backyard Basketball round trip decode/encode" {
@@ -295,7 +380,7 @@ test "Backyard Basketball round trip decode/encode" {
         allocator,
         "basketball",
         "Basketball.he0",
-        false,
+        .decode,
         null,
         &.{ "Basketball.he0", "Basketball.(a)", "Basketball.(b)" },
     );
@@ -314,8 +399,8 @@ test "Backyard Basketball round trip decode/encode" {
         .{ "LSC2", 1142, 1142 },
         .{ "AKOS", 396, 396 },
         .{ "AKCD", 0, 86022 },
-        .{ "MULT", 1245, 1579 },
-        .{ "AWIZ", 15282, 15622 },
+        .{ "MULT", 1579, 1579 },
+        .{ "AWIZ", 0, 15629 },
         .{ "TLKE", 0, 1487 },
         .{ "SCRP", 663, 663 },
         .{ "CHAR", 0, 5 },
@@ -335,10 +420,12 @@ fn testRoundTrip(
     allocator: std.mem.Allocator,
     comptime fixture_dir: []const u8,
     comptime index_name: []const u8,
-    raw: bool,
+    mode: enum { raw, decode, decode_imperfect },
     comptime symbols_path: ?[]const u8,
     comptime fixture_names: []const []const u8,
 ) !extract.Result {
+    std.debug.assert((fixture_names.len == 0) == (mode == .decode_imperfect));
+
     // Build temp dirs for this test
 
     const tmp = try getTempDir(allocator);
@@ -361,16 +448,15 @@ fn testRoundTrip(
     var result = try extract.run(allocator, &.{
         .input_path = "src/fixtures/" ++ fixture_dir ++ "/" ++ index_name,
         .output_path = extract_dir,
-        .rmim_decode = !raw,
-        .script_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
-        .sound_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
-        // TODO: swap these once AWIZ round trips
-        .awiz_modes = if (raw) &.{.raw} else &.{ .raw, .decode },
-        .mult_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
-        .akos_modes = if (raw) &.{.raw} else &.{.decode},
+        .rmim_decode = mode != .raw,
+        .script_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
+        .sound_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
+        .awiz_modes = if (mode != .decode_imperfect) &.{.raw} else &.{ .decode, .raw },
+        .mult_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
+        .akos_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         // TODO: test akos:raw + akcd:decode. probably one test per level of
         // nesting would be useful.
-        .akcd_modes = if (raw) &.{.raw} else &.{ .decode, .raw },
+        .akcd_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);
@@ -497,6 +583,18 @@ fn expectBlockStats(
         try std.testing.expectEqual(stat.decoded, exp_decoded);
         try std.testing.expectEqual(stat.total, exp_total);
     }
+}
+
+fn expectBlockStat(
+    stats: *const std.AutoArrayHashMapUnmanaged(BlockId, extract.BlockStat),
+    comptime block_id_str: []const u8,
+    expected_decoded: u32,
+    expected_total: u32,
+) !void {
+    const block_id = comptime blockId(block_id_str);
+    const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(stat.decoded, expected_decoded);
+    try std.testing.expectEqual(stat.total, expected_total);
 }
 
 fn dumpBlockStats(
