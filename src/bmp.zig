@@ -108,6 +108,20 @@ pub const Bmp = struct {
     pub fn iterRows(self: *const Bmp) !RowIter {
         return RowIter.init(self.header, self.pixels);
     }
+
+    pub fn getPixel(self: *const Bmp, x: usize, y: usize) !u8 {
+        std.debug.assert(x < self.width());
+        std.debug.assert(y < self.height());
+        const stride = calcStride(self.width());
+
+        // See comment in `readHeader` for why this check is here.
+        if (self.pixels.len != stride * self.height())
+            return error.BadData;
+
+        const top_down = self.header.biHeight < 0;
+        const mem_y = if (top_down) y else self.height() - 1 - y;
+        return self.pixels[mem_y * stride + x];
+    }
 };
 
 pub const PixelIter = union(enum) {

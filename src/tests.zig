@@ -454,9 +454,7 @@ fn testRoundTrip(
         .awiz_modes = if (mode != .decode_imperfect) &.{.raw} else &.{ .decode, .raw },
         .mult_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .akos_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
-        // TODO: test akos:raw + akcd:decode. probably one test per level of
-        // nesting would be useful.
-        .akcd_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
+        .akcd_modes = if (mode != .decode_imperfect) &.{.raw} else &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });
     errdefer result.deinit(allocator);

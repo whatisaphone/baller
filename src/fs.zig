@@ -42,6 +42,30 @@ pub fn readFileIntoSliceZ(
     try file.reader().readNoEof(buf);
 }
 
+pub fn readFileZIntoBoundedArray(
+    dir: std.fs.Dir,
+    sub_path: [*:0]const u8,
+    bounded_array: anytype,
+) !void {
+    comptime std.debug.assert(std.mem.startsWith(
+        u8,
+        @typeName(@TypeOf(bounded_array)),
+        "*bounded_array.BoundedArrayAligned(u8,",
+    ));
+
+    const file = try dir.openFileZ(sub_path, .{});
+    defer file.close();
+
+    const buf = bounded_array.unusedCapacitySlice();
+
+    const stat = try file.stat();
+    if (stat.size > buf.len)
+        return error.StreamTooLong;
+
+    try file.reader().readNoEof(buf[0..stat.size]);
+    bounded_array.len = @intCast(bounded_array.len + stat.size);
+}
+
 pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: anytype) !void {
     const file = try dir.openFileZ(sub_path, .{});
     defer file.close();

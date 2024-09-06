@@ -169,8 +169,6 @@ fn decodeCelAsBmp(
     cur_path: pathf.PrintedPath,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
-    _ = manifest;
-
     // only supports AKOS_BYLE_RLE_CODEC
     if (akhd.cel_compression_codec != 1)
         return error.CelDecode;
@@ -194,7 +192,7 @@ fn decodeCelAsBmp(
 
     try fs.writeFileZ(std.fs.cwd(), bmp_path.full(), bmp_buf);
 
-    return error.CelDecode; // encoder not built yet
+    try manifest.writer(allocator).print("    cel-bmp {s}\n", .{cur_path.relative()});
 }
 
 fn decodeCelRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
@@ -246,7 +244,7 @@ fn decodeCelAsRaw(
     try fs.writeFileZ(std.fs.cwd(), path.full(), cel.data);
 
     try manifest.writer(allocator).print(
-        "    cel {} {} {s}\n",
+        "    cel-raw {} {} {s}\n",
         .{ cel.info.width, cel.info.height, cur_path.relative() },
     );
 }
@@ -315,6 +313,32 @@ pub fn encode(
         break :akhd akhd;
     };
 
+    var akpl_buf = std.BoundedArray(u8, 64){};
+    const akpl = akpl: {
+        const room_line =
+            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
+        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
+        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "raw-block"))
+            return error.BadData;
+        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "AKPL"))
+            return error.BadData;
+        const relative_path = tokens.next() orelse return error.BadData;
+        if (tokens.next() != null)
+            return error.BadData;
+
+        const path = try pathf.append(cur_path, relative_path);
+        defer path.restore();
+
+        try fs.readFileZIntoBoundedArray(std.fs.cwd(), path.full(), &akpl_buf);
+        const akpl = akpl_buf.slice();
+
+        const start = try beginBlock(writer, "AKPL");
+        try writer.writer().writeAll(akpl);
+        try endBlock(writer, fixups, start);
+
+        break :akpl akpl;
+    };
+
     var state = EncodeState{
         .cur_path = cur_path,
     };
@@ -329,8 +353,10 @@ pub fn encode(
             try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
         var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
         const keyword = tokens.next() orelse return error.BadData;
-        if (std.mem.eql(u8, keyword, "cel")) {
-            try encodeCel(allocator, tokens.rest(), &state);
+        if (std.mem.eql(u8, keyword, "cel-raw")) {
+            try encodeCelRaw(allocator, tokens.rest(), &state);
+        } else if (std.mem.eql(u8, keyword, "cel-bmp")) {
+            try encodeCelBmp(allocator, akpl, tokens.rest(), &state);
         } else if (std.mem.eql(u8, keyword, "raw-block")) {
             try flushCels(&state, writer, fixups);
             try encodeRawBlock(tokens.rest(), cur_path, writer, fixups);
@@ -343,7 +369,11 @@ pub fn encode(
     }
 }
 
-fn encodeCel(allocator: std.mem.Allocator, line: []const u8, state: *EncodeState) !void {
+fn encodeCelRaw(
+    allocator: std.mem.Allocator,
+    line: []const u8,
+    state: *EncodeState,
+) !void {
     // Parse line
 
     var tokens = std.mem.tokenizeScalar(u8, line, ' ');
@@ -376,6 +406,97 @@ fn encodeCel(allocator: std.mem.Allocator, line: []const u8, state: *EncodeState
     try state.akcd.ensureUnusedCapacity(allocator, data_len);
     try file.reader().readNoEof(state.akcd.unusedCapacitySlice()[0..data_len]);
     state.akcd.items.len += data_len;
+}
+
+fn encodeCelBmp(
+    allocator: std.mem.Allocator,
+    akpl: []const u8,
+    relative_path: []const u8,
+    state: *EncodeState,
+) !void {
+    const bmp_path = try pathf.append(state.cur_path, relative_path);
+    defer bmp_path.restore();
+
+    const bmp_data = try fs.readFileZ(allocator, std.fs.cwd(), bmp_path.full());
+    defer allocator.free(bmp_data);
+
+    const bitmap = try bmp.readHeader(bmp_data);
+    const width = std.math.cast(u16, bitmap.width()) orelse return error.BadData;
+    const height = std.math.cast(u16, bitmap.height()) orelse return error.BadData;
+
+    try state.akci.append(utils.null_allocator, .{ .width = width, .height = height });
+
+    try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
+
+    try encodeCelData(&bitmap, akpl, state.akcd.writer(allocator));
+}
+
+const CelEncodeState = struct {
+    run_mask: u8,
+    color_shift: u3,
+    bitmap: *const bmp.Bmp,
+    x: usize,
+    y: usize,
+    run: u8,
+    color: u8,
+};
+
+fn encodeCelData(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
+    // TODO: duplicated
+    const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
+        16 => .{ 0xf, 4 },
+        32 => .{ 0x7, 3 },
+        64 => .{ 0x3, 2 },
+        else => return error.BadData,
+    };
+
+    var state = CelEncodeState{
+        .run_mask = run_mask,
+        .color_shift = color_shift,
+        .bitmap = bitmap,
+        .x = 0,
+        .y = 0,
+        .run = 0,
+        .color = undefined,
+    };
+
+    while (true) {
+        const color = try bitmap.getPixel(state.x, state.y);
+
+        if (state.run == 0) {
+            state.color = color;
+            state.run += 1;
+        } else if (color == state.color and state.run < 255) {
+            state.run += 1;
+        } else {
+            try flushRun(akpl, &state, out);
+            state.color = color;
+            state.run = 1;
+        }
+
+        state.y += 1;
+        if (state.y == state.bitmap.height()) {
+            state.y = 0;
+            state.x += 1;
+            if (state.x == state.bitmap.width())
+                break;
+        }
+    }
+    try flushRun(akpl, &state, out);
+}
+
+fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
+    const index: u8 = for (0.., akpl) |i, color| {
+        if (color == state.color)
+            break @intCast(i);
+    } else return error.BadData;
+
+    if (state.run == state.run & state.run_mask) {
+        try out.writeByte(state.run | @shlExact(index, state.color_shift));
+    } else {
+        try out.writeByte(0 | @shlExact(index, state.color_shift));
+        try out.writeByte(state.run);
+    }
 }
 
 fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
