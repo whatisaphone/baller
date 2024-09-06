@@ -64,6 +64,15 @@ pub fn decode(
         manifest,
     );
 
+    const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
+    try decodeAsRawBlock(
+        allocator,
+        comptime blockId("RGBS"),
+        rgbs,
+        cur_path,
+        manifest,
+    );
+
     while (try blocks.peek() != comptime blockId("AKOF")) {
         const block_id, const block_raw = try blocks.nextAsSlice();
         try decodeAsRawBlock(allocator, block_id, block_raw, cur_path, manifest);
@@ -100,7 +109,7 @@ pub fn decode(
             .info = cel_info.*,
             .data = cel_data,
         };
-        try decodeCel(allocator, akhd, akpl, cel, akcd_modes, cur_path, manifest, diagnostic);
+        try decodeCel(allocator, akhd, akpl, rgbs, cel, akcd_modes, cur_path, manifest, diagnostic);
     }
 
     while (stream.pos < akos_raw.len) {
@@ -121,6 +130,7 @@ fn decodeCel(
     allocator: std.mem.Allocator,
     akhd: *align(1) const Akhd,
     akpl: []const u8,
+    rgbs: *const [0x300]u8,
     cel: Cel,
     akcd_modes: []const ResourceMode,
     cur_path: pathf.PrintedPath,
@@ -136,7 +146,7 @@ fn decodeCel(
             break;
         },
         .decode => {
-            decodeCelAsBmp(allocator, akhd, akpl, cel, cur_path, manifest) catch |err| {
+            decodeCelAsBmp(allocator, akhd, akpl, rgbs, cel, cur_path, manifest) catch |err| {
                 if (err == error.CelDecode)
                     continue;
                 return err;
@@ -154,6 +164,7 @@ fn decodeCelAsBmp(
     allocator: std.mem.Allocator,
     akhd: *align(1) const Akhd,
     akpl: []const u8,
+    rgbs: *const [0x300]u8,
     cel: Cel,
     cur_path: pathf.PrintedPath,
     manifest: *std.ArrayListUnmanaged(u8),
@@ -174,8 +185,7 @@ fn decodeCelAsBmp(
     const bmp_writer = bmp_stream.writer();
 
     try bmp.writeHeader(bmp_writer, cel.info.width, cel.info.height, bmp_size);
-
-    try bmp.writePlaceholderPalette(bmp_writer);
+    try bmp.writePalette(bmp_writer, rgbs);
 
     try decodeCelRle(akpl, cel, bmp_buf[bmp_stream.pos..], stride);
 
@@ -210,7 +220,7 @@ fn decodeCelRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
             run = try in.readByte();
 
         for (0..run) |_| {
-            pixels[i] = color;
+            pixels[i] = akpl[color];
             i += stride;
             y -= 1;
             if (y == 0) {
