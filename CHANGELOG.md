@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.0 – 2024-09-06
+
+Added:
+
+- Decode/encode AKOS images
+- Emit comments with talkie tokens
+- Add help/version commands
+
 ## v0.4.0 – 2024-08-21
 
 Added:
