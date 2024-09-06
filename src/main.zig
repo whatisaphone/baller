@@ -6,6 +6,8 @@ const extract = @import("extract.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
+const version = "0.5.0";
+
 pub fn main() !u8 {
     runCli() catch |err| {
         if (err == error.CommandLine) {
@@ -51,6 +53,8 @@ fn runCli() !void {
         } else {
             return error.CommandLine;
         }
+    } else if (std.mem.eql(u8, command, "version")) {
+        try std.io.getStdOut().writeAll(version);
     } else {
         return error.CommandLine;
     }
@@ -86,6 +90,7 @@ const usage =
     \\                  talkie extract
     \\    <output>      Path to output file ending in .he2
     \\
+    \\baller version
 ;
 
 comptime {
