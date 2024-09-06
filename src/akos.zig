@@ -420,7 +420,7 @@ fn encodeCelBmp(
     const bmp_data = try fs.readFileZ(allocator, std.fs.cwd(), bmp_path.full());
     defer allocator.free(bmp_data);
 
-    const bitmap = try bmp.readHeader(bmp_data);
+    const bitmap = try bmp.readHeader(bmp_data, .{});
     const width = std.math.cast(u16, bitmap.width()) orelse return error.BadData;
     const height = std.math.cast(u16, bitmap.height()) orelse return error.BadData;
 
@@ -461,7 +461,7 @@ fn encodeCelData(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
     };
 
     while (true) {
-        const color = try bitmap.getPixel(state.x, state.y);
+        const color = bitmap.getPixel(state.x, state.y);
 
         if (state.run == 0) {
             state.color = color;

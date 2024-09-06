@@ -37,7 +37,19 @@ const RGBQUAD = extern struct {
     rgbReserved: u8,
 };
 
-pub fn readHeader(bmp: []const u8) !Bmp {
+pub fn readHeader(
+    bmp: []const u8,
+    options: struct {
+        /// RMIM sometimes encodes too many/too few bytes. For it to round-trip,
+        /// we need to either figure out the reasoning, or preserve the mismatch
+        /// somehow. Right now that data is preserved by creating a bitmap with
+        /// the wrong number of pixels. Probably not the best way to do it.
+        ///
+        /// With this flag, the only safe way to access the bitmap is through
+        /// `iterPixels`.
+        skip_bounds_check: bool = false,
+    },
+) !Bmp {
     if (bmp.len < bitmap_file_header_size + 4)
         return error.BadData;
 
@@ -59,10 +71,11 @@ pub fn readHeader(bmp: []const u8) !Bmp {
         return error.BadData;
 
     // Bmp.width/height assumes these fit in 31 bits
-    _ = std.math.cast(u31, info_header.biWidth) orelse
+    const width = std.math.cast(u31, info_header.biWidth) orelse
         return error.BadData;
-    _ = std.math.cast(u31, @abs(info_header.biHeight)) orelse
+    const height = std.math.cast(u31, @abs(info_header.biHeight)) orelse
         return error.BadData;
+    const stride = calcStride(width);
 
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
@@ -73,13 +86,8 @@ pub fn readHeader(bmp: []const u8) !Bmp {
 
     const pixels = bmp[file_header.bfOffBits..];
 
-    // RMIM sometimes encodes too many/too few bytes. For it to round-trip, we
-    // need to either figure out the reasoning, or preserve the mismatch
-    // somehow. Right now that data is preserved by creating a bitmap with the
-    // wrong number of pixels. Probably not the best way to do it.
-    //
-    // Anyway, that's why we skip checking pixels.len here and do it in the
-    // iterators instead.
+    if (!options.skip_bounds_check and pixels.len != stride * height)
+        return error.BadData;
 
     return .{
         .header = info_header,
@@ -109,15 +117,10 @@ pub const Bmp = struct {
         return RowIter.init(self.header, self.pixels);
     }
 
-    pub fn getPixel(self: *const Bmp, x: usize, y: usize) !u8 {
+    pub fn getPixel(self: *const Bmp, x: usize, y: usize) u8 {
         std.debug.assert(x < self.width());
         std.debug.assert(y < self.height());
         const stride = calcStride(self.width());
-
-        // See comment in `readHeader` for why this check is here.
-        if (self.pixels.len != stride * self.height())
-            return error.BadData;
-
         const top_down = self.header.biHeight < 0;
         const mem_y = if (top_down) y else self.height() - 1 - y;
         return self.pixels[mem_y * stride + x];
@@ -195,15 +198,7 @@ pub const RowIter = struct {
 
     fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
         const width: u31 = @intCast(header.biWidth);
-        const height: u31 = @intCast(@abs(header.biHeight));
         const stride = calcStride(width);
-
-        // It would be nice to check these in readHeader instead, but that
-        // function skips some sanity checks so that RMIM is able to round-trip.
-        if (pixels.len != stride * height)
-            return error.BadData;
-        if (pixels.len % stride != 0)
-            return error.BadData;
 
         const top_down = header.biHeight < 0;
         if (top_down)

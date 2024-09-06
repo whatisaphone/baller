@@ -175,7 +175,7 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
             break block.wizd;
     } else return error.BadData;
 
-    const header = try bmp.readHeader(bmp_raw.items);
+    const header = try bmp.readHeader(bmp_raw.items, .{});
 
     // Now write the blocks in the requested order
 

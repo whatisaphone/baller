@@ -14,7 +14,7 @@ pub fn encode(
     out: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    const header = try bmp.readHeader(bmp_raw);
+    const header = try bmp.readHeader(bmp_raw, .{ .skip_bounds_check = true });
 
     const rmih_fixup = try beginBlock(out, "RMIH");
     try out.writer().writeInt(u16, 0, .little);
