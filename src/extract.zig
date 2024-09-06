@@ -280,7 +280,7 @@ const Index = struct {
         if (len == 0)
             return error.NotFound;
         const start = self.room_name_starts[room_index];
-        return self.room_name_buf[start .. start + len];
+        return self.room_name_buf[start..][0..len];
     }
 };
 
