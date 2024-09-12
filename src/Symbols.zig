@@ -10,6 +10,8 @@ const first_room = 1;
 
 pub const ScriptId = union(enum) {
     global: u32,
+    enter: struct { room: u8 },
+    exit: struct { room: u8 },
     local: struct { room: u8, number: u32 },
 };
 
@@ -239,6 +241,7 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
 pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
     return switch (id) {
         .global => |num| self.scripts.getPtr(num),
+        .enter, .exit => null, // TODO
         .local => |s| {
             const room = self.getRoom(s.room) orelse return null;
             const index = s.number - games.firstLocalScript(self.game);

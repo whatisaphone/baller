@@ -813,6 +813,13 @@ fn extractRmdaBlock(
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => {
             const decode_result = switch (block_id) {
+                blockId("ENCD"), blockId("EXCD") => decodeEnterExit(
+                    allocator,
+                    block_id,
+                    data,
+                    state,
+                    room_state,
+                ),
                 blockId("LSCR"), blockId("LSC2") => decodeLsc(
                     allocator,
                     block_id,
@@ -942,7 +949,12 @@ fn extractGlob(
 
 fn getBlockModes(block_id: BlockId, state: *const State) []const ResourceMode {
     return switch (block_id) {
-        blockId("SCRP"), blockId("LSCR"), blockId("LSC2") => state.options.script_modes,
+        blockId("SCRP"),
+        blockId("ENCD"),
+        blockId("EXCD"),
+        blockId("LSCR"),
+        blockId("LSC2"),
+        => state.options.script_modes,
         blockId("DIGI"), blockId("TALK"), blockId("WSOU") => state.options.sound_modes,
         blockId("AWIZ") => state.options.awiz_modes,
         blockId("MULT") => state.options.mult_modes,
@@ -1022,6 +1034,41 @@ fn writeScrpAsmLine(
         "scrp-asm {} {s}\n",
         .{ glob_number, path.relative() },
     );
+}
+
+fn decodeEnterExit(
+    allocator: std.mem.Allocator,
+    block_id: BlockId,
+    data: []const u8,
+    state: *State,
+    room_state: *const RoomState,
+) !void {
+    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    defer disassembly.deinit(allocator);
+
+    const script_id: Symbols.ScriptId = switch (block_id) {
+        blockId("ENCD") => .{ .enter = .{ .room = room_state.room_number } },
+        blockId("EXCD") => .{ .exit = .{ .room = room_state.room_number } },
+        else => unreachable,
+    };
+
+    try disasm.disassemble(
+        allocator,
+        &state.language.?,
+        script_id,
+        data,
+        &state.symbols,
+        disassembly.writer(allocator),
+        state,
+    );
+
+    const path = try pathf.print(&state.cur_path, "{s}.s", .{blockIdToStr(&block_id)});
+    defer path.restore();
+
+    try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
+
+    // encoder not yet implemented
+    return error.BadData;
 }
 
 fn getLscBlockNumber(block_id: BlockId, data: []const u8) !u32 {

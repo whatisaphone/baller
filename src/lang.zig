@@ -269,6 +269,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x63, 0x07, "array-get-y-end", &.{.variable});
 
     lang.add(0x64, "free-arrays", &.{});
+    lang.add(0x65, "end2", &.{});
     lang.add(0x66, "end", &.{});
 
     lang.addNested(0x69, 0x39, "window-select", &.{});
@@ -346,6 +347,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9b, 0xc9, "load-image", &.{});
     lang.addNested(0x9b, 0xca, "lock-image", &.{});
     lang.addNested(0x9b, 0xcb, "preload-image", &.{});
+    lang.addNested(0x9b, 0xef, "preload-flush", &.{});
 
     lang.addNested(0x9c, 0xaf, "palette-set", &.{});
     lang.addNested(0x9c, 0xb3, "intensity", &.{});
@@ -588,6 +590,7 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x28, "dup", &.{});
     lang.add(0x29, "dup-multi", &.{.i16});
+    lang.add(0x2b, "end2", &.{});
     lang.add(0x2c, "end", &.{});
     lang.add(0x2d, "eq", &.{});
     lang.add(0x30, "ge", &.{});
