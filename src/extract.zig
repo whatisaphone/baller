@@ -1067,8 +1067,15 @@ fn decodeEnterExit(
 
     try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
 
-    // encoder not yet implemented
-    return error.BadData;
+    const keyword = switch (block_id) {
+        blockId("ENCD") => "encd-asm",
+        blockId("EXCD") => "excd-asm",
+        else => unreachable,
+    };
+    try room_state.room_txt.print(
+        "    {s} {s}\n",
+        .{ keyword, room_state.curPathRelative() },
+    );
 }
 
 fn getLscBlockNumber(block_id: BlockId, data: []const u8) !u32 {
