@@ -101,7 +101,7 @@ pub const Result = struct {
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
-    var input_path_buf = std.BoundedArray(u8, 4095){};
+    var input_path_buf = pathf.Path{};
     try input_path_buf.appendSlice(args.input_path);
     try input_path_buf.append(0);
     const input_path = input_path_buf.buffer[0 .. input_path_buf.len - 1 :0];
@@ -188,7 +188,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
 
 const State = struct {
     options: *const Extract,
-    cur_path: std.BoundedArray(u8, 4095) = .{},
+    cur_path: pathf.Path = .{},
     symbols: Symbols,
     block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
@@ -233,7 +233,7 @@ pub const BlockStat = struct {
 
 const RoomState = struct {
     room_number: u8,
-    path: *std.BoundedArray(u8, 4095),
+    path: *pathf.Path,
     path_start: u32,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
     rmda: union { pending: void, raw: []const u8 },
@@ -570,7 +570,7 @@ fn readDirectory(
 fn writeIndexBlobs(
     game: games.Game,
     index: *const Index,
-    path_buf: *std.BoundedArray(u8, 4095),
+    path_buf: *pathf.Path,
 ) !void {
     const maxs_data = std.mem.asBytes(index.maxs)[0..games.maxsLen(game)];
     try writeIndexBlob(path_buf, "maxs.bin", maxs_data);
@@ -582,7 +582,7 @@ fn writeIndexBlobs(
 }
 
 fn writeIndexBlob(
-    path_buf: *std.BoundedArray(u8, 4095),
+    path_buf: *pathf.Path,
     filename: []const u8,
     bytes: []const u8,
 ) !void {

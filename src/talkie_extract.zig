@@ -34,7 +34,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     var buf_reader = std.io.bufferedReader(in_file.reader());
     var reader = std.io.countingReader(buf_reader.reader());
 
-    var cur_path_buf = std.BoundedArray(u8, 4095){};
+    var cur_path_buf = pathf.Path{};
     const out_dir = try pathf.append(&cur_path_buf, args.output_path);
     try fs.makeDirIfNotExistZ(std.fs.cwd(), out_dir.full());
     try cur_path_buf.append('/');
@@ -71,7 +71,7 @@ const State = struct {
     reader: *std.io.CountingReader(std.io.BufferedReader(4096, std.fs.File.Reader).Reader),
     reader_pos: *const u64,
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
-    cur_path: *std.BoundedArray(u8, 4095),
+    cur_path: *pathf.Path,
     path_rel_start: u32,
     manifest: std.ArrayListUnmanaged(u8),
     indent: u8,

@@ -38,7 +38,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var manifest_reader = std.io.bufferedReader(manifest_file.reader());
     var line_buf: [255]u8 = undefined;
 
-    var cur_path = std.BoundedArray(u8, 4095){};
+    var cur_path = pathf.Path{};
     try cur_path.appendSlice(args.manifest_path);
     try pathf.popFile(&cur_path);
 
@@ -84,7 +84,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 const State = struct {
     manifest_reader: *std.io.BufferedReader(4096, std.fs.File.Reader),
     line_buf: *[255]u8,
-    cur_path: *std.BoundedArray(u8, 4095),
+    cur_path: *pathf.Path,
     output_writer: *std.io.CountingWriter(std.io.BufferedWriter(4096, std.fs.File.Writer).Writer),
     fixups: std.ArrayList(Fixup),
 };

@@ -46,7 +46,7 @@ const Build = struct {
 pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     const project_txt_path = args.project_txt_path;
 
-    var output_path_buf = std.BoundedArray(u8, 4095){};
+    var output_path_buf = pathf.Path{};
     try output_path_buf.appendSlice(args.output_path);
     try output_path_buf.append(0);
     const output_path = output_path_buf.buffer[0 .. output_path_buf.len - 1 :0];
@@ -1184,7 +1184,7 @@ fn writeDirectoryImpl(
 
 const ProjectState = struct {
     game: games.Game,
-    cur_path: std.BoundedArray(u8, 4095),
+    cur_path: pathf.Path,
     index: Index,
     language: lang.Language,
     ins_map: std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
