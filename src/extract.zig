@@ -1736,9 +1736,5 @@ fn appendGlobPath(
     number: u32,
     ext: []const u8,
 ) !pathf.PrintedPath {
-    return pathf.print(
-        &state.cur_path,
-        "{s}_{:0>4}.{s}",
-        .{ blockIdToStr(&block_id), number, ext },
-    );
+    return pathf.appendBlockPath(&state.cur_path, block_id, number, ext);
 }

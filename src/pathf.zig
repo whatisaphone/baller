@@ -35,7 +35,7 @@ pub fn appendBlockPath(
     number: u32,
     ext: []const u8,
 ) !PrintedPath {
-    std.debug.assert(ext.len == 3 and ext[0] != '.');
+    std.debug.assert(ext.len >= 1 and ext.len <= 3 and ext[0] != '.');
 
     return print(buf, "{s}_{:0>4}.{s}", .{ blockIdToStr(&block_id), number, ext });
 }
