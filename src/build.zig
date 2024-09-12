@@ -438,6 +438,43 @@ fn handleRmda(
             try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.writer.writer());
 
             try endBlock(&state.writer, &state.fixups, fixup);
+        } else if (std.mem.eql(u8, keyword, "encd-asm") or
+            std.mem.eql(u8, keyword, "excd-asm"))
+        {
+            const block_id = if (std.mem.eql(u8, keyword, "encd-asm"))
+                comptime blockId("ENCD")
+            else if (std.mem.eql(u8, keyword, "excd-asm"))
+                comptime blockId("EXCD")
+            else
+                unreachable;
+
+            const relative_path = tokens.next() orelse return error.BadData;
+
+            if (tokens.next()) |_| return error.BadData;
+
+            const path = try pathf.append(&prst.cur_path, relative_path);
+            defer path.restore();
+
+            const asm_str = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
+            defer allocator.free(asm_str);
+
+            const script_id: Symbols.ScriptId = switch (block_id) {
+                blockId("ENCD") => .{ .enter = .{ .room = room_number } },
+                blockId("EXCD") => .{ .exit = .{ .room = room_number } },
+                else => unreachable,
+            };
+            var bytecode = try assemble.assemble(
+                allocator,
+                prst.languageStuff(),
+                asm_str,
+                &prst.symbols,
+                script_id,
+            );
+            defer bytecode.deinit(allocator);
+
+            const fixup = try beginBlockImpl(&state.writer, block_id);
+            try state.writer.writer().writeAll(bytecode.items);
+            try endBlock(&state.writer, &state.fixups, fixup);
         } else if (std.mem.eql(u8, keyword, "lsc-asm")) {
             const block_id_str = tokens.next() orelse return error.BadData;
             const block_id = parseBlockId(block_id_str) orelse return error.BadData;
