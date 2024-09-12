@@ -30,6 +30,8 @@ const Room = struct {
     vars: ArrayMap([]const u8) = .{},
     /// Map from name to number
     var_names: std.StringHashMapUnmanaged(u16) = .{},
+    enter: Script = .{},
+    exit: Script = .{},
     scripts: ArrayMap(Script) = .{},
 
     fn deinit(self: *Room, allocator: std.mem.Allocator) void {
@@ -41,6 +43,8 @@ const Room = struct {
         }
         self.scripts.deinit(allocator);
 
+        self.exit.deinit(allocator);
+        self.enter.deinit(allocator);
         self.var_names.deinit(allocator);
         self.vars.deinit(allocator);
     }
@@ -207,6 +211,10 @@ fn handleRoom(cx: *Cx) !void {
         try handleRoomVar(cx, room)
     else if (std.mem.eql(u8, part, "script"))
         try handleRoomScript(cx, room)
+    else if (std.mem.eql(u8, part, "enter"))
+        try handleScript(cx, &room.enter)
+    else if (std.mem.eql(u8, part, "exit"))
+        try handleScript(cx, &room.exit)
     else
         return error.BadData;
 }
@@ -241,7 +249,14 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
 pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
     return switch (id) {
         .global => |num| self.scripts.getPtr(num),
-        .enter, .exit => null, // TODO
+        .enter => |s| {
+            const room = self.getRoom(s.room) orelse return null;
+            return &room.enter;
+        },
+        .exit => |s| {
+            const room = self.getRoom(s.room) orelse return null;
+            return &room.exit;
+        },
         .local => |s| {
             const room = self.getRoom(s.room) orelse return null;
             const index = s.number - games.firstLocalScript(self.game);
