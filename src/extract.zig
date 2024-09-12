@@ -787,14 +787,7 @@ fn extractRmda(
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
-        try extractRmdaBlock(
-            allocator,
-            block_id,
-            block_raw,
-            rmda_child_decoders,
-            state,
-            room_state,
-        );
+        try extractRmdaBlock(allocator, block_id, block_raw, state, room_state);
     }
 
     try blocks.finishEof();
@@ -802,16 +795,10 @@ fn extractRmda(
     try room_state.room_txt.writeAll("end-rmda\n");
 }
 
-const rmda_child_decoders: []const BlockDecoderPair(void) = &.{
-    .{ .id = blockId("LSCR"), .decoder = decodeLsc },
-    .{ .id = blockId("LSC2"), .decoder = decodeLsc },
-};
-
 fn extractRmdaBlock(
     allocator: std.mem.Allocator,
     block_id: BlockId,
     data: []const u8,
-    decoders: []const BlockDecoderPair(void),
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -819,25 +806,24 @@ fn extractRmdaBlock(
 
     const block_number = switch (block_id) {
         blockId("LSCR"), blockId("LSC2") => try getLscBlockNumber(block_id, data),
-        else => try state.incBlockSeq(allocator, block_id),
+        blockId("OBIM"), blockId("OBCD") => try state.incBlockSeq(allocator, block_id),
+        else => null,
     };
 
     for (getBlockModes(block_id, state)) |mode| switch (mode) {
         .decode => {
-            const decoder = for (decoders) |p| {
-                if (p.id == block_id)
-                    break p.decoder;
-            } else continue;
-
-            decoder(
-                allocator,
-                block_id,
-                block_number,
-                data,
-                state,
-                room_state,
-                {},
-            ) catch |err| {
+            const decode_result = switch (block_id) {
+                blockId("LSCR"), blockId("LSC2") => decodeLsc(
+                    allocator,
+                    block_id,
+                    block_number.?,
+                    data,
+                    state,
+                    room_state,
+                ),
+                else => continue,
+            };
+            decode_result catch |err| {
                 if (err == error.BadData)
                     continue;
                 return err;
@@ -846,8 +832,19 @@ fn extractRmdaBlock(
             return;
         },
         .raw => {
-            try writeRawBlockFile(block_id, block_number, data, state);
-            try writeRawBlockLine(block_id, block_number, state, room_state);
+            const path = if (block_number) |num|
+                try pathf.appendBlockPath(&state.cur_path, block_id, num, "bin")
+            else
+                try pathf.print(&state.cur_path, "{s}.bin", .{blockIdToStr(&block_id)});
+            defer path.restore();
+
+            try fs.writeFileZ(std.fs.cwd(), path.full(), data);
+
+            try room_state.room_txt.print(
+                "    raw-block {s} {s}\n",
+                .{ blockIdToStr(&block_id), room_state.curPathRelative() },
+            );
+
             try state.incrBlockStat(allocator, block_id, .raw);
             return;
         },
@@ -1050,7 +1047,6 @@ fn decodeLsc(
     data: []const u8,
     state: *State,
     room_state: *const RoomState,
-    _: void,
 ) !void {
     try decodeLscData(allocator, block_id, block_number, data, state, room_state);
     try writeLscAsmLine(block_id, block_number, state, room_state);
