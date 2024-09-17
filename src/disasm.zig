@@ -198,8 +198,8 @@ fn emitVariable(
             try out.print("local{}", .{num});
         },
         .room => |num| {
-            if (id == .local) {
-                if (symbols.getRoom(id.local.room)) |room| {
+            if (id.room()) |room_number| {
+                if (symbols.getRoom(room_number)) |room| {
                     if (room.vars.get(num)) |name| {
                         try out.writeAll(name);
                         return;
