@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
+const report = @import("report.zig");
 
 const horizontal_whitespace = " \t";
 
@@ -65,7 +66,13 @@ pub fn assemble(
             continue;
         }
 
-        const ins_bytes = inss.get(ins_name) orelse return error.BadData;
+        const ins_bytes = inss.get(ins_name) orelse {
+            report.fatal(
+                "Unknown instruction: \"{s}\"",
+                .{ins_name},
+            );
+            return error.BadData;
+        };
         try bytecode.appendSlice(allocator, ins_bytes.slice());
 
         const opcode = switch (ins_bytes.len) {
