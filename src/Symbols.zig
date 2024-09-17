@@ -13,6 +13,13 @@ pub const ScriptId = union(enum) {
     enter: struct { room: u8 },
     exit: struct { room: u8 },
     local: struct { room: u8, number: u32 },
+
+    pub fn room(self: ScriptId) ?u8 {
+        return switch (self) {
+            .global => null,
+            inline .enter, .exit, .local => |id| id.room,
+        };
+    }
 };
 
 pub const Script = struct {

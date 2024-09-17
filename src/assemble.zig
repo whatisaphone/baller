@@ -188,8 +188,8 @@ fn parseVariable(
         if (std.mem.eql(u8, name, var_str))
             return lang.Variable.init(.{ .local = @intCast(i) });
 
-    if (id == .local)
-        if (symbols.getRoom(id.local.room)) |room|
+    if (id.room()) |room_number|
+        if (symbols.getRoom(room_number)) |room|
             if (room.var_names.get(var_str)) |num|
                 return lang.Variable.init(.{ .room = num });
 
