@@ -5,7 +5,7 @@ const extract = @import("extract.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
-const version = "0.4.1";
+const version = "0.4.2";
 
 pub fn main() !u8 {
     runCli() catch |err| {
