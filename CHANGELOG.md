@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.1 – 2024-10-22
+
+Added:
+
+- Support room var names in enter/exit scripts
+- Print error on unknown instruction
+
 ## v0.5.0 – 2024-09-06
 
 Added:
