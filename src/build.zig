@@ -775,46 +775,63 @@ fn readAwizLines(
         const keyword = split.first();
         if (std.mem.eql(u8, keyword, "end-awiz"))
             break;
-        const block_id = parseBlockId(keyword) orelse return error.BadData;
-        switch (block_id) {
-            blockId("RGBS") => {
-                try wiz.blocks.append(.rgbs);
-            },
-            blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
-                const str1 = split.next() orelse return error.BadData;
-                const str2 = split.next() orelse return error.BadData;
-                if (split.next()) |_| return error.BadData;
+        if (std.mem.eql(u8, keyword, "RGBS")) {
+            try wiz.blocks.append(.rgbs);
+        } else if (std.mem.eql(u8, keyword, "CNVS") or
+            std.mem.eql(u8, keyword, "SPOT") or
+            std.mem.eql(u8, keyword, "RELO"))
+        {
+            const block_id = parseBlockId(keyword) orelse unreachable;
 
-                const int1 = try std.fmt.parseInt(i32, str1, 10);
-                const int2 = try std.fmt.parseInt(i32, str2, 10);
+            const str1 = split.next() orelse return error.BadData;
+            const str2 = split.next() orelse return error.BadData;
+            if (split.next()) |_| return error.BadData;
 
-                try wiz.blocks.append(.{
-                    .two_ints = .{
-                        .id = block_id,
-                        .ints = .{ int1, int2 },
-                    },
-                });
-            },
-            blockId("WIZH") => {
-                if (split.next()) |_| return error.BadData;
-                try wiz.blocks.append(.wizh);
-            },
-            blockId("WIZD") => {
-                const relative_path = split.next() orelse return error.BadData;
-                if (split.next()) |_| return error.BadData;
+            const int1 = try std.fmt.parseInt(i32, str1, 10);
+            const int2 = try std.fmt.parseInt(i32, str2, 10);
 
-                const path = try pathf.append(&prst.cur_path, relative_path);
-                defer path.restore();
+            try wiz.blocks.append(.{
+                .two_ints = .{
+                    .id = block_id,
+                    .ints = .{ int1, int2 },
+                },
+            });
+        } else if (std.mem.eql(u8, keyword, "WIZH")) {
+            if (split.next()) |_| return error.BadData;
+            try wiz.blocks.append(.wizh);
+        } else if (std.mem.eql(u8, keyword, "TRNS")) {
+            const number_str = split.next() orelse return error.BadData;
+            const number = try std.fmt.parseInt(i32, number_str, 10);
 
-                const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-                errdefer allocator.free(bmp_raw);
+            if (split.next()) |_| return error.BadData;
 
-                try wiz.blocks.append(.{
-                    .wizd = std.ArrayListUnmanaged(u8).fromOwnedSlice(bmp_raw),
-                });
-            },
-            else => return error.BadData,
-        }
+            try wiz.blocks.append(.{ .trns = number });
+        } else if (@as(
+            ?awiz.Compression,
+            // yeah this is janky but it's for back compat
+            if (std.mem.eql(u8, keyword, "WIZD-uncompressed"))
+                .none
+            else if (std.mem.eql(u8, keyword, "WIZD"))
+                .rle
+            else
+                null,
+        )) |compression| {
+            const relative_path = split.next() orelse return error.BadData;
+            if (split.next()) |_| return error.BadData;
+
+            const path = try pathf.append(&prst.cur_path, relative_path);
+            defer path.restore();
+
+            const bmp_raw = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
+            errdefer allocator.free(bmp_raw);
+
+            try wiz.blocks.append(.{
+                .wizd = .{
+                    .compression = compression,
+                    .bmp = std.ArrayListUnmanaged(u8).fromOwnedSlice(bmp_raw),
+                },
+            });
+        } else return error.BadData;
     }
 
     return wiz;

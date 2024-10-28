@@ -295,8 +295,8 @@ test "Backyard Football round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "MULT", 1109, 1145);
-    try expectBlockStat(&result.block_stats, "AWIZ", 11429, 11594);
+    try expectBlockStat(&result.block_stats, "MULT", 1145, 1145);
+    try expectBlockStat(&result.block_stats, "AWIZ", 11465, 11594);
 }
 
 test "Backyard Football round trip decode/encode" {

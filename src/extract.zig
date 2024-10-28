@@ -115,6 +115,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     var state: State = .{
         .options = args,
         .symbols = .{ .game = game },
+        .hack_skip_awiz_uncompressed = game == .basketball,
     };
     errdefer state.deinit(allocator);
 
@@ -190,6 +191,8 @@ const State = struct {
     options: *const Extract,
     cur_path: pathf.Path = .{},
     symbols: Symbols,
+    /// workaround for basketball bug
+    hack_skip_awiz_uncompressed: bool,
     block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
     language: ?lang.Language = null,
@@ -1277,7 +1280,7 @@ fn decodeAwizData(
     const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    return decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full());
+    return decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full(), state);
 }
 
 fn decodeAwizIntoPath(
@@ -1285,8 +1288,11 @@ fn decodeAwizIntoPath(
     rmda_raw: []const u8,
     awiz_raw: []const u8,
     path: [*:0]const u8,
+    state: *State,
 ) !awiz.Awiz {
-    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw) catch |err| {
+    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw, .{
+        .hack_skip_uncompressed = state.hack_skip_awiz_uncompressed,
+    }) catch |err| {
         if (err == error.BadData)
             return error.BlockFallbackToRaw;
         return err;
@@ -1294,9 +1300,9 @@ fn decodeAwizIntoPath(
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {
-        .rgbs, .two_ints, .wizh => {},
-        .wizd => |bmp_data| {
-            try fs.writeFileZ(std.fs.cwd(), path, bmp_data.items);
+        .rgbs, .two_ints, .wizh, .trns => {},
+        .wizd => |wizd| {
+            try fs.writeFileZ(std.fs.cwd(), path, wizd.bmp.items);
         },
     };
 
@@ -1340,8 +1346,12 @@ fn writeAwizChildrenGivenBmpPath(
             .wizh => {
                 try out.writeAll("WIZH\n");
             },
-            .wizd => {
-                try out.print("WIZD {s}\n", .{bmp_relative_path});
+            .trns => |trns| {
+                try out.print("TRNS {}\n", .{trns});
+            },
+            .wizd => |wizd| switch (wizd.compression) {
+                .none => try out.print("WIZD-uncompressed {s}\n", .{bmp_relative_path}),
+                .rle => try out.print("WIZD {s}\n", .{bmp_relative_path}),
             },
         }
     }
@@ -1549,6 +1559,7 @@ fn decodeMultAwiz(
         room_state.rmda.raw,
         block_raw,
         path.full(),
+        state,
     );
     defer wiz.deinit(allocator);
 

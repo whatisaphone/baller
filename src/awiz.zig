@@ -12,16 +12,21 @@ const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const rmim = @import("rmim.zig");
 
-const max_supported_width = 1280;
+const max_supported_width = 1600;
 const transparent = 255;
+
+pub const Compression = enum(u8) {
+    none = 0,
+    rle = 1,
+};
 
 pub const Awiz = struct {
     blocks: std.BoundedArray(Block, 5) = .{},
 
     pub fn deinit(self: *Awiz, allocator: std.mem.Allocator) void {
         for (self.blocks.slice()) |*block| switch (block.*) {
-            .rgbs, .two_ints, .wizh => {},
-            .wizd => |*a| a.deinit(allocator),
+            .rgbs, .two_ints, .wizh, .trns => {},
+            .wizd => |*wizd| wizd.bmp.deinit(allocator),
         };
     }
 };
@@ -30,19 +35,24 @@ const Block = union(enum) {
     rgbs,
     two_ints: struct { id: BlockId, ints: [2]i32 },
     wizh,
-    /// A raw BMP file
-    wizd: std.ArrayListUnmanaged(u8),
+    trns: i32,
+    wizd: struct {
+        compression: Compression,
+        /// A raw BMP file
+        bmp: std.ArrayListUnmanaged(u8),
+    },
 };
 
 pub fn decode(
     allocator: std.mem.Allocator,
     awiz_raw: []const u8,
     rmda_raw: []const u8,
+    options: struct { hack_skip_uncompressed: bool },
 ) !Awiz {
     var result: Awiz = .{};
     var rgbs_opt: ?*const [0x300]u8 = null;
     var wizh_opt: ?struct {
-        compression: i32,
+        compression: Compression,
         width: u31,
         height: u31,
     } = null;
@@ -77,11 +87,15 @@ pub fn decode(
             blockId("WIZH") => {
                 if (len != 12)
                     return error.BadData;
-                const compression = try reader.reader().readInt(i32, .little);
+                const compression_int = try reader.reader().readInt(i32, .little);
+                const compression = std.meta.intToEnum(Compression, compression_int) catch return error.BadData;
                 const width_signed = try reader.reader().readInt(i32, .little);
                 const width = std.math.cast(u31, width_signed) orelse return error.BadData;
                 const height_signed = try reader.reader().readInt(i32, .little);
                 const height = std.math.cast(u31, height_signed) orelse return error.BadData;
+
+                if (options.hack_skip_uncompressed and compression == .none)
+                    return error.BadData;
 
                 wizh_opt = .{
                     .compression = compression,
@@ -90,6 +104,12 @@ pub fn decode(
                 };
 
                 try result.blocks.append(.wizh);
+            },
+            blockId("TRNS") => {
+                if (len != 4)
+                    return error.BadData;
+                const trns = try reader.reader().readInt(i32, .little);
+                try result.blocks.append(.{ .trns = trns });
             },
             else => return error.BadData,
         }
@@ -104,8 +124,6 @@ pub fn decode(
 
     if (width > max_supported_width)
         return error.BadData;
-    if (wizh.compression != 1) // 1 is RLE
-        return error.BadData;
 
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_buf = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_file_size);
@@ -118,17 +136,37 @@ pub fn decode(
     const palette = rgbs_opt orelse try rmim.findApalInRmda(rmda_raw);
     try bmp.writePalette(bmp_writer, palette);
 
-    try decodeRle(allocator, width, height, &reader, &bmp_buf, bmp_writer);
+    switch (wizh.compression) {
+        .none => try decodeUncompressed(allocator, width, height, &reader, &bmp_buf),
+        .rle => try decodeRle(allocator, width, height, &reader, &bmp_buf),
+    }
 
     // Allow one byte of padding from the encoder
     if (reader.pos < wizd_end)
         _ = try reader.reader().readByte();
 
-    try result.blocks.append(.{ .wizd = bmp_buf });
+    try result.blocks.append(.{
+        .wizd = .{
+            .compression = wizh.compression,
+            .bmp = bmp_buf,
+        },
+    });
 
     try awiz_blocks.finishEof();
 
     return result;
+}
+
+fn decodeUncompressed(
+    allocator: std.mem.Allocator,
+    width: u31,
+    height: u31,
+    reader: anytype,
+    bmp_buf: *std.ArrayListUnmanaged(u8),
+) !void {
+    const len = width * height;
+    const data = try io.readInPlace(reader, len);
+    try bmp_buf.appendSlice(allocator, data);
 }
 
 // based on ScummVM's auxDecompTRLEPrim
@@ -138,8 +176,9 @@ fn decodeRle(
     height: u31,
     reader: anytype,
     bmp_buf: *std.ArrayListUnmanaged(u8),
-    bmp_writer: anytype,
 ) !void {
+    const bmp_writer = bmp_buf.writer(allocator);
+
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
 
@@ -170,12 +209,12 @@ fn decodeRle(
 pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
     // First find the bitmap block so we can preload all data before we start
 
-    const bmp_raw = for (wiz.blocks.slice()) |block| {
+    const wizd = for (wiz.blocks.slice()) |block| {
         if (block == .wizd)
             break block.wizd;
     } else return error.BadData;
 
-    const header = try bmp.readHeader(bmp_raw.items, .{});
+    const header = try bmp.readHeader(wizd.bmp.items, .{});
 
     // Now write the blocks in the requested order
 
@@ -196,6 +235,11 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
             try out.writer().writeInt(i32, 1, .little); // compression type RLE
             try out.writer().writeInt(i32, header.width(), .little);
             try out.writer().writeInt(i32, header.height(), .little);
+            try endBlock(out, fixups, fixup);
+        },
+        .trns => |trns| {
+            const fixup = try beginBlock(out, "TRNS");
+            try out.writer().writeInt(i32, trns, .little);
             try endBlock(out, fixups, fixup);
         },
         .wizd => |_| {
