@@ -46,7 +46,9 @@ const Block = union(enum) {
 pub fn decode(
     allocator: std.mem.Allocator,
     awiz_raw: []const u8,
+    // TODO: merge next two params
     rmda_raw: []const u8,
+    defa_rgbs: ?*const [0x300]u8,
     options: struct { hack_skip_uncompressed: bool },
 ) !Awiz {
     var result: Awiz = .{};
@@ -133,7 +135,7 @@ pub fn decode(
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
 
-    const palette = rgbs_opt orelse try rmim.findApalInRmda(rmda_raw);
+    const palette = rgbs_opt orelse defa_rgbs orelse try rmim.findApalInRmda(rmda_raw);
     try bmp.writePalette(bmp_writer, palette);
 
     switch (wizh.compression) {

@@ -1280,17 +1280,19 @@ fn decodeAwizData(
     const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    return decodeAwizIntoPath(allocator, rmda_raw, awiz_raw, path.full(), state);
+    return decodeAwizIntoPath(allocator, rmda_raw, null, awiz_raw, path.full(), state);
 }
 
 fn decodeAwizIntoPath(
     allocator: std.mem.Allocator,
+    // TODO: merge next two params
     rmda_raw: []const u8,
+    defa_rgbs: ?*const [0x300]u8,
     awiz_raw: []const u8,
     path: [*:0]const u8,
     state: *State,
 ) !awiz.Awiz {
-    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw, .{
+    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw, defa_rgbs, .{
         .hack_skip_uncompressed = state.hack_skip_awiz_uncompressed,
     }) catch |err| {
         if (err == error.BadData)
@@ -1381,6 +1383,7 @@ fn decodeMult(
 }
 
 const Mult = struct {
+    defa_rgbs: ?*const [0x300]u8 = null,
     room_lines: std.ArrayListUnmanaged(u8) = .{},
 
     fn deinit(self: *Mult, allocator: std.mem.Allocator) void {
@@ -1411,27 +1414,15 @@ fn decodeMultData(
     var stream = std.io.fixedBufferStream(mult_raw);
     var mult_blocks = fixedBlockReader(&stream);
 
-    while (try mult_blocks.peek() != comptime blockId("WRAP")) {
-        const id, const len = try mult_blocks.next();
-        switch (id) {
-            blockId("DEFA") => {
-                const defa_raw = try io.readInPlace(&stream, len);
+    if (try mult_blocks.peek() == comptime blockId("DEFA")) {
+        const defa_len = try mult_blocks.assumeBlock("DEFA");
+        const defa_raw = try io.readInPlace(&stream, defa_len);
 
-                const path_end = try pathf.print(&state.cur_path, "{s}.bin", .{blockIdToStr(&id)});
-                defer path_end.restore();
-
-                try fs.writeFileZ(std.fs.cwd(), path.full(), defa_raw);
-
-                try mult.room_lines.writer(allocator).print(
-                    "    raw-block {s} {s}\n",
-                    .{ blockIdToStr(&id), path.relative() },
-                );
-            },
-            else => return error.BadData,
-        }
+        try extractMultDefa(allocator, defa_raw, &mult, path);
+        try scanMultDefa(defa_raw, &mult);
     }
 
-    const wrap_len = try mult_blocks.assumeBlock("WRAP");
+    const wrap_len = try mult_blocks.expectBlock("WRAP");
     const wrap_end: u32 = @intCast(stream.pos + wrap_len);
     var wrap_blocks = fixedBlockReader(&stream);
 
@@ -1485,6 +1476,44 @@ fn decodeMultData(
 const mult_decoders: []const BlockDecoderPair(*Mult) = &.{
     .{ .id = blockId("AWIZ"), .decoder = decodeMultAwiz },
 };
+
+fn scanMultDefa(defa_raw: []const u8, mult: *Mult) !void {
+    var stream = std.io.fixedBufferStream(defa_raw);
+    var blocks = fixedBlockReader(&stream);
+
+    while (stream.pos != defa_raw.len) {
+        const id, const len = try blocks.next();
+        switch (id) {
+            blockId("RGBS") => {
+                if (len != 0x300) return error.BadData;
+                if (mult.defa_rgbs != null) return error.BadData;
+                mult.defa_rgbs = try io.readInPlaceAsValue(&stream, [0x300]u8);
+            },
+            else => {
+                _ = try io.readInPlace(&stream, len);
+            },
+        }
+    }
+
+    try blocks.finishEof();
+}
+
+fn extractMultDefa(
+    allocator: std.mem.Allocator,
+    defa_raw: []const u8,
+    mult: *Mult,
+    path: pathf.PrintedPath,
+) !void {
+    const path_end = try pathf.print(path.buf, "{s}.bin", .{"DEFA"});
+    defer path_end.restore();
+
+    try fs.writeFileZ(std.fs.cwd(), path.full(), defa_raw);
+
+    try mult.room_lines.writer(allocator).print(
+        "    raw-block {s} {s}\n",
+        .{ "DEFA", path.relative() },
+    );
+}
 
 fn extractMultChild(
     allocator: std.mem.Allocator,
@@ -1557,6 +1586,7 @@ fn decodeMultAwiz(
     var wiz = try decodeAwizIntoPath(
         allocator,
         room_state.rmda.raw,
+        cx.defa_rgbs,
         block_raw,
         path.full(),
         state,
