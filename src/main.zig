@@ -81,6 +81,7 @@ const usage =
     \\    <index>       Path to index file ending in .he0
     \\    <output>      Path to output directory
     \\    [--symbols=]  Path to symbols.ini
+    \\    [--akos=raw]  Decode AKOS blocks as raw
     \\
     \\baller build <project> <output>
     \\

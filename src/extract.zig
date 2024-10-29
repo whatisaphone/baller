@@ -24,6 +24,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     var input_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
     var symbols_path: ?[:0]const u8 = null;
+    var akos_modes: []const ResourceMode = &.{ .decode, .raw };
 
     var it = cliargs.Iterator.init(args);
     while (it.next()) |arg| switch (arg) {
@@ -33,6 +34,11 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
                     symbols_path = opt.value
                 else
                     return arg.reportUnexpected();
+            } else if (std.mem.eql(u8, opt.flag, "akos")) {
+                if (std.mem.eql(u8, opt.value, "raw"))
+                    akos_modes = &.{.raw}
+                else
+                    return arg.reportInvalidValue();
             } else {
                 return arg.reportUnexpected();
             }
@@ -65,7 +71,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
         .sound_modes = &.{ .decode, .raw },
         .awiz_modes = &.{ .decode, .raw },
         .mult_modes = &.{ .decode, .raw },
-        .akos_modes = &.{ .decode, .raw },
+        .akos_modes = akos_modes,
         .akcd_modes = &.{ .decode, .raw },
         .symbols_text = symbols_text,
     });

@@ -58,6 +58,23 @@ const Arg = union(enum) {
     fn reportUnexpectedInner(self: Arg) !void {
         const out = std.io.getStdErr().writer();
         try out.writeAll("unexpected argument ");
+        try self.reportFlagName(out);
+        try out.writeByte('\n');
+    }
+
+    pub fn reportInvalidValue(self: Arg) error{CommandLineReported} {
+        self.reportInvalidValueInner() catch {};
+        return error.CommandLineReported;
+    }
+
+    fn reportInvalidValueInner(self: Arg) !void {
+        const out = std.io.getStdErr().writer();
+        try out.writeAll("invalid value for ");
+        try self.reportFlagName(out);
+        try out.writeByte('\n');
+    }
+
+    fn reportFlagName(self: Arg, out: anytype) !void {
         switch (self) {
             .short_flag => |flag| try out.print("-{c}", .{flag}),
             .short_option => |opt| try out.print("-{c}", .{opt.flag}),
@@ -65,7 +82,6 @@ const Arg = union(enum) {
             .long_option => |opt| try out.print("--{s}", .{opt.flag}),
             .positional => |str| try out.print("{s}", .{str}),
         }
-        try out.writeByte('\n');
     }
 };
 
