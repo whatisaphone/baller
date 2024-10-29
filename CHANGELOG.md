@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.2 – 2024-10-29
+
+Added:
+
+- Support AWIZ TRNS blocks
+- Support uncompressed AWIZ
+- Fix colors for MULTs with a DEFA RGBS block
+- Add line numbers for most script errors
+- Add cli arg `extract --akos=raw` to skip decoding AKOS
+
 ## v0.5.1 – 2024-10-22
 
 Added:
