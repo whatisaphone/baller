@@ -18,6 +18,7 @@ const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
 const pathf = @import("pathf.zig");
+const report = @import("report.zig");
 const rmim_encode = @import("rmim_encode.zig");
 const utils = @import("utils.zig");
 
@@ -573,7 +574,10 @@ fn handleRoomImage(
 
     const block_fixup = try beginBlock(&state.writer, "RMIM");
 
-    try rmim_encode.encode(compression, bmp_raw, &state.writer, &state.fixups);
+    rmim_encode.encode(compression, bmp_raw, &state.writer, &state.fixups) catch |err| {
+        report.fatal("error encoding {s} {s}", .{ "RMIM", path.full() });
+        return err;
+    };
 
     try endBlock(&state.writer, &state.fixups, block_fixup);
     const block_len = state.lastBlockLen();
@@ -673,7 +677,10 @@ fn handleAudio(
     var wav_reader = std.io.bufferedReader(wav_file.reader());
 
     const digi_fixup = try beginBlockImpl(&state.writer, block_id);
-    try audio.encode(wav_reader.reader(), &state.writer, &state.fixups);
+    audio.encode(wav_reader.reader(), &state.writer, &state.fixups) catch |err| {
+        report.fatal("error encoding {s}", .{path.full()});
+        return err;
+    };
     try endBlock(&state.writer, &state.fixups, digi_fixup);
     const digi_len = state.lastBlockLen();
 
@@ -743,7 +750,10 @@ fn handleAwiz(
     defer wiz.deinit(allocator);
 
     const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
-    try awiz.encode(&wiz, &state.writer, &state.fixups);
+    awiz.encode(&wiz, &state.writer, &state.fixups) catch |err| {
+        report.fatal("error encoding {s} {:0>4}", .{ "AWIZ", glob_number });
+        return err;
+    };
     try endBlock(&state.writer, &state.fixups, awiz_fixup);
     const awiz_len = state.lastBlockLen();
 
@@ -856,7 +866,19 @@ fn handleMult(
         room_line_buf,
         prst,
     );
+    handleMultInner(allocator, room_number, &desc, prst, state) catch |err| {
+        report.fatal("error encoding {s} {:0>4}", .{ "MULT", desc.glob_number });
+        return err;
+    };
+}
 
+fn handleMultInner(
+    allocator: std.mem.Allocator,
+    room_number: u8,
+    desc: *const Mult,
+    prst: *ProjectState,
+    state: *DiskState,
+) !void {
     const mult_fixup = try beginBlock(&state.writer, "MULT");
 
     for (desc.raws.items) |raw| {
@@ -1021,14 +1043,17 @@ fn handleAkos(
     const glob_number = try std.fmt.parseInt(u32, glob_number_str, 10);
 
     const akos_fixup = try beginBlock(&state.writer, "AKOS");
-    try akos.encode(
+    akos.encode(
         allocator,
         room_reader,
         room_line_buf,
         &prst.cur_path,
         &state.writer,
         &state.fixups,
-    );
+    ) catch |err| {
+        report.fatal("error encoding {s} {:0>4}", .{ "AKOS", glob_number });
+        return err;
+    };
     try endBlock(&state.writer, &state.fixups, akos_fixup);
     const akos_len = state.lastBlockLen();
 
