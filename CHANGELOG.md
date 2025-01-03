@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.3 – 2025-01-03
+
+Added:
+
+- Improved error messages for some resource encoding errors
+
 ## v0.5.2 – 2024-10-29
 
 Added:
