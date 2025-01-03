@@ -14,6 +14,7 @@ const ResourceMode = @import("extract.zig").ResourceMode;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const pathf = @import("pathf.zig");
+const report = @import("report.zig");
 const utils = @import("utils.zig");
 
 const Akhd = extern struct {
@@ -428,7 +429,10 @@ fn encodeCelBmp(
 
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
-    try encodeCelData(&bitmap, akpl, state.akcd.writer(allocator));
+    encodeCelData(&bitmap, akpl, state.akcd.writer(allocator)) catch |err| {
+        report.fatal("error encoding {s}", .{relative_path});
+        return err;
+    };
 }
 
 const CelEncodeState = struct {
@@ -489,7 +493,10 @@ fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
     const index: u8 = for (0.., akpl) |i, color| {
         if (color == state.color)
             break @intCast(i);
-    } else return error.BadData;
+    } else {
+        report.fatal("color index {} found in image but not in AKPL", .{state.color});
+        return error.BadData;
+    };
 
     if (state.run == state.run & state.run_mask) {
         try out.writeByte(state.run | @shlExact(index, state.color_shift));
