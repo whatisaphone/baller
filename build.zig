@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const version = "0.5.2";
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -20,8 +22,12 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
-        .strip = optimize == .ReleaseFast or optimize == .ReleaseSmall,
+        .strip = false,
     });
+
+    const exe_options = b.addOptions();
+    exe_options.addOption([]const u8, "version", "dev");
+    exe.root_module.addOptions("build_options", exe_options);
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
@@ -65,4 +71,40 @@ pub fn build(b: *std.Build) void {
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    const release = b.step("release", "Prepare release builds for all supported platforms");
+    const release_targets = [_]std.Target.Query{
+        .{ .os_tag = .linux, .cpu_arch = .x86_64 },
+        .{ .os_tag = .linux, .cpu_arch = .aarch64 },
+        .{ .os_tag = .linux, .cpu_arch = .riscv64 },
+        .{ .os_tag = .windows, .cpu_arch = .x86_64 },
+        .{ .os_tag = .windows, .cpu_arch = .aarch64 },
+        .{ .os_tag = .macos, .cpu_arch = .x86_64 },
+        .{ .os_tag = .macos, .cpu_arch = .aarch64 },
+    };
+    for (release_targets) |target_query| {
+        const release_target = b.resolveTargetQuery(target_query);
+        const release_exe = b.addExecutable(.{
+            .name = "baller",
+            .root_source_file = b.path("src/main.zig"),
+            .target = release_target,
+            .optimize = .ReleaseFast,
+            .strip = true,
+        });
+
+        const release_exe_options = b.addOptions();
+        release_exe_options.addOption([]const u8, "version", version);
+        release_exe.root_module.addOptions("build_options", release_exe_options);
+
+        const install = b.addInstallArtifact(release_exe, .{
+            .dest_sub_path = b.fmt("{s}-{s}-{s}-{s}{s}", .{
+                release_exe.name,
+                version,
+                @tagName(release_target.result.os.tag),
+                @tagName(release_target.result.cpu.arch),
+                release_target.result.exeFileExt(),
+            }),
+        });
+        release.dependOn(&install.step);
+    }
 }

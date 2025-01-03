@@ -1,12 +1,12 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const build_options = @import("build_options");
+
 const build = @import("build.zig");
 const extract = @import("extract.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
-
-const version = "0.5.2";
 
 pub fn main() !u8 {
     runCli() catch |err| {
@@ -44,7 +44,7 @@ fn runCli() !void {
         std.mem.eql(u8, command, "-v") or
         std.mem.eql(u8, command, "--version"))
     {
-        try std.io.getStdOut().writeAll(version);
+        try std.io.getStdOut().writeAll(build_options.version);
     } else if (std.mem.eql(u8, command, "build")) {
         try build.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "extract")) {
