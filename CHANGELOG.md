@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.4
+
+Added:
+
+- Support TRLE encoding for AKOS
+
 ## v0.5.3 – 2025-01-03
 
 Added:
