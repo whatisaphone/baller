@@ -11,6 +11,7 @@ const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const rmim = @import("rmim.zig");
+const utils = @import("utils.zig");
 
 const max_supported_width = 1600;
 const transparent = 255;
@@ -139,8 +140,8 @@ pub fn decode(
     try bmp.writePalette(bmp_writer, palette);
 
     switch (wizh.compression) {
-        .none => try decodeUncompressed(allocator, width, height, &reader, &bmp_buf),
-        .rle => try decodeRle(allocator, width, height, &reader, &bmp_buf),
+        .none => try decodeUncompressed(width, height, &reader, &bmp_buf),
+        .rle => try decodeRle(width, height, &reader, &bmp_buf),
     }
 
     // Allow one byte of padding from the encoder
@@ -160,7 +161,6 @@ pub fn decode(
 }
 
 fn decodeUncompressed(
-    allocator: std.mem.Allocator,
     width: u31,
     height: u31,
     reader: anytype,
@@ -168,18 +168,17 @@ fn decodeUncompressed(
 ) !void {
     const len = width * height;
     const data = try io.readInPlace(reader, len);
-    try bmp_buf.appendSlice(allocator, data);
+    try bmp_buf.appendSlice(utils.null_allocator, data);
 }
 
 // based on ScummVM's auxDecompTRLEPrim
 fn decodeRle(
-    allocator: std.mem.Allocator,
     width: u31,
     height: u31,
     reader: anytype,
     bmp_buf: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const bmp_writer = bmp_buf.writer(allocator);
+    const bmp_writer = bmp_buf.writer(utils.null_allocator);
 
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
@@ -202,7 +201,7 @@ fn decodeRle(
             }
         }
 
-        try bmp_buf.appendNTimes(allocator, transparent, out_row_end - bmp_buf.items.len);
+        try bmp_buf.appendNTimes(utils.null_allocator, transparent, out_row_end - bmp_buf.items.len);
 
         try bmp.padRow(bmp_writer, width);
     }
