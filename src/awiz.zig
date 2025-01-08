@@ -172,7 +172,7 @@ fn decodeUncompressed(
 }
 
 // based on ScummVM's auxDecompTRLEPrim
-fn decodeRle(
+pub fn decodeRle(
     width: u31,
     height: u31,
     reader: anytype,
@@ -262,7 +262,7 @@ fn writeRgbs(header: bmp.Bmp, out: anytype) !void {
     }
 }
 
-fn encodeRle(header: bmp.Bmp, out: anytype) !void {
+pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
     var rows = try header.iterRows();
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes

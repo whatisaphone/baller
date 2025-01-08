@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
@@ -34,6 +35,11 @@ const Akof = extern struct {
 const Akci = extern struct {
     width: u16,
     height: u16,
+};
+
+const CompressionCodec = enum(u8) {
+    byle_rle = 0x01,
+    trle = 0x20,
 };
 
 pub fn decode(
@@ -160,7 +166,6 @@ fn decodeCel(
     }
 }
 
-// based on ScummVM's AkosRenderer::paintCelByleRLE
 fn decodeCelAsBmp(
     allocator: std.mem.Allocator,
     akhd: *align(1) const Akhd,
@@ -170,8 +175,7 @@ fn decodeCelAsBmp(
     cur_path: pathf.PrintedPath,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
-    // only supports AKOS_BYLE_RLE_CODEC
-    if (akhd.cel_compression_codec != 1)
+    const codec = std.meta.intToEnum(CompressionCodec, akhd.cel_compression_codec) catch
         return error.CelDecode;
 
     const stride = bmp.calcStride(cel.info.width);
@@ -186,17 +190,25 @@ fn decodeCelAsBmp(
     try bmp.writeHeader(bmp_writer, cel.info.width, cel.info.height, bmp_size);
     try bmp.writePalette(bmp_writer, rgbs);
 
-    try decodeCelRle(akpl, cel, bmp_buf[bmp_stream.pos..], stride);
+    switch (codec) {
+        .byle_rle => try decodeCelByleRle(akpl, cel, bmp_buf[bmp_stream.pos..], stride),
+        .trle => try decodeCelTrle(cel, bmp_buf[bmp_stream.pos..]),
+    }
 
     const bmp_path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bmp", .{cel.index});
     defer bmp_path.restore();
 
     try fs.writeFileZ(std.fs.cwd(), bmp_path.full(), bmp_buf);
 
-    try manifest.writer(allocator).print("    cel-bmp {s}\n", .{cur_path.relative()});
+    const directive = switch (codec) {
+        .byle_rle => "cel-bmp",
+        .trle => "cel-trle-bmp",
+    };
+    try manifest.writer(allocator).print("    {s} {s}\n", .{ directive, cur_path.relative() });
 }
 
-fn decodeCelRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
+// based on ScummVM's AkosRenderer::paintCelByleRLE
+fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
     const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
         16 => .{ 0xf, 4 },
         32 => .{ 0x7, 3 },
@@ -231,6 +243,20 @@ fn decodeCelRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
             }
         }
     }
+}
+
+fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
+    var data_stream = std.io.fixedBufferStream(cel.data);
+
+    // api quirk: decodeRle takes its buffer as an ArrayListUnmanaged, although
+    // it never resizes it.
+    var pixels_buf = std.ArrayListUnmanaged(u8).initBuffer(pixels);
+
+    try awiz.decodeRle(cel.info.width, cel.info.height, &data_stream, &pixels_buf);
+
+    // ensure buffer is fully initialized
+    if (pixels_buf.items.len != pixels_buf.capacity)
+        return error.CelDecode;
 }
 
 fn decodeCelAsRaw(
@@ -357,7 +383,9 @@ pub fn encode(
         if (std.mem.eql(u8, keyword, "cel-raw")) {
             try encodeCelRaw(allocator, tokens.rest(), &state);
         } else if (std.mem.eql(u8, keyword, "cel-bmp")) {
-            try encodeCelBmp(allocator, akpl, tokens.rest(), &state);
+            try encodeCelBmp(allocator, akpl, tokens.rest(), &state, .byle_rle);
+        } else if (std.mem.eql(u8, keyword, "cel-trle-bmp")) {
+            try encodeCelBmp(allocator, akpl, tokens.rest(), &state, .trle);
         } else if (std.mem.eql(u8, keyword, "raw-block")) {
             try flushCels(&state, writer, fixups);
             try encodeRawBlock(tokens.rest(), cur_path, writer, fixups);
@@ -414,6 +442,7 @@ fn encodeCelBmp(
     akpl: []const u8,
     relative_path: []const u8,
     state: *EncodeState,
+    codec: CompressionCodec,
 ) !void {
     const bmp_path = try pathf.append(state.cur_path, relative_path);
     defer bmp_path.restore();
@@ -429,7 +458,10 @@ fn encodeCelBmp(
 
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
-    encodeCelData(&bitmap, akpl, state.akcd.writer(allocator)) catch |err| {
+    (switch (codec) {
+        .byle_rle => encodeCelByleRle(&bitmap, akpl, state.akcd.writer(allocator)),
+        .trle => encodeCelTrle(&bitmap, state.akcd.writer(allocator)),
+    }) catch |err| {
         report.fatal("error encoding {s}", .{relative_path});
         return err;
     };
@@ -445,7 +477,7 @@ const CelEncodeState = struct {
     color: u8,
 };
 
-fn encodeCelData(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
+fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
     // TODO: duplicated
     const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
         16 => .{ 0xf, 4 },
@@ -504,6 +536,10 @@ fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
         try out.writeByte(0 | @shlExact(index, state.color_shift));
         try out.writeByte(state.run);
     }
+}
+
+fn encodeCelTrle(bitmap: *const bmp.Bmp, out: anytype) !void {
+    try awiz.encodeRle(bitmap.*, out);
 }
 
 fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
