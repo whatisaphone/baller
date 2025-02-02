@@ -6,6 +6,7 @@ const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
 
+pub const BMCOMP_NMAJMIN_H7 = 0x89;
 pub const BMCOMP_NMAJMIN_H8 = 0x8a;
 pub const BMCOMP_NMAJMIN_HT8 = 0x94;
 
@@ -102,9 +103,11 @@ fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !voi
 
     var in = std.io.bitReader(.little, reader.reader());
 
-    // only these are implemented
-    if (compression != BMCOMP_NMAJMIN_H8 and compression != BMCOMP_NMAJMIN_HT8)
-        return error.DecompressBmap;
+    const color_bits: u8 = switch (compression) {
+        BMCOMP_NMAJMIN_H7 => 7,
+        BMCOMP_NMAJMIN_H8, BMCOMP_NMAJMIN_HT8 => 8,
+        else => return error.DecompressBmap,
+    };
 
     var color = try in.readBitsNoEof(u8, 8);
     while (reader.pos < end or in.bit_count != 0) {
@@ -114,7 +117,7 @@ fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !voi
                 const d = try in.readBitsNoEof(u3, 3);
                 color +%= @as(u8, @bitCast(delta[d])); // TODO: how to properly do this
             } else {
-                color = try in.readBitsNoEof(u8, 8);
+                color = try in.readBitsNoEof(u8, color_bits);
             }
         }
     }

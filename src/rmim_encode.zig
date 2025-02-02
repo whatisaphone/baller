@@ -5,6 +5,8 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
+const report = @import("report.zig");
+const BMCOMP_NMAJMIN_H7 = @import("rmim.zig").BMCOMP_NMAJMIN_H7;
 const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
 const BMCOMP_NMAJMIN_HT8 = @import("rmim.zig").BMCOMP_NMAJMIN_HT8;
 
@@ -24,18 +26,22 @@ pub fn encode(
 
     const bmap_fixup = try beginBlock(out, "BMAP");
 
-    // only these are implemented
-    if (compression != BMCOMP_NMAJMIN_H8 and compression != BMCOMP_NMAJMIN_HT8)
-        return error.BadData;
     try out.writer().writeByte(compression);
-    try compressBmap(header, out.writer());
+    try compressBmap(header, compression, out.writer());
 
     try endBlock(out, fixups, bmap_fixup);
 
     try endBlock(out, fixups, im00_fixup);
 }
 
-fn compressBmap(header: bmp.Bmp, writer: anytype) !void {
+fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
+    const color_bits: u8 = switch (compression) {
+        BMCOMP_NMAJMIN_H7 => 7,
+        BMCOMP_NMAJMIN_H8, BMCOMP_NMAJMIN_HT8 => 8,
+        else => return error.BadData,
+    };
+    const max_pixel: u8 = @intCast((@as(u9, 1) << @intCast(color_bits)) - 1);
+
     var out = std.io.bitWriter(.little, writer);
 
     var pixit = try header.iterPixels();
@@ -44,6 +50,11 @@ fn compressBmap(header: bmp.Bmp, writer: anytype) !void {
     try out.writeBits(current, 8);
 
     while (pixit.next()) |pixel| {
+        if (pixel > max_pixel) {
+            report.fatal("color index {} too large for encoding", .{pixel});
+            return error.Reported;
+        }
+
         const diff = @as(i16, pixel) - current;
         if (diff == 0) {
             try out.writeBits(@as(u1, 0), 1);
@@ -55,7 +66,7 @@ fn compressBmap(header: bmp.Bmp, writer: anytype) !void {
             try out.writeBits(@as(u3, @intCast(diff + 3)), 3);
         } else {
             try out.writeBits(@as(u2, 1), 2);
-            try out.writeBits(pixel, 8);
+            try out.writeBits(pixel, color_bits);
         }
 
         current = pixel;

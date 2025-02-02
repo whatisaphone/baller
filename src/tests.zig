@@ -88,7 +88,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
     defer result.deinit(allocator);
 
     try expectBlockStats(&result.block_stats, &.{
-        .{ "RMIM", 16, 30 },
+        .{ "RMIM", 17, 30 },
         .{ "RMHD", 0, 30 },
         .{ "CYCL", 0, 30 },
         .{ "TRNS", 0, 30 },
@@ -238,7 +238,7 @@ test "Backyard Soccer round trip decode/encode" {
     defer result.deinit(allocator);
 
     try expectBlockStats(&result.block_stats, &.{
-        .{ "RMIM", 22, 29 },
+        .{ "RMIM", 23, 29 },
         .{ "RMHD", 0, 29 },
         .{ "CYCL", 0, 29 },
         .{ "TRNS", 0, 29 },
@@ -313,7 +313,7 @@ test "Backyard Football round trip decode/encode" {
     defer result.deinit(allocator);
 
     try expectBlockStats(&result.block_stats, &.{
-        .{ "RMIM", 14, 56 },
+        .{ "RMIM", 15, 56 },
         .{ "RMHD", 0, 56 },
         .{ "CYCL", 0, 56 },
         .{ "TRNS", 0, 56 },
