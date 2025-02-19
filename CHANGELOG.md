@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.5 – 2025-02-19
+
+Added:
+
+- Support for 7-bit RMIMs
+
 ## v0.5.4 – 2025-01-08
 
 Added:
