@@ -13,7 +13,7 @@ pub const Language = struct {
     // TODO: don't hardcode maximum
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 48]Opcode = .{.unknown} ** (256 * 48),
+    opcodes: [256 * 48]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
     fn add(
