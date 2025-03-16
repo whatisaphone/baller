@@ -128,7 +128,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     try state.cur_path.appendSlice(output_path);
     try state.cur_path.append('/');
 
-    state.symbols = try Symbols.parse(allocator, game, args.symbols_text);
+    state.symbols = try .parse(allocator, game, args.symbols_text);
 
     try state.block_seqs.ensureTotalCapacity(allocator, 16);
 

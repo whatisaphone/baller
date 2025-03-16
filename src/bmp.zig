@@ -110,11 +110,11 @@ pub const Bmp = struct {
     }
 
     pub fn iterPixels(self: *const Bmp) !PixelIter {
-        return PixelIter.init(self.header, self.pixels);
+        return .init(self.header, self.pixels);
     }
 
     pub fn iterRows(self: *const Bmp) !RowIter {
-        return RowIter.init(self.header, self.pixels);
+        return .init(self.header, self.pixels);
     }
 
     pub fn getPixel(self: *const Bmp, x: usize, y: usize) u8 {

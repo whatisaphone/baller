@@ -109,8 +109,7 @@ fn findJumpTargets(
     bytecode: []const u8,
 ) !std.ArrayListUnmanaged(u16) {
     const initial_capacity = bytecode.len / 10;
-    var targets =
-        try std.ArrayListUnmanaged(u16).initCapacity(allocator, initial_capacity);
+    var targets: std.ArrayListUnmanaged(u16) = try .initCapacity(allocator, initial_capacity);
     errdefer targets.deinit(allocator);
 
     var dasm: lang.Disasm = .init(language, bytecode);

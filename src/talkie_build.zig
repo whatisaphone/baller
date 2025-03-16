@@ -52,7 +52,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
         .line_buf = &line_buf,
         .cur_path = &cur_path,
         .output_writer = &output_writer,
-        .fixups = std.ArrayList(Fixup).init(allocator),
+        .fixups = .init(allocator),
     };
     defer state.fixups.deinit();
 
@@ -144,7 +144,7 @@ fn buildTalk(state: *State) !void {
 
             try raw_blocks.append(.{
                 .id = block_id,
-                .path = try std.BoundedArray(u8, 255).fromSlice(path),
+                .path = try .fromSlice(path),
             });
         } else if (std.mem.eql(u8, token, "wav-sdat") and sdat_opt == null) {
             const expected_len_str = tokens.next() orelse return error.BadData;
@@ -156,7 +156,7 @@ fn buildTalk(state: *State) !void {
 
             sdat_opt = .{
                 .expected_len = expected_len,
-                .path = try std.BoundedArray(u8, 255).fromSlice(path),
+                .path = try .fromSlice(path),
             };
         } else if (std.mem.eql(u8, token, "end-talk")) {
             break;

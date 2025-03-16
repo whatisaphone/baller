@@ -133,7 +133,7 @@ fn loadSymbols(
         return error.BadData;
 
     prst.symbols_text = try fs.readFileZ(allocator, std.fs.cwd(), path.full());
-    prst.symbols = try Symbols.parse(allocator, game, prst.symbols_text);
+    prst.symbols = try .parse(allocator, game, prst.symbols_text);
 }
 
 fn buildRoom(
@@ -330,7 +330,7 @@ fn startDisk(
     state.buf_writer = std.io.bufferedWriter(state.xor_writer.writer());
     state.writer = std.io.countingWriter(state.buf_writer.writer());
 
-    state.fixups = std.ArrayList(Fixup).init(allocator);
+    state.fixups = .init(allocator);
     errdefer state.fixups.deinit();
 
     // Hardcode the fixup pos since it's always the same
@@ -838,7 +838,7 @@ fn readAwizLines(
             try wiz.blocks.append(.{
                 .wizd = .{
                     .compression = compression,
-                    .bmp = std.ArrayListUnmanaged(u8).fromOwnedSlice(bmp_raw),
+                    .bmp = .fromOwnedSlice(bmp_raw),
                 },
             });
         } else return error.BadData;

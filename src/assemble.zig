@@ -233,16 +233,16 @@ fn parseVariable(
     id: Symbols.ScriptId,
 ) !lang.Variable {
     if (symbols.global_names.get(var_str)) |num|
-        return lang.Variable.init(.{ .global = num });
+        return .init(.{ .global = num });
 
     for (0.., locals) |i, name|
         if (std.mem.eql(u8, name, var_str))
-            return lang.Variable.init(.{ .local = @intCast(i) });
+            return .init(.{ .local = @intCast(i) });
 
     if (id.room()) |room_number|
         if (symbols.getRoom(room_number)) |room|
             if (room.var_names.get(var_str)) |num|
-                return lang.Variable.init(.{ .room = num });
+                return .init(.{ .room = num });
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))
@@ -257,9 +257,9 @@ fn parseVariable(
     const num = try std.fmt.parseInt(u14, num_str, 10);
 
     return switch (kind) {
-        .global => lang.Variable.init(.{ .global = num }),
-        .local => lang.Variable.init(.{ .local = num }),
-        .room => lang.Variable.init(.{ .room = num }),
+        .global => .init(.{ .global = num }),
+        .local => .init(.{ .local = num }),
+        .room => .init(.{ .room = num }),
     };
 }
 
