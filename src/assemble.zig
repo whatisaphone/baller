@@ -246,13 +246,13 @@ fn parseVariable(
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))
-        .{ .global, var_str[6..] }
-    else if (std.mem.startsWith(u8, var_str, "local"))
-        .{ .local, var_str[5..] }
-    else if (std.mem.startsWith(u8, var_str, "room"))
-        .{ .room, var_str[4..] }
-    else
-        return error.BadData;
+            .{ .global, var_str[6..] }
+        else if (std.mem.startsWith(u8, var_str, "local"))
+            .{ .local, var_str[5..] }
+        else if (std.mem.startsWith(u8, var_str, "room"))
+            .{ .room, var_str[4..] }
+        else
+            return error.BadData;
 
     const num = try std.fmt.parseInt(u14, num_str, 10);
 

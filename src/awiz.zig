@@ -325,7 +325,7 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
         }
 
         // fill in line size
-        std.mem.writeInt(i16, line_buf.buffer[0..2], line_buf.len - 2, .little);
+        std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
 
         // flush line to output stream
         try out.writeAll(line_buf.slice());

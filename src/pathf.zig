@@ -4,9 +4,10 @@ const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const BlockId = @import("block_id.zig").BlockId;
 
 pub const Path = std.BoundedArray(u8, 4095);
+pub const PathLen = u12;
 
 pub fn append(buf: *Path, items: []const u8) !PrintedPath {
-    const prev_len = buf.len;
+    const prev_len: PathLen = @intCast(buf.len);
 
     try buf.appendSlice(items);
 
@@ -18,7 +19,7 @@ pub fn append(buf: *Path, items: []const u8) !PrintedPath {
 }
 
 pub fn print(buf: *Path, comptime format: []const u8, args: anytype) !PrintedPath {
-    const prev_len = buf.len;
+    const prev_len: PathLen = @intCast(buf.len);
 
     try buf.writer().print(format, args);
 
@@ -47,7 +48,7 @@ pub fn popFile(buf: *Path) !void {
 
 pub const PrintedPath = struct {
     buf: *Path,
-    prev_len: u12,
+    prev_len: PathLen,
 
     pub fn restore(self: *const PrintedPath) void {
         std.debug.assert(self.buf.len > self.prev_len);

@@ -896,7 +896,7 @@ fn handleMultInner(
 
     const offs_fixup = try beginBlock(&state.writer, "OFFS");
     // will be filled in using fixups
-    for (desc.indices.items.len) |_|
+    for (desc.indices.items) |_|
         try state.writer.writer().writeInt(i32, undefined, .little);
     try endBlock(&state.writer, &state.fixups, offs_fixup);
 

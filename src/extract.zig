@@ -243,7 +243,7 @@ pub const BlockStat = struct {
 const RoomState = struct {
     room_number: u8,
     path: *pathf.Path,
-    path_start: u32,
+    path_start: pathf.PathLen,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
     rmda: union { pending: void, raw: []const u8 },
 
@@ -680,7 +680,7 @@ fn extractDisk(
         var room_state = RoomState{
             .room_number = room_number,
             .path = &state.cur_path,
-            .path_start = state.cur_path.len,
+            .path_start = @intCast(state.cur_path.len),
             .room_txt = room_txt.writer(),
             .rmda = .{ .pending = {} },
         };
@@ -1470,7 +1470,7 @@ fn decodeMultData(
 
     try mult.room_lines.appendSlice(allocator, "    indices");
     for (offs) |off| {
-        const index = std.sort.binarySearch(u32, off, wiz_offsets.items, {}, u32Order) orelse
+        const index = std.sort.binarySearch(u32, wiz_offsets.items, off, orderU32) orelse
             return error.BadData;
         try mult.room_lines.writer(allocator).print(" {}", .{index});
     }
@@ -1609,8 +1609,8 @@ fn decodeMultAwiz(
     try cx.room_lines.appendSlice(allocator, "    end-awiz\n");
 }
 
-fn u32Order(_: void, lhs: u32, rhs: u32) std.math.Order {
-    return std.math.order(lhs, rhs);
+fn orderU32(a: u32, b: u32) std.math.Order {
+    return std.math.order(a, b);
 }
 
 fn writeMultLines(mult: *const Mult, room_state: *const RoomState) !void {

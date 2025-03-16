@@ -4,22 +4,29 @@ pub const null_allocator = std.mem.Allocator{
     .ptr = undefined,
     .vtable = &.{
         .alloc = struct {
-            fn alloc(ctx: *anyopaque, len: usize, ptr_align: u8, ret_addr: usize) ?[*]u8 {
-                _ = .{ ctx, len, ptr_align, ret_addr };
+            fn alloc(self: *anyopaque, len: usize, alignment: std.mem.Alignment, ret_addr: usize) ?[*]u8 {
+                _ = .{ self, len, alignment, ret_addr };
                 return null;
             }
         }.alloc,
 
         .resize = struct {
-            fn resize(ctx: *anyopaque, buf: []u8, buf_align: u8, new_len: usize, ret_addr: usize) bool {
-                _ = .{ ctx, buf, buf_align, new_len, ret_addr };
+            fn resize(self: *anyopaque, memory: []u8, alignment: std.mem.Alignment, new_len: usize, ret_addr: usize) bool {
+                _ = .{ self, memory, alignment, new_len, ret_addr };
                 return false;
             }
         }.resize,
 
+        .remap = struct {
+            fn remap(self: *anyopaque, memory: []u8, alignment: std.mem.Alignment, new_len: usize, ret_addr: usize) ?[*]u8 {
+                _ = .{ self, memory, alignment, new_len, ret_addr };
+                return null;
+            }
+        }.remap,
+
         .free = struct {
-            fn free(ctx: *anyopaque, buf: []u8, buf_align: u8, ret_addr: usize) void {
-                _ = .{ ctx, buf, buf_align, ret_addr };
+            fn free(self: *anyopaque, memory: []u8, alignment: std.mem.Alignment, ret_addr: usize) void {
+                _ = .{ self, memory, alignment, ret_addr };
             }
         }.free,
     },
@@ -31,8 +38,8 @@ pub fn addUnsignedSigned(
 ) ?AddUnsignedSigned(@TypeOf(x), @TypeOf(y)) {
     const Result = AddUnsignedSigned(@TypeOf(x), @TypeOf(y));
 
-    const wide_bits = @typeInfo(Result).Int.bits + 2;
-    const Wide = @Type(.{ .Int = .{ .bits = wide_bits, .signedness = .signed } });
+    const wide_bits = @typeInfo(Result).int.bits + 2;
+    const Wide = @Type(.{ .int = .{ .bits = wide_bits, .signedness = .signed } });
 
     // TODO: is there a better way to do this? this is mildly insane
     const result = @as(Wide, x) + @as(Wide, y);
@@ -40,12 +47,12 @@ pub fn addUnsignedSigned(
 }
 
 fn AddUnsignedSigned(X: type, Y: type) type {
-    const xi = @typeInfo(X).Int;
-    const yi = @typeInfo(Y).Int;
+    const xi = @typeInfo(X).int;
+    const yi = @typeInfo(Y).int;
     std.debug.assert(xi.signedness == .unsigned);
     std.debug.assert(yi.signedness == .signed);
     const bits = @max(xi.bits, yi.bits);
-    return @Type(.{ .Int = .{
+    return @Type(.{ .int = .{
         .signedness = .unsigned,
         .bits = bits,
     } });

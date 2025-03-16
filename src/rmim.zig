@@ -110,7 +110,7 @@ fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !voi
     };
 
     var color = try in.readBitsNoEof(u8, 8);
-    while (reader.pos < end or in.bit_count != 0) {
+    while (reader.pos < end or in.count != 0) {
         try out.writeByte(color);
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {

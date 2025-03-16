@@ -134,10 +134,14 @@ fn insertSortedNoDup(
     list: *std.ArrayListUnmanaged(u16),
     item: u16,
 ) !void {
-    const index = std.sort.upperBound(u16, item, list.items, {}, std.sort.asc(u16));
+    const index = std.sort.upperBound(u16, list.items, item, orderU16);
     if (index > 0 and list.items[index - 1] == item)
         return;
     try list.insert(allocator, index, item);
+}
+
+fn orderU16(a: u16, b: u16) std.math.Order {
+    return std.math.order(a, b);
 }
 
 fn emitLabel(pc: u16, out: anytype) !void {
