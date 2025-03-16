@@ -38,7 +38,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var manifest_reader = std.io.bufferedReader(manifest_file.reader());
     var line_buf: [255]u8 = undefined;
 
-    var cur_path = pathf.Path{};
+    var cur_path: pathf.Path = .{};
     try cur_path.appendSlice(args.manifest_path);
     try pathf.popFile(&cur_path);
 
@@ -47,7 +47,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var output_buf = std.io.bufferedWriter(output_file.writer());
     var output_writer = std.io.countingWriter(output_buf.writer());
 
-    var state = State{
+    var state: State = .{
         .manifest_reader = &manifest_reader,
         .line_buf = &line_buf,
         .cur_path = &cur_path,

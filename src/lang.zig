@@ -83,7 +83,7 @@ pub fn buildLanguage(game: Game) Language {
 }
 
 fn buildNormalLanguage() Language {
-    var lang = Language{};
+    var lang: Language = .{};
 
     lang.add(0x00, "push-u8", &.{.u8});
     lang.add(0x01, "push-i16", &.{.i16});
@@ -527,7 +527,7 @@ fn buildNormalLanguage() Language {
 }
 
 fn builtBasketballLanguage() Language {
-    var lang = Language{};
+    var lang: Language = .{};
 
     lang.addNested(0x00, 0x04, "actor-set-animation-speed", &.{});
     lang.addNested(0x00, 0x06, "actor-set-position", &.{});
@@ -935,7 +935,7 @@ pub fn buildInsMap(
     allocator: std.mem.Allocator,
     language: *const Language,
 ) !std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) {
-    var inss = std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)){};
+    var inss: std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) = .empty;
     errdefer inss.deinit(allocator);
     try inss.ensureUnusedCapacity(allocator, 256);
 
@@ -1068,7 +1068,7 @@ fn unknownByte(reader: anytype) !?Ins {
     const start: u16 = @intCast(reader.pos);
     const byte = reader.reader().readByte() catch unreachable;
     const end: u16 = @intCast(reader.pos);
-    var operands = OperandArray{};
+    var operands: OperandArray = .{};
     operands.appendAssumeCapacity(.{ .u8 = byte });
     return .{
         .start = start,
@@ -1079,7 +1079,7 @@ fn unknownByte(reader: anytype) !?Ins {
 }
 
 fn disasmIns(reader: anytype, start: u16, ins: *const LangIns) !Ins {
-    var operands = OperandArray{};
+    var operands: OperandArray = .{};
     for (ins.operands.slice()) |lang_op| {
         const op = try disasmOperand(reader, lang_op);
         operands.appendAssumeCapacity(op);

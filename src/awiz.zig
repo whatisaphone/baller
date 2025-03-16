@@ -129,7 +129,7 @@ pub fn decode(
         return error.BadData;
 
     const bmp_file_size = bmp.calcFileSize(width, height);
-    var bmp_buf = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_file_size);
+    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
     errdefer bmp_buf.deinit(allocator);
 
     const bmp_writer = bmp_buf.writer(allocator);
@@ -267,7 +267,7 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte
-        var line_buf = std.BoundedArray(u8, 2 + max_supported_width * 2){};
+        var line_buf: std.BoundedArray(u8, 2 + max_supported_width * 2) = .{};
 
         // reserve space for line size, to be filled in later
         line_buf.len = 2;

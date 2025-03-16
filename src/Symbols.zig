@@ -25,7 +25,7 @@ pub const ScriptId = union(enum) {
 pub const Script = struct {
     name: ?[]const u8 = null,
     /// Lookup table from number to name
-    locals: ArrayMap([]const u8) = .{},
+    locals: ArrayMap([]const u8) = .empty,
 
     fn deinit(self: *Script, allocator: std.mem.Allocator) void {
         self.locals.deinit(allocator);
@@ -34,12 +34,12 @@ pub const Script = struct {
 
 const Room = struct {
     /// Lookup table from number to name
-    vars: ArrayMap([]const u8) = .{},
+    vars: ArrayMap([]const u8) = .empty,
     /// Map from name to number
-    var_names: std.StringHashMapUnmanaged(u16) = .{},
+    var_names: std.StringHashMapUnmanaged(u16) = .empty,
     enter: Script = .{},
     exit: Script = .{},
-    scripts: ArrayMap(Script) = .{},
+    scripts: ArrayMap(Script) = .empty,
 
     fn deinit(self: *Room, allocator: std.mem.Allocator) void {
         var i = self.scripts.len();
@@ -59,11 +59,11 @@ const Room = struct {
 
 game: games.Game,
 /// Lookup table from number to name
-globals: ArrayMap([]const u8) = .{},
+globals: ArrayMap([]const u8) = .empty,
 /// Map from name to number
-global_names: std.StringArrayHashMapUnmanaged(u16) = .{},
-scripts: ArrayMap(Script) = .{},
-rooms: ArrayMap(Room) = .{},
+global_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
+scripts: ArrayMap(Script) = .empty,
+rooms: ArrayMap(Room) = .empty,
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     var i = self.rooms.len();
@@ -91,7 +91,7 @@ pub fn parse(
     game: games.Game,
     ini_text: []const u8,
 ) !Symbols {
-    var result = Symbols{
+    var result: Symbols = .{
         .game = game,
     };
     errdefer result.deinit(allocator);
@@ -135,7 +135,7 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
     const key = std.mem.trimRight(u8, line[0..eq], " ");
     const value = std.mem.trimLeft(u8, line[eq + 1 ..], " ");
 
-    var cx = Cx{
+    var cx: Cx = .{
         .allocator = allocator,
         .key_parts = std.mem.splitScalar(u8, key, '.'),
         .value = value,

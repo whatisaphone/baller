@@ -45,7 +45,7 @@ pub fn decode(
     const compression = try rmim_reader.reader().readByte();
 
     const bmp_size = bmp.calcFileSize(width, height);
-    var out = try std.ArrayListUnmanaged(u8).initCapacity(allocator, bmp_size);
+    var out: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_size);
     errdefer out.deinit(allocator);
 
     try bmp.writeHeader(out.writer(allocator), width, height, bmp_size);

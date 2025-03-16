@@ -47,7 +47,7 @@ const Build = struct {
 pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     const project_txt_path = args.project_txt_path;
 
-    var output_path_buf = pathf.Path{};
+    var output_path_buf: pathf.Path = .{};
     try output_path_buf.appendSlice(args.output_path);
     try output_path_buf.append(0);
     const output_path = output_path_buf.buffer[0 .. output_path_buf.len - 1 :0];
@@ -62,14 +62,14 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var project_txt_reader = std.io.bufferedReader(project_txt_file.reader());
     var project_txt_line_buf: [256]u8 = undefined;
 
-    var prst = try ProjectState.init(allocator, game);
+    var prst: ProjectState = try .init(allocator, game);
     defer prst.deinit(allocator);
 
     try prst.cur_path.appendSlice(project_txt_path);
     try pathf.popFile(&prst.cur_path);
 
     if (games.hasDisk(game))
-        prst.index.lfl_disks = .{};
+        prst.index.lfl_disks = .empty;
 
     // Room numbers start at 1, so zero out the first room.
     try prst.index.directories.rooms.append(allocator, .{
@@ -774,7 +774,7 @@ fn readAwizLines(
     room_line_buf: *[1024]u8,
     prst: *ProjectState,
 ) !awiz.Awiz {
-    var wiz = awiz.Awiz{};
+    var wiz: awiz.Awiz = .{};
     errdefer wiz.deinit(allocator);
 
     while (true) {
@@ -856,7 +856,7 @@ fn handleMult(
     prst: *ProjectState,
     state: *DiskState,
 ) !void {
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    var arena: std.heap.ArenaAllocator = .init(allocator);
     defer arena.deinit();
 
     const desc = try parseMult(
@@ -900,7 +900,7 @@ fn handleMultInner(
         try state.writer.writer().writeInt(i32, undefined, .little);
     try endBlock(&state.writer, &state.fixups, offs_fixup);
 
-    var wiz_offsets = std.ArrayListUnmanaged(u32){};
+    var wiz_offsets: std.ArrayListUnmanaged(u32) = .empty;
     defer wiz_offsets.deinit(allocator);
     try wiz_offsets.ensureTotalCapacityPrecise(allocator, desc.wizs.items.len);
 
@@ -982,11 +982,11 @@ fn parseMult(
 
     // Parse remaining lines
 
-    var result = Mult{
+    var result: Mult = .{
         .glob_number = glob_number,
-        .raws = .{},
-        .wizs = .{},
-        .indices = .{},
+        .raws = .empty,
+        .wizs = .empty,
+        .indices = .empty,
     };
 
     while (true) {
@@ -1003,7 +1003,7 @@ fn parseMult(
             if (tokens.next()) |_| return error.BadData;
 
             const path_alloc = try arena.dupe(u8, path);
-            const raw = MultRaw{
+            const raw: MultRaw = .{
                 .id = block_id,
                 .path = path_alloc,
             };
@@ -1111,7 +1111,7 @@ fn writeIndex(
     var buf_writer = std.io.bufferedWriter(xor_writer.writer());
     var writer = std.io.countingWriter(buf_writer.writer());
 
-    var fixups = std.ArrayList(Fixup).init(allocator);
+    var fixups: std.ArrayList(Fixup) = .init(allocator);
     defer fixups.deinit();
 
     const maxs_fixup = try beginBlock(&writer, "MAXS");
@@ -1282,9 +1282,9 @@ const DiskState = struct {
 const Index = struct {
     maxs: []u8 = &.{},
     directories: Directories = .{},
-    lfl_offsets: std.ArrayListUnmanaged(u32) = .{},
+    lfl_offsets: std.ArrayListUnmanaged(u32) = .empty,
     lfl_disks: ?std.ArrayListUnmanaged(u8) = null,
-    room_names: std.ArrayListUnmanaged([]u8) = .{},
+    room_names: std.ArrayListUnmanaged([]u8) = .empty,
     dobj: []u8 = &.{},
     aary: []u8 = &.{},
     sver: ?[]u8 = null,
@@ -1312,14 +1312,14 @@ const Index = struct {
 };
 
 const Directories = struct {
-    room_images: std.MultiArrayList(DirectoryEntry) = .{},
-    rooms: std.MultiArrayList(DirectoryEntry) = .{},
-    scripts: std.MultiArrayList(DirectoryEntry) = .{},
-    sounds: std.MultiArrayList(DirectoryEntry) = .{},
-    costumes: std.MultiArrayList(DirectoryEntry) = .{},
-    charsets: std.MultiArrayList(DirectoryEntry) = .{},
-    images: std.MultiArrayList(DirectoryEntry) = .{},
-    talkies: std.MultiArrayList(DirectoryEntry) = .{},
+    room_images: std.MultiArrayList(DirectoryEntry) = .empty,
+    rooms: std.MultiArrayList(DirectoryEntry) = .empty,
+    scripts: std.MultiArrayList(DirectoryEntry) = .empty,
+    sounds: std.MultiArrayList(DirectoryEntry) = .empty,
+    costumes: std.MultiArrayList(DirectoryEntry) = .empty,
+    charsets: std.MultiArrayList(DirectoryEntry) = .empty,
+    images: std.MultiArrayList(DirectoryEntry) = .empty,
+    talkies: std.MultiArrayList(DirectoryEntry) = .empty,
 
     fn deinit(self: *Directories, allocator: std.mem.Allocator) void {
         self.talkies.deinit(allocator);

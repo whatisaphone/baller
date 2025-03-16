@@ -26,7 +26,7 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     var symbols_path: ?[:0]const u8 = null;
     var akos_modes: []const ResourceMode = &.{ .decode, .raw };
 
-    var it = cliargs.Iterator.init(args);
+    var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
         .long_option => |opt| {
             if (std.mem.eql(u8, opt.flag, "symbols")) {
@@ -107,7 +107,7 @@ pub const Result = struct {
 };
 
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
-    var input_path_buf = pathf.Path{};
+    var input_path_buf: pathf.Path = .{};
     try input_path_buf.appendSlice(args.input_path);
     try input_path_buf.append(0);
     const input_path = input_path_buf.buffer[0 .. input_path_buf.len - 1 :0];
@@ -199,8 +199,8 @@ const State = struct {
     symbols: Symbols,
     /// workaround for basketball bug
     hack_skip_awiz_uncompressed: bool,
-    block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .{},
-    block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .{},
+    block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .empty,
+    block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .empty,
     language: ?lang.Language = null,
     scripts_with_unknown_byte: u32 = 0,
 
@@ -294,14 +294,14 @@ const Index = struct {
 };
 
 const Directories = struct {
-    room_images: std.MultiArrayList(DirectoryEntry) = .{},
-    rooms: std.MultiArrayList(DirectoryEntry) = .{},
-    scripts: std.MultiArrayList(DirectoryEntry) = .{},
-    sounds: std.MultiArrayList(DirectoryEntry) = .{},
-    costumes: std.MultiArrayList(DirectoryEntry) = .{},
-    charsets: std.MultiArrayList(DirectoryEntry) = .{},
-    images: std.MultiArrayList(DirectoryEntry) = .{},
-    talkies: std.MultiArrayList(DirectoryEntry) = .{},
+    room_images: std.MultiArrayList(DirectoryEntry) = .empty,
+    rooms: std.MultiArrayList(DirectoryEntry) = .empty,
+    scripts: std.MultiArrayList(DirectoryEntry) = .empty,
+    sounds: std.MultiArrayList(DirectoryEntry) = .empty,
+    costumes: std.MultiArrayList(DirectoryEntry) = .empty,
+    charsets: std.MultiArrayList(DirectoryEntry) = .empty,
+    images: std.MultiArrayList(DirectoryEntry) = .empty,
+    talkies: std.MultiArrayList(DirectoryEntry) = .empty,
 
     fn deinit(self: *Directories, allocator: std.mem.Allocator) void {
         self.talkies.deinit(allocator);
@@ -563,7 +563,7 @@ fn readDirectory(
     if (count != expected_count)
         return error.BadData;
 
-    var result = std.MultiArrayList(DirectoryEntry){};
+    var result: std.MultiArrayList(DirectoryEntry) = .empty;
     try result.setCapacity(allocator, count);
     result.len = count;
 
@@ -677,7 +677,7 @@ fn extractDisk(
 
         var room_txt = std.io.bufferedWriter(room_txt_file.writer());
 
-        var room_state = RoomState{
+        var room_state: RoomState = .{
             .room_number = room_number,
             .path = &state.cur_path,
             .path_start = @intCast(state.cur_path.len),
@@ -1012,7 +1012,7 @@ fn decodeScrpData(
     data: []const u8,
     state: *State,
 ) !void {
-    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    var disassembly: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
     try disasm.disassemble(
@@ -1052,7 +1052,7 @@ fn decodeEnterExit(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    var disassembly: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
     const script_id: Symbols.ScriptId = switch (block_id) {
@@ -1123,7 +1123,7 @@ fn decodeLscData(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    var disassembly = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 1024);
+    var disassembly: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, 1024);
     defer disassembly.deinit(allocator);
 
     const bytecode_offset: u8 = switch (block_id) {
@@ -1390,7 +1390,7 @@ fn decodeMult(
 
 const Mult = struct {
     defa_rgbs: ?*const [0x300]u8 = null,
-    room_lines: std.ArrayListUnmanaged(u8) = .{},
+    room_lines: std.ArrayListUnmanaged(u8) = .empty,
 
     fn deinit(self: *Mult, allocator: std.mem.Allocator) void {
         self.room_lines.deinit(allocator);
@@ -1404,7 +1404,7 @@ fn decodeMultData(
     state: *State,
     room_state: *const RoomState,
 ) !Mult {
-    var mult = Mult{};
+    var mult: Mult = .{};
     errdefer mult.deinit(allocator);
 
     const path = try pathf.print(
@@ -1438,7 +1438,7 @@ fn decodeMultData(
     const offs_raw = try io.readInPlace(&stream, offs_len);
     const offs = std.mem.bytesAsSlice(u32, offs_raw);
 
-    var wiz_offsets = std.ArrayListUnmanaged(u32){};
+    var wiz_offsets: std.ArrayListUnmanaged(u32) = .empty;
     defer wiz_offsets.deinit(allocator);
     try wiz_offsets.ensureTotalCapacityPrecise(allocator, offs_count);
 
@@ -1633,7 +1633,7 @@ fn decodeAkos(
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), akos_path.full());
 
-    var manifest_buf = std.ArrayListUnmanaged(u8){};
+    var manifest_buf: std.ArrayListUnmanaged(u8) = .empty;
     defer manifest_buf.deinit(allocator);
 
     try manifest_buf.writer(allocator).print("akos {}\n", .{glob_number});

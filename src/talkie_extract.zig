@@ -34,23 +34,23 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     var buf_reader = std.io.bufferedReader(in_file.reader());
     var reader = std.io.countingReader(buf_reader.reader());
 
-    var cur_path_buf = pathf.Path{};
+    var cur_path_buf: pathf.Path = .{};
     const out_dir = try pathf.append(&cur_path_buf, args.output_path);
     try fs.makeDirIfNotExistZ(std.fs.cwd(), out_dir.full());
     try cur_path_buf.append('/');
 
-    var block_seqs = std.AutoArrayHashMapUnmanaged(BlockId, u32){};
+    var block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u32) = .empty;
     defer block_seqs.deinit(allocator);
 
-    var state = State{
+    var state: State = .{
         .reader = &reader,
         .reader_pos = &reader.bytes_read,
         .block_seqs = &block_seqs,
         .cur_path = &cur_path_buf,
         .path_rel_start = @intCast(cur_path_buf.len),
-        .manifest = .{},
+        .manifest = .empty,
         .indent = 0,
-        .block_buf = .{},
+        .block_buf = .empty,
     };
     defer state.block_buf.deinit(allocator);
     defer state.manifest.deinit(allocator);

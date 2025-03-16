@@ -559,7 +559,7 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
 
-    var hasher = std.crypto.hash.sha2.Sha256.init(.{});
+    var hasher: std.crypto.hash.sha2.Sha256 = .init(.{});
 
     try fs.readFileIntoZ(std.fs.cwd(), path, hasher.writer());
 

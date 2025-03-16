@@ -6,7 +6,11 @@ pub fn ArrayMap(V: type) type {
     return struct {
         const Self = @This();
 
-        items: std.ArrayListUnmanaged(?V) = .{},
+        items: std.ArrayListUnmanaged(?V),
+
+        pub const empty: Self = .{
+            .items = .empty,
+        };
 
         pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
             self.items.deinit(allocator);

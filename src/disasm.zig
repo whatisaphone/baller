@@ -44,7 +44,7 @@ pub fn disassembleInner(
 
     try writePreamble(id, symbols, out);
 
-    var dasm = lang.Disasm.init(language, bytecode);
+    var dasm: lang.Disasm = .init(language, bytecode);
 
     var jump_targets = try findJumpTargets(allocator, language, bytecode);
     defer jump_targets.deinit(allocator);
@@ -94,7 +94,7 @@ fn writePreamble(id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !v
 
     if (script.locals.len() != 0) {
         for (0..script.locals.len()) |i| {
-            const variable = lang.Variable.init(.{ .local = @intCast(i) });
+            const variable: lang.Variable = .init(.{ .local = @intCast(i) });
             try out.writeAll(".local ");
             try emitVariable(out, variable, symbols, id);
             try out.writeByte('\n');
@@ -113,7 +113,7 @@ fn findJumpTargets(
         try std.ArrayListUnmanaged(u16).initCapacity(allocator, initial_capacity);
     errdefer targets.deinit(allocator);
 
-    var dasm = lang.Disasm.init(language, bytecode);
+    var dasm: lang.Disasm = .init(language, bytecode);
     while (try dasm.next()) |ins| {
         // Check if it's a jump
         if (ins.operands.len == 0) continue;

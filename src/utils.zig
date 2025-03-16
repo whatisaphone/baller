@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const null_allocator = std.mem.Allocator{
+pub const null_allocator: std.mem.Allocator = .{
     .ptr = undefined,
     .vtable = &.{
         .alloc = struct {

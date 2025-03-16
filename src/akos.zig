@@ -111,7 +111,7 @@ pub fn decode(
         else
             akcd_raw[cd_start..];
 
-        const cel = Cel{
+        const cel: Cel = .{
             .index = cel_index,
             .info = cel_info.*,
             .data = cel_data,
@@ -250,7 +250,7 @@ fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
 
     // api quirk: decodeRle takes its buffer as an ArrayListUnmanaged, although
     // it never resizes it.
-    var pixels_buf = std.ArrayListUnmanaged(u8).initBuffer(pixels);
+    var pixels_buf: std.ArrayListUnmanaged(u8) = .initBuffer(pixels);
 
     try awiz.decodeRle(cel.info.width, cel.info.height, &data_stream, &pixels_buf);
 
@@ -296,9 +296,9 @@ fn decodeAsRawBlock(
 
 const EncodeState = struct {
     cur_path: *pathf.Path,
-    akci: std.ArrayListUnmanaged(Akci) = .{},
-    cd_offsets: std.ArrayListUnmanaged(u32) = .{},
-    akcd: std.ArrayListUnmanaged(u8) = .{},
+    akci: std.ArrayListUnmanaged(Akci) = .empty,
+    cd_offsets: std.ArrayListUnmanaged(u32) = .empty,
+    akcd: std.ArrayListUnmanaged(u8) = .empty,
 
     fn deinit(self: *EncodeState, allocator: std.mem.Allocator) void {
         self.akcd.deinit(allocator);
@@ -340,7 +340,7 @@ pub fn encode(
         break :akhd akhd;
     };
 
-    var akpl_buf = std.BoundedArray(u8, 64){};
+    var akpl_buf: std.BoundedArray(u8, 64) = .{};
     const akpl = akpl: {
         const room_line =
             try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
@@ -366,7 +366,7 @@ pub fn encode(
         break :akpl akpl;
     };
 
-    var state = EncodeState{
+    var state: EncodeState = .{
         .cur_path = cur_path,
     };
     defer state.deinit(allocator);
@@ -486,7 +486,7 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
         else => return error.BadData,
     };
 
-    var state = CelEncodeState{
+    var state: CelEncodeState = .{
         .run_mask = run_mask,
         .color_shift = color_shift,
         .bitmap = bitmap,
@@ -548,7 +548,7 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
 
     const akof_start = try beginBlock(out, "AKOF");
     for (0.., state.cd_offsets.items) |i, cd_off| {
-        const off = Akof{
+        const off: Akof = .{
             .akci = @intCast(i * @sizeOf(Akci)),
             .akcd = cd_off,
         };

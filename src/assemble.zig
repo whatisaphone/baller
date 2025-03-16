@@ -19,16 +19,16 @@ pub fn assemble(
     const language, const inss = language_stuff;
 
     // map from label name to offset
-    var label_offsets = std.StringHashMapUnmanaged(u16){};
+    var label_offsets: std.StringHashMapUnmanaged(u16) = .empty;
     defer label_offsets.deinit(allocator);
 
-    var label_fixups = std.ArrayListUnmanaged(Fixup){};
+    var label_fixups: std.ArrayListUnmanaged(Fixup) = .empty;
     defer label_fixups.deinit(allocator);
 
-    var locals = std.ArrayListUnmanaged([]const u8){};
+    var locals: std.ArrayListUnmanaged([]const u8) = .empty;
     defer locals.deinit(allocator);
 
-    var bytecode = try std.ArrayListUnmanaged(u8).initCapacity(allocator, 256);
+    var bytecode: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, 256);
     errdefer bytecode.deinit(allocator);
 
     var line_number: u32 = 0;
