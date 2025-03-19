@@ -3,7 +3,7 @@ const std = @import("std");
 pub const BlockId = u32;
 pub const block_id_len = @sizeOf(BlockId);
 
-pub fn blockId(comptime str: []const u8) BlockId {
+pub inline fn blockId(comptime str: []const u8) BlockId {
     if (str.len != 4)
         @compileError("block IDs are four bytes long");
     comptime return std.mem.bytesToValue(BlockId, str);

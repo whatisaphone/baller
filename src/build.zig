@@ -453,9 +453,9 @@ fn handleRmda(
             std.mem.eql(u8, keyword, "excd-asm"))
         {
             const block_id = if (std.mem.eql(u8, keyword, "encd-asm"))
-                comptime blockId("ENCD")
+                blockId("ENCD")
             else if (std.mem.eql(u8, keyword, "excd-asm"))
-                comptime blockId("EXCD")
+                blockId("EXCD")
             else
                 unreachable;
 
@@ -538,7 +538,7 @@ fn handleRmda(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("RMDA"),
+        blockId("RMDA"),
         room_number,
         room_number,
         rmda_fixup,
@@ -585,7 +585,7 @@ fn handleRoomImage(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("RMIM"),
+        blockId("RMIM"),
         room_number,
         room_number,
         block_fixup,
@@ -638,7 +638,7 @@ fn handleScrpAsm(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("SCRP"),
+        blockId("SCRP"),
         room_number,
         glob_number,
         scrp_fixup,
@@ -727,7 +727,7 @@ fn handleWsou(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("WSOU"),
+        blockId("WSOU"),
         room_number,
         glob_number,
         block_start,
@@ -760,7 +760,7 @@ fn handleAwiz(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("AWIZ"),
+        blockId("AWIZ"),
         room_number,
         glob_number,
         awiz_fixup,
@@ -943,7 +943,7 @@ fn handleMultInner(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("MULT"),
+        blockId("MULT"),
         room_number,
         desc.glob_number,
         mult_fixup,
@@ -1007,7 +1007,7 @@ fn parseMult(
                 .id = block_id,
                 .path = path_alloc,
             };
-            if (block_id == comptime blockId("AWIZ"))
+            if (block_id == blockId("AWIZ"))
                 try result.wizs.append(arena, .{ .raw = raw })
             else
                 try result.raws.append(arena, raw);
@@ -1060,7 +1060,7 @@ fn handleAkos(
     try addGlobToDirectory(
         allocator,
         prst,
-        comptime blockId("AKOS"),
+        blockId("AKOS"),
         room_number,
         glob_number,
         akos_fixup,
@@ -1085,7 +1085,7 @@ fn addGlobToDirectory(
         .len = games.directoryNonPresentLen(prst.game),
     });
     const offset = block_start - prst.index.lfl_offsets.items[room_number];
-    const len = if (block_id == (comptime blockId("MULT")) and !games.writeMultLen(prst.game))
+    const len = if (block_id == blockId("MULT") and !games.writeMultLen(prst.game))
         0xffff_ffff
     else
         block_len;
@@ -1203,7 +1203,7 @@ fn writeDirectory(
     directory: *const std.MultiArrayList(DirectoryEntry),
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    const id = comptime blockId(block_id);
+    const id = blockId(block_id);
     return writeDirectoryImpl(stream, id, directory, fixups);
 }
 

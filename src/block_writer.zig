@@ -4,7 +4,7 @@ const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 
 pub fn beginBlock(stream: anytype, comptime block_id: []const u8) !u32 {
-    const id = comptime blockId(block_id);
+    const id = blockId(block_id);
     return beginBlockImpl(stream, id);
 }
 

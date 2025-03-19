@@ -589,7 +589,7 @@ fn expectBlockStat(
     expected_decoded: u32,
     expected_total: u32,
 ) !void {
-    const block_id = comptime blockId(block_id_str);
+    const block_id = blockId(block_id_str);
     const stat = stats.getPtr(block_id) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(stat.decoded, expected_decoded);
     try std.testing.expectEqual(stat.total, expected_total);

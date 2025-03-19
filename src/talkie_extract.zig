@@ -266,12 +266,12 @@ fn parseTalkFixed(
     });
     state.indent += 1;
 
-    const talk_seq = try state.nextSeq(allocator, comptime blockId("TALK"));
+    const talk_seq = try state.nextSeq(allocator, blockId("TALK"));
 
     const path = try pathf.print(state.cur_path, "TALK_{:0>4}_", .{talk_seq});
     defer path.restore();
 
-    while (try talk_blocks.peek() != comptime blockId("SDAT")) {
+    while (try talk_blocks.peek() != blockId("SDAT")) {
         const block_id, const block_len = try talk_blocks.next();
         // Soccer has one TALK block with some weird corrupt(?) data
         if (block_len > 0x00ff_ffff)

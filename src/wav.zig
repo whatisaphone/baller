@@ -58,7 +58,7 @@ pub fn findData(in: anytype) !u32 {
         const chunk_id = try in.readInt(u32, .little);
         const chunk_len = try in.readInt(u32, .little);
         // We're looking for the data chunk
-        if (chunk_id == comptime blockId("data"))
+        if (chunk_id == blockId("data"))
             return chunk_len;
         // If that wasn't it, skip over it and try the next one
         try in.skipBytes(chunk_len, .{});

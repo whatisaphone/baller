@@ -388,7 +388,7 @@ fn readIndex(allocator: std.mem.Allocator, game: games.Game, path: [*:0]u8) !Ind
                 self.allocator,
                 self.in,
                 self.blocks,
-                comptime blockId(block_id),
+                blockId(block_id),
                 expected_count,
             );
         }
@@ -691,15 +691,15 @@ fn extractDisk(
         var lflf_blocks = blockReader(&reader);
 
         const rmim_data =
-            try readGlob(allocator, &lflf_blocks, comptime blockId("RMIM"), &reader);
+            try readGlob(allocator, &lflf_blocks, blockId("RMIM"), &reader);
         defer allocator.free(rmim_data);
 
         const rmda_data =
-            try readGlob(allocator, &lflf_blocks, comptime blockId("RMDA"), &reader);
+            try readGlob(allocator, &lflf_blocks, blockId("RMDA"), &reader);
         room_state.rmda = .{ .raw = rmda_data };
         defer allocator.free(room_state.rmda.raw);
 
-        try state.incrBlockStat(allocator, comptime blockId("RMIM"), .total);
+        try state.incrBlockStat(allocator, blockId("RMIM"), .total);
 
         const rmim_decoded = rmim_decoded: {
             if (!state.options.rmim_decode)
@@ -709,18 +709,12 @@ fn extractDisk(
                     return err;
                 break :rmim_decoded false;
             };
-            try state.incrBlockStat(allocator, comptime blockId("RMIM"), .decoded);
+            try state.incrBlockStat(allocator, blockId("RMIM"), .decoded);
             break :rmim_decoded true;
         };
         if (!rmim_decoded) {
-            try writeGlob(
-                comptime blockId("RMIM"),
-                room_number,
-                rmim_data,
-                state,
-                &room_state,
-            );
-            try state.incrBlockStat(allocator, comptime blockId("RMIM"), .raw);
+            try writeGlob(blockId("RMIM"), room_number, rmim_data, state, &room_state);
+            try state.incrBlockStat(allocator, blockId("RMIM"), .raw);
         }
 
         try extractRmda(allocator, state, &room_state);
@@ -1001,7 +995,7 @@ fn decodeScrp(
     room_state: *const RoomState,
     _: void,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("SCRP"));
+    std.debug.assert(block_id == blockId("SCRP"));
     try decodeScrpData(allocator, glob_number, block_raw, state);
     try writeScrpAsmLine(glob_number, state, room_state);
 }
@@ -1025,7 +1019,7 @@ fn decodeScrpData(
         state,
     );
 
-    const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
+    const path = try appendGlobPath(state, blockId("SCRP"), glob_number, "s");
     defer path.restore();
 
     try fs.writeFileZ(std.fs.cwd(), path.full(), disassembly.items);
@@ -1036,7 +1030,7 @@ fn writeScrpAsmLine(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    const path = try appendGlobPath(state, comptime blockId("SCRP"), glob_number, "s");
+    const path = try appendGlobPath(state, blockId("SCRP"), glob_number, "s");
     defer path.restore();
 
     try room_state.room_txt.print(
@@ -1221,7 +1215,7 @@ fn decodeWsou(
     _: void,
 ) !void {
     _ = allocator;
-    std.debug.assert(block_id == comptime blockId("WSOU"));
+    std.debug.assert(block_id == blockId("WSOU"));
     try decodeWsouData(block_id, glob_number, block_raw, state);
     try writeWsouLine(block_id, glob_number, state, room_state);
 }
@@ -1232,7 +1226,7 @@ fn decodeWsouData(
     data: []const u8,
     state: *State,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("WSOU"));
+    std.debug.assert(block_id == blockId("WSOU"));
     const path = try appendGlobPath(state, block_id, glob_number, "wav");
     defer path.restore();
     try fs.writeFileZ(std.fs.cwd(), path.full(), data);
@@ -1244,7 +1238,7 @@ fn writeWsouLine(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("WSOU"));
+    std.debug.assert(block_id == blockId("WSOU"));
     const path = try appendGlobPath(state, block_id, glob_number, "wav");
     defer path.restore();
     try room_state.room_txt.print(
@@ -1262,7 +1256,7 @@ fn decodeAwiz(
     room_state: *const RoomState,
     _: void,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("AWIZ"));
+    std.debug.assert(block_id == blockId("AWIZ"));
 
     var wiz = try decodeAwizData(
         allocator,
@@ -1283,7 +1277,7 @@ fn decodeAwizData(
     awiz_raw: []const u8,
     state: *State,
 ) !awiz.Awiz {
-    const path = try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+    const path = try appendGlobPath(state, blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
     return decodeAwizIntoPath(allocator, rmda_raw, null, awiz_raw, path.full(), state);
@@ -1324,7 +1318,7 @@ fn writeAwizLines(
     room_state: *const RoomState,
 ) !void {
     const path =
-        try appendGlobPath(state, comptime blockId("AWIZ"), glob_number, "bmp");
+        try appendGlobPath(state, blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
     try room_state.room_txt.print("awiz {}\n", .{glob_number});
@@ -1374,7 +1368,7 @@ fn decodeMult(
     room_state: *const RoomState,
     _: void,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("MULT"));
+    std.debug.assert(block_id == blockId("MULT"));
 
     var mult = try decodeMultData(
         allocator,
@@ -1410,7 +1404,7 @@ fn decodeMultData(
     const path = try pathf.print(
         &state.cur_path,
         "{s}_{:0>4}_",
-        .{ blockIdToStr(&comptime blockId("MULT")), glob_number },
+        .{ blockIdToStr(&blockId("MULT")), glob_number },
     );
     defer path.restore();
 
@@ -1420,7 +1414,7 @@ fn decodeMultData(
     var stream = std.io.fixedBufferStream(mult_raw);
     var mult_blocks = fixedBlockReader(&stream);
 
-    if (try mult_blocks.peek() == comptime blockId("DEFA")) {
+    if (try mult_blocks.peek() == blockId("DEFA")) {
         const defa_len = try mult_blocks.assumeBlock("DEFA");
         const defa_raw = try io.readInPlace(&stream, defa_len);
 
@@ -1448,7 +1442,7 @@ fn decodeMultData(
 
         const awiz_index: u32 = @intCast(wiz_offsets.items.len - 1);
 
-        const awiz_id = comptime blockId("AWIZ");
+        const awiz_id = blockId("AWIZ");
         const awiz_len = try wrap_blocks.expect(awiz_id);
         const awiz_raw = try io.readInPlace(&stream, awiz_len);
 
@@ -1584,7 +1578,7 @@ fn decodeMultAwiz(
     room_state: *const RoomState,
     cx: *Mult,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("AWIZ"));
+    std.debug.assert(block_id == blockId("AWIZ"));
 
     const path = try appendGlobPath(state, block_id, block_number, "bmp");
     defer path.restore();
@@ -1626,7 +1620,7 @@ fn decodeAkos(
     room_state: *const RoomState,
     _: void,
 ) !void {
-    std.debug.assert(block_id == comptime blockId("AKOS"));
+    std.debug.assert(block_id == blockId("AKOS"));
 
     const akos_path = try pathf.print(&state.cur_path, "AKOS_{:0>4}/", .{glob_number});
     defer akos_path.restore();

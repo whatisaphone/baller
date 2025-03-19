@@ -63,7 +63,7 @@ pub fn decode(
     var reader = std.io.fixedBufferStream(awiz_raw);
     var awiz_blocks = fixedBlockReader(&reader);
 
-    while (try awiz_blocks.peek() != comptime blockId("WIZD")) {
+    while (try awiz_blocks.peek() != blockId("WIZD")) {
         const id, const len = try awiz_blocks.next();
         switch (id) {
             blockId("RGBS") => {

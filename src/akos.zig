@@ -54,33 +54,15 @@ pub fn decode(
     var blocks = fixedBlockReader(&stream);
 
     const akhd = try blocks.expectBlockAsValue("AKHD", Akhd);
-    try decodeAsRawBlock(
-        allocator,
-        comptime blockId("AKHD"),
-        std.mem.asBytes(akhd),
-        cur_path,
-        manifest,
-    );
+    try decodeAsRawBlock(allocator, blockId("AKHD"), std.mem.asBytes(akhd), cur_path, manifest);
 
     const akpl = try blocks.expectBlockAsSlice("AKPL");
-    try decodeAsRawBlock(
-        allocator,
-        comptime blockId("AKPL"),
-        akpl,
-        cur_path,
-        manifest,
-    );
+    try decodeAsRawBlock(allocator, blockId("AKPL"), akpl, cur_path, manifest);
 
     const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
-    try decodeAsRawBlock(
-        allocator,
-        comptime blockId("RGBS"),
-        rgbs,
-        cur_path,
-        manifest,
-    );
+    try decodeAsRawBlock(allocator, blockId("RGBS"), rgbs, cur_path, manifest);
 
-    while (try blocks.peek() != comptime blockId("AKOF")) {
+    while (try blocks.peek() != blockId("AKOF")) {
         const block_id, const block_raw = try blocks.nextAsSlice();
         try decodeAsRawBlock(allocator, block_id, block_raw, cur_path, manifest);
     }
@@ -144,12 +126,12 @@ fn decodeCel(
     manifest: *std.ArrayListUnmanaged(u8),
     diagnostic: anytype,
 ) !void {
-    try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .total);
+    try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .total);
 
     for (akcd_modes) |mode| switch (mode) {
         .raw => {
             try decodeCelAsRaw(allocator, cel, cur_path, manifest);
-            try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .raw);
+            try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .raw);
             break;
         },
         .decode => {
@@ -158,7 +140,7 @@ fn decodeCel(
                     continue;
                 return err;
             };
-            try diagnostic.incrBlockStat(allocator, comptime blockId("AKCD"), .decoded);
+            try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .decoded);
             break;
         },
     } else {

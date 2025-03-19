@@ -53,7 +53,7 @@ fn BlockReader(Stream: type) type {
         }
 
         pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = comptime blockId(expected_id);
+            const id = blockId(expected_id);
             return self.expect(id);
         }
 
@@ -69,7 +69,7 @@ fn BlockReader(Stream: type) type {
         }
 
         pub fn skipUntilBlock(self: *Self, comptime block_id: []const u8) !u32 {
-            const id = comptime blockId(block_id);
+            const id = blockId(block_id);
             return self.skipUntil(id);
         }
 
@@ -156,7 +156,7 @@ fn FixedBlockReader(Stream: type) type {
         }
 
         pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = comptime blockId(expected_id);
+            const id = blockId(expected_id);
             return self.expect(id);
         }
 
@@ -184,7 +184,7 @@ fn FixedBlockReader(Stream: type) type {
         }
 
         pub fn assumeBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = comptime blockId(expected_id);
+            const id = blockId(expected_id);
             return self.assume(id);
         }
 
@@ -200,7 +200,7 @@ fn FixedBlockReader(Stream: type) type {
         }
 
         pub fn skipUntilBlock(self: *Self, comptime block_id: []const u8) !u32 {
-            const id = comptime blockId(block_id);
+            const id = blockId(block_id);
             return self.skipUntil(id);
         }
 
