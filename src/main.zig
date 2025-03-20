@@ -4,7 +4,9 @@ const std = @import("std");
 const build_options = @import("build_options");
 
 const build = @import("build.zig");
+const build2 = @import("build2.zig");
 const extract = @import("extract.zig");
+const extract2 = @import("extract2.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
@@ -51,8 +53,12 @@ fn runCli() !void {
         try std.io.getStdOut().writeAll(build_options.version);
     } else if (std.mem.eql(u8, command, "build")) {
         try build.runCli(allocator, args[2..]);
+    } else if (std.mem.eql(u8, command, "build2")) {
+        try build2.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "extract")) {
         try extract.runCli(allocator, args[2..]);
+    } else if (std.mem.eql(u8, command, "extract2")) {
+        try extract2.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "talkie")) {
         if (args.len < 1 + 2)
             return error.CommandLine;
@@ -112,4 +118,5 @@ comptime {
 
 test {
     _ = @import("tests.zig");
+    _ = @import("tests2.zig");
 }

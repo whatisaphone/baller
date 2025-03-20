@@ -91,3 +91,11 @@ pub fn makeParentDirIfNotExist(dir: std.fs.Dir, sub_path: []u8) !void {
 
     try makeDirIfNotExistZ(dir, sub_path[0..slash_index :0]);
 }
+
+pub fn splitPathZ(path: [:0]const u8) struct { ?[]const u8, [:0]const u8 } {
+    const dir = std.fs.path.dirname(path) orelse
+        return .{ null, path };
+    const name = std.fs.path.basename(path);
+    const name_offset = name.ptr - path.ptr;
+    return .{ dir, path[name_offset..] };
+}

@@ -55,11 +55,11 @@ pub const PrintedPath = struct {
         self.buf.len = self.prev_len;
     }
 
-    pub fn full(self: *const PrintedPath) [:0]const u8 {
+    pub fn full(self: *const PrintedPath) [:0]u8 {
         return self.buf.buffer[0..self.buf.len :0];
     }
 
-    pub fn relative(self: *const PrintedPath) [:0]const u8 {
+    pub fn relative(self: *const PrintedPath) [:0]u8 {
         return self.buf.buffer[self.prev_len..self.buf.len :0];
     }
 };

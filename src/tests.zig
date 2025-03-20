@@ -14,7 +14,7 @@ const talkie_extract = @import("talkie_extract.zig");
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
 
-const fixture_hashes = .{
+pub const fixture_hashes = .{
     .@"baseball1997/BASEBALL.HE0" = "6b701f415251a1d25fe91fb28c78193ac01b382b4292c377b0fd01e30a61c5da",
     .@"baseball1997/BASEBALL.HE1" = "f3e910f120433d318e30dae75e0fbd418f08338966cbf129487909e1f3cf5cd8",
     .@"baseball1997/BASEBALL.HE2" = "216db30c5810b063aaf718defdf67ee11c2d6aaa7bf2cf64c7101e507f65647a",
