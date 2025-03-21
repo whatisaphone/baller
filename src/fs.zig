@@ -73,6 +73,13 @@ pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: anytype) 
     try io.copy(file, output);
 }
 
+pub fn makeDirIfNotExist(dir: std.fs.Dir, sub_path: []const u8) !void {
+    dir.makeDir(sub_path) catch |err| switch (err) {
+        error.PathAlreadyExists => {},
+        else => return err,
+    };
+}
+
 pub fn makeDirIfNotExistZ(dir: std.fs.Dir, sub_path: [*:0]const u8) !void {
     dir.makeDirZ(sub_path) catch |err| switch (err) {
         error.PathAlreadyExists => {},

@@ -48,10 +48,10 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
         project_dir.close();
 
     const output_path_opt, const index_name = fs.splitPathZ(args.index_path);
-    var output_dir = if (output_path_opt) |output_path|
-        try std.fs.cwd().openDir(output_path, .{})
-    else
-        std.fs.cwd();
+    var output_dir = if (output_path_opt) |output_path| output_dir: {
+        try fs.makeDirIfNotExist(std.fs.cwd(), output_path);
+        break :output_dir try std.fs.cwd().openDir(output_path, .{});
+    } else std.fs.cwd();
     defer if (output_path_opt) |_|
         output_dir.close();
 
