@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const BlockId = @import("block_id.zig").BlockId;
+const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const blockReader = @import("block_reader.zig").blockReader;
 const xor_key = @import("build.zig").xor_key;
 const cliargs = @import("cliargs.zig");
@@ -113,10 +115,11 @@ fn extractDisk(
     const lecf_end: u32 = @intCast(in.bytes_read + lecf_size);
     var lecf_blocks = blockReader(&in);
 
-    var room_index: u8 = 0;
-    while (in.bytes_read < lecf_end) : (room_index += 1) {
+    while (in.bytes_read < lecf_end) {
         const lflf_size = try lecf_blocks.expectBlock("LFLF");
-        try extractRoom(gpa, &in, disk_number, room_index, lflf_size, output_dir, code);
+        const lflf_start: u32 = @intCast(in.bytes_read);
+        const lflf_end = lflf_start + lflf_size;
+        try extractRoom(gpa, &in, disk_number, lflf_end, output_dir, code);
     }
 
     try lecf_blocks.finish(lecf_end);
@@ -130,23 +133,47 @@ fn extractRoom(
     gpa: std.mem.Allocator,
     in: anytype,
     disk_number: u8,
-    room_index: u8,
-    lflf_size: u32,
+    lflf_end: u32,
     output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["LFLF_00_00.bin".len + 1]u8 = undefined;
+    try code.appendSlice(gpa, "    room {\n");
+
+    var lflf_blocks = blockReader(in);
+
+    while (in.bytes_read < lflf_end) {
+        const offset: u32 = @intCast(in.bytes_read);
+        const id, const size = try lflf_blocks.next();
+        try extractRawBlock(gpa, disk_number, in, offset, id, size, output_dir, code);
+    }
+
+    try lflf_blocks.finish(lflf_end);
+
+    try code.appendSlice(gpa, "    }\n");
+}
+
+fn extractRawBlock(
+    gpa: std.mem.Allocator,
+    disk_number: u8,
+    in: anytype,
+    offset: u32,
+    id: BlockId,
+    size: u32,
+    output_dir: std.fs.Dir,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var filename_buf: ["00_XXXX_00000000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
-        "{s}_{:0>2}_{:0>2}.bin",
-        .{ "LFLF", disk_number, room_index },
+        "{:0>2}_{s}_{x:0>8}.bin",
+        .{ disk_number, fmtBlockId(&id), offset },
     );
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
-    try io.copy(std.io.limitedReader(in.reader(), lflf_size), file.writer());
+    try io.copy(std.io.limitedReader(in.reader(), size), file.writer());
 
     try code.writer(gpa).print(
-        "    raw-block \"{s}\" \"{s}\"\n",
-        .{ "LFLF", filename },
+        "        raw-block \"{s}\" \"{s}\"\n",
+        .{ fmtBlockId(&id), filename },
     );
 }

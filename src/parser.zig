@@ -30,6 +30,9 @@ pub const Node = union(enum) {
     disk: struct {
         children: ExtraSlice,
     },
+    room: struct {
+        children: ExtraSlice,
+    },
     raw_block: struct {
         block_id: BlockId,
         path: []const u8,
@@ -129,6 +132,10 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "room")) {
+                    const node_index = try parseRoom(state);
+                    children.append(node_index) catch
+                        return reportError(token.span, "too many children", .{});
                 } else {
                     return reportUnexpected(token);
                 }
@@ -139,6 +146,35 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
     }
 
     disks[disk_index] = try appendNode(state, .{ .disk = .{
+        .children = try appendExtra(state, children.slice()),
+    } });
+}
+
+fn parseRoom(state: *State) !NodeIndex {
+    try expect(state, .brace_l);
+
+    var children: std.BoundedArray(NodeIndex, 2048) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => {
+                const identifier = state.source[token.span.start.offset..token.span.end.offset];
+                if (std.mem.eql(u8, identifier, "raw-block")) {
+                    const node_index = try parseRawBlock(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(token.span, "too many children", .{});
+                } else {
+                    return reportUnexpected(token);
+                }
+            },
+            .brace_r => break,
+            else => return reportUnexpected(token),
+        }
+    }
+
+    return appendNode(state, .{ .room = .{
         .children = try appendExtra(state, children.slice()),
     } });
 }

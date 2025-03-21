@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const xor_key = @import("build.zig").xor_key;
@@ -79,8 +80,11 @@ fn emitDisk(
 
     const child_nodes = ast.getExtra(disk.children);
     for (child_nodes) |child_node| {
-        const child = &ast.nodes.items[child_node].raw_block;
-        try emitRawBlock(project_dir, &out, &fixups, child);
+        switch (ast.nodes.items[child_node]) {
+            .room => |*node| try emitRoom(project_dir, ast, &out, &fixups, node),
+            .raw_block => |*node| try emitRawBlock(project_dir, &out, &fixups, node),
+            else => unreachable,
+        }
     }
 
     try endBlock(&out, &fixups, lecf_start);
@@ -90,18 +94,35 @@ fn emitDisk(
     try writeFixups(out_file, out_xor.writer(), fixups.items);
 }
 
+fn emitRoom(
+    project_dir: std.fs.Dir,
+    ast: *const parser.Ast,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    room: *const @FieldType(parser.Node, "room"),
+) !void {
+    const lflf_start = try beginBlock(out, "LFLF");
+
+    for (ast.getExtra(room.children)) |child_node| {
+        const node = &ast.nodes.items[child_node].raw_block;
+        try emitRawBlock(project_dir, out, fixups, node);
+    }
+
+    try endBlock(out, fixups, lflf_start);
+}
+
 fn emitRawBlock(
     project_dir: std.fs.Dir,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     raw_block: *const @FieldType(parser.Node, "raw_block"),
 ) !void {
-    const lflf_start = try beginBlock(out, "LFLF");
+    const start = try beginBlockImpl(out, raw_block.block_id);
 
     const in_file = try project_dir.openFile(raw_block.path, .{});
     defer in_file.close();
 
     try io.copy(in_file, out.writer());
 
-    try endBlock(out, fixups, lflf_start);
+    try endBlock(out, fixups, start);
 }
