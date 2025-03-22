@@ -58,6 +58,49 @@ fn AddUnsignedSigned(X: type, Y: type) type {
     } });
 }
 
+pub fn SafeManyPointer(ManyPtr: type) type {
+    const many_ptr_info = @typeInfo(ManyPtr).pointer;
+    std.debug.assert(many_ptr_info.size == .many);
+    const Element = many_ptr_info.child;
+
+    var slice_info = many_ptr_info;
+    slice_info.size = .slice;
+    const Slice = @Type(.{ .pointer = slice_info });
+
+    const store_len = std.debug.runtime_safety;
+
+    return struct {
+        const Self = @This();
+
+        ptr: ManyPtr,
+        len: if (store_len) usize else void,
+
+        pub fn init(items: Slice) Self {
+            return .{
+                .ptr = items.ptr,
+                .len = if (store_len) items.len,
+            };
+        }
+
+        fn use(self: Self) if (store_len) Slice else ManyPtr {
+            return if (store_len)
+                self.ptr[0..self.len]
+            else
+                self.ptr;
+        }
+
+        pub fn slice(self: Self, len: usize) Slice {
+            if (store_len)
+                std.debug.assert(len == self.len);
+            return self.ptr[0..len];
+        }
+
+        pub fn get(self: Self, index: usize) Element {
+            return self.use()[index];
+        }
+    };
+}
+
 pub fn growArrayList(
     T: type,
     xs: *std.ArrayListUnmanaged(T),
