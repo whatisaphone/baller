@@ -175,6 +175,19 @@ fn emitIndex(
                 try out.writer().writeAll(index.rooms.items(.disk));
                 try endBlock(&out, &fixups, start);
             },
+            .RNAM => {
+                const start = try beginBlock(&out, "RNAM");
+                for (0..index.rooms.len) |room_number_usize| {
+                    const room_number: u8 = @intCast(room_number_usize);
+                    const room_node = findRoomByNumber(ast, room_number) orelse continue;
+                    const room = &ast.nodes.items[room_node].room;
+                    try out.writer().writeInt(u16, room.room_number, .little);
+                    try out.writer().writeAll(room.name);
+                    try out.writer().writeByte(0);
+                }
+                try out.writer().writeInt(u16, 0, .little);
+                try endBlock(&out, &fixups, start);
+            },
         },
         .raw_block => |rb| {
             const start = try beginBlockImpl(&out, rb.block_id);
@@ -189,4 +202,18 @@ fn emitIndex(
     try out_buf.flush();
 
     try writeFixups(out_file, out_xor.writer(), fixups.items);
+}
+
+// TODO: move this to analysis phase
+fn findRoomByNumber(ast: *const parser.Ast, room_number: u8) ?parser.NodeIndex {
+    const project = &ast.nodes.items[ast.root].project;
+    for (ast.getExtra(project.disks)) |disk_node| {
+        const disk = &ast.nodes.items[disk_node].disk;
+        for (ast.getExtra(disk.children)) |child_node| {
+            const child = &ast.nodes.items[child_node];
+            if (child.* == .room and child.room.room_number == room_number)
+                return child_node;
+        }
+    }
+    return null;
 }

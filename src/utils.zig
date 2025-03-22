@@ -82,7 +82,7 @@ pub fn SafeManyPointer(ManyPtr: type) type {
             };
         }
 
-        fn use(self: Self) if (store_len) Slice else ManyPtr {
+        pub fn use(self: Self) if (store_len) Slice else ManyPtr {
             return if (store_len)
                 self.ptr[0..self.len]
             else

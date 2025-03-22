@@ -77,6 +77,7 @@ const Index = struct {
     maxs: Maxs,
     lfl_offsets: utils.SafeManyPointer([*]u32),
     lfl_disks: utils.SafeManyPointer([*]u8),
+    room_names: RoomNames,
 };
 
 const Maxs = struct {
@@ -102,6 +103,19 @@ const Maxs = struct {
     palettes: u16,
     unknown_28: u16,
     talkies: u16,
+};
+
+const RoomNames = struct {
+    buffer: utils.SafeManyPointer([*]u8),
+    starts: utils.SafeManyPointer([*]u16),
+    lens: utils.SafeManyPointer([*]u8),
+
+    fn get(self: *const RoomNames, room_number: u8) []const u8 {
+        const len = self.lens.get(room_number);
+        if (len == 0) return "";
+        const start = self.starts.get(room_number);
+        return self.buffer.use()[start..][0..len];
+    }
 };
 
 fn extractIndex(
@@ -162,11 +176,14 @@ fn extractIndex(
 
     try code.appendSlice(gpa, "    index-block \"DISK\"\n");
 
+    // RNAM
+
+    const room_names = try readRoomNames(&in, &blocks, maxs.rooms, &fba);
+    try code.appendSlice(gpa, "    index-block \"RNAM\"\n");
+
     // remaining blocks
 
-    for ([_]BlockId{
-        blockId("RNAM"), blockId("DOBJ"), blockId("AARY"), blockId("INIB"),
-    }) |id|
+    for ([_]BlockId{ blockId("DOBJ"), blockId("AARY"), blockId("INIB") }) |id|
         try extractRawIndexBlock(gpa, &in, &blocks, output_dir, code, id);
 
     try blocks.finishEof();
@@ -177,8 +194,43 @@ fn extractIndex(
         .maxs = maxs,
         .lfl_offsets = .init(lfl_offsets),
         .lfl_disks = .init(lfl_disks),
+        .room_names = room_names,
     };
     return .{ index, result_buf };
+}
+
+fn readRoomNames(
+    in: anytype,
+    blocks: anytype,
+    num_rooms: u16,
+    fba: *std.heap.FixedBufferAllocator,
+) !RoomNames {
+    const rnam_len = try blocks.expectBlock("RNAM");
+    if (rnam_len > 0xffff) return error.BadData; // so we can index with u16
+
+    const starts = try fba.allocator().alloc(u16, num_rooms);
+    const lens = try fba.allocator().alloc(u8, num_rooms);
+    // we only have to clear lens, because starts is not accessed unless lens is nonzero
+    @memset(lens, 0);
+    const buffer_start = fba.buffer[fba.end_index..].ptr;
+
+    while (true) {
+        const number = try in.reader().readInt(u16, .little);
+        if (number == 0) break;
+        const name_len = std.mem.indexOfScalar(u8, in.buffer[in.pos..], 0) orelse
+            return error.BadData;
+        const name_src_z = try io.readInPlace(in, name_len + 1);
+        const name = try fba.allocator().dupe(u8, name_src_z[0..name_len :0]);
+        starts[number] = @intCast(name.ptr - buffer_start);
+        lens[number] = std.math.cast(u8, name_len) orelse return error.BadData;
+    }
+
+    const buffer_len = fba.buffer[fba.end_index..].ptr - buffer_start;
+    return .{
+        .buffer = .init(buffer_start[0..buffer_len]),
+        .starts = .init(starts),
+        .lens = .init(lens),
+    };
 }
 
 fn extractRawIndexBlock(
@@ -266,16 +318,19 @@ fn extractRoom(
     output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const room_number = for (
+    const room_number: u8 = for (
         index.lfl_offsets.slice(index.maxs.rooms),
         index.lfl_disks.slice(index.maxs.rooms),
         0..,
     ) |off, dsk, i| {
         if (off == in.bytes_read and dsk == disk_number)
-            break i;
+            break @intCast(i);
     } else return error.BadData;
 
-    try code.writer(gpa).print("    room {} {{\n", .{room_number});
+    try code.writer(gpa).print(
+        "    room {} \"{s}\" {{\n",
+        .{ room_number, index.room_names.get(room_number) },
+    );
 
     var lflf_blocks = blockReader(in);
 

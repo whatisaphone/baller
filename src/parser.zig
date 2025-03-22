@@ -27,12 +27,13 @@ pub const Node = union(enum) {
         index: ExtraSlice,
         disks: ExtraSlice,
     },
-    index_block: enum { DLFL, DISK },
+    index_block: enum { DLFL, DISK, RNAM },
     disk: struct {
         children: ExtraSlice,
     },
     room: struct {
         room_number: u8,
+        name: []const u8,
         children: ExtraSlice,
     },
     raw_block: struct {
@@ -189,6 +190,7 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
 
 fn parseRoom(state: *State, span: lexer.Span) !NodeIndex {
     const room_number_u32 = try expectInteger(state);
+    const room_name = try expectString(state);
     try expect(state, .brace_l);
 
     if (room_number_u32 == 0)
@@ -219,6 +221,7 @@ fn parseRoom(state: *State, span: lexer.Span) !NodeIndex {
 
     return appendNode(state, .{ .room = .{
         .room_number = room_number,
+        .name = room_name,
         .children = try appendExtra(state, children.slice()),
     } });
 }
