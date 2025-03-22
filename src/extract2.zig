@@ -327,17 +327,19 @@ fn extractRoom(
             break @intCast(i);
     } else return error.BadData;
 
-    try code.writer(gpa).print(
-        "    room {} \"{s}\" {{\n",
-        .{ room_number, index.room_names.get(room_number) },
-    );
+    const room_name = index.room_names.get(room_number);
+    try fs.makeDirIfNotExist(output_dir, room_name);
+    var room_dir = try output_dir.openDir(room_name, .{});
+    defer room_dir.close();
+
+    try code.writer(gpa).print("    room {} \"{s}\" {{\n", .{ room_number, room_name });
 
     var lflf_blocks = blockReader(in);
 
     while (in.bytes_read < lflf_end) {
         const offset: u32 = @intCast(in.bytes_read);
         const id, const size = try lflf_blocks.next();
-        try extractRawBlock(gpa, disk_number, in, offset, id, size, output_dir, code);
+        try extractRawBlock(gpa, in, offset, id, size, room_dir, room_name, code);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -347,26 +349,26 @@ fn extractRoom(
 
 fn extractRawBlock(
     gpa: std.mem.Allocator,
-    disk_number: u8,
     in: anytype,
     offset: u32,
     id: BlockId,
     size: u32,
     output_dir: std.fs.Dir,
+    output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["00_XXXX_00000000.bin".len + 1]u8 = undefined;
+    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
-        "{:0>2}_{s}_{x:0>8}.bin",
-        .{ disk_number, fmtBlockId(&id), offset },
+        "{s}_{x:0>8}.bin",
+        .{ fmtBlockId(&id), offset },
     );
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
     try io.copy(std.io.limitedReader(in.reader(), size), file.writer());
 
     try code.writer(gpa).print(
-        "        raw-block \"{s}\" \"{s}\"\n",
-        .{ fmtBlockId(&id), filename },
+        "        raw-block \"{s}\" \"{s}/{s}\"\n",
+        .{ fmtBlockId(&id), output_path, filename },
     );
 }
