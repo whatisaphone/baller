@@ -75,6 +75,7 @@ pub fn run(gpa: std.mem.Allocator, args: Extract) !void {
 
 const Index = struct {
     maxs: Maxs,
+    directories: Directories,
     lfl_offsets: utils.SafeManyPointer([*]u32),
     lfl_disks: utils.SafeManyPointer([*]u8),
     room_names: RoomNames,
@@ -103,6 +104,23 @@ const Maxs = struct {
     palettes: u16,
     unknown_28: u16,
     talkies: u16,
+};
+
+const Directories = struct {
+    room_images: Directory,
+    rooms: Directory,
+    scripts: Directory,
+    sounds: Directory,
+    costumes: Directory,
+    charsets: Directory,
+    images: Directory,
+    talkies: Directory,
+};
+
+const Directory = struct {
+    rooms: utils.SafeManyPointer([*]u8),
+    offsets: utils.SafeManyPointer([*]u32),
+    sizes: utils.SafeManyPointer([*]u32),
 };
 
 const RoomNames = struct {
@@ -147,11 +165,14 @@ fn extractIndex(
 
     // DIR*
 
-    for ([_]BlockId{
-        blockId("DIRI"), blockId("DIRR"), blockId("DIRS"), blockId("DIRN"),
-        blockId("DIRC"), blockId("DIRF"), blockId("DIRM"), blockId("DIRT"),
-    }) |id|
-        try extractRawIndexBlock(gpa, &in, &blocks, output_dir, code, id);
+    const diri = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRI"), maxs.rooms);
+    const dirr = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRR"), maxs.rooms);
+    const dirs = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRS"), maxs.scripts);
+    const dirn = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRN"), maxs.sounds);
+    const dirc = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRC"), maxs.costumes);
+    const dirf = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRF"), maxs.charsets);
+    const dirm = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRM"), maxs.images);
+    const dirt = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRT"), maxs.talkies);
 
     // DLFL
 
@@ -192,11 +213,58 @@ fn extractIndex(
 
     const index: Index = .{
         .maxs = maxs,
+        .directories = .{
+            .room_images = diri,
+            .rooms = dirr,
+            .scripts = dirs,
+            .sounds = dirn,
+            .costumes = dirc,
+            .charsets = dirf,
+            .images = dirm,
+            .talkies = dirt,
+        },
         .lfl_offsets = .init(lfl_offsets),
         .lfl_disks = .init(lfl_disks),
         .room_names = room_names,
     };
     return .{ index, result_buf };
+}
+
+fn readDirectory(
+    gpa: std.mem.Allocator,
+    fba: *std.heap.FixedBufferAllocator,
+    in_stream: anytype,
+    blocks: anytype,
+    code: *std.ArrayListUnmanaged(u8),
+    block_id: BlockId,
+    expected_len: u32,
+) !Directory {
+    const block_size = try blocks.expect(block_id);
+    const block_raw = try io.readInPlace(in_stream, block_size);
+
+    try code.writer(gpa).print("    index-block \"{s}\"\n", .{fmtBlockId(&block_id)});
+
+    var in = std.io.fixedBufferStream(block_raw);
+
+    const len = try in.reader().readInt(u16, .little);
+    if (len != expected_len) return error.BadData;
+
+    const rooms_src = try io.readInPlace(&in, len);
+    const rooms = try fba.allocator().dupe(u8, rooms_src);
+
+    const offsets_raw = try io.readInPlace(&in, len * 4);
+    const offsets = try fba.allocator().alloc(u32, len);
+    @memcpy(std.mem.sliceAsBytes(offsets), offsets_raw);
+
+    const sizes_raw = try io.readInPlace(&in, len * 4);
+    const sizes = try fba.allocator().alloc(u32, len);
+    @memcpy(std.mem.sliceAsBytes(sizes), sizes_raw);
+
+    return .{
+        .rooms = .init(rooms),
+        .offsets = .init(offsets),
+        .sizes = .init(sizes),
+    };
 }
 
 fn readRoomNames(
@@ -339,7 +407,9 @@ fn extractRoom(
     while (in.bytes_read < lflf_end) {
         const offset: u32 = @intCast(in.bytes_read);
         const id, const size = try lflf_blocks.next();
-        try extractRawBlock(gpa, in, offset, id, size, room_dir, room_name, code);
+        const glob_number = try findGlobNumber(index, id, room_number, offset) orelse
+            return error.BadData;
+        try extractRawGlob(gpa, in, id, glob_number, size, room_dir, room_name, code);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -347,28 +417,53 @@ fn extractRoom(
     try code.appendSlice(gpa, "    }\n");
 }
 
-fn extractRawBlock(
+fn findGlobNumber(
+    index: *const Index,
+    block_id: BlockId,
+    room_number: u8,
+    offset_in_disk: u32,
+) !?u16 {
+    const dir, const dir_len = switch (block_id) {
+        // XXX: this list is duplicated in emit
+        blockId("RMIM") => .{ &index.directories.room_images, index.maxs.rooms },
+        blockId("RMDA") => .{ &index.directories.rooms, index.maxs.rooms },
+        blockId("SCRP") => .{ &index.directories.scripts, index.maxs.scripts },
+        blockId("DIGI"), blockId("TALK") => .{ &index.directories.sounds, index.maxs.sounds },
+        blockId("AKOS") => .{ &index.directories.costumes, index.maxs.costumes },
+        blockId("CHAR") => .{ &index.directories.charsets, index.maxs.charsets },
+        blockId("AWIZ"), blockId("MULT") => .{ &index.directories.images, index.maxs.images },
+        blockId("TLKE") => .{ &index.directories.talkies, index.maxs.talkies },
+        else => return null,
+    };
+    const offset_in_room = offset_in_disk - index.lfl_offsets.get(room_number);
+    for (dir.rooms.slice(dir_len), dir.offsets.slice(dir_len), 0..) |r, o, i|
+        if (r == room_number and o == offset_in_room)
+            return @intCast(i);
+    return error.BadData;
+}
+
+fn extractRawGlob(
     gpa: std.mem.Allocator,
     in: anytype,
-    offset: u32,
-    id: BlockId,
+    block_id: BlockId,
+    glob_number: u16,
     size: u32,
     output_dir: std.fs.Dir,
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
+    var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
-        "{s}_{x:0>8}.bin",
-        .{ fmtBlockId(&id), offset },
+        "{s}_{:0>4}.bin",
+        .{ fmtBlockId(&block_id), glob_number },
     );
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
     try io.copy(std.io.limitedReader(in.reader(), size), file.writer());
 
     try code.writer(gpa).print(
-        "        raw-block \"{s}\" \"{s}/{s}\"\n",
-        .{ fmtBlockId(&id), output_path, filename },
+        "        raw-glob \"{s}\" {} \"{s}/{s}\"\n",
+        .{ fmtBlockId(&block_id), glob_number, output_path, filename },
     );
 }

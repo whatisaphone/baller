@@ -5,6 +5,8 @@ const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const io = @import("io.zig");
 
+pub const block_header_size = 8;
+
 pub fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
 }
@@ -30,7 +32,7 @@ fn BlockReader(Stream: type) type {
             const full_len = try self.stream.reader().readInt(u32, .big);
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
-            const len = full_len - 8;
+            const len = full_len - block_header_size;
 
             const current_pos: u32 = @intCast(self.stream.bytes_read);
             self.current_block_end = current_pos + len;
@@ -117,7 +119,7 @@ fn FixedBlockReader(Stream: type) type {
             const full_len = try self.stream.reader().readInt(u32, .big);
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
-            const len = full_len - 8;
+            const len = full_len - block_header_size;
 
             const current_pos: u32 = @intCast(self.stream.pos);
             self.current_block_end = current_pos + len;

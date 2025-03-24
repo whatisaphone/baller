@@ -27,7 +27,7 @@ pub const Node = union(enum) {
         index: ExtraSlice,
         disks: ExtraSlice,
     },
-    index_block: enum { DLFL, DISK, RNAM },
+    index_block: enum { DIRI, DIRR, DIRS, DIRN, DIRC, DIRF, DIRM, DIRT, DLFL, DISK, RNAM },
     disk: struct {
         children: ExtraSlice,
     },
@@ -38,6 +38,11 @@ pub const Node = union(enum) {
     },
     raw_block: struct {
         block_id: BlockId,
+        path: []const u8,
+    },
+    raw_glob: struct {
+        block_id: BlockId,
+        glob_number: u16,
         path: []const u8,
     },
 };
@@ -128,6 +133,7 @@ fn parseIndex(state: *State) !std.BoundedArray(NodeIndex, 16) {
                         return reportError(token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "index-block")) {
                     const block_id_str = try expectString(state);
+                    try expect(state, .newline);
                     const IndexBlock = @FieldType(Node, "index_block");
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
                         return reportError(token.span, "unsupported block id", .{});
@@ -210,6 +216,10 @@ fn parseRoom(state: *State, span: lexer.Span) !NodeIndex {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "raw-glob")) {
+                    const node_index = try parseRawGlob(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(token.span, "too many children", .{});
                 } else {
                     return reportUnexpected(token);
                 }
@@ -236,6 +246,24 @@ fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
 
     return appendNode(state, .{ .raw_block = .{
         .block_id = block_id,
+        .path = path,
+    } });
+}
+
+fn parseRawGlob(state: *State, span: lexer.Span) !NodeIndex {
+    const block_id_str = try expectString(state);
+    const glob_number_u32 = try expectInteger(state);
+    const path = try expectString(state);
+    try expect(state, .newline);
+
+    const block_id = parseBlockId(block_id_str) orelse
+        return reportError(span, "invalid block id", .{});
+    const glob_number = std.math.cast(u16, glob_number_u32) orelse
+        return reportError(span, "invalid glob number", .{});
+
+    return appendNode(state, .{ .raw_glob = .{
+        .block_id = block_id,
+        .glob_number = glob_number,
         .path = path,
     } });
 }
