@@ -2,6 +2,22 @@ const std = @import("std");
 
 const io = @import("io.zig");
 
+pub fn readFile(
+    allocator: std.mem.Allocator,
+    dir: std.fs.Dir,
+    sub_path: []const u8,
+) ![]u8 {
+    const file = try dir.openFile(sub_path, .{});
+    defer file.close();
+
+    const stat = try file.stat();
+    const buf = try allocator.alloc(u8, stat.size);
+    errdefer allocator.free(buf);
+
+    try file.reader().readNoEof(buf);
+    return buf;
+}
+
 pub fn readFileZ(
     allocator: std.mem.Allocator,
     dir: std.fs.Dir,

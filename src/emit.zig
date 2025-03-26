@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Project = @import("Project.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const block_header_size = @import("block_reader.zig").block_header_size;
@@ -22,17 +23,18 @@ pub fn run(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     game: games.Game,
-    ast: *const parser.Ast,
+    project: *const Project,
 ) !void {
     var index: Index = try .init(gpa);
     defer index.deinit(gpa);
 
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        try emitDisk(gpa, project_dir, output_dir, index_name, game, ast, disk_number, &index);
+        try emitDisk(gpa, project_dir, output_dir, index_name, game, project, disk_number, &index);
     }
 
-    try emitIndex(gpa, project_dir, output_dir, index_name, ast, &index);
+    const project_file = &project.files.items[0].?;
+    try emitIndex(gpa, project_dir, output_dir, index_name, &project_file.ast, &index);
 }
 
 fn emitDisk(
@@ -41,17 +43,18 @@ fn emitDisk(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     game: games.Game,
-    ast: *const parser.Ast,
+    project: *const Project,
     disk_number: u8,
     index: *Index,
 ) !void {
-    const project = &ast.nodes.items[ast.root].project;
-    const disks = ast.getExtra(project.disks);
+    const project_file = &project.files.items[0].?;
+    const root = &project_file.ast.nodes.items[project_file.ast.root].project;
+    const disks = project_file.ast.getExtra(root.disks);
     const disk_index = disk_number - 1;
     const disk_node = disks[disk_index];
     if (disk_node == parser.null_node)
         return;
-    const disk = &ast.nodes.items[disk_node].disk;
+    const disk = &project_file.ast.nodes.items[disk_node].disk;
 
     var out_name_buf: pathf.Path = .{};
     const out_name = try pathf.append(&out_name_buf, index_name);
@@ -68,10 +71,10 @@ fn emitDisk(
 
     const lecf_start = try beginBlock(&out, "LECF");
 
-    const child_nodes = ast.getExtra(disk.children);
+    const child_nodes = project_file.ast.getExtra(disk.children);
     for (child_nodes) |child_node| {
-        switch (ast.nodes.items[child_node]) {
-            .room => |*node| try emitRoom(gpa, project_dir, ast, disk_number, &out, &fixups, node, index),
+        switch (project_file.ast.nodes.items[child_node]) {
+            .disk_room => |*node| try emitRoom(gpa, project_dir, project, disk_number, &out, &fixups, node, index),
             .raw_block => |*node| try emitRawBlock(project_dir, &out, &fixups, node),
             else => unreachable,
         }
@@ -87,11 +90,11 @@ fn emitDisk(
 fn emitRoom(
     gpa: std.mem.Allocator,
     project_dir: std.fs.Dir,
-    ast: *const parser.Ast,
+    project: *const Project,
     disk_number: u8,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
-    room: *const @FieldType(parser.Node, "room"),
+    room: *const @FieldType(parser.Node, "disk_room"),
     index: *Index,
 ) !void {
     const lflf_start = try beginBlock(out, "LFLF");
@@ -102,8 +105,10 @@ fn emitRoom(
         .disk = disk_number,
     });
 
-    for (ast.getExtra(room.children)) |child_node| {
-        switch (ast.nodes.items[child_node]) {
+    const room_file = &project.files.items[room.room_number].?;
+    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+    for (room_file.ast.getExtra(root.children)) |child_node| {
+        switch (room_file.ast.nodes.items[child_node]) {
             .raw_block => |*n| try emitRawBlock(project_dir, out, fixups, n),
             .raw_glob => |*n| try emitRawGlob(gpa, project_dir, out, fixups, index, room.room_number, n),
             else => unreachable,
@@ -303,7 +308,7 @@ fn emitIndex(
                 for (0..index.rooms.len) |room_number_usize| {
                     const room_number: u8 = @intCast(room_number_usize);
                     const room_node = findRoomByNumber(ast, room_number) orelse continue;
-                    const room = &ast.nodes.items[room_node].room;
+                    const room = &ast.nodes.items[room_node].disk_room;
                     try out.writer().writeInt(u16, room.room_number, .little);
                     try out.writer().writeAll(room.name);
                     try out.writer().writeByte(0);
@@ -349,7 +354,7 @@ fn findRoomByNumber(ast: *const parser.Ast, room_number: u8) ?parser.NodeIndex {
         const disk = &ast.nodes.items[disk_node].disk;
         for (ast.getExtra(disk.children)) |child_node| {
             const child = &ast.nodes.items[child_node];
-            if (child.* == .room and child.room.room_number == room_number)
+            if (child.* == .disk_room and child.disk_room.room_number == room_number)
                 return child_node;
         }
     }

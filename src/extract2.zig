@@ -384,7 +384,7 @@ fn extractRoom(
     in: anytype,
     lflf_end: u32,
     output_dir: std.fs.Dir,
-    code: *std.ArrayListUnmanaged(u8),
+    project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
     const room_number: u8 = for (
         index.lfl_offsets.slice(index.maxs.rooms),
@@ -400,7 +400,8 @@ fn extractRoom(
     var room_dir = try output_dir.openDir(room_name, .{});
     defer room_dir.close();
 
-    try code.writer(gpa).print("    room {} \"{s}\" {{\n", .{ room_number, room_name });
+    var room_code: std.ArrayListUnmanaged(u8) = .empty;
+    defer room_code.deinit(gpa);
 
     var lflf_blocks = blockReader(in);
 
@@ -409,12 +410,19 @@ fn extractRoom(
         const id, const size = try lflf_blocks.next();
         const glob_number = try findGlobNumber(index, id, room_number, offset) orelse
             return error.BadData;
-        try extractRawGlob(gpa, in, id, glob_number, size, room_dir, room_name, code);
+        try extractRawGlob(gpa, in, id, glob_number, size, room_dir, room_name, &room_code);
     }
 
     try lflf_blocks.finish(lflf_end);
 
-    try code.appendSlice(gpa, "    }\n");
+    var room_scu_path_buf: [255 + ".scu\x00".len]u8 = undefined;
+    const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
+    try fs.writeFileZ(output_dir, room_scu_path, room_code.items);
+
+    try project_code.writer(gpa).print(
+        "    room {} \"{s}\" \"{s}\"\n",
+        .{ room_number, room_name, room_scu_path },
+    );
 }
 
 fn findGlobNumber(
@@ -463,7 +471,7 @@ fn extractRawGlob(
     try io.copy(std.io.limitedReader(in.reader(), size), file.writer());
 
     try code.writer(gpa).print(
-        "        raw-glob \"{s}\" {} \"{s}/{s}\"\n",
+        "raw-glob \"{s}\" {} \"{s}/{s}\"\n",
         .{ fmtBlockId(&block_id), glob_number, output_path, filename },
     );
 }

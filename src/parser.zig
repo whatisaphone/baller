@@ -31,9 +31,12 @@ pub const Node = union(enum) {
     disk: struct {
         children: ExtraSlice,
     },
-    room: struct {
+    disk_room: struct {
         room_number: u8,
         name: []const u8,
+        path: []const u8,
+    },
+    room_file: struct {
         children: ExtraSlice,
     },
     raw_block: struct {
@@ -62,7 +65,7 @@ const State = struct {
 
 const ParseError = error{ OutOfMemory, Reported };
 
-pub fn run(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) ParseError!Ast {
+pub fn parseProject(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) ParseError!Ast {
     var state: State = .{
         .gpa = gpa,
         .source = source,
@@ -76,11 +79,11 @@ pub fn run(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) Pa
     };
     errdefer state.result.deinit(gpa);
 
-    state.result.root = try parseProject(&state);
+    state.result.root = try parseProjectChildren(&state);
     return state.result;
 }
 
-fn parseProject(state: *State) !NodeIndex {
+fn parseProjectChildren(state: *State) !NodeIndex {
     var index_children_opt: ?std.BoundedArray(NodeIndex, 16) = null;
     var disks: [2]NodeIndex = @splat(null_node);
 
@@ -177,7 +180,7 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
                     children.append(node_index) catch
                         return reportError(token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "room")) {
-                    const node_index = try parseRoom(state, token.span);
+                    const node_index = try parseDiskRoom(state, token.span);
                     children.append(node_index) catch
                         return reportError(token.span, "too many children", .{});
                 } else {
@@ -194,16 +197,43 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
     } });
 }
 
-fn parseRoom(state: *State, span: lexer.Span) !NodeIndex {
+fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
     const room_number_u32 = try expectInteger(state);
     const room_name = try expectString(state);
-    try expect(state, .brace_l);
+    const path = try expectString(state);
+    try expect(state, .newline);
 
     if (room_number_u32 == 0)
         return reportError(span, "room number out of range", .{});
     const room_number = std.math.cast(u8, room_number_u32) orelse
         return reportError(span, "room number out of range", .{});
 
+    return appendNode(state, .{ .disk_room = .{
+        .room_number = room_number,
+        .name = room_name,
+        .path = path,
+    } });
+}
+
+pub fn parseRoom(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) ParseError!Ast {
+    var state: State = .{
+        .gpa = gpa,
+        .source = source,
+        .lex = lex,
+        .token_index = 0,
+        .result = .{
+            .root = undefined, // filled in at the end
+            .nodes = .empty,
+            .extra = .empty,
+        },
+    };
+    errdefer state.result.deinit(gpa);
+
+    state.result.root = try parseRoomChildren(&state);
+    return state.result;
+}
+
+fn parseRoomChildren(state: *State) !NodeIndex {
     var children: std.BoundedArray(NodeIndex, 2048) = .{};
 
     while (true) {
@@ -224,14 +254,12 @@ fn parseRoom(state: *State, span: lexer.Span) !NodeIndex {
                     return reportUnexpected(token);
                 }
             },
-            .brace_r => break,
+            .eof => break,
             else => return reportUnexpected(token),
         }
     }
 
-    return appendNode(state, .{ .room = .{
-        .room_number = room_number,
-        .name = room_name,
+    return appendNode(state, .{ .room_file = .{
         .children = try appendExtra(state, children.slice()),
     } });
 }

@@ -1,11 +1,13 @@
 const std = @import("std");
 
+const Project = @import("Project.zig");
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const lexer = @import("lexer.zig");
 const parser = @import("parser.zig");
+const utils = @import("utils.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var project_path_opt: ?[:0]const u8 = null;
@@ -57,14 +59,60 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
 
     const game: games.Game = .baseball_2001;
 
-    const source = try fs.readFileZ(gpa, project_dir, project_name);
-    defer gpa.free(source);
+    var project: Project = .empty;
+    defer project.deinit(gpa);
+
+    const root = try addFile(gpa, project_dir, project_name, parser.parseProject);
+    try project.files.append(gpa, root);
+
+    try readRooms(gpa, &project, project_dir);
+
+    try emit.run(gpa, project_dir, output_dir, index_name, game, &project);
+}
+
+fn addFile(
+    gpa: std.mem.Allocator,
+    project_dir: std.fs.Dir,
+    path: []const u8,
+    parseFn: anytype,
+) !Project.SourceFile {
+    const source = try fs.readFile(gpa, project_dir, path);
+    errdefer gpa.free(source);
 
     var lex = try lexer.run(gpa, source);
-    defer lex.deinit(gpa);
+    errdefer lex.deinit(gpa);
 
-    var ast = try parser.run(gpa, source, &lex);
-    defer ast.deinit(gpa);
+    var ast = try parseFn(gpa, source, &lex);
+    errdefer ast.deinit(gpa);
 
-    try emit.run(gpa, project_dir, output_dir, index_name, game, &ast);
+    return .{
+        .source = source,
+        .lex = lex,
+        .ast = ast,
+    };
+}
+
+fn readRooms(gpa: std.mem.Allocator, project: *Project, project_dir: std.fs.Dir) !void {
+    var room_nodes: std.BoundedArray(parser.NodeIndex, 255) = .{};
+
+    const project_file = &project.files.items[0].?;
+    const root = &project_file.ast.nodes.items[project_file.ast.root].project;
+    for (project_file.ast.getExtra(root.disks)) |disk_node| {
+        const disk = &project_file.ast.nodes.items[disk_node].disk;
+        for (project_file.ast.getExtra(disk.children)) |disk_child_node| {
+            const disk_child = &project_file.ast.nodes.items[disk_child_node];
+            if (disk_child.* == .disk_room)
+                try room_nodes.append(disk_child_node);
+        }
+    }
+
+    for (room_nodes.slice()) |room_node| {
+        const room = &project.files.items[0].?.ast.nodes.items[room_node].disk_room;
+        try utils.growArrayList(?Project.SourceFile, &project.files, gpa, room.room_number + 1, null);
+        if (project.files.items[room.room_number] != null)
+            @panic("TODO");
+
+        const file = try addFile(gpa, project_dir, room.path, parser.parseRoom);
+        project.files.items[room.room_number] = file;
+    }
 }
