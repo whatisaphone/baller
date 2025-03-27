@@ -110,7 +110,8 @@ fn emitRoom(
     for (room_file.ast.getExtra(root.children)) |child_node| {
         switch (room_file.ast.nodes.items[child_node]) {
             .raw_block => |*n| try emitRawBlock(project_dir, out, fixups, n),
-            .raw_glob => |*n| try emitRawGlob(gpa, project_dir, out, fixups, index, room.room_number, n),
+            .raw_glob_file => |*n| try emitRawGlobFile(gpa, project_dir, out, fixups, index, room.room_number, n),
+            .raw_glob_block => |*n| try emitRawGlobBlock(gpa, project_dir, project, out, fixups, index, room.room_number, n),
             else => unreachable,
         }
     }
@@ -127,24 +128,58 @@ fn emitRawBlock(
     try emitFileAsBlock(project_dir, out, fixups, raw_block.block_id, raw_block.path);
 }
 
-fn emitRawGlob(
+fn emitRawGlobFile(
     gpa: std.mem.Allocator,
     project_dir: std.fs.Dir,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     index: *Index,
     room_number: u8,
-    raw_glob: *const @FieldType(parser.Node, "raw_glob"),
+    raw_glob: *const @FieldType(parser.Node, "raw_glob_file"),
 ) !void {
     const start: u32 = @intCast(out.bytes_written);
-    const offset = start - index.rooms.items(.offset)[room_number];
-
     try emitFileAsBlock(project_dir, out, fixups, raw_glob.block_id, raw_glob.path);
-
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    const directory = switch (raw_glob.block_id) {
+    try addGlobToIndex(gpa, index, room_number, raw_glob.block_id, raw_glob.glob_number, start, size);
+}
+
+fn emitRawGlobBlock(
+    gpa: std.mem.Allocator,
+    project_dir: std.fs.Dir,
+    project: *const Project,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    index: *Index,
+    room_number: u8,
+    raw_glob: *const @FieldType(parser.Node, "raw_glob_block"),
+) !void {
+    const start = try beginBlockImpl(out, raw_glob.block_id);
+
+    const room_file = &project.files.items[room_number].?;
+    for (room_file.ast.getExtra(raw_glob.children)) |node| {
+        const raw_block = &room_file.ast.nodes.items[node].raw_block;
+        try emitRawBlock(project_dir, out, fixups, raw_block);
+    }
+
+    try endBlock(out, fixups, start);
+    const end: u32 = @intCast(out.bytes_written);
+    const size = end - start;
+
+    try addGlobToIndex(gpa, index, room_number, raw_glob.block_id, raw_glob.glob_number, start, size);
+}
+
+fn addGlobToIndex(
+    gpa: std.mem.Allocator,
+    index: *Index,
+    room_number: u8,
+    block_id: BlockId,
+    glob_number: u16,
+    offset_in_disk: u32,
+    size: u32,
+) !void {
+    const directory = switch (block_id) {
         // XXX: this list is duplicated in extract
         blockId("RMIM") => &index.directories.room_images,
         blockId("RMDA") => &index.directories.rooms,
@@ -156,12 +191,13 @@ fn emitRawGlob(
         blockId("TLKE") => &index.directories.talkies,
         else => unreachable,
     };
-    try utils.growMultiArrayList(DirectoryEntry, directory, gpa, raw_glob.glob_number + 1, .zero);
-    if (directory.items(.room)[raw_glob.glob_number] != 0)
+    try utils.growMultiArrayList(DirectoryEntry, directory, gpa, glob_number + 1, .zero);
+    if (directory.items(.room)[glob_number] != 0)
         @panic("TODO");
-    directory.set(raw_glob.glob_number, .{
+    const offset_in_room = offset_in_disk - index.rooms.items(.offset)[room_number];
+    directory.set(glob_number, .{
         .room = room_number,
-        .offset = offset,
+        .offset = offset_in_room,
         .size = size,
     });
 }

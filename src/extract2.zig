@@ -405,12 +405,19 @@ fn extractRoom(
 
     var lflf_blocks = blockReader(in);
 
+    // RMIM
+    {
+        const offset: u32 = @intCast(in.bytes_read);
+        const size = try lflf_blocks.expectBlock("RMIM");
+        try extractRawGlob(gpa, index, in, room_number, offset, blockId("RMIM"), size, room_dir, room_name, &room_code);
+    }
+
+    try extractRmda(gpa, in, &lflf_blocks, room_number, room_dir, room_name, &room_code);
+
     while (in.bytes_read < lflf_end) {
         const offset: u32 = @intCast(in.bytes_read);
         const id, const size = try lflf_blocks.next();
-        const glob_number = try findGlobNumber(index, id, room_number, offset) orelse
-            return error.BadData;
-        try extractRawGlob(gpa, in, id, glob_number, size, room_dir, room_name, &room_code);
+        try extractRawGlob(gpa, index, in, room_number, offset, id, size, room_dir, room_name, &room_code);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -423,6 +430,38 @@ fn extractRoom(
         "    room {} \"{s}\" \"{s}\"\n",
         .{ room_number, room_name, room_scu_path },
     );
+}
+
+fn extractRmda(
+    gpa: std.mem.Allocator,
+    in: anytype,
+    lflf_blocks: anytype,
+    room_number: u8,
+    room_dir: std.fs.Dir,
+    room_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const rmda_id = blockId("RMDA");
+    const rmda_size = try lflf_blocks.expect(rmda_id);
+    const rmda_start: u32 = @intCast(in.bytes_read);
+    const rmda_end = rmda_start + rmda_size;
+
+    try code.writer(gpa).print(
+        "raw-glob \"{s}\" {} {{\n",
+        .{ fmtBlockId(&rmda_id), room_number },
+    );
+
+    var rmda_blocks = blockReader(in);
+
+    while (in.bytes_read < rmda_end) {
+        const offset: u32 = @intCast(in.bytes_read);
+        const block_id, const size = try rmda_blocks.next();
+        try extractRawBlock(gpa, in, offset, block_id, size, room_dir, room_path, code);
+    }
+
+    try rmda_blocks.finish(rmda_end);
+
+    try code.appendSlice(gpa, "}\n");
 }
 
 fn findGlobNumber(
@@ -452,14 +491,19 @@ fn findGlobNumber(
 
 fn extractRawGlob(
     gpa: std.mem.Allocator,
+    index: *const Index,
     in: anytype,
+    room_number: u8,
+    offset: u32,
     block_id: BlockId,
-    glob_number: u16,
     size: u32,
     output_dir: std.fs.Dir,
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    const glob_number = try findGlobNumber(index, block_id, room_number, offset) orelse
+        return error.BadData;
+
     var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
@@ -473,5 +517,31 @@ fn extractRawGlob(
     try code.writer(gpa).print(
         "raw-glob \"{s}\" {} \"{s}/{s}\"\n",
         .{ fmtBlockId(&block_id), glob_number, output_path, filename },
+    );
+}
+
+fn extractRawBlock(
+    gpa: std.mem.Allocator,
+    in: anytype,
+    offset: u32,
+    block_id: BlockId,
+    size: u32,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
+    const filename = try std.fmt.bufPrintZ(
+        &filename_buf,
+        "{s}_{x:0>8}.bin",
+        .{ fmtBlockId(&block_id), offset },
+    );
+    const file = try output_dir.createFileZ(filename, .{});
+    defer file.close();
+    try io.copy(std.io.limitedReader(in.reader(), size), file.writer());
+
+    try code.writer(gpa).print(
+        "    raw-block \"{s}\" \"{s}/{s}\"\n",
+        .{ fmtBlockId(&block_id), output_path, filename },
     );
 }

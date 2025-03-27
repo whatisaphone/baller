@@ -43,10 +43,15 @@ pub const Node = union(enum) {
         block_id: BlockId,
         path: []const u8,
     },
-    raw_glob: struct {
+    raw_glob_file: struct {
         block_id: BlockId,
         glob_number: u16,
         path: []const u8,
+    },
+    raw_glob_block: struct {
+        block_id: BlockId,
+        glob_number: u16,
+        children: ExtraSlice,
     },
 };
 
@@ -281,18 +286,64 @@ fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
 fn parseRawGlob(state: *State, span: lexer.Span) !NodeIndex {
     const block_id_str = try expectString(state);
     const glob_number_u32 = try expectInteger(state);
-    const path = try expectString(state);
-    try expect(state, .newline);
 
     const block_id = parseBlockId(block_id_str) orelse
         return reportError(span, "invalid block id", .{});
     const glob_number = std.math.cast(u16, glob_number_u32) orelse
         return reportError(span, "invalid glob number", .{});
 
-    return appendNode(state, .{ .raw_glob = .{
+    const contents = consumeToken(state);
+    return switch (contents.kind) {
+        .string => parseRawGlobFile(state, block_id, glob_number, contents),
+        .brace_l => parseRawGlobBlock(state, block_id, glob_number),
+        else => reportUnexpected(contents),
+    };
+}
+
+fn parseRawGlobFile(
+    state: *State,
+    block_id: BlockId,
+    glob_number: u16,
+    path_token: *const lexer.Token,
+) !NodeIndex {
+    try expect(state, .newline);
+
+    const path_source = state.source[path_token.span.start.offset..path_token.span.end.offset];
+    const path = path_source[1 .. path_source.len - 1];
+
+    return appendNode(state, .{ .raw_glob_file = .{
         .block_id = block_id,
         .glob_number = glob_number,
         .path = path,
+    } });
+}
+
+fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !NodeIndex {
+    var children: std.BoundedArray(NodeIndex, 512) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => {
+                const identifier = state.source[token.span.start.offset..token.span.end.offset];
+                if (std.mem.eql(u8, identifier, "raw-block")) {
+                    const node_index = try parseRawBlock(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(token.span, "too many children", .{});
+                } else {
+                    return reportUnexpected(token);
+                }
+            },
+            .brace_r => break,
+            else => return reportUnexpected(token),
+        }
+    }
+
+    return appendNode(state, .{ .raw_glob_block = .{
+        .block_id = block_id,
+        .glob_number = glob_number,
+        .children = try appendExtra(state, children.slice()),
     } });
 }
 
