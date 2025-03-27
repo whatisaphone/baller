@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
@@ -222,3 +223,125 @@ fn FixedBlockReader(Stream: type) type {
         }
     };
 }
+
+pub fn fixedBlockReader2(
+    stream: anytype,
+    diagnostic: *const Diagnostic,
+) FixedBlockReader2(@TypeOf(stream)) {
+    return .{
+        .stream = stream,
+        .diagnostic = diagnostic,
+    };
+}
+
+fn FixedBlockReader2(Stream: type) type {
+    comptime std.debug.assert(std.mem.startsWith(
+        u8,
+        @typeName(Stream),
+        "*io.fixed_buffer_stream.FixedBufferStream(",
+    ));
+
+    return struct {
+        const Self = @This();
+
+        stream: Stream,
+        diagnostic: *const Diagnostic,
+
+        pub fn next(self: *const Self) BlockResult(Stream) {
+            const offset: u32 = @intCast(self.stream.pos);
+            const header = self.stream.reader().readBytesNoEof(8) catch {
+                self.diagnostic.err(offset, "eof during block header", .{});
+                return .err;
+            };
+            const id = std.mem.readInt(u32, header[0..4], .little);
+            const full_size = std.mem.readInt(u32, header[4..8], .big);
+            // The original value includes the id and length, but the caller
+            // doesn't care about those, so subtract them out.
+            const size = full_size - block_header_size;
+            const start: u32 = @intCast(self.stream.pos);
+
+            self.diagnostic.trace(offset, "read block {s}", .{fmtBlockId(&id)});
+
+            return .{ .ok = .{
+                .block = .{ .id = id, .start = start, .size = size },
+                .reader = self,
+            } };
+        }
+
+        pub inline fn expect(self: *const Self, id: anytype) BlockResult(Stream) {
+            return self.next().expect(id);
+        }
+
+        pub fn finishEof(self: *const Self) !void {
+            const offset: u32 = @intCast(self.stream.pos);
+            io.requireEof(self.stream.reader()) catch {
+                self.diagnostic.err(offset, "expected eof", .{});
+                return error.Reported;
+            };
+            self.diagnostic.trace(offset, "eof", .{});
+        }
+    };
+}
+
+fn BlockResult(Stream: type) type {
+    return union(enum) {
+        const Self = @This();
+
+        ok: struct {
+            block: Block,
+            reader: *const FixedBlockReader2(Stream),
+        },
+        err,
+
+        pub inline fn expect(self: Self, id: anytype) Self {
+            return if (@typeInfo(@TypeOf(id)) == .pointer)
+                self.expectBlockIdComptime(id)
+            else
+                self.expectBlockId(id);
+        }
+
+        fn expectBlockIdComptime(self: Self, comptime id: *const [4]u8) Self {
+            return self.expectBlockId(blockId(id));
+        }
+
+        fn expectBlockId(self: Self, id: BlockId) Self {
+            if (self != .ok) return .err;
+            if (id == self.ok.block.id) return self;
+            self.ok.reader.diagnostic.err(
+                self.ok.block.start - block_header_size,
+                "expected block \"{s}\" but found \"{s}\"",
+                .{ fmtBlockId(&id), fmtBlockId(&self.ok.block.id) },
+            );
+            return .err;
+        }
+
+        pub fn block(self: *const Self) !Block {
+            if (self.* != .ok) return error.Reported;
+            return self.ok.block;
+        }
+
+        pub fn bytes(self: *const Self) ![]const u8 {
+            if (self.* != .ok) return error.Reported;
+            return io.readInPlace(self.ok.reader.stream, self.ok.block.size) catch |err| {
+                self.ok.reader.diagnostic.err(
+                    self.ok.block.start,
+                    "error reading block data: {}",
+                    .{err},
+                );
+                return error.Reported;
+            };
+        }
+
+        pub fn value(self: *const Self, T: type) !*align(1) const T {
+            if (self.* != .ok) return error.Reported;
+            const data = try self.bytes();
+            return std.mem.bytesAsValue(T, data);
+        }
+    };
+}
+
+const Block = struct {
+    id: BlockId,
+    start: u32,
+    size: u32,
+};

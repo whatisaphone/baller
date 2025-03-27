@@ -1,10 +1,11 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const blockReader = @import("block_reader.zig").blockReader;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const xor_key = @import("build.zig").xor_key;
 const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
@@ -143,13 +144,17 @@ fn extractIndex(
     output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
 ) !struct { Index, []u8 } {
+    var diagnostic: Diagnostic = .{
+        .path = index_name,
+    };
+
     const raw = try fs.readFileZ(gpa, input_dir, index_name);
     defer gpa.free(raw);
     for (raw) |*b|
         b.* ^= xor_key;
 
     var in = std.io.fixedBufferStream(raw);
-    var blocks = fixedBlockReader(&in);
+    var blocks = fixedBlockReader2(&in, &diagnostic);
 
     const result_buf = try gpa.alloc(u8, raw.len);
     errdefer gpa.free(result_buf);
@@ -159,24 +164,24 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_unaligned = try blocks.expectBlockAsValue("MAXS", Maxs);
+    const maxs_unaligned = try blocks.expect("MAXS").value(Maxs);
     const maxs = maxs_unaligned.*;
     try writeRawIndexBlock(gpa, output_dir, code, blockId("MAXS"), std.mem.asBytes(&maxs));
 
     // DIR*
 
-    const diri = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRI"), maxs.rooms);
-    const dirr = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRR"), maxs.rooms);
-    const dirs = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRS"), maxs.scripts);
-    const dirn = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRN"), maxs.sounds);
-    const dirc = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRC"), maxs.costumes);
-    const dirf = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRF"), maxs.charsets);
-    const dirm = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRM"), maxs.images);
-    const dirt = try readDirectory(gpa, &fba, &in, &blocks, code, blockId("DIRT"), maxs.talkies);
+    const diri = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
+    const dirr = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
+    const dirs = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
+    const dirn = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
+    const dirc = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
+    const dirf = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
+    const dirm = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRM"), maxs.images);
+    const dirt = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRT"), maxs.talkies);
 
     // DLFL
 
-    const dlfl_raw = try blocks.expectBlockAsSlice("DLFL");
+    const dlfl_raw = try blocks.expect("DLFL").bytes();
     if (dlfl_raw.len != 2 + 4 * maxs.rooms)
         return error.BadData;
     if (std.mem.readInt(u16, dlfl_raw[0..2], .little) != maxs.rooms)
@@ -188,7 +193,7 @@ fn extractIndex(
 
     // DISK
 
-    const disk_raw = try blocks.expectBlockAsSlice("DISK");
+    const disk_raw = try blocks.expect("DISK").bytes();
     if (disk_raw.len != 2 + maxs.rooms)
         return error.BadData;
     if (std.mem.readInt(u16, disk_raw[0..2], .little) != maxs.rooms)
@@ -205,7 +210,7 @@ fn extractIndex(
     // remaining blocks
 
     for ([_]BlockId{ blockId("DOBJ"), blockId("AARY"), blockId("INIB") }) |id|
-        try extractRawIndexBlock(gpa, &in, &blocks, output_dir, code, id);
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
 
     try blocks.finishEof();
 
@@ -233,14 +238,12 @@ fn extractIndex(
 fn readDirectory(
     gpa: std.mem.Allocator,
     fba: *std.heap.FixedBufferAllocator,
-    in_stream: anytype,
     blocks: anytype,
     code: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
     expected_len: u32,
 ) !Directory {
-    const block_size = try blocks.expect(block_id);
-    const block_raw = try io.readInPlace(in_stream, block_size);
+    const block_raw = try blocks.expect(block_id).bytes();
 
     try code.writer(gpa).print("    index-block \"{s}\"\n", .{fmtBlockId(&block_id)});
 
@@ -273,8 +276,8 @@ fn readRoomNames(
     num_rooms: u16,
     fba: *std.heap.FixedBufferAllocator,
 ) !RoomNames {
-    const rnam_len = try blocks.expectBlock("RNAM");
-    if (rnam_len > 0xffff) return error.BadData; // so we can index with u16
+    const rnam = try blocks.expect("RNAM").block();
+    if (rnam.size > 0xffff) return error.BadData; // so we can index with u16
 
     const starts = try fba.allocator().alloc(u16, num_rooms);
     const lens = try fba.allocator().alloc(u8, num_rooms);
@@ -303,14 +306,12 @@ fn readRoomNames(
 
 fn extractRawIndexBlock(
     gpa: std.mem.Allocator,
-    in: anytype,
     blocks: anytype,
     output_dir: anytype,
     code: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
 ) !void {
-    const size = try blocks.expect(block_id);
-    const data = try io.readInPlace(in, size);
+    const data = try blocks.expect(block_id).bytes();
     try writeRawIndexBlock(gpa, output_dir, code, block_id, data);
 }
 
