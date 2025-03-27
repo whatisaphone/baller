@@ -280,7 +280,7 @@ fn FixedBlockReader2(Stream: type) type {
             const current = self.current orelse return true;
 
             const pos: u32 = @intCast(self.stream.pos);
-            const expected_end = current.start + current.size;
+            const expected_end = current.end();
             if (pos == expected_end) { // happy path
                 self.diagnostic.trace(pos, "end block {s}", .{fmtBlockId(&current.id)});
                 self.current = null;
@@ -379,8 +379,159 @@ fn BlockResult(Stream: type) type {
     };
 }
 
-const Block = struct {
+pub fn streamingBlockReader(
+    stream: anytype,
+    diagnostic: *const Diagnostic,
+) StreamingBlockReader(@TypeOf(stream)) {
+    return .{
+        .stream = stream,
+        .diagnostic = diagnostic,
+        .current = null,
+    };
+}
+
+fn StreamingBlockReader(Stream: type) type {
+    comptime std.debug.assert(std.mem.startsWith(
+        u8,
+        @typeName(Stream),
+        "*io.counting_reader.CountingReader(",
+    ));
+
+    return struct {
+        const Self = @This();
+
+        stream: Stream,
+        diagnostic: *const Diagnostic,
+        current: ?Block,
+
+        pub fn next(self: *Self) StreamingBlockResult(Stream) {
+            if (!self.checkEndBlock()) return .err;
+
+            const offset: u32 = @intCast(self.stream.bytes_read);
+            const header = self.stream.reader().readBytesNoEof(8) catch |err| {
+                self.diagnostic.err(offset, "failed to read block header: {}", .{err});
+                return .err;
+            };
+            const id = std.mem.readInt(u32, header[0..4], .little);
+            const full_size = std.mem.readInt(u32, header[4..8], .big);
+            // The original value includes the id and length, but the caller
+            // doesn't care about those, so subtract them out.
+            const size = full_size - block_header_size;
+            self.current = .{
+                .id = id,
+                .start = @intCast(self.stream.bytes_read),
+                .size = size,
+            };
+
+            self.diagnostic.trace(offset, "start block {s}", .{fmtBlockId(&id)});
+
+            return .{ .ok = .{
+                .block = self.current.?,
+                .reader = self,
+            } };
+        }
+
+        fn checkEndBlock(self: *Self) bool {
+            const current = self.current orelse return true;
+
+            const pos: u32 = @intCast(self.stream.bytes_read);
+            const expected_end = current.end();
+            if (pos == expected_end) { // happy path
+                self.diagnostic.trace(pos, "end block {s}", .{fmtBlockId(&current.id)});
+                self.current = null;
+                return true;
+            }
+
+            // otherwise report an error
+            self.diagnostic.err(
+                pos,
+                "desync during block {s}; expected end 0x{x:0>8}",
+                .{ fmtBlockId(&current.id), expected_end },
+            );
+            return false;
+        }
+
+        pub inline fn expect(self: *Self, id: anytype) StreamingBlockResult(Stream) {
+            return self.next().expect(id);
+        }
+
+        pub fn finish(self: *Self, expected_pos: u32) !void {
+            if (!self.checkEndBlock()) return error.Reported;
+
+            const pos: u32 = @intCast(self.stream.bytes_read);
+            if (pos != expected_pos) {
+                self.diagnostic.err(
+                    pos,
+                    "expected container to end at 0x{x:0>8}",
+                    .{expected_pos},
+                );
+                return error.Reported;
+            }
+            self.diagnostic.trace(pos, "end of container", .{});
+        }
+
+        pub fn finishEof(self: *Self) !void {
+            if (!self.checkEndBlock()) return error.Reported;
+
+            const pos: u32 = @intCast(self.stream.bytes_read);
+            io.requireEof(self.stream.reader()) catch {
+                self.diagnostic.err(pos, "expected eof", .{});
+                return error.Reported;
+            };
+            self.diagnostic.trace(pos, "eof", .{});
+        }
+    };
+}
+
+fn StreamingBlockResult(Stream: type) type {
+    return union(enum) {
+        const Self = @This();
+
+        ok: struct {
+            block: Block,
+            reader: *const StreamingBlockReader(Stream),
+        },
+        err,
+
+        pub inline fn expect(self: Self, id: anytype) Self {
+            return if (@typeInfo(@TypeOf(id)) == .pointer)
+                self.expectBlockIdComptime(id)
+            else
+                self.expectBlockId(id);
+        }
+
+        fn expectBlockIdComptime(self: Self, comptime id: *const [4]u8) Self {
+            return self.expectBlockId(blockId(id));
+        }
+
+        fn expectBlockId(self: Self, id: BlockId) Self {
+            if (self != .ok) return .err;
+            if (id == self.ok.block.id) return self;
+            self.ok.reader.diagnostic.err(
+                self.ok.block.start - block_header_size,
+                "expected block \"{s}\" but found \"{s}\"",
+                .{ fmtBlockId(&id), fmtBlockId(&self.ok.block.id) },
+            );
+            return .err;
+        }
+
+        pub fn block(self: *const Self) !Block {
+            if (self.* != .ok) return error.Reported;
+            return self.ok.block;
+        }
+    };
+}
+
+pub const Block = struct {
     id: BlockId,
     start: u32,
     size: u32,
+
+    pub fn offset(self: *const Block) u32 {
+        return self.start - block_header_size;
+    }
+
+    pub fn end(self: *const Block) u32 {
+        return self.start + self.size;
+    }
 };
