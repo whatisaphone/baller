@@ -231,6 +231,7 @@ pub fn fixedBlockReader2(
     return .{
         .stream = stream,
         .diagnostic = diagnostic,
+        .current = null,
     };
 }
 
@@ -246,8 +247,11 @@ fn FixedBlockReader2(Stream: type) type {
 
         stream: Stream,
         diagnostic: *const Diagnostic,
+        current: ?Block,
 
-        pub fn next(self: *const Self) BlockResult(Stream) {
+        pub fn next(self: *Self) BlockResult(Stream) {
+            if (!self.checkEndBlock()) return .err;
+
             const offset: u32 = @intCast(self.stream.pos);
             const header = self.stream.reader().readBytesNoEof(8) catch {
                 self.diagnostic.err(offset, "eof during block header", .{});
@@ -258,21 +262,47 @@ fn FixedBlockReader2(Stream: type) type {
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
             const size = full_size - block_header_size;
-            const start: u32 = @intCast(self.stream.pos);
+            self.current = .{
+                .id = id,
+                .start = @intCast(self.stream.pos),
+                .size = size,
+            };
 
-            self.diagnostic.trace(offset, "read block {s}", .{fmtBlockId(&id)});
+            self.diagnostic.trace(offset, "start block {s}", .{fmtBlockId(&id)});
 
             return .{ .ok = .{
-                .block = .{ .id = id, .start = start, .size = size },
+                .block = self.current.?,
                 .reader = self,
             } };
         }
 
-        pub inline fn expect(self: *const Self, id: anytype) BlockResult(Stream) {
+        fn checkEndBlock(self: *Self) bool {
+            const current = self.current orelse return true;
+
+            const pos: u32 = @intCast(self.stream.pos);
+            const expected_end = current.start + current.size;
+            if (pos == expected_end) { // happy path
+                self.diagnostic.trace(pos, "end block {s}", .{fmtBlockId(&current.id)});
+                self.current = null;
+                return true;
+            }
+
+            // otherwise report an error
+            self.diagnostic.err(
+                pos,
+                "desync during block {s}; expected end 0x{x:0>8}",
+                .{ fmtBlockId(&current.id), expected_end },
+            );
+            return false;
+        }
+
+        pub inline fn expect(self: *Self, id: anytype) BlockResult(Stream) {
             return self.next().expect(id);
         }
 
-        pub fn finishEof(self: *const Self) !void {
+        pub fn finishEof(self: *Self) !void {
+            if (!self.checkEndBlock()) return error.Reported;
+
             const offset: u32 = @intCast(self.stream.pos);
             io.requireEof(self.stream.reader()) catch {
                 self.diagnostic.err(offset, "expected eof", .{});
@@ -334,6 +364,15 @@ fn BlockResult(Stream: type) type {
 
         pub fn value(self: *const Self, T: type) !*align(1) const T {
             if (self.* != .ok) return error.Reported;
+            const expected_size = @sizeOf(T);
+            if (self.ok.block.size != expected_size) {
+                self.ok.reader.diagnostic.err(
+                    self.ok.block.start,
+                    "block size mismatch: expected {}, found {}",
+                    .{ expected_size, self.ok.block.size },
+                );
+                return error.Reported;
+            }
             const data = try self.bytes();
             return std.mem.bytesAsValue(T, data);
         }
