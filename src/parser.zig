@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
 const lexer = @import("lexer.zig");
@@ -62,6 +63,7 @@ const ExtraSlice = struct {
 
 const State = struct {
     gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
     source: []const u8,
     lex: *const lexer.Lex,
     token_index: u32,
@@ -70,9 +72,15 @@ const State = struct {
 
 const ParseError = error{ OutOfMemory, Reported };
 
-pub fn parseProject(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) ParseError!Ast {
+pub fn parseProject(
+    gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
+    source: []const u8,
+    lex: *const lexer.Lex,
+) ParseError!Ast {
     var state: State = .{
         .gpa = gpa,
+        .diagnostic = diagnostic,
         .source = source,
         .lex = lex,
         .token_index = 0,
@@ -100,21 +108,21 @@ fn parseProjectChildren(state: *State) !NodeIndex {
                 const identifier = state.source[token.span.start.offset..token.span.end.offset];
                 if (std.mem.eql(u8, identifier, "index")) {
                     if (index_children_opt != null)
-                        return reportError(token.span, "duplicate index", .{});
+                        return reportError(state, token.span, "duplicate index", .{});
                     index_children_opt = try parseIndex(state);
                 } else if (std.mem.eql(u8, identifier, "disk")) {
                     try parseDisk(state, token.span, &disks);
                 } else {
-                    return reportUnexpected(token);
+                    return reportUnexpected(state, token);
                 }
             },
             .eof => break,
-            else => return reportUnexpected(token),
+            else => return reportUnexpected(state, token),
         }
     }
 
     const index_children = index_children_opt orelse
-        return reportError(.{ .start = .origin, .end = .origin }, "missing index", .{});
+        return reportError(state, .{ .start = .origin, .end = .origin }, "missing index", .{});
     const index_extra = try appendExtra(state, index_children.slice());
     const disks_extra = try appendExtra(state, &disks);
 
@@ -138,22 +146,22 @@ fn parseIndex(state: *State) !std.BoundedArray(NodeIndex, 16) {
                 if (std.mem.eql(u8, identifier, "raw-block")) {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "index-block")) {
                     const block_id_str = try expectString(state);
                     try expect(state, .newline);
                     const IndexBlock = @FieldType(Node, "index_block");
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
-                        return reportError(token.span, "unsupported block id", .{});
+                        return reportError(state, token.span, "unsupported block id", .{});
                     const index_block = try appendNode(state, .{ .index_block = block_id });
                     children.append(index_block) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
-                    return reportUnexpected(token);
+                    return reportUnexpected(state, token);
                 }
             },
             .brace_r => break,
-            else => return reportUnexpected(token),
+            else => return reportUnexpected(state, token),
         }
     }
 
@@ -165,12 +173,12 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
     try expect(state, .brace_l);
 
     if (disk_number == 0)
-        return reportError(span, "disk number out of range", .{});
+        return reportError(state, span, "disk number out of range", .{});
     const disk_index = disk_number - 1;
     if (disk_index >= disks.len)
-        return reportError(span, "disk number out of range", .{});
+        return reportError(state, span, "disk number out of range", .{});
     if (disks[disk_index] != null_node)
-        return reportError(span, "duplicate disk number", .{});
+        return reportError(state, span, "duplicate disk number", .{});
 
     var children: std.BoundedArray(NodeIndex, 32) = .{};
 
@@ -183,17 +191,17 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
                 if (std.mem.eql(u8, identifier, "raw-block")) {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "room")) {
                     const node_index = try parseDiskRoom(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
-                    return reportUnexpected(token);
+                    return reportUnexpected(state, token);
                 }
             },
             .brace_r => break,
-            else => return reportUnexpected(token),
+            else => return reportUnexpected(state, token),
         }
     }
 
@@ -209,9 +217,9 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
     try expect(state, .newline);
 
     if (room_number_u32 == 0)
-        return reportError(span, "room number out of range", .{});
+        return reportError(state, span, "room number out of range", .{});
     const room_number = std.math.cast(u8, room_number_u32) orelse
-        return reportError(span, "room number out of range", .{});
+        return reportError(state, span, "room number out of range", .{});
 
     return appendNode(state, .{ .disk_room = .{
         .room_number = room_number,
@@ -220,9 +228,15 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
     } });
 }
 
-pub fn parseRoom(gpa: std.mem.Allocator, source: []const u8, lex: *const lexer.Lex) ParseError!Ast {
+pub fn parseRoom(
+    gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
+    source: []const u8,
+    lex: *const lexer.Lex,
+) ParseError!Ast {
     var state: State = .{
         .gpa = gpa,
+        .diagnostic = diagnostic,
         .source = source,
         .lex = lex,
         .token_index = 0,
@@ -250,17 +264,17 @@ fn parseRoomChildren(state: *State) !NodeIndex {
                 if (std.mem.eql(u8, identifier, "raw-block")) {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "raw-glob")) {
                     const node_index = try parseRawGlob(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
-                    return reportUnexpected(token);
+                    return reportUnexpected(state, token);
                 }
             },
             .eof => break,
-            else => return reportUnexpected(token),
+            else => return reportUnexpected(state, token),
         }
     }
 
@@ -275,7 +289,7 @@ fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
     try expect(state, .newline);
 
     const block_id = parseBlockId(block_id_str) orelse
-        return reportError(span, "invalid block id", .{});
+        return reportError(state, span, "invalid block id", .{});
 
     return appendNode(state, .{ .raw_block = .{
         .block_id = block_id,
@@ -288,15 +302,15 @@ fn parseRawGlob(state: *State, span: lexer.Span) !NodeIndex {
     const glob_number_u32 = try expectInteger(state);
 
     const block_id = parseBlockId(block_id_str) orelse
-        return reportError(span, "invalid block id", .{});
+        return reportError(state, span, "invalid block id", .{});
     const glob_number = std.math.cast(u16, glob_number_u32) orelse
-        return reportError(span, "invalid glob number", .{});
+        return reportError(state, span, "invalid glob number", .{});
 
     const contents = consumeToken(state);
     return switch (contents.kind) {
         .string => parseRawGlobFile(state, block_id, glob_number, contents),
         .brace_l => parseRawGlobBlock(state, block_id, glob_number),
-        else => reportUnexpected(contents),
+        else => reportUnexpected(state, contents),
     };
 }
 
@@ -330,13 +344,13 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !NodeIn
                 if (std.mem.eql(u8, identifier, "raw-block")) {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
-                        return reportError(token.span, "too many children", .{});
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
-                    return reportUnexpected(token);
+                    return reportUnexpected(state, token);
                 }
             },
             .brace_r => break,
-            else => return reportUnexpected(token),
+            else => return reportUnexpected(state, token),
         }
     }
 
@@ -383,7 +397,7 @@ fn skipWhitespace(state: *State) void {
 fn expectString(state: *State) ![]const u8 {
     const token = consumeToken(state);
     if (token.kind != .string)
-        return reportExpected(token, .string);
+        return reportExpected(state, token, .string);
     const source = state.source[token.span.start.offset..token.span.end.offset];
     return source[1 .. source.len - 1];
 }
@@ -391,33 +405,46 @@ fn expectString(state: *State) ![]const u8 {
 fn expectInteger(state: *State) !u32 {
     const token = consumeToken(state);
     if (token.kind != .integer)
-        return reportExpected(token, .integer);
+        return reportExpected(state, token, .integer);
     const source = state.source[token.span.start.offset..token.span.end.offset];
     return std.fmt.parseInt(u32, source, 10) catch
-        reportError(token.span, "invalid integer", .{});
+        reportError(state, token.span, "invalid integer", .{});
 }
 
 fn expect(state: *State, kind: lexer.Token.Kind) !void {
     const token = consumeToken(state);
     if (token.kind != kind)
-        return reportExpected(token, kind);
+        return reportExpected(state, token, kind);
 }
 
-fn reportExpected(found: *const lexer.Token, expected: lexer.Token.Kind) error{Reported} {
+fn reportExpected(
+    state: *State,
+    found: *const lexer.Token,
+    expected: lexer.Token.Kind,
+) error{Reported} {
     return reportError(
+        state,
         found.span,
         "expected {s}, found {s}",
         .{ expected.describe(), found.kind.describe() },
     );
 }
 
-fn reportUnexpected(found: *const lexer.Token) error{Reported} {
-    return reportError(found.span, "unexpected {s}", .{found.kind.describe()});
+fn reportUnexpected(state: *State, found: *const lexer.Token) error{Reported} {
+    return reportError(state, found.span, "unexpected {s}", .{found.kind.describe()});
 }
 
-fn reportError(span: lexer.Span, comptime message: []const u8, args: anytype) error{Reported} {
+fn reportError(
+    state: *State,
+    span: lexer.Span,
+    comptime message: []const u8,
+    args: anytype,
+) error{Reported} {
     const out = std.io.getStdErr();
-    out.writer().print("{}:{}: ", .{ span.start.line, span.start.column }) catch {};
+    out.writer().print(
+        "{s}:{}:{}: ",
+        .{ state.diagnostic.path, span.start.line, span.start.column },
+    ) catch {};
     out.writer().print(message, args) catch {};
     out.writer().writeByte('\n') catch {};
     return error.Reported;

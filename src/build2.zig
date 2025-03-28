@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");
@@ -76,13 +77,17 @@ fn addFile(
     path: []const u8,
     parseFn: anytype,
 ) !Project.SourceFile {
+    const diagnostic: Diagnostic = .{
+        .path = path,
+    };
+
     const source = try fs.readFile(gpa, project_dir, path);
     errdefer gpa.free(source);
 
-    var lex = try lexer.run(gpa, source);
+    var lex = try lexer.run(gpa, &diagnostic, source);
     errdefer lex.deinit(gpa);
 
-    var ast = try parseFn(gpa, source, &lex);
+    var ast = try parseFn(gpa, &diagnostic, source, &lex);
     errdefer ast.deinit(gpa);
 
     return .{

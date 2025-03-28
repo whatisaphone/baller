@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
+
 pub const Lex = struct {
     tokens: std.ArrayListUnmanaged(Token),
 
@@ -54,6 +56,7 @@ pub const Token = struct {
 
 const State = struct {
     gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
     source: []const u8,
     loc: Loc,
     result: Lex,
@@ -61,9 +64,14 @@ const State = struct {
 
 pub const LexError = error{ OutOfMemory, Reported };
 
-pub fn run(gpa: std.mem.Allocator, source: []const u8) LexError!Lex {
+pub fn run(
+    gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
+    source: []const u8,
+) LexError!Lex {
     var state: State = .{
         .gpa = gpa,
+        .diagnostic = diagnostic,
         .source = source,
         .loc = .origin,
         .result = .{
@@ -89,7 +97,7 @@ pub fn run(gpa: std.mem.Allocator, source: []const u8) LexError!Lex {
         } else if (isIdentStart(ch)) {
             try lexIdent(&state, loc);
         } else {
-            return reportError(loc, "unexpected character '{c}'", .{ch});
+            return reportError(&state, loc, "unexpected character '{c}'", .{ch});
         }
     }
 
@@ -149,7 +157,7 @@ fn lexIdent(state: *State, start: Loc) !void {
 fn lexStringLiteral(state: *State, start: Loc) !void {
     while (true) {
         const ch = consumeChar(state) orelse
-            return reportError(start, "string not terminated", .{});
+            return reportError(state, start, "string not terminated", .{});
         if (ch == '"')
             break;
     }
@@ -174,9 +182,14 @@ fn isIdentContinue(ch: u8) bool {
     return isIdentStart(ch) or ch == '-' or ch == '_';
 }
 
-fn reportError(loc: Loc, comptime message: []const u8, args: anytype) error{Reported} {
+fn reportError(
+    state: *const State,
+    loc: Loc,
+    comptime message: []const u8,
+    args: anytype,
+) error{Reported} {
     const out = std.io.getStdErr();
-    out.writer().print("{}:{}: ", .{ loc.line, loc.column }) catch {};
+    out.writer().print("{s}:{}:{}: ", .{ state.diagnostic.path, loc.line, loc.column }) catch {};
     out.writer().print(message, args) catch {};
     out.writer().writeByte('\n') catch {};
     return error.Reported;
