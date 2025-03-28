@@ -172,11 +172,9 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
     const disk_number = try expectInteger(state);
     try expect(state, .brace_l);
 
-    if (disk_number == 0)
+    if (!(1 <= disk_number and disk_number <= disks.len))
         return reportError(state, span, "disk number out of range", .{});
-    const disk_index = disk_number - 1;
-    if (disk_index >= disks.len)
-        return reportError(state, span, "disk number out of range", .{});
+    const disk_index: u8 = @intCast(disk_number - 1);
     if (disks[disk_index] != null_node)
         return reportError(state, span, "duplicate disk number", .{});
 
@@ -211,15 +209,14 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
 }
 
 fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
-    const room_number_u32 = try expectInteger(state);
+    const room_number_i32 = try expectInteger(state);
     const room_name = try expectString(state);
     const path = try expectString(state);
     try expect(state, .newline);
 
-    if (room_number_u32 == 0)
+    if (!(1 <= room_number_i32 and room_number_i32 <= 255))
         return reportError(state, span, "room number out of range", .{});
-    const room_number = std.math.cast(u8, room_number_u32) orelse
-        return reportError(state, span, "room number out of range", .{});
+    const room_number: u8 = @intCast(room_number_i32);
 
     return appendNode(state, .{ .disk_room = .{
         .room_number = room_number,
@@ -299,11 +296,11 @@ fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
 
 fn parseRawGlob(state: *State, span: lexer.Span) !NodeIndex {
     const block_id_str = try expectString(state);
-    const glob_number_u32 = try expectInteger(state);
+    const glob_number_i32 = try expectInteger(state);
 
     const block_id = parseBlockId(block_id_str) orelse
         return reportError(state, span, "invalid block id", .{});
-    const glob_number = std.math.cast(u16, glob_number_u32) orelse
+    const glob_number = std.math.cast(u16, glob_number_i32) orelse
         return reportError(state, span, "invalid glob number", .{});
 
     const contents = consumeToken(state);
@@ -402,12 +399,12 @@ fn expectString(state: *State) ![]const u8 {
     return source[1 .. source.len - 1];
 }
 
-fn expectInteger(state: *State) !u32 {
+fn expectInteger(state: *State) !i32 {
     const token = consumeToken(state);
     if (token.kind != .integer)
         return reportExpected(state, token, .integer);
     const source = state.source[token.span.start.offset..token.span.end.offset];
-    return std.fmt.parseInt(u32, source, 10) catch
+    return std.fmt.parseInt(i32, source, 10) catch
         reportError(state, token.span, "invalid integer", .{});
 }
 
