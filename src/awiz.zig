@@ -281,62 +281,68 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
         // reserve space for line size, to be filled in later
         line_buf.len = 2;
 
-        var i: usize = 0;
-
-        // skip encoding fully transparent rows
-        if (std.mem.allEqual(u8, row, transparent))
-            i = row.len;
-
-        while (i < row.len) {
-            const color = row[i];
-            i += 1;
-            var run_len: u8 = 1;
-            var blit_len: u8 = 1;
-            if (i == row.len) {
-                // end of line, nothing more to scan
-            } else if (color == transparent) {
-                while (i < row.len and run_len < 127) {
-                    if (row[i] != color)
-                        break;
-                    i += 1;
-                    run_len += 1;
-                }
-            } else if (row[i] == color) {
-                while (i < row.len and run_len < 64) {
-                    if (row[i] != color)
-                        break;
-                    i += 1;
-                    run_len += 1;
-                }
-            } else {
-                while (i < row.len and blit_len < 64) {
-                    if (row[i] == transparent)
-                        break;
-                    if (i + 2 < row.len and row[i + 1] == row[i] and row[i + 2] == row[i + 1])
-                        break;
-                    i += 1;
-                    blit_len += 1;
-                }
-            }
-
-            if (color == transparent) {
-                const n = 1 | @shlExact(run_len, 1);
-                try line_buf.append(n);
-            } else if (run_len != 1) {
-                const n = 2 | @shlExact(run_len - 1, 2);
-                try line_buf.append(n);
-                try line_buf.append(color);
-            } else {
-                const n = @shlExact(blit_len - 1, 2);
-                try line_buf.append(n);
-                try line_buf.appendSlice(row[i - blit_len .. i]);
-            }
-        }
+        try encodeRleRow(row, &line_buf);
 
         // fill in line size
         std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
 
         // flush line to output stream
         try out.writeAll(line_buf.slice());
+    }
+}
+
+fn encodeRleRow(
+    row: []const u8,
+    line_buf: *std.BoundedArray(u8, 2 + max_supported_width * 2),
+) !void {
+    // skip encoding fully transparent rows
+    if (std.mem.allEqual(u8, row, transparent))
+        return;
+
+    var i: usize = 0;
+    while (i < row.len) {
+        const color = row[i];
+        i += 1;
+        var run_len: u8 = 1;
+        var blit_len: u8 = 1;
+        if (i == row.len) {
+            // end of line, nothing more to scan
+        } else if (color == transparent) {
+            while (i < row.len and run_len < 127) {
+                if (row[i] != color)
+                    break;
+                i += 1;
+                run_len += 1;
+            }
+        } else if (row[i] == color) {
+            while (i < row.len and run_len < 64) {
+                if (row[i] != color)
+                    break;
+                i += 1;
+                run_len += 1;
+            }
+        } else {
+            while (i < row.len and blit_len < 64) {
+                if (row[i] == transparent)
+                    break;
+                if (i + 2 < row.len and row[i + 1] == row[i] and row[i + 2] == row[i + 1])
+                    break;
+                i += 1;
+                blit_len += 1;
+            }
+        }
+
+        if (color == transparent) {
+            const n = 1 | @shlExact(run_len, 1);
+            try line_buf.append(n);
+        } else if (run_len != 1) {
+            const n = 2 | @shlExact(run_len - 1, 2);
+            try line_buf.append(n);
+            try line_buf.append(color);
+        } else {
+            const n = @shlExact(blit_len - 1, 2);
+            try line_buf.append(n);
+            try line_buf.appendSlice(row[i - blit_len .. i]);
+        }
     }
 }
