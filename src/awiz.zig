@@ -233,7 +233,7 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
         },
         .wizh => {
             const fixup = try beginBlock(out, "WIZH");
-            try out.writer().writeInt(i32, 1, .little); // compression type RLE
+            try out.writer().writeInt(i32, @intFromEnum(wizd.compression), .little);
             try out.writer().writeInt(i32, header.width(), .little);
             try out.writer().writeInt(i32, header.height(), .little);
             try endBlock(out, fixups, fixup);
@@ -245,7 +245,10 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
         },
         .wizd => |_| {
             const fixup = try beginBlock(out, "WIZD");
-            try encodeRle(header, out.writer());
+            switch (wizd.compression) {
+                .none => try encodeUncompressed(header, out.writer()),
+                .rle => try encodeRle(header, out.writer()),
+            }
             // Pad output to a multiple of 2 bytes
             if ((out.bytes_written - fixup) & 1 != 0)
                 try out.writer().writeByte(0);
@@ -260,6 +263,12 @@ fn writeRgbs(header: bmp.Bmp, out: anytype) !void {
         try out.writer().writeByte(color.rgbGreen);
         try out.writer().writeByte(color.rgbBlue);
     }
+}
+
+pub fn encodeUncompressed(header: bmp.Bmp, out: anytype) !void {
+    var rows = try header.iterRows();
+    while (rows.next()) |row|
+        try out.writeAll(row);
 }
 
 pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
