@@ -14,7 +14,7 @@ const rmim = @import("rmim.zig");
 const utils = @import("utils.zig");
 
 const max_supported_width = 1600;
-const transparent = 255;
+const transparent = 5;
 
 pub const Compression = enum(u8) {
     none = 0,
@@ -281,7 +281,7 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
         // reserve space for line size, to be filled in later
         line_buf.len = 2;
 
-        try encodeRleRow(row, &line_buf);
+        try encodeRleRowOriginal(row, &line_buf);
 
         // fill in line size
         std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
@@ -291,7 +291,7 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
     }
 }
 
-fn encodeRleRow(
+fn encodeRleRowMax(
     row: []const u8,
     line_buf: *std.BoundedArray(u8, 2 + max_supported_width * 2),
 ) !void {
@@ -343,6 +343,83 @@ fn encodeRleRow(
             const n = @shlExact(blit_len - 1, 2);
             try line_buf.append(n);
             try line_buf.appendSlice(row[i - blit_len .. i]);
+        }
+    }
+}
+
+fn encodeRleRowOriginal(
+    row: []const u8,
+    line_buf: *std.BoundedArray(u8, 2 + max_supported_width * 2),
+) !void {
+    // skip encoding fully transparent rows
+    if (std.mem.allEqual(u8, row, transparent))
+        return;
+
+    var i: usize = 0;
+    while (i < row.len) {
+        const color = row[i];
+        i += 1;
+        var run_len: u8 = 1;
+        var blit_len: u8 = 1;
+        if (i == row.len) {
+            // end of line, nothing more to scan
+        } else if (color == transparent) {
+            while (i < row.len and run_len < 128) {
+                if (row[i] != color)
+                    break;
+                i += 1;
+                run_len += 1;
+            }
+        } else if (row[i] == color) {
+            while (i < row.len and run_len < 128) {
+                if (row[i] != color)
+                    break;
+                i += 1;
+                run_len += 1;
+            }
+        } else {
+            while (i < row.len and blit_len < 128) {
+                if (row[i] == transparent)
+                    break;
+                if (i + 2 < row.len and
+                    row[i] == row[i + 1] and
+                    row[i + 1] == row[i + 2] and
+                    blit_len < 126)
+                    break;
+                i += 1;
+                blit_len += 1;
+            }
+        }
+
+        if (color == transparent) {
+            var remaining = run_len;
+            while (remaining != 0) {
+                const cur: u8 = @min(remaining, 127);
+                remaining -= cur;
+
+                const n = 1 | @shlExact(cur, 1);
+                try line_buf.append(n);
+            }
+        } else if (run_len != 1) {
+            var remaining = run_len;
+            while (remaining != 0) {
+                const cur: u8 = @min(remaining, 64);
+                remaining -= cur;
+
+                const n = 2 | @shlExact(cur - 1, 2);
+                try line_buf.append(n);
+                try line_buf.append(color);
+            }
+        } else {
+            var remaining = blit_len;
+            while (remaining != 0) {
+                const cur: u8 = @min(remaining, 64);
+                remaining -= cur;
+
+                const n = @shlExact(cur - 1, 2);
+                try line_buf.append(n);
+                try line_buf.appendSlice(row[i - remaining - cur .. i - remaining]);
+            }
         }
     }
 }

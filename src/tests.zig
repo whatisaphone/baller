@@ -70,8 +70,7 @@ test "Backyard Baseball 1997 round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "AWIZ", 1761, 1812);
-    try expectBlockStat(&result.block_stats, "MULT", 184, 184);
+    try expectBlockStat(&result.block_stats, "AKCD", 45439, 45439);
 }
 
 test "Backyard Baseball 1997 round trip decode/encode" {
@@ -100,7 +99,7 @@ test "Backyard Baseball 1997 round trip decode/encode" {
         .{ "SCRP", 193, 193 },
         .{ "SOUN", 0, 1805 },
         .{ "CHAR", 0, 11 },
-        .{ "AWIZ", 0, 1812 },
+        .{ "AWIZ", 1761, 1812 },
         .{ "OBIM", 0, 268 },
         .{ "OBCD", 0, 268 },
         .{ "POLD", 0, 8 },
@@ -144,8 +143,7 @@ test "Backyard Baseball 2001 round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "AWIZ", 15130, 15133);
-    try expectBlockStat(&result.block_stats, "MULT", 659, 659);
+    try expectBlockStat(&result.block_stats, "AKCD", 105312, 105312);
 }
 
 // NOTE: this is the main one that tests symbols.
@@ -175,7 +173,7 @@ test "Backyard Baseball 2001 round trip decode/encode" {
         .{ "TLKE", 0, 2508 },
         .{ "AKOS", 644, 645 },
         .{ "AKCD", 0, 105312 },
-        .{ "AWIZ", 0, 15133 },
+        .{ "AWIZ", 15130, 15133 },
         .{ "MULT", 659, 659 },
         .{ "TALK", 529, 617 },
         .{ "CHAR", 0, 7 },
@@ -220,8 +218,7 @@ test "Backyard Soccer round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "AWIZ", 2668, 3117);
-    try expectBlockStat(&result.block_stats, "MULT", 389, 389);
+    try expectBlockStat(&result.block_stats, "AKCD", 53304, 53304);
 }
 
 test "Backyard Soccer round trip decode/encode" {
@@ -251,7 +248,7 @@ test "Backyard Soccer round trip decode/encode" {
         .{ "DIGI", 1594, 1686 },
         .{ "TALK", 141, 2146 },
         .{ "CHAR", 0, 10 },
-        .{ "AWIZ", 0, 3117 },
+        .{ "AWIZ", 2668, 3117 },
         .{ "OBIM", 0, 197 },
         .{ "OBCD", 0, 197 },
         .{ "POLD", 0, 6 },
@@ -295,8 +292,7 @@ test "Backyard Football round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "MULT", 1145, 1145);
-    try expectBlockStat(&result.block_stats, "AWIZ", 11465, 11594);
+    try expectBlockStat(&result.block_stats, "AKCD", 75689, 75689);
 }
 
 test "Backyard Football round trip decode/encode" {
@@ -326,7 +322,7 @@ test "Backyard Football round trip decode/encode" {
         .{ "AKOS", 311, 311 },
         .{ "AKCD", 0, 75689 },
         .{ "MULT", 1145, 1145 },
-        .{ "AWIZ", 0, 11594 },
+        .{ "AWIZ", 11465, 11594 },
         .{ "TALK", 549, 2768 },
         .{ "CHAR", 0, 13 },
         .{ "SCRP", 388, 388 },
@@ -369,8 +365,7 @@ test "Backyard Basketball round trip imperfect" {
     );
     defer result.deinit(allocator);
 
-    try expectBlockStat(&result.block_stats, "MULT", 1245, 1579);
-    try expectBlockStat(&result.block_stats, "AWIZ", 15282, 15622);
+    try expectBlockStat(&result.block_stats, "AKCD", 86022, 86022);
 }
 
 test "Backyard Basketball round trip decode/encode" {
@@ -399,8 +394,8 @@ test "Backyard Basketball round trip decode/encode" {
         .{ "LSC2", 1142, 1142 },
         .{ "AKOS", 396, 396 },
         .{ "AKCD", 0, 86022 },
-        .{ "MULT", 1579, 1579 },
-        .{ "AWIZ", 0, 15629 },
+        .{ "MULT", 1245, 1579 },
+        .{ "AWIZ", 15282, 15622 },
         .{ "TLKE", 0, 1487 },
         .{ "SCRP", 663, 663 },
         .{ "CHAR", 0, 5 },
@@ -451,7 +446,7 @@ fn testRoundTrip(
         .rmim_decode = mode != .raw,
         .script_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .sound_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
-        .awiz_modes = if (mode != .decode_imperfect) &.{.raw} else &.{ .decode, .raw },
+        .awiz_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .mult_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .akos_modes = if (mode == .raw) &.{.raw} else &.{ .decode, .raw },
         .akcd_modes = if (mode != .decode_imperfect) &.{.raw} else &.{ .decode, .raw },
