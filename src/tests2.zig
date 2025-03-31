@@ -12,6 +12,9 @@ test "Backyard Baseball 2001 round trip" {
     try extract2.run(std.testing.allocator, .{
         .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = "/tmp/bb2001",
+        .options = .{
+            .awiz = .decode,
+        },
     });
 
     try build2.run(std.testing.allocator, .{

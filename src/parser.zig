@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
 const lexer = @import("lexer.zig");
@@ -53,6 +54,20 @@ pub const Node = union(enum) {
         block_id: BlockId,
         glob_number: u16,
         children: ExtraSlice,
+    },
+    awiz: struct {
+        glob_number: u16,
+        children: ExtraSlice,
+    },
+    awiz_rgbs,
+    awiz_two_ints: struct {
+        block_id: BlockId,
+        ints: [2]i32,
+    },
+    awiz_wizh,
+    awiz_bmp: struct {
+        compression: awiz.Compression,
+        path: []const u8,
     },
 };
 
@@ -266,6 +281,10 @@ fn parseRoomChildren(state: *State) !NodeIndex {
                     const node_index = try parseRawGlob(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "awiz")) {
+                    const node_index = try parseAwiz(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
                     return reportUnexpected(state, token);
                 }
@@ -276,6 +295,76 @@ fn parseRoomChildren(state: *State) !NodeIndex {
     }
 
     return appendNode(state, .{ .room_file = .{
+        .children = try appendExtra(state, children.slice()),
+    } });
+}
+
+fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
+    const glob_number_i32 = try expectInteger(state);
+    try expect(state, .brace_l);
+
+    const glob_number = std.math.cast(u16, glob_number_i32) orelse
+        return reportError(state, span, "invalid glob number", .{});
+
+    var children: std.BoundedArray(NodeIndex, awiz.Awiz.max_blocks) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => {
+                const identifier = state.source[token.span.start.offset..token.span.end.offset];
+                if (std.mem.eql(u8, identifier, "rgbs")) {
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .awiz_rgbs);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "two-ints")) {
+                    const block_id_str = try expectString(state);
+                    const ints = .{ try expectInteger(state), try expectInteger(state) };
+                    try expect(state, .newline);
+
+                    const block_id = parseBlockId(block_id_str) orelse
+                        return reportError(state, span, "invalid block id", .{});
+
+                    const node_index = try appendNode(state, .{ .awiz_two_ints = .{
+                        .block_id = block_id,
+                        .ints = ints,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "wizh")) {
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .awiz_wizh);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "bmp")) {
+                    const compression_int = try expectInteger(state);
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const compression = std.meta.intToEnum(awiz.Compression, compression_int) catch
+                        return reportError(state, token.span, "invalid compression", .{});
+
+                    const node_index = try appendNode(state, .{ .awiz_bmp = .{
+                        .compression = compression,
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else {
+                    return reportUnexpected(state, token);
+                }
+            },
+            .brace_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+
+    return appendNode(state, .{ .awiz = .{
+        .glob_number = glob_number,
         .children = try appendExtra(state, children.slice()),
     } });
 }

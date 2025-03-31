@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
@@ -38,12 +39,20 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     try run(gpa, .{
         .index_path = index_path,
         .output_path = output_path,
+        .options = .{
+            .awiz = .decode,
+        },
     });
 }
 
 const Extract = struct {
     index_path: [:0]const u8,
     output_path: [:0]const u8,
+    options: Options,
+};
+
+const Options = struct {
+    awiz: enum { raw, decode },
 };
 
 pub fn run(gpa: std.mem.Allocator, args: Extract) !void {
@@ -69,7 +78,7 @@ pub fn run(gpa: std.mem.Allocator, args: Extract) !void {
 
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        try extractDisk(gpa, input_dir, index_name, game, &index, disk_number, output_dir, &code);
+        try extractDisk(gpa, input_dir, index_name, args.options, game, &index, disk_number, output_dir, &code);
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
@@ -341,6 +350,7 @@ fn extractDisk(
     gpa: std.mem.Allocator,
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
+    options: Options,
     game: games.Game,
     index: *const Index,
     disk_number: u8,
@@ -370,7 +380,7 @@ fn extractDisk(
 
     while (in.bytes_read < lecf.end()) {
         const lflf = try lecf_blocks.expect("LFLF").block();
-        try extractRoom(gpa, index, disk_number, &in, &diagnostic, lflf.end(), output_dir, code);
+        try extractRoom(gpa, options, index, disk_number, &in, &diagnostic, lflf.end(), output_dir, code);
     }
 
     try lecf_blocks.finish(lecf.end());
@@ -382,6 +392,7 @@ fn extractDisk(
 
 fn extractRoom(
     gpa: std.mem.Allocator,
+    options: Options,
     index: *const Index,
     disk_number: u8,
     in: anytype,
@@ -418,7 +429,7 @@ fn extractRoom(
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractRawGlob(gpa, index, in, room_number, &block, room_dir, room_name, &room_code);
+        try extractGlob(gpa, options, index, diagnostic, room_number, in, room_dir, room_name, &room_code, &block);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -487,6 +498,82 @@ fn findGlobNumber(
     return error.BadData;
 }
 
+fn extractGlob(
+    gpa: std.mem.Allocator,
+    options: Options,
+    index: *const Index,
+    diagnostic: *const Diagnostic,
+    room_number: u8,
+    in: anytype,
+    room_dir: std.fs.Dir,
+    room_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+    block: *const Block,
+) !void {
+    const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
+        return error.BadData;
+    diagnostic.trace(block.offset(), "glob number {}", .{glob_number});
+
+    const raw = try gpa.alloc(u8, block.size);
+    defer gpa.free(raw);
+    try in.reader().readNoEof(raw);
+
+    decode: switch (block.id) {
+        blockId("AWIZ") => {
+            if (options.awiz != .decode) break :decode;
+            if (extractAwiz(gpa, glob_number, raw, room_dir, room_path, code))
+                return
+            else |err| if (err != error.BadData)
+                return err;
+        },
+        else => {},
+    }
+
+    // If we falied to decode, then extract it as raw instead
+    try writeRawGlob(gpa, index, room_number, block, raw, room_dir, room_path, code);
+}
+
+fn extractAwiz(
+    gpa: std.mem.Allocator,
+    glob_number: u16,
+    raw: []const u8,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var decoded = try awiz.decode(gpa, raw, null, &awiz.placeholder_palette, .{});
+    defer decoded.deinit(gpa);
+
+    try code.writer(gpa).print("awiz {} {{\n", .{glob_number});
+
+    for (decoded.blocks.slice()) |block| switch (block) {
+        .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
+        .two_ints => |ti| {
+            try code.writer(gpa).print(
+                "    two-ints \"{s}\" {} {}\n",
+                .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
+            );
+        },
+        .wizh => try code.appendSlice(gpa, "    wizh\n"),
+        .trns => return error.BadData, // TODO: unused?
+        .wizd => |wizd| {
+            var path_buf: ["image0000.bmp".len + 1]u8 = undefined;
+            const path = std.fmt.bufPrintZ(
+                &path_buf,
+                "image{:0>4}.bmp",
+                .{glob_number},
+            ) catch unreachable;
+            try fs.writeFileZ(output_dir, path, wizd.bmp.items);
+            try code.writer(gpa).print(
+                "    bmp {} \"{s}/{s}\"\n",
+                .{ @intFromEnum(wizd.compression), output_path, path },
+            );
+        },
+    };
+
+    try code.appendSlice(gpa, "}\n");
+}
+
 fn extractRawGlob(
     gpa: std.mem.Allocator,
     index: *const Index,
@@ -509,6 +596,33 @@ fn extractRawGlob(
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
     try io.copy(std.io.limitedReader(in.reader(), block.size), file.writer());
+
+    try code.writer(gpa).print(
+        "raw-glob \"{s}\" {} \"{s}/{s}\"\n",
+        .{ fmtBlockId(&block.id), glob_number, output_path, filename },
+    );
+}
+
+fn writeRawGlob(
+    gpa: std.mem.Allocator,
+    index: *const Index,
+    room_number: u8,
+    block: *const Block,
+    data: []const u8,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
+        return error.BadData;
+
+    var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
+    const filename = try std.fmt.bufPrintZ(
+        &filename_buf,
+        "{s}_{:0>4}.bin",
+        .{ fmtBlockId(&block.id), glob_number },
+    );
+    try fs.writeFileZ(output_dir, filename, data);
 
     try code.writer(gpa).print(
         "raw-glob \"{s}\" {} \"{s}/{s}\"\n",

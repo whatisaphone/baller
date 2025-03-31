@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Project = @import("Project.zig");
+const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const block_header_size = @import("block_reader.zig").block_header_size;
@@ -112,11 +113,62 @@ fn emitRoom(
             .raw_block => |*n| try emitRawBlock(project_dir, out, fixups, n),
             .raw_glob_file => |*n| try emitRawGlobFile(gpa, project_dir, out, fixups, index, room.room_number, n),
             .raw_glob_block => |*n| try emitRawGlobBlock(gpa, project_dir, project, out, fixups, index, room.room_number, n),
+            .awiz => |*n| try emitAwiz(gpa, project_dir, project, out, fixups, index, room.room_number, n),
             else => unreachable,
         }
     }
 
     try endBlock(out, fixups, lflf_start);
+}
+
+fn emitAwiz(
+    gpa: std.mem.Allocator,
+    project_dir: std.fs.Dir,
+    project: *const Project,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    index: *Index,
+    room_number: u8,
+    awiz_node: *const @FieldType(parser.Node, "awiz"),
+) !void {
+    var the_awiz: awiz.Awiz = .{};
+    defer the_awiz.deinit(gpa);
+
+    const room_file = &project.files.items[room_number].?;
+    for (room_file.ast.getExtra(awiz_node.children)) |node| {
+        const child_node = &room_file.ast.nodes.items[node];
+        switch (child_node.*) {
+            .awiz_rgbs => {
+                the_awiz.blocks.append(.rgbs) catch unreachable;
+            },
+            .awiz_two_ints => |ti| {
+                the_awiz.blocks.append(.{ .two_ints = .{
+                    .id = ti.block_id,
+                    .ints = ti.ints,
+                } }) catch unreachable;
+            },
+            .awiz_wizh => {
+                the_awiz.blocks.append(.wizh) catch unreachable;
+            },
+            .awiz_bmp => |wizd| {
+                const awiz_raw = try fs.readFile(gpa, project_dir, wizd.path);
+                const awiz_raw_arraylist: std.ArrayListUnmanaged(u8) = .fromOwnedSlice(awiz_raw);
+                the_awiz.blocks.append(.{ .wizd = .{
+                    .compression = wizd.compression,
+                    .bmp = awiz_raw_arraylist,
+                } }) catch unreachable;
+            },
+            else => unreachable,
+        }
+    }
+
+    const start = try beginBlock(out, "AWIZ");
+    try awiz.encode(&the_awiz, out, fixups);
+    try endBlock(out, fixups, start);
+    const end: u32 = @intCast(out.bytes_written);
+    const size = end - start;
+
+    try addGlobToIndex(gpa, index, room_number, blockId("AWIZ"), awiz_node.glob_number, start, size);
 }
 
 fn emitRawBlock(

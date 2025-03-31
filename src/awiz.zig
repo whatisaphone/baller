@@ -22,7 +22,9 @@ pub const Compression = enum(u8) {
 };
 
 pub const Awiz = struct {
-    blocks: std.BoundedArray(Block, 5) = .{},
+    pub const max_blocks = 5;
+
+    blocks: std.BoundedArray(Block, max_blocks) = .{},
 
     pub fn deinit(self: *Awiz, allocator: std.mem.Allocator) void {
         for (self.blocks.slice()) |*block| switch (block.*) {
@@ -48,9 +50,9 @@ pub fn decode(
     allocator: std.mem.Allocator,
     awiz_raw: []const u8,
     // TODO: merge next two params
-    rmda_raw: []const u8,
+    rmda_raw: ?[]const u8,
     defa_rgbs: ?*const [0x300]u8,
-    options: struct { hack_skip_uncompressed: bool },
+    options: struct { hack_skip_uncompressed: bool = false },
 ) !Awiz {
     var result: Awiz = .{};
     var rgbs_opt: ?*const [0x300]u8 = null;
@@ -136,7 +138,7 @@ pub fn decode(
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
 
-    const palette = rgbs_opt orelse defa_rgbs orelse try rmim.findApalInRmda(rmda_raw);
+    const palette = rgbs_opt orelse defa_rgbs orelse try rmim.findApalInRmda(rmda_raw.?);
     try bmp.writePalette(bmp_writer, palette);
 
     switch (wizh.compression) {
@@ -256,6 +258,18 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
         },
     };
 }
+
+pub const placeholder_palette = placeholder_palette: {
+    var result: [0x300]u8 = undefined;
+    var i: usize = 0;
+    for (0..4) |b| for (0..8) |g| for (0..8) |r| {
+        result[i + 0] = 255 * r / 7;
+        result[i + 1] = 255 * g / 7;
+        result[i + 2] = 255 * b / 3;
+        i += 3;
+    };
+    break :placeholder_palette result;
+};
 
 fn writeRgbs(header: bmp.Bmp, out: anytype) !void {
     for (header.palette) |color| {

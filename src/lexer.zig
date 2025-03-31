@@ -90,6 +90,11 @@ pub fn run(
             try appendToken(&state, loc, .brace_l);
         } else if (ch == '}') {
             try appendToken(&state, loc, .brace_r);
+        } else if (ch == '-' and is_num: {
+            const ch2 = peekChar(&state) orelse break :is_num false;
+            break :is_num '0' <= ch2 and ch2 <= '9';
+        }) {
+            try lexInteger(&state, loc);
         } else if (ch >= '0' and ch <= '9') {
             try lexInteger(&state, loc);
         } else if (ch == '"') {
