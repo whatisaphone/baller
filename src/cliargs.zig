@@ -74,6 +74,18 @@ const Arg = union(enum) {
         try out.writeByte('\n');
     }
 
+    pub fn reportDuplicate(self: Arg) error{CommandLineReported} {
+        self.reportDuplicateInner() catch {};
+        return error.CommandLineReported;
+    }
+
+    fn reportDuplicateInner(self: Arg) !void {
+        const out = std.io.getStdErr().writer();
+        try out.writeAll("duplicate argument ");
+        try self.reportFlagName(out);
+        try out.writeByte('\n');
+    }
+
     fn reportFlagName(self: Arg, out: anytype) !void {
         switch (self) {
             .short_flag => |flag| try out.print("-{c}", .{flag}),

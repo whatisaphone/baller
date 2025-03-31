@@ -8,7 +8,33 @@ const fixture_hashes = @import("tests.zig").fixture_hashes;
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
 
-test "Backyard Baseball 2001 round trip" {
+test "Backyard Baseball 2001 round trip raw" {
+    try extract2.run(std.testing.allocator, .{
+        .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
+        .output_path = "/tmp/bb2001",
+        .options = .{
+            .awiz = .raw,
+        },
+    });
+
+    try build2.run(std.testing.allocator, .{
+        .project_path = "/tmp/bb2001/project.scu",
+        .index_path = "/tmp/bb2001build/baseball 2001.he0",
+        .options = .{
+            .awiz_strategy = .original,
+        },
+    });
+
+    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb2001build", .{});
+    defer output_dir.close();
+
+    inline for (.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" }) |name| {
+        const expected_hex = @field(fixture_hashes, "baseball2001/" ++ name);
+        try expectFileHashEquals(output_dir, name, expected_hex);
+    }
+}
+
+test "Backyard Baseball 2001 round trip decode" {
     try extract2.run(std.testing.allocator, .{
         .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = "/tmp/bb2001",

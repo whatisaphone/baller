@@ -19,6 +19,7 @@ const utils = @import("utils.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
+    var awiz_option: ?@FieldType(Options, "awiz") = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -30,6 +31,15 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             else
                 return arg.reportUnexpected();
         },
+        .long_option => |opt| {
+            if (std.mem.eql(u8, opt.flag, "awiz")) {
+                if (awiz_option != null) return arg.reportDuplicate();
+                awiz_option = std.meta.stringToEnum(@FieldType(Options, "awiz"), opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else {
+                return arg.reportUnexpected();
+            }
+        },
         else => return arg.reportUnexpected(),
     };
 
@@ -40,7 +50,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .index_path = index_path,
         .output_path = output_path,
         .options = .{
-            .awiz = .decode,
+            .awiz = awiz_option orelse .decode,
         },
     });
 }
