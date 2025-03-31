@@ -20,6 +20,9 @@ test "Backyard Baseball 2001 round trip" {
     try build2.run(std.testing.allocator, .{
         .project_path = "/tmp/bb2001/project.scu",
         .index_path = "/tmp/bb2001build/baseball 2001.he0",
+        .options = .{
+            .awiz_strategy = .original,
+        },
     });
 
     var output_dir = try std.fs.cwd().openDirZ("/tmp/bb2001build", .{});

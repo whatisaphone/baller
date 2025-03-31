@@ -750,7 +750,7 @@ fn handleAwiz(
     defer wiz.deinit(allocator);
 
     const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
-    awiz.encode(&wiz, &state.writer, &state.fixups) catch |err| {
+    awiz.encode(&wiz, .original, &state.writer, &state.fixups) catch |err| {
         report.fatal("error encoding {s} {:0>4}", .{ "AWIZ", glob_number });
         return err;
     };
@@ -911,7 +911,7 @@ fn handleMultInner(
         const awiz_fixup = try beginBlock(&state.writer, "AWIZ");
 
         switch (wiz.*) {
-            .wiz => |*img| try awiz.encode(img, &state.writer, &state.fixups),
+            .wiz => |*img| try awiz.encode(img, .original, &state.writer, &state.fixups),
             .raw => |*raw| {
                 const path = try pathf.append(&prst.cur_path, raw.path);
                 defer path.restore();

@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
+const awiz = @import("awiz.zig");
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");
 const fs = @import("fs.zig");
@@ -33,12 +34,20 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     try run(gpa, .{
         .project_path = project_path,
         .index_path = index_path,
+        .options = .{
+            .awiz_strategy = .max,
+        },
     });
 }
 
 const Build = struct {
     project_path: [:0]const u8,
     index_path: [:0]const u8,
+    options: Options,
+};
+
+const Options = struct {
+    awiz_strategy: awiz.EncodingStrategy,
 };
 
 pub fn run(gpa: std.mem.Allocator, args: Build) !void {
@@ -68,7 +77,7 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
 
     try readRooms(gpa, &project, project_dir);
 
-    try emit.run(gpa, project_dir, output_dir, index_name, game, &project);
+    try emit.run(gpa, project_dir, output_dir, index_name, game, &project, args.options.awiz_strategy);
 }
 
 fn addFile(

@@ -521,7 +521,7 @@ fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
 }
 
 fn encodeCelTrle(bitmap: *const bmp.Bmp, out: anytype) !void {
-    try awiz.encodeRle(bitmap.*, out);
+    try awiz.encodeRle(bitmap.*, .max, out);
 }
 
 fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !void {

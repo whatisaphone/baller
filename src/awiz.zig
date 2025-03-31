@@ -209,7 +209,14 @@ pub fn decodeRle(
     }
 }
 
-pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+pub const EncodingStrategy = enum { original, max };
+
+pub fn encode(
+    wiz: *const Awiz,
+    strategy: EncodingStrategy,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+) !void {
     // First find the bitmap block so we can preload all data before we start
 
     const wizd = for (wiz.blocks.slice()) |block| {
@@ -249,7 +256,7 @@ pub fn encode(wiz: *const Awiz, out: anytype, fixups: *std.ArrayList(Fixup)) !vo
             const fixup = try beginBlock(out, "WIZD");
             switch (wizd.compression) {
                 .none => try encodeUncompressed(header, out.writer()),
-                .rle => try encodeRle(header, out.writer()),
+                .rle => try encodeRle(header, strategy, out.writer()),
             }
             // Pad output to a multiple of 2 bytes
             if ((out.bytes_written - fixup) & 1 != 0)
@@ -285,7 +292,7 @@ pub fn encodeUncompressed(header: bmp.Bmp, out: anytype) !void {
         try out.writeAll(row);
 }
 
-pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
+pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !void {
     var rows = try header.iterRows();
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
@@ -295,7 +302,10 @@ pub fn encodeRle(header: bmp.Bmp, out: anytype) !void {
         // reserve space for line size, to be filled in later
         line_buf.len = 2;
 
-        try encodeRleRowOriginal(row, &line_buf);
+        switch (strategy) {
+            .original => try encodeRleRowOriginal(row, &line_buf),
+            .max => try encodeRleRowMax(row, &line_buf),
+        }
 
         // fill in line size
         std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);

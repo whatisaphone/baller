@@ -25,13 +25,14 @@ pub fn run(
     index_name: [:0]const u8,
     game: games.Game,
     project: *const Project,
+    awiz_strategy: awiz.EncodingStrategy,
 ) !void {
     var index: Index = try .init(gpa);
     defer index.deinit(gpa);
 
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        try emitDisk(gpa, project_dir, output_dir, index_name, game, project, disk_number, &index);
+        try emitDisk(gpa, project_dir, output_dir, index_name, game, project, awiz_strategy, disk_number, &index);
     }
 
     const project_file = &project.files.items[0].?;
@@ -45,6 +46,7 @@ fn emitDisk(
     index_name: [:0]const u8,
     game: games.Game,
     project: *const Project,
+    awiz_strategy: awiz.EncodingStrategy,
     disk_number: u8,
     index: *Index,
 ) !void {
@@ -75,7 +77,7 @@ fn emitDisk(
     const child_nodes = project_file.ast.getExtra(disk.children);
     for (child_nodes) |child_node| {
         switch (project_file.ast.nodes.items[child_node]) {
-            .disk_room => |*node| try emitRoom(gpa, project_dir, project, disk_number, &out, &fixups, node, index),
+            .disk_room => |*node| try emitRoom(gpa, project_dir, project, awiz_strategy, disk_number, &out, &fixups, node, index),
             .raw_block => |*node| try emitRawBlock(project_dir, &out, &fixups, node),
             else => unreachable,
         }
@@ -92,6 +94,7 @@ fn emitRoom(
     gpa: std.mem.Allocator,
     project_dir: std.fs.Dir,
     project: *const Project,
+    awiz_strategy: awiz.EncodingStrategy,
     disk_number: u8,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
@@ -113,7 +116,7 @@ fn emitRoom(
             .raw_block => |*n| try emitRawBlock(project_dir, out, fixups, n),
             .raw_glob_file => |*n| try emitRawGlobFile(gpa, project_dir, out, fixups, index, room.room_number, n),
             .raw_glob_block => |*n| try emitRawGlobBlock(gpa, project_dir, project, out, fixups, index, room.room_number, n),
-            .awiz => |*n| try emitAwiz(gpa, project_dir, project, out, fixups, index, room.room_number, n),
+            .awiz => |*n| try emitAwiz(gpa, project_dir, project, awiz_strategy, out, fixups, index, room.room_number, n),
             else => unreachable,
         }
     }
@@ -125,6 +128,7 @@ fn emitAwiz(
     gpa: std.mem.Allocator,
     project_dir: std.fs.Dir,
     project: *const Project,
+    strategy: awiz.EncodingStrategy,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     index: *Index,
@@ -163,7 +167,7 @@ fn emitAwiz(
     }
 
     const start = try beginBlock(out, "AWIZ");
-    try awiz.encode(&the_awiz, out, fixups);
+    try awiz.encode(&the_awiz, strategy, out, fixups);
     try endBlock(out, fixups, start);
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
