@@ -300,6 +300,21 @@ fn FixedBlockReader2(Stream: type) type {
             return self.next().expect(id);
         }
 
+        pub fn finish(self: *Self, expected_pos: u32) !void {
+            if (!self.checkEndBlock()) return error.Reported;
+
+            const pos: u32 = @intCast(self.stream.pos);
+            if (pos != expected_pos) {
+                self.diagnostic.err(
+                    pos,
+                    "expected container to end at 0x{x:0>8}",
+                    .{expected_pos},
+                );
+                return error.Reported;
+            }
+            self.diagnostic.trace(pos, "end of container", .{});
+        }
+
         pub fn finishEof(self: *Self) !void {
             if (!self.checkEndBlock()) return error.Reported;
 

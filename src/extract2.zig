@@ -425,11 +425,11 @@ fn extractRoom(
         try extractRawGlob(gpa, index, in, room_number, &rmim, room_dir, room_name, &room_code);
     }
 
-    try extractRmda(gpa, in, diagnostic, &lflf_blocks, room_number, room_dir, room_name, &room_code);
+    const room_palette = try extractRmda(gpa, in, diagnostic, &lflf_blocks, room_number, room_dir, room_name, &room_code);
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractGlob(gpa, options, index, diagnostic, room_number, in, room_dir, room_name, &room_code, &block);
+        try extractGlob(gpa, options, index, diagnostic, room_number, &room_palette, in, room_dir, room_name, &room_code, &block);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -453,7 +453,7 @@ fn extractRmda(
     room_dir: std.fs.Dir,
     room_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
-) !void {
+) ![0x300]u8 {
     const rmda = try lflf_blocks.expect("RMDA").block();
 
     try code.writer(gpa).print(
@@ -461,16 +461,59 @@ fn extractRmda(
         .{ fmtBlockId(&rmda.id), room_number },
     );
 
+    var apal_opt: ?[0x300]u8 = null;
+
     var rmda_blocks = streamingBlockReader(in, diagnostic);
 
     while (in.bytes_read < rmda.end()) {
         const block = try rmda_blocks.next().block();
-        try extractRawBlock(gpa, in, &block, room_dir, room_path, code);
+        switch (block.id) {
+            blockId("PALS") => {
+                if (apal_opt != null) return error.BadData;
+                apal_opt = try extractPals(gpa, in, diagnostic, &block, room_dir, room_path, code);
+            },
+            else => {
+                try extractRawBlock(gpa, in, &block, room_dir, room_path, code);
+            },
+        }
     }
 
     try rmda_blocks.finish(rmda.end());
 
     try code.appendSlice(gpa, "}\n");
+
+    return apal_opt orelse return error.BadData;
+}
+
+fn extractPals(
+    gpa: std.mem.Allocator,
+    in: anytype,
+    diagnostic: *const Diagnostic,
+    block: *const Block,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) ![0x300]u8 {
+    const expected_len = 796;
+    if (block.size != expected_len) return error.BadData;
+    const pals_raw = try in.reader().readBytesNoEof(expected_len);
+    var pals_stream = std.io.fixedBufferStream(&pals_raw);
+    var pals_blocks = fixedBlockReader2(&pals_stream, diagnostic);
+
+    const pals = try pals_blocks.expect("WRAP").block();
+    var wrap_blocks = fixedBlockReader2(&pals_stream, diagnostic);
+
+    const off = try wrap_blocks.expect("OFFS").value(u32);
+    if (off.* != 12) return error.BadData;
+
+    const apal = try wrap_blocks.expect("APAL").value([0x300]u8);
+
+    try wrap_blocks.finish(pals.end());
+    try pals_blocks.finishEof();
+
+    try writeRawBlock(gpa, block, &pals_raw, output_dir, output_path, code);
+
+    return apal.*;
 }
 
 fn findGlobNumber(
@@ -504,6 +547,7 @@ fn extractGlob(
     index: *const Index,
     diagnostic: *const Diagnostic,
     room_number: u8,
+    room_palette: *const [0x300]u8,
     in: anytype,
     room_dir: std.fs.Dir,
     room_path: []const u8,
@@ -521,7 +565,7 @@ fn extractGlob(
     decode: switch (block.id) {
         blockId("AWIZ") => {
             if (options.awiz != .decode) break :decode;
-            if (extractAwiz(gpa, glob_number, raw, room_dir, room_path, code))
+            if (extractAwiz(gpa, glob_number, raw, room_palette, room_dir, room_path, code))
                 return
             else |err| if (err != error.BadData)
                 return err;
@@ -537,11 +581,12 @@ fn extractAwiz(
     gpa: std.mem.Allocator,
     glob_number: u16,
     raw: []const u8,
+    room_palette: *const [0x300]u8,
     output_dir: std.fs.Dir,
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try awiz.decode(gpa, raw, null, &awiz.placeholder_palette, .{});
+    var decoded = try awiz.decode(gpa, raw, null, room_palette, .{});
     defer decoded.deinit(gpa);
 
     try code.writer(gpa).print("awiz {} {{\n", .{glob_number});
@@ -647,6 +692,28 @@ fn extractRawBlock(
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
     try io.copy(std.io.limitedReader(in.reader(), block.size), file.writer());
+
+    try code.writer(gpa).print(
+        "    raw-block \"{s}\" \"{s}/{s}\"\n",
+        .{ fmtBlockId(&block.id), output_path, filename },
+    );
+}
+
+fn writeRawBlock(
+    gpa: std.mem.Allocator,
+    block: *const Block,
+    data: []const u8,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
+    const filename = try std.fmt.bufPrintZ(
+        &filename_buf,
+        "{s}_{x:0>8}.bin",
+        .{ fmtBlockId(&block.id), block.offset() },
+    );
+    try fs.writeFileZ(output_dir, filename, data);
 
     try code.writer(gpa).print(
         "    raw-block \"{s}\" \"{s}/{s}\"\n",
