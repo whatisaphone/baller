@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
@@ -48,11 +49,26 @@ const Block = union(enum) {
 
 pub fn decode(
     allocator: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
     awiz_raw: []const u8,
     // TODO: merge next two params
     rmda_raw: ?[]const u8,
     defa_rgbs: ?*const [0x300]u8,
     options: struct { hack_skip_uncompressed: bool = false },
+) error{Reported}!Awiz {
+    var stream = std.io.fixedBufferStream(awiz_raw);
+    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs, options) catch {
+        diagnostic.err(@intCast(stream.pos), "general decode failure", .{});
+        return error.Reported;
+    };
+}
+
+fn decodeInner(
+    allocator: std.mem.Allocator,
+    reader: anytype,
+    rmda_raw: ?[]const u8,
+    defa_rgbs: ?*const [0x300]u8,
+    options: @typeInfo(@TypeOf(decode)).@"fn".params[5].type.?,
 ) !Awiz {
     var result: Awiz = .{};
     var rgbs_opt: ?*const [0x300]u8 = null;
@@ -62,8 +78,7 @@ pub fn decode(
         height: u31,
     } = null;
 
-    var reader = std.io.fixedBufferStream(awiz_raw);
-    var awiz_blocks = fixedBlockReader(&reader);
+    var awiz_blocks = fixedBlockReader(reader);
 
     while (try awiz_blocks.peek() != blockId("WIZD")) {
         const id, const len = try awiz_blocks.next();
@@ -72,7 +87,7 @@ pub fn decode(
                 const expected_rgbs_len = 0x300;
                 if (len != expected_rgbs_len)
                     return error.BadData;
-                rgbs_opt = try io.readInPlaceBytes(&reader, expected_rgbs_len);
+                rgbs_opt = try io.readInPlaceBytes(reader, expected_rgbs_len);
 
                 try result.blocks.append(.rgbs);
             },
@@ -142,8 +157,8 @@ pub fn decode(
     try bmp.writePalette(bmp_writer, palette);
 
     switch (wizh.compression) {
-        .none => try decodeUncompressed(width, height, &reader, &bmp_buf),
-        .rle => try decodeRle(width, height, &reader, &bmp_buf),
+        .none => try decodeUncompressed(width, height, reader, &bmp_buf),
+        .rle => try decodeRle(width, height, reader, &bmp_buf),
     }
 
     // Allow one byte of padding from the encoder

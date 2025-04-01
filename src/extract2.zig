@@ -166,6 +166,7 @@ fn extractIndex(
 ) !struct { Index, []u8 } {
     var diagnostic: Diagnostic = .{
         .path = index_name,
+        .offset = 0,
     };
 
     const raw = try fs.readFileZ(gpa, input_dir, index_name);
@@ -375,6 +376,7 @@ fn extractDisk(
 
     const diagnostic: Diagnostic = .{
         .path = disk_name.full(),
+        .offset = 0,
     };
 
     const in_file = try input_dir.openFileZ(disk_name.full(), .{});
@@ -498,7 +500,7 @@ fn extractRmda(
 fn extractPals(
     gpa: std.mem.Allocator,
     in: anytype,
-    diagnostic: *const Diagnostic,
+    outer_diagnostic: *const Diagnostic,
     block: *const Block,
     output_dir: std.fs.Dir,
     output_path: []const u8,
@@ -508,10 +510,14 @@ fn extractPals(
     if (block.size != expected_len) return error.BadData;
     const pals_raw = try in.reader().readBytesNoEof(expected_len);
     var pals_stream = std.io.fixedBufferStream(&pals_raw);
-    var pals_blocks = fixedBlockReader2(&pals_stream, diagnostic);
+    const diagnostic: Diagnostic = .{
+        .path = outer_diagnostic.path,
+        .offset = outer_diagnostic.offset + block.start,
+    };
+    var pals_blocks = fixedBlockReader2(&pals_stream, &diagnostic);
 
     const pals = try pals_blocks.expect("WRAP").block();
-    var wrap_blocks = fixedBlockReader2(&pals_stream, diagnostic);
+    var wrap_blocks = fixedBlockReader2(&pals_stream, &diagnostic);
 
     const off = try wrap_blocks.expect("OFFS").value(u32);
     if (off.* != 12) return error.BadData;
@@ -555,7 +561,7 @@ fn extractGlob(
     gpa: std.mem.Allocator,
     options: Options,
     index: *const Index,
-    diagnostic: *const Diagnostic,
+    outer_diagnostic: *const Diagnostic,
     room_number: u8,
     room_palette: *const [0x300]u8,
     in: anytype,
@@ -566,19 +572,26 @@ fn extractGlob(
 ) !void {
     const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
         return error.BadData;
-    diagnostic.trace(block.offset(), "glob number {}", .{glob_number});
+    outer_diagnostic.trace(block.offset(), "glob number {}", .{glob_number});
 
     const raw = try gpa.alloc(u8, block.size);
     defer gpa.free(raw);
     try in.reader().readNoEof(raw);
 
+    const diagnostic: Diagnostic = .{
+        .path = outer_diagnostic.path,
+        .offset = outer_diagnostic.offset + block.start,
+    };
+
     decode: switch (block.id) {
         blockId("AWIZ") => {
             if (options.awiz != .decode) break :decode;
-            if (extractAwiz(gpa, glob_number, raw, room_palette, room_dir, room_path, code))
-                return
-            else |err| if (err != error.BadData)
-                return err;
+            if (extractAwiz(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code)) {
+                return;
+            } else |err| if (err == error.Reported) {
+                diagnostic.warn(0, "decode error, falling back to raw", .{});
+                break :decode;
+            } else return err;
         },
         else => {},
     }
@@ -589,6 +602,7 @@ fn extractGlob(
 
 fn extractAwiz(
     gpa: std.mem.Allocator,
+    diagnostic: *const Diagnostic,
     glob_number: u16,
     raw: []const u8,
     room_palette: *const [0x300]u8,
@@ -596,7 +610,7 @@ fn extractAwiz(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try awiz.decode(gpa, raw, null, room_palette, .{});
+    var decoded = try awiz.decode(gpa, diagnostic, raw, null, room_palette, .{});
     defer decoded.deinit(gpa);
 
     try code.writer(gpa).print("awiz {} {{\n", .{glob_number});

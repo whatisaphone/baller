@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const akos = @import("akos.zig");
 const audio = @import("audio.zig");
@@ -1292,10 +1293,14 @@ fn decodeAwizIntoPath(
     path: [*:0]const u8,
     state: *State,
 ) !awiz.Awiz {
-    var wiz = awiz.decode(allocator, awiz_raw, rmda_raw, defa_rgbs, .{
+    const diagnostic: Diagnostic = .{
+        .path = "<input>",
+        .offset = 0,
+    };
+    var wiz = awiz.decode(allocator, &diagnostic, awiz_raw, rmda_raw, defa_rgbs, .{
         .hack_skip_uncompressed = state.hack_skip_awiz_uncompressed,
     }) catch |err| {
-        if (err == error.BadData)
+        if (err == error.BadData or err == error.Reported)
             return error.BlockFallbackToRaw;
         return err;
     };

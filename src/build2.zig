@@ -88,6 +88,7 @@ fn addFile(
 ) !Project.SourceFile {
     const diagnostic: Diagnostic = .{
         .path = path,
+        .offset = 0,
     };
 
     const source = try fs.readFile(gpa, project_dir, path);
