@@ -4,12 +4,14 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
+const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
+const fs = @import("fs.zig");
 const io = @import("io.zig");
 const rmim = @import("rmim.zig");
 const utils = @import("utils.zig");
@@ -222,6 +224,34 @@ pub fn decodeRle(
 
         try bmp.padRow(bmp_writer, width);
     }
+}
+
+pub fn extractChildren(
+    gpa: std.mem.Allocator,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+    decoded: *const Awiz,
+    bmp_path: [*:0]const u8,
+) !void {
+    for (decoded.blocks.slice()) |block| switch (block) {
+        .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
+        .two_ints => |ti| {
+            try code.writer(gpa).print(
+                "    two-ints \"{s}\" {} {}\n",
+                .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
+            );
+        },
+        .wizh => try code.appendSlice(gpa, "    wizh\n"),
+        .trns => return error.BadData, // TODO: unused?
+        .wizd => |wizd| {
+            try fs.writeFileZ(output_dir, bmp_path, wizd.bmp.items);
+            try code.writer(gpa).print(
+                "    bmp {} \"{s}/{s}\"\n",
+                .{ @intFromEnum(wizd.compression), output_path, bmp_path },
+            );
+        },
+    };
 }
 
 pub const EncodingStrategy = enum { original, max };

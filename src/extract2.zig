@@ -615,30 +615,13 @@ fn extractAwiz(
 
     try code.writer(gpa).print("awiz {} {{\n", .{glob_number});
 
-    for (decoded.blocks.slice()) |block| switch (block) {
-        .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
-        .two_ints => |ti| {
-            try code.writer(gpa).print(
-                "    two-ints \"{s}\" {} {}\n",
-                .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
-            );
-        },
-        .wizh => try code.appendSlice(gpa, "    wizh\n"),
-        .trns => return error.BadData, // TODO: unused?
-        .wizd => |wizd| {
-            var path_buf: ["image0000.bmp".len + 1]u8 = undefined;
-            const path = std.fmt.bufPrintZ(
-                &path_buf,
-                "image{:0>4}.bmp",
-                .{glob_number},
-            ) catch unreachable;
-            try fs.writeFileZ(output_dir, path, wizd.bmp.items);
-            try code.writer(gpa).print(
-                "    bmp {} \"{s}/{s}\"\n",
-                .{ @intFromEnum(wizd.compression), output_path, path },
-            );
-        },
-    };
+    var bmp_path_buf: ["image0000.bmp".len + 1]u8 = undefined;
+    const bmp_path = std.fmt.bufPrintZ(
+        &bmp_path_buf,
+        "image{:0>4}.bmp",
+        .{glob_number},
+    ) catch unreachable;
+    try awiz.extractChildren(gpa, output_dir, output_path, code, &decoded, bmp_path);
 
     try code.appendSlice(gpa, "}\n");
 }
