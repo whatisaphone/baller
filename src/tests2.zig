@@ -14,6 +14,7 @@ test "Backyard Baseball 2001 round trip raw" {
         .output_path = "/tmp/bb2001",
         .options = .{
             .awiz = .raw,
+            .mult = .raw,
         },
     });
 
@@ -40,6 +41,7 @@ test "Backyard Baseball 2001 round trip decode" {
         .output_path = "/tmp/bb2001",
         .options = .{
             .awiz = .decode,
+            .mult = .decode,
         },
     });
 

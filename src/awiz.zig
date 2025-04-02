@@ -233,25 +233,29 @@ pub fn extractChildren(
     code: *std.ArrayListUnmanaged(u8),
     decoded: *const Awiz,
     bmp_path: [*:0]const u8,
+    indent: u8,
 ) !void {
-    for (decoded.blocks.slice()) |block| switch (block) {
-        .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
-        .two_ints => |ti| {
-            try code.writer(gpa).print(
-                "    two-ints \"{s}\" {} {}\n",
-                .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
-            );
-        },
-        .wizh => try code.appendSlice(gpa, "    wizh\n"),
-        .trns => return error.BadData, // TODO: unused?
-        .wizd => |wizd| {
-            try fs.writeFileZ(output_dir, bmp_path, wizd.bmp.items);
-            try code.writer(gpa).print(
-                "    bmp {} \"{s}/{s}\"\n",
-                .{ @intFromEnum(wizd.compression), output_path, bmp_path },
-            );
-        },
-    };
+    for (decoded.blocks.slice()) |block| {
+        try code.appendNTimes(gpa, ' ', indent);
+        switch (block) {
+            .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
+            .two_ints => |ti| {
+                try code.writer(gpa).print(
+                    "two-ints \"{s}\" {} {}\n",
+                    .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
+                );
+            },
+            .wizh => try code.appendSlice(gpa, "wizh\n"),
+            .trns => return error.BadData, // TODO: unused?
+            .wizd => |wizd| {
+                try fs.writeFileZ(output_dir, bmp_path, wizd.bmp.items);
+                try code.writer(gpa).print(
+                    "bmp {} \"{s}/{s}\"\n",
+                    .{ @intFromEnum(wizd.compression), output_path, bmp_path },
+                );
+            },
+        }
+    }
 }
 
 pub const EncodingStrategy = enum { original, max };

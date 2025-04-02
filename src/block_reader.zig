@@ -276,6 +276,26 @@ fn FixedBlockReader2(Stream: type) type {
             } };
         }
 
+        fn peek(self: *Self) !BlockId {
+            const offset: u32 = @intCast(self.stream.pos);
+            if (offset + block_header_size > self.stream.buffer.len) {
+                self.diagnostic.err(offset, "eof during block header", .{});
+                return error.Reported;
+            }
+            const header = self.stream.buffer[offset..][0..block_header_size];
+            return std.mem.readInt(u32, header[0..4], .little);
+        }
+
+        pub fn nextIf(self: *Self, comptime expected_id: *const [4]u8) !?BlockResult(Stream) {
+            return self.nextIf2(blockId(expected_id));
+        }
+
+        fn nextIf2(self: *Self, comptime expected_id: BlockId) !?BlockResult(Stream) {
+            const result = try self.peek();
+            if (result != expected_id) return null;
+            return self.next();
+        }
+
         fn checkEndBlock(self: *Self) bool {
             const current = self.current orelse return true;
 
@@ -390,6 +410,11 @@ fn BlockResult(Stream: type) type {
             }
             const data = try self.bytes();
             return std.mem.bytesAsValue(T, data);
+        }
+
+        pub fn nested(self: *const Self) !FixedBlockReader2(Stream) {
+            if (self.* != .ok) return error.Reported;
+            return fixedBlockReader2(self.ok.reader.stream, self.ok.reader.diagnostic);
         }
     };
 }

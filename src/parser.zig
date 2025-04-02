@@ -6,6 +6,9 @@ const BlockId = @import("block_id.zig").BlockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
 const lexer = @import("lexer.zig");
 
+pub const max_room_name_len = 255;
+pub const max_mult_children = 256;
+
 pub const Ast = struct {
     root: NodeIndex,
     nodes: std.ArrayListUnmanaged(Node),
@@ -69,9 +72,18 @@ pub const Node = union(enum) {
         compression: awiz.Compression,
         path: []const u8,
     },
+    mult: struct {
+        glob_number: u16,
+        raw_defa_path: ?[]const u8,
+        children: ExtraSlice,
+        indices: ExtraSlice,
+    },
+    mult_awiz: struct {
+        children: ExtraSlice,
+    },
 };
 
-const ExtraSlice = struct {
+pub const ExtraSlice = struct {
     start: u32,
     len: u32,
 };
@@ -232,6 +244,8 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
     if (!(1 <= room_number_i32 and room_number_i32 <= 255))
         return reportError(state, span, "room number out of range", .{});
     const room_number: u8 = @intCast(room_number_i32);
+    if (!(1 <= room_name.len and room_name.len <= max_room_name_len))
+        return reportError(state, span, "invalid room name", .{});
 
     return appendNode(state, .{ .disk_room = .{
         .room_number = room_number,
@@ -285,6 +299,10 @@ fn parseRoomChildren(state: *State) !NodeIndex {
                     const node_index = try parseAwiz(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "mult")) {
+                    const node_index = try parseMult(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
                 } else {
                     return reportUnexpected(state, token);
                 }
@@ -306,6 +324,15 @@ fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
     const glob_number = std.math.cast(u16, glob_number_i32) orelse
         return reportError(state, span, "invalid glob number", .{});
 
+    const children = try parseAwizChildren(state);
+
+    return appendNode(state, .{ .awiz = .{
+        .glob_number = glob_number,
+        .children = children,
+    } });
+}
+
+fn parseAwizChildren(state: *State) !ExtraSlice {
     var children: std.BoundedArray(NodeIndex, awiz.Awiz.max_blocks) = .{};
 
     while (true) {
@@ -326,7 +353,7 @@ fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
                     try expect(state, .newline);
 
                     const block_id = parseBlockId(block_id_str) orelse
-                        return reportError(state, span, "invalid block id", .{});
+                        return reportError(state, token.span, "invalid block id", .{});
 
                     const node_index = try appendNode(state, .{ .awiz_two_ints = .{
                         .block_id = block_id,
@@ -363,10 +390,93 @@ fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
         }
     }
 
-    return appendNode(state, .{ .awiz = .{
+    return appendExtra(state, children.slice());
+}
+
+fn parseMult(state: *State, span: lexer.Span) !NodeIndex {
+    const glob_number_i32 = try expectInteger(state);
+    try expect(state, .brace_l);
+
+    const glob_number = std.math.cast(u16, glob_number_i32) orelse
+        return reportError(state, span, "invalid glob number", .{});
+
+    var raw_defa_path: ?[]const u8 = null;
+    var children: std.BoundedArray(NodeIndex, max_mult_children) = .{};
+    var indices_opt: ?ExtraSlice = null;
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => {
+                const identifier = state.source[token.span.start.offset..token.span.end.offset];
+                if (std.mem.eql(u8, identifier, "defa-raw")) {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    if (raw_defa_path != null)
+                        return reportError(state, token.span, "too many children", .{});
+                    raw_defa_path = path;
+                } else if (std.mem.eql(u8, identifier, "awiz")) {
+                    try expect(state, .brace_l);
+                    const awiz_children = try parseAwizChildren(state);
+
+                    const node_index = try appendNode(state, .{ .mult_awiz = .{
+                        .children = awiz_children,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "indices")) {
+                    if (indices_opt != null)
+                        return reportError(state, token.span, "too many children", .{});
+                    try expect(state, .bracket_l);
+                    indices_opt = try parseIntegerList(state);
+                } else {
+                    return reportUnexpected(state, token);
+                }
+            },
+            .brace_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+
+    const indices = indices_opt orelse return reportError(state, span, "missing indices", .{});
+    for (state.result.getExtra(indices)) |index|
+        if (index >= children.len)
+            return reportError(state, span, "out of range", .{});
+
+    return appendNode(state, .{ .mult = .{
         .glob_number = glob_number,
+        .raw_defa_path = raw_defa_path,
         .children = try appendExtra(state, children.slice()),
+        .indices = indices,
     } });
+}
+
+fn parseIntegerList(state: *State) !ExtraSlice {
+    var result: std.BoundedArray(u32, 256) = .{};
+    while (true) {
+        var token = consumeToken(state);
+        switch (token.kind) {
+            .integer => {
+                const source = state.source[token.span.start.offset..token.span.end.offset];
+                const int = std.fmt.parseInt(u32, source, 10) catch
+                    return reportError(state, token.span, "invalid integer", .{});
+                result.append(int) catch
+                    return reportError(state, token.span, "too many children", .{});
+            },
+            .bracket_r => break,
+            else => return reportUnexpected(state, token),
+        }
+
+        token = consumeToken(state);
+        switch (token.kind) {
+            .comma => {},
+            .bracket_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+    return appendExtra(state, result.slice());
 }
 
 fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {

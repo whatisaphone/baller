@@ -13,6 +13,8 @@ const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const mult = @import("mult.zig");
+const parser = @import("parser.zig");
 const pathf = @import("pathf.zig");
 const utils = @import("utils.zig");
 
@@ -20,6 +22,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
     var awiz_option: ?@FieldType(Options, "awiz") = null;
+    var mult_option: ?@FieldType(Options, "mult") = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -36,6 +39,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(@FieldType(Options, "awiz"), opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "mult")) {
+                if (mult_option != null) return arg.reportDuplicate();
+                mult_option = std.meta.stringToEnum(@FieldType(Options, "mult"), opt.value) orelse
+                    return arg.reportInvalidValue();
             } else {
                 return arg.reportUnexpected();
             }
@@ -51,6 +58,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .output_path = output_path,
         .options = .{
             .awiz = awiz_option orelse .decode,
+            .mult = mult_option orelse .decode,
         },
     });
 }
@@ -63,6 +71,7 @@ const Extract = struct {
 
 const Options = struct {
     awiz: enum { raw, decode },
+    mult: enum { raw, decode },
 };
 
 pub fn run(gpa: std.mem.Allocator, args: Extract) !void {
@@ -446,7 +455,7 @@ fn extractRoom(
 
     try lflf_blocks.finish(lflf_end);
 
-    var room_scu_path_buf: [255 + ".scu\x00".len]u8 = undefined;
+    var room_scu_path_buf: [parser.max_room_name_len + ".scu\x00".len]u8 = undefined;
     const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
     try fs.writeFileZ(output_dir, room_scu_path, room_code.items);
 
@@ -586,12 +595,21 @@ fn extractGlob(
     decode: switch (block.id) {
         blockId("AWIZ") => {
             if (options.awiz != .decode) break :decode;
-            if (extractAwiz(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code)) {
-                return;
-            } else |err| if (err == error.Reported) {
-                diagnostic.warn(0, "decode error, falling back to raw", .{});
-                break :decode;
-            } else return err;
+            if (extractAwiz(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code))
+                return
+            else |err| if (err == error.Reported)
+                diagnostic.warn(0, "decode error, falling back to raw", .{})
+            else
+                return err;
+        },
+        blockId("MULT") => {
+            if (options.mult != .decode) break :decode;
+            if (mult.extract(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code))
+                return
+            else |err| if (err == error.Reported)
+                diagnostic.warn(0, "decode error, falling back to raw", .{})
+            else
+                return err;
         },
         else => {},
     }
@@ -621,7 +639,7 @@ fn extractAwiz(
         "image{:0>4}.bmp",
         .{glob_number},
     ) catch unreachable;
-    try awiz.extractChildren(gpa, output_dir, output_path, code, &decoded, bmp_path);
+    try awiz.extractChildren(gpa, output_dir, output_path, code, &decoded, bmp_path, 4);
 
     try code.appendSlice(gpa, "}\n");
 }

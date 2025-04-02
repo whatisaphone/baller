@@ -117,6 +117,7 @@ fn emitRoom(
             .raw_glob_file => |*n| try emitRawGlobFile(gpa, project_dir, out, fixups, index, room.room_number, n),
             .raw_glob_block => |*n| try emitRawGlobBlock(gpa, project_dir, project, out, fixups, index, room.room_number, n),
             .awiz => |*n| try emitAwiz(gpa, project_dir, project, awiz_strategy, out, fixups, index, room.room_number, n),
+            .mult => |*n| try emitMult(gpa, project_dir, project, awiz_strategy, out, fixups, index, room.room_number, n),
             else => unreachable,
         }
     }
@@ -135,11 +136,28 @@ fn emitAwiz(
     room_number: u8,
     awiz_node: *const @FieldType(parser.Node, "awiz"),
 ) !void {
+    const start: u32 = @intCast(out.bytes_written);
+    try emitAwizBlock(gpa, project_dir, project, strategy, out, fixups, room_number, awiz_node.children);
+    const end: u32 = @intCast(out.bytes_written);
+    const size = end - start;
+    try addGlobToIndex(gpa, index, room_number, blockId("AWIZ"), awiz_node.glob_number, start, size);
+}
+
+fn emitAwizBlock(
+    gpa: std.mem.Allocator,
+    project_dir: std.fs.Dir,
+    project: *const Project,
+    strategy: awiz.EncodingStrategy,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    room_number: u8,
+    children: parser.ExtraSlice,
+) !void {
     var the_awiz: awiz.Awiz = .{};
     defer the_awiz.deinit(gpa);
 
     const room_file = &project.files.items[room_number].?;
-    for (room_file.ast.getExtra(awiz_node.children)) |node| {
+    for (room_file.ast.getExtra(children)) |node| {
         const child_node = &room_file.ast.nodes.items[node];
         switch (child_node.*) {
             .awiz_rgbs => {
@@ -169,10 +187,56 @@ fn emitAwiz(
     const start = try beginBlock(out, "AWIZ");
     try awiz.encode(&the_awiz, strategy, out, fixups);
     try endBlock(out, fixups, start);
-    const end: u32 = @intCast(out.bytes_written);
-    const size = end - start;
+}
 
-    try addGlobToIndex(gpa, index, room_number, blockId("AWIZ"), awiz_node.glob_number, start, size);
+fn emitMult(
+    gpa: std.mem.Allocator,
+    project_dir: std.fs.Dir,
+    project: *const Project,
+    strategy: awiz.EncodingStrategy,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    index: *Index,
+    room_number: u8,
+    mult_node: *const @FieldType(parser.Node, "mult"),
+) !void {
+    const room_file = &project.files.items[room_number].?;
+
+    const mult_start = try beginBlock(out, "MULT");
+
+    if (mult_node.raw_defa_path) |path|
+        try emitFileAsBlock(project_dir, out, fixups, blockId("DEFA"), path);
+
+    const wrap_start = try beginBlock(out, "WRAP");
+
+    const offs_start = try beginBlock(out, "OFFS");
+    // just write garbage bytes for now, they'll be replaced at the end
+    try out.writer().writeAll(std.mem.sliceAsBytes(room_file.ast.getExtra(mult_node.indices)));
+    try endBlock(out, fixups, offs_start);
+
+    var awiz_offsets: std.BoundedArray(u32, parser.max_mult_children) = .{};
+    for (room_file.ast.getExtra(mult_node.children)) |node| {
+        awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
+        const wiz = &room_file.ast.nodes.items[node].mult_awiz;
+        try emitAwizBlock(gpa, project_dir, project, strategy, out, fixups, room_number, wiz.children);
+    }
+
+    var off_pos = offs_start + block_header_size;
+    for (room_file.ast.getExtra(mult_node.indices)) |i| {
+        try fixups.append(.{
+            .offset = off_pos,
+            .bytes = Fixup.encode(awiz_offsets.get(i), .little),
+        });
+        off_pos += 4;
+    }
+
+    try endBlock(out, fixups, wrap_start);
+
+    try endBlock(out, fixups, mult_start);
+    const mult_end: u32 = @intCast(out.bytes_written);
+    const mult_size = mult_end - mult_start;
+
+    try addGlobToIndex(gpa, index, room_number, blockId("MULT"), mult_node.glob_number, mult_start, mult_size);
 }
 
 fn emitRawBlock(

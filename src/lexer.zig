@@ -34,6 +34,9 @@ pub const Token = struct {
     pub const Kind = enum {
         eof,
         newline,
+        comma,
+        bracket_l,
+        bracket_r,
         brace_l,
         brace_r,
         integer,
@@ -44,6 +47,9 @@ pub const Token = struct {
             return switch (self) {
                 .eof => "<eof>",
                 .newline => "<newline>",
+                .comma => "','",
+                .bracket_l => "'['",
+                .bracket_r => "']'",
                 .brace_l => "'{'",
                 .brace_r => "'}'",
                 .integer => "<integer>",
@@ -86,6 +92,12 @@ pub fn run(
         const ch = consumeChar(&state) orelse break;
         if (ch == '\n') {
             try appendToken(&state, loc, .newline);
+        } else if (ch == ',') {
+            try appendToken(&state, loc, .comma);
+        } else if (ch == '[') {
+            try appendToken(&state, loc, .bracket_l);
+        } else if (ch == ']') {
+            try appendToken(&state, loc, .bracket_r);
         } else if (ch == '{') {
             try appendToken(&state, loc, .brace_l);
         } else if (ch == '}') {
