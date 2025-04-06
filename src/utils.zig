@@ -131,3 +131,14 @@ pub fn growMultiArrayList(
     while (xs.len < minimum_len)
         xs.appendAssumeCapacity(fill);
 }
+
+pub fn growBoundedArray(
+    /// `*std.BoundedArray(any, any)`
+    xs: anytype,
+    minimum_len: usize,
+    fill: @typeInfo(@FieldType(@typeInfo(@TypeOf(xs)).pointer.child, "buffer")).array.child,
+) void {
+    if (xs.len >= minimum_len) return;
+    @memset(xs.buffer[xs.len..minimum_len], fill);
+    xs.len = minimum_len;
+}

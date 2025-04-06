@@ -16,6 +16,7 @@ const io = @import("io.zig");
 const mult = @import("mult.zig");
 const parser = @import("parser.zig");
 const pathf = @import("pathf.zig");
+const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
@@ -411,6 +412,14 @@ fn extractDisk(
     try code.appendSlice(gpa, "}\n");
 }
 
+const max_room_code_chunks = 2048;
+
+const Event = union(enum) {
+    end,
+    err,
+    code_chunk: struct { index: u32, code: std.ArrayListUnmanaged(u8) },
+};
+
 fn extractRoom(
     gpa: std.mem.Allocator,
     options: Options,
@@ -431,38 +440,103 @@ fn extractRoom(
             break @intCast(i);
     } else return error.BadData;
 
-    const room_name = index.room_names.get(room_number);
-    try fs.makeDirIfNotExist(output_dir, room_name);
-    var room_dir = try output_dir.openDir(room_name, .{});
-    defer room_dir.close();
+    var pool: std.Thread.Pool = undefined;
+    try pool.init(.{ .allocator = gpa });
+    defer pool.deinit();
 
-    var room_code: std.ArrayListUnmanaged(u8) = .empty;
-    defer room_code.deinit(gpa);
+    var events: sync.Channel(Event, 16) = .init;
+
+    try pool.spawn(readRoomJob, .{ gpa, options, index, in, diagnostic, lflf_end, room_number, output_dir, &pool, &events });
+
+    try emitRoom(gpa, index, diagnostic, room_number, output_dir, project_code, &events);
+}
+
+fn readRoomJob(
+    gpa: std.mem.Allocator,
+    options: Options,
+    index: *const Index,
+    in: anytype,
+    diagnostic: *const Diagnostic,
+    lflf_end: u32,
+    room_number: u8,
+    output_dir: std.fs.Dir,
+    pool: *std.Thread.Pool,
+    events: *sync.Channel(Event, 16),
+) void {
+    // store this a level up so it outlives the jobs
+    var room_dir: ?std.fs.Dir = null;
+    defer if (room_dir) |*d| d.close();
+
+    var pending_jobs: std.atomic.Value(u32) = .init(0);
+
+    readRoomInner(gpa, options, index, in, diagnostic, lflf_end, room_number, output_dir, &room_dir, pool, events, &pending_jobs) catch {
+        diagnostic.err(@intCast(in.bytes_read), "error reading room", .{});
+        events.send(.err);
+    };
+
+    diagnostic.trace(@intCast(in.bytes_read), "waiting for jobs", .{});
+    while (true) {
+        const pending = pending_jobs.load(.acquire);
+        if (pending == 0) break;
+        std.Thread.Futex.wait(&pending_jobs, pending);
+    }
+    diagnostic.trace(@intCast(in.bytes_read), "all jobs finished", .{});
+
+    events.send(.end);
+}
+
+fn readRoomInner(
+    gpa: std.mem.Allocator,
+    options: Options,
+    index: *const Index,
+    in: anytype,
+    diagnostic: *const Diagnostic,
+    lflf_end: u32,
+    room_number: u8,
+    output_dir: std.fs.Dir,
+    room_dir: *?std.fs.Dir,
+    pool: *std.Thread.Pool,
+    events: *sync.Channel(Event, 16),
+    pending_jobs: *std.atomic.Value(u32),
+) !void {
+    var next_chunk_index: u16 = 0;
+
+    const room_path = index.room_names.get(room_number);
+    try fs.makeDirIfNotExist(output_dir, room_path);
+    room_dir.* = try output_dir.openDir(room_path, .{});
 
     var lflf_blocks = streamingBlockReader(in, diagnostic);
 
     {
+        const chunk_index = next_chunk_index;
+        next_chunk_index += 1;
+        std.debug.assert(next_chunk_index < max_room_code_chunks);
+
         const rmim = try lflf_blocks.expect("RMIM").block();
-        try extractRawGlob(gpa, index, in, room_number, &rmim, room_dir, room_name, &room_code);
+        var code: std.ArrayListUnmanaged(u8) = .empty;
+        errdefer code.deinit(gpa);
+        try extractRawGlob(gpa, index, in, room_number, &rmim, room_dir.*.?, room_path, &code);
+        events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
     }
 
-    const room_palette = try extractRmda(gpa, in, diagnostic, &lflf_blocks, room_number, room_dir, room_name, &room_code);
+    const room_palette = room_palette: {
+        const chunk_index = next_chunk_index;
+        next_chunk_index += 1;
+        std.debug.assert(next_chunk_index < max_room_code_chunks);
+
+        var code: std.ArrayListUnmanaged(u8) = .empty;
+        errdefer code.deinit(gpa);
+        const room_palette = try extractRmda(gpa, in, diagnostic, &lflf_blocks, room_number, room_dir.*.?, room_path, &code);
+        events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+        break :room_palette room_palette;
+    };
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractGlob(gpa, options, index, diagnostic, room_number, &room_palette, in, room_dir, room_name, &room_code, &block);
+        try extractGlob(gpa, options, index, diagnostic, room_number, &room_palette, in, room_dir.*.?, room_path, &block, pool, events, pending_jobs, &next_chunk_index);
     }
 
     try lflf_blocks.finish(lflf_end);
-
-    var room_scu_path_buf: [parser.max_room_name_len + ".scu\x00".len]u8 = undefined;
-    const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
-    try fs.writeFileZ(output_dir, room_scu_path, room_code.items);
-
-    try project_code.writer(gpa).print(
-        "    room {} \"{s}\" \"{s}\"\n",
-        .{ room_number, room_name, room_scu_path },
-    );
 }
 
 fn extractRmda(
@@ -570,52 +644,118 @@ fn extractGlob(
     gpa: std.mem.Allocator,
     options: Options,
     index: *const Index,
-    outer_diagnostic: *const Diagnostic,
+    diagnostic: *const Diagnostic,
     room_number: u8,
     room_palette: *const [0x300]u8,
     in: anytype,
     room_dir: std.fs.Dir,
     room_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
     block: *const Block,
+    pool: *std.Thread.Pool,
+    events: *sync.Channel(Event, 16),
+    pending_jobs: *std.atomic.Value(u32),
+    next_chunk_index: *u16,
+) !void {
+    const raw = try gpa.alloc(u8, block.size);
+    errdefer gpa.free(raw);
+    try in.reader().readNoEof(raw);
+
+    const chunk_index = next_chunk_index.*;
+    next_chunk_index.* += 1;
+    if (next_chunk_index.* >= max_room_code_chunks) return error.Overflow;
+
+    _ = pending_jobs.fetchAdd(1, .monotonic);
+    try pool.spawn(extractGlobJob, .{ gpa, options, index, diagnostic, room_number, room_dir, room_path, room_palette, block.*, raw, events, pending_jobs, chunk_index });
+}
+
+fn extractGlobJob(
+    gpa: std.mem.Allocator,
+    options: Options,
+    index: *const Index,
+    diagnostic: *const Diagnostic,
+    room_number: u8,
+    room_dir: std.fs.Dir,
+    room_path: []const u8,
+    room_palette: *const [0x300]u8,
+    block: Block,
+    raw: []const u8,
+    events: *sync.Channel(Event, 16),
+    pending_jobs: *std.atomic.Value(u32),
+    chunk_index: u16,
+) void {
+    defer gpa.free(raw);
+
+    extractGlobInner(gpa, options, index, diagnostic, room_number, room_dir, room_path, room_palette, &block, raw, events, chunk_index) catch {
+        diagnostic.err(block.offset(), "error extracting glob", .{});
+        events.send(.err);
+    };
+
+    const prev_pending = pending_jobs.fetchSub(1, .monotonic);
+    if (prev_pending == 1)
+        std.Thread.Futex.wake(pending_jobs, 1);
+}
+
+fn extractGlobInner(
+    gpa: std.mem.Allocator,
+    options: Options,
+    index: *const Index,
+    outer_diagnostic: *const Diagnostic,
+    room_number: u8,
+    room_dir: std.fs.Dir,
+    room_path: []const u8,
+    room_palette: *const [0x300]u8,
+    block: *const Block,
+    raw: []const u8,
+    events: *sync.Channel(Event, 16),
+    chunk_index: u16,
 ) !void {
     const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
         return error.BadData;
     outer_diagnostic.trace(block.offset(), "glob number {}", .{glob_number});
-
-    const raw = try gpa.alloc(u8, block.size);
-    defer gpa.free(raw);
-    try in.reader().readNoEof(raw);
 
     const diagnostic: Diagnostic = .{
         .path = outer_diagnostic.path,
         .offset = outer_diagnostic.offset + block.start,
     };
 
-    decode: switch (block.id) {
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(gpa);
+
+    const decode: enum { skipped, ok, fallback } = decode: switch (block.id) {
         blockId("AWIZ") => {
-            if (options.awiz != .decode) break :decode;
-            if (extractAwiz(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code))
-                return
+            if (options.awiz != .decode) break :decode .skipped;
+            if (extractAwiz(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, &code))
+                break :decode .ok
             else |err| if (err == error.Reported)
-                diagnostic.warn(0, "decode error, falling back to raw", .{})
+                break :decode .fallback
             else
                 return err;
         },
         blockId("MULT") => {
-            if (options.mult != .decode) break :decode;
-            if (mult.extract(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, code))
-                return
+            if (options.mult != .decode) break :decode .skipped;
+            if (mult.extract(gpa, &diagnostic, glob_number, raw, room_palette, room_dir, room_path, &code))
+                break :decode .ok
             else |err| if (err == error.Reported)
-                diagnostic.warn(0, "decode error, falling back to raw", .{})
+                break :decode .fallback
             else
                 return err;
         },
-        else => {},
+        else => .skipped,
+    };
+    switch (decode) {
+        .ok => {
+            events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+            return;
+        },
+        .skipped => {},
+        .fallback => {
+            diagnostic.warn(0, "decode error, falling back to raw", .{});
+        },
     }
 
-    // If we falied to decode, then extract it as raw instead
-    try writeRawGlob(gpa, index, room_number, block, raw, room_dir, room_path, code);
+    try writeRawGlob(gpa, index, room_number, block, raw, room_dir, room_path, &code);
+
+    events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
 }
 
 fn extractAwiz(
@@ -744,4 +884,54 @@ fn writeRawBlock(
         "    raw-block \"{s}\" \"{s}/{s}\"\n",
         .{ fmtBlockId(&block.id), output_path, filename },
     );
+}
+
+fn emitRoom(
+    gpa: std.mem.Allocator,
+    index: *const Index,
+    diagnostic: *const Diagnostic,
+    room_number: u8,
+    output_dir: std.fs.Dir,
+    project_code: *std.ArrayListUnmanaged(u8),
+    events: *sync.Channel(Event, 16),
+) !void {
+    var code_chunks: std.BoundedArray(std.ArrayListUnmanaged(u8), max_room_code_chunks) = .{};
+    defer for (code_chunks.slice()) |*chunk| chunk.deinit(gpa);
+
+    var ok = true;
+    while (true) switch (events.receive()) {
+        .end => break,
+        .err => ok = false,
+        .code_chunk => |chunk| {
+            utils.growBoundedArray(&code_chunks, chunk.index + 1, .empty);
+            std.debug.assert(code_chunks.get(chunk.index).items.len == 0);
+            code_chunks.set(chunk.index, chunk.code);
+        },
+    };
+
+    const room_name = index.room_names.get(room_number);
+    var room_scu_path_buf: [parser.max_room_name_len + ".scu".len + 1]u8 = undefined;
+    const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
+
+    try project_code.writer(gpa).print(
+        "    room {} \"{s}\" \"{s}\"\n",
+        .{ room_number, room_name, room_scu_path },
+    );
+
+    const room_scu = try output_dir.createFileZ(room_scu_path, .{});
+    defer room_scu.close();
+
+    if (!ok)
+        try room_scu.writeAll("#error while extracting room; this file is incomplete!\n\n");
+
+    var iovecs_buf: [max_room_code_chunks]std.posix.iovec_const = undefined;
+    const iovecs = iovecs_buf[0..code_chunks.len];
+    for (iovecs, code_chunks.slice()) |*iovec, *chunk|
+        iovec.* = .{ .base = chunk.items.ptr, .len = chunk.items.len };
+    try room_scu.writevAll(iovecs);
+
+    if (!ok) {
+        diagnostic.err(null, "error extracting room", .{});
+        return error.Reported;
+    }
 }
