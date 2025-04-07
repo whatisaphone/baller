@@ -1,10 +1,7 @@
 const std = @import("std");
 
-const Project = @import("Project.zig");
-const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
-const block_header_size = @import("block_reader.zig").block_header_size;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
@@ -14,51 +11,81 @@ const xor_key = @import("build.zig").xor_key;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const parser = @import("parser.zig");
 const pathf = @import("pathf.zig");
+const plan = @import("plan.zig");
+const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
 pub fn run(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     game: games.Game,
-    project: *const Project,
-    awiz_strategy: awiz.EncodingStrategy,
+    events: *sync.Channel(plan.Event, 16),
 ) !void {
+    var receiver: OrderedReceiver = .init(events);
+    defer receiver.deinit(gpa);
+
     var index: Index = try .init(gpa);
     defer index.deinit(gpa);
 
-    for (0..games.numberOfDisks(game)) |disk_index| {
-        const disk_number: u8 = @intCast(disk_index + 1);
-        try emitDisk(gpa, project_dir, output_dir, index_name, game, project, awiz_strategy, disk_number, &index);
+    while (true) switch (try receiver.next(gpa)) {
+        .disk_start => |num| try emitDisk(gpa, output_dir, index_name, game, &receiver, num, &index),
+        .index_start => try emitIndex(gpa, &receiver, output_dir, index_name, &index),
+        .project_end => break,
+        .err => return error.Reported,
+        else => unreachable,
+    };
+}
+
+const OrderedReceiver = struct {
+    channel: *sync.Channel(plan.Event, 16),
+    // TODO: optimize mem usage
+    buffer: std.ArrayListUnmanaged(?plan.Payload),
+    index: u16,
+
+    fn init(channel: *sync.Channel(plan.Event, 16)) OrderedReceiver {
+        return .{
+            .channel = channel,
+            .buffer = .empty,
+            .index = 0,
+        };
     }
 
-    const project_file = &project.files.items[0].?;
-    try emitIndex(gpa, project_dir, output_dir, index_name, &project_file.ast, &index);
-}
+    fn deinit(self: *OrderedReceiver, gpa: std.mem.Allocator) void {
+        self.buffer.deinit(gpa);
+    }
+
+    fn next(self: *OrderedReceiver, gpa: std.mem.Allocator) !plan.Payload {
+        while (true) {
+            if (self.index < self.buffer.items.len) {
+                if (self.buffer.items[self.index]) |result| {
+                    self.index += 1;
+                    return result;
+                }
+            }
+
+            try self.receive(gpa);
+        }
+    }
+
+    fn receive(self: *OrderedReceiver, gpa: std.mem.Allocator) !void {
+        const event = self.channel.receive();
+        try utils.growArrayList(?plan.Payload, &self.buffer, gpa, event.index + 1, null);
+        std.debug.assert(self.buffer.items[event.index] == null);
+        self.buffer.items[event.index] = event.payload;
+    }
+};
 
 fn emitDisk(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     game: games.Game,
-    project: *const Project,
-    awiz_strategy: awiz.EncodingStrategy,
+    receiver: *OrderedReceiver,
     disk_number: u8,
     index: *Index,
 ) !void {
-    const project_file = &project.files.items[0].?;
-    const root = &project_file.ast.nodes.items[project_file.ast.root].project;
-    const disks = project_file.ast.getExtra(root.disks);
-    const disk_index = disk_number - 1;
-    const disk_node = disks[disk_index];
-    if (disk_node == parser.null_node)
-        return;
-    const disk = &project_file.ast.nodes.items[disk_node].disk;
-
     var out_name_buf: pathf.Path = .{};
     const out_name = try pathf.append(&out_name_buf, index_name);
     games.pointPathToDisk(game, out_name.full(), disk_number);
@@ -74,14 +101,12 @@ fn emitDisk(
 
     const lecf_start = try beginBlock(&out, "LECF");
 
-    const child_nodes = project_file.ast.getExtra(disk.children);
-    for (child_nodes) |child_node| {
-        switch (project_file.ast.nodes.items[child_node]) {
-            .disk_room => |*node| try emitRoom(gpa, project_dir, project, awiz_strategy, disk_number, &out, &fixups, node, index),
-            .raw_block => |*node| try emitRawBlock(project_dir, &out, &fixups, node),
-            else => unreachable,
-        }
-    }
+    while (true) switch (try receiver.next(gpa)) {
+        .room_start => |room_number| try emitRoom(gpa, receiver, disk_number, &out, &fixups, room_number, index),
+        .disk_end => break,
+        .err => return error.Reported,
+        else => unreachable,
+    };
 
     try endBlock(&out, &fixups, lecf_start);
 
@@ -92,202 +117,86 @@ fn emitDisk(
 
 fn emitRoom(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
-    project: *const Project,
-    awiz_strategy: awiz.EncodingStrategy,
+    receiver: *OrderedReceiver,
     disk_number: u8,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
-    room: *const @FieldType(parser.Node, "disk_room"),
+    room_number: u8,
     index: *Index,
 ) !void {
     const lflf_start = try beginBlock(out, "LFLF");
 
-    try utils.growMultiArrayList(Room, &index.rooms, gpa, room.room_number + 1, .zero);
-    index.rooms.set(room.room_number, .{
+    try utils.growMultiArrayList(Room, &index.rooms, gpa, room_number + 1, .zero);
+    index.rooms.set(room_number, .{
         .offset = @intCast(out.bytes_written),
         .disk = disk_number,
     });
 
-    const room_file = &project.files.items[room.room_number].?;
-    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
-    for (room_file.ast.getExtra(root.children)) |child_node| {
-        switch (room_file.ast.nodes.items[child_node]) {
-            .raw_block => |*n| try emitRawBlock(project_dir, out, fixups, n),
-            .raw_glob_file => |*n| try emitRawGlobFile(gpa, project_dir, out, fixups, index, room.room_number, n),
-            .raw_glob_block => |*n| try emitRawGlobBlock(gpa, project_dir, project, out, fixups, index, room.room_number, n),
-            .awiz => |*n| try emitAwiz(gpa, project_dir, project, awiz_strategy, out, fixups, index, room.room_number, n),
-            .mult => |*n| try emitMult(gpa, project_dir, project, awiz_strategy, out, fixups, index, room.room_number, n),
-            else => unreachable,
-        }
-    }
+    while (true) switch (try receiver.next(gpa)) {
+        .glob => |*b| try emitGlob(gpa, out, fixups, index, room_number, b),
+        .glob_start => |*b| try emitGlobBlock(gpa, receiver, out, fixups, index, room_number, b),
+        .room_end => break,
+        .err => return error.Reported,
+        else => unreachable,
+    };
 
     try endBlock(out, fixups, lflf_start);
 }
 
-fn emitAwiz(
-    gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
-    project: *const Project,
-    strategy: awiz.EncodingStrategy,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
-    index: *Index,
-    room_number: u8,
-    awiz_node: *const @FieldType(parser.Node, "awiz"),
-) !void {
-    const start: u32 = @intCast(out.bytes_written);
-    try emitAwizBlock(gpa, project_dir, project, strategy, out, fixups, room_number, awiz_node.children);
-    const end: u32 = @intCast(out.bytes_written);
-    const size = end - start;
-    try addGlobToIndex(gpa, index, room_number, blockId("AWIZ"), awiz_node.glob_number, start, size);
-}
-
-fn emitAwizBlock(
-    gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
-    project: *const Project,
-    strategy: awiz.EncodingStrategy,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
-    room_number: u8,
-    children: parser.ExtraSlice,
-) !void {
-    var the_awiz: awiz.Awiz = .{};
-    defer the_awiz.deinit(gpa);
-
-    const room_file = &project.files.items[room_number].?;
-    for (room_file.ast.getExtra(children)) |node| {
-        const child_node = &room_file.ast.nodes.items[node];
-        switch (child_node.*) {
-            .awiz_rgbs => {
-                the_awiz.blocks.append(.rgbs) catch unreachable;
-            },
-            .awiz_two_ints => |ti| {
-                the_awiz.blocks.append(.{ .two_ints = .{
-                    .id = ti.block_id,
-                    .ints = ti.ints,
-                } }) catch unreachable;
-            },
-            .awiz_wizh => {
-                the_awiz.blocks.append(.wizh) catch unreachable;
-            },
-            .awiz_bmp => |wizd| {
-                const awiz_raw = try fs.readFile(gpa, project_dir, wizd.path);
-                const awiz_raw_arraylist: std.ArrayListUnmanaged(u8) = .fromOwnedSlice(awiz_raw);
-                the_awiz.blocks.append(.{ .wizd = .{
-                    .compression = wizd.compression,
-                    .bmp = awiz_raw_arraylist,
-                } }) catch unreachable;
-            },
-            else => unreachable,
-        }
-    }
-
-    const start = try beginBlock(out, "AWIZ");
-    try awiz.encode(&the_awiz, strategy, out, fixups);
-    try endBlock(out, fixups, start);
-}
-
-fn emitMult(
-    gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
-    project: *const Project,
-    strategy: awiz.EncodingStrategy,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
-    index: *Index,
-    room_number: u8,
-    mult_node: *const @FieldType(parser.Node, "mult"),
-) !void {
-    const room_file = &project.files.items[room_number].?;
-
-    const mult_start = try beginBlock(out, "MULT");
-
-    if (mult_node.raw_defa_path) |path|
-        try emitFileAsBlock(project_dir, out, fixups, blockId("DEFA"), path);
-
-    const wrap_start = try beginBlock(out, "WRAP");
-
-    const offs_start = try beginBlock(out, "OFFS");
-    // just write garbage bytes for now, they'll be replaced at the end
-    try out.writer().writeAll(std.mem.sliceAsBytes(room_file.ast.getExtra(mult_node.indices)));
-    try endBlock(out, fixups, offs_start);
-
-    var awiz_offsets: std.BoundedArray(u32, parser.max_mult_children) = .{};
-    for (room_file.ast.getExtra(mult_node.children)) |node| {
-        awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
-        const wiz = &room_file.ast.nodes.items[node].mult_awiz;
-        try emitAwizBlock(gpa, project_dir, project, strategy, out, fixups, room_number, wiz.children);
-    }
-
-    var off_pos = offs_start + block_header_size;
-    for (room_file.ast.getExtra(mult_node.indices)) |i| {
-        try fixups.append(.{
-            .offset = off_pos,
-            .bytes = Fixup.encode(awiz_offsets.get(i), .little),
-        });
-        off_pos += 4;
-    }
-
-    try endBlock(out, fixups, wrap_start);
-
-    try endBlock(out, fixups, mult_start);
-    const mult_end: u32 = @intCast(out.bytes_written);
-    const mult_size = mult_end - mult_start;
-
-    try addGlobToIndex(gpa, index, room_number, blockId("MULT"), mult_node.glob_number, mult_start, mult_size);
-}
-
 fn emitRawBlock(
-    project_dir: std.fs.Dir,
+    gpa: std.mem.Allocator,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
-    raw_block: *const @FieldType(parser.Node, "raw_block"),
+    raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
-    try emitFileAsBlock(project_dir, out, fixups, raw_block.block_id, raw_block.path);
+    var data_mut = raw_block.data;
+    defer data_mut.deinit(gpa);
+
+    try writeBlock(out, fixups, raw_block.block_id, raw_block.data.items);
 }
 
-fn emitRawGlobFile(
+fn emitGlob(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     index: *Index,
     room_number: u8,
-    raw_glob: *const @FieldType(parser.Node, "raw_glob_file"),
+    glob: *const @FieldType(plan.Payload, "glob"),
 ) !void {
+    var data_mut = glob.data;
+    defer data_mut.deinit(gpa);
+
     const start: u32 = @intCast(out.bytes_written);
-    try emitFileAsBlock(project_dir, out, fixups, raw_glob.block_id, raw_glob.path);
+    try writeBlock(out, fixups, glob.block_id, glob.data.items);
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(gpa, index, room_number, raw_glob.block_id, raw_glob.glob_number, start, size);
+    try addGlobToIndex(gpa, index, room_number, glob.block_id, glob.glob_number, start, size);
 }
 
-fn emitRawGlobBlock(
+fn emitGlobBlock(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
-    project: *const Project,
+    receiver: *OrderedReceiver,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     index: *Index,
     room_number: u8,
-    raw_glob: *const @FieldType(parser.Node, "raw_glob_block"),
+    glob: *const @FieldType(plan.Payload, "glob_start"),
 ) !void {
-    const start = try beginBlockImpl(out, raw_glob.block_id);
+    const start = try beginBlockImpl(out, glob.block_id);
 
-    const room_file = &project.files.items[room_number].?;
-    for (room_file.ast.getExtra(raw_glob.children)) |node| {
-        const raw_block = &room_file.ast.nodes.items[node].raw_block;
-        try emitRawBlock(project_dir, out, fixups, raw_block);
-    }
+    while (true) switch (try receiver.next(gpa)) {
+        .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
+        .glob_end => break,
+        .err => return error.Reported,
+        else => unreachable,
+    };
 
     try endBlock(out, fixups, start);
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(gpa, index, room_number, raw_glob.block_id, raw_glob.glob_number, start, size);
+    try addGlobToIndex(gpa, index, room_number, glob.block_id, glob.glob_number, start, size);
 }
 
 fn addGlobToIndex(
@@ -322,20 +231,14 @@ fn addGlobToIndex(
     });
 }
 
-fn emitFileAsBlock(
-    project_dir: std.fs.Dir,
+fn writeBlock(
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     block_id: BlockId,
-    path: []const u8,
+    data: []const u8,
 ) !void {
     const start = try beginBlockImpl(out, block_id);
-
-    const in_file = try project_dir.openFile(path, .{});
-    defer in_file.close();
-
-    try io.copy(in_file, out.writer());
-
+    try out.writer().writeAll(data);
     try endBlock(out, fixups, start);
 }
 
@@ -413,10 +316,9 @@ const DirectoryEntry = struct {
 
 fn emitIndex(
     gpa: std.mem.Allocator,
-    project_dir: std.fs.Dir,
+    receiver: *OrderedReceiver,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
-    ast: *const parser.Ast,
     index: *Index,
 ) !void {
     const out_file = try output_dir.createFileZ(index_name, .{});
@@ -435,9 +337,7 @@ fn emitIndex(
     for (index.directories.rooms.items(.room), 0..) |*room, i|
         room.* = @intCast(i);
 
-    const project = &ast.nodes.items[ast.root].project;
-
-    for (ast.getExtra(project.index)) |node| switch (ast.nodes.items[node]) {
+    while (true) switch (try receiver.next(gpa)) {
         .index_block => |id| switch (id) {
             .DIRI => try writeDirectory(&out, &fixups, blockId("DIRI"), &index.directories.room_images),
             .DIRR => try writeDirectory(&out, &fixups, blockId("DIRR"), &index.directories.rooms),
@@ -459,27 +359,11 @@ fn emitIndex(
                 try out.writer().writeAll(index.rooms.items(.disk));
                 try endBlock(&out, &fixups, start);
             },
-            .RNAM => {
-                const start = try beginBlock(&out, "RNAM");
-                for (0..index.rooms.len) |room_number_usize| {
-                    const room_number: u8 = @intCast(room_number_usize);
-                    const room_node = findRoomByNumber(ast, room_number) orelse continue;
-                    const room = &ast.nodes.items[room_node].disk_room;
-                    try out.writer().writeInt(u16, room.room_number, .little);
-                    try out.writer().writeAll(room.name);
-                    try out.writer().writeByte(0);
-                }
-                try out.writer().writeInt(u16, 0, .little);
-                try endBlock(&out, &fixups, start);
-            },
+            .RNAM => unreachable,
         },
-        .raw_block => |rb| {
-            const start = try beginBlockImpl(&out, rb.block_id);
-            const in_file = try project_dir.openFile(rb.path, .{});
-            defer in_file.close();
-            try io.copy(in_file, out.writer());
-            try endBlock(&out, &fixups, start);
-        },
+        .raw_block => |*rb| try emitRawBlock(gpa, &out, &fixups, rb),
+        .index_end => break,
+        .err => return error.Reported,
         else => unreachable,
     };
 
@@ -501,18 +385,4 @@ fn writeDirectory(
     try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
     try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.size)));
     try endBlock(out, fixups, start);
-}
-
-// TODO: move this to analysis phase
-fn findRoomByNumber(ast: *const parser.Ast, room_number: u8) ?parser.NodeIndex {
-    const project = &ast.nodes.items[ast.root].project;
-    for (ast.getExtra(project.disks)) |disk_node| {
-        const disk = &ast.nodes.items[disk_node].disk;
-        for (ast.getExtra(disk.children)) |child_node| {
-            const child = &ast.nodes.items[child_node];
-            if (child.* == .disk_room and child.disk_room.room_number == room_number)
-                return child_node;
-        }
-    }
-    return null;
 }

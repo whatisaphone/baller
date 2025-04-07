@@ -37,6 +37,11 @@ pub const Fixup = struct {
     }
 };
 
+pub fn applyFixups(out: []u8, fixups: []const Fixup) void {
+    for (fixups) |fixup|
+        @memcpy(out[fixup.offset..][0..4], &fixup.bytes);
+}
+
 pub fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
     for (fixups) |fixup| {
         try file.seekTo(fixup.offset);

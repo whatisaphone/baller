@@ -9,6 +9,8 @@ const fs = @import("fs.zig");
 const games = @import("games.zig");
 const lexer = @import("lexer.zig");
 const parser = @import("parser.zig");
+const plan = @import("plan.zig");
+const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
@@ -77,7 +79,16 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
 
     try readRooms(gpa, &project, project_dir);
 
-    try emit.run(gpa, project_dir, output_dir, index_name, game, &project, args.options.awiz_strategy);
+    var pool: std.Thread.Pool = undefined;
+    try pool.init(.{ .allocator = gpa });
+    defer pool.deinit();
+
+    var events: sync.Channel(plan.Event, 16) = .init;
+    var next_event_index: u16 = 0;
+
+    try pool.spawn(plan.run, .{ gpa, project_dir, &project, args.options.awiz_strategy, &pool, &events, &next_event_index });
+
+    try emit.run(gpa, output_dir, index_name, game, &events);
 }
 
 fn addFile(

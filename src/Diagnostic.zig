@@ -31,3 +31,11 @@ fn print(self: *const Diagnostic, offset: ?u32, comptime fmt: []const u8, args: 
 
     std.io.getStdErr().writeAll(buf.slice()) catch {};
 }
+
+pub fn errWithoutLocation(comptime fmt: []const u8, args: anytype) void {
+    var buf: std.BoundedArray(u8, 256) = .{};
+    buf.writer().print(fmt, args) catch {};
+    buf.append('\n') catch {};
+
+    std.io.getStdErr().writeAll(buf.slice()) catch {};
+}
