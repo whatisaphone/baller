@@ -402,7 +402,7 @@ fn BlockResult(Stream: type) type {
             const expected_size = @sizeOf(T);
             if (self.ok.block.size != expected_size) {
                 self.ok.reader.diagnostic.err(
-                    self.ok.block.start,
+                    self.ok.block.start - 4,
                     "block size mismatch: expected {}, found {}",
                     .{ expected_size, self.ok.block.size },
                 );
