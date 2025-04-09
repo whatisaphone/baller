@@ -16,7 +16,7 @@ pub fn main() !u8 {
             try std.io.getStdErr().writeAll(usage);
             return 1;
         }
-        if (err == error.CommandLineReported) {
+        if (err == error.CommandLineReported or err == error.Reported) {
             return 1;
         }
         return err;

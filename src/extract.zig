@@ -1293,17 +1293,19 @@ fn decodeAwizIntoPath(
     path: [*:0]const u8,
     state: *State,
 ) !awiz.Awiz {
-    const diagnostic: Diagnostic = .{
-        .path = "<input>",
+    // just a dummy diag never used, to make this old code compile
+    var diagnostic: Diagnostic = .init(allocator);
+    defer diagnostic.deinit();
+    const diag: Diagnostic.ForBinaryFile = .{
+        .diagnostic = &diagnostic,
+        .path = "",
         .offset = 0,
+        .cap_level = true,
     };
-    var wiz = awiz.decode(allocator, &diagnostic, awiz_raw, rmda_raw, defa_rgbs, .{
+
+    var wiz = awiz.decode(allocator, &diag, awiz_raw, rmda_raw, defa_rgbs, .{
         .hack_skip_uncompressed = state.hack_skip_awiz_uncompressed,
-    }) catch |err| {
-        if (err == error.BadData or err == error.Reported)
-            return error.BlockFallbackToRaw;
-        return err;
-    };
+    }) catch return error.BlockFallbackToRaw;
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {

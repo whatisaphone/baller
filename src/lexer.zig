@@ -62,22 +62,22 @@ pub const Token = struct {
 
 const State = struct {
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForTextFile,
     source: []const u8,
     loc: Loc,
     result: Lex,
 };
 
-pub const LexError = error{ OutOfMemory, Reported };
+pub const LexError = error{ OutOfMemory, AddedToDiagnostic };
 
 pub fn run(
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForTextFile,
     source: []const u8,
 ) LexError!Lex {
     var state: State = .{
         .gpa = gpa,
-        .diagnostic = diagnostic,
+        .diag = diag,
         .source = source,
         .loc = .origin,
         .result = .{
@@ -202,12 +202,9 @@ fn isIdentContinue(ch: u8) bool {
 fn reportError(
     state: *const State,
     loc: Loc,
-    comptime message: []const u8,
+    comptime fmt: []const u8,
     args: anytype,
-) error{Reported} {
-    const out = std.io.getStdErr();
-    out.writer().print("{s}:{}:{}: ", .{ state.diagnostic.path, loc.line, loc.column }) catch {};
-    out.writer().print(message, args) catch {};
-    out.writer().writeByte('\n') catch {};
-    return error.Reported;
+) error{AddedToDiagnostic} {
+    state.diag.err(loc.line, loc.column, fmt, args);
+    return error.AddedToDiagnostic;
 }

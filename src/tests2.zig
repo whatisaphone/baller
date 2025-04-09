@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const build2 = @import("build2.zig");
 const extract2 = @import("extract2.zig");
 const fs = @import("fs.zig");
@@ -9,7 +10,10 @@ const fixture_hashes = @import("tests.zig").fixture_hashes;
 // to the original.
 
 test "Backyard Baseball 2001 round trip raw" {
-    try extract2.run(std.testing.allocator, .{
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+
+    try extract2.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = "/tmp/bb2001",
         .options = .{
@@ -18,7 +22,7 @@ test "Backyard Baseball 2001 round trip raw" {
         },
     });
 
-    try build2.run(std.testing.allocator, .{
+    try build2.run(std.testing.allocator, &diagnostic, .{
         .project_path = "/tmp/bb2001/project.scu",
         .index_path = "/tmp/bb2001build/baseball 2001.he0",
         .options = .{
@@ -36,7 +40,10 @@ test "Backyard Baseball 2001 round trip raw" {
 }
 
 test "Backyard Baseball 2001 round trip decode" {
-    try extract2.run(std.testing.allocator, .{
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+
+    try extract2.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
         .output_path = "/tmp/bb2001",
         .options = .{
@@ -45,7 +52,7 @@ test "Backyard Baseball 2001 round trip decode" {
         },
     });
 
-    try build2.run(std.testing.allocator, .{
+    try build2.run(std.testing.allocator, &diagnostic, .{
         .project_path = "/tmp/bb2001/project.scu",
         .index_path = "/tmp/bb2001build/baseball 2001.he0",
         .options = .{

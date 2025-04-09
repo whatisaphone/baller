@@ -33,13 +33,20 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     const project_path = project_path_opt orelse return cliargs.reportMissing("project");
     const index_path = index_path_opt orelse return cliargs.reportMissing("index");
 
-    try run(gpa, .{
+    var diagnostic: Diagnostic = .init(gpa);
+    defer diagnostic.deinit();
+
+    run(gpa, &diagnostic, .{
         .project_path = project_path,
         .index_path = index_path,
         .options = .{
             .awiz_strategy = .max,
         },
-    });
+    }) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
+    };
+    try diagnostic.writeToStderr();
 }
 
 const Build = struct {
@@ -52,7 +59,7 @@ const Options = struct {
     awiz_strategy: awiz.EncodingStrategy,
 };
 
-pub fn run(gpa: std.mem.Allocator, args: Build) !void {
+pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     const project_path_opt, const project_name = fs.splitPathZ(args.project_path);
     var project_dir = if (project_path_opt) |project_path|
         try std.fs.cwd().openDir(project_path, .{})
@@ -74,10 +81,10 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
     var project: Project = .empty;
     defer project.deinit(gpa);
 
-    const root = try addFile(gpa, project_dir, project_name, parser.parseProject);
+    const root = try addFile(gpa, diagnostic, project_dir, project_name, parser.parseProject);
     try project.files.append(gpa, root);
 
-    try readRooms(gpa, &project, project_dir);
+    try readRooms(gpa, diagnostic, &project, project_dir);
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
@@ -86,29 +93,30 @@ pub fn run(gpa: std.mem.Allocator, args: Build) !void {
     var events: sync.Channel(plan.Event, 16) = .init;
     var next_event_index: u16 = 0;
 
-    try pool.spawn(plan.run, .{ gpa, project_dir, &project, args.options.awiz_strategy, &pool, &events, &next_event_index });
+    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, &pool, &events, &next_event_index });
 
     try emit.run(gpa, output_dir, index_name, game, &events);
 }
 
 fn addFile(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     path: []const u8,
     parseFn: anytype,
 ) !Project.SourceFile {
-    const diagnostic: Diagnostic = .{
+    const diag: Diagnostic.ForTextFile = .{
+        .diagnostic = diagnostic,
         .path = path,
-        .offset = 0,
     };
 
     const source = try fs.readFile(gpa, project_dir, path);
     errdefer gpa.free(source);
 
-    var lex = try lexer.run(gpa, &diagnostic, source);
+    var lex = try lexer.run(gpa, &diag, source);
     errdefer lex.deinit(gpa);
 
-    var ast = try parseFn(gpa, &diagnostic, source, &lex);
+    var ast = try parseFn(gpa, &diag, source, &lex);
     errdefer ast.deinit(gpa);
 
     return .{
@@ -118,7 +126,12 @@ fn addFile(
     };
 }
 
-fn readRooms(gpa: std.mem.Allocator, project: *Project, project_dir: std.fs.Dir) !void {
+fn readRooms(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    project: *Project,
+    project_dir: std.fs.Dir,
+) !void {
     var room_nodes: std.BoundedArray(parser.NodeIndex, 255) = .{};
 
     const project_file = &project.files.items[0].?;
@@ -138,7 +151,7 @@ fn readRooms(gpa: std.mem.Allocator, project: *Project, project_dir: std.fs.Dir)
         if (project.files.items[room.room_number] != null)
             @panic("TODO");
 
-        const file = try addFile(gpa, project_dir, room.path, parser.parseRoom);
+        const file = try addFile(gpa, diagnostic, project_dir, room.path, parser.parseRoom);
         project.files.items[room.room_number] = file;
     }
 }

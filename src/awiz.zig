@@ -51,17 +51,17 @@ const Block = union(enum) {
 
 pub fn decode(
     allocator: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForBinaryFile,
     awiz_raw: []const u8,
     // TODO: merge next two params
     rmda_raw: ?[]const u8,
     defa_rgbs: ?*const [0x300]u8,
     options: struct { hack_skip_uncompressed: bool = false },
-) error{Reported}!Awiz {
+) error{AddedToDiagnostic}!Awiz {
     var stream = std.io.fixedBufferStream(awiz_raw);
-    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs, options) catch {
-        diagnostic.err(@intCast(stream.pos), "general decode failure", .{});
-        return error.Reported;
+    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs, options) catch |err| {
+        diag.zigErr(@intCast(stream.pos), "general decode failure: {s}", .{}, err);
+        return error.AddedToDiagnostic;
     };
 }
 

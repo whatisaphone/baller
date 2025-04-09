@@ -90,24 +90,24 @@ pub const ExtraSlice = struct {
 
 const State = struct {
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForTextFile,
     source: []const u8,
     lex: *const lexer.Lex,
     token_index: u32,
     result: Ast,
 };
 
-const ParseError = error{ OutOfMemory, Reported };
+const ParseError = error{ OutOfMemory, AddedToDiagnostic };
 
 pub fn parseProject(
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForTextFile,
     source: []const u8,
     lex: *const lexer.Lex,
 ) ParseError!Ast {
     var state: State = .{
         .gpa = gpa,
-        .diagnostic = diagnostic,
+        .diag = diag,
         .source = source,
         .lex = lex,
         .token_index = 0,
@@ -256,13 +256,13 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
 
 pub fn parseRoom(
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForTextFile,
     source: []const u8,
     lex: *const lexer.Lex,
 ) ParseError!Ast {
     var state: State = .{
         .gpa = gpa,
-        .diagnostic = diagnostic,
+        .diag = diag,
         .source = source,
         .lex = lex,
         .token_index = 0,
@@ -617,7 +617,7 @@ fn reportExpected(
     state: *State,
     found: *const lexer.Token,
     expected: lexer.Token.Kind,
-) error{Reported} {
+) error{AddedToDiagnostic} {
     return reportError(
         state,
         found.span,
@@ -626,7 +626,7 @@ fn reportExpected(
     );
 }
 
-fn reportUnexpected(state: *State, found: *const lexer.Token) error{Reported} {
+fn reportUnexpected(state: *State, found: *const lexer.Token) error{AddedToDiagnostic} {
     return reportError(state, found.span, "unexpected {s}", .{found.kind.describe()});
 }
 
@@ -635,13 +635,7 @@ fn reportError(
     span: lexer.Span,
     comptime message: []const u8,
     args: anytype,
-) error{Reported} {
-    const out = std.io.getStdErr();
-    out.writer().print(
-        "{s}:{}:{}: ",
-        .{ state.diagnostic.path, span.start.line, span.start.column },
-    ) catch {};
-    out.writer().print(message, args) catch {};
-    out.writer().writeByte('\n') catch {};
-    return error.Reported;
+) error{AddedToDiagnostic} {
+    state.diag.err(span.start.line, span.start.column, message, args);
+    return error.AddedToDiagnostic;
 }

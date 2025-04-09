@@ -38,6 +38,7 @@ pub const Payload = union(enum) {
 
 pub fn run(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -45,9 +46,9 @@ pub fn run(
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
 ) void {
-    planProject(gpa, project_dir, project, awiz_strategy, pool, events, next_event_index) catch |err| {
-        if (err != error.Reported)
-            Diagnostic.errWithoutLocation("unexpected error\n", .{});
+    planProject(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
         sendSyncEvent(events, next_event_index, .err);
     };
 }
@@ -59,6 +60,7 @@ fn sendSyncEvent(events: *sync.Channel(Event, 16), next_event_index: *u16, paylo
 
 fn planProject(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -75,7 +77,7 @@ fn planProject(
         for (project_file.ast.getExtra(disk.children)) |room_node| {
             const room = &project_file.ast.nodes.items[room_node].disk_room;
             sendSyncEvent(events, next_event_index, .{ .room_start = room.room_number });
-            try planRoom(gpa, project_dir, project, awiz_strategy, pool, events, next_event_index, room);
+            try planRoom(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room);
             sendSyncEvent(events, next_event_index, .room_end);
         }
         sendSyncEvent(events, next_event_index, .disk_end);
@@ -88,6 +90,7 @@ fn planProject(
 
 fn planRoom(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -102,8 +105,8 @@ fn planRoom(
         switch (room_file.ast.nodes.items[child_node]) {
             .raw_glob_file => |*n| try planRawGlobFile(gpa, project_dir, events, next_event_index, n),
             .raw_glob_block => |*n| try planRawGlobBlock(gpa, project_dir, project, events, next_event_index, room.room_number, n),
-            .awiz => |*n| try planAwiz(gpa, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
-            .mult => |*n| try planMult(gpa, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
+            .awiz => |*n| try planAwiz(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
+            .mult => |*n| try planMult(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
             else => unreachable,
         }
     }
@@ -167,6 +170,7 @@ fn planRawGlobBlock(
 
 fn planAwiz(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     strategy: awiz.EncodingStrategy,
@@ -179,11 +183,12 @@ fn planAwiz(
     const event_index = next_event_index.*;
     next_event_index.* += 1;
 
-    try pool.spawn(runAwiz, .{ gpa, project_dir, project, strategy, events, event_index, room_number, node });
+    try pool.spawn(runAwiz, .{ gpa, diagnostic, project_dir, project, strategy, events, event_index, room_number, node });
 }
 
 fn runAwiz(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     strategy: awiz.EncodingStrategy,
@@ -193,8 +198,8 @@ fn runAwiz(
     node: *const @FieldType(parser.Node, "awiz"),
 ) void {
     buildAwiz(gpa, project_dir, project, strategy, events, event_index, room_number, node) catch |err| {
-        if (err != error.Reported)
-            Diagnostic.errWithoutLocation("error building {s} {}", .{ "AWIZ", node.glob_number });
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "AWIZ", node.glob_number }, err);
         events.send(.{ .index = event_index, .payload = .err });
     };
 }
@@ -275,6 +280,7 @@ fn buildAwizInner(
 
 fn planMult(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -287,11 +293,12 @@ fn planMult(
     const event_index = next_event_index.*;
     next_event_index.* += 1;
 
-    try pool.spawn(runMult, .{ gpa, project_dir, project, awiz_strategy, events, event_index, room_number, node });
+    try pool.spawn(runMult, .{ gpa, diagnostic, project_dir, project, awiz_strategy, events, event_index, room_number, node });
 }
 
 fn runMult(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -301,8 +308,8 @@ fn runMult(
     node: *const @FieldType(parser.Node, "mult"),
 ) void {
     buildMult(gpa, project_dir, project, awiz_strategy, events, event_index, room_number, node) catch |err| {
-        if (err != error.Reported)
-            Diagnostic.errWithoutLocation("error building {s} {}", .{ "MULT", node.glob_number });
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "MULT", node.glob_number }, err);
         events.send(.{ .index = event_index, .payload = .err });
     };
 }

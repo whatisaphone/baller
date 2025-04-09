@@ -9,7 +9,7 @@ const parser = @import("parser.zig");
 
 pub fn extract(
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     mult_raw: []const u8,
     room_palette: *const [0x300]u8,
@@ -18,15 +18,16 @@ pub fn extract(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var in = std.io.fixedBufferStream(mult_raw);
-    extractMultInner(gpa, diagnostic, glob_number, &in, room_palette, room_dir, room_path, code) catch {
-        diagnostic.err(@intCast(in.pos), "general decode failure", .{});
-        return error.Reported;
+    extractMultInner(gpa, diag, glob_number, &in, room_palette, room_dir, room_path, code) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diag.zigErr(@intCast(in.pos), "unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
     };
 }
 
 fn extractMultInner(
     gpa: std.mem.Allocator,
-    diagnostic: *const Diagnostic,
+    diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     in: *std.io.FixedBufferStream([]const u8),
     room_palette: *const [0x300]u8,
@@ -50,7 +51,7 @@ fn extractMultInner(
 
     try code.writer(gpa).print("mult {} {{\n", .{glob_number});
 
-    var mult_blocks = fixedBlockReader2(in, diagnostic);
+    var mult_blocks = fixedBlockReader2(in, diag);
 
     if (try mult_blocks.nextIf("DEFA")) |defa| {
         const defa_raw = try defa.bytes();
@@ -72,7 +73,7 @@ fn extractMultInner(
         try awiz_offsets.append(awiz_offset);
 
         const awiz_raw = try io.readInPlace(in, awiz_block.size);
-        var the_awiz = try awiz.decode(gpa, diagnostic, awiz_raw, null, room_palette, .{});
+        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, null, room_palette, .{});
         defer the_awiz.deinit(gpa);
 
         const first_index = for (offs, 0..) |off, i| {
