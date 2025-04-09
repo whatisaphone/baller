@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const Fixup = @import("block_writer.zig").Fixup;
@@ -18,6 +19,7 @@ const utils = @import("utils.zig");
 
 pub fn run(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     game: games.Game,
@@ -26,12 +28,35 @@ pub fn run(
     var receiver: OrderedReceiver = .init(events);
     defer receiver.deinit(gpa);
 
+    runInner(gpa, output_dir, index_name, game, &receiver) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
+
+        // Consume all events, so the planner threads don't hang trying to send
+        // them, so the thread pool is able to deinit, so the app doesn't hang.
+        // This leaks memory, but it's better than nothing.
+        while (true) switch (try receiver.next(gpa)) {
+            .project_end => break,
+            else => {}, // Memory is leaked here
+        };
+
+        return error.AddedToDiagnostic;
+    };
+}
+
+pub fn runInner(
+    gpa: std.mem.Allocator,
+    output_dir: std.fs.Dir,
+    index_name: [:0]const u8,
+    game: games.Game,
+    receiver: *OrderedReceiver,
+) !void {
     var index: Index = try .init(gpa);
     defer index.deinit(gpa);
 
     while (true) switch (try receiver.next(gpa)) {
-        .disk_start => |num| try emitDisk(gpa, output_dir, index_name, game, &receiver, num, &index),
-        .index_start => try emitIndex(gpa, &receiver, output_dir, index_name, &index),
+        .disk_start => |num| try emitDisk(gpa, output_dir, index_name, game, receiver, num, &index),
+        .index_start => try emitIndex(gpa, receiver, output_dir, index_name, &index),
         .project_end => break,
         .err => return error.Reported,
         else => unreachable,
@@ -218,7 +243,7 @@ fn addGlobToIndex(
         blockId("CHAR") => &index.directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &index.directories.images,
         blockId("TLKE") => &index.directories.talkies,
-        else => unreachable,
+        else => return error.BadData,
     };
     try utils.growMultiArrayList(DirectoryEntry, directory, gpa, glob_number + 1, .zero);
     if (directory.items(.room)[glob_number] != 0)
