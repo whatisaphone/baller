@@ -1,7 +1,7 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const lexer = @import("lexer.zig");
-const parser = @import("parser.zig");
 
 const Project = @This();
 
@@ -24,7 +24,7 @@ pub fn deinit(self: *Project, gpa: std.mem.Allocator) void {
 pub const SourceFile = struct {
     source: []const u8,
     lex: lexer.Lex,
-    ast: parser.Ast,
+    ast: Ast,
 
     fn deinit(self: *SourceFile, gpa: std.mem.Allocator) void {
         self.ast.deinit(gpa);

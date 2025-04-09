@@ -1,11 +1,11 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
 const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const parser = @import("parser.zig");
 
 pub fn extract(
     gpa: std.mem.Allocator,
@@ -35,7 +35,7 @@ fn extractMultInner(
     room_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var mult_path_buf: std.BoundedArray(u8, parser.max_room_name_len + "/image0000".len + 1) = .{};
+    var mult_path_buf: std.BoundedArray(u8, Ast.max_room_name_len + "/image0000".len + 1) = .{};
     mult_path_buf.appendSlice(room_path) catch unreachable;
     mult_path_buf.append('/') catch unreachable;
     const mult_path_basename_start = mult_path_buf.len;
@@ -65,7 +65,7 @@ fn extractMultInner(
     const offs_raw = try io.readInPlace(in, offs_block.size);
     const offs = std.mem.bytesAsSlice(u32, offs_raw);
 
-    var awiz_offsets: std.BoundedArray(u32, parser.max_mult_children) = .{};
+    var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
 
     while (wrap_blocks.stream.pos < wrap_blocks.stream.buffer.len) {
         const awiz_block = try wrap_blocks.expect("AWIZ").block();
@@ -87,7 +87,7 @@ fn extractMultInner(
         try code.appendSlice(gpa, "    }\n");
     }
 
-    var off_indices: std.BoundedArray(u8, parser.max_mult_children) = .{};
+    var off_indices: std.BoundedArray(u8, Ast.max_mult_children) = .{};
     for (offs) |off| {
         const index = std.sort.binarySearch(u32, awiz_offsets.slice(), off, orderU32) orelse
             return error.BadData;

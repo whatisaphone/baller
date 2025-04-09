@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
@@ -132,7 +133,7 @@ fn readRooms(
     project: *Project,
     project_dir: std.fs.Dir,
 ) !void {
-    var room_nodes: std.BoundedArray(parser.NodeIndex, 255) = .{};
+    var room_nodes: std.BoundedArray(Ast.NodeIndex, 255) = .{};
 
     const project_file = &project.files.items[0].?;
     const root = &project_file.ast.nodes.items[project_file.ast.root].project;

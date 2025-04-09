@@ -1,92 +1,11 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
 const lexer = @import("lexer.zig");
-
-pub const max_room_name_len = 255;
-pub const max_mult_children = 256;
-
-pub const Ast = struct {
-    root: NodeIndex,
-    nodes: std.ArrayListUnmanaged(Node),
-    extra: std.ArrayListUnmanaged(u32),
-
-    pub fn deinit(self: *Ast, gpa: std.mem.Allocator) void {
-        self.extra.deinit(gpa);
-        self.nodes.deinit(gpa);
-    }
-
-    pub fn getExtra(self: *const Ast, slice: ExtraSlice) []const u32 {
-        return self.extra.items[slice.start..][0..slice.len];
-    }
-};
-
-pub const NodeIndex = u32;
-pub const null_node: NodeIndex = std.math.maxInt(NodeIndex);
-
-pub const Node = union(enum) {
-    project: struct {
-        index: ExtraSlice,
-        disks: ExtraSlice,
-    },
-    index_block: enum { DIRI, DIRR, DIRS, DIRN, DIRC, DIRF, DIRM, DIRT, DLFL, DISK, RNAM },
-    disk: struct {
-        children: ExtraSlice,
-    },
-    disk_room: struct {
-        room_number: u8,
-        name: []const u8,
-        path: []const u8,
-    },
-    room_file: struct {
-        children: ExtraSlice,
-    },
-    raw_block: struct {
-        block_id: BlockId,
-        path: []const u8,
-    },
-    raw_glob_file: struct {
-        block_id: BlockId,
-        glob_number: u16,
-        path: []const u8,
-    },
-    raw_glob_block: struct {
-        block_id: BlockId,
-        glob_number: u16,
-        children: ExtraSlice,
-    },
-    awiz: struct {
-        glob_number: u16,
-        children: ExtraSlice,
-    },
-    awiz_rgbs,
-    awiz_two_ints: struct {
-        block_id: BlockId,
-        ints: [2]i32,
-    },
-    awiz_wizh,
-    awiz_bmp: struct {
-        compression: awiz.Compression,
-        path: []const u8,
-    },
-    mult: struct {
-        glob_number: u16,
-        raw_defa_path: ?[]const u8,
-        children: ExtraSlice,
-        indices: ExtraSlice,
-    },
-    mult_awiz: struct {
-        children: ExtraSlice,
-    },
-};
-
-pub const ExtraSlice = struct {
-    start: u32,
-    len: u32,
-};
 
 const State = struct {
     gpa: std.mem.Allocator,
@@ -123,9 +42,9 @@ pub fn parseProject(
     return state.result;
 }
 
-fn parseProjectChildren(state: *State) !NodeIndex {
-    var index_children_opt: ?std.BoundedArray(NodeIndex, 16) = null;
-    var disks: [2]NodeIndex = @splat(null_node);
+fn parseProjectChildren(state: *State) !Ast.NodeIndex {
+    var index_children_opt: ?std.BoundedArray(Ast.NodeIndex, 16) = null;
+    var disks: [2]Ast.NodeIndex = @splat(Ast.null_node);
 
     while (true) {
         skipWhitespace(state);
@@ -159,10 +78,10 @@ fn parseProjectChildren(state: *State) !NodeIndex {
     } });
 }
 
-fn parseIndex(state: *State) !std.BoundedArray(NodeIndex, 16) {
+fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
     try expect(state, .brace_l);
 
-    var children: std.BoundedArray(NodeIndex, 16) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 16) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -177,7 +96,7 @@ fn parseIndex(state: *State) !std.BoundedArray(NodeIndex, 16) {
                 } else if (std.mem.eql(u8, identifier, "index-block")) {
                     const block_id_str = try expectString(state);
                     try expect(state, .newline);
-                    const IndexBlock = @FieldType(Node, "index_block");
+                    const IndexBlock = @FieldType(Ast.Node, "index_block");
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
                         return reportError(state, token.span, "unsupported block id", .{});
                     const index_block = try appendNode(state, .{ .index_block = block_id });
@@ -195,17 +114,17 @@ fn parseIndex(state: *State) !std.BoundedArray(NodeIndex, 16) {
     return children;
 }
 
-fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
+fn parseDisk(state: *State, span: lexer.Span, disks: *[2]Ast.NodeIndex) !void {
     const disk_number = try expectInteger(state);
     try expect(state, .brace_l);
 
     if (!(1 <= disk_number and disk_number <= disks.len))
         return reportError(state, span, "disk number out of range", .{});
     const disk_index: u8 = @intCast(disk_number - 1);
-    if (disks[disk_index] != null_node)
+    if (disks[disk_index] != Ast.null_node)
         return reportError(state, span, "duplicate disk number", .{});
 
-    var children: std.BoundedArray(NodeIndex, 32) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 32) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -235,7 +154,7 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]NodeIndex) !void {
     } });
 }
 
-fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
+fn parseDiskRoom(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const room_number_i32 = try expectInteger(state);
     const room_name = try expectString(state);
     const path = try expectString(state);
@@ -244,7 +163,7 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !NodeIndex {
     if (!(1 <= room_number_i32 and room_number_i32 <= 255))
         return reportError(state, span, "room number out of range", .{});
     const room_number: u8 = @intCast(room_number_i32);
-    if (!(1 <= room_name.len and room_name.len <= max_room_name_len))
+    if (!(1 <= room_name.len and room_name.len <= Ast.max_room_name_len))
         return reportError(state, span, "invalid room name", .{});
 
     return appendNode(state, .{ .disk_room = .{
@@ -278,8 +197,8 @@ pub fn parseRoom(
     return state.result;
 }
 
-fn parseRoomChildren(state: *State) !NodeIndex {
-    var children: std.BoundedArray(NodeIndex, 2048) = .{};
+fn parseRoomChildren(state: *State) !Ast.NodeIndex {
+    var children: std.BoundedArray(Ast.NodeIndex, 2048) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -317,7 +236,7 @@ fn parseRoomChildren(state: *State) !NodeIndex {
     } });
 }
 
-fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
+fn parseAwiz(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const glob_number_i32 = try expectInteger(state);
     try expect(state, .brace_l);
 
@@ -332,8 +251,8 @@ fn parseAwiz(state: *State, span: lexer.Span) !NodeIndex {
     } });
 }
 
-fn parseAwizChildren(state: *State) !ExtraSlice {
-    var children: std.BoundedArray(NodeIndex, awiz.Awiz.max_blocks) = .{};
+fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
+    var children: std.BoundedArray(Ast.NodeIndex, awiz.Awiz.max_blocks) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -393,7 +312,7 @@ fn parseAwizChildren(state: *State) !ExtraSlice {
     return appendExtra(state, children.slice());
 }
 
-fn parseMult(state: *State, span: lexer.Span) !NodeIndex {
+fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const glob_number_i32 = try expectInteger(state);
     try expect(state, .brace_l);
 
@@ -401,8 +320,8 @@ fn parseMult(state: *State, span: lexer.Span) !NodeIndex {
         return reportError(state, span, "invalid glob number", .{});
 
     var raw_defa_path: ?[]const u8 = null;
-    var children: std.BoundedArray(NodeIndex, max_mult_children) = .{};
-    var indices_opt: ?ExtraSlice = null;
+    var children: std.BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
+    var indices_opt: ?Ast.ExtraSlice = null;
 
     while (true) {
         skipWhitespace(state);
@@ -453,7 +372,7 @@ fn parseMult(state: *State, span: lexer.Span) !NodeIndex {
     } });
 }
 
-fn parseIntegerList(state: *State) !ExtraSlice {
+fn parseIntegerList(state: *State) !Ast.ExtraSlice {
     var result: std.BoundedArray(u32, 256) = .{};
     while (true) {
         var token = consumeToken(state);
@@ -479,7 +398,7 @@ fn parseIntegerList(state: *State) !ExtraSlice {
     return appendExtra(state, result.slice());
 }
 
-fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
+fn parseRawBlock(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const block_id_str = try expectString(state);
     const path = try expectString(state);
     try expect(state, .newline);
@@ -493,7 +412,7 @@ fn parseRawBlock(state: *State, span: lexer.Span) !NodeIndex {
     } });
 }
 
-fn parseRawGlob(state: *State, span: lexer.Span) !NodeIndex {
+fn parseRawGlob(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const block_id_str = try expectString(state);
     const glob_number_i32 = try expectInteger(state);
 
@@ -515,7 +434,7 @@ fn parseRawGlobFile(
     block_id: BlockId,
     glob_number: u16,
     path_token: *const lexer.Token,
-) !NodeIndex {
+) !Ast.NodeIndex {
     try expect(state, .newline);
 
     const path_source = state.source[path_token.span.start.offset..path_token.span.end.offset];
@@ -528,8 +447,8 @@ fn parseRawGlobFile(
     } });
 }
 
-fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !NodeIndex {
-    var children: std.BoundedArray(NodeIndex, 512) = .{};
+fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.NodeIndex {
+    var children: std.BoundedArray(Ast.NodeIndex, 512) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -557,13 +476,13 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !NodeIn
     } });
 }
 
-fn appendNode(state: *State, node: Node) !NodeIndex {
+fn appendNode(state: *State, node: Ast.Node) !Ast.NodeIndex {
     const result: u32 = @intCast(state.result.nodes.items.len);
     try state.result.nodes.append(state.gpa, node);
     return result;
 }
 
-fn appendExtra(state: *State, items: []const u32) !ExtraSlice {
+fn appendExtra(state: *State, items: []const u32) !Ast.ExtraSlice {
     const start: u32 = @intCast(state.result.extra.items.len);
     const len: u32 = @intCast(items.len);
     try state.result.extra.appendSlice(state.gpa, items);

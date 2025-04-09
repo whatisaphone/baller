@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
@@ -11,7 +12,6 @@ const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
-const parser = @import("parser.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -32,7 +32,7 @@ pub const Payload = union(enum) {
     raw_block: struct { block_id: BlockId, data: std.ArrayListUnmanaged(u8) },
     index_start,
     index_end,
-    index_block: @FieldType(parser.Node, "index_block"),
+    index_block: @FieldType(Ast.Node, "index_block"),
     err,
 };
 
@@ -97,7 +97,7 @@ fn planRoom(
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
-    room: *const @FieldType(parser.Node, "disk_room"),
+    room: *const @FieldType(Ast.Node, "disk_room"),
 ) !void {
     const room_file = &project.files.items[room.room_number].?;
     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
@@ -117,7 +117,7 @@ fn planRawBlock(
     project_dir: std.fs.Dir,
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
-    node: *const @FieldType(parser.Node, "raw_block"),
+    node: *const @FieldType(Ast.Node, "raw_block"),
 ) !void {
     const data = try fs.readFile(gpa, project_dir, node.path);
     errdefer gpa.free(data);
@@ -133,7 +133,7 @@ fn planRawGlobFile(
     project_dir: std.fs.Dir,
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
-    node: *const @FieldType(parser.Node, "raw_glob_file"),
+    node: *const @FieldType(Ast.Node, "raw_glob_file"),
 ) !void {
     const data = try fs.readFile(gpa, project_dir, node.path);
     errdefer gpa.free(data);
@@ -152,7 +152,7 @@ fn planRawGlobBlock(
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
     room_number: u8,
-    glob: *const @FieldType(parser.Node, "raw_glob_block"),
+    glob: *const @FieldType(Ast.Node, "raw_glob_block"),
 ) !void {
     sendSyncEvent(events, next_event_index, .{ .glob_start = .{
         .block_id = glob.block_id,
@@ -178,7 +178,7 @@ fn planAwiz(
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
     room_number: u8,
-    node: *const @FieldType(parser.Node, "awiz"),
+    node: *const @FieldType(Ast.Node, "awiz"),
 ) !void {
     const event_index = next_event_index.*;
     next_event_index.* += 1;
@@ -195,7 +195,7 @@ fn runAwiz(
     events: *sync.Channel(Event, 16),
     event_index: u16,
     room_number: u8,
-    node: *const @FieldType(parser.Node, "awiz"),
+    node: *const @FieldType(Ast.Node, "awiz"),
 ) void {
     buildAwiz(gpa, project_dir, project, strategy, events, event_index, room_number, node) catch |err| {
         if (err != error.AddedToDiagnostic)
@@ -212,7 +212,7 @@ fn buildAwiz(
     events: *sync.Channel(Event, 16),
     event_index: u16,
     room_number: u8,
-    awiz_node: *const @FieldType(parser.Node, "awiz"),
+    awiz_node: *const @FieldType(Ast.Node, "awiz"),
 ) !void {
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(gpa);
@@ -240,7 +240,7 @@ fn buildAwizInner(
     project: *const Project,
     strategy: awiz.EncodingStrategy,
     room_number: u8,
-    children: parser.ExtraSlice,
+    children: Ast.ExtraSlice,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
@@ -288,7 +288,7 @@ fn planMult(
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
     room_number: u8,
-    node: *const @FieldType(parser.Node, "mult"),
+    node: *const @FieldType(Ast.Node, "mult"),
 ) !void {
     const event_index = next_event_index.*;
     next_event_index.* += 1;
@@ -305,7 +305,7 @@ fn runMult(
     events: *sync.Channel(Event, 16),
     event_index: u16,
     room_number: u8,
-    node: *const @FieldType(parser.Node, "mult"),
+    node: *const @FieldType(Ast.Node, "mult"),
 ) void {
     buildMult(gpa, project_dir, project, awiz_strategy, events, event_index, room_number, node) catch |err| {
         if (err != error.AddedToDiagnostic)
@@ -322,7 +322,7 @@ fn buildMult(
     events: *sync.Channel(Event, 16),
     event_index: u16,
     room_number: u8,
-    mult: *const @FieldType(parser.Node, "mult"),
+    mult: *const @FieldType(Ast.Node, "mult"),
 ) !void {
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(gpa);
@@ -350,7 +350,7 @@ fn buildMultInner(
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
     room_number: u8,
-    mult_node: *const @FieldType(parser.Node, "mult"),
+    mult_node: *const @FieldType(Ast.Node, "mult"),
     out: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
@@ -369,7 +369,7 @@ fn buildMultInner(
     try out.writer().writeAll(std.mem.sliceAsBytes(room_file.ast.getExtra(mult_node.indices)));
     try endBlock(out, fixups, offs_start);
 
-    var awiz_offsets: std.BoundedArray(u32, parser.max_mult_children) = .{};
+    var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
     for (room_file.ast.getExtra(mult_node.children)) |node| {
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
@@ -425,7 +425,7 @@ fn planRoomNames(
     errdefer result.deinit(gpa);
 
     // Collect rooms by number
-    var room_nodes: std.BoundedArray(parser.NodeIndex, 256) = .{};
+    var room_nodes: std.BoundedArray(Ast.NodeIndex, 256) = .{};
     const project_file = &project.files.items[0].?;
     const project_root = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(project_root.disks)) |disk_node| {
@@ -434,14 +434,14 @@ fn planRoomNames(
             const child = &project_file.ast.nodes.items[child_node];
             if (child.* != .disk_room) continue;
             const room = &child.disk_room;
-            utils.growBoundedArray(&room_nodes, room.room_number + 1, parser.null_node);
+            utils.growBoundedArray(&room_nodes, room.room_number + 1, Ast.null_node);
             room_nodes.set(room.room_number, child_node);
         }
     }
 
     // Write room names in order
     for (room_nodes.slice()) |room_node| {
-        if (room_node == parser.null_node) continue;
+        if (room_node == Ast.null_node) continue;
         const room = &project_file.ast.nodes.items[room_node].disk_room;
         try result.appendSlice(gpa, std.mem.asBytes(&@as(u16, room.room_number)));
         try result.appendSlice(gpa, room.name);

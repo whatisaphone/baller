@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -14,7 +15,6 @@ const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
 const mult = @import("mult.zig");
-const parser = @import("parser.zig");
 const pathf = @import("pathf.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
@@ -932,7 +932,7 @@ fn emitRoom(
     };
 
     const room_name = index.room_names.get(room_number);
-    var room_scu_path_buf: [parser.max_room_name_len + ".scu".len + 1]u8 = undefined;
+    var room_scu_path_buf: [Ast.max_room_name_len + ".scu".len + 1]u8 = undefined;
     const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
 
     try project_code.writer(gpa).print(
