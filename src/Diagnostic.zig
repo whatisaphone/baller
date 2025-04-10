@@ -74,10 +74,8 @@ fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args:
 fn add(self: *Diagnostic, level: Level, text: []const u8) void {
     if (live_spew) {
         var buf = std.io.bufferedWriter(std.io.getStdErr().writer());
-        buf.writer().print(
-            "[{}] {s} {s}\n",
-            .{ std.Thread.getCurrentId(), level.spewPrefix(), text },
-        ) catch @panic("spew");
+        buf.writer().print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
+        buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text }) catch @panic("spew");
         buf.flush() catch @panic("spew");
     }
 

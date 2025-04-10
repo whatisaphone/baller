@@ -71,6 +71,7 @@ fn planProject(
     const project_file = &project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(project_node.disks), 0..) |disk_node, disk_index| {
+        if (disk_node == Ast.null_node) continue;
         const disk_number: u8 = @intCast(disk_index + 1);
         const disk = &project_file.ast.nodes.items[disk_node].disk;
         sendSyncEvent(events, next_event_index, .{ .disk_start = disk_number });
@@ -429,6 +430,7 @@ fn planRoomNames(
     const project_file = &project.files.items[0].?;
     const project_root = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(project_root.disks)) |disk_node| {
+        if (disk_node == Ast.null_node) continue;
         const disk = &project_file.ast.nodes.items[disk_node].disk;
         for (project_file.ast.getExtra(disk.children)) |child_node| {
             const child = &project_file.ast.nodes.items[child_node];

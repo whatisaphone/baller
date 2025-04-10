@@ -95,12 +95,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     var output_dir = try std.fs.cwd().openDirZ(args.output_path, .{});
     defer output_dir.close();
 
-    const game: games.Game = .baseball_2001;
+    const game = try games.detectGameOrFatal(index_name);
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
-    const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, output_dir, &code);
+    const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
     for (0..games.numberOfDisks(game)) |disk_index| {
@@ -115,11 +115,11 @@ const Index = struct {
     maxs: Maxs,
     directories: Directories,
     lfl_offsets: utils.SafeManyPointer([*]u32),
-    lfl_disks: utils.SafeManyPointer([*]u8),
+    lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)),
     room_names: RoomNames,
 };
 
-const Maxs = struct {
+const Maxs = extern struct {
     variables: u16,
     unknown_02: u16,
     room_variables: u16,
@@ -159,6 +159,12 @@ const Directory = struct {
     rooms: utils.SafeManyPointer([*]u8),
     offsets: utils.SafeManyPointer([*]u32),
     sizes: utils.SafeManyPointer([*]u32),
+
+    pub const empty: Directory = .{
+        .rooms = .empty,
+        .offsets = .empty,
+        .sizes = .empty,
+    };
 };
 
 const RoomNames = struct {
@@ -179,6 +185,7 @@ fn extractIndex(
     diagnostic: *Diagnostic,
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
+    game: games.Game,
     output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
 ) !struct { Index, []u8 } {
@@ -205,20 +212,34 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_unaligned = try blocks.expect("MAXS").value(Maxs);
-    const maxs = maxs_unaligned.*;
-    try writeRawIndexBlock(gpa, output_dir, code, blockId("MAXS"), std.mem.asBytes(&maxs));
+    const maxs_raw = try blocks.expect("MAXS").bytes();
+    if (maxs_raw.len != games.maxsLen(game))
+        return error.BadData;
+
+    var maxs: Maxs = undefined;
+    const maxs_present_bytes = std.mem.asBytes(&maxs)[0..maxs_raw.len];
+    const maxs_missing_bytes = std.mem.asBytes(&maxs)[maxs_raw.len..@sizeOf(Maxs)];
+    @memcpy(maxs_present_bytes, maxs_raw);
+    @memset(maxs_missing_bytes, 0);
+
+    try writeRawIndexBlock(gpa, output_dir, code, blockId("MAXS"), maxs_present_bytes);
+
+    inline for (comptime std.meta.fieldNames(Maxs)) |f|
+        diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
 
     // DIR*
 
-    const diri = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
-    const dirr = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
-    const dirs = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
-    const dirn = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
-    const dirc = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
-    const dirf = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
-    const dirm = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRM"), maxs.images);
-    const dirt = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRT"), maxs.talkies);
+    const diri = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
+    const dirr = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
+    const dirs = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
+    const dirn = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
+    const dirc = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
+    const dirf = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
+    const dirm = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRM"), maxs.images);
+    const dirt: Directory = if (games.hasTalkies(game))
+        try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRT"), maxs.talkies)
+    else
+        .empty;
 
     // DLFL
 
@@ -232,26 +253,38 @@ fn extractIndex(
 
     try code.appendSlice(gpa, "    index-block \"DLFL\"\n");
 
+    for (lfl_offsets, 0..) |off, i|
+        diag.trace(@intCast(in.pos), "  {:>3}: 0x{x:0>8}", .{ i, off });
+
     // DISK
 
-    const disk_raw = try blocks.expect("DISK").bytes();
-    if (disk_raw.len != 2 + maxs.rooms)
-        return error.BadData;
-    if (std.mem.readInt(u16, disk_raw[0..2], .little) != maxs.rooms)
-        return error.BadData;
-    const lfl_disks = try fba.allocator().dupe(u8, disk_raw[2..]);
+    var lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)) = .undef;
+    if (games.hasDisk(game)) {
+        const disk_raw = try blocks.expect("DISK").bytes();
+        if (disk_raw.len != 2 + maxs.rooms)
+            return error.BadData;
+        if (std.mem.readInt(u16, disk_raw[0..2], .little) != maxs.rooms)
+            return error.BadData;
+        const lfl_disks_slice = try fba.allocator().dupe(u8, disk_raw[2..]);
+        lfl_disks = .{ .defined = .init(lfl_disks_slice) };
 
-    try code.appendSlice(gpa, "    index-block \"DISK\"\n");
+        try code.appendSlice(gpa, "    index-block \"DISK\"\n");
+
+        for (lfl_disks.defined.slice(maxs.rooms), 0..) |disk, i|
+            diag.trace(@intCast(in.pos), "  {:>3}: {:>3}", .{ i, disk });
+    }
 
     // RNAM
 
-    const room_names = try readRoomNames(&in, &blocks, maxs.rooms, &fba);
+    const room_names = try readRoomNames(&in, &blocks, &diag, maxs.rooms, &fba);
     try code.appendSlice(gpa, "    index-block \"RNAM\"\n");
 
     // remaining blocks
 
-    for ([_]BlockId{ blockId("DOBJ"), blockId("AARY"), blockId("INIB") }) |id|
+    for ([_]BlockId{ blockId("DOBJ"), blockId("AARY") }) |id|
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
+    if (games.hasIndexInib(game))
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code, blockId("INIB"));
 
     try blocks.finishEof();
 
@@ -270,7 +303,7 @@ fn extractIndex(
             .talkies = dirt,
         },
         .lfl_offsets = .init(lfl_offsets),
-        .lfl_disks = .init(lfl_disks),
+        .lfl_disks = lfl_disks,
         .room_names = room_names,
     };
     return .{ index, result_buf };
@@ -278,6 +311,7 @@ fn extractIndex(
 
 fn readDirectory(
     gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForBinaryFile,
     fba: *std.heap.FixedBufferAllocator,
     blocks: anytype,
     code: *std.ArrayListUnmanaged(u8),
@@ -304,6 +338,9 @@ fn readDirectory(
     const sizes = try fba.allocator().alloc(u32, len);
     @memcpy(std.mem.sliceAsBytes(sizes), sizes_raw);
 
+    for (rooms, offsets, sizes, 0..) |room, offset, size, i|
+        diag.trace(0, "  {:>5}: {:>3} 0x{x:0>8} 0x{x:0>8}", .{ i, room, offset, size });
+
     return .{
         .rooms = .init(rooms),
         .offsets = .init(offsets),
@@ -314,6 +351,7 @@ fn readDirectory(
 fn readRoomNames(
     in: anytype,
     blocks: anytype,
+    diag: *const Diagnostic.ForBinaryFile,
     num_rooms: u16,
     fba: *std.heap.FixedBufferAllocator,
 ) !RoomNames {
@@ -335,6 +373,7 @@ fn readRoomNames(
         const name = try fba.allocator().dupe(u8, name_src_z[0..name_len :0]);
         starts[number] = @intCast(name.ptr - buffer_start);
         lens[number] = std.math.cast(u8, name_len) orelse return error.BadData;
+        diag.trace(@intCast(in.pos), "  {:>3}: {s}", .{ number, std.fmt.fmtSliceEscapeLower(name) });
     }
 
     const buffer_len = fba.buffer[fba.end_index..].ptr - buffer_start;
@@ -415,7 +454,7 @@ fn extractDisk(
 
     while (in.bytes_read < lecf.end()) {
         const lflf = try lecf_blocks.expect("LFLF").block();
-        try extractRoom(gpa, options, index, disk_number, &in, &diag, lflf.end(), output_dir, code);
+        try extractRoom(gpa, options, game, index, disk_number, &in, &diag, lflf.end(), output_dir, code);
     }
 
     try lecf_blocks.finish(lecf.end());
@@ -436,6 +475,7 @@ const Event = union(enum) {
 fn extractRoom(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     disk_number: u8,
     in: anytype,
@@ -444,14 +484,8 @@ fn extractRoom(
     output_dir: std.fs.Dir,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const room_number: u8 = for (
-        index.lfl_offsets.slice(index.maxs.rooms),
-        index.lfl_disks.slice(index.maxs.rooms),
-        0..,
-    ) |off, dsk, i| {
-        if (off == in.bytes_read and dsk == disk_number)
-            break @intCast(i);
-    } else return error.BadData;
+    const room_number = findRoomNumber(game, index, disk_number, @intCast(in.bytes_read)) orelse
+        return error.BadData;
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
@@ -462,6 +496,22 @@ fn extractRoom(
     try pool.spawn(readRoomJob, .{ gpa, options, index, in, diag, lflf_end, room_number, output_dir, &pool, &events });
 
     try emitRoom(gpa, index, diag, room_number, output_dir, project_code, &events);
+}
+
+fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
+    const len = index.maxs.rooms;
+
+    if (!games.hasDisk(game)) {
+        for (index.lfl_offsets.slice(len), 0..) |off, i|
+            if (off == offset)
+                return @intCast(i);
+        return null;
+    }
+
+    for (index.lfl_offsets.slice(len), index.lfl_disks.defined.slice(len), 0..) |off, dsk, i|
+        if (off == offset and dsk == disk_number)
+            return @intCast(i);
+    return null;
 }
 
 fn readRoomJob(
@@ -644,7 +694,7 @@ fn findGlobNumber(
         blockId("RMIM") => .{ &index.directories.room_images, index.maxs.rooms },
         blockId("RMDA") => .{ &index.directories.rooms, index.maxs.rooms },
         blockId("SCRP") => .{ &index.directories.scripts, index.maxs.scripts },
-        blockId("DIGI"), blockId("TALK") => .{ &index.directories.sounds, index.maxs.sounds },
+        blockId("SOUN"), blockId("DIGI"), blockId("TALK") => .{ &index.directories.sounds, index.maxs.sounds },
         blockId("AKOS") => .{ &index.directories.costumes, index.maxs.costumes },
         blockId("CHAR") => .{ &index.directories.charsets, index.maxs.charsets },
         blockId("AWIZ"), blockId("MULT") => .{ &index.directories.images, index.maxs.images },

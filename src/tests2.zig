@@ -9,6 +9,66 @@ const fixture_hashes = @import("tests.zig").fixture_hashes;
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
 
+test "Backyard Baseball 1997 round trip raw" {
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+
+    try extract2.run(std.testing.allocator, &diagnostic, .{
+        .index_path = "src/fixtures/baseball1997/BASEBALL.HE0",
+        .output_path = "/tmp/bb1997",
+        .options = .{
+            .awiz = .raw,
+            .mult = .raw,
+        },
+    });
+
+    try build2.run(std.testing.allocator, &diagnostic, .{
+        .project_path = "/tmp/bb1997/project.scu",
+        .index_path = "/tmp/bb1997build/BASEBALL.HE0",
+        .options = .{
+            .awiz_strategy = .original,
+        },
+    });
+
+    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb1997build", .{});
+    defer output_dir.close();
+
+    inline for (.{ "BASEBALL.HE0", "BASEBALL.HE1" }) |name| {
+        const expected_hex = @field(fixture_hashes, "baseball1997/" ++ name);
+        try expectFileHashEquals(output_dir, name, expected_hex);
+    }
+}
+
+test "Backyard Baseball 1997 round trip decode" {
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+
+    try extract2.run(std.testing.allocator, &diagnostic, .{
+        .index_path = "src/fixtures/baseball1997/BASEBALL.HE0",
+        .output_path = "/tmp/bb1997",
+        .options = .{
+            .awiz = .decode,
+            .mult = .decode,
+        },
+    });
+
+    try build2.run(std.testing.allocator, &diagnostic, .{
+        .project_path = "/tmp/bb1997/project.scu",
+        .index_path = "/tmp/bb1997build/BASEBALL.HE0",
+        .options = .{
+            .awiz_strategy = .original,
+        },
+    });
+
+    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb1997build", .{});
+    defer output_dir.close();
+
+    inline for (.{ "BASEBALL.HE0", "BASEBALL.HE1" }) |name| {
+        const expected_hex = @field(fixture_hashes, "baseball1997/" ++ name);
+        try expectFileHashEquals(output_dir, name, expected_hex);
+    }
+}
+
 test "Backyard Baseball 2001 round trip raw" {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();

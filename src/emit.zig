@@ -127,7 +127,7 @@ fn emitDisk(
     const lecf_start = try beginBlock(&out, "LECF");
 
     while (true) switch (try receiver.next(gpa)) {
-        .room_start => |room_number| try emitRoom(gpa, receiver, disk_number, &out, &fixups, room_number, index),
+        .room_start => |room_number| try emitRoom(gpa, game, receiver, disk_number, &out, &fixups, room_number, index),
         .disk_end => break,
         .err => return error.Reported,
         else => unreachable,
@@ -142,6 +142,7 @@ fn emitDisk(
 
 fn emitRoom(
     gpa: std.mem.Allocator,
+    game: games.Game,
     receiver: *OrderedReceiver,
     disk_number: u8,
     out: anytype,
@@ -158,8 +159,8 @@ fn emitRoom(
     });
 
     while (true) switch (try receiver.next(gpa)) {
-        .glob => |*b| try emitGlob(gpa, out, fixups, index, room_number, b),
-        .glob_start => |*b| try emitGlobBlock(gpa, receiver, out, fixups, index, room_number, b),
+        .glob => |*b| try emitGlob(gpa, game, out, fixups, index, room_number, b),
+        .glob_start => |*b| try emitGlobBlock(gpa, game, receiver, out, fixups, index, room_number, b),
         .room_end => break,
         .err => return error.Reported,
         else => unreachable,
@@ -182,6 +183,7 @@ fn emitRawBlock(
 
 fn emitGlob(
     gpa: std.mem.Allocator,
+    game: games.Game,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
     index: *Index,
@@ -196,11 +198,12 @@ fn emitGlob(
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(gpa, index, room_number, glob.block_id, glob.glob_number, start, size);
+    try addGlobToIndex(gpa, game, index, room_number, glob.block_id, glob.glob_number, start, size);
 }
 
 fn emitGlobBlock(
     gpa: std.mem.Allocator,
+    game: games.Game,
     receiver: *OrderedReceiver,
     out: anytype,
     fixups: *std.ArrayList(Fixup),
@@ -221,11 +224,12 @@ fn emitGlobBlock(
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(gpa, index, room_number, glob.block_id, glob.glob_number, start, size);
+    try addGlobToIndex(gpa, game, index, room_number, glob.block_id, glob.glob_number, start, size);
 }
 
 fn addGlobToIndex(
     gpa: std.mem.Allocator,
+    game: games.Game,
     index: *Index,
     room_number: u8,
     block_id: BlockId,
@@ -238,21 +242,33 @@ fn addGlobToIndex(
         blockId("RMIM") => &index.directories.room_images,
         blockId("RMDA") => &index.directories.rooms,
         blockId("SCRP") => &index.directories.scripts,
-        blockId("DIGI"), blockId("TALK") => &index.directories.sounds,
+        blockId("SOUN"), blockId("DIGI"), blockId("TALK") => &index.directories.sounds,
         blockId("AKOS") => &index.directories.costumes,
         blockId("CHAR") => &index.directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &index.directories.images,
         blockId("TLKE") => &index.directories.talkies,
         else => return error.BadData,
     };
-    try utils.growMultiArrayList(DirectoryEntry, directory, gpa, glob_number + 1, .zero);
+
+    const zero: DirectoryEntry = .{
+        .room = 0,
+        .offset = 0,
+        .size = games.directoryNonPresentLen(game),
+    };
+    try utils.growMultiArrayList(DirectoryEntry, directory, gpa, glob_number + 1, zero);
+
     if (directory.items(.room)[glob_number] != 0)
         @panic("TODO");
+
     const offset_in_room = offset_in_disk - index.rooms.items(.offset)[room_number];
+    const write_size = if (block_id == blockId("MULT") and !games.writeMultLen(game))
+        std.math.maxInt(u32)
+    else
+        size;
     directory.set(glob_number, .{
         .room = room_number,
         .offset = offset_in_room,
-        .size = size,
+        .size = write_size,
     });
 }
 
@@ -281,11 +297,11 @@ const Index = struct {
         // 0 entries to 0xffff_ffff.
         inline for (comptime std.meta.fieldNames(Directories)) |field| {
             // (except for DIRR, for some reason)
-            comptime if (std.mem.eql(u8, field, "rooms")) continue;
+            const size = comptime if (std.mem.eql(u8, field, "rooms")) 0 else 0xffff_ffff;
             try @field(index.directories, field).append(gpa, .{
                 .room = 0,
                 .offset = 0,
-                .size = 0xffff_ffff,
+                .size = size,
             });
         }
 
@@ -331,12 +347,6 @@ const DirectoryEntry = struct {
     room: u8,
     offset: u32,
     size: u32,
-
-    pub const zero: DirectoryEntry = .{
-        .room = 0,
-        .offset = 0,
-        .size = 0,
-    };
 };
 
 fn emitIndex(

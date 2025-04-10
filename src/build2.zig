@@ -77,7 +77,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     defer if (output_path_opt) |_|
         output_dir.close();
 
-    const game: games.Game = .baseball_2001;
+    const game = try games.detectGameOrFatal(index_name);
 
     var project: Project = .empty;
     defer project.deinit(gpa);
@@ -138,6 +138,7 @@ fn readRooms(
     const project_file = &project.files.items[0].?;
     const root = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(root.disks)) |disk_node| {
+        if (disk_node == Ast.null_node) continue;
         const disk = &project_file.ast.nodes.items[disk_node].disk;
         for (project_file.ast.getExtra(disk.children)) |disk_child_node| {
             const disk_child = &project_file.ast.nodes.items[disk_child_node];

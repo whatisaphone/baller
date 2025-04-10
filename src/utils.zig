@@ -58,6 +58,15 @@ fn AddUnsignedSigned(X: type, Y: type) type {
     } });
 }
 
+pub fn SafeUndefined(T: type) type {
+    return union {
+        undefined: void,
+        defined: T,
+
+        pub const undef: @This() = .{ .undefined = {} };
+    };
+}
+
 pub fn SafeManyPointer(ManyPtr: type) type {
     const many_ptr_info = @typeInfo(ManyPtr).pointer;
     std.debug.assert(many_ptr_info.size == .many);
@@ -74,6 +83,8 @@ pub fn SafeManyPointer(ManyPtr: type) type {
 
         ptr: ManyPtr,
         len: if (store_len) usize else void,
+
+        pub const empty: Self = .init(&.{});
 
         pub fn init(items: Slice) Self {
             return .{
