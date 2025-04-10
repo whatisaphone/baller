@@ -857,6 +857,11 @@ fn extractGlobInner(
         },
     }
 
+    // If decoding failed or was skipped, extract as raw
+
+    // Clear any partial results from a failure
+    code.clearRetainingCapacity();
+
     try writeRawGlob(gpa, block, glob_number, raw, room_dir, room_path, &code);
 
     events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });

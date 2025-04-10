@@ -39,6 +39,18 @@ test "Backyard Soccer round trip decode" {
     try testRoundTrip(soccer, .decode);
 }
 
+const football: Game = .{
+    .fixture_dir = "football",
+    .index_name = "FOOTBALL.HE0",
+    .fixture_names = &.{ "FOOTBALL.(A)", "FOOTBALL.(B)" },
+};
+test "Backyard Football round trip raw" {
+    try testRoundTrip(football, .raw);
+}
+test "Backyard Football round trip decode" {
+    try testRoundTrip(football, .decode);
+}
+
 const baseball2001: Game = .{
     .fixture_dir = "baseball2001",
     .index_name = "baseball 2001.he0",
