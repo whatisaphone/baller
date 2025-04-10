@@ -850,7 +850,7 @@ fn extractGlobInner(
         },
     }
 
-    try writeRawGlob(gpa, index, room_number, block, raw, room_dir, room_path, &code);
+    try writeRawGlob(gpa, block, glob_number, raw, room_dir, room_path, &code);
 
     events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
 }
@@ -912,17 +912,13 @@ fn extractRawGlob(
 
 fn writeRawGlob(
     gpa: std.mem.Allocator,
-    index: *const Index,
-    room_number: u8,
     block: *const Block,
+    glob_number: u16,
     data: []const u8,
     output_dir: std.fs.Dir,
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
-        return error.BadData;
-
     var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
