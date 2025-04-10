@@ -9,122 +9,72 @@ const fixture_hashes = @import("tests.zig").fixture_hashes;
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
 
+const Game = struct {
+    fixture_dir: []const u8,
+    index_name: [:0]const u8,
+    fixture_names: []const [:0]const u8,
+};
+
+const baseball1997: Game = .{
+    .fixture_dir = "baseball1997",
+    .index_name = "BASEBALL.HE0",
+    .fixture_names = &.{"BASEBALL.HE1"},
+};
 test "Backyard Baseball 1997 round trip raw" {
-    var diagnostic: Diagnostic = .init(std.testing.allocator);
-    defer diagnostic.deinit();
-
-    try extract2.run(std.testing.allocator, &diagnostic, .{
-        .index_path = "src/fixtures/baseball1997/BASEBALL.HE0",
-        .output_path = "/tmp/bb1997",
-        .options = .{
-            .awiz = .raw,
-            .mult = .raw,
-        },
-    });
-
-    try build2.run(std.testing.allocator, &diagnostic, .{
-        .project_path = "/tmp/bb1997/project.scu",
-        .index_path = "/tmp/bb1997build/BASEBALL.HE0",
-        .options = .{
-            .awiz_strategy = .original,
-        },
-    });
-
-    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb1997build", .{});
-    defer output_dir.close();
-
-    inline for (.{ "BASEBALL.HE0", "BASEBALL.HE1" }) |name| {
-        const expected_hex = @field(fixture_hashes, "baseball1997/" ++ name);
-        try expectFileHashEquals(output_dir, name, expected_hex);
-    }
+    try testRoundTrip(baseball1997, .raw);
 }
-
 test "Backyard Baseball 1997 round trip decode" {
-    var diagnostic: Diagnostic = .init(std.testing.allocator);
-    defer diagnostic.deinit();
-
-    try extract2.run(std.testing.allocator, &diagnostic, .{
-        .index_path = "src/fixtures/baseball1997/BASEBALL.HE0",
-        .output_path = "/tmp/bb1997",
-        .options = .{
-            .awiz = .decode,
-            .mult = .decode,
-        },
-    });
-
-    try build2.run(std.testing.allocator, &diagnostic, .{
-        .project_path = "/tmp/bb1997/project.scu",
-        .index_path = "/tmp/bb1997build/BASEBALL.HE0",
-        .options = .{
-            .awiz_strategy = .original,
-        },
-    });
-
-    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb1997build", .{});
-    defer output_dir.close();
-
-    inline for (.{ "BASEBALL.HE0", "BASEBALL.HE1" }) |name| {
-        const expected_hex = @field(fixture_hashes, "baseball1997/" ++ name);
-        try expectFileHashEquals(output_dir, name, expected_hex);
-    }
+    try testRoundTrip(baseball1997, .decode);
 }
 
+const baseball2001: Game = .{
+    .fixture_dir = "baseball2001",
+    .index_name = "baseball 2001.he0",
+    .fixture_names = &.{ "baseball 2001.(a)", "baseball 2001.(b)" },
+};
 test "Backyard Baseball 2001 round trip raw" {
-    var diagnostic: Diagnostic = .init(std.testing.allocator);
-    defer diagnostic.deinit();
-
-    try extract2.run(std.testing.allocator, &diagnostic, .{
-        .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
-        .output_path = "/tmp/bb2001",
-        .options = .{
-            .awiz = .raw,
-            .mult = .raw,
-        },
-    });
-
-    try build2.run(std.testing.allocator, &diagnostic, .{
-        .project_path = "/tmp/bb2001/project.scu",
-        .index_path = "/tmp/bb2001build/baseball 2001.he0",
-        .options = .{
-            .awiz_strategy = .original,
-        },
-    });
-
-    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb2001build", .{});
-    defer output_dir.close();
-
-    inline for (.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" }) |name| {
-        const expected_hex = @field(fixture_hashes, "baseball2001/" ++ name);
-        try expectFileHashEquals(output_dir, name, expected_hex);
-    }
+    try testRoundTrip(baseball2001, .raw);
+}
+test "Backyard Baseball 2001 round trip decode" {
+    try testRoundTrip(baseball2001, .decode);
 }
 
-test "Backyard Baseball 2001 round trip decode" {
+fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
 
+    const extract_path = "/tmp/" ++ game.fixture_dir;
+    const build_path = extract_path ++ "build";
+
     try extract2.run(std.testing.allocator, &diagnostic, .{
-        .index_path = "src/fixtures/baseball2001/baseball 2001.he0",
-        .output_path = "/tmp/bb2001",
-        .options = .{
-            .awiz = .decode,
-            .mult = .decode,
+        .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
+        .output_path = extract_path,
+        .options = switch (options) {
+            .raw => .{
+                .awiz = .raw,
+                .mult = .raw,
+            },
+            .decode => .{
+                .awiz = .decode,
+                .mult = .decode,
+            },
         },
     });
 
     try build2.run(std.testing.allocator, &diagnostic, .{
-        .project_path = "/tmp/bb2001/project.scu",
-        .index_path = "/tmp/bb2001build/baseball 2001.he0",
+        .project_path = extract_path ++ "/project.scu",
+        .index_path = build_path ++ "/" ++ game.index_name,
         .options = .{
             .awiz_strategy = .original,
         },
     });
 
-    var output_dir = try std.fs.cwd().openDirZ("/tmp/bb2001build", .{});
+    var output_dir = try std.fs.cwd().openDirZ(build_path, .{});
     defer output_dir.close();
 
-    inline for (.{ "baseball 2001.he0", "baseball 2001.(a)", "baseball 2001.(b)" }) |name| {
-        const expected_hex = @field(fixture_hashes, "baseball2001/" ++ name);
+    inline for (.{game.index_name} ++ game.fixture_names) |name| {
+        errdefer std.debug.print("{s}\n", .{name});
+        const expected_hex = @field(fixture_hashes, game.fixture_dir ++ "/" ++ name);
         try expectFileHashEquals(output_dir, name, expected_hex);
     }
 }
@@ -141,5 +91,6 @@ fn expectFileHashEquals(
     try fs.readFileIntoZ(dir, path, hasher.writer());
     const actual_hash = hasher.finalResult();
 
-    try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
+    if (!std.mem.eql(u8, &actual_hash, &expected_hash))
+        return error.TestExpectedEqual;
 }
