@@ -233,15 +233,15 @@ fn extractIndex(
 
     // DIR*
 
-    const diri = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
-    const dirr = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
-    const dirs = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
-    const dirn = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
-    const dirc = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
-    const dirf = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
-    const dirm = try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRM"), maxs.images);
+    const diri = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
+    const dirr = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
+    const dirs = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
+    const dirn = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
+    const dirc = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
+    const dirf = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
+    const dirm = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRM"), maxs.images);
     const dirt: Directory = if (games.hasTalkies(game))
-        try readDirectory(gpa, &diag, &fba, &blocks, code, blockId("DIRT"), maxs.talkies)
+        try readDirectory(gpa, &fba, &blocks, code, blockId("DIRT"), maxs.talkies)
     else
         .empty;
 
@@ -294,6 +294,33 @@ fn extractIndex(
 
     try code.appendSlice(gpa, "}\n");
 
+    if (Diagnostic.enable_trace) {
+        for (&[_]struct { []const u8, *const Directory, u16 }{
+            .{ "DIRI", &diri, maxs.rooms },
+            .{ "DIRR", &dirr, maxs.rooms },
+            .{ "DIRS", &dirs, maxs.scripts },
+            .{ "DIRN", &dirn, maxs.sounds },
+            .{ "DIRC", &dirc, maxs.costumes },
+            .{ "DIRF", &dirf, maxs.charsets },
+            .{ "DIRM", &dirm, maxs.images },
+            .{ "DIRT", &dirt, maxs.talkies },
+        }) |dir_info| {
+            const block_id, const dir, const len = dir_info;
+            diag.trace(@intCast(in.pos), "{s}", .{block_id});
+            for (
+                dir.rooms.slice(len),
+                dir.offsets.slice(len),
+                dir.sizes.slice(len),
+                0..,
+            ) |room, offset, size, i|
+                diag.trace(
+                    @intCast(in.pos),
+                    "  {:>5}: {:>3} 0x{x:0>8} (0x{x:0>8}) 0x{x:0>8}",
+                    .{ i, room, offset, lfl_offsets[room] + offset, size },
+                );
+        }
+    }
+
     const index: Index = .{
         .maxs = maxs,
         .directories = .{
@@ -315,7 +342,6 @@ fn extractIndex(
 
 fn readDirectory(
     gpa: std.mem.Allocator,
-    diag: *const Diagnostic.ForBinaryFile,
     fba: *std.heap.FixedBufferAllocator,
     blocks: anytype,
     code: *std.ArrayListUnmanaged(u8),
@@ -341,9 +367,6 @@ fn readDirectory(
     const sizes_raw = try io.readInPlace(&in, len * 4);
     const sizes = try fba.allocator().alloc(u32, len);
     @memcpy(std.mem.sliceAsBytes(sizes), sizes_raw);
-
-    for (rooms, offsets, sizes, 0..) |room, offset, size, i|
-        diag.trace(0, "  {:>5}: {:>3} 0x{x:0>8} 0x{x:0>8}", .{ i, room, offset, size });
 
     return .{
         .rooms = .init(rooms),

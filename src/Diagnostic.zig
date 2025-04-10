@@ -3,7 +3,7 @@ const std = @import("std");
 
 const Diagnostic = @This();
 
-const enable_trace = builtin.mode == .Debug;
+pub const enable_trace = builtin.mode == .Debug;
 const live_spew = builtin.mode == .Debug;
 
 const Message = struct {
