@@ -97,6 +97,10 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
 
     const game = try games.detectGameOrFatal(index_name);
 
+    var pool: std.Thread.Pool = undefined;
+    try pool.init(.{ .allocator = gpa });
+    defer pool.deinit();
+
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
@@ -105,7 +109,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
 
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        try extractDisk(gpa, diagnostic, input_dir, index_name, args.options, game, &index, disk_number, output_dir, &code);
+        try extractDisk(gpa, &pool, diagnostic, input_dir, index_name, args.options, game, &index, disk_number, output_dir, &code);
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
@@ -418,6 +422,7 @@ fn writeRawIndexBlock(
 
 fn extractDisk(
     gpa: std.mem.Allocator,
+    pool: *std.Thread.Pool,
     diagnostic: *Diagnostic,
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
@@ -454,7 +459,7 @@ fn extractDisk(
 
     while (in.bytes_read < lecf.end()) {
         const lflf = try lecf_blocks.expect("LFLF").block();
-        try extractRoom(gpa, options, game, index, disk_number, &in, &diag, lflf.end(), output_dir, code);
+        try extractRoom(gpa, pool, options, game, index, disk_number, &in, &diag, lflf.end(), output_dir, code);
     }
 
     try lecf_blocks.finish(lecf.end());
@@ -474,6 +479,7 @@ const Event = union(enum) {
 
 fn extractRoom(
     gpa: std.mem.Allocator,
+    pool: *std.Thread.Pool,
     options: Options,
     game: games.Game,
     index: *const Index,
@@ -487,13 +493,9 @@ fn extractRoom(
     const room_number = findRoomNumber(game, index, disk_number, @intCast(in.bytes_read)) orelse
         return error.BadData;
 
-    var pool: std.Thread.Pool = undefined;
-    try pool.init(.{ .allocator = gpa });
-    defer pool.deinit();
-
     var events: sync.Channel(Event, 16) = .init;
 
-    try pool.spawn(readRoomJob, .{ gpa, options, index, in, diag, lflf_end, room_number, output_dir, &pool, &events });
+    try pool.spawn(readRoomJob, .{ gpa, options, index, in, diag, lflf_end, room_number, output_dir, pool, &events });
 
     try emitRoom(gpa, index, diag, room_number, output_dir, project_code, &events);
 }
