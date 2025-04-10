@@ -27,6 +27,18 @@ test "Backyard Baseball 1997 round trip decode" {
     try testRoundTrip(baseball1997, .decode);
 }
 
+const soccer: Game = .{
+    .fixture_dir = "soccer",
+    .index_name = "SOCCER.HE0",
+    .fixture_names = &.{"SOCCER.(A)"},
+};
+test "Backyard Soccer round trip raw" {
+    try testRoundTrip(soccer, .raw);
+}
+test "Backyard Soccer round trip decode" {
+    try testRoundTrip(soccer, .decode);
+}
+
 const baseball2001: Game = .{
     .fixture_dir = "baseball2001",
     .index_name = "baseball 2001.he0",

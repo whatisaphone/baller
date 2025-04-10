@@ -161,6 +161,7 @@ fn emitRoom(
     while (true) switch (try receiver.next(gpa)) {
         .glob => |*b| try emitGlob(gpa, game, out, fixups, index, room_number, b),
         .glob_start => |*b| try emitGlobBlock(gpa, game, receiver, out, fixups, index, room_number, b),
+        .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
         .room_end => break,
         .err => return error.Reported,
         else => unreachable,

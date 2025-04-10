@@ -198,7 +198,7 @@ pub fn parseRoom(
 }
 
 fn parseRoomChildren(state: *State) !Ast.NodeIndex {
-    var children: std.BoundedArray(Ast.NodeIndex, 2048) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 2560) = .{};
 
     while (true) {
         skipWhitespace(state);

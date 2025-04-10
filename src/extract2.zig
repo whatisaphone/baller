@@ -492,7 +492,7 @@ fn extractDisk(
     try code.appendSlice(gpa, "}\n");
 }
 
-const max_room_code_chunks = 2048;
+const max_room_code_chunks = 2560;
 
 const Event = union(enum) {
     end,
@@ -713,7 +713,7 @@ fn findGlobNumber(
     block_id: BlockId,
     room_number: u8,
     offset_in_disk: u32,
-) !?u16 {
+) ?u16 {
     const dir, const dir_len = switch (block_id) {
         // XXX: this list is duplicated in emit
         blockId("RMIM") => .{ &index.directories.room_images, index.maxs.rooms },
@@ -730,7 +730,7 @@ fn findGlobNumber(
     for (dir.rooms.slice(dir_len), dir.offsets.slice(dir_len), 0..) |r, o, i|
         if (r == room_number and o == offset_in_room)
             return @intCast(i);
-    return error.BadData;
+    return null;
 }
 
 fn extractGlob(
@@ -803,8 +803,18 @@ fn extractGlobInner(
     events: *sync.Channel(Event, 16),
     chunk_index: u16,
 ) !void {
-    const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
-        return error.BadData;
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(gpa);
+
+    const glob_number = findGlobNumber(index, block.id, room_number, block.offset()) orelse {
+        // This should normally be impossible, but there's a glitched CHAR block
+        // in soccer that we need to handle in order to round-trip.
+        disk_diag.trace(block.offset(), "glob missing from directory", .{});
+        try writeRawBlock(gpa, block, raw, room_dir, room_path, &code);
+        events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+        return;
+    };
+
     disk_diag.trace(block.offset(), "glob number {}", .{glob_number});
 
     std.debug.assert(disk_diag.offset == 0);
@@ -814,9 +824,6 @@ fn extractGlobInner(
         .offset = disk_diag.offset + block.start,
         .cap_level = true,
     };
-
-    var code: std.ArrayListUnmanaged(u8) = .empty;
-    errdefer code.deinit(gpa);
 
     const decode: enum { skipped, ok, fallback } = decode: switch (block.id) {
         blockId("AWIZ") => {
@@ -891,7 +898,7 @@ fn extractRawGlob(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const glob_number = try findGlobNumber(index, block.id, room_number, block.offset()) orelse
+    const glob_number = findGlobNumber(index, block.id, room_number, block.offset()) orelse
         return error.BadData;
 
     var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;

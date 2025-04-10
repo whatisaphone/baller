@@ -106,6 +106,7 @@ fn planRoom(
         switch (room_file.ast.nodes.items[child_node]) {
             .raw_glob_file => |*n| try planRawGlobFile(gpa, project_dir, events, next_event_index, n),
             .raw_glob_block => |*n| try planRawGlobBlock(gpa, project_dir, project, events, next_event_index, room.room_number, n),
+            .raw_block => |*n| try planRawBlock(gpa, project_dir, events, next_event_index, n),
             .awiz => |*n| try planAwiz(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
             .mult => |*n| try planMult(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
             else => unreachable,
