@@ -58,7 +58,7 @@ pub fn runInner(
         .disk_start => |num| try emitDisk(gpa, output_dir, index_name, game, receiver, num, &index),
         .index_start => try emitIndex(gpa, receiver, output_dir, index_name, &index),
         .project_end => break,
-        .err => return error.Reported,
+        .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 }
@@ -129,7 +129,7 @@ fn emitDisk(
     while (true) switch (try receiver.next(gpa)) {
         .room_start => |room_number| try emitRoom(gpa, game, receiver, disk_number, &out, &fixups, room_number, index),
         .disk_end => break,
-        .err => return error.Reported,
+        .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
@@ -163,7 +163,7 @@ fn emitRoom(
         .glob_start => |*b| try emitGlobBlock(gpa, game, receiver, out, fixups, index, room_number, b),
         .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
         .room_end => break,
-        .err => return error.Reported,
+        .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
@@ -217,7 +217,7 @@ fn emitGlobBlock(
     while (true) switch (try receiver.next(gpa)) {
         .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
         .glob_end => break,
-        .err => return error.Reported,
+        .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
@@ -243,7 +243,11 @@ fn addGlobToIndex(
         blockId("RMIM") => &index.directories.room_images,
         blockId("RMDA") => &index.directories.rooms,
         blockId("SCRP") => &index.directories.scripts,
-        blockId("SOUN"), blockId("DIGI"), blockId("TALK") => &index.directories.sounds,
+        blockId("SOUN"),
+        blockId("DIGI"),
+        blockId("TALK"),
+        blockId("WSOU"),
+        => &index.directories.sounds,
         blockId("AKOS") => &index.directories.costumes,
         blockId("CHAR") => &index.directories.charsets,
         blockId("AWIZ"), blockId("MULT") => &index.directories.images,
@@ -399,7 +403,7 @@ fn emitIndex(
         },
         .raw_block => |*rb| try emitRawBlock(gpa, &out, &fixups, rb),
         .index_end => break,
-        .err => return error.Reported,
+        .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 

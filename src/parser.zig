@@ -198,7 +198,7 @@ pub fn parseRoom(
 }
 
 fn parseRoomChildren(state: *State) !Ast.NodeIndex {
-    var children: std.BoundedArray(Ast.NodeIndex, 2560) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -448,7 +448,7 @@ fn parseRawGlobFile(
 }
 
 fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.NodeIndex {
-    var children: std.BoundedArray(Ast.NodeIndex, 512) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
         skipWhitespace(state);

@@ -278,6 +278,11 @@ fn extractIndex(
             diag.trace(@intCast(in.pos), "  {:>3}: {:>3}", .{ i, disk });
     }
 
+    // SVER
+
+    if (games.hasIndexSver(game))
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code, blockId("SVER"));
+
     // RNAM
 
     const room_names = try readRoomNames(&in, &blocks, &diag, maxs.rooms, &fba);
@@ -492,7 +497,7 @@ fn extractDisk(
     try code.appendSlice(gpa, "}\n");
 }
 
-const max_room_code_chunks = 2560;
+const max_room_code_chunks = 5120;
 
 const Event = union(enum) {
     end,
@@ -719,7 +724,11 @@ fn findGlobNumber(
         blockId("RMIM") => .{ &index.directories.room_images, index.maxs.rooms },
         blockId("RMDA") => .{ &index.directories.rooms, index.maxs.rooms },
         blockId("SCRP") => .{ &index.directories.scripts, index.maxs.scripts },
-        blockId("SOUN"), blockId("DIGI"), blockId("TALK") => .{ &index.directories.sounds, index.maxs.sounds },
+        blockId("SOUN"),
+        blockId("DIGI"),
+        blockId("TALK"),
+        blockId("WSOU"),
+        => .{ &index.directories.sounds, index.maxs.sounds },
         blockId("AKOS") => .{ &index.directories.costumes, index.maxs.costumes },
         blockId("CHAR") => .{ &index.directories.charsets, index.maxs.charsets },
         blockId("AWIZ"), blockId("MULT") => .{ &index.directories.images, index.maxs.images },

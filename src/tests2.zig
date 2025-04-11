@@ -63,6 +63,18 @@ test "Backyard Baseball 2001 round trip decode" {
     try testRoundTrip(baseball2001, .decode);
 }
 
+const basketball: Game = .{
+    .fixture_dir = "basketball",
+    .index_name = "Basketball.he0",
+    .fixture_names = &.{ "Basketball.(a)", "Basketball.(b)" },
+};
+test "Backyard Basketball round trip raw" {
+    try testRoundTrip(basketball, .raw);
+}
+test "Backyard Basketball round trip decode" {
+    try testRoundTrip(basketball, .decode);
+}
+
 fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
