@@ -877,7 +877,7 @@ fn extractAwiz(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try awiz.decode(gpa, diag, raw, null, room_palette, .{});
+    var decoded = try awiz.decode(gpa, diag, raw, null, room_palette);
     defer decoded.deinit(gpa);
 
     try code.writer(gpa).print("awiz {} {{\n", .{glob_number});

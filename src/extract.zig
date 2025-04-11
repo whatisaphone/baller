@@ -122,7 +122,6 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !Result {
     var state: State = .{
         .options = args,
         .symbols = .{ .game = game },
-        .hack_skip_awiz_uncompressed = game == .basketball,
     };
     errdefer state.deinit(allocator);
 
@@ -198,8 +197,6 @@ const State = struct {
     options: *const Extract,
     cur_path: pathf.Path = .{},
     symbols: Symbols,
-    /// workaround for basketball bug
-    hack_skip_awiz_uncompressed: bool,
     block_seqs: std.AutoArrayHashMapUnmanaged(BlockId, u16) = .empty,
     block_stats: std.AutoArrayHashMapUnmanaged(BlockId, BlockStat) = .empty,
     language: ?lang.Language = null,
@@ -1281,7 +1278,7 @@ fn decodeAwizData(
     const path = try appendGlobPath(state, blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    return decodeAwizIntoPath(allocator, rmda_raw, null, awiz_raw, path.full(), state);
+    return decodeAwizIntoPath(allocator, rmda_raw, null, awiz_raw, path.full());
 }
 
 fn decodeAwizIntoPath(
@@ -1291,7 +1288,6 @@ fn decodeAwizIntoPath(
     defa_rgbs: ?*const [0x300]u8,
     awiz_raw: []const u8,
     path: [*:0]const u8,
-    state: *State,
 ) !awiz.Awiz {
     // just a dummy diag never used, to make this old code compile
     var diagnostic: Diagnostic = .init(allocator);
@@ -1303,9 +1299,8 @@ fn decodeAwizIntoPath(
         .cap_level = true,
     };
 
-    var wiz = awiz.decode(allocator, &diag, awiz_raw, rmda_raw, defa_rgbs, .{
-        .hack_skip_uncompressed = state.hack_skip_awiz_uncompressed,
-    }) catch return error.BlockFallbackToRaw;
+    var wiz = awiz.decode(allocator, &diag, awiz_raw, rmda_raw, defa_rgbs) catch
+        return error.BlockFallbackToRaw;
     errdefer wiz.deinit(allocator);
 
     for (wiz.blocks.slice()) |block| switch (block) {
@@ -1596,7 +1591,6 @@ fn decodeMultAwiz(
         cx.defa_rgbs,
         block_raw,
         path.full(),
-        state,
     );
     defer wiz.deinit(allocator);
 

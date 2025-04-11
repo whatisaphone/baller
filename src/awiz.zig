@@ -56,10 +56,9 @@ pub fn decode(
     // TODO: merge next two params
     rmda_raw: ?[]const u8,
     defa_rgbs: ?*const [0x300]u8,
-    options: struct { hack_skip_uncompressed: bool = false },
 ) error{AddedToDiagnostic}!Awiz {
     var stream = std.io.fixedBufferStream(awiz_raw);
-    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs, options) catch |err| {
+    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs) catch |err| {
         diag.zigErr(@intCast(stream.pos), "general decode failure: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -70,7 +69,6 @@ fn decodeInner(
     reader: anytype,
     rmda_raw: ?[]const u8,
     defa_rgbs: ?*const [0x300]u8,
-    options: @typeInfo(@TypeOf(decode)).@"fn".params[5].type.?,
 ) !Awiz {
     var result: Awiz = .{};
     var rgbs_opt: ?*const [0x300]u8 = null;
@@ -115,9 +113,6 @@ fn decodeInner(
                 const width = std.math.cast(u31, width_signed) orelse return error.BadData;
                 const height_signed = try reader.reader().readInt(i32, .little);
                 const height = std.math.cast(u31, height_signed) orelse return error.BadData;
-
-                if (options.hack_skip_uncompressed and compression == .none)
-                    return error.BadData;
 
                 wizh_opt = .{
                     .compression = compression,
@@ -185,9 +180,12 @@ fn decodeUncompressed(
     reader: anytype,
     bmp_buf: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const len = width * height;
-    const data = try io.readInPlace(reader, len);
-    try bmp_buf.appendSlice(utils.null_allocator, data);
+    for (0..height) |_| {
+        const row = try io.readInPlace(reader, width);
+        try bmp_buf.appendSlice(utils.null_allocator, row);
+
+        try bmp.padRow(bmp_buf.writer(utils.null_allocator), width);
+    }
 }
 
 // based on ScummVM's auxDecompTRLEPrim
