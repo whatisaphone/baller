@@ -114,6 +114,15 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
+    const language = if (args.options.scrp == .decode)
+        lang.buildLanguage(game)
+    else
+        undefined;
+    const language_ptr: utils.SafeUndefined(*const lang.Language) = if (args.options.scrp == .decode)
+        .{ .defined = &language }
+    else
+        .undef;
+
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
@@ -122,6 +131,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
         .pool = &pool,
         .options = args.options,
         .game = game,
+        .language = language_ptr,
         .index = &index,
         .output_dir = output_dir,
     };
@@ -472,6 +482,7 @@ const Context = struct {
     pool: *std.Thread.Pool,
     options: Options,
     game: games.Game,
+    language: utils.SafeUndefined(*const lang.Language),
     index: *const Index,
     output_dir: std.fs.Dir,
 };
@@ -897,7 +908,6 @@ fn extractScrp(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const language = lang.buildLanguage(cx.game);
     const symbols: Symbols = .{
         .game = cx.game,
     };
@@ -914,7 +924,7 @@ fn extractScrp(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.gpa);
 
-    disasm.disassemble(cx.gpa, &language, id, raw, &symbols, out.writer(cx.gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.gpa, cx.language.defined, id, raw, &symbols, out.writer(cx.gpa), &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
