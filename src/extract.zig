@@ -29,6 +29,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
     var symbols_path: ?[:0]const u8 = null;
+    var script: ?ScriptMode = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
@@ -52,6 +53,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             if (std.mem.eql(u8, opt.flag, "symbols")) {
                 if (symbols_path != null) return arg.reportDuplicate();
                 symbols_path = opt.value;
+            } else if (std.mem.eql(u8, opt.flag, "script")) {
+                if (script != null) return arg.reportDuplicate();
+                script = std.meta.stringToEnum(ScriptMode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "rmim")) {
                 if (rmim_option != null) return arg.reportDuplicate();
                 rmim_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
@@ -102,6 +107,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .output_path = output_path,
         .symbols_path = symbols_path,
         .options = .{
+            .script = script orelse .decompile,
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
@@ -126,6 +132,7 @@ const Extract = struct {
 };
 
 const Options = struct {
+    script: ScriptMode,
     rmim: RawOrDecode,
     scrp: RawOrDecode,
     encd: RawOrDecode,
@@ -139,6 +146,11 @@ const Options = struct {
 const RawOrDecode = enum {
     raw,
     decode,
+};
+
+const ScriptMode = enum {
+    disassemble,
+    decompile,
 };
 
 pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void {

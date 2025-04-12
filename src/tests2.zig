@@ -90,6 +90,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
         .symbols_path = game.symbols_path,
         .options = switch (options) {
             .raw => .{
+                .script = .disassemble, // (ignored since everything is .raw)
                 .rmim = .raw,
                 .scrp = .raw,
                 .encd = .raw,
@@ -100,6 +101,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
                 .akos = .raw,
             },
             .decode => .{
+                .script = .disassemble,
                 .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,
