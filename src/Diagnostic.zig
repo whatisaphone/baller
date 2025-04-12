@@ -62,8 +62,15 @@ pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_er
 
     self.formatAndAdd(.err, fmt, args ++ .{@errorName(zig_err)});
 
-    if (live_spew) if (@errorReturnTrace()) |trace|
-        std.debug.dumpStackTrace(trace.*);
+    if (live_spew) if (@errorReturnTrace()) |err_trace|
+        std.debug.dumpStackTrace(err_trace.*);
+}
+
+pub fn trace(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    self.formatAndAdd(.trace, fmt, args);
 }
 
 fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args: anytype) void {
