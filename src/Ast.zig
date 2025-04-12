@@ -55,6 +55,10 @@ pub const Node = union(enum) {
         glob_number: u16,
         children: ExtraSlice,
     },
+    scrp: struct {
+        glob_number: u16,
+        path: []const u8,
+    },
     awiz: struct {
         glob_number: u16,
         children: ExtraSlice,

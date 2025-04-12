@@ -27,7 +27,7 @@ pub fn disassemble(
     };
 }
 
-pub fn disassembleInner(
+fn disassembleInner(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
     id: Symbols.ScriptId,

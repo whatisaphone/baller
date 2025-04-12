@@ -3,6 +3,8 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
+const Symbols = @import("Symbols.zig");
+const assemble = @import("assemble.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -12,6 +14,8 @@ const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
+const games = @import("games.zig");
+const lang = @import("lang.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -39,6 +43,7 @@ pub const Payload = union(enum) {
 pub fn run(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    game: games.Game,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -46,7 +51,7 @@ pub fn run(
     events: *sync.Channel(Event, 16),
     next_event_index: *u16,
 ) void {
-    planProject(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index) catch |err| {
+    planProject(gpa, diagnostic, game, project_dir, project, awiz_strategy, pool, events, next_event_index) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
         sendSyncEvent(events, next_event_index, .err);
@@ -61,6 +66,7 @@ fn sendSyncEvent(events: *sync.Channel(Event, 16), next_event_index: *u16, paylo
 fn planProject(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    game: games.Game,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -78,7 +84,7 @@ fn planProject(
         for (project_file.ast.getExtra(disk.children)) |room_node| {
             const room = &project_file.ast.nodes.items[room_node].disk_room;
             sendSyncEvent(events, next_event_index, .{ .room_start = room.room_number });
-            try planRoom(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room);
+            try planRoom(gpa, diagnostic, game, project_dir, project, awiz_strategy, pool, events, next_event_index, room);
             sendSyncEvent(events, next_event_index, .room_end);
         }
         sendSyncEvent(events, next_event_index, .disk_end);
@@ -92,6 +98,7 @@ fn planProject(
 fn planRoom(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    game: games.Game,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -107,6 +114,7 @@ fn planRoom(
             .raw_glob_file => |*n| try planRawGlobFile(gpa, project_dir, events, next_event_index, n),
             .raw_glob_block => |*n| try planRawGlobBlock(gpa, project_dir, project, events, next_event_index, room.room_number, n),
             .raw_block => |*n| try planRawBlock(gpa, project_dir, events, next_event_index, n),
+            .scrp => |*n| try planScrp(gpa, diagnostic, game, project_dir, pool, events, next_event_index, n),
             .awiz => |*n| try planAwiz(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
             .mult => |*n| try planMult(gpa, diagnostic, project_dir, project, awiz_strategy, pool, events, next_event_index, room.room_number, n),
             else => unreachable,
@@ -168,6 +176,72 @@ fn planRawGlobBlock(
     }
 
     sendSyncEvent(events, next_event_index, .glob_end);
+}
+
+fn planScrp(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    game: games.Game,
+    project_dir: std.fs.Dir,
+    pool: *std.Thread.Pool,
+    events: *sync.Channel(Event, 16),
+    next_event_index: *u16,
+    node: *const @FieldType(Ast.Node, "scrp"),
+) !void {
+    const event_index = next_event_index.*;
+    next_event_index.* += 1;
+
+    try pool.spawn(runScrp, .{ gpa, diagnostic, game, project_dir, events, event_index, node });
+}
+
+fn runScrp(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    game: games.Game,
+    project_dir: std.fs.Dir,
+    events: *sync.Channel(Event, 16),
+    event_index: u16,
+    node: *const @FieldType(Ast.Node, "scrp"),
+) void {
+    buildScrp(gpa, game, project_dir, events, event_index, node) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "SCRP", node.glob_number }, err);
+        events.send(.{ .index = event_index, .payload = .err });
+    };
+}
+
+fn buildScrp(
+    gpa: std.mem.Allocator,
+    game: games.Game,
+    project_dir: std.fs.Dir,
+    events: *sync.Channel(Event, 16),
+    event_index: u16,
+    node: *const @FieldType(Ast.Node, "scrp"),
+) !void {
+    const in = try fs.readFile(gpa, project_dir, node.path);
+    defer gpa.free(in);
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(gpa);
+
+    var fixups: std.ArrayList(Fixup) = .init(gpa);
+    defer fixups.deinit();
+
+    const language = lang.buildLanguage(game);
+    const ins_map = try lang.buildInsMap(gpa, &language);
+    const symbols: Symbols = .{ .game = game };
+    const id: Symbols.ScriptId = .{ .global = node.glob_number };
+
+    const result = try assemble.assemble(gpa, .{ &language, &ins_map }, in, &symbols, id);
+
+    events.send(.{
+        .index = event_index,
+        .payload = .{ .glob = .{
+            .block_id = blockId("SCRP"),
+            .glob_number = node.glob_number,
+            .data = result,
+        } },
+    });
 }
 
 fn planAwiz(

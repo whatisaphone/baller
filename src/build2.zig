@@ -94,7 +94,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     var events: sync.Channel(plan.Event, 16) = .init;
     var next_event_index: u16 = 0;
 
-    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, &pool, &events, &next_event_index });
+    try pool.spawn(plan.run, .{ gpa, diagnostic, game, project_dir, &project, args.options.awiz_strategy, &pool, &events, &next_event_index });
 
     try emit.run(gpa, diagnostic, output_dir, index_name, game, &events);
 }

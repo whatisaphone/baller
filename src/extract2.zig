@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const Symbols = @import("Symbols.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -11,9 +12,11 @@ const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
 const xor_key = @import("build.zig").xor_key;
 const cliargs = @import("cliargs.zig");
+const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const pathf = @import("pathf.zig");
 const sync = @import("sync.zig");
@@ -22,6 +25,7 @@ const utils = @import("utils.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
+    var scrp_option: ?@FieldType(Options, "scrp") = null;
     var awiz_option: ?@FieldType(Options, "awiz") = null;
     var mult_option: ?@FieldType(Options, "mult") = null;
 
@@ -36,7 +40,11 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 return arg.reportUnexpected();
         },
         .long_option => |opt| {
-            if (std.mem.eql(u8, opt.flag, "awiz")) {
+            if (std.mem.eql(u8, opt.flag, "scrp")) {
+                if (scrp_option != null) return arg.reportDuplicate();
+                scrp_option = std.meta.stringToEnum(@FieldType(Options, "scrp"), opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(@FieldType(Options, "awiz"), opt.value) orelse
                     return arg.reportInvalidValue();
@@ -61,6 +69,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .index_path = index_path,
         .output_path = output_path,
         .options = .{
+            .scrp = scrp_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
         },
@@ -78,6 +87,7 @@ const Extract = struct {
 };
 
 const Options = struct {
+    scrp: enum { raw, decode },
     awiz: enum { raw, decode },
     mult: enum { raw, decode },
 };
@@ -523,7 +533,7 @@ fn extractRoom(
 
     var events: sync.Channel(Event, 16) = .init;
 
-    try pool.spawn(readRoomJob, .{ gpa, options, index, in, diag, lflf_end, room_number, output_dir, pool, &events });
+    try pool.spawn(readRoomJob, .{ gpa, options, game, index, in, diag, lflf_end, room_number, output_dir, pool, &events });
 
     try emitRoom(gpa, index, diag, room_number, output_dir, project_code, &events);
 }
@@ -547,6 +557,7 @@ fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset
 fn readRoomJob(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
@@ -562,7 +573,7 @@ fn readRoomJob(
 
     var pending_jobs: std.atomic.Value(u32) = .init(0);
 
-    readRoomInner(gpa, options, index, in, diag, lflf_end, room_number, output_dir, &room_dir, pool, events, &pending_jobs) catch |err| {
+    readRoomInner(gpa, options, game, index, in, diag, lflf_end, room_number, output_dir, &room_dir, pool, events, &pending_jobs) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(@intCast(in.bytes_read), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
@@ -582,6 +593,7 @@ fn readRoomJob(
 fn readRoomInner(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
@@ -627,7 +639,7 @@ fn readRoomInner(
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractGlob(gpa, options, index, diag, room_number, &room_palette, in, room_dir.*.?, room_path, &block, pool, events, pending_jobs, &next_chunk_index);
+        try extractGlob(gpa, options, game, index, diag, room_number, &room_palette, in, room_dir.*.?, room_path, &block, pool, events, pending_jobs, &next_chunk_index);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -745,6 +757,7 @@ fn findGlobNumber(
 fn extractGlob(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
@@ -767,12 +780,13 @@ fn extractGlob(
     if (next_chunk_index.* >= max_room_code_chunks) return error.Overflow;
 
     _ = pending_jobs.fetchAdd(1, .monotonic);
-    try pool.spawn(extractGlobJob, .{ gpa, options, index, diag, room_number, room_dir, room_path, room_palette, block.*, raw, events, pending_jobs, chunk_index });
+    try pool.spawn(extractGlobJob, .{ gpa, options, game, index, diag, room_number, room_dir, room_path, room_palette, block.*, raw, events, pending_jobs, chunk_index });
 }
 
 fn extractGlobJob(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
@@ -787,7 +801,7 @@ fn extractGlobJob(
 ) void {
     defer gpa.free(raw);
 
-    extractGlobInner(gpa, options, index, diag, room_number, room_dir, room_path, room_palette, &block, raw, events, chunk_index) catch |err| {
+    extractGlobInner(gpa, options, game, index, diag, room_number, room_dir, room_path, room_palette, &block, raw, events, chunk_index) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
         events.send(.err);
@@ -801,6 +815,7 @@ fn extractGlobJob(
 fn extractGlobInner(
     gpa: std.mem.Allocator,
     options: Options,
+    game: games.Game,
     index: *const Index,
     disk_diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
@@ -835,6 +850,15 @@ fn extractGlobInner(
     };
 
     const decode: enum { skipped, ok, fallback } = decode: switch (block.id) {
+        blockId("SCRP") => {
+            if (options.scrp != .decode) break :decode .skipped;
+            if (extractScrp(gpa, game, &diag, glob_number, raw, room_dir, room_path, &code))
+                break :decode .ok
+            else |err| if (err == error.AddedToDiagnostic)
+                break :decode .fallback
+            else
+                return err;
+        },
         blockId("AWIZ") => {
             if (options.awiz != .decode) break :decode .skipped;
             if (extractAwiz(gpa, &diag, glob_number, raw, room_palette, room_dir, room_path, &code))
@@ -874,6 +898,45 @@ fn extractGlobInner(
     try writeRawGlob(gpa, block, glob_number, raw, room_dir, room_path, &code);
 
     events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+}
+
+fn extractScrp(
+    gpa: std.mem.Allocator,
+    game: games.Game,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const language = lang.buildLanguage(game);
+    const symbols: Symbols = .{
+        .game = game,
+    };
+    const diagnostic: struct {
+        diag: *const Diagnostic.ForBinaryFile,
+
+        pub fn warnScriptUnknownByte(self: *const @This()) void {
+            self.diag.info(0, "unknown script byte", .{});
+        }
+    } = .{ .diag = diag };
+
+    const id: Symbols.ScriptId = .{ .global = glob_number };
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    defer out.deinit(gpa);
+
+    disasm.disassemble(gpa, &language, id, raw, &symbols, out.writer(gpa), &diagnostic) catch |err| {
+        diag.zigErr(0, "unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
+    };
+
+    var path_buf: ["scrp0000.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "scrp{:0>4}.s", .{glob_number}) catch unreachable;
+    try fs.writeFileZ(output_dir, path, out.items);
+
+    try code.writer(gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, output_path, path });
 }
 
 fn extractAwiz(
