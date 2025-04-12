@@ -535,7 +535,7 @@ fn extractRoom(
 
     try pool.spawn(readRoomJob, .{ gpa, options, game, index, in, diag, lflf_end, room_number, output_dir, pool, &events });
 
-    try emitRoom(gpa, index, diag, room_number, output_dir, project_code, &events);
+    try emitRoom(gpa, index, room_number, output_dir, project_code, &events);
 }
 
 fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
@@ -1066,7 +1066,6 @@ fn writeRawBlock(
 fn emitRoom(
     gpa: std.mem.Allocator,
     index: *const Index,
-    diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
     output_dir: std.fs.Dir,
     project_code: *std.ArrayListUnmanaged(u8),
@@ -1107,8 +1106,6 @@ fn emitRoom(
         iovec.* = .{ .base = chunk.items.ptr, .len = chunk.items.len };
     try room_scu.writevAll(iovecs);
 
-    if (!ok) {
-        diag.diagnostic.err("error extracting room", .{});
+    if (!ok)
         return error.AddedToDiagnostic;
-    }
 }
