@@ -51,17 +51,14 @@ const VmBuilder = struct {
     opcode_lookup_pos: u16,
 
     fn init() VmBuilder {
-        var result: VmBuilder = .{
+        return .{
             .vm = .{
                 .opcodes = @splat(.empty),
                 .operands = undefined,
-                .opcode_lookup = undefined,
+                .opcode_lookup = @splat(.encode(.unset)),
             },
             .opcode_lookup_pos = 256,
         };
-        // Fill in the first 256 (each possible first byte of an opcode)
-        @memset(result.vm.opcode_lookup[0..256], .encode(.unset));
-        return result;
     }
 
     fn add(
@@ -94,7 +91,9 @@ const VmBuilder = struct {
 
         std.debug.assert(self.vm.opcode_lookup[index].decode() == .unset);
         self.vm.opcode_lookup[index] = .encode(.{ .nested = pos });
-        @memset(self.vm.opcode_lookup[pos..][0..256], .encode(.unset));
+
+        for (self.vm.opcode_lookup[pos..][0..256]) |e|
+            std.debug.assert(e.decode() == .unset);
 
         self.opcode_lookup_pos += 256;
     }
