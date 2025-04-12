@@ -117,9 +117,18 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
+    const cx: Context = .{
+        .gpa = gpa,
+        .pool = &pool,
+        .options = args.options,
+        .game = game,
+        .index = &index,
+        .output_dir = output_dir,
+    };
+
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        try extractDisk(gpa, &pool, diagnostic, input_dir, index_name, args.options, game, &index, disk_number, output_dir, &code);
+        try extractDisk(&cx, diagnostic, input_dir, index_name, disk_number, &code);
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
@@ -458,24 +467,28 @@ fn writeRawIndexBlock(
     );
 }
 
-fn extractDisk(
+const Context = struct {
     gpa: std.mem.Allocator,
     pool: *std.Thread.Pool,
-    diagnostic: *Diagnostic,
-    input_dir: std.fs.Dir,
-    index_name: [:0]const u8,
     options: Options,
     game: games.Game,
     index: *const Index,
-    disk_number: u8,
     output_dir: std.fs.Dir,
+};
+
+fn extractDisk(
+    cx: *const Context,
+    diagnostic: *Diagnostic,
+    input_dir: std.fs.Dir,
+    index_name: [:0]const u8,
+    disk_number: u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.writer(gpa).print("disk {} {{\n", .{disk_number});
+    try code.writer(cx.gpa).print("disk {} {{\n", .{disk_number});
 
     var disk_name_buf: pathf.Path = .{};
     const disk_name = try pathf.append(&disk_name_buf, index_name);
-    games.pointPathToDisk(game, disk_name.full(), disk_number);
+    games.pointPathToDisk(cx.game, disk_name.full(), disk_number);
 
     const diag: Diagnostic.ForBinaryFile = .{
         .diagnostic = diagnostic,
@@ -497,14 +510,14 @@ fn extractDisk(
 
     while (in.bytes_read < lecf.end()) {
         const lflf = try lecf_blocks.expect("LFLF").block();
-        try extractRoom(gpa, pool, options, game, index, disk_number, &in, &diag, lflf.end(), output_dir, code);
+        try extractRoom(cx, disk_number, &in, &diag, lflf.end(), code);
     }
 
     try lecf_blocks.finish(lecf.end());
 
     try file_blocks.finishEof();
 
-    try code.appendSlice(gpa, "}\n");
+    try code.appendSlice(cx.gpa, "}\n");
 }
 
 const max_room_code_chunks = 5120;
@@ -516,26 +529,21 @@ const Event = union(enum) {
 };
 
 fn extractRoom(
-    gpa: std.mem.Allocator,
-    pool: *std.Thread.Pool,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     disk_number: u8,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
     lflf_end: u32,
-    output_dir: std.fs.Dir,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const room_number = findRoomNumber(game, index, disk_number, @intCast(in.bytes_read)) orelse
+    const room_number = findRoomNumber(cx.game, cx.index, disk_number, @intCast(in.bytes_read)) orelse
         return error.BadData;
 
     var events: sync.Channel(Event, 16) = .init;
 
-    try pool.spawn(readRoomJob, .{ gpa, options, game, index, in, diag, lflf_end, room_number, output_dir, pool, &events });
+    try cx.pool.spawn(readRoomJob, .{ cx, in, diag, lflf_end, room_number, &events });
 
-    try emitRoom(gpa, index, room_number, output_dir, project_code, &events);
+    try emitRoom(cx, room_number, project_code, &events);
 }
 
 fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
@@ -555,16 +563,11 @@ fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset
 }
 
 fn readRoomJob(
-    gpa: std.mem.Allocator,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
     lflf_end: u32,
     room_number: u8,
-    output_dir: std.fs.Dir,
-    pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
 ) void {
     // store this a level up so it outlives the jobs
@@ -573,7 +576,7 @@ fn readRoomJob(
 
     var pending_jobs: std.atomic.Value(u32) = .init(0);
 
-    readRoomInner(gpa, options, game, index, in, diag, lflf_end, room_number, output_dir, &room_dir, pool, events, &pending_jobs) catch |err| {
+    readRoomInner(cx, in, diag, lflf_end, room_number, &room_dir, events, &pending_jobs) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(@intCast(in.bytes_read), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
@@ -591,25 +594,20 @@ fn readRoomJob(
 }
 
 fn readRoomInner(
-    gpa: std.mem.Allocator,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
     lflf_end: u32,
     room_number: u8,
-    output_dir: std.fs.Dir,
     room_dir: *?std.fs.Dir,
-    pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     pending_jobs: *std.atomic.Value(u32),
 ) !void {
     var next_chunk_index: u16 = 0;
 
-    const room_path = index.room_names.get(room_number);
-    try fs.makeDirIfNotExist(output_dir, room_path);
-    room_dir.* = try output_dir.openDir(room_path, .{});
+    const room_path = cx.index.room_names.get(room_number);
+    try fs.makeDirIfNotExist(cx.output_dir, room_path);
+    room_dir.* = try cx.output_dir.openDir(room_path, .{});
 
     var lflf_blocks = streamingBlockReader(in, diag);
 
@@ -620,8 +618,8 @@ fn readRoomInner(
 
         const rmim = try lflf_blocks.expect("RMIM").block();
         var code: std.ArrayListUnmanaged(u8) = .empty;
-        errdefer code.deinit(gpa);
-        try extractRawGlob(gpa, index, in, room_number, &rmim, room_dir.*.?, room_path, &code);
+        errdefer code.deinit(cx.gpa);
+        try extractRawGlob(cx.gpa, cx.index, in, room_number, &rmim, room_dir.*.?, room_path, &code);
         events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
     }
 
@@ -631,15 +629,15 @@ fn readRoomInner(
         std.debug.assert(next_chunk_index < max_room_code_chunks);
 
         var code: std.ArrayListUnmanaged(u8) = .empty;
-        errdefer code.deinit(gpa);
-        const room_palette = try extractRmda(gpa, in, diag, &lflf_blocks, room_number, room_dir.*.?, room_path, &code);
+        errdefer code.deinit(cx.gpa);
+        const room_palette = try extractRmda(cx.gpa, in, diag, &lflf_blocks, room_number, room_dir.*.?, room_path, &code);
         events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
         break :room_palette room_palette;
     };
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractGlob(gpa, options, game, index, diag, room_number, &room_palette, in, room_dir.*.?, room_path, &block, pool, events, pending_jobs, &next_chunk_index);
+        try extractGlob(cx, diag, room_number, &room_palette, in, room_dir.*.?, room_path, &block, events, pending_jobs, &next_chunk_index);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -755,10 +753,7 @@ fn findGlobNumber(
 }
 
 fn extractGlob(
-    gpa: std.mem.Allocator,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
     room_palette: *const [0x300]u8,
@@ -766,13 +761,12 @@ fn extractGlob(
     room_dir: std.fs.Dir,
     room_path: []const u8,
     block: *const Block,
-    pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     pending_jobs: *std.atomic.Value(u32),
     next_chunk_index: *u16,
 ) !void {
-    const raw = try gpa.alloc(u8, block.size);
-    errdefer gpa.free(raw);
+    const raw = try cx.gpa.alloc(u8, block.size);
+    errdefer cx.gpa.free(raw);
     try in.reader().readNoEof(raw);
 
     const chunk_index = next_chunk_index.*;
@@ -780,14 +774,11 @@ fn extractGlob(
     if (next_chunk_index.* >= max_room_code_chunks) return error.Overflow;
 
     _ = pending_jobs.fetchAdd(1, .monotonic);
-    try pool.spawn(extractGlobJob, .{ gpa, options, game, index, diag, room_number, room_dir, room_path, room_palette, block.*, raw, events, pending_jobs, chunk_index });
+    try cx.pool.spawn(extractGlobJob, .{ cx, diag, room_number, room_dir, room_path, room_palette, block.*, raw, events, pending_jobs, chunk_index });
 }
 
 fn extractGlobJob(
-    gpa: std.mem.Allocator,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
     room_dir: std.fs.Dir,
@@ -799,9 +790,9 @@ fn extractGlobJob(
     pending_jobs: *std.atomic.Value(u32),
     chunk_index: u16,
 ) void {
-    defer gpa.free(raw);
+    defer cx.gpa.free(raw);
 
-    extractGlobInner(gpa, options, game, index, diag, room_number, room_dir, room_path, room_palette, &block, raw, events, chunk_index) catch |err| {
+    extractGlobInner(cx, diag, room_number, room_dir, room_path, room_palette, &block, raw, events, chunk_index) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
         events.send(.err);
@@ -813,10 +804,7 @@ fn extractGlobJob(
 }
 
 fn extractGlobInner(
-    gpa: std.mem.Allocator,
-    options: Options,
-    game: games.Game,
-    index: *const Index,
+    cx: *const Context,
     disk_diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
     room_dir: std.fs.Dir,
@@ -828,13 +816,13 @@ fn extractGlobInner(
     chunk_index: u16,
 ) !void {
     var code: std.ArrayListUnmanaged(u8) = .empty;
-    errdefer code.deinit(gpa);
+    errdefer code.deinit(cx.gpa);
 
-    const glob_number = findGlobNumber(index, block.id, room_number, block.offset()) orelse {
+    const glob_number = findGlobNumber(cx.index, block.id, room_number, block.offset()) orelse {
         // This should normally be impossible, but there's a glitched CHAR block
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
-        try writeRawBlock(gpa, block, raw, room_dir, room_path, &code);
+        try writeRawBlock(cx.gpa, block, raw, room_dir, room_path, &code);
         events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
         return;
     };
@@ -851,8 +839,8 @@ fn extractGlobInner(
 
     const decode: enum { skipped, ok, fallback } = decode: switch (block.id) {
         blockId("SCRP") => {
-            if (options.scrp != .decode) break :decode .skipped;
-            if (extractScrp(gpa, game, &diag, glob_number, raw, room_dir, room_path, &code))
+            if (cx.options.scrp != .decode) break :decode .skipped;
+            if (extractScrp(cx, &diag, glob_number, raw, room_dir, room_path, &code))
                 break :decode .ok
             else |err| if (err == error.AddedToDiagnostic)
                 break :decode .fallback
@@ -860,8 +848,8 @@ fn extractGlobInner(
                 return err;
         },
         blockId("AWIZ") => {
-            if (options.awiz != .decode) break :decode .skipped;
-            if (extractAwiz(gpa, &diag, glob_number, raw, room_palette, room_dir, room_path, &code))
+            if (cx.options.awiz != .decode) break :decode .skipped;
+            if (extractAwiz(cx.gpa, &diag, glob_number, raw, room_palette, room_dir, room_path, &code))
                 break :decode .ok
             else |err| if (err == error.AddedToDiagnostic)
                 break :decode .fallback
@@ -869,8 +857,8 @@ fn extractGlobInner(
                 return err;
         },
         blockId("MULT") => {
-            if (options.mult != .decode) break :decode .skipped;
-            if (mult.extract(gpa, &diag, glob_number, raw, room_palette, room_dir, room_path, &code))
+            if (cx.options.mult != .decode) break :decode .skipped;
+            if (mult.extract(cx.gpa, &diag, glob_number, raw, room_palette, room_dir, room_path, &code))
                 break :decode .ok
             else |err| if (err == error.AddedToDiagnostic)
                 break :decode .fallback
@@ -895,14 +883,13 @@ fn extractGlobInner(
     // Clear any partial results from a failure
     code.clearRetainingCapacity();
 
-    try writeRawGlob(gpa, block, glob_number, raw, room_dir, room_path, &code);
+    try writeRawGlob(cx.gpa, block, glob_number, raw, room_dir, room_path, &code);
 
     events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
 }
 
 fn extractScrp(
-    gpa: std.mem.Allocator,
-    game: games.Game,
+    cx: *const Context,
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
@@ -910,9 +897,9 @@ fn extractScrp(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const language = lang.buildLanguage(game);
+    const language = lang.buildLanguage(cx.game);
     const symbols: Symbols = .{
-        .game = game,
+        .game = cx.game,
     };
     const diagnostic: struct {
         diag: *const Diagnostic.ForBinaryFile,
@@ -925,9 +912,9 @@ fn extractScrp(
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
-    defer out.deinit(gpa);
+    defer out.deinit(cx.gpa);
 
-    disasm.disassemble(gpa, &language, id, raw, &symbols, out.writer(gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.gpa, &language, id, raw, &symbols, out.writer(cx.gpa), &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -936,7 +923,7 @@ fn extractScrp(
     const path = std.fmt.bufPrintZ(&path_buf, "scrp{:0>4}.s", .{glob_number}) catch unreachable;
     try fs.writeFileZ(output_dir, path, out.items);
 
-    try code.writer(gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, output_path, path });
+    try code.writer(cx.gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, output_path, path });
 }
 
 fn extractAwiz(
@@ -1064,15 +1051,13 @@ fn writeRawBlock(
 }
 
 fn emitRoom(
-    gpa: std.mem.Allocator,
-    index: *const Index,
+    cx: *const Context,
     room_number: u8,
-    output_dir: std.fs.Dir,
     project_code: *std.ArrayListUnmanaged(u8),
     events: *sync.Channel(Event, 16),
 ) !void {
     var code_chunks: std.BoundedArray(std.ArrayListUnmanaged(u8), max_room_code_chunks) = .{};
-    defer for (code_chunks.slice()) |*chunk| chunk.deinit(gpa);
+    defer for (code_chunks.slice()) |*chunk| chunk.deinit(cx.gpa);
 
     var ok = true;
     while (true) switch (events.receive()) {
@@ -1085,16 +1070,16 @@ fn emitRoom(
         },
     };
 
-    const room_name = index.room_names.get(room_number);
+    const room_name = cx.index.room_names.get(room_number);
     var room_scu_path_buf: [Ast.max_room_name_len + ".scu".len + 1]u8 = undefined;
     const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
 
-    try project_code.writer(gpa).print(
+    try project_code.writer(cx.gpa).print(
         "    room {} \"{s}\" \"{s}\"\n",
         .{ room_number, room_name, room_scu_path },
     );
 
-    const room_scu = try output_dir.createFileZ(room_scu_path, .{});
+    const room_scu = try cx.output_dir.createFileZ(room_scu_path, .{});
     defer room_scu.close();
 
     if (!ok)
