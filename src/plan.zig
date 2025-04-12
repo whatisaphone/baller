@@ -50,20 +50,28 @@ pub fn run(
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
 ) void {
-    var cx: Context = .{
-        .gpa = gpa,
-        .diagnostic = diagnostic,
-        .game = game,
-        .project_dir = project_dir,
-        .project = project,
-        .awiz_strategy = awiz_strategy,
-        .pool = pool,
-        .events = events,
-        .next_event_index = 0,
-        .pending_jobs = .init(0),
-    };
+    var cx: Context = undefined;
 
-    planProject(&cx) catch |err| {
+    (blk: {
+        const language = lang.buildLanguage(game);
+        const ins_map = lang.buildInsMap(gpa, &language) catch |err| break :blk err;
+        cx = .{
+            .gpa = gpa,
+            .diagnostic = diagnostic,
+            .game = game,
+            .project_dir = project_dir,
+            .project = project,
+            .awiz_strategy = awiz_strategy,
+            .language = &language,
+            .ins_map = &ins_map,
+            .pool = pool,
+            .events = events,
+            .next_event_index = 0,
+            .pending_jobs = .init(0),
+        };
+
+        planProject(&cx) catch |err| break :blk err;
+    }) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
         cx.sendSyncEvent(.err);
@@ -85,6 +93,8 @@ const Context = struct {
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
+    language: *const lang.Language,
+    ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     next_event_index: u16,
@@ -206,18 +216,9 @@ fn buildScrp(
     const in = try fs.readFile(cx.gpa, cx.project_dir, node.path);
     defer cx.gpa.free(in);
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    errdefer out.deinit(cx.gpa);
-
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
-
-    const language = lang.buildLanguage(cx.game);
-    const ins_map = try lang.buildInsMap(cx.gpa, &language);
     const symbols: Symbols = .{ .game = cx.game };
     const id: Symbols.ScriptId = .{ .global = node.glob_number };
-
-    const result = try assemble.assemble(cx.gpa, .{ &language, &ins_map }, in, &symbols, id);
+    const result = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
 
     cx.events.send(.{
         .index = event_index,
