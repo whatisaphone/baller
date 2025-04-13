@@ -582,6 +582,20 @@ const RoomContext = struct {
     events: *sync.Channel(Event, 16),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
+
+    fn claimChunkIndex(self: *RoomContext) !u16 {
+        const result = self.next_chunk_index;
+        if (result >= max_room_code_chunks) return error.Overflow;
+        self.next_chunk_index += 1;
+        return result;
+    }
+
+    fn sendSync(self: *RoomContext, code: std.ArrayListUnmanaged(u8)) !void {
+        self.events.send(.{ .code_chunk = .{
+            .index = try self.claimChunkIndex(),
+            .code = code,
+        } });
+    }
 };
 
 fn readRoomJob(
@@ -640,27 +654,19 @@ fn readRoomInner(
     var lflf_blocks = streamingBlockReader(in, diag);
 
     {
-        const chunk_index = cx.next_chunk_index;
-        cx.next_chunk_index += 1;
-        std.debug.assert(cx.next_chunk_index < max_room_code_chunks);
-
         const rmim = try lflf_blocks.expect("RMIM").block();
         var code: std.ArrayListUnmanaged(u8) = .empty;
         errdefer code.deinit(cx.cx.gpa);
         try extractRawGlob(cx, in, &rmim, &code);
-        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+        try cx.sendSync(code);
     }
 
     {
-        const chunk_index = cx.next_chunk_index;
-        cx.next_chunk_index += 1;
-        std.debug.assert(cx.next_chunk_index < max_room_code_chunks);
-
         var code: std.ArrayListUnmanaged(u8) = .empty;
         errdefer code.deinit(cx.cx.gpa);
         const room_palette = try extractRmda(cx, in, diag, &lflf_blocks, &code);
         cx.room_palette = .{ .defined = room_palette };
-        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+        try cx.sendSync(code);
     }
 
     while (in.bytes_read < lflf_end) {
@@ -785,9 +791,7 @@ fn extractGlob(
     errdefer cx.cx.gpa.free(raw);
     try in.reader().readNoEof(raw);
 
-    const chunk_index = cx.next_chunk_index;
-    cx.next_chunk_index += 1;
-    if (cx.next_chunk_index >= max_room_code_chunks) return error.Overflow;
+    const chunk_index = try cx.claimChunkIndex();
 
     _ = cx.pending_jobs.fetchAdd(1, .monotonic);
     try cx.cx.pool.spawn(extractGlobJob, .{ cx, diag, block.*, raw, chunk_index });
