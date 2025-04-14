@@ -596,6 +596,11 @@ const RoomContext = struct {
             .code = code,
         } });
     }
+
+    fn sendSyncFmt(self: *RoomContext, comptime fmt: []const u8, args: anytype) !void {
+        const code = try std.fmt.allocPrint(self.cx.gpa, fmt, args);
+        try self.sendSync(.fromOwnedSlice(code));
+    }
 };
 
 fn readRoomJob(
@@ -662,11 +667,9 @@ fn readRoomInner(
     }
 
     {
-        var code: std.ArrayListUnmanaged(u8) = .empty;
-        errdefer code.deinit(cx.cx.gpa);
-        const room_palette = try extractRmda(cx, in, diag, &lflf_blocks, &code);
+        const rmda = try lflf_blocks.expect("RMDA").block();
+        const room_palette = try extractRmda(cx, in, diag, &rmda);
         cx.room_palette = .{ .defined = room_palette };
-        try cx.sendSync(code);
     }
 
     while (in.bytes_read < lflf_end) {
@@ -678,18 +681,12 @@ fn readRoomInner(
 }
 
 fn extractRmda(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-    lflf_blocks: anytype,
-    code: *std.ArrayListUnmanaged(u8),
+    rmda: *const Block,
 ) ![0x300]u8 {
-    const rmda = try lflf_blocks.expect("RMDA").block();
-
-    try code.writer(cx.cx.gpa).print(
-        "raw-glob \"{s}\" {} {{\n",
-        .{ fmtBlockId(&rmda.id), cx.room_number },
-    );
+    try cx.sendSyncFmt("raw-glob \"{s}\" {} {{\n", .{ fmtBlockId(&rmda.id), cx.room_number });
 
     var apal_opt: ?[0x300]u8 = null;
 
@@ -699,18 +696,24 @@ fn extractRmda(
         const block = try rmda_blocks.next().block();
         switch (block.id) {
             blockId("PALS") => {
+                var code: std.ArrayListUnmanaged(u8) = .empty;
+                errdefer code.deinit(cx.cx.gpa);
                 if (apal_opt != null) return error.BadData;
-                apal_opt = try extractPals(cx, in, diag, &block, code);
+                apal_opt = try extractPals(cx, in, diag, &block, &code);
+                try cx.sendSync(code);
             },
             else => {
-                try extractRawBlock(cx.cx.gpa, in, &block, cx.room_dir, cx.room_path, code);
+                var code: std.ArrayListUnmanaged(u8) = .empty;
+                errdefer code.deinit(cx.cx.gpa);
+                try extractRawBlock(cx.cx.gpa, in, &block, cx.room_dir, cx.room_path, &code);
+                try cx.sendSync(code);
             },
         }
     }
 
     try rmda_blocks.finish(rmda.end());
 
-    try code.appendSlice(cx.cx.gpa, "}\n");
+    try cx.sendSyncFmt("}}\n", .{});
 
     return apal_opt orelse return error.BadData;
 }
