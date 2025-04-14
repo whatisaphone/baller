@@ -136,9 +136,9 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
             .raw_glob_file => |*n| try planRawGlobFile(cx, n),
             .raw_glob_block => |*n| try planRawGlobBlock(cx, room.room_number, n),
             .raw_block => |*n| try planRawBlock(cx, n),
-            .scrp => |*n| try planScrp(cx, n),
-            .awiz => |*n| try planAwiz(cx, room.room_number, n),
-            .mult => |*n| try planMult(cx, room.room_number, n),
+            .scrp => try spawnJob(planScrp, cx, room.room_number, child_node),
+            .awiz => try spawnJob(planAwiz, cx, room.room_number, child_node),
+            .mult => try spawnJob(planMult, cx, room.room_number, child_node),
             else => unreachable,
         }
     }
@@ -180,7 +180,7 @@ fn planRawGlobBlock(
         const child = &room_file.ast.nodes.items[node];
         switch (child.*) {
             .raw_block => |*n| try planRawBlock(cx, n),
-            .lscr => |*n| try planLscr(cx, room_number, n),
+            .lscr => try spawnJob(planLscr, cx, room_number, node),
             else => unreachable,
         }
     }
@@ -188,22 +188,20 @@ fn planRawGlobBlock(
     cx.sendSyncEvent(.glob_end);
 }
 
-fn planScrp(cx: *Context, node: *const @FieldType(Ast.Node, "scrp")) !void {
+const Job = fn (cx: *const Context, room_number: u8, node_index: u32, event_index: u16) anyerror!void;
+
+fn spawnJob(job: Job, cx: *Context, room_number: u8, node_index: u32) !void {
     const event_index = cx.next_event_index;
     cx.next_event_index += 1;
 
     _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.pool.spawn(runScrp, .{ cx, event_index, node });
+    try cx.pool.spawn(runJob, .{ job, cx, room_number, node_index, event_index });
 }
 
-fn runScrp(
-    cx: *Context,
-    event_index: u16,
-    node: *const @FieldType(Ast.Node, "scrp"),
-) void {
-    buildScrp(cx, event_index, node) catch |err| {
+fn runJob(job: Job, cx: *Context, room_number: u8, node_index: u32, event_index: u16) void {
+    job(cx, room_number, node_index, event_index) catch |err| {
         if (err != error.AddedToDiagnostic)
-            cx.diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "SCRP", node.glob_number }, err);
+            cx.diagnostic.zigErr("unexpected error: {s}", .{}, err);
         cx.events.send(.{ .index = event_index, .payload = .err });
     };
 
@@ -212,73 +210,43 @@ fn runScrp(
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
 
-fn buildScrp(
-    cx: *const Context,
-    event_index: u16,
-    node: *const @FieldType(Ast.Node, "scrp"),
-) !void {
-    const in = try fs.readFile(cx.gpa, cx.project_dir, node.path);
+fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const scrp = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].scrp;
+
+    const in = try fs.readFile(cx.gpa, cx.project_dir, scrp.path);
     defer cx.gpa.free(in);
 
     const symbols: Symbols = .{ .game = cx.game };
-    const id: Symbols.ScriptId = .{ .global = node.glob_number };
+    const id: Symbols.ScriptId = .{ .global = scrp.glob_number };
     const result = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
 
     cx.events.send(.{
         .index = event_index,
         .payload = .{ .glob = .{
             .block_id = blockId("SCRP"),
-            .glob_number = node.glob_number,
+            .glob_number = scrp.glob_number,
             .data = result,
         } },
     });
 }
 
-fn planLscr(cx: *Context, room_number: u8, node: *const @FieldType(Ast.Node, "lscr")) !void {
-    const event_index = cx.next_event_index;
-    cx.next_event_index += 1;
+fn planLscr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const lscr = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].lscr;
 
-    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.pool.spawn(runLscr, .{ cx, room_number, event_index, node });
-}
-
-fn runLscr(
-    cx: *Context,
-    room_number: u8,
-    event_index: u16,
-    node: *const @FieldType(Ast.Node, "lscr"),
-) void {
-    buildLscr(cx, room_number, event_index, node) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            cx.diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "LSCR", node.script_number }, err);
-        cx.events.send(.{ .index = event_index, .payload = .err });
-    };
-
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
-    if (prev_pending == 1)
-        std.Thread.Futex.wake(&cx.pending_jobs, 1);
-}
-
-fn buildLscr(
-    cx: *const Context,
-    room_number: u8,
-    event_index: u16,
-    node: *const @FieldType(Ast.Node, "lscr"),
-) !void {
-    const in = try fs.readFile(cx.gpa, cx.project_dir, node.path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, lscr.path);
     defer cx.gpa.free(in);
 
     const symbols: Symbols = .{ .game = cx.game };
     const id: Symbols.ScriptId = .{ .local = .{
         .room = room_number,
-        .number = node.script_number,
+        .number = lscr.script_number,
     } };
     var bytecode = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
     defer bytecode.deinit(cx.gpa);
 
     const result = try cx.gpa.alloc(u8, 4 + bytecode.items.len);
     errdefer cx.gpa.free(result);
-    std.mem.writeInt(i32, result[0..4], node.script_number, .little);
+    std.mem.writeInt(i32, result[0..4], lscr.script_number, .little);
     @memcpy(result[4..], bytecode.items); // TODO: avoid this memcpy
 
     cx.events.send(.{
@@ -290,41 +258,9 @@ fn buildLscr(
     });
 }
 
-fn planAwiz(
-    cx: *Context,
-    room_number: u8,
-    node: *const @FieldType(Ast.Node, "awiz"),
-) !void {
-    const event_index = cx.next_event_index;
-    cx.next_event_index += 1;
+fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const awiz_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].awiz;
 
-    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.pool.spawn(runAwiz, .{ cx, event_index, room_number, node });
-}
-
-fn runAwiz(
-    cx: *Context,
-    event_index: u16,
-    room_number: u8,
-    node: *const @FieldType(Ast.Node, "awiz"),
-) void {
-    buildAwiz(cx, event_index, room_number, node) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            cx.diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "AWIZ", node.glob_number }, err);
-        cx.events.send(.{ .index = event_index, .payload = .err });
-    };
-
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
-    if (prev_pending == 1)
-        std.Thread.Futex.wake(&cx.pending_jobs, 1);
-}
-
-fn buildAwiz(
-    cx: *const Context,
-    event_index: u16,
-    room_number: u8,
-    awiz_node: *const @FieldType(Ast.Node, "awiz"),
-) !void {
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
@@ -332,7 +268,7 @@ fn buildAwiz(
     defer fixups.deinit();
 
     var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try buildAwizInner(cx, room_number, awiz_node.children, &stream, &fixups);
+    try planAwizInner(cx, room_number, awiz_node.children, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
     cx.events.send(.{
@@ -345,7 +281,7 @@ fn buildAwiz(
     });
 }
 
-fn buildAwizInner(
+fn planAwizInner(
     cx: *const Context,
     room_number: u8,
     children: Ast.ExtraSlice,
@@ -386,41 +322,9 @@ fn buildAwizInner(
     try awiz.encode(&the_awiz, cx.awiz_strategy, out, fixups);
 }
 
-fn planMult(
-    cx: *Context,
-    room_number: u8,
-    node: *const @FieldType(Ast.Node, "mult"),
-) !void {
-    const event_index = cx.next_event_index;
-    cx.next_event_index += 1;
+fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const mult = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].mult;
 
-    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.pool.spawn(runMult, .{ cx, event_index, room_number, node });
-}
-
-fn runMult(
-    cx: *Context,
-    event_index: u16,
-    room_number: u8,
-    node: *const @FieldType(Ast.Node, "mult"),
-) void {
-    buildMult(cx, event_index, room_number, node) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            cx.diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "MULT", node.glob_number }, err);
-        cx.events.send(.{ .index = event_index, .payload = .err });
-    };
-
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
-    if (prev_pending == 1)
-        std.Thread.Futex.wake(&cx.pending_jobs, 1);
-}
-
-fn buildMult(
-    cx: *const Context,
-    event_index: u16,
-    room_number: u8,
-    mult: *const @FieldType(Ast.Node, "mult"),
-) !void {
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
@@ -428,7 +332,7 @@ fn buildMult(
     defer fixups.deinit();
 
     var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try buildMultInner(cx, room_number, mult, &stream, &fixups);
+    try planMultInner(cx, room_number, mult, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
     cx.events.send(.{
@@ -441,7 +345,7 @@ fn buildMult(
     });
 }
 
-fn buildMultInner(
+fn planMultInner(
     cx: *const Context,
     room_number: u8,
     mult_node: *const @FieldType(Ast.Node, "mult"),
@@ -468,7 +372,7 @@ fn buildMultInner(
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
         const awiz_start = try beginBlock(out, "AWIZ");
-        try buildAwizInner(cx, room_number, wiz.children, out, fixups);
+        try planAwizInner(cx, room_number, wiz.children, out, fixups);
         try endBlock(out, fixups, awiz_start);
     }
 
