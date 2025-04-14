@@ -88,11 +88,13 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
         .options = switch (options) {
             .raw => .{
                 .scrp = .raw,
+                .lsc2 = .raw,
                 .awiz = .raw,
                 .mult = .raw,
             },
             .decode => .{
                 .scrp = .decode,
+                .lsc2 = .decode,
                 .awiz = .decode,
                 .mult = .decode,
             },

@@ -26,6 +26,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
     var scrp_option: ?RawOrDecode = null;
+    var lsc2_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
 
@@ -43,6 +44,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             if (std.mem.eql(u8, opt.flag, "scrp")) {
                 if (scrp_option != null) return arg.reportDuplicate();
                 scrp_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "lsc2")) {
+                if (lsc2_option != null) return arg.reportDuplicate();
+                lsc2_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
@@ -70,6 +75,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .output_path = output_path,
         .options = .{
             .scrp = scrp_option orelse .decode,
+            .lsc2 = lsc2_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
         },
@@ -88,6 +94,7 @@ const Extract = struct {
 
 const Options = struct {
     scrp: RawOrDecode,
+    lsc2: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
 };
@@ -119,15 +126,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
-    const need_language = true; // TODO
-    const language = if (need_language)
-        lang.buildLanguage(game)
-    else
-        undefined;
-    const language_ptr: utils.SafeUndefined(*const lang.Language) = if (need_language)
-        .{ .defined = &language }
-    else
-        .undef;
+    var language: lang.Language = undefined;
+    var language_ptr: utils.SafeUndefined(*const lang.Language) = .undef;
+    if (args.options.scrp == .decode or args.options.lsc2 == .decode) {
+        language = lang.buildLanguage(game);
+        language_ptr = .{ .defined = &language };
+    }
 
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
@@ -709,7 +713,7 @@ fn extractRmda(
                 try cx.sendSync(code);
             },
             blockId("LSC2") => {
-                try readBlockAndSpawn(extractLscrJob, cx, in, diag, &block);
+                try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
@@ -810,12 +814,42 @@ fn runBlockJob(
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
 
-fn extractLscrJob(
+fn extractRmdaChildJob(
     cx: *RoomContext,
-    diag: *const Diagnostic.ForBinaryFile,
-    _: *const Block,
+    disk_diag: *const Diagnostic.ForBinaryFile,
+    block: *const Block,
     raw: []const u8,
     chunk_index: u16,
+) !void {
+    std.debug.assert(disk_diag.offset == 0);
+    const diag: Diagnostic.ForBinaryFile = .{
+        .diagnostic = disk_diag.diagnostic,
+        .path = disk_diag.path,
+        .offset = disk_diag.offset + block.start,
+        .cap_level = true,
+    };
+
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(cx.cx.gpa);
+
+    // First try to decode
+    switch (block.id) {
+        blockId("LSC2") => if (cx.cx.options.lsc2 == .decode)
+            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index))
+                return,
+        else => unreachable, // This is only called for the above block ids
+    }
+
+    // If decoding failed or was skipped, extract as raw
+    try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+}
+
+fn extractLscr(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
 ) !void {
     const symbols: Symbols = .{
         .game = cx.cx.game,
@@ -842,13 +876,10 @@ fn extractLscrJob(
     const path = std.fmt.bufPrintZ(&path_buf, "lscr{:0>4}.s", .{script_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    var code: std.ArrayListUnmanaged(u8) = .empty;
-    errdefer code.deinit(cx.cx.gpa);
     try code.writer(cx.cx.gpa).print(
         "    lscr {} \"{s}/{s}\"\n",
         .{ script_number, cx.room_path, path },
     );
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
 }
 
 fn findGlobNumber(
@@ -909,55 +940,58 @@ fn extractGlobJob(
         .cap_level = true,
     };
 
-    const decode: enum { skipped, ok, fallback } = decode: switch (block.id) {
-        blockId("SCRP") => {
-            if (cx.cx.options.scrp != .decode) break :decode .skipped;
-            if (extractScrp(cx, &diag, glob_number, raw, &code))
-                break :decode .ok
-            else |err| if (err == error.AddedToDiagnostic)
-                break :decode .fallback
-            else
-                return err;
-        },
-        blockId("AWIZ") => {
-            if (cx.cx.options.awiz != .decode) break :decode .skipped;
-            if (extractAwiz(cx, &diag, glob_number, raw, &code))
-                break :decode .ok
-            else |err| if (err == error.AddedToDiagnostic)
-                break :decode .fallback
-            else
-                return err;
-        },
-        blockId("MULT") => {
-            if (cx.cx.options.mult != .decode) break :decode .skipped;
-            if (mult.extract(cx.cx.gpa, &diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, &code))
-                break :decode .ok
-            else |err| if (err == error.AddedToDiagnostic)
-                break :decode .fallback
-            else
-                return err;
-        },
-        else => .skipped,
-    };
-    switch (decode) {
-        .ok => {
-            cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
-            return;
-        },
-        .skipped => {},
-        .fallback => {
-            diag.info(0, "decode error, falling back to raw", .{});
-        },
+    // First try to decode
+    switch (block.id) {
+        blockId("SCRP") => if (cx.cx.options.scrp == .decode)
+            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+                return,
+        blockId("AWIZ") => if (cx.cx.options.awiz == .decode)
+            if (tryDecode(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+                return,
+        blockId("MULT") => if (cx.cx.options.mult == .decode)
+            if (tryDecode(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+                return,
+        else => {},
     }
 
     // If decoding failed or was skipped, extract as raw
-
-    // Clear any partial results from a failure
-    code.clearRetainingCapacity();
-
     try writeRawGlob(cx.cx.gpa, block, glob_number, raw, cx.room_dir, cx.room_path, &code);
-
     cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+}
+
+fn tryDecode(
+    decodeFn: anytype,
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    decode_args: anytype,
+    code: *std.ArrayListUnmanaged(u8),
+    chunk_index: u16,
+) bool {
+    const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
+    return tryDecodeHandleResult(result, cx, diag, code, chunk_index);
+}
+
+// break out the non-generic code for better codegen
+fn tryDecodeHandleResult(
+    result: anyerror!void,
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    code: *std.ArrayListUnmanaged(u8),
+    chunk_index: u16,
+) bool {
+    if (result) {
+        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code.* } });
+        return true;
+    } else |err| {
+        if (err != error.AddedToDiagnostic)
+            diag.zigErr(0, "unexpected error: {s}", .{}, err);
+
+        // Clear any partial results from a failure
+        code.clearRetainingCapacity();
+
+        diag.info(0, "decode error, falling back to raw", .{});
+        return false;
+    }
 }
 
 fn extractScrp(
@@ -1019,6 +1053,16 @@ fn extractAwiz(
     try awiz.extractChildren(cx.cx.gpa, cx.room_dir, cx.room_path, code, &decoded, bmp_path, 4);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
+}
+
+fn extractMult(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try mult.extract(cx.cx.gpa, diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
 }
 
 fn extractRawGlob(

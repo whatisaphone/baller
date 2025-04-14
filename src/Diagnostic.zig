@@ -33,13 +33,13 @@ const Level = enum {
     }
 };
 
-mutex: std.Thread.Mutex,
+mutex: Mutex,
 arena: std.heap.ArenaAllocator,
 messages: std.SegmentedList(Message, 4),
 
 pub fn init(gpa: std.mem.Allocator) Diagnostic {
     return .{
-        .mutex = .{},
+        .mutex = .init,
         .arena = std.heap.ArenaAllocator.init(gpa),
         .messages = .{},
     };
@@ -267,3 +267,33 @@ pub const ForTextFile = struct {
         self.diagnostic.add(level, text);
     }
 };
+
+// In debug builds, integrate with debug lock so logs aren't interleaved with
+// panics. In release builds, use our own mutex to avoid bringing in
+// std.Progress.
+const Mutex = if (builtin.mode == .Debug)
+    struct {
+        const init: Mutex = .{};
+
+        fn lock(_: Mutex) void {
+            std.debug.lockStdErr();
+        }
+
+        fn unlock(_: Mutex) void {
+            std.debug.unlockStdErr();
+        }
+    }
+else
+    struct {
+        mutex: std.Thread.Mutex,
+
+        const init: Mutex = .{ .mutex = .{} };
+
+        fn lock(self: *Mutex) void {
+            self.mutex.lock();
+        }
+
+        fn unlock(self: *Mutex) void {
+            self.mutex.unlock();
+        }
+    };
