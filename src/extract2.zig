@@ -25,9 +25,9 @@ const utils = @import("utils.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
-    var scrp_option: ?@FieldType(Options, "scrp") = null;
-    var awiz_option: ?@FieldType(Options, "awiz") = null;
-    var mult_option: ?@FieldType(Options, "mult") = null;
+    var scrp_option: ?RawOrDecode = null;
+    var awiz_option: ?RawOrDecode = null;
+    var mult_option: ?RawOrDecode = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -42,15 +42,15 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .long_option => |opt| {
             if (std.mem.eql(u8, opt.flag, "scrp")) {
                 if (scrp_option != null) return arg.reportDuplicate();
-                scrp_option = std.meta.stringToEnum(@FieldType(Options, "scrp"), opt.value) orelse
+                scrp_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
-                awiz_option = std.meta.stringToEnum(@FieldType(Options, "awiz"), opt.value) orelse
+                awiz_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "mult")) {
                 if (mult_option != null) return arg.reportDuplicate();
-                mult_option = std.meta.stringToEnum(@FieldType(Options, "mult"), opt.value) orelse
+                mult_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else {
                 return arg.reportUnexpected();
@@ -87,9 +87,14 @@ const Extract = struct {
 };
 
 const Options = struct {
-    scrp: enum { raw, decode },
-    awiz: enum { raw, decode },
-    mult: enum { raw, decode },
+    scrp: RawOrDecode,
+    awiz: RawOrDecode,
+    mult: RawOrDecode,
+};
+
+const RawOrDecode = enum {
+    raw,
+    decode,
 };
 
 pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void {
