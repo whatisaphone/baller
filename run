@@ -19,6 +19,14 @@ command_build() {
     zig build run -- build2 "/tmp/${game}/project.scu" "/tmp/${game}build/${index}"
 }
 
+command_xor() {
+    game=$1
+    for file in "/tmp/${game}build"/*; do
+        <"src/fixtures/${game}/${file##*/}" xor -x 69 >"/tmp/f.${file##*.}"
+        <"${file}" xor -x 69 >"/tmp/b.${file##*.}"
+    done
+}
+
 find_index() {
     game=$1
     find "src/fixtures/${game}" -iname '*.he0' -printf %P

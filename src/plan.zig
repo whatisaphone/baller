@@ -177,8 +177,12 @@ fn planRawGlobBlock(
 
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(glob.children)) |node| {
-        const raw_block = &room_file.ast.nodes.items[node].raw_block;
-        try planRawBlock(cx, raw_block);
+        const child = &room_file.ast.nodes.items[node];
+        switch (child.*) {
+            .raw_block => |*n| try planRawBlock(cx, n),
+            .lscr => |*n| try planLscr(cx, room_number, n),
+            else => unreachable,
+        }
     }
 
     cx.sendSyncEvent(.glob_end);
@@ -226,6 +230,62 @@ fn buildScrp(
             .block_id = blockId("SCRP"),
             .glob_number = node.glob_number,
             .data = result,
+        } },
+    });
+}
+
+fn planLscr(cx: *Context, room_number: u8, node: *const @FieldType(Ast.Node, "lscr")) !void {
+    const event_index = cx.next_event_index;
+    cx.next_event_index += 1;
+
+    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
+    try cx.pool.spawn(runLscr, .{ cx, room_number, event_index, node });
+}
+
+fn runLscr(
+    cx: *Context,
+    room_number: u8,
+    event_index: u16,
+    node: *const @FieldType(Ast.Node, "lscr"),
+) void {
+    buildLscr(cx, room_number, event_index, node) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            cx.diagnostic.zigErr("{s} {}: unexpected error: {s}", .{ "LSCR", node.script_number }, err);
+        cx.events.send(.{ .index = event_index, .payload = .err });
+    };
+
+    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
+    if (prev_pending == 1)
+        std.Thread.Futex.wake(&cx.pending_jobs, 1);
+}
+
+fn buildLscr(
+    cx: *const Context,
+    room_number: u8,
+    event_index: u16,
+    node: *const @FieldType(Ast.Node, "lscr"),
+) !void {
+    const in = try fs.readFile(cx.gpa, cx.project_dir, node.path);
+    defer cx.gpa.free(in);
+
+    const symbols: Symbols = .{ .game = cx.game };
+    const id: Symbols.ScriptId = .{ .local = .{
+        .room = room_number,
+        .number = node.script_number,
+    } };
+    var bytecode = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
+    defer bytecode.deinit(cx.gpa);
+
+    const result = try cx.gpa.alloc(u8, 4 + bytecode.items.len);
+    errdefer cx.gpa.free(result);
+    std.mem.writeInt(i32, result[0..4], node.script_number, .little);
+    @memcpy(result[4..], bytecode.items); // TODO: avoid this memcpy
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .raw_block = .{
+            .block_id = blockId("LSC2"),
+            .data = .fromOwnedSlice(result),
         } },
     });
 }

@@ -114,11 +114,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
-    const language = if (args.options.scrp == .decode)
+    const need_language = true; // TODO
+    const language = if (need_language)
         lang.buildLanguage(game)
     else
         undefined;
-    const language_ptr: utils.SafeUndefined(*const lang.Language) = if (args.options.scrp == .decode)
+    const language_ptr: utils.SafeUndefined(*const lang.Language) = if (need_language)
         .{ .defined = &language }
     else
         .undef;
@@ -702,6 +703,9 @@ fn extractRmda(
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
                 try cx.sendSync(code);
             },
+            blockId("LSC2") => {
+                try extractLscr(cx, diag, in, &block);
+            },
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
@@ -753,6 +757,82 @@ fn extractPals(
     try writeRawBlock(cx.cx.gpa, block, &pals_raw, cx.room_dir, cx.room_path, code);
 
     return apal.*;
+}
+
+fn extractLscr(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    in: anytype,
+    block: *const Block,
+) !void {
+    const raw = try cx.cx.gpa.alloc(u8, block.size);
+    errdefer cx.cx.gpa.free(raw);
+    try in.reader().readNoEof(raw);
+
+    const chunk_index = try cx.claimChunkIndex();
+
+    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
+    try cx.cx.pool.spawn(extractLscrJob, .{ cx, diag, block.*, raw, chunk_index });
+}
+
+fn extractLscrJob(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    block: Block,
+    raw: []const u8,
+    chunk_index: u16,
+) void {
+    defer cx.cx.gpa.free(raw);
+
+    extractLscrInner(cx, diag, raw, chunk_index) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
+        cx.events.send(.err);
+    };
+
+    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
+    if (prev_pending == 1)
+        std.Thread.Futex.wake(&cx.pending_jobs, 1);
+}
+
+fn extractLscrInner(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    raw: []const u8,
+    chunk_index: u32,
+) !void {
+    const symbols: Symbols = .{
+        .game = cx.cx.game,
+    };
+    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
+
+    if (raw.len < 4) return error.EndOfStream;
+    const script_number = std.mem.readInt(u32, raw[0..4], .little);
+    const bytecode = raw[4..];
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    defer out.deinit(cx.cx.gpa);
+
+    const id: Symbols.ScriptId = .{ .local = .{
+        .room = cx.room_number,
+        .number = script_number,
+    } };
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, bytecode, &symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+        diag.zigErr(0, "unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
+    };
+
+    var path_buf: ["lscr0000.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "lscr{:0>4}.s", .{script_number}) catch unreachable;
+    try fs.writeFileZ(cx.room_dir, path, out.items);
+
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(cx.cx.gpa);
+    try code.writer(cx.cx.gpa).print(
+        "    lscr {} \"{s}/{s}\"\n",
+        .{ script_number, cx.room_path, path },
+    );
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
 }
 
 fn findGlobNumber(
@@ -910,13 +990,7 @@ fn extractScrp(
     const symbols: Symbols = .{
         .game = cx.cx.game,
     };
-    const diagnostic: struct {
-        diag: *const Diagnostic.ForBinaryFile,
-
-        pub fn warnScriptUnknownByte(self: *const @This()) void {
-            self.diag.info(0, "unknown script byte", .{});
-        }
-    } = .{ .diag = diag };
+    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
 
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
@@ -934,6 +1008,15 @@ fn extractScrp(
 
     try code.writer(cx.cx.gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
 }
+
+/// Adapts newer Diagnostic into the old diagnostic type that disasm expects
+const DisasmDiagnostic = struct {
+    diag: *const Diagnostic.ForBinaryFile,
+
+    pub fn warnScriptUnknownByte(self: *const @This()) void {
+        self.diag.info(0, "unknown script byte", .{});
+    }
+};
 
 fn extractAwiz(
     cx: *const RoomContext,
