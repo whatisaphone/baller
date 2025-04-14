@@ -675,7 +675,7 @@ fn readRoomInner(
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
-        try extractGlob(cx, in, diag, &block);
+        try readBlockAndSpawn(extractGlobJob, cx, in, diag, &block);
     }
 
     try lflf_blocks.finish(lflf_end);
@@ -704,7 +704,7 @@ fn extractRmda(
                 try cx.sendSync(code);
             },
             blockId("LSC2") => {
-                try extractLscr(cx, diag, in, &block);
+                try readBlockAndSpawn(extractLscrJob, cx, in, diag, &block);
             },
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
@@ -759,10 +759,19 @@ fn extractPals(
     return apal.*;
 }
 
-fn extractLscr(
+const BlockJob = fn (
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
+    block: *const Block,
+    raw: []const u8,
+    chunk_index: u16,
+) anyerror!void;
+
+fn readBlockAndSpawn(
+    job: BlockJob,
+    cx: *RoomContext,
     in: anytype,
+    diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
 ) !void {
     const raw = try cx.cx.gpa.alloc(u8, block.size);
@@ -772,10 +781,11 @@ fn extractLscr(
     const chunk_index = try cx.claimChunkIndex();
 
     _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.cx.pool.spawn(extractLscrJob, .{ cx, diag, block.*, raw, chunk_index });
+    try cx.cx.pool.spawn(runBlockJob, .{ job, cx, diag, block.*, raw, chunk_index });
 }
 
-fn extractLscrJob(
+fn runBlockJob(
+    job: BlockJob,
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block: Block,
@@ -784,7 +794,7 @@ fn extractLscrJob(
 ) void {
     defer cx.cx.gpa.free(raw);
 
-    extractLscrInner(cx, diag, raw, chunk_index) catch |err| {
+    job(cx, diag, &block, raw, chunk_index) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
         cx.events.send(.err);
@@ -795,11 +805,12 @@ fn extractLscrJob(
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
 
-fn extractLscrInner(
+fn extractLscrJob(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
+    _: *const Block,
     raw: []const u8,
-    chunk_index: u32,
+    chunk_index: u16,
 ) !void {
     const symbols: Symbols = .{
         .game = cx.cx.game,
@@ -864,43 +875,7 @@ fn findGlobNumber(
     return null;
 }
 
-fn extractGlob(
-    cx: *RoomContext,
-    in: anytype,
-    diag: *const Diagnostic.ForBinaryFile,
-    block: *const Block,
-) !void {
-    const raw = try cx.cx.gpa.alloc(u8, block.size);
-    errdefer cx.cx.gpa.free(raw);
-    try in.reader().readNoEof(raw);
-
-    const chunk_index = try cx.claimChunkIndex();
-
-    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.cx.pool.spawn(extractGlobJob, .{ cx, diag, block.*, raw, chunk_index });
-}
-
 fn extractGlobJob(
-    cx: *RoomContext,
-    diag: *const Diagnostic.ForBinaryFile,
-    block: Block,
-    raw: []const u8,
-    chunk_index: u16,
-) void {
-    defer cx.cx.gpa.free(raw);
-
-    extractGlobInner(cx, diag, &block, raw, chunk_index) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
-        cx.events.send(.err);
-    };
-
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
-    if (prev_pending == 1)
-        std.Thread.Futex.wake(&cx.pending_jobs, 1);
-}
-
-fn extractGlobInner(
     cx: *const RoomContext,
     disk_diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
