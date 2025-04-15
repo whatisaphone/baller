@@ -26,6 +26,8 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
     var scrp_option: ?RawOrDecode = null;
+    var encd_option: ?RawOrDecode = null;
+    var excd_option: ?RawOrDecode = null;
     var lsc2_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
@@ -44,6 +46,14 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             if (std.mem.eql(u8, opt.flag, "scrp")) {
                 if (scrp_option != null) return arg.reportDuplicate();
                 scrp_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "encd")) {
+                if (encd_option != null) return arg.reportDuplicate();
+                encd_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "excd")) {
+                if (excd_option != null) return arg.reportDuplicate();
+                excd_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "lsc2")) {
                 if (lsc2_option != null) return arg.reportDuplicate();
@@ -75,6 +85,8 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .output_path = output_path,
         .options = .{
             .scrp = scrp_option orelse .decode,
+            .encd = encd_option orelse .decode,
+            .excd = excd_option orelse .decode,
             .lsc2 = lsc2_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
@@ -94,6 +106,8 @@ const Extract = struct {
 
 const Options = struct {
     scrp: RawOrDecode,
+    encd: RawOrDecode,
+    excd: RawOrDecode,
     lsc2: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
@@ -128,7 +142,11 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
 
     var language: lang.Language = undefined;
     var language_ptr: utils.SafeUndefined(*const lang.Language) = .undef;
-    if (args.options.scrp == .decode or args.options.lsc2 == .decode) {
+    if (args.options.scrp == .decode or
+        args.options.encd == .decode or
+        args.options.excd == .decode or
+        args.options.lsc2 == .decode)
+    {
         language = lang.buildLanguage(game);
         language_ptr = .{ .defined = &language };
     }
@@ -712,7 +730,7 @@ fn extractRmda(
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
                 try cx.sendSync(code);
             },
-            blockId("LSC2") => {
+            blockId("EXCD"), blockId("ENCD"), blockId("LSC2") => {
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
             else => {
@@ -834,6 +852,12 @@ fn extractRmdaChildJob(
 
     // First try to decode
     switch (block.id) {
+        blockId("EXCD") => if (cx.cx.options.excd == .decode)
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index))
+                return,
+        blockId("ENCD") => if (cx.cx.options.encd == .decode)
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index))
+                return,
         blockId("LSC2") => if (cx.cx.options.lsc2 == .decode)
             if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index))
                 return,
@@ -843,6 +867,46 @@ fn extractRmdaChildJob(
     // If decoding failed or was skipped, extract as raw
     try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
     cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+}
+
+fn extractEncdExcd(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    block_id: BlockId,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const edge: enum { encd, excd } = switch (block_id) {
+        blockId("ENCD") => .encd,
+        blockId("EXCD") => .excd,
+        else => unreachable,
+    };
+
+    const symbols: Symbols = .{
+        .game = cx.cx.game,
+    };
+    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
+    const id: Symbols.ScriptId = switch (edge) {
+        .encd => .{ .enter = .{ .room = cx.room_number } },
+        .excd => .{ .exit = .{ .room = cx.room_number } },
+    };
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    defer out.deinit(cx.cx.gpa);
+
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, &symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+        diag.zigErr(0, "unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
+    };
+
+    var path_buf: ["encd.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "{s}.s", .{@tagName(edge)}) catch unreachable;
+    try fs.writeFileZ(cx.room_dir, path, out.items);
+
+    try code.writer(cx.cx.gpa).print(
+        "    {s} \"{s}/{s}\"\n",
+        .{ @tagName(edge), cx.room_path, path },
+    );
 }
 
 fn extractLscr(

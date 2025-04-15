@@ -474,6 +474,20 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "encd")) {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "excd")) {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "lscr")) {
                     const script_number_i32 = try expectInteger(state);
                     const path = try expectString(state);

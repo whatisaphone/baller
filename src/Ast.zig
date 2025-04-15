@@ -59,6 +59,12 @@ pub const Node = union(enum) {
         glob_number: u16,
         path: []const u8,
     },
+    encd: struct {
+        path: []const u8,
+    },
+    excd: struct {
+        path: []const u8,
+    },
     lscr: struct {
         script_number: u16,
         path: []const u8,

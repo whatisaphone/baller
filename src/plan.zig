@@ -180,6 +180,7 @@ fn planRawGlobBlock(
         const child = &room_file.ast.nodes.items[node];
         switch (child.*) {
             .raw_block => |*n| try planRawBlock(cx, n),
+            .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, node),
             .lscr => try spawnJob(planLscr, cx, room_number, node),
             else => unreachable,
         }
@@ -225,6 +226,38 @@ fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u
         .payload = .{ .glob = .{
             .block_id = blockId("SCRP"),
             .glob_number = scrp.glob_number,
+            .data = result,
+        } },
+    });
+}
+
+fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index];
+    const edge: enum { encd, excd }, const path = switch (node.*) {
+        .encd => |*n| .{ .encd, n.path },
+        .excd => |*n| .{ .excd, n.path },
+        else => unreachable,
+    };
+
+    const in = try fs.readFile(cx.gpa, cx.project_dir, path);
+    defer cx.gpa.free(in);
+
+    const symbols: Symbols = .{ .game = cx.game };
+    const id: Symbols.ScriptId = switch (edge) {
+        .encd => .{ .enter = .{ .room = room_number } },
+        .excd => .{ .exit = .{ .room = room_number } },
+    };
+    var result = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
+    errdefer result.deinit(cx.gpa);
+
+    const block_id = switch (edge) {
+        .encd => blockId("ENCD"),
+        .excd => blockId("EXCD"),
+    };
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .raw_block = .{
+            .block_id = block_id,
             .data = result,
         } },
     });
