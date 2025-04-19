@@ -73,7 +73,7 @@ fn extractMultInner(
         try awiz_offsets.append(awiz_offset);
 
         const awiz_raw = try io.readInPlace(in, awiz_block.size);
-        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, null, room_palette);
+        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, room_palette);
         defer the_awiz.deinit(gpa);
 
         const first_index = for (offs, 0..) |off, i| {

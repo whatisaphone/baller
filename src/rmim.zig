@@ -22,12 +22,10 @@ const Rmim = struct {
 pub fn decode(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
-    rmda_raw: []const u8,
+    apal: *const [0x300]u8,
 ) !Rmim {
     const width = 640; // TODO: use the real size
     const height = 480;
-
-    const apal = try findApalInRmda(rmda_raw);
 
     var rmim_reader = std.io.fixedBufferStream(rmim_raw);
     var rmim_blocks = fixedBlockReader(&rmim_reader);

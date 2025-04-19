@@ -20,6 +20,7 @@ const lang = @import("lang.zig");
 const report = @import("report.zig");
 const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
+const utils = @import("utils.zig");
 
 pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     var input_path_opt: ?[:0]const u8 = null;
@@ -243,7 +244,7 @@ const RoomState = struct {
     path: *pathf.Path,
     path_start: pathf.PathLen,
     room_txt: std.io.BufferedWriter(4096, std.fs.File.Writer).Writer,
-    rmda: union { pending: void, raw: []const u8 },
+    palette: utils.SafeUndefined(*const [0x300]u8),
 
     fn curPathRelative(self: *const RoomState) [:0]const u8 {
         return self.path.buffer[self.path_start..self.path.len :0];
@@ -680,7 +681,7 @@ fn extractDisk(
             .path = &state.cur_path,
             .path_start = @intCast(state.cur_path.len),
             .room_txt = room_txt.writer(),
-            .rmda = .{ .pending = {} },
+            .palette = .undef,
         };
 
         // Block seqs start over for each room
@@ -694,8 +695,10 @@ fn extractDisk(
 
         const rmda_data =
             try readGlob(allocator, &lflf_blocks, blockId("RMDA"), &reader);
-        room_state.rmda = .{ .raw = rmda_data };
-        defer allocator.free(room_state.rmda.raw);
+        defer allocator.free(rmda_data);
+
+        const room_palette = try rmim.findApalInRmda(rmda_data);
+        room_state.palette = .{ .defined = room_palette };
 
         try state.incrBlockStat(allocator, blockId("RMIM"), .total);
 
@@ -715,7 +718,7 @@ fn extractDisk(
             try state.incrBlockStat(allocator, blockId("RMIM"), .raw);
         }
 
-        try extractRmda(allocator, state, &room_state);
+        try extractRmda(allocator, rmda_data, state, &room_state);
 
         while (reader.bytes_read < lflf_end) {
             const offset: u32 = @intCast(reader.bytes_read);
@@ -771,6 +774,7 @@ fn findLflfRoomNumber(
 
 fn extractRmda(
     allocator: std.mem.Allocator,
+    data: []const u8,
     state: *State,
     room_state: *const RoomState,
 ) !void {
@@ -779,12 +783,12 @@ fn extractRmda(
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), path.full());
 
-    var reader = std.io.fixedBufferStream(room_state.rmda.raw);
+    var reader = std.io.fixedBufferStream(data);
     var blocks = fixedBlockReader(&reader);
 
     try room_state.room_txt.writeAll("rmda\n");
 
-    while (reader.pos < room_state.rmda.raw.len) {
+    while (reader.pos < data.len) {
         const block_id, const block_len = try blocks.next();
         const block_raw = try io.readInPlace(&reader, block_len);
 
@@ -970,7 +974,7 @@ fn decodeRmim(
     state: *State,
     room_state: *const RoomState,
 ) !void {
-    var decoded = try rmim.decode(allocator, rmim_raw, room_state.rmda.raw);
+    var decoded = try rmim.decode(allocator, rmim_raw, room_state.palette.defined);
     defer decoded.deinit(allocator);
 
     const path = try pathf.print(&state.cur_path, "RMIM.bmp", .{});
@@ -1259,7 +1263,7 @@ fn decodeAwiz(
     var wiz = try decodeAwizData(
         allocator,
         glob_number,
-        room_state.rmda.raw,
+        room_state.palette.defined,
         block_raw,
         state,
     );
@@ -1271,21 +1275,19 @@ fn decodeAwiz(
 fn decodeAwizData(
     allocator: std.mem.Allocator,
     glob_number: u32,
-    rmda_raw: []const u8,
+    default_palette: *const [0x300]u8,
     awiz_raw: []const u8,
     state: *State,
 ) !awiz.Awiz {
     const path = try appendGlobPath(state, blockId("AWIZ"), glob_number, "bmp");
     defer path.restore();
 
-    return decodeAwizIntoPath(allocator, rmda_raw, null, awiz_raw, path.full());
+    return decodeAwizIntoPath(allocator, default_palette, awiz_raw, path.full());
 }
 
 fn decodeAwizIntoPath(
     allocator: std.mem.Allocator,
-    // TODO: merge next two params
-    rmda_raw: []const u8,
-    defa_rgbs: ?*const [0x300]u8,
+    default_palette: *const [0x300]u8,
     awiz_raw: []const u8,
     path: [*:0]const u8,
 ) !awiz.Awiz {
@@ -1299,7 +1301,7 @@ fn decodeAwizIntoPath(
         .cap_level = true,
     };
 
-    var wiz = awiz.decode(allocator, &diag, awiz_raw, rmda_raw, defa_rgbs) catch
+    var wiz = awiz.decode(allocator, &diag, awiz_raw, default_palette) catch
         return error.BlockFallbackToRaw;
     errdefer wiz.deinit(allocator);
 
@@ -1587,8 +1589,7 @@ fn decodeMultAwiz(
 
     var wiz = try decodeAwizIntoPath(
         allocator,
-        room_state.rmda.raw,
-        cx.defa_rgbs,
+        cx.defa_rgbs orelse room_state.palette.defined,
         block_raw,
         path.full(),
     );

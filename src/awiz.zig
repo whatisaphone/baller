@@ -13,7 +13,6 @@ const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const rmim = @import("rmim.zig");
 const utils = @import("utils.zig");
 
 const max_supported_width = 1600;
@@ -53,12 +52,10 @@ pub fn decode(
     allocator: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     awiz_raw: []const u8,
-    // TODO: merge next two params
-    rmda_raw: ?[]const u8,
-    defa_rgbs: ?*const [0x300]u8,
+    default_palette: *const [0x300]u8,
 ) error{AddedToDiagnostic}!Awiz {
     var stream = std.io.fixedBufferStream(awiz_raw);
-    return decodeInner(allocator, &stream, rmda_raw, defa_rgbs) catch |err| {
+    return decodeInner(allocator, &stream, default_palette) catch |err| {
         diag.zigErr(@intCast(stream.pos), "general decode failure: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -67,8 +64,7 @@ pub fn decode(
 fn decodeInner(
     allocator: std.mem.Allocator,
     reader: anytype,
-    rmda_raw: ?[]const u8,
-    defa_rgbs: ?*const [0x300]u8,
+    default_palette: *const [0x300]u8,
 ) !Awiz {
     var result: Awiz = .{};
     var rgbs_opt: ?*const [0x300]u8 = null;
@@ -150,8 +146,7 @@ fn decodeInner(
 
     try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
 
-    const palette = rgbs_opt orelse defa_rgbs orelse try rmim.findApalInRmda(rmda_raw.?);
-    try bmp.writePalette(bmp_writer, palette);
+    try bmp.writePalette(bmp_writer, rgbs_opt orelse default_palette);
 
     switch (wizh.compression) {
         .none => try decodeUncompressed(width, height, reader, &bmp_buf),
