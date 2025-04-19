@@ -87,6 +87,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
         .output_path = extract_path,
         .options = switch (options) {
             .raw => .{
+                .rmim = .raw,
                 .scrp = .raw,
                 .encd = .raw,
                 .excd = .raw,
@@ -95,6 +96,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
                 .mult = .raw,
             },
             .decode => .{
+                .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,
                 .excd = .decode,

@@ -55,6 +55,10 @@ pub const Node = union(enum) {
         glob_number: u16,
         children: ExtraSlice,
     },
+    rmim: struct {
+        compression: u8,
+        path: []const u8,
+    },
     scrp: struct {
         glob_number: u16,
         path: []const u8,

@@ -214,6 +214,20 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const node_index = try parseRawGlob(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
+                } else if (std.mem.eql(u8, identifier, "rmim")) {
+                    const compression_i32 = try expectInteger(state);
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const compression = std.math.cast(u8, compression_i32) orelse
+                        return reportError(state, token.span, "out of range", .{});
+
+                    const node_index = try appendNode(state, .{ .rmim = .{
+                        .compression = compression,
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
                 } else if (std.mem.eql(u8, identifier, "scrp")) {
                     const glob_number_i32 = try expectInteger(state);
                     const path = try expectString(state);

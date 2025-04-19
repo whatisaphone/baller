@@ -16,6 +16,7 @@ const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
+const rmim_encode = @import("rmim_encode.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -136,6 +137,7 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
             .raw_glob_file => |*n| try planRawGlobFile(cx, n),
             .raw_glob_block => |*n| try planRawGlobBlock(cx, room.room_number, n),
             .raw_block => |*n| try planRawBlock(cx, n),
+            .rmim => try spawnJob(planRmim, cx, room.room_number, child_node),
             .scrp => try spawnJob(planScrp, cx, room.room_number, child_node),
             .awiz => try spawnJob(planAwiz, cx, room.room_number, child_node),
             .mult => try spawnJob(planMult, cx, room.room_number, child_node),
@@ -209,6 +211,32 @@ fn runJob(job: Job, cx: *Context, room_number: u8, node_index: u32, event_index:
     const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
     if (prev_pending == 1)
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
+}
+
+fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const rmim = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].rmim;
+
+    const bmp = try fs.readFile(cx.gpa, cx.project_dir, rmim.path);
+    defer cx.gpa.free(bmp);
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
+    defer fixups.deinit();
+
+    var stream = std.io.countingWriter(out.writer(cx.gpa));
+    try rmim_encode.encode(rmim.compression, bmp, &stream, &fixups);
+    applyFixups(out.items, fixups.items);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .glob = .{
+            .block_id = blockId("RMIM"),
+            .glob_number = room_number,
+            .data = out,
+        } },
+    });
 }
 
 fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {

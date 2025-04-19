@@ -19,12 +19,14 @@ const io = @import("io.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const pathf = @import("pathf.zig");
+const rmim = @import("rmim.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
+    var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
     var excd_option: ?RawOrDecode = null;
@@ -43,7 +45,11 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 return arg.reportUnexpected();
         },
         .long_option => |opt| {
-            if (std.mem.eql(u8, opt.flag, "scrp")) {
+            if (std.mem.eql(u8, opt.flag, "rmim")) {
+                if (rmim_option != null) return arg.reportDuplicate();
+                rmim_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "scrp")) {
                 if (scrp_option != null) return arg.reportDuplicate();
                 scrp_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
@@ -84,6 +90,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .index_path = index_path,
         .output_path = output_path,
         .options = .{
+            .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
             .excd = excd_option orelse .decode,
@@ -105,6 +112,7 @@ const Extract = struct {
 };
 
 const Options = struct {
+    rmim: RawOrDecode,
     scrp: RawOrDecode,
     encd: RawOrDecode,
     excd: RawOrDecode,
@@ -686,19 +694,21 @@ fn readRoomInner(
 ) !void {
     var lflf_blocks = streamingBlockReader(in, diag);
 
-    {
-        const rmim = try lflf_blocks.expect("RMIM").block();
-        var code: std.ArrayListUnmanaged(u8) = .empty;
-        errdefer code.deinit(cx.cx.gpa);
-        try extractRawGlob(cx, in, &rmim, &code);
-        try cx.sendSync(code);
-    }
+    const rmim_chunk_index = try cx.claimChunkIndex();
+    const rmim_block = try lflf_blocks.expect("RMIM").block();
+    var rmim_raw = try cx.cx.gpa.alloc(u8, rmim_block.size);
+    defer cx.cx.gpa.free(rmim_raw);
+    try in.reader().readNoEof(rmim_raw);
 
     {
         const rmda = try lflf_blocks.expect("RMDA").block();
         const room_palette = try extractRmda(cx, in, diag, &rmda);
         cx.room_palette = .{ .defined = room_palette };
     }
+
+    // extract RMIM after RMDA since it needs the room palette
+    try spawnBlockJob(extractRmimJob, cx, diag, &rmim_block, rmim_raw, rmim_chunk_index);
+    rmim_raw.len = 0; // ownership was moved to the job, don't free it here
 
     while (in.bytes_read < lflf_end) {
         const block = try lflf_blocks.next().block();
@@ -807,6 +817,17 @@ fn readBlockAndSpawn(
 
     const chunk_index = try cx.claimChunkIndex();
 
+    try spawnBlockJob(job, cx, diag, block, raw, chunk_index);
+}
+
+fn spawnBlockJob(
+    job: BlockJob,
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    block: *const Block,
+    raw: []const u8,
+    chunk_index: u16,
+) !void {
     _ = cx.pending_jobs.fetchAdd(1, .monotonic);
     try cx.cx.pool.spawn(runBlockJob, .{ job, cx, diag, block.*, raw, chunk_index });
 }
@@ -830,6 +851,49 @@ fn runBlockJob(
     const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
     if (prev_pending == 1)
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
+}
+
+fn extractRmimJob(
+    cx: *const RoomContext,
+    disk_diag: *const Diagnostic.ForBinaryFile,
+    block: *const Block,
+    raw: []const u8,
+    chunk_index: u16,
+) !void {
+    std.debug.assert(disk_diag.offset == 0);
+    const diag: Diagnostic.ForBinaryFile = .{
+        .diagnostic = disk_diag.diagnostic,
+        .path = disk_diag.path,
+        .offset = disk_diag.offset + block.start,
+        .cap_level = true,
+    };
+
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(cx.cx.gpa);
+
+    if (cx.cx.options.rmim == .decode)
+        if (tryDecode(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index))
+            return;
+
+    // If decoding failed or was skipped, extract as raw
+    try writeRawGlob(cx.cx.gpa, block, cx.room_number, raw, cx.room_dir, cx.room_path, &code);
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+}
+
+fn extractRmimInner(
+    cx: *const RoomContext,
+    _: *const Diagnostic.ForBinaryFile,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var decoded = try rmim.decode(cx.cx.gpa, raw, &cx.room_palette.defined);
+    defer decoded.deinit(cx.cx.gpa);
+
+    var path_buf: [Ast.max_room_name_len + "/rmim.bmp".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "{s}/rmim.bmp", .{cx.room_path}) catch unreachable;
+    try fs.writeFileZ(cx.room_dir, "rmim.bmp", decoded.bmp.items);
+
+    try code.writer(cx.cx.gpa).print("rmim {} \"{s}\"\n", .{ decoded.compression, path });
 }
 
 fn extractRmdaChildJob(
