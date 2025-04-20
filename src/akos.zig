@@ -46,7 +46,8 @@ pub fn decode(
     allocator: std.mem.Allocator,
     akos_raw: []const u8,
     akcd_modes: []const ResourceMode,
-    cur_path: pathf.PrintedPath,
+    out_path: []const u8,
+    out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
     diagnostic: anytype,
 ) !void {
@@ -54,17 +55,17 @@ pub fn decode(
     var blocks = fixedBlockReader(&stream);
 
     const akhd = try blocks.expectBlockAsValue("AKHD", Akhd);
-    try decodeAsRawBlock(allocator, blockId("AKHD"), std.mem.asBytes(akhd), cur_path, manifest);
+    try decodeAsRawBlock(allocator, blockId("AKHD"), std.mem.asBytes(akhd), out_path, out_dir, manifest);
 
     const akpl = try blocks.expectBlockAsSlice("AKPL");
-    try decodeAsRawBlock(allocator, blockId("AKPL"), akpl, cur_path, manifest);
+    try decodeAsRawBlock(allocator, blockId("AKPL"), akpl, out_path, out_dir, manifest);
 
     const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
-    try decodeAsRawBlock(allocator, blockId("RGBS"), rgbs, cur_path, manifest);
+    try decodeAsRawBlock(allocator, blockId("RGBS"), rgbs, out_path, out_dir, manifest);
 
     while (try blocks.peek() != blockId("AKOF")) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try decodeAsRawBlock(allocator, block_id, block_raw, cur_path, manifest);
+        try decodeAsRawBlock(allocator, block_id, block_raw, out_path, out_dir, manifest);
     }
 
     const akof_len = try blocks.assumeBlock("AKOF");
@@ -98,12 +99,12 @@ pub fn decode(
             .info = cel_info.*,
             .data = cel_data,
         };
-        try decodeCel(allocator, akhd, akpl, rgbs, cel, akcd_modes, cur_path, manifest, diagnostic);
+        try decodeCel(allocator, akhd, akpl, rgbs, cel, akcd_modes, out_path, out_dir, manifest, diagnostic);
     }
 
     while (stream.pos < akos_raw.len) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try decodeAsRawBlock(allocator, block_id, block_raw, cur_path, manifest);
+        try decodeAsRawBlock(allocator, block_id, block_raw, out_path, out_dir, manifest);
     }
 
     try blocks.finishEof();
@@ -122,7 +123,8 @@ fn decodeCel(
     rgbs: *const [0x300]u8,
     cel: Cel,
     akcd_modes: []const ResourceMode,
-    cur_path: pathf.PrintedPath,
+    out_path: []const u8,
+    out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
     diagnostic: anytype,
 ) !void {
@@ -130,12 +132,12 @@ fn decodeCel(
 
     for (akcd_modes) |mode| switch (mode) {
         .raw => {
-            try decodeCelAsRaw(allocator, cel, cur_path, manifest);
+            try decodeCelAsRaw(allocator, cel, out_path, out_dir, manifest);
             try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .raw);
             break;
         },
         .decode => {
-            decodeCelAsBmp(allocator, akhd, akpl, rgbs, cel, cur_path, manifest) catch |err| {
+            decodeCelAsBmp(allocator, akhd, akpl, rgbs, cel, out_path, out_dir, manifest) catch |err| {
                 if (err == error.CelDecode)
                     continue;
                 return err;
@@ -154,7 +156,8 @@ fn decodeCelAsBmp(
     akpl: []const u8,
     rgbs: *const [0x300]u8,
     cel: Cel,
-    cur_path: pathf.PrintedPath,
+    out_path: []const u8,
+    out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
     const codec = std.meta.intToEnum(CompressionCodec, akhd.cel_compression_codec) catch
@@ -177,16 +180,16 @@ fn decodeCelAsBmp(
         .trle => try decodeCelTrle(cel, bmp_buf[bmp_stream.pos..]),
     }
 
-    const bmp_path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bmp", .{cel.index});
-    defer bmp_path.restore();
+    var bmp_path_buf: ["cel_0000_AKCD.bmp".len + 1]u8 = undefined;
+    const bmp_path = try std.fmt.bufPrintZ(&bmp_path_buf, "cel_{:0>4}_AKCD.bmp", .{cel.index});
 
-    try fs.writeFileZ(std.fs.cwd(), bmp_path.full(), bmp_buf);
+    try fs.writeFileZ(out_dir, bmp_path, bmp_buf);
 
     const directive = switch (codec) {
         .byle_rle => "cel-bmp",
         .trle => "cel-trle-bmp",
     };
-    try manifest.writer(allocator).print("    {s} {s}\n", .{ directive, cur_path.relative() });
+    try manifest.writer(allocator).print("    {s} {s}/{s}\n", .{ directive, out_path, bmp_path });
 }
 
 // based on ScummVM's AkosRenderer::paintCelByleRLE
@@ -244,17 +247,18 @@ fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
 fn decodeCelAsRaw(
     allocator: std.mem.Allocator,
     cel: Cel,
-    cur_path: pathf.PrintedPath,
+    out_path: []const u8,
+    out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const path = try pathf.print(cur_path.buf, "cel_{:0>4}_AKCD.bin", .{cel.index});
-    defer path.restore();
+    var path_buf: ["cel_0000_AKCD.bin".len + 1]u8 = undefined;
+    const path = try std.fmt.bufPrintZ(&path_buf, "cel_{:0>4}_AKCD.bin", .{cel.index});
 
-    try fs.writeFileZ(std.fs.cwd(), path.full(), cel.data);
+    try fs.writeFileZ(out_dir, path, cel.data);
 
     try manifest.writer(allocator).print(
-        "    cel-raw {} {} {s}\n",
-        .{ cel.info.width, cel.info.height, cur_path.relative() },
+        "    cel-raw {} {} {s}/{s}\n",
+        .{ cel.info.width, cel.info.height, out_path, path },
     );
 }
 
@@ -262,17 +266,18 @@ fn decodeAsRawBlock(
     allocator: std.mem.Allocator,
     block_id: BlockId,
     block_raw: []const u8,
-    cur_path: pathf.PrintedPath,
+    out_path: []const u8,
+    out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const block_path = try pathf.print(cur_path.buf, "{s}.bin", .{blockIdToStr(&block_id)});
-    defer block_path.restore();
+    var path_buf: ["AKHD.bin".len + 1]u8 = undefined;
+    const path = try std.fmt.bufPrintZ(&path_buf, "{s}.bin", .{blockIdToStr(&block_id)});
 
-    try fs.writeFileZ(std.fs.cwd(), block_path.full(), block_raw);
+    try fs.writeFileZ(out_dir, path, block_raw);
 
     try manifest.writer(allocator).print(
-        "    raw-block {s} {s}\n",
-        .{ blockIdToStr(&block_id), cur_path.relative() },
+        "    raw-block {s} {s}/{s}\n",
+        .{ blockIdToStr(&block_id), out_path, path },
     );
 }
 
