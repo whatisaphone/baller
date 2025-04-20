@@ -43,6 +43,11 @@ pub fn parseProject(
 }
 
 fn parseProjectChildren(state: *State) !Ast.NodeIndex {
+    const Keyword = enum {
+        index,
+        disk,
+    };
+
     var index_children_opt: ?std.BoundedArray(Ast.NodeIndex, 16) = null;
     var disks: [2]Ast.NodeIndex = @splat(Ast.null_node);
 
@@ -50,17 +55,15 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "index")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .index => {
                     if (index_children_opt != null)
                         return reportError(state, token.span, "duplicate index", .{});
                     index_children_opt = try parseIndex(state);
-                } else if (std.mem.eql(u8, identifier, "disk")) {
+                },
+                .disk => {
                     try parseDisk(state, token.span, &disks);
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .eof => break,
             else => return reportUnexpected(state, token),
@@ -79,6 +82,11 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
 }
 
 fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
+    const Keyword = enum {
+        @"raw-block",
+        @"index-block",
+    };
+
     try expect(state, .brace_l);
 
     var children: std.BoundedArray(Ast.NodeIndex, 16) = .{};
@@ -87,13 +95,13 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "raw-block")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "index-block")) {
+                },
+                .@"index-block" => {
                     const block_id_str = try expectString(state);
                     try expect(state, .newline);
                     const IndexBlock = @FieldType(Ast.Node, "index_block");
@@ -102,9 +110,7 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
                     const index_block = try appendNode(state, .{ .index_block = block_id });
                     children.append(index_block) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .brace_r => break,
             else => return reportUnexpected(state, token),
@@ -115,6 +121,11 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
 }
 
 fn parseDisk(state: *State, span: lexer.Span, disks: *[2]Ast.NodeIndex) !void {
+    const Keyword = enum {
+        @"raw-block",
+        room,
+    };
+
     const disk_number = try expectInteger(state);
     try expect(state, .brace_l);
 
@@ -130,19 +141,17 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]Ast.NodeIndex) !void {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "raw-block")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "room")) {
+                },
+                .room => {
                     const node_index = try parseDiskRoom(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .brace_r => break,
             else => return reportUnexpected(state, token),
@@ -198,23 +207,33 @@ pub fn parseRoom(
 }
 
 fn parseRoomChildren(state: *State) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        @"raw-glob",
+        rmim,
+        scrp,
+        awiz,
+        mult,
+    };
+
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
 
     while (true) {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "raw-block")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "raw-glob")) {
+                },
+                .@"raw-glob" => {
                     const node_index = try parseRawGlob(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "rmim")) {
+                },
+                .rmim => {
                     const compression_i32 = try expectInteger(state);
                     const path = try expectString(state);
                     try expect(state, .newline);
@@ -228,7 +247,8 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "scrp")) {
+                },
+                .scrp => {
                     const glob_number_i32 = try expectInteger(state);
                     const path = try expectString(state);
                     try expect(state, .newline);
@@ -242,17 +262,17 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "awiz")) {
+                },
+                .awiz => {
                     const node_index = try parseAwiz(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "mult")) {
+                },
+                .mult => {
                     const node_index = try parseMult(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .eof => break,
             else => return reportUnexpected(state, token),
@@ -280,21 +300,28 @@ fn parseAwiz(state: *State, span: lexer.Span) !Ast.NodeIndex {
 }
 
 fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
+    const Keyword = enum {
+        rgbs,
+        @"two-ints",
+        wizh,
+        bmp,
+    };
+
     var children: std.BoundedArray(Ast.NodeIndex, awiz.Awiz.max_blocks) = .{};
 
     while (true) {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "rgbs")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .rgbs => {
                     try expect(state, .newline);
 
                     const node_index = try appendNode(state, .awiz_rgbs);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "two-ints")) {
+                },
+                .@"two-ints" => {
                     const block_id_str = try expectString(state);
                     const ints = .{ try expectInteger(state), try expectInteger(state) };
                     try expect(state, .newline);
@@ -308,13 +335,15 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "wizh")) {
+                },
+                .wizh => {
                     try expect(state, .newline);
 
                     const node_index = try appendNode(state, .awiz_wizh);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "bmp")) {
+                },
+                .bmp => {
                     const compression_int = try expectInteger(state);
                     const path = try expectString(state);
                     try expect(state, .newline);
@@ -328,9 +357,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .brace_r => break,
             else => return reportUnexpected(state, token),
@@ -341,6 +368,12 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
 }
 
 fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"defa-raw",
+        awiz,
+        indices,
+    };
+
     const glob_number_i32 = try expectInteger(state);
     try expect(state, .brace_l);
 
@@ -355,16 +388,16 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "defa-raw")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"defa-raw" => {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
                     if (raw_defa_path != null)
                         return reportError(state, token.span, "too many children", .{});
                     raw_defa_path = path;
-                } else if (std.mem.eql(u8, identifier, "awiz")) {
+                },
+                .awiz => {
                     try expect(state, .brace_l);
                     const awiz_children = try parseAwizChildren(state);
 
@@ -373,14 +406,13 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "indices")) {
+                },
+                .indices => {
                     if (indices_opt != null)
                         return reportError(state, token.span, "too many children", .{});
                     try expect(state, .bracket_l);
                     indices_opt = try parseIntegerList(state);
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .brace_r => break,
             else => return reportUnexpected(state, token),
@@ -476,33 +508,42 @@ fn parseRawGlobFile(
 }
 
 fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        encd,
+        excd,
+        lscr,
+    };
+
     var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
         skipWhitespace(state);
         const token = consumeToken(state);
         switch (token.kind) {
-            .identifier => {
-                const identifier = state.source[token.span.start.offset..token.span.end.offset];
-                if (std.mem.eql(u8, identifier, "raw-block")) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "encd")) {
+                },
+                .encd => {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
                     const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "excd")) {
+                },
+                .excd => {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
                     const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else if (std.mem.eql(u8, identifier, "lscr")) {
+                },
+                .lscr => {
                     const script_number_i32 = try expectInteger(state);
                     const path = try expectString(state);
                     try expect(state, .newline);
@@ -516,9 +557,7 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
                     } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
-                } else {
-                    return reportUnexpected(state, token);
-                }
+                },
             },
             .brace_r => break,
             else => return reportUnexpected(state, token),
@@ -580,6 +619,16 @@ fn expectInteger(state: *State) !i32 {
     const source = state.source[token.span.start.offset..token.span.end.offset];
     return std.fmt.parseInt(i32, source, 10) catch
         reportError(state, token.span, "invalid integer", .{});
+}
+
+fn parseIdentifier(state: *State, token: *const lexer.Token, T: type) !T {
+    if (token.kind != .identifier)
+        return reportExpected(state, token, .identifier);
+    const identifier = state.source[token.span.start.offset..token.span.end.offset];
+    inline for (comptime std.meta.fieldNames(T)) |f|
+        if (std.mem.eql(u8, identifier, f))
+            return @field(T, f);
+    return reportUnexpected(state, token);
 }
 
 fn expect(state: *State, kind: lexer.Token.Kind) !void {
