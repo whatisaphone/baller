@@ -41,14 +41,21 @@ pub fn writeFileZ(dir: std.fs.Dir, sub_path: [*:0]const u8, bytes: []const u8) !
     try file.writeAll(bytes);
 }
 
-pub fn readFileIntoSliceZ(
-    dir: std.fs.Dir,
-    sub_path: [*:0]const u8,
-    buf: []u8,
-) !void {
+pub fn readFileIntoSlice(dir: std.fs.Dir, sub_path: []const u8, buf: []u8) !void {
+    const file = try dir.openFile(sub_path, .{});
+    defer file.close();
+
+    try readOpenFileIntoSlice(file, buf);
+}
+
+pub fn readFileIntoSliceZ(dir: std.fs.Dir, sub_path: [*:0]const u8, buf: []u8) !void {
     const file = try dir.openFileZ(sub_path, .{});
     defer file.close();
 
+    try readOpenFileIntoSlice(file, buf);
+}
+
+fn readOpenFileIntoSlice(file: std.fs.File, buf: []u8) !void {
     const stat = try file.stat();
     if (stat.size < buf.len)
         return error.EndOfStream;

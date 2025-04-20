@@ -1042,12 +1042,15 @@ fn handleAkos(
 ) !void {
     const glob_number = try std.fmt.parseInt(u32, glob_number_str, 10);
 
+    var room_dir = try std.fs.cwd().openDir(prst.cur_path.slice(), .{});
+    defer room_dir.close();
+
     const akos_fixup = try beginBlock(&state.writer, "AKOS");
     akos.encode(
         allocator,
         room_reader,
         room_line_buf,
-        &prst.cur_path,
+        room_dir,
         &state.writer,
         &state.fixups,
     ) catch |err| {

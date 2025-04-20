@@ -14,7 +14,6 @@ const bmp = @import("bmp.zig");
 const ResourceMode = @import("extract.zig").ResourceMode;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const pathf = @import("pathf.zig");
 const report = @import("report.zig");
 const utils = @import("utils.zig");
 
@@ -282,7 +281,7 @@ fn decodeAsRawBlock(
 }
 
 const EncodeState = struct {
-    cur_path: *pathf.Path,
+    room_dir: std.fs.Dir,
     akci: std.ArrayListUnmanaged(Akci) = .empty,
     cd_offsets: std.ArrayListUnmanaged(u32) = .empty,
     akcd: std.ArrayListUnmanaged(u8) = .empty,
@@ -298,7 +297,7 @@ pub fn encode(
     allocator: std.mem.Allocator,
     room_reader: anytype,
     room_line_buf: *[1024]u8,
-    cur_path: *pathf.Path,
+    room_dir: std.fs.Dir,
     writer: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
@@ -310,15 +309,12 @@ pub fn encode(
             return error.BadData;
         if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "AKHD"))
             return error.BadData;
-        const relative_path = tokens.next() orelse return error.BadData;
+        const path = tokens.next() orelse return error.BadData;
         if (tokens.next() != null)
             return error.BadData;
 
-        const path = try pathf.append(cur_path, relative_path);
-        defer path.restore();
-
         var akhd: Akhd = undefined;
-        try fs.readFileIntoSliceZ(std.fs.cwd(), path.full(), std.mem.asBytes(&akhd));
+        try fs.readFileIntoSlice(room_dir, path, std.mem.asBytes(&akhd));
 
         const start = try beginBlock(writer, "AKHD");
         try writer.writer().writeAll(std.mem.asBytes(&akhd));
@@ -336,14 +332,11 @@ pub fn encode(
             return error.BadData;
         if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "AKPL"))
             return error.BadData;
-        const relative_path = tokens.next() orelse return error.BadData;
+        const path = tokens.next() orelse return error.BadData;
         if (tokens.next() != null)
             return error.BadData;
 
-        const path = try pathf.append(cur_path, relative_path);
-        defer path.restore();
-
-        try fs.readFileZIntoBoundedArray(std.fs.cwd(), path.full(), &akpl_buf);
+        try fs.readFileInto(room_dir, path, akpl_buf.writer());
         const akpl = akpl_buf.slice();
 
         const start = try beginBlock(writer, "AKPL");
@@ -354,7 +347,7 @@ pub fn encode(
     };
 
     var state: EncodeState = .{
-        .cur_path = cur_path,
+        .room_dir = room_dir,
     };
     defer state.deinit(allocator);
 
@@ -375,7 +368,7 @@ pub fn encode(
             try encodeCelBmp(allocator, akpl, tokens.rest(), &state, .trle);
         } else if (std.mem.eql(u8, keyword, "raw-block")) {
             try flushCels(&state, writer, fixups);
-            try encodeRawBlock(tokens.rest(), cur_path, writer, fixups);
+            try encodeRawBlock(tokens.rest(), room_dir, writer, fixups);
         } else if (std.mem.eql(u8, keyword, "end-akos")) {
             try flushCels(&state, writer, fixups);
             break;
@@ -400,7 +393,7 @@ fn encodeCelRaw(
     const height_str = tokens.next() orelse return error.BadData;
     const height = try std.fmt.parseInt(u16, height_str, 10);
 
-    const relative_path = tokens.next() orelse return error.BadData;
+    const path = tokens.next() orelse return error.BadData;
 
     if (tokens.next()) |_| return error.BadData;
 
@@ -410,10 +403,7 @@ fn encodeCelRaw(
 
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
-    const path = try pathf.append(state.cur_path, relative_path);
-    defer path.restore();
-
-    const file = try std.fs.cwd().openFileZ(path.full(), .{});
+    const file = try state.room_dir.openFile(path, .{});
     defer file.close();
 
     const data_stat = try file.stat();
@@ -427,14 +417,11 @@ fn encodeCelRaw(
 fn encodeCelBmp(
     allocator: std.mem.Allocator,
     akpl: []const u8,
-    relative_path: []const u8,
+    path: []const u8,
     state: *EncodeState,
     codec: CompressionCodec,
 ) !void {
-    const bmp_path = try pathf.append(state.cur_path, relative_path);
-    defer bmp_path.restore();
-
-    const bmp_data = try fs.readFileZ(allocator, std.fs.cwd(), bmp_path.full());
+    const bmp_data = try fs.readFile(allocator, state.room_dir, path);
     defer allocator.free(bmp_data);
 
     const bitmap = try bmp.readHeader(bmp_data, .{});
@@ -449,7 +436,7 @@ fn encodeCelBmp(
         .byle_rle => encodeCelByleRle(&bitmap, akpl, state.akcd.writer(allocator)),
         .trle => encodeCelTrle(&bitmap, state.akcd.writer(allocator)),
     }) catch |err| {
-        report.fatal("error encoding {s}", .{relative_path});
+        report.fatal("error encoding {s}", .{path});
         return err;
     };
 }
@@ -559,7 +546,7 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
 // TODO: this is duplicated
 fn encodeRawBlock(
     line: []const u8,
-    cur_path: *pathf.Path,
+    dir: std.fs.Dir,
     writer: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
@@ -570,7 +557,7 @@ fn encodeRawBlock(
     const block_id_str = tokens.next() orelse return error.BadData;
     const block_id = parseBlockId(block_id_str) orelse return error.BadData;
 
-    const relative_path = tokens.next() orelse return error.BadData;
+    const path = tokens.next() orelse return error.BadData;
 
     if (tokens.next()) |_| return error.BadData;
 
@@ -578,10 +565,7 @@ fn encodeRawBlock(
 
     const start = try beginBlockImpl(writer, block_id);
 
-    const path = try pathf.append(cur_path, relative_path);
-    defer path.restore();
-
-    try fs.readFileIntoZ(std.fs.cwd(), path.full(), writer.writer());
+    try fs.readFileInto(dir, path, writer.writer());
 
     try endBlock(writer, fixups, start);
 }
