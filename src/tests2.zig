@@ -94,6 +94,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
                 .lsc2 = .raw,
                 .awiz = .raw,
                 .mult = .raw,
+                .akos = .raw,
             },
             .decode => .{
                 .rmim = .decode,
@@ -103,6 +104,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
                 .lsc2 = .decode,
                 .awiz = .decode,
                 .mult = .decode,
+                .akos = .decode,
             },
         },
     });

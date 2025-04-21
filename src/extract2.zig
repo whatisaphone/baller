@@ -3,6 +3,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
+const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
@@ -33,6 +34,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var lsc2_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
+    var akos_option: ?RawOrDecode = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -73,6 +75,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (mult_option != null) return arg.reportDuplicate();
                 mult_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "akos")) {
+                if (akos_option != null) return arg.reportDuplicate();
+                akos_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else {
                 return arg.reportUnexpected();
             }
@@ -97,6 +103,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .lsc2 = lsc2_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
+            .akos = akos_option orelse .decode,
         },
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
@@ -119,6 +126,7 @@ const Options = struct {
     lsc2: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
+    akos: RawOrDecode,
 };
 
 const RawOrDecode = enum {
@@ -1079,6 +1087,9 @@ fn extractGlobJob(
         blockId("MULT") => if (cx.cx.options.mult == .decode)
             if (tryDecode(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
                 return,
+        blockId("AKOS") => if (cx.cx.options.akos == .decode)
+            if (tryDecode(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+                return,
         else => {},
     }
 
@@ -1191,6 +1202,39 @@ fn extractMult(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try mult.extract(cx.cx.gpa, diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
+}
+
+fn extractAkos(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    _ = diag;
+
+    var name_buf: ["costume0000".len:0]u8 = undefined;
+    const name = std.fmt.bufPrintZ(
+        name_buf[0 .. name_buf.len + 1],
+        "costume{:0>4}",
+        .{glob_number},
+    ) catch unreachable;
+
+    try fs.makeDirIfNotExistZ(cx.room_dir, name);
+
+    var dir = try cx.room_dir.openDirZ(name, .{});
+    defer dir.close();
+
+    var path_buf: [Ast.max_room_name_len + 1 + name_buf.len:0]u8 = undefined;
+    const path = std.fmt.bufPrintZ(
+        path_buf[0 .. path_buf.len + 1],
+        "{s}/{s}",
+        .{ cx.room_path, name },
+    ) catch unreachable;
+
+    try code.writer(cx.cx.gpa).print("akos {} {{\n", .{glob_number});
+    try akos.decode(cx.cx.gpa, raw, path, dir, code);
+    try code.appendSlice(cx.cx.gpa, "}\n");
 }
 
 fn extractRawGlob(

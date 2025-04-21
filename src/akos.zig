@@ -1,17 +1,16 @@
 const std = @import("std");
 
+const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const parseBlockId = @import("block_id.zig").parseBlockId;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const Fixup = @import("block_writer.zig").Fixup;
 const bmp = @import("bmp.zig");
-const ResourceMode = @import("extract.zig").ResourceMode;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
@@ -36,7 +35,7 @@ const Akci = extern struct {
     height: u16,
 };
 
-const CompressionCodec = enum(u8) {
+pub const CompressionCodec = enum(u8) {
     byle_rle = 0x01,
     trle = 0x20,
 };
@@ -44,11 +43,9 @@ const CompressionCodec = enum(u8) {
 pub fn decode(
     allocator: std.mem.Allocator,
     akos_raw: []const u8,
-    akcd_modes: []const ResourceMode,
     out_path: []const u8,
     out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
-    diagnostic: anytype,
 ) !void {
     var stream = std.io.fixedBufferStream(akos_raw);
     var blocks = fixedBlockReader(&stream);
@@ -57,7 +54,8 @@ pub fn decode(
     try decodeAsRawBlock(allocator, blockId("AKHD"), std.mem.asBytes(akhd), out_path, out_dir, manifest);
 
     const akpl = try blocks.expectBlockAsSlice("AKPL");
-    try decodeAsRawBlock(allocator, blockId("AKPL"), akpl, out_path, out_dir, manifest);
+    try fs.writeFileZ(out_dir, "AKPL.bin", akpl);
+    try manifest.writer(allocator).print("    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
 
     const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
     try decodeAsRawBlock(allocator, blockId("RGBS"), rgbs, out_path, out_dir, manifest);
@@ -98,7 +96,7 @@ pub fn decode(
             .info = cel_info.*,
             .data = cel_data,
         };
-        try decodeCel(allocator, akhd, akpl, rgbs, cel, akcd_modes, out_path, out_dir, manifest, diagnostic);
+        try decodeCel(allocator, akhd, akpl, rgbs, cel, out_path, out_dir, manifest);
     }
 
     while (stream.pos < akos_raw.len) {
@@ -116,40 +114,6 @@ const Cel = struct {
 };
 
 fn decodeCel(
-    allocator: std.mem.Allocator,
-    akhd: *align(1) const Akhd,
-    akpl: []const u8,
-    rgbs: *const [0x300]u8,
-    cel: Cel,
-    akcd_modes: []const ResourceMode,
-    out_path: []const u8,
-    out_dir: std.fs.Dir,
-    manifest: *std.ArrayListUnmanaged(u8),
-    diagnostic: anytype,
-) !void {
-    try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .total);
-
-    for (akcd_modes) |mode| switch (mode) {
-        .raw => {
-            try decodeCelAsRaw(allocator, cel, out_path, out_dir, manifest);
-            try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .raw);
-            break;
-        },
-        .decode => {
-            decodeCelAsBmp(allocator, akhd, akpl, rgbs, cel, out_path, out_dir, manifest) catch |err| {
-                if (err == error.CelDecode)
-                    continue;
-                return err;
-            };
-            try diagnostic.incrBlockStat(allocator, blockId("AKCD"), .decoded);
-            break;
-        },
-    } else {
-        return error.BadData;
-    }
-}
-
-fn decodeCelAsBmp(
     allocator: std.mem.Allocator,
     akhd: *align(1) const Akhd,
     akpl: []const u8,
@@ -184,11 +148,14 @@ fn decodeCelAsBmp(
 
     try fs.writeFileZ(out_dir, bmp_path, bmp_buf);
 
-    const directive = switch (codec) {
-        .byle_rle => "cel-bmp",
-        .trle => "cel-trle-bmp",
+    const codec_str = switch (codec) {
+        .byle_rle => "byle",
+        .trle => "trle",
     };
-    try manifest.writer(allocator).print("    {s} {s}/{s}\n", .{ directive, out_path, bmp_path });
+    try manifest.writer(allocator).print(
+        "    akcd {s} \"{s}/{s}\"\n",
+        .{ codec_str, out_path, bmp_path },
+    );
 }
 
 // based on ScummVM's AkosRenderer::paintCelByleRLE
@@ -243,24 +210,6 @@ fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
         return error.CelDecode;
 }
 
-fn decodeCelAsRaw(
-    allocator: std.mem.Allocator,
-    cel: Cel,
-    out_path: []const u8,
-    out_dir: std.fs.Dir,
-    manifest: *std.ArrayListUnmanaged(u8),
-) !void {
-    var path_buf: ["cel_0000_AKCD.bin".len + 1]u8 = undefined;
-    const path = try std.fmt.bufPrintZ(&path_buf, "cel_{:0>4}_AKCD.bin", .{cel.index});
-
-    try fs.writeFileZ(out_dir, path, cel.data);
-
-    try manifest.writer(allocator).print(
-        "    cel-raw {} {} {s}/{s}\n",
-        .{ cel.info.width, cel.info.height, out_path, path },
-    );
-}
-
 fn decodeAsRawBlock(
     allocator: std.mem.Allocator,
     block_id: BlockId,
@@ -275,13 +224,13 @@ fn decodeAsRawBlock(
     try fs.writeFileZ(out_dir, path, block_raw);
 
     try manifest.writer(allocator).print(
-        "    raw-block {s} {s}/{s}\n",
+        "    raw-block \"{s}\" \"{s}/{s}\"\n",
         .{ blockIdToStr(&block_id), out_path, path },
     );
 }
 
 const EncodeState = struct {
-    room_dir: std.fs.Dir,
+    project_dir: std.fs.Dir,
     akci: std.ArrayListUnmanaged(Akci) = .empty,
     cd_offsets: std.ArrayListUnmanaged(u32) = .empty,
     akcd: std.ArrayListUnmanaged(u8) = .empty,
@@ -294,88 +243,63 @@ const EncodeState = struct {
 };
 
 pub fn encode(
-    allocator: std.mem.Allocator,
-    room_reader: anytype,
-    room_line_buf: *[1024]u8,
-    room_dir: std.fs.Dir,
-    writer: anytype,
+    gpa: std.mem.Allocator,
+    project: *const Project,
+    project_dir: std.fs.Dir,
+    awiz_strategy: awiz.EncodingStrategy,
+    room_number: u8,
+    akos_node_index: u32,
+    out: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    const akhd = akhd: {
-        const room_line =
-            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
-        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
-        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "raw-block"))
-            return error.BadData;
-        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "AKHD"))
-            return error.BadData;
-        const path = tokens.next() orelse return error.BadData;
-        if (tokens.next() != null)
-            return error.BadData;
-
-        var akhd: Akhd = undefined;
-        try fs.readFileIntoSlice(room_dir, path, std.mem.asBytes(&akhd));
-
-        const start = try beginBlock(writer, "AKHD");
-        try writer.writer().writeAll(std.mem.asBytes(&akhd));
-        try endBlock(writer, fixups, start);
-
-        break :akhd akhd;
-    };
-
-    var akpl_buf: std.BoundedArray(u8, 64) = .{};
-    const akpl = akpl: {
-        const room_line =
-            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
-        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
-        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "raw-block"))
-            return error.BadData;
-        if (!std.mem.eql(u8, tokens.next() orelse return error.BadData, "AKPL"))
-            return error.BadData;
-        const path = tokens.next() orelse return error.BadData;
-        if (tokens.next() != null)
-            return error.BadData;
-
-        try fs.readFileInto(room_dir, path, akpl_buf.writer());
-        const akpl = akpl_buf.slice();
-
-        const start = try beginBlock(writer, "AKPL");
-        try writer.writer().writeAll(akpl);
-        try endBlock(writer, fixups, start);
-
-        break :akpl akpl;
-    };
+    const file = &project.files.items[room_number].?;
+    const akos = &file.ast.nodes.items[akos_node_index].akos;
 
     var state: EncodeState = .{
-        .room_dir = room_dir,
+        .project_dir = project_dir,
     };
-    defer state.deinit(allocator);
+    defer state.deinit(gpa);
 
-    try state.akci.ensureTotalCapacityPrecise(allocator, akhd.cels_count);
-    try state.cd_offsets.ensureTotalCapacityPrecise(allocator, akhd.cels_count);
-    try state.akcd.ensureTotalCapacity(allocator, @as(u32, @intCast(akhd.cels_count)) * 256);
+    var akcd_count: u32 = 0;
+    for (file.ast.getExtra(akos.children)) |node_index| {
+        if (file.ast.nodes.items[node_index] == .akcd)
+            akcd_count += 1;
+    }
 
-    while (true) {
-        const room_line =
-            try room_reader.reader().readUntilDelimiter(room_line_buf, '\n');
-        var tokens = std.mem.tokenizeScalar(u8, room_line, ' ');
-        const keyword = tokens.next() orelse return error.BadData;
-        if (std.mem.eql(u8, keyword, "cel-raw")) {
-            try encodeCelRaw(allocator, tokens.rest(), &state);
-        } else if (std.mem.eql(u8, keyword, "cel-bmp")) {
-            try encodeCelBmp(allocator, akpl, tokens.rest(), &state, .byle_rle);
-        } else if (std.mem.eql(u8, keyword, "cel-trle-bmp")) {
-            try encodeCelBmp(allocator, akpl, tokens.rest(), &state, .trle);
-        } else if (std.mem.eql(u8, keyword, "raw-block")) {
-            try flushCels(&state, writer, fixups);
-            try encodeRawBlock(tokens.rest(), room_dir, writer, fixups);
-        } else if (std.mem.eql(u8, keyword, "end-akos")) {
-            try flushCels(&state, writer, fixups);
-            break;
-        } else {
-            return error.BadData;
+    try state.akci.ensureTotalCapacityPrecise(gpa, akcd_count);
+    try state.cd_offsets.ensureTotalCapacityPrecise(gpa, akcd_count);
+    try state.akcd.ensureTotalCapacity(gpa, @as(u32, @intCast(akcd_count)) * 256);
+
+    var akpl: ?std.BoundedArray(u8, 64) = null;
+
+    for (file.ast.getExtra(akos.children)) |node_index| {
+        const node = &file.ast.nodes.items[node_index];
+
+        if (node.* != .akcd)
+            try flushCels(&state, out, fixups);
+
+        switch (node.*) {
+            .raw_block => |*n| {
+                try encodeRawBlock(n.block_id, project_dir, n.path, out, fixups);
+            },
+            .akpl => |*n| {
+                if (akpl != null) return error.BadData;
+                akpl = .{};
+                try fs.readFileInto(project_dir, n.path, akpl.?.writer());
+
+                const start = try beginBlock(out, "AKPL");
+                try out.writer().writeAll(akpl.?.slice());
+                try endBlock(out, fixups, start);
+            },
+            .akcd => |*n| {
+                if (akpl == null) return error.BadData;
+                try encodeCelBmp(gpa, akpl.?.slice(), n.path, &state, n.compression, awiz_strategy);
+            },
+            else => unreachable,
         }
     }
+
+    try flushCels(&state, out, fixups);
 }
 
 fn encodeCelRaw(
@@ -403,7 +327,7 @@ fn encodeCelRaw(
 
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
-    const file = try state.room_dir.openFile(path, .{});
+    const file = try state.project_dir.openFile(path, .{});
     defer file.close();
 
     const data_stat = try file.stat();
@@ -420,8 +344,9 @@ fn encodeCelBmp(
     path: []const u8,
     state: *EncodeState,
     codec: CompressionCodec,
+    strategy: awiz.EncodingStrategy,
 ) !void {
-    const bmp_data = try fs.readFile(allocator, state.room_dir, path);
+    const bmp_data = try fs.readFile(allocator, state.project_dir, path);
     defer allocator.free(bmp_data);
 
     const bitmap = try bmp.readHeader(bmp_data, .{});
@@ -434,7 +359,7 @@ fn encodeCelBmp(
 
     (switch (codec) {
         .byle_rle => encodeCelByleRle(&bitmap, akpl, state.akcd.writer(allocator)),
-        .trle => encodeCelTrle(&bitmap, state.akcd.writer(allocator)),
+        .trle => encodeCelTrle(&bitmap, strategy, state.akcd.writer(allocator)),
     }) catch |err| {
         report.fatal("error encoding {s}", .{path});
         return err;
@@ -512,8 +437,8 @@ fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
     }
 }
 
-fn encodeCelTrle(bitmap: *const bmp.Bmp, out: anytype) !void {
-    try awiz.encodeRle(bitmap.*, .original, out);
+fn encodeCelTrle(bitmap: *const bmp.Bmp, strategy: awiz.EncodingStrategy, out: anytype) !void {
+    try awiz.encodeRle(bitmap.*, strategy, out);
 }
 
 fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
@@ -545,27 +470,13 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
 
 // TODO: this is duplicated
 fn encodeRawBlock(
-    line: []const u8,
+    block_id: BlockId,
     dir: std.fs.Dir,
+    path: []const u8,
     writer: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    // Parse line
-
-    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
-
-    const block_id_str = tokens.next() orelse return error.BadData;
-    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
-
-    const path = tokens.next() orelse return error.BadData;
-
-    if (tokens.next()) |_| return error.BadData;
-
-    // Copy block
-
     const start = try beginBlockImpl(writer, block_id);
-
     try fs.readFileInto(dir, path, writer.writer());
-
     try endBlock(writer, fixups, start);
 }

@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 
@@ -95,6 +96,17 @@ pub const Node = union(enum) {
     },
     mult_awiz: struct {
         children: ExtraSlice,
+    },
+    akos: struct {
+        glob_number: u16,
+        children: ExtraSlice,
+    },
+    akpl: struct {
+        path: []const u8,
+    },
+    akcd: struct {
+        compression: akos.CompressionCodec,
+        path: []const u8,
     },
 };
 

@@ -1622,34 +1622,13 @@ fn decodeAkos(
     room_state: *const RoomState,
     _: void,
 ) !void {
-    std.debug.assert(block_id == blockId("AKOS"));
-
-    const akos_path = try pathf.print(&state.cur_path, "AKOS_{:0>4}/", .{glob_number});
-    defer akos_path.restore();
-
-    try fs.makeDirIfNotExistZ(std.fs.cwd(), akos_path.full());
-
-    var akos_dir = try std.fs.cwd().openDirZ(akos_path.full(), .{});
-    defer akos_dir.close();
-
-    var manifest_buf: std.ArrayListUnmanaged(u8) = .empty;
-    defer manifest_buf.deinit(allocator);
-
-    try manifest_buf.writer(allocator).print("akos {}\n", .{glob_number});
-
-    try akos.decode(
-        allocator,
-        block_raw,
-        state.options.akcd_modes,
-        akos_path.relative(),
-        akos_dir,
-        &manifest_buf,
-        state,
-    );
-
-    try manifest_buf.appendSlice(allocator, "end-akos\n");
-
-    try room_state.room_txt.writeAll(manifest_buf.items);
+    _ = allocator;
+    _ = block_id;
+    _ = glob_number;
+    _ = block_raw;
+    _ = state;
+    _ = room_state;
+    @panic("old extract no longer supports akos");
 }
 
 fn readGlob(

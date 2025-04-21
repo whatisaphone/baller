@@ -4,6 +4,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
+const akos = @import("akos.zig");
 const assemble = @import("assemble.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -141,6 +142,7 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
             .scrp => try spawnJob(planScrp, cx, room.room_number, child_node),
             .awiz => try spawnJob(planAwiz, cx, room.room_number, child_node),
             .mult => try spawnJob(planMult, cx, room.room_number, child_node),
+            .akos => try spawnJob(planAkos, cx, room.room_number, child_node),
             else => unreachable,
         }
     }
@@ -447,6 +449,29 @@ fn planMultInner(
     }
 
     try endBlock(out, fixups, wrap_start);
+}
+
+fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].akos;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
+    defer fixups.deinit();
+
+    var stream = std.io.countingWriter(out.writer(cx.gpa));
+    try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &stream, &fixups);
+    applyFixups(out.items, fixups.items);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .glob = .{
+            .block_id = blockId("AKOS"),
+            .glob_number = node.glob_number,
+            .data = out,
+        } },
+    });
 }
 
 fn planIndex(cx: *Context) !void {

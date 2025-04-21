@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const parseBlockId = @import("block_id.zig").parseBlockId;
@@ -214,6 +215,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         scrp,
         awiz,
         mult,
+        akos,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
@@ -270,6 +272,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                 },
                 .mult => {
                     const node_index = try parseMult(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .akos => {
+                    const node_index = try parseAkos(state, token.span);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -429,6 +436,73 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
         .raw_defa_path = raw_defa_path,
         .children = try appendExtra(state, children.slice()),
         .indices = indices,
+    } });
+}
+
+fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        akpl,
+        akcd,
+    };
+
+    const glob_number_i32 = try expectInteger(state);
+    try expect(state, .brace_l);
+
+    const glob_number = std.math.cast(u16, glob_number_i32) orelse
+        return reportError(state, span, "invalid glob number", .{});
+
+    var children: std.BoundedArray(Ast.NodeIndex, 1536) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .akpl => {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .akpl = .{
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .akcd => {
+                    const codec_token = consumeToken(state);
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    // XXX: a bit janky, this
+                    const CompressionKeyword = enum(u8) {
+                        byle = @intFromEnum(akos.CompressionCodec.byle_rle),
+                        trle = @intFromEnum(akos.CompressionCodec.trle),
+                    };
+                    const compression_keyword = try parseIdentifier(state, codec_token, CompressionKeyword);
+                    const compression: akos.CompressionCodec = @enumFromInt(@intFromEnum(compression_keyword));
+
+                    const node_index = try appendNode(state, .{ .akcd = .{
+                        .compression = compression,
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+
+    return appendNode(state, .{ .akos = .{
+        .glob_number = glob_number,
+        .children = try appendExtra(state, children.slice()),
     } });
 }
 

@@ -1040,35 +1040,14 @@ fn handleAkos(
     prst: *ProjectState,
     state: *DiskState,
 ) !void {
-    const glob_number = try std.fmt.parseInt(u32, glob_number_str, 10);
-
-    var room_dir = try std.fs.cwd().openDir(prst.cur_path.slice(), .{});
-    defer room_dir.close();
-
-    const akos_fixup = try beginBlock(&state.writer, "AKOS");
-    akos.encode(
-        allocator,
-        room_reader,
-        room_line_buf,
-        room_dir,
-        &state.writer,
-        &state.fixups,
-    ) catch |err| {
-        report.fatal("error encoding {s} {:0>4}", .{ "AKOS", glob_number });
-        return err;
-    };
-    try endBlock(&state.writer, &state.fixups, akos_fixup);
-    const akos_len = state.lastBlockLen();
-
-    try addGlobToDirectory(
-        allocator,
-        prst,
-        blockId("AKOS"),
-        room_number,
-        glob_number,
-        akos_fixup,
-        akos_len,
-    );
+    _ = allocator;
+    _ = room_number;
+    _ = glob_number_str;
+    _ = room_reader;
+    _ = room_line_buf;
+    _ = prst;
+    _ = state;
+    @panic("old build no longer supports akos");
 }
 
 fn addGlobToDirectory(
