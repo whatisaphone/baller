@@ -581,7 +581,16 @@ const max_room_code_chunks = 5120;
 const Event = union(enum) {
     end,
     err,
-    code_chunk: struct { index: u32, code: std.ArrayListUnmanaged(u8) },
+    code_chunk: struct {
+        index: u32,
+        section: Section,
+        code: std.ArrayListUnmanaged(u8),
+    },
+};
+
+const Section = enum {
+    top,
+    bottom,
 };
 
 fn extractRoom(
@@ -635,16 +644,22 @@ const RoomContext = struct {
         return result;
     }
 
-    fn sendSync(self: *RoomContext, code: std.ArrayListUnmanaged(u8)) !void {
+    fn sendSync(self: *RoomContext, section: Section, code: std.ArrayListUnmanaged(u8)) !void {
         self.events.send(.{ .code_chunk = .{
             .index = try self.claimChunkIndex(),
+            .section = section,
             .code = code,
         } });
     }
 
-    fn sendSyncFmt(self: *RoomContext, comptime fmt: []const u8, args: anytype) !void {
+    fn sendSyncFmt(
+        self: *RoomContext,
+        section: Section,
+        comptime fmt: []const u8,
+        args: anytype,
+    ) !void {
         const code = try std.fmt.allocPrint(self.cx.gpa, fmt, args);
-        try self.sendSync(.fromOwnedSlice(code));
+        try self.sendSync(section, .fromOwnedSlice(code));
     }
 };
 
@@ -733,7 +748,11 @@ fn extractRmda(
     diag: *const Diagnostic.ForBinaryFile,
     rmda: *const Block,
 ) ![0x300]u8 {
-    try cx.sendSyncFmt("raw-glob \"{s}\" {} {{\n", .{ fmtBlockId(&rmda.id), cx.room_number });
+    try cx.sendSyncFmt(
+        .top,
+        "raw-glob \"{s}\" {} {{\n",
+        .{ fmtBlockId(&rmda.id), cx.room_number },
+    );
 
     var apal_opt: ?[0x300]u8 = null;
 
@@ -747,7 +766,7 @@ fn extractRmda(
                 errdefer code.deinit(cx.cx.gpa);
                 if (apal_opt != null) return error.BadData;
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
-                try cx.sendSync(code);
+                try cx.sendSync(.top, code);
             },
             blockId("EXCD"), blockId("ENCD"), blockId("LSC2") => {
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
@@ -756,14 +775,14 @@ fn extractRmda(
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
                 try extractRawBlock(cx.cx.gpa, in, &block, cx.room_dir, cx.room_path, &code);
-                try cx.sendSync(code);
+                try cx.sendSync(.top, code);
             },
         }
     }
 
     try rmda_blocks.finish(rmda.end());
 
-    try cx.sendSyncFmt("}}\n", .{});
+    try cx.sendSyncFmt(.top, "}}\n", .{});
 
     return apal_opt orelse return error.BadData;
 }
@@ -881,12 +900,12 @@ fn extractRmimJob(
     errdefer code.deinit(cx.cx.gpa);
 
     if (cx.cx.options.rmim == .decode)
-        if (tryDecode(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index))
+        if (tryDecode(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index, .top))
             return;
 
     // If decoding failed or was skipped, extract as raw
     try writeRawGlob(cx.cx.gpa, block, cx.room_number, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .top, .code = code } });
 }
 
 fn extractRmimInner(
@@ -926,20 +945,20 @@ fn extractRmdaChildJob(
     // First try to decode
     switch (block.id) {
         blockId("EXCD") => if (cx.cx.options.excd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index))
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .top))
                 return,
         blockId("ENCD") => if (cx.cx.options.encd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index))
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .top))
                 return,
         blockId("LSC2") => if (cx.cx.options.lsc2 == .decode)
-            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index))
+            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index, .top))
                 return,
         else => unreachable, // This is only called for the above block ids
     }
 
     // If decoding failed or was skipped, extract as raw
     try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .top, .code = code } });
 }
 
 fn extractEncdExcd(
@@ -1063,7 +1082,7 @@ fn extractGlobJob(
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
         try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
-        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .bottom, .code = code } });
         return;
     };
 
@@ -1080,23 +1099,23 @@ fn extractGlobJob(
     // First try to decode
     switch (block.id) {
         blockId("SCRP") => if (cx.cx.options.scrp == .decode)
-            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         blockId("AWIZ") => if (cx.cx.options.awiz == .decode)
-            if (tryDecode(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+            if (tryDecode(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         blockId("MULT") => if (cx.cx.options.mult == .decode)
-            if (tryDecode(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+            if (tryDecode(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         blockId("AKOS") => if (cx.cx.options.akos == .decode)
-            if (tryDecode(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index))
+            if (tryDecode(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         else => {},
     }
 
     // If decoding failed or was skipped, extract as raw
     try writeRawGlob(cx.cx.gpa, block, glob_number, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code } });
+    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .bottom, .code = code } });
 }
 
 fn tryDecode(
@@ -1106,9 +1125,10 @@ fn tryDecode(
     decode_args: anytype,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
+    section: Section,
 ) bool {
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
-    return tryDecodeHandleResult(result, cx, diag, code, chunk_index);
+    return tryDecodeHandleResult(result, cx, diag, code, chunk_index, section);
 }
 
 // break out the non-generic code for better codegen
@@ -1118,9 +1138,14 @@ fn tryDecodeHandleResult(
     diag: *const Diagnostic.ForBinaryFile,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
+    section: Section,
 ) bool {
     if (result) {
-        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .code = code.* } });
+        cx.events.send(.{ .code_chunk = .{
+            .index = chunk_index,
+            .section = section,
+            .code = code.*,
+        } });
         return true;
     } else |err| {
         if (err != error.AddedToDiagnostic)
@@ -1338,19 +1363,21 @@ fn emitRoom(
     project_code: *std.ArrayListUnmanaged(u8),
     events: *sync.Channel(Event, 16),
 ) !void {
-    var code_chunks: std.BoundedArray(std.ArrayListUnmanaged(u8), max_room_code_chunks) = .{};
-    defer for (code_chunks.slice()) |*chunk| chunk.deinit(cx.gpa);
+    var chunks: std.BoundedArray(Chunk, max_room_code_chunks) = .{};
+    defer for (chunks.slice()) |*chunk| chunk.code.deinit(cx.gpa);
 
     var ok = true;
     while (true) switch (events.receive()) {
         .end => break,
         .err => ok = false,
         .code_chunk => |chunk| {
-            utils.growBoundedArray(&code_chunks, chunk.index + 1, .empty);
-            std.debug.assert(code_chunks.get(chunk.index).items.len == 0);
-            code_chunks.set(chunk.index, chunk.code);
+            utils.growBoundedArray(&chunks, chunk.index + 1, .{ .section = .top, .code = .empty });
+            std.debug.assert(chunks.get(chunk.index).code.items.len == 0);
+            chunks.set(chunk.index, .{ .section = chunk.section, .code = chunk.code });
         },
     };
+
+    std.sort.block(Chunk, chunks.slice(), {}, Chunk.sectionAsc);
 
     const room_name = cx.index.room_names.get(room_number);
     var room_scu_path_buf: [Ast.max_room_name_len + ".scu".len + 1]u8 = undefined;
@@ -1368,11 +1395,20 @@ fn emitRoom(
         try room_scu.writeAll("#error while extracting room; this file is incomplete!\n\n");
 
     var iovecs_buf: [max_room_code_chunks]std.posix.iovec_const = undefined;
-    const iovecs = iovecs_buf[0..code_chunks.len];
-    for (iovecs, code_chunks.slice()) |*iovec, *chunk|
-        iovec.* = .{ .base = chunk.items.ptr, .len = chunk.items.len };
+    const iovecs = iovecs_buf[0..chunks.len];
+    for (iovecs, chunks.slice()) |*iovec, *chunk|
+        iovec.* = .{ .base = chunk.code.items.ptr, .len = chunk.code.items.len };
     try room_scu.writevAll(iovecs);
 
     if (!ok)
         return error.AddedToDiagnostic;
 }
+
+const Chunk = struct {
+    section: Section,
+    code: std.ArrayListUnmanaged(u8),
+
+    fn sectionAsc(_: void, lhs: Chunk, rhs: Chunk) bool {
+        return @intFromEnum(lhs.section) < @intFromEnum(rhs.section);
+    }
+};
