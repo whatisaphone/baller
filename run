@@ -11,14 +11,14 @@ command_extract() {
     game=$1
     shift
     index=$(find_index "${game}")
-    zig build run -- extract2 "src/fixtures/${game}/${index}" "/tmp/${game}" "$@"
+    zig build run -- extract "src/fixtures/${game}/${index}" "/tmp/${game}" "$@"
 }
 
 command_build() {
     game=$1
     shift
     index=$(find_index "${game}")
-    zig build run -- build2 "/tmp/${game}/project.scu" "/tmp/${game}build/${index}" "$@"
+    zig build run -- build "/tmp/${game}/project.scu" "/tmp/${game}build/${index}" "$@"
 }
 
 command_xor() {

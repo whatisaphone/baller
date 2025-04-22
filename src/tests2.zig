@@ -1,8 +1,8 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
-const build2 = @import("build2.zig");
-const extract2 = @import("extract2.zig");
+const build = @import("build.zig");
+const extract = @import("extract.zig");
 const fs = @import("fs.zig");
 const fixture_hashes = @import("tests.zig").fixture_hashes;
 
@@ -82,7 +82,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
     const extract_path = "/tmp/" ++ game.fixture_dir;
     const build_path = extract_path ++ "build";
 
-    try extract2.run(std.testing.allocator, &diagnostic, .{
+    try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
         .output_path = extract_path,
         .options = switch (options) {
@@ -109,7 +109,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
         },
     });
 
-    try build2.run(std.testing.allocator, &diagnostic, .{
+    try build.run(std.testing.allocator, &diagnostic, .{
         .project_path = extract_path ++ "/project.scu",
         .index_path = build_path ++ "/" ++ game.index_name,
         .options = .{
