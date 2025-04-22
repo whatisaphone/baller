@@ -28,21 +28,6 @@ pub fn detectGameOrFatal(index_path: []const u8) !Game {
     };
 }
 
-pub fn pointPathToIndex(game: Game, path: []u8) void {
-    switch (game) {
-        .baseball_1997, .soccer_1998, .football_1999 => {
-            path[path.len - 3] = 'H';
-            path[path.len - 2] = 'E';
-            path[path.len - 1] = '0';
-        },
-        .baseball_2001, .basketball => {
-            path[path.len - 3] = 'h';
-            path[path.len - 2] = 'e';
-            path[path.len - 1] = '0';
-        },
-    }
-}
-
 pub fn maxsLen(game: Game) u32 {
     return switch (game) {
         .baseball_1997, .soccer_1998 => 38,

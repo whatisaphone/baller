@@ -41,54 +41,6 @@ pub fn writeFileZ(dir: std.fs.Dir, sub_path: [*:0]const u8, bytes: []const u8) !
     try file.writeAll(bytes);
 }
 
-pub fn readFileIntoSlice(dir: std.fs.Dir, sub_path: []const u8, buf: []u8) !void {
-    const file = try dir.openFile(sub_path, .{});
-    defer file.close();
-
-    try readOpenFileIntoSlice(file, buf);
-}
-
-pub fn readFileIntoSliceZ(dir: std.fs.Dir, sub_path: [*:0]const u8, buf: []u8) !void {
-    const file = try dir.openFileZ(sub_path, .{});
-    defer file.close();
-
-    try readOpenFileIntoSlice(file, buf);
-}
-
-fn readOpenFileIntoSlice(file: std.fs.File, buf: []u8) !void {
-    const stat = try file.stat();
-    if (stat.size < buf.len)
-        return error.EndOfStream;
-    if (stat.size > buf.len)
-        return error.StreamTooLong;
-
-    try file.reader().readNoEof(buf);
-}
-
-pub fn readFileZIntoBoundedArray(
-    dir: std.fs.Dir,
-    sub_path: [*:0]const u8,
-    bounded_array: anytype,
-) !void {
-    comptime std.debug.assert(std.mem.startsWith(
-        u8,
-        @typeName(@TypeOf(bounded_array)),
-        "*bounded_array.BoundedArrayAligned(u8,",
-    ));
-
-    const file = try dir.openFileZ(sub_path, .{});
-    defer file.close();
-
-    const buf = bounded_array.unusedCapacitySlice();
-
-    const stat = try file.stat();
-    if (stat.size > buf.len)
-        return error.StreamTooLong;
-
-    try file.reader().readNoEof(buf[0..stat.size]);
-    bounded_array.len = @intCast(bounded_array.len + stat.size);
-}
-
 pub fn readFileInto(dir: std.fs.Dir, sub_path: []const u8, output: anytype) !void {
     const file = try dir.openFile(sub_path, .{});
     defer file.close();
@@ -115,18 +67,6 @@ pub fn makeDirIfNotExistZ(dir: std.fs.Dir, sub_path: [*:0]const u8) !void {
         error.PathAlreadyExists => {},
         else => return err,
     };
-}
-
-pub fn makeParentDirIfNotExist(dir: std.fs.Dir, sub_path: []u8) !void {
-    const dirname = std.fs.path.dirname(sub_path) orelse return error.BadPathName;
-    const slash_index = dirname.len;
-
-    // Borrow the slash character temporarily to get a null-terminated dirname.
-    const old_slash = sub_path[slash_index];
-    sub_path[slash_index] = 0;
-    defer sub_path[slash_index] = old_slash;
-
-    try makeDirIfNotExistZ(dir, sub_path[0..slash_index :0]);
 }
 
 pub fn splitPathZ(path: [:0]const u8) struct { ?[]const u8, [:0]const u8 } {

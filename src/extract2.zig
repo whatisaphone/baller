@@ -11,7 +11,6 @@ const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const Block = @import("block_reader.zig").Block;
 const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
-const xor_key = @import("build.zig").xor_key;
 const cliargs = @import("cliargs.zig");
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
@@ -23,6 +22,8 @@ const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
+
+pub const xor_key = 0x69;
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
