@@ -28,6 +28,7 @@ pub const xor_key = 0x69;
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var index_path_opt: ?[:0]const u8 = null;
     var output_path_opt: ?[:0]const u8 = null;
+    var symbols_path: ?[:0]const u8 = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
@@ -48,7 +49,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 return arg.reportUnexpected();
         },
         .long_option => |opt| {
-            if (std.mem.eql(u8, opt.flag, "rmim")) {
+            if (std.mem.eql(u8, opt.flag, "symbols")) {
+                if (symbols_path != null) return arg.reportDuplicate();
+                symbols_path = opt.value;
+            } else if (std.mem.eql(u8, opt.flag, "rmim")) {
                 if (rmim_option != null) return arg.reportDuplicate();
                 rmim_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
@@ -96,6 +100,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     run(gpa, &diagnostic, .{
         .index_path = index_path,
         .output_path = output_path,
+        .symbols_path = symbols_path,
         .options = .{
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
@@ -116,6 +121,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
 const Extract = struct {
     index_path: [:0]const u8,
     output_path: [:0]const u8,
+    symbols_path: ?[:0]const u8,
     options: Options,
 };
 
@@ -150,6 +156,15 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
 
     const game = try games.detectGameOrFatal(index_name);
 
+    var symbols_text: []const u8 = "";
+    defer gpa.free(symbols_text);
+
+    var symbols: Symbols = if (args.symbols_path) |path| symbols: {
+        symbols_text = try fs.readFileZ(gpa, std.fs.cwd(), path);
+        break :symbols try .parse(gpa, game, symbols_text);
+    } else .{ .game = game };
+    defer symbols.deinit(gpa);
+
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
     defer pool.deinit();
@@ -177,6 +192,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
         .options = args.options,
         .game = game,
         .language = language_ptr,
+        .symbols = &symbols,
         .index = &index,
         .output_dir = output_dir,
     };
@@ -184,6 +200,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     for (0..games.numberOfDisks(game)) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
         try extractDisk(&cx, diagnostic, input_dir, index_name, disk_number, &code);
+    }
+
+    if (symbols.globals.len() != 0) {
+        for (0..symbols.globals.len()) |i|
+            if (symbols.globals.get(i)) |name|
+                try code.writer(gpa).print("var {s} @ {}\n", .{ name, i });
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
@@ -528,6 +550,7 @@ const Context = struct {
     options: Options,
     game: games.Game,
     language: utils.SafeUndefined(*const lang.Language),
+    symbols: *const Symbols,
     index: *const Index,
     output_dir: std.fs.Dir,
 };
@@ -740,6 +763,10 @@ fn readRoomInner(
     }
 
     try lflf_blocks.finish(lflf_end);
+
+    const room_vars_chunk_index = try cx.claimChunkIndex();
+    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
+    try cx.cx.pool.spawn(runRoomVarsJob, .{ cx, diag.diagnostic, room_vars_chunk_index });
 }
 
 fn extractRmda(
@@ -974,9 +1001,6 @@ fn extractEncdExcd(
         else => unreachable,
     };
 
-    const symbols: Symbols = .{
-        .game = cx.cx.game,
-    };
     const diagnostic: DisasmDiagnostic = .{ .diag = diag };
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
@@ -986,7 +1010,7 @@ fn extractEncdExcd(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, &symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1007,9 +1031,6 @@ fn extractLscr(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const symbols: Symbols = .{
-        .game = cx.cx.game,
-    };
     const diagnostic: DisasmDiagnostic = .{ .diag = diag };
 
     if (raw.len < 4) return error.EndOfStream;
@@ -1023,7 +1044,7 @@ fn extractLscr(
         .room = cx.room_number,
         .number = script_number,
     } };
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, bytecode, &symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, bytecode, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1036,6 +1057,38 @@ fn extractLscr(
         "    lscr {} \"{s}/{s}\"\n",
         .{ script_number, cx.room_path, path },
     );
+}
+
+fn runRoomVarsJob(cx: *RoomContext, diagnostic: *Diagnostic, chunk_index: u16) void {
+    writeRoomVarsJob(cx, chunk_index) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
+        cx.events.send(.err);
+    };
+
+    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
+    if (prev_pending == 1)
+        std.Thread.Futex.wake(&cx.pending_jobs, 1);
+}
+
+fn writeRoomVarsJob(cx: *RoomContext, chunk_index: u16) !void {
+    var code: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer code.deinit(cx.cx.gpa);
+
+    try writeRoomVarsInner(cx, &code);
+
+    cx.events.send(.{ .code_chunk = .{
+        .index = chunk_index,
+        .section = .top,
+        .code = code,
+    } });
+}
+
+fn writeRoomVarsInner(cx: *RoomContext, code: *std.ArrayListUnmanaged(u8)) !void {
+    const room = cx.cx.symbols.getRoom(cx.room_number) orelse return;
+    for (0..room.vars.len()) |i|
+        if (room.vars.get(i)) |name|
+            try code.writer(cx.cx.gpa).print("var {s} @ {}\n", .{ name, i });
 }
 
 fn findGlobNumber(
@@ -1166,9 +1219,6 @@ fn extractScrp(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const symbols: Symbols = .{
-        .game = cx.cx.game,
-    };
     const diagnostic: DisasmDiagnostic = .{ .diag = diag };
 
     const id: Symbols.ScriptId = .{ .global = glob_number };
@@ -1176,7 +1226,7 @@ fn extractScrp(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, &symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };

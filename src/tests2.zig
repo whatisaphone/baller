@@ -13,6 +13,7 @@ const Game = struct {
     fixture_dir: []const u8,
     index_name: [:0]const u8,
     fixture_names: []const [:0]const u8,
+    symbols_path: ?[:0]const u8 = null,
 };
 
 const baseball1997: Game = .{
@@ -55,6 +56,7 @@ const baseball2001: Game = .{
     .fixture_dir = "baseball2001",
     .index_name = "baseball 2001.he0",
     .fixture_names = &.{ "baseball 2001.(a)", "baseball 2001.(b)" },
+    .symbols_path = "src/fixtures/baseball2001-symbols.ini",
 };
 test "Backyard Baseball 2001 round trip raw" {
     try testRoundTrip(baseball2001, .raw);
@@ -85,6 +87,7 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
     try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
         .output_path = extract_path,
+        .symbols_path = game.symbols_path,
         .options = switch (options) {
             .raw => .{
                 .rmim = .raw,

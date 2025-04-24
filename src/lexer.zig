@@ -39,6 +39,7 @@ pub const Token = struct {
         bracket_r,
         brace_l,
         brace_r,
+        swat,
         integer,
         string,
         identifier,
@@ -52,6 +53,7 @@ pub const Token = struct {
                 .bracket_r => "']'",
                 .brace_l => "'{'",
                 .brace_r => "'}'",
+                .swat => "'@'",
                 .integer => "<integer>",
                 .string => "<string>",
                 .identifier => "<identifier>",
@@ -102,6 +104,8 @@ pub fn run(
             try appendToken(&state, loc, .brace_l);
         } else if (ch == '}') {
             try appendToken(&state, loc, .brace_r);
+        } else if (ch == '@') {
+            try appendToken(&state, loc, .swat);
         } else if (ch == '-' and is_num: {
             const ch2 = peekChar(&state) orelse break :is_num false;
             break :is_num '0' <= ch2 and ch2 <= '9';
@@ -196,7 +200,7 @@ fn isIdentStart(ch: u8) bool {
 }
 
 fn isIdentContinue(ch: u8) bool {
-    return isIdentStart(ch) or ch == '-' or ch == '_';
+    return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_';
 }
 
 fn reportError(

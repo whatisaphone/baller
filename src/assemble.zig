@@ -6,18 +6,20 @@ const report = @import("report.zig");
 
 const horizontal_whitespace = " \t";
 
+const Scopes = struct {
+    project: *const std.StringHashMapUnmanaged(lang.Variable),
+    room: *const std.StringHashMapUnmanaged(lang.Variable),
+};
+
 pub fn assemble(
     allocator: std.mem.Allocator,
-    language_stuff: struct {
-        *const lang.Language,
-        *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    },
+    language: *const lang.Language,
+    inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     asm_str: []const u8,
-    symbols: *const Symbols,
+    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
+    room_scope: *const std.StringHashMapUnmanaged(lang.Variable),
     id: Symbols.ScriptId,
 ) !std.ArrayListUnmanaged(u8) {
-    const language, const inss = language_stuff;
-
     // map from label name to offset
     var label_offsets: std.StringHashMapUnmanaged(u16) = .empty;
     defer label_offsets.deinit(allocator);
@@ -40,7 +42,7 @@ pub fn assemble(
             allocator,
             language,
             inss,
-            symbols,
+            .{ .project = project_scope, .room = room_scope },
             id,
             &label_offsets,
             &label_fixups,
@@ -77,7 +79,7 @@ fn assembleLine(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
     inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    symbols: *const Symbols,
+    scopes: Scopes,
     id: Symbols.ScriptId,
     label_offsets: *std.StringHashMapUnmanaged(u16),
     label_fixups: *std.ArrayListUnmanaged(Fixup),
@@ -165,7 +167,7 @@ fn assembleLine(
                 _ = try bytecode.addManyAsSlice(allocator, 2);
             },
             .variable => {
-                const variable, rest = try tokenizeVariable(rest, locals.items, symbols, id);
+                const variable, rest = try tokenizeVariable(rest, locals.items, scopes);
                 try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
             },
             .string => {
@@ -213,36 +215,24 @@ fn tokenizeInt(comptime T: type, str: []const u8) !struct { T, []const u8 } {
     return .{ int, rest };
 }
 
-fn tokenizeVariable(
-    str: []const u8,
-    locals: []const []const u8,
-    symbols: *const Symbols,
-    id: Symbols.ScriptId,
-) !struct { lang.Variable, []const u8 } {
+fn tokenizeVariable(str: []const u8, locals: []const []const u8, scopes: Scopes) !struct { lang.Variable, []const u8 } {
     var split = std.mem.tokenizeAny(u8, str, horizontal_whitespace);
     const var_str = split.next() orelse return error.BadData;
     const rest = split.rest();
-    const variable = try parseVariable(var_str, locals, symbols, id);
+    const variable = try parseVariable(var_str, locals, scopes);
     return .{ variable, rest };
 }
 
-fn parseVariable(
-    var_str: []const u8,
-    locals: []const []const u8,
-    symbols: *const Symbols,
-    id: Symbols.ScriptId,
-) !lang.Variable {
-    if (symbols.global_names.get(var_str)) |num|
-        return .init(.{ .global = num });
-
+fn parseVariable(var_str: []const u8, locals: []const []const u8, scopes: Scopes) !lang.Variable {
     for (0.., locals) |i, name|
         if (std.mem.eql(u8, name, var_str))
             return .init(.{ .local = @intCast(i) });
 
-    if (id.room()) |room_number|
-        if (symbols.getRoom(room_number)) |room|
-            if (room.var_names.get(var_str)) |num|
-                return .init(.{ .room = num });
+    if (scopes.room.get(var_str)) |variable|
+        return variable;
+
+    if (scopes.project.get(var_str)) |variable|
+        return variable;
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))

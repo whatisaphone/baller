@@ -47,10 +47,12 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
     const Keyword = enum {
         index,
         disk,
+        @"var",
     };
 
     var index_children_opt: ?std.BoundedArray(Ast.NodeIndex, 16) = null;
     var disks: [2]Ast.NodeIndex = @splat(Ast.null_node);
+    var variables: std.BoundedArray(u32, 768) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -65,6 +67,11 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
                 .disk => {
                     try parseDisk(state, token.span, &disks);
                 },
+                .@"var" => {
+                    const node = try parseVar(state, token.span);
+                    variables.append(node) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
             },
             .eof => break,
             else => return reportUnexpected(state, token),
@@ -75,10 +82,12 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
         return reportError(state, .{ .start = .origin, .end = .origin }, "missing index", .{});
     const index_extra = try appendExtra(state, index_children.slice());
     const disks_extra = try appendExtra(state, &disks);
+    const variables_extra = try appendExtra(state, variables.slice());
 
     return appendNode(state, .{ .project = .{
         .index = index_extra,
         .disks = disks_extra,
+        .variables = variables_extra,
     } });
 }
 
@@ -183,6 +192,21 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !Ast.NodeIndex {
     } });
 }
 
+fn parseVar(state: *State, span: lexer.Span) !Ast.NodeIndex {
+    const name = try expectIdentifier(state);
+    try expect(state, .swat);
+    const number_i32 = try expectInteger(state);
+    try expect(state, .newline);
+
+    const number = std.math.cast(u16, number_i32) orelse
+        return reportError(state, span, "out of range", .{});
+
+    return appendNode(state, .{ .variable = .{
+        .name = name,
+        .number = number,
+    } });
+}
+
 pub fn parseRoom(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForTextFile,
@@ -216,9 +240,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         awiz,
         mult,
         akos,
+        @"var",
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
+    var variables: std.BoundedArray(Ast.NodeIndex, 160) = .{};
 
     while (true) {
         skipWhitespace(state);
@@ -280,6 +306,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
+                .@"var" => {
+                    const node_index = try parseVar(state, token.span);
+                    variables.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
             },
             .eof => break,
             else => return reportUnexpected(state, token),
@@ -288,6 +319,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
 
     return appendNode(state, .{ .room_file = .{
         .children = try appendExtra(state, children.slice()),
+        .variables = try appendExtra(state, variables.slice()),
     } });
 }
 
@@ -693,6 +725,13 @@ fn expectInteger(state: *State) !i32 {
     const source = state.source[token.span.start.offset..token.span.end.offset];
     return std.fmt.parseInt(i32, source, 10) catch
         reportError(state, token.span, "invalid integer", .{});
+}
+
+fn expectIdentifier(state: *State) ![]const u8 {
+    const token = consumeToken(state);
+    if (token.kind != .identifier)
+        return reportExpected(state, token, .integer);
+    return state.source[token.span.start.offset..token.span.end.offset];
 }
 
 fn parseIdentifier(state: *State, token: *const lexer.Token, T: type) !T {

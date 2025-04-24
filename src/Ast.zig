@@ -29,6 +29,7 @@ pub const Node = union(enum) {
     project: struct {
         index: ExtraSlice,
         disks: ExtraSlice,
+        variables: ExtraSlice,
     },
     index_block: enum { DIRI, DIRR, DIRS, DIRN, DIRC, DIRF, DIRM, DIRT, DLFL, DISK, RNAM },
     disk: struct {
@@ -41,6 +42,7 @@ pub const Node = union(enum) {
     },
     room_file: struct {
         children: ExtraSlice,
+        variables: ExtraSlice,
     },
     raw_block: struct {
         block_id: BlockId,
@@ -107,6 +109,10 @@ pub const Node = union(enum) {
     akcd: struct {
         compression: akos.CompressionCodec,
         path: []const u8,
+    },
+    variable: struct {
+        name: []const u8,
+        number: u16,
     },
 };
 

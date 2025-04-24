@@ -66,6 +66,8 @@ pub fn run(
             .awiz_strategy = awiz_strategy,
             .language = &language,
             .ins_map = &ins_map,
+            .project_scope = .empty,
+            .room_scopes = undefined,
             .pool = pool,
             .events = events,
             .next_event_index = 0,
@@ -97,6 +99,8 @@ const Context = struct {
     awiz_strategy: awiz.EncodingStrategy,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    project_scope: std.StringHashMapUnmanaged(lang.Variable),
+    room_scopes: [256]std.StringHashMapUnmanaged(lang.Variable),
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     next_event_index: u16,
@@ -111,6 +115,14 @@ const Context = struct {
 fn planProject(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
+
+    for (project_file.ast.getExtra(project_node.variables)) |var_node_index| {
+        const var_node = &project_file.ast.nodes.items[var_node_index].variable;
+        const scope_entry = try cx.project_scope.getOrPut(cx.gpa, var_node.name);
+        if (scope_entry.found_existing) return error.BadData;
+        scope_entry.value_ptr.* = .init(.{ .global = var_node.number });
+    }
+
     for (project_file.ast.getExtra(project_node.disks), 0..) |disk_node, disk_index| {
         if (disk_node == Ast.null_node) continue;
         const disk_number: u8 = @intCast(disk_index + 1);
@@ -133,6 +145,16 @@ fn planProject(cx: *Context) !void {
 fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void {
     const room_file = &cx.project.files.items[room.room_number].?;
     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+
+    const room_scope = &cx.room_scopes[room.room_number];
+    room_scope.* = .empty;
+    for (room_file.ast.getExtra(root.variables)) |var_node_index| {
+        const var_node = &room_file.ast.nodes.items[var_node_index].variable;
+        const scope_entry = try room_scope.getOrPut(cx.gpa, var_node.name);
+        if (scope_entry.found_existing) return error.BadData;
+        scope_entry.value_ptr.* = .init(.{ .room = var_node.number });
+    }
+
     for (room_file.ast.getExtra(root.children)) |child_node| {
         switch (room_file.ast.nodes.items[child_node]) {
             .raw_glob_file => |*n| try planRawGlobFile(cx, n),
@@ -247,9 +269,8 @@ fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     const in = try fs.readFile(cx.gpa, cx.project_dir, scrp.path);
     defer cx.gpa.free(in);
 
-    const symbols: Symbols = .{ .game = cx.game };
     const id: Symbols.ScriptId = .{ .global = scrp.glob_number };
-    const result = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
+    const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &.{}, id);
 
     cx.events.send(.{
         .index = event_index,
@@ -272,12 +293,11 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
     const in = try fs.readFile(cx.gpa, cx.project_dir, path);
     defer cx.gpa.free(in);
 
-    const symbols: Symbols = .{ .game = cx.game };
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = room_number } },
         .excd => .{ .exit = .{ .room = room_number } },
     };
-    var result = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
+    var result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     errdefer result.deinit(cx.gpa);
 
     const block_id = switch (edge) {
@@ -299,12 +319,11 @@ fn planLscr(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     const in = try fs.readFile(cx.gpa, cx.project_dir, lscr.path);
     defer cx.gpa.free(in);
 
-    const symbols: Symbols = .{ .game = cx.game };
     const id: Symbols.ScriptId = .{ .local = .{
         .room = room_number,
         .number = lscr.script_number,
     } };
-    var bytecode = try assemble.assemble(cx.gpa, .{ cx.language, cx.ins_map }, in, &symbols, id);
+    var bytecode = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     defer bytecode.deinit(cx.gpa);
 
     const result = try cx.gpa.alloc(u8, 4 + bytecode.items.len);
