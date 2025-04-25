@@ -408,7 +408,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
 
 fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const Keyword = enum {
-        @"defa-raw",
+        @"raw-block",
         awiz,
         indices,
     };
@@ -419,7 +419,7 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const glob_number = std.math.cast(u16, glob_number_i32) orelse
         return reportError(state, span, "invalid glob number", .{});
 
-    var raw_defa_path: ?[]const u8 = null;
+    var raw_block = Ast.null_node;
     var children: std.BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
     var indices_opt: ?Ast.ExtraSlice = null;
 
@@ -428,13 +428,10 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
         const token = consumeToken(state);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
-                .@"defa-raw" => {
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    if (raw_defa_path != null)
+                .@"raw-block" => {
+                    if (raw_block != Ast.null_node)
                         return reportError(state, token.span, "too many children", .{});
-                    raw_defa_path = path;
+                    raw_block = try parseRawBlockNested(state, token.span);
                 },
                 .awiz => {
                     try expect(state, .brace_l);
@@ -465,7 +462,7 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
 
     return appendNode(state, .{ .mult = .{
         .glob_number = glob_number,
-        .raw_defa_path = raw_defa_path,
+        .raw_block = raw_block,
         .children = try appendExtra(state, children.slice()),
         .indices = indices,
     } });
@@ -575,6 +572,41 @@ fn parseRawBlock(state: *State, span: lexer.Span) !Ast.NodeIndex {
     return appendNode(state, .{ .raw_block = .{
         .block_id = block_id,
         .path = path,
+    } });
+}
+
+fn parseRawBlockNested(state: *State, span: lexer.Span) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+    };
+
+    const block_id_str = try expectString(state);
+    try expect(state, .brace_l);
+
+    const block_id = parseBlockId(block_id_str) orelse
+        return reportError(state, span, "invalid block id", .{});
+
+    var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+
+    return appendNode(state, .{ .raw_block_nested = .{
+        .block_id = block_id,
+        .children = try appendExtra(state, children.slice()),
     } });
 }
 

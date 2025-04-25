@@ -3,6 +3,8 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
+const blockId = @import("block_id.zig").blockId;
+const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -53,10 +55,10 @@ fn extractMultInner(
 
     var mult_blocks = fixedBlockReader2(in, diag);
 
+    var mult_palette: ?*const [0x300]u8 = null;
     if (try mult_blocks.nextIf("DEFA")) |defa| {
         const defa_raw = try defa.bytes();
-        try fs.writeFileZ(mult_dir, "defa.bin", defa_raw);
-        try code.writer(gpa).print("    defa-raw \"{s}/defa.bin\"\n", .{mult_path});
+        mult_palette = try extractDefa(gpa, diag, defa_raw, mult_dir, mult_path, code);
     }
 
     var wrap_blocks = try mult_blocks.expect("WRAP").nested();
@@ -73,7 +75,7 @@ fn extractMultInner(
         try awiz_offsets.append(awiz_offset);
 
         const awiz_raw = try io.readInPlace(in, awiz_block.size);
-        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, room_palette);
+        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, mult_palette orelse room_palette);
         defer the_awiz.deinit(gpa);
 
         const first_index = for (offs, 0..) |off, i| {
@@ -109,4 +111,46 @@ fn extractMultInner(
 
 fn orderU32(a: u32, b: u32) std.math.Order {
     return std.math.order(a, b);
+}
+
+fn extractDefa(
+    gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForBinaryFile,
+    defa_raw: []const u8,
+    out_dir: std.fs.Dir,
+    out_path: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !?*const [0x300]u8 {
+    var rgbs: ?*const [0x300]u8 = null;
+
+    var stream = std.io.fixedBufferStream(defa_raw);
+    var blocks = fixedBlockReader2(&stream, diag);
+
+    try code.writer(gpa).print("    raw-block \"{s}\" {{\n", .{"DEFA"});
+
+    while (stream.pos < defa_raw.len) {
+        const block = try blocks.next().block();
+        const bytes = try io.readInPlace(&stream, block.size);
+
+        var path_buf: ["DEFA_RGBS.bin".len + 1]u8 = undefined;
+        const path = std.fmt.bufPrintZ(&path_buf, "DEFA_{s}.bin", .{fmtBlockId(&block.id)}) catch unreachable;
+        try fs.writeFileZ(out_dir, path, bytes);
+
+        try code.writer(gpa).print(
+            "        raw-block \"{s}\" \"{s}/{s}\"\n",
+            .{ fmtBlockId(&block.id), out_path, path },
+        );
+
+        if (block.id == blockId("RGBS")) {
+            if (rgbs != null) return error.BadData;
+            if (bytes.len != 0x300) return error.BadData;
+            rgbs = bytes[0..0x300];
+        }
+    }
+
+    try blocks.finishEof();
+
+    try code.appendSlice(gpa, "    }\n");
+
+    return rgbs;
 }

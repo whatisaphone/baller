@@ -13,9 +13,11 @@ const block_header_size = @import("block_reader.zig").block_header_size;
 const Fixup = @import("block_writer.zig").Fixup;
 const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
+const io = @import("io.zig");
 const lang = @import("lang.zig");
 const rmim_encode = @import("rmim_encode.zig");
 const sync = @import("sync.zig");
@@ -436,9 +438,19 @@ fn planMultInner(
 ) !void {
     const room_file = &cx.project.files.items[room_number].?;
 
-    if (mult_node.raw_defa_path) |path| {
+    if (mult_node.raw_block != Ast.null_node) {
+        const defa = &room_file.ast.nodes.items[mult_node.raw_block].raw_block_nested;
         const defa_start = try beginBlock(out, "DEFA");
-        try fs.readFileInto(cx.project_dir, path, out.writer());
+        for (room_file.ast.getExtra(defa.children)) |child_node| {
+            const child = &room_file.ast.nodes.items[child_node].raw_block;
+
+            const file = try cx.project_dir.openFile(child.path, .{});
+            defer file.close();
+
+            const child_start = try beginBlockImpl(out, child.block_id);
+            try io.copy(file, out.writer());
+            try endBlock(out, fixups, child_start);
+        }
         try endBlock(out, fixups, defa_start);
     }
 

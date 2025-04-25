@@ -48,6 +48,10 @@ pub const Node = union(enum) {
         block_id: BlockId,
         path: []const u8,
     },
+    raw_block_nested: struct {
+        block_id: BlockId,
+        children: ExtraSlice,
+    },
     raw_glob_file: struct {
         block_id: BlockId,
         glob_number: u16,
@@ -92,7 +96,7 @@ pub const Node = union(enum) {
     },
     mult: struct {
         glob_number: u16,
-        raw_defa_path: ?[]const u8,
+        raw_block: NodeIndex,
         children: ExtraSlice,
         indices: ExtraSlice,
     },
