@@ -775,11 +775,7 @@ fn extractRmda(
     diag: *const Diagnostic.ForBinaryFile,
     rmda: *const Block,
 ) ![0x300]u8 {
-    try cx.sendSyncFmt(
-        .top,
-        "raw-glob \"{s}\" {} {{\n",
-        .{ fmtBlockId(&rmda.id), cx.room_number },
-    );
+    try cx.sendSyncFmt(.top, "rmda {{\n", .{});
 
     var apal_opt: ?[0x300]u8 = null;
 

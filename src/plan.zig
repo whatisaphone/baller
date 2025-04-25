@@ -163,6 +163,7 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
             .raw_glob_block => |*n| try planRawGlobBlock(cx, room.room_number, n),
             .raw_block => |*n| try planRawBlock(cx, n),
             .rmim => try spawnJob(planRmim, cx, room.room_number, child_node),
+            .rmda => try planRmda(cx, room.room_number, child_node),
             .scrp => try spawnJob(planScrp, cx, room.room_number, child_node),
             .awiz => try spawnJob(planAwiz, cx, room.room_number, child_node),
             .mult => try spawnJob(planMult, cx, room.room_number, child_node),
@@ -205,6 +206,23 @@ fn planRawGlobBlock(
 
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(glob.children)) |node| {
+        const child = &room_file.ast.nodes.items[node].raw_block;
+        try planRawBlock(cx, child);
+    }
+
+    cx.sendSyncEvent(.glob_end);
+}
+
+fn planRmda(cx: *Context, room_number: u8, node_index: u32) !void {
+    const rmda = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].rmda;
+
+    cx.sendSyncEvent(.{ .glob_start = .{
+        .block_id = blockId("RMDA"),
+        .glob_number = room_number,
+    } });
+
+    const room_file = &cx.project.files.items[room_number].?;
+    for (room_file.ast.getExtra(rmda.children)) |node| {
         const child = &room_file.ast.nodes.items[node];
         switch (child.*) {
             .raw_block => |*n| try planRawBlock(cx, n),

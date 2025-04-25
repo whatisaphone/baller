@@ -66,6 +66,9 @@ pub const Node = union(enum) {
         compression: u8,
         path: []const u8,
     },
+    rmda: struct {
+        children: ExtraSlice,
+    },
     scrp: struct {
         glob_number: u16,
         path: []const u8,

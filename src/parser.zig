@@ -236,6 +236,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         @"raw-block",
         @"raw-glob",
         rmim,
+        rmda,
         scrp,
         awiz,
         mult,
@@ -273,6 +274,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         .compression = compression,
                         .path = path,
                     } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .rmda => {
+                    const node_index = try parseRmda(state);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -320,6 +326,70 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
     return appendNode(state, .{ .room_file = .{
         .children = try appendExtra(state, children.slice()),
         .variables = try appendExtra(state, variables.slice()),
+    } });
+}
+
+fn parseRmda(state: *State) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        encd,
+        excd,
+        lscr,
+    };
+
+    try expect(state, .brace_l);
+
+    var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
+
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        switch (token.kind) {
+            .identifier => switch (try parseIdentifier(state, token, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(state, token.span);
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .encd => {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .excd => {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .lscr => {
+                    const script_number_i32 = try expectInteger(state);
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const script_number = std.math.cast(u16, script_number_i32) orelse
+                        return reportError(state, token.span, "invalid script number", .{});
+
+                    const node_index = try appendNode(state, .{ .lscr = .{
+                        .script_number = script_number,
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(state, token),
+        }
+    }
+
+    return appendNode(state, .{ .rmda = .{
+        .children = try appendExtra(state, children.slice()),
     } });
 }
 
@@ -648,9 +718,6 @@ fn parseRawGlobFile(
 fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
-        encd,
-        excd,
-        lscr,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
@@ -662,37 +729,6 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .encd => {
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .excd => {
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .lscr => {
-                    const script_number_i32 = try expectInteger(state);
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const script_number = std.math.cast(u16, script_number_i32) orelse
-                        return reportError(state, token.span, "invalid script number", .{});
-
-                    const node_index = try appendNode(state, .{ .lscr = .{
-                        .script_number = script_number,
-                        .path = path,
-                    } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
