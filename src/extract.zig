@@ -613,6 +613,10 @@ const Event = union(enum) {
 
 const Section = enum {
     top,
+    global_scripts,
+    local_scripts,
+    enter_script,
+    exit_script,
     bottom,
 };
 
@@ -968,13 +972,13 @@ fn extractRmdaChildJob(
     // First try to decode
     switch (block.id) {
         blockId("EXCD") => if (cx.cx.options.excd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .top))
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .exit_script))
                 return,
         blockId("ENCD") => if (cx.cx.options.encd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .top))
+            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .enter_script))
                 return,
         blockId("LSC2") => if (cx.cx.options.lsc2 == .decode)
-            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index, .top))
+            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index, .local_scripts))
                 return,
         else => unreachable, // This is only called for the above block ids
     }
@@ -1016,7 +1020,7 @@ fn extractEncdExcd(
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print(
-        "    {s} \"{s}/{s}\"\n",
+        "{s} \"{s}/{s}\"\n",
         .{ @tagName(edge), cx.room_path, path },
     );
 }
@@ -1050,7 +1054,7 @@ fn extractLscr(
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print(
-        "    lscr {} \"{s}/{s}\"\n",
+        "lscr {} \"{s}/{s}\"\n",
         .{ script_number, cx.room_path, path },
     );
 }
@@ -1148,7 +1152,7 @@ fn extractGlobJob(
     // First try to decode
     switch (block.id) {
         blockId("SCRP") => if (cx.cx.options.scrp == .decode)
-            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .global_scripts))
                 return,
         blockId("AWIZ") => if (cx.cx.options.awiz == .decode)
             if (tryDecode(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))

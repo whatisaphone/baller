@@ -238,6 +238,9 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         rmim,
         rmda,
         scrp,
+        encd,
+        excd,
+        lscr,
         awiz,
         mult,
         akos,
@@ -297,6 +300,37 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
+                .encd => {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .excd => {
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
+                .lscr => {
+                    const script_number_i32 = try expectInteger(state);
+                    const path = try expectString(state);
+                    try expect(state, .newline);
+
+                    const script_number = std.math.cast(u16, script_number_i32) orelse
+                        return reportError(state, token.span, "invalid script number", .{});
+
+                    const node_index = try appendNode(state, .{ .lscr = .{
+                        .script_number = script_number,
+                        .path = path,
+                    } });
+                    children.append(node_index) catch
+                        return reportError(state, token.span, "too many children", .{});
+                },
                 .awiz => {
                     const node_index = try parseAwiz(state, token.span);
                     children.append(node_index) catch
@@ -332,9 +366,6 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
 fn parseRmda(state: *State) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
-        encd,
-        excd,
-        lscr,
     };
 
     try expect(state, .brace_l);
@@ -348,37 +379,6 @@ fn parseRmda(state: *State) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .encd => {
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .excd => {
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
-                },
-                .lscr => {
-                    const script_number_i32 = try expectInteger(state);
-                    const path = try expectString(state);
-                    try expect(state, .newline);
-
-                    const script_number = std.math.cast(u16, script_number_i32) orelse
-                        return reportError(state, token.span, "invalid script number", .{});
-
-                    const node_index = try appendNode(state, .{ .lscr = .{
-                        .script_number = script_number,
-                        .path = path,
-                    } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },

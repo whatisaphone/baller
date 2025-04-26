@@ -81,6 +81,7 @@ pub fn run(
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
         cx.sendSyncEvent(.err);
+        cx.sendSyncEvent(.project_end);
     };
 
     diagnostic.trace("waiting for jobs", .{});
@@ -157,18 +158,120 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
         scope_entry.value_ptr.* = .init(.{ .room = var_node.number });
     }
 
+    var start: [160]RoomWork = undefined;
+    var rmda_excd: [1]RoomWork = undefined;
+    var rmda_encd: [1]RoomWork = undefined;
+    var rmda_lscr: [640]RoomWork = undefined;
+    var end: [5120]RoomWork = undefined;
+    var state: RoomPlan = .{
+        .work = .init(.{
+            .start = .initBuffer(&start),
+            .rmda_excd = .initBuffer(&rmda_excd),
+            .rmda_encd = .initBuffer(&rmda_encd),
+            .rmda_lscr = .initBuffer(&rmda_lscr),
+            .end = .initBuffer(&end),
+        }),
+        .cur_section = .start,
+    };
+
+    try scanRoom(cx, &state, room.room_number);
+    try scheduleRoom(cx, &state, room.room_number);
+}
+
+const RoomPlan = struct {
+    work: std.EnumArray(RoomSection, std.ArrayListUnmanaged(RoomWork)),
+    cur_section: RoomSection,
+
+    fn add(self: *RoomPlan, section: RoomSection, work: RoomWork) !void {
+        try self.work.getPtr(section).append(utils.null_allocator, work);
+    }
+};
+
+const RoomSection = enum {
+    start,
+    rmda_excd,
+    rmda_encd,
+    rmda_lscr,
+    end,
+};
+
+const RoomWork = union(enum) {
+    event: Payload,
+    node: Ast.NodeIndex,
+};
+
+fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
     for (room_file.ast.getExtra(root.children)) |child_node| {
         switch (room_file.ast.nodes.items[child_node]) {
-            .raw_glob_file => |*n| try planRawGlobFile(cx, n),
-            .raw_glob_block => |*n| try planRawGlobBlock(cx, room.room_number, n),
-            .raw_block => |*n| try planRawBlock(cx, n),
-            .rmim => try spawnJob(planRmim, cx, room.room_number, child_node),
-            .rmda => try planRmda(cx, room.room_number, child_node),
-            .scrp => try spawnJob(planScrp, cx, room.room_number, child_node),
-            .awiz => try spawnJob(planAwiz, cx, room.room_number, child_node),
-            .mult => try spawnJob(planMult, cx, room.room_number, child_node),
-            .akos => try spawnJob(planAkos, cx, room.room_number, child_node),
+            .raw_glob_file, .raw_glob_block, .raw_block, .rmim => {
+                try plan.add(plan.cur_section, .{ .node = child_node });
+            },
+            .rmda => |*rmda| try scanRmda(cx, plan, room_number, rmda),
+            .scrp => try plan.add(.end, .{ .node = child_node }),
+            .excd => try plan.add(.rmda_excd, .{ .node = child_node }),
+            .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
+            .lscr => try plan.add(.rmda_lscr, .{ .node = child_node }),
+            .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             else => unreachable,
+        }
+    }
+}
+
+fn scanRmda(
+    cx: *Context,
+    plan: *RoomPlan,
+    room_number: u8,
+    rmda: *const @FieldType(Ast.Node, "rmda"),
+) !void {
+    try plan.add(plan.cur_section, .{ .event = .{ .glob_start = .{
+        .block_id = blockId("RMDA"),
+        .glob_number = room_number,
+    } } });
+    const room_file = &cx.project.files.items[room_number].?;
+    for (room_file.ast.getExtra(rmda.children)) |node_index| {
+        const raw_block = &room_file.ast.nodes.items[node_index].raw_block;
+        if (raw_block.block_id == blockId("POLD"))
+            plan.cur_section = .end;
+        const section = sectionForBlockId(raw_block.block_id) orelse plan.cur_section;
+        try plan.add(section, .{ .node = node_index });
+    }
+    plan.cur_section = .end;
+    try plan.add(plan.cur_section, .{ .event = .glob_end });
+}
+
+fn sectionForBlockId(block_id: BlockId) ?RoomSection {
+    return switch (block_id) {
+        blockId("EXCD") => .rmda_excd,
+        blockId("ENCD") => .rmda_encd,
+        blockId("NLSC") => .rmda_lscr,
+        blockId("LSCR") => .rmda_lscr,
+        blockId("LSC2") => .rmda_lscr,
+        else => null,
+    };
+}
+
+fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    for (std.meta.tags(RoomSection)) |section| {
+        for (plan.work.getPtrConst(section).items) |work| {
+            switch (work) {
+                .event => |payload| cx.sendSyncEvent(payload),
+                .node => |child_node| switch (room_file.ast.nodes.items[child_node]) {
+                    .raw_glob_file => |*n| try planRawGlobFile(cx, n),
+                    .raw_glob_block => |*n| try planRawGlobBlock(cx, room_number, n),
+                    .raw_block => |*n| try planRawBlock(cx, n),
+                    .rmim => try spawnJob(planRmim, cx, room_number, child_node),
+                    .scrp => try spawnJob(planScrp, cx, room_number, child_node),
+                    .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
+                    .lscr => try spawnJob(planLscr, cx, room_number, child_node),
+                    .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
+                    .mult => try spawnJob(planMult, cx, room_number, child_node),
+                    .akos => try spawnJob(planAkos, cx, room_number, child_node),
+                    else => unreachable,
+                },
+            }
         }
     }
 }
