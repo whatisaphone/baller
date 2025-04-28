@@ -700,6 +700,19 @@ const RoomContext = struct {
         const code = try std.fmt.allocPrint(self.cx.gpa, fmt, args);
         try self.sendSync(section, .fromOwnedSlice(code));
     }
+
+    fn sendChunk(
+        self: *const RoomContext,
+        chunk_index: u16,
+        section: Section,
+        code: std.ArrayListUnmanaged(u8),
+    ) void {
+        self.events.send(.{ .code_chunk = .{
+            .index = chunk_index,
+            .section = section,
+            .code = code,
+        } });
+    }
 };
 
 fn readRoomJob(
@@ -944,7 +957,7 @@ fn extractRmimJob(
 
     // If decoding failed or was skipped, extract as raw
     try writeRawGlob(cx.cx.gpa, block, cx.room_number, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .top, .code = code } });
+    cx.sendChunk(chunk_index, .top, code);
 }
 
 fn extractRmimInner(
@@ -997,7 +1010,7 @@ fn extractRmdaChildJob(
 
     // If decoding failed or was skipped, extract as raw
     try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .top, .code = code } });
+    cx.sendChunk(chunk_index, .top, code);
 }
 
 fn extractEncdExcd(
@@ -1088,12 +1101,7 @@ fn writeRoomVarsJob(cx: *RoomContext, chunk_index: u16) !void {
     errdefer code.deinit(cx.cx.gpa);
 
     try writeRoomVarsInner(cx, &code);
-
-    cx.events.send(.{ .code_chunk = .{
-        .index = chunk_index,
-        .section = .top,
-        .code = code,
-    } });
+    cx.sendChunk(chunk_index, .top, code);
 }
 
 fn writeRoomVarsInner(cx: *RoomContext, code: *std.ArrayListUnmanaged(u8)) !void {
@@ -1147,7 +1155,7 @@ fn extractGlobJob(
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
         try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
-        cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .bottom, .code = code } });
+        cx.sendChunk(chunk_index, .bottom, code);
         return;
     };
 
@@ -1180,7 +1188,7 @@ fn extractGlobJob(
 
     // If decoding failed or was skipped, extract as raw
     try writeRawGlob(cx.cx.gpa, block, glob_number, raw, cx.room_dir, cx.room_path, &code);
-    cx.events.send(.{ .code_chunk = .{ .index = chunk_index, .section = .bottom, .code = code } });
+    cx.sendChunk(chunk_index, .bottom, code);
 }
 
 fn tryDecode(
@@ -1206,11 +1214,7 @@ fn tryDecodeHandleResult(
     section: Section,
 ) bool {
     if (result) {
-        cx.events.send(.{ .code_chunk = .{
-            .index = chunk_index,
-            .section = section,
-            .code = code.*,
-        } });
+        cx.sendChunk(chunk_index, section, code.*);
         return true;
     } else |err| {
         if (err != error.AddedToDiagnostic)
