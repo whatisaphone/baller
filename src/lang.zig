@@ -16,10 +16,14 @@ pub const Language = struct {
     opcodes: [256 * 48]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
-    fn add(
+    fn add(self: *Language, byte: u8, name: anytype, operands: []const LangOperand) void {
+        self.addInner(byte, .from(name), operands);
+    }
+
+    fn addInner(
         self: *Language,
         byte: u8,
-        name: []const u8,
+        name: OpcodeName,
         operands: []const LangOperand,
     ) void {
         if (self.opcodes[byte] != .unknown)
@@ -35,7 +39,17 @@ pub const Language = struct {
         self: *Language,
         byte1: u8,
         byte2: u8,
-        name: []const u8,
+        name: anytype,
+        operands: []const LangOperand,
+    ) void {
+        self.addNestedInner(byte1, byte2, .from(name), operands);
+    }
+
+    fn addNestedInner(
+        self: *Language,
+        byte1: u8,
+        byte2: u8,
+        name: OpcodeName,
         operands: []const LangOperand,
     ) void {
         const n = switch (self.opcodes[byte1]) {
@@ -55,6 +69,31 @@ pub const Language = struct {
     }
 };
 
+const Op = enum {
+    @"push-i16",
+};
+
+// stopgap while migrating from string to enum
+const OpcodeName = union(enum) {
+    op: Op,
+    str: []const u8,
+
+    fn from(name: anytype) OpcodeName {
+        return switch (@typeInfo(@TypeOf(name))) {
+            .enum_literal => .{ .op = name },
+            .pointer => .{ .str = name },
+            else => unreachable,
+        };
+    }
+
+    pub fn asStr(self: OpcodeName) []const u8 {
+        return switch (self) {
+            .op => |op| @tagName(op),
+            .str => |str| str,
+        };
+    }
+};
+
 const Opcode = union(enum) {
     unknown,
     ins: LangIns,
@@ -62,7 +101,7 @@ const Opcode = union(enum) {
 };
 
 const LangIns = struct {
-    name: []const u8,
+    name: OpcodeName,
     operands: LangOperandArray,
 };
 
@@ -86,7 +125,7 @@ fn buildNormalLanguage() Language {
     var lang: Language = .{};
 
     lang.add(0x00, "push-u8", &.{.u8});
-    lang.add(0x01, "push-i16", &.{.i16});
+    lang.add(0x01, .@"push-i16", &.{.i16});
     lang.add(0x02, "push-i32", &.{.i32});
     lang.add(0x03, "push-var", &.{.variable});
     lang.add(0x04, "push-str", &.{.string});
@@ -945,7 +984,7 @@ pub fn buildInsMap(
             .unknown => {},
             .ins => |ins| {
                 const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
-                try inss.putNoClobber(allocator, ins.name, bytes);
+                try inss.putNoClobber(allocator, ins.name.asStr(), bytes);
             },
             .nested => |n| {
                 for (0..256) |b2_usize| {
@@ -954,7 +993,7 @@ pub fn buildInsMap(
                         .unknown => {},
                         .ins => |ins| {
                             const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;
-                            try inss.putNoClobber(allocator, ins.name, bytes);
+                            try inss.putNoClobber(allocator, ins.name.asStr(), bytes);
                         },
                         .nested => unreachable,
                     }
@@ -969,7 +1008,7 @@ pub fn buildInsMap(
 const Ins = struct {
     start: u16,
     end: u16,
-    name: []const u8,
+    name: OpcodeName,
     operands: OperandArray,
 };
 
@@ -1073,7 +1112,7 @@ fn unknownByte(reader: anytype) !?Ins {
     return .{
         .start = start,
         .end = end,
-        .name = unknown_byte_ins,
+        .name = .{ .str = unknown_byte_ins },
         .operands = operands,
     };
 }

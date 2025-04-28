@@ -65,14 +65,14 @@ fn disassembleInner(
             }
         }
 
-        if (std.mem.eql(u8, ins.name, lang.unknown_byte_ins) and !warned_for_unknown_byte) {
+        if (std.mem.eql(u8, ins.name.asStr(), lang.unknown_byte_ins) and !warned_for_unknown_byte) {
             warned_for_unknown_byte = true;
             diagnostic.warnScriptUnknownByte();
         }
 
         // Emit the instruction
         try out.writeAll("    ");
-        try out.writeAll(ins.name);
+        try out.writeAll(ins.name.asStr());
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
             try emitOperand(op, ins.end, jump_targets.items, out, symbols, id);
