@@ -254,7 +254,11 @@ fn buildNormalLanguage() Language {
     lang.add(0x32, "shr", &.{});
     lang.add(0x34, "find-all-objects", &.{});
     lang.add(0x36, "iif", &.{});
-    lang.add(0x37, "dim-array-2d-range", &.{ .u8, .variable });
+
+    lang.addNested(0x37, 0x04, "dim-array-range.int8", &.{.variable});
+    lang.addNested(0x37, 0x05, "dim-array-range.int16", &.{.variable});
+    lang.addNested(0x37, 0x06, "dim-array-range.int32", &.{.variable});
+
     lang.add(0x38, "redim-array-range", &.{ .u8, .variable });
     lang.add(0x39, "find-segment-intersection", &.{ .variable, .variable });
 
