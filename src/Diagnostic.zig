@@ -3,8 +3,8 @@ const std = @import("std");
 
 const Diagnostic = @This();
 
-pub const enable_trace = builtin.mode == .Debug;
-const live_spew = builtin.mode == .Debug;
+const live_spew = builtin.mode == .Debug and !builtin.is_test;
+pub const enable_trace = live_spew;
 
 const Message = struct {
     level: Level,
@@ -20,7 +20,7 @@ const Level = enum {
         return switch (self) {
             .err => 'E',
             .info => 'I',
-            .trace => 'T',
+            .trace => unreachable,
         };
     }
 
@@ -67,6 +67,8 @@ pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_er
 }
 
 pub fn trace(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
+    if (!enable_trace) return;
+
     self.mutex.lock();
     defer self.mutex.unlock();
 
