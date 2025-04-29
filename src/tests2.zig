@@ -22,10 +22,28 @@ const baseball1997: Game = .{
     .fixture_names = &.{"BASEBALL.HE1"},
 };
 test "Backyard Baseball 1997 round trip raw" {
-    try testRoundTrip(baseball1997, .raw);
+    try testRoundTrip(baseball1997, .raw, null);
 }
 test "Backyard Baseball 1997 round trip decode" {
-    try testRoundTrip(baseball1997, .decode);
+    try testRoundTrip(baseball1997, .decode, &.init(.{
+        .scrp_total = 193,
+        .scrp_disassemble = 193,
+        .scrp_decompile = 0,
+        .scrp_raw = 0,
+        .excd_total = 30,
+        .excd_disassemble = 30,
+        .excd_decompile = 0,
+        .excd_raw = 0,
+        .encd_total = 30,
+        .encd_disassemble = 30,
+        .encd_decompile = 0,
+        .encd_raw = 0,
+        .lsc2_total = 202,
+        .lsc2_disassemble = 202,
+        .lsc2_decompile = 0,
+        .lsc2_raw = 0,
+        .script_unknown_byte = 0,
+    }));
 }
 
 const soccer: Game = .{
@@ -34,10 +52,28 @@ const soccer: Game = .{
     .fixture_names = &.{"SOCCER.(A)"},
 };
 test "Backyard Soccer round trip raw" {
-    try testRoundTrip(soccer, .raw);
+    try testRoundTrip(soccer, .raw, null);
 }
 test "Backyard Soccer round trip decode" {
-    try testRoundTrip(soccer, .decode);
+    try testRoundTrip(soccer, .decode, &.init(.{
+        .scrp_total = 135,
+        .scrp_disassemble = 135,
+        .scrp_decompile = 0,
+        .scrp_raw = 0,
+        .excd_total = 29,
+        .excd_disassemble = 29,
+        .excd_decompile = 0,
+        .excd_raw = 0,
+        .encd_total = 29,
+        .encd_disassemble = 29,
+        .encd_decompile = 0,
+        .encd_raw = 0,
+        .lsc2_total = 143,
+        .lsc2_disassemble = 143,
+        .lsc2_decompile = 0,
+        .lsc2_raw = 0,
+        .script_unknown_byte = 0,
+    }));
 }
 
 const football: Game = .{
@@ -46,10 +82,28 @@ const football: Game = .{
     .fixture_names = &.{ "FOOTBALL.(A)", "FOOTBALL.(B)" },
 };
 test "Backyard Football round trip raw" {
-    try testRoundTrip(football, .raw);
+    try testRoundTrip(football, .raw, null);
 }
 test "Backyard Football round trip decode" {
-    try testRoundTrip(football, .decode);
+    try testRoundTrip(football, .decode, &.init(.{
+        .scrp_total = 388,
+        .scrp_disassemble = 388,
+        .scrp_decompile = 0,
+        .scrp_raw = 0,
+        .excd_total = 56,
+        .excd_disassemble = 56,
+        .excd_decompile = 0,
+        .excd_raw = 0,
+        .encd_total = 56,
+        .encd_disassemble = 56,
+        .encd_decompile = 0,
+        .encd_raw = 0,
+        .lsc2_total = 890,
+        .lsc2_disassemble = 890,
+        .lsc2_decompile = 0,
+        .lsc2_raw = 0,
+        .script_unknown_byte = 0,
+    }));
 }
 
 const baseball2001: Game = .{
@@ -59,10 +113,28 @@ const baseball2001: Game = .{
     .symbols_path = "src/fixtures/baseball2001-symbols.ini",
 };
 test "Backyard Baseball 2001 round trip raw" {
-    try testRoundTrip(baseball2001, .raw);
+    try testRoundTrip(baseball2001, .raw, null);
 }
 test "Backyard Baseball 2001 round trip decode" {
-    try testRoundTrip(baseball2001, .decode);
+    try testRoundTrip(baseball2001, .decode, &.init(.{
+        .scrp_total = 417,
+        .scrp_disassemble = 417,
+        .scrp_decompile = 0,
+        .scrp_raw = 0,
+        .excd_total = 37,
+        .excd_disassemble = 37,
+        .excd_decompile = 0,
+        .excd_raw = 0,
+        .encd_total = 37,
+        .encd_disassemble = 37,
+        .encd_decompile = 0,
+        .encd_raw = 0,
+        .lsc2_total = 1529,
+        .lsc2_disassemble = 1529,
+        .lsc2_decompile = 0,
+        .lsc2_raw = 0,
+        .script_unknown_byte = 0,
+    }));
 }
 
 const basketball: Game = .{
@@ -71,20 +143,42 @@ const basketball: Game = .{
     .fixture_names = &.{ "Basketball.(a)", "Basketball.(b)" },
 };
 test "Backyard Basketball round trip raw" {
-    try testRoundTrip(basketball, .raw);
+    try testRoundTrip(basketball, .raw, null);
 }
 test "Backyard Basketball round trip decode" {
-    try testRoundTrip(basketball, .decode);
+    try testRoundTrip(basketball, .decode, &.init(.{
+        .scrp_total = 663,
+        .scrp_disassemble = 663,
+        .scrp_decompile = 0,
+        .scrp_raw = 0,
+        .excd_total = 33,
+        .excd_disassemble = 33,
+        .excd_decompile = 0,
+        .excd_raw = 0,
+        .encd_total = 33,
+        .encd_disassemble = 33,
+        .encd_decompile = 0,
+        .encd_raw = 0,
+        .lsc2_total = 1142,
+        .lsc2_disassemble = 1142,
+        .lsc2_decompile = 0,
+        .lsc2_raw = 0,
+        .script_unknown_byte = 0,
+    }));
 }
 
-fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
+fn testRoundTrip(
+    comptime game: Game,
+    options: enum { raw, decode },
+    expected_extract_stats: ?*const std.EnumArray(extract.Stat, u16),
+) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
 
     const extract_path = "/tmp/" ++ game.fixture_dir;
     const build_path = extract_path ++ "build";
 
-    try extract.run(std.testing.allocator, &diagnostic, .{
+    const extract_stats = try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
         .output_path = extract_path,
         .symbols_path = game.symbols_path,
@@ -130,6 +224,12 @@ fn testRoundTrip(comptime game: Game, options: enum { raw, decode }) !void {
         const expected_hex = @field(fixture_hashes, game.fixture_dir ++ "/" ++ name);
         try expectFileHashEquals(output_dir, name, expected_hex);
     }
+
+    if (expected_extract_stats) |exp_ex_st|
+        for (std.meta.tags(extract.Stat)) |stat| {
+            errdefer dumpExtractStats(&extract_stats);
+            try std.testing.expectEqual(extract_stats.get(stat), exp_ex_st.get(stat));
+        };
 }
 
 fn expectFileHashEquals(
@@ -146,4 +246,9 @@ fn expectFileHashEquals(
 
     if (!std.mem.eql(u8, &actual_hash, &expected_hash))
         return error.TestExpectedEqual;
+}
+
+fn dumpExtractStats(stats: *const std.EnumArray(extract.Stat, u16)) void {
+    for (std.meta.tags(extract.Stat)) |stat|
+        std.debug.print("{s} = {}\n", .{ @tagName(stat), stats.get(stat) });
 }

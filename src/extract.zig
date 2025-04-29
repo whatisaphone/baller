@@ -102,7 +102,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();
 
-    run(gpa, &diagnostic, .{
+    _ = run(gpa, &diagnostic, .{
         .index_path = index_path,
         .output_path = output_path,
         .symbols_path = symbols_path,
@@ -153,7 +153,31 @@ const ScriptMode = enum {
     decompile,
 };
 
-pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void {
+pub const Stat = enum {
+    scrp_total,
+    scrp_disassemble,
+    scrp_decompile,
+    scrp_raw,
+    excd_total,
+    excd_disassemble,
+    excd_decompile,
+    excd_raw,
+    encd_total,
+    encd_disassemble,
+    encd_decompile,
+    encd_raw,
+    lsc2_total,
+    lsc2_disassemble,
+    lsc2_decompile,
+    lsc2_raw,
+    script_unknown_byte,
+};
+
+pub fn run(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    args: Extract,
+) !std.EnumArray(Stat, u16) {
     const input_path_opt, const index_name = fs.splitPathZ(args.index_path);
     var input_dir = if (input_path_opt) |input_path|
         try std.fs.cwd().openDir(input_path, .{})
@@ -198,7 +222,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
-    const cx: Context = .{
+    var cx: Context = .{
         .gpa = gpa,
         .pool = &pool,
         .options = args.options,
@@ -207,6 +231,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
         .symbols = &symbols,
         .index = &index,
         .output_dir = output_dir,
+        .stats = .initFill(0),
     };
 
     for (0..games.numberOfDisks(game)) |disk_index| {
@@ -221,6 +246,8 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Extract) !void
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
+
+    return cx.stats;
 }
 
 const Index = struct {
@@ -565,10 +592,20 @@ const Context = struct {
     symbols: *const Symbols,
     index: *const Index,
     output_dir: std.fs.Dir,
+    stats: std.EnumArray(Stat, u16),
+
+    fn incStat(self: *Context, stat: Stat) void {
+        const old = @atomicRmw(u16, self.stats.getPtr(stat), .Add, 1, .monotonic);
+        std.debug.assert(old != std.math.maxInt(u16)); // assert no overflow
+    }
+
+    fn incStatOpt(self: *Context, stat: ?Stat) void {
+        if (stat) |s| self.incStat(s);
+    }
 };
 
 fn extractDisk(
-    cx: *const Context,
+    cx: *Context,
     diagnostic: *Diagnostic,
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
@@ -633,7 +670,7 @@ const Section = enum {
 };
 
 fn extractRoom(
-    cx: *const Context,
+    cx: *Context,
     disk_number: u8,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
@@ -667,7 +704,7 @@ fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset
 }
 
 const RoomContext = struct {
-    cx: *const Context,
+    cx: *Context,
     room_number: u8,
     room_path: []const u8,
     room_dir: std.fs.Dir,
@@ -716,7 +753,7 @@ const RoomContext = struct {
 };
 
 fn readRoomJob(
-    cx: *const Context,
+    cx: *Context,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
     lflf_end: u32,
@@ -983,6 +1020,13 @@ fn extractRmdaChildJob(
     raw: []const u8,
     chunk_index: u16,
 ) !void {
+    cx.cx.incStat(switch (block.id) {
+        blockId("EXCD") => .excd_total,
+        blockId("ENCD") => .encd_total,
+        blockId("LSC2") => .lsc2_total,
+        else => unreachable,
+    });
+
     std.debug.assert(disk_diag.offset == 0);
     const diag: Diagnostic.ForBinaryFile = .{
         .diagnostic = disk_diag.diagnostic,
@@ -1011,6 +1055,13 @@ fn extractRmdaChildJob(
     // If decoding failed or was skipped, extract as raw
     try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
     cx.sendChunk(chunk_index, .top, code);
+
+    cx.cx.incStat(switch (block.id) {
+        blockId("EXCD") => .excd_raw,
+        blockId("ENCD") => .encd_raw,
+        blockId("LSC2") => .lsc2_raw,
+        else => unreachable,
+    });
 }
 
 fn extractEncdExcd(
@@ -1026,7 +1077,7 @@ fn extractEncdExcd(
         else => unreachable,
     };
 
-    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
+    var diagnostic: DisasmDiagnostic = .init;
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
         .excd => .{ .exit = .{ .room = cx.room_number } },
@@ -1048,6 +1099,12 @@ fn extractEncdExcd(
         "{s} \"{s}/{s}\"\n",
         .{ @tagName(edge), cx.room_path, path },
     );
+
+    cx.cx.incStat(switch (edge) {
+        .encd => .encd_disassemble,
+        .excd => .excd_disassemble,
+    });
+    diagnostic.flushStats(cx.cx, diag);
 }
 
 fn extractLscr(
@@ -1056,7 +1113,7 @@ fn extractLscr(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
+    var diagnostic: DisasmDiagnostic = .init;
 
     if (raw.len < 4) return error.EndOfStream;
     const script_number = std.mem.readInt(u32, raw[0..4], .little);
@@ -1082,6 +1139,9 @@ fn extractLscr(
         "lscr {} \"{s}/{s}\"\n",
         .{ script_number, cx.room_path, path },
     );
+
+    cx.cx.incStat(.lsc2_disassemble);
+    diagnostic.flushStats(cx.cx, diag);
 }
 
 fn runRoomVarsJob(cx: *RoomContext, diagnostic: *Diagnostic, chunk_index: u16) void {
@@ -1147,6 +1207,11 @@ fn extractGlobJob(
     raw: []const u8,
     chunk_index: u16,
 ) !void {
+    cx.cx.incStatOpt(switch (block.id) {
+        blockId("SCRP") => .scrp_total,
+        else => null,
+    });
+
     var code: std.ArrayListUnmanaged(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
@@ -1187,8 +1252,14 @@ fn extractGlobJob(
     }
 
     // If decoding failed or was skipped, extract as raw
+
     try writeRawGlob(cx.cx.gpa, block, glob_number, raw, cx.room_dir, cx.room_path, &code);
     cx.sendChunk(chunk_index, .bottom, code);
+
+    cx.cx.incStatOpt(switch (block.id) {
+        blockId("SCRP") => .scrp_raw,
+        else => null,
+    });
 }
 
 fn tryDecode(
@@ -1235,7 +1306,7 @@ fn extractScrp(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const diagnostic: DisasmDiagnostic = .{ .diag = diag };
+    var diagnostic: DisasmDiagnostic = .init;
 
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
@@ -1252,14 +1323,30 @@ fn extractScrp(
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
+
+    cx.cx.incStat(.scrp_disassemble);
+    diagnostic.flushStats(cx.cx, diag);
 }
 
 /// Adapts newer Diagnostic into the old diagnostic type that disasm expects
 const DisasmDiagnostic = struct {
-    diag: *const Diagnostic.ForBinaryFile,
+    unknown_byte: bool,
 
-    pub fn warnScriptUnknownByte(self: *const @This()) void {
-        self.diag.info(0, "unknown script byte", .{});
+    const init: DisasmDiagnostic = .{ .unknown_byte = false };
+
+    pub fn warnScriptUnknownByte(self: *@This()) void {
+        self.unknown_byte = true;
+    }
+
+    fn flushStats(
+        self: *const @This(),
+        cx: *Context,
+        diag: *const Diagnostic.ForBinaryFile,
+    ) void {
+        if (self.unknown_byte) {
+            cx.incStat(.script_unknown_byte);
+            diag.info(0, "unknown script byte", .{});
+        }
     }
 };
 
