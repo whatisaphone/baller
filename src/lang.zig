@@ -488,8 +488,14 @@ fn buildNormalLanguage() Language {
 
     lang.add(0xba, "say-line-actor", &.{.string});
     lang.add(0xbb, "say-line", &.{.string});
-    // TODO: first operand is item size; 0xcc means undim
-    lang.add(0xbc, "dim-array", &.{ .u8, .variable });
+
+    lang.addNested(0xbc, 0x02, "dim-array.int1", &.{.variable});
+    lang.addNested(0xbc, 0x04, "dim-array.int8", &.{.variable});
+    lang.addNested(0xbc, 0x05, "dim-array.int16", &.{.variable});
+    lang.addNested(0xbc, 0x06, "dim-array.int32", &.{.variable});
+    lang.addNested(0xbc, 0x07, "dim-array.string", &.{.variable});
+    lang.addNested(0xbc, 0xcc, "undim", &.{.variable});
+
     lang.add(0xbd, "return", &.{});
     lang.add(0xbf, "call-script", &.{});
     lang.add(0xc0, "dim-array-2d", &.{ .u8, .variable });
