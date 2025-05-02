@@ -82,8 +82,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     var project: Project = .empty;
     defer project.deinit(gpa);
 
+    diagnostic.trace("parsing project", .{});
+
     const root = try addFile(gpa, diagnostic, project_dir, project_name, parser.parseProject);
     try project.files.append(gpa, root);
+
+    diagnostic.trace("parsing rooms", .{});
 
     try readRooms(gpa, diagnostic, &project, project_dir);
 

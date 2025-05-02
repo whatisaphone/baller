@@ -77,6 +77,7 @@ pub fn run(
             .pending_jobs = .init(0),
         };
 
+        diagnostic.trace("planning jobs", .{});
         planProject(&cx) catch |err| break :blk err;
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
