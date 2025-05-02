@@ -69,8 +69,7 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
                 },
                 .@"var" => {
                     const node = try parseVar(state, token.span);
-                    variables.append(node) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &variables, node);
                 },
             },
             .eof => break,
@@ -108,8 +107,7 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .@"index-block" => {
                     const block_id_str = try expectString(state);
@@ -118,8 +116,7 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
                         return reportError(state, token.span, "unsupported block id", .{});
                     const index_block = try storeNode(state, .{ .index_block = block_id });
-                    children.append(index_block) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, index_block);
                 },
             },
             .brace_r => break,
@@ -154,13 +151,11 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]Ast.NodeIndex) !void {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .room => {
                     const node_index = try parseDiskRoom(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -257,13 +252,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .@"raw-glob" => {
                     const node_index = try parseRawGlob(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .rmim => {
                     const compression_i32 = try expectInteger(state);
@@ -277,13 +270,11 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         .compression = compression,
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .rmda => {
                     const node_index = try parseRmda(state);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .scrp => {
                     const glob_number_i32 = try expectInteger(state);
@@ -297,24 +288,21 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         .glob_number = glob_number,
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .encd => {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
                     const node_index = try storeNode(state, .{ .encd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .excd => {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
                     const node_index = try storeNode(state, .{ .excd = .{ .path = path } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .lscr => {
                     const script_number_i32 = try expectInteger(state);
@@ -328,28 +316,23 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         .script_number = script_number,
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .awiz => {
                     const node_index = try parseAwiz(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .mult => {
                     const node_index = try parseMult(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .akos => {
                     const node_index = try parseAkos(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .@"var" => {
                     const node_index = try parseVar(state, token.span);
-                    variables.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &variables, node_index);
                 },
             },
             .eof => break,
@@ -379,8 +362,7 @@ fn parseRmda(state: *State) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -427,8 +409,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                     try expect(state, .newline);
 
                     const node_index = try storeNode(state, .awiz_rgbs);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .@"two-ints" => {
                     const block_id_str = try expectString(state);
@@ -442,15 +423,13 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                         .block_id = block_id,
                         .ints = ints,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .wizh => {
                     try expect(state, .newline);
 
                     const node_index = try storeNode(state, .awiz_wizh);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .bmp => {
                     const compression_int = try expectInteger(state);
@@ -464,8 +443,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                         .compression = compression,
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -510,8 +488,7 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     const node_index = try storeNode(state, .{ .mult_awiz = .{
                         .children = awiz_children,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .indices => {
                     if (indices_opt != null)
@@ -560,8 +537,7 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .akpl => {
                     const path = try expectString(state);
@@ -570,8 +546,7 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     const node_index = try storeNode(state, .{ .akpl = .{
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
                 .akcd => {
                     const codec_token = consumeToken(state);
@@ -590,8 +565,7 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
                         .compression = compression,
                         .path = path,
                     } });
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -614,8 +588,7 @@ fn parseIntegerList(state: *State) !Ast.ExtraSlice {
                 const source = state.source[token.span.start.offset..token.span.end.offset];
                 const int = std.fmt.parseInt(u32, source, 10) catch
                     return reportError(state, token.span, "invalid integer", .{});
-                result.append(int) catch
-                    return reportError(state, token.span, "too many children", .{});
+                try appendNode(state, token.span, &result, int);
             },
             .bracket_r => break,
             else => return reportUnexpected(state, token),
@@ -665,8 +638,7 @@ fn parseRawBlockNested(state: *State, span: lexer.Span) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -729,8 +701,7 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
             .identifier => switch (try parseIdentifier(state, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(state, token.span);
-                    children.append(node_index) catch
-                        return reportError(state, token.span, "too many children", .{});
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .brace_r => break,
@@ -749,6 +720,11 @@ fn storeNode(state: *State, node: Ast.Node) !Ast.NodeIndex {
     const result: u32 = @intCast(state.result.nodes.items.len);
     try state.result.nodes.append(state.gpa, node);
     return result;
+}
+
+fn appendNode(state: *State, span: lexer.Span, nodes: anytype, node_index: Ast.NodeIndex) !void {
+    nodes.append(node_index) catch
+        return reportError(state, span, "too many children", .{});
 }
 
 fn storeExtra(state: *State, items: []const u32) !Ast.ExtraSlice {
