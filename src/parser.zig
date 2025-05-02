@@ -80,11 +80,11 @@ fn parseProjectChildren(state: *State) !Ast.NodeIndex {
 
     const index_children = index_children_opt orelse
         return reportError(state, .{ .start = .origin, .end = .origin }, "missing index", .{});
-    const index_extra = try appendExtra(state, index_children.slice());
-    const disks_extra = try appendExtra(state, &disks);
-    const variables_extra = try appendExtra(state, variables.slice());
+    const index_extra = try storeExtra(state, index_children.slice());
+    const disks_extra = try storeExtra(state, &disks);
+    const variables_extra = try storeExtra(state, variables.slice());
 
-    return appendNode(state, .{ .project = .{
+    return storeNode(state, .{ .project = .{
         .index = index_extra,
         .disks = disks_extra,
         .variables = variables_extra,
@@ -117,7 +117,7 @@ fn parseIndex(state: *State) !std.BoundedArray(Ast.NodeIndex, 16) {
                     const IndexBlock = @FieldType(Ast.Node, "index_block");
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
                         return reportError(state, token.span, "unsupported block id", .{});
-                    const index_block = try appendNode(state, .{ .index_block = block_id });
+                    const index_block = try storeNode(state, .{ .index_block = block_id });
                     children.append(index_block) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -168,8 +168,8 @@ fn parseDisk(state: *State, span: lexer.Span, disks: *[2]Ast.NodeIndex) !void {
         }
     }
 
-    disks[disk_index] = try appendNode(state, .{ .disk = .{
-        .children = try appendExtra(state, children.slice()),
+    disks[disk_index] = try storeNode(state, .{ .disk = .{
+        .children = try storeExtra(state, children.slice()),
     } });
 }
 
@@ -185,7 +185,7 @@ fn parseDiskRoom(state: *State, span: lexer.Span) !Ast.NodeIndex {
     if (!(1 <= room_name.len and room_name.len <= Ast.max_room_name_len))
         return reportError(state, span, "invalid room name", .{});
 
-    return appendNode(state, .{ .disk_room = .{
+    return storeNode(state, .{ .disk_room = .{
         .room_number = room_number,
         .name = room_name,
         .path = path,
@@ -201,7 +201,7 @@ fn parseVar(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const number = std.math.cast(u16, number_i32) orelse
         return reportError(state, span, "out of range", .{});
 
-    return appendNode(state, .{ .variable = .{
+    return storeNode(state, .{ .variable = .{
         .name = name,
         .number = number,
     } });
@@ -273,7 +273,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const compression = std.math.cast(u8, compression_i32) orelse
                         return reportError(state, token.span, "out of range", .{});
 
-                    const node_index = try appendNode(state, .{ .rmim = .{
+                    const node_index = try storeNode(state, .{ .rmim = .{
                         .compression = compression,
                         .path = path,
                     } });
@@ -293,7 +293,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const glob_number = std.math.cast(u16, glob_number_i32) orelse
                         return reportError(state, token.span, "invalid glob number", .{});
 
-                    const node_index = try appendNode(state, .{ .scrp = .{
+                    const node_index = try storeNode(state, .{ .scrp = .{
                         .glob_number = glob_number,
                         .path = path,
                     } });
@@ -304,7 +304,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
-                    const node_index = try appendNode(state, .{ .encd = .{ .path = path } });
+                    const node_index = try storeNode(state, .{ .encd = .{ .path = path } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -312,7 +312,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
-                    const node_index = try appendNode(state, .{ .excd = .{ .path = path } });
+                    const node_index = try storeNode(state, .{ .excd = .{ .path = path } });
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -324,7 +324,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                     const script_number = std.math.cast(u16, script_number_i32) orelse
                         return reportError(state, token.span, "invalid script number", .{});
 
-                    const node_index = try appendNode(state, .{ .lscr = .{
+                    const node_index = try storeNode(state, .{ .lscr = .{
                         .script_number = script_number,
                         .path = path,
                     } });
@@ -357,9 +357,9 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         }
     }
 
-    return appendNode(state, .{ .room_file = .{
-        .children = try appendExtra(state, children.slice()),
-        .variables = try appendExtra(state, variables.slice()),
+    return storeNode(state, .{ .room_file = .{
+        .children = try storeExtra(state, children.slice()),
+        .variables = try storeExtra(state, variables.slice()),
     } });
 }
 
@@ -388,8 +388,8 @@ fn parseRmda(state: *State) !Ast.NodeIndex {
         }
     }
 
-    return appendNode(state, .{ .rmda = .{
-        .children = try appendExtra(state, children.slice()),
+    return storeNode(state, .{ .rmda = .{
+        .children = try storeExtra(state, children.slice()),
     } });
 }
 
@@ -402,7 +402,7 @@ fn parseAwiz(state: *State, span: lexer.Span) !Ast.NodeIndex {
 
     const children = try parseAwizChildren(state);
 
-    return appendNode(state, .{ .awiz = .{
+    return storeNode(state, .{ .awiz = .{
         .glob_number = glob_number,
         .children = children,
     } });
@@ -426,7 +426,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                 .rgbs => {
                     try expect(state, .newline);
 
-                    const node_index = try appendNode(state, .awiz_rgbs);
+                    const node_index = try storeNode(state, .awiz_rgbs);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -438,7 +438,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                     const block_id = parseBlockId(block_id_str) orelse
                         return reportError(state, token.span, "invalid block id", .{});
 
-                    const node_index = try appendNode(state, .{ .awiz_two_ints = .{
+                    const node_index = try storeNode(state, .{ .awiz_two_ints = .{
                         .block_id = block_id,
                         .ints = ints,
                     } });
@@ -448,7 +448,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                 .wizh => {
                     try expect(state, .newline);
 
-                    const node_index = try appendNode(state, .awiz_wizh);
+                    const node_index = try storeNode(state, .awiz_wizh);
                     children.append(node_index) catch
                         return reportError(state, token.span, "too many children", .{});
                 },
@@ -460,7 +460,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
                     const compression = std.meta.intToEnum(awiz.Compression, compression_int) catch
                         return reportError(state, token.span, "invalid compression", .{});
 
-                    const node_index = try appendNode(state, .{ .awiz_bmp = .{
+                    const node_index = try storeNode(state, .{ .awiz_bmp = .{
                         .compression = compression,
                         .path = path,
                     } });
@@ -473,7 +473,7 @@ fn parseAwizChildren(state: *State) !Ast.ExtraSlice {
         }
     }
 
-    return appendExtra(state, children.slice());
+    return storeExtra(state, children.slice());
 }
 
 fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
@@ -507,7 +507,7 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     try expect(state, .brace_l);
                     const awiz_children = try parseAwizChildren(state);
 
-                    const node_index = try appendNode(state, .{ .mult_awiz = .{
+                    const node_index = try storeNode(state, .{ .mult_awiz = .{
                         .children = awiz_children,
                     } });
                     children.append(node_index) catch
@@ -530,10 +530,10 @@ fn parseMult(state: *State, span: lexer.Span) !Ast.NodeIndex {
         if (index >= children.len)
             return reportError(state, span, "out of range", .{});
 
-    return appendNode(state, .{ .mult = .{
+    return storeNode(state, .{ .mult = .{
         .glob_number = glob_number,
         .raw_block = raw_block,
-        .children = try appendExtra(state, children.slice()),
+        .children = try storeExtra(state, children.slice()),
         .indices = indices,
     } });
 }
@@ -567,7 +567,7 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     const path = try expectString(state);
                     try expect(state, .newline);
 
-                    const node_index = try appendNode(state, .{ .akpl = .{
+                    const node_index = try storeNode(state, .{ .akpl = .{
                         .path = path,
                     } });
                     children.append(node_index) catch
@@ -586,7 +586,7 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
                     const compression_keyword = try parseIdentifier(state, codec_token, CompressionKeyword);
                     const compression: akos.CompressionCodec = @enumFromInt(@intFromEnum(compression_keyword));
 
-                    const node_index = try appendNode(state, .{ .akcd = .{
+                    const node_index = try storeNode(state, .{ .akcd = .{
                         .compression = compression,
                         .path = path,
                     } });
@@ -599,9 +599,9 @@ fn parseAkos(state: *State, span: lexer.Span) !Ast.NodeIndex {
         }
     }
 
-    return appendNode(state, .{ .akos = .{
+    return storeNode(state, .{ .akos = .{
         .glob_number = glob_number,
-        .children = try appendExtra(state, children.slice()),
+        .children = try storeExtra(state, children.slice()),
     } });
 }
 
@@ -628,7 +628,7 @@ fn parseIntegerList(state: *State) !Ast.ExtraSlice {
             else => return reportUnexpected(state, token),
         }
     }
-    return appendExtra(state, result.slice());
+    return storeExtra(state, result.slice());
 }
 
 fn parseRawBlock(state: *State, span: lexer.Span) !Ast.NodeIndex {
@@ -639,7 +639,7 @@ fn parseRawBlock(state: *State, span: lexer.Span) !Ast.NodeIndex {
     const block_id = parseBlockId(block_id_str) orelse
         return reportError(state, span, "invalid block id", .{});
 
-    return appendNode(state, .{ .raw_block = .{
+    return storeNode(state, .{ .raw_block = .{
         .block_id = block_id,
         .path = path,
     } });
@@ -674,9 +674,9 @@ fn parseRawBlockNested(state: *State, span: lexer.Span) !Ast.NodeIndex {
         }
     }
 
-    return appendNode(state, .{ .raw_block_nested = .{
+    return storeNode(state, .{ .raw_block_nested = .{
         .block_id = block_id,
-        .children = try appendExtra(state, children.slice()),
+        .children = try storeExtra(state, children.slice()),
     } });
 }
 
@@ -708,7 +708,7 @@ fn parseRawGlobFile(
     const path_source = state.source[path_token.span.start.offset..path_token.span.end.offset];
     const path = path_source[1 .. path_source.len - 1];
 
-    return appendNode(state, .{ .raw_glob_file = .{
+    return storeNode(state, .{ .raw_glob_file = .{
         .block_id = block_id,
         .glob_number = glob_number,
         .path = path,
@@ -738,20 +738,20 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
         }
     }
 
-    return appendNode(state, .{ .raw_glob_block = .{
+    return storeNode(state, .{ .raw_glob_block = .{
         .block_id = block_id,
         .glob_number = glob_number,
-        .children = try appendExtra(state, children.slice()),
+        .children = try storeExtra(state, children.slice()),
     } });
 }
 
-fn appendNode(state: *State, node: Ast.Node) !Ast.NodeIndex {
+fn storeNode(state: *State, node: Ast.Node) !Ast.NodeIndex {
     const result: u32 = @intCast(state.result.nodes.items.len);
     try state.result.nodes.append(state.gpa, node);
     return result;
 }
 
-fn appendExtra(state: *State, items: []const u32) !Ast.ExtraSlice {
+fn storeExtra(state: *State, items: []const u32) !Ast.ExtraSlice {
     const start: u32 = @intCast(state.result.extra.items.len);
     const len: u32 = @intCast(items.len);
     try state.result.extra.appendSlice(state.gpa, items);
