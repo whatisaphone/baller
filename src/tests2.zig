@@ -118,8 +118,8 @@ test "Backyard Baseball 2001 round trip raw" {
 test "Backyard Baseball 2001 round trip decode" {
     try testRoundTrip(baseball2001, .decode, &.init(.{
         .scrp_total = 417,
-        .scrp_disassemble = 409,
-        .scrp_decompile = 8,
+        .scrp_disassemble = 407,
+        .scrp_decompile = 10,
         .scrp_raw = 0,
         .excd_total = 37,
         .excd_disassemble = 37,

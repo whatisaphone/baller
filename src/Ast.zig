@@ -125,11 +125,16 @@ pub const Node = union(enum) {
         glob_number: u16,
         statements: ExtraSlice,
     },
+    label: []const u8,
     integer: i32,
     identifier: []const u8,
     call: struct {
         callee: NodeIndex,
         args: ExtraSlice,
+    },
+    field: struct {
+        lhs: NodeIndex,
+        field: []const u8,
     },
 };
 

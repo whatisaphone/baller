@@ -64,6 +64,11 @@ pub fn SafeUndefined(T: type) type {
         defined: T,
 
         pub const undef: @This() = .{ .undefined = {} };
+
+        pub fn setOnce(self: *@This(), value: T) void {
+            _ = self.undefined;
+            self.* = .{ .defined = value };
+        }
     };
 }
 

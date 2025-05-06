@@ -17,10 +17,21 @@ pub fn compile(
         .ins_map = ins_map,
         .ast = ast,
         .out = out,
+        .label_offsets = .empty,
+        .label_fixups = .empty,
     };
+    defer cx.label_fixups.deinit(gpa);
+    defer cx.label_offsets.deinit(gpa);
 
     for (ast.getExtra(statements)) |i|
         try emitStatement(&cx, i);
+
+    for (cx.label_fixups.items) |fixup| {
+        const label_offset = cx.label_offsets.get(fixup.label_name) orelse return error.BadData;
+        const rel_wide = @as(i32, label_offset) - @as(i32, fixup.offset) - 2;
+        const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
+        std.mem.writeInt(i16, cx.out.items[fixup.offset..][0..2], rel, .little);
+    }
 }
 
 const Cx = struct {
@@ -28,18 +39,26 @@ const Cx = struct {
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     ast: *const Ast,
+
     out: *std.ArrayListUnmanaged(u8),
+    label_offsets: std.StringHashMapUnmanaged(u16),
+    label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
 };
 
-fn emitStatement(cx: *const Cx, node_index: u32) !void {
+fn emitStatement(cx: *Cx, node_index: u32) !void {
     const node = &cx.ast.nodes.items[node_index];
     switch (node.*) {
+        .label => |name| {
+            const entry = try cx.label_offsets.getOrPut(cx.gpa, name);
+            if (entry.found_existing) return error.BadData;
+            entry.value_ptr.* = @intCast(cx.out.items.len);
+        },
         .call => try emitCall(cx, node_index),
         else => return error.BadData,
     }
 }
 
-fn emitCall(cx: *const Cx, node_index: u32) !void {
+fn emitCall(cx: *Cx, node_index: u32) !void {
     const call = &cx.ast.nodes.items[node_index].call;
 
     const opcode, const ins = try findIns(cx, call.callee);
@@ -64,10 +83,19 @@ fn findIns(
     node_index: u32,
 ) !struct { std.BoundedArray(u8, 2), *const lang.LangIns } {
     const expr = &cx.ast.nodes.items[node_index];
-    switch (expr.*) {
-        .identifier => |id| return lang.lookup(cx.language, cx.ins_map, id) orelse error.BadData,
+    var name_buf: [16]u8 = undefined;
+    const name = switch (expr.*) {
+        .identifier => |id| id,
+        .field => |f| blk: {
+            const lhs = &cx.ast.nodes.items[f.lhs];
+            if (lhs.* != .identifier) return error.BadData;
+            const lhs_str = lhs.identifier;
+            break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{ lhs_str, f.field }) catch
+                return error.BadData;
+        },
         else => return error.BadData,
-    }
+    };
+    return lang.lookup(cx.language, cx.ins_map, name) orelse error.BadData;
 }
 
 fn pushExpr(cx: *const Cx, node_index: u32) !void {
@@ -98,8 +126,18 @@ fn emitOpcodeByName(cx: *const Cx, name: []const u8) !void {
     try cx.out.appendSlice(cx.gpa, opcode.slice());
 }
 
-fn emitOperand(cx: *const Cx, op: lang.LangOperand, node_index: u32) !void {
+fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
     switch (op) {
+        .relative_offset => {
+            const label_expr = &cx.ast.nodes.items[node_index];
+            if (label_expr.* != .identifier) return error.BadData;
+            const label_name = label_expr.identifier;
+
+            const offset: u16 = @intCast(cx.out.items.len);
+            // undefined bytes will be filled in at the end
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+            try cx.label_fixups.append(cx.gpa, .{ .offset = offset, .label_name = label_name });
+        },
         .variable => try emitVariableByExpr(cx, node_index),
         else => unreachable,
     }

@@ -13,14 +13,18 @@ pub fn run(
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     // This code uses u16 all over the place. Make sure everything will fit.
-    if (bytecode.len > 0xffff) return error.BadData;
+    // Leave an extra byte so the end of a slice is representable as 0xffff.
+    if (bytecode.len > 0xfffe) return error.BadData;
 
     const language = lang.buildLanguage(game);
+
+    const basic_blocks = try scanBasicBlocks(gpa, &language, bytecode);
+    defer gpa.free(basic_blocks);
+
     var dcx: DecompileCx = .{
         .gpa = gpa,
         .diag = diag,
         .language = &language,
-        .bytecode = bytecode,
         .stack = .{},
         .stmts = .empty,
         .exprs = .empty,
@@ -30,7 +34,10 @@ pub fn run(
     defer dcx.exprs.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
 
-    try decompile(&dcx);
+    for (basic_blocks, 0..) |*bb, i| {
+        const bb_start = if (i == 0) 0 else basic_blocks[i - 1].end;
+        try decompile(&dcx, bytecode, bb, bb_start);
+    }
 
     var ecx: EmitCx = .{
         .gpa = gpa,
@@ -38,15 +45,22 @@ pub fn run(
         .extra = .init(dcx.extra.items),
         .out = out,
     };
-    for (dcx.stmts.items) |*stmt|
-        try emitStmt(&ecx, stmt);
+    for (basic_blocks, 0..) |*bb, i| {
+        const bb_start = if (i == 0) 0 else basic_blocks[i - 1].end;
+
+        try emitLabel(&ecx, bb_start);
+        try out.appendSlice(gpa, ":\n");
+
+        const ss = bb.statements.defined;
+        for (dcx.stmts.items[ss.start..][0..ss.len]) |*stmt|
+            try emitStmt(&ecx, stmt);
+    }
 }
 
 const DecompileCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     language: *const lang.Language,
-    bytecode: []const u8,
 
     stack: std.BoundedArray(ExprIndex, 8),
     stmts: std.ArrayListUnmanaged(Stmt),
@@ -54,7 +68,56 @@ const DecompileCx = struct {
     extra: std.ArrayListUnmanaged(ExprIndex),
 };
 
+fn scanBasicBlocks(
+    gpa: std.mem.Allocator,
+    language: *const lang.Language,
+    bytecode: []const u8,
+) ![]BasicBlock {
+    var ends: std.ArrayListUnmanaged(u16) = .empty;
+    defer ends.deinit(gpa);
+
+    var disasm: lang.Disasm = .init(language, bytecode);
+    while (try disasm.next()) |ins| {
+        if (ins.operands.len == 0) continue;
+        if (ins.operands.get(0) != .relative_offset) continue;
+        const rel = ins.operands.get(0).relative_offset;
+        const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+        if (target >= bytecode.len) return error.BadData;
+        try insertSortedNoDup(gpa, &ends, ins.end);
+        try insertSortedNoDup(gpa, &ends, target);
+    }
+    try ends.append(gpa, @intCast(bytecode.len));
+
+    const blocks = try gpa.alloc(BasicBlock, ends.items.len);
+    errdefer gpa.free(blocks);
+
+    for (ends.items, blocks) |end, *block|
+        block.* = .{
+            .end = end,
+            .statements = .undef,
+        };
+
+    return blocks;
+}
+
+fn insertSortedNoDup(gpa: std.mem.Allocator, xs: *std.ArrayListUnmanaged(u16), item: u16) !void {
+    const index = std.sort.lowerBound(u16, xs.items, item, orderU16);
+    if (index != xs.items.len and xs.items[index] == item)
+        return;
+    try xs.insert(gpa, index, item);
+}
+
+fn orderU16(a: u16, b: u16) std.math.Order {
+    return std.math.order(a, b);
+}
+
+const BasicBlock = struct {
+    end: u16,
+    statements: utils.SafeUndefined(ExtraSlice),
+};
+
 const Stmt = union(enum) {
+    jump_unless: struct { target: u16, condition: ExprIndex },
     call: struct { op: lang.Op, args: ExtraSlice },
 };
 
@@ -74,6 +137,7 @@ const Op = union(enum) {
     push8,
     push16,
     push_var,
+    jump_unless,
     generic: struct {
         op: lang.Op,
         params: std.BoundedArray(Param, max_params),
@@ -98,12 +162,18 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-i16" = .push16,
     .@"push-var" = .push_var,
     .set = .gen(.set, &.{.int}),
+    .@"jump-unless" = .jump_unless,
     .end = .gen(.end, &.{}),
+    .@"dim-array.int8" = .gen(.@"dim-array.int8", &.{.int}),
+    .undim = .gen(.undim, &.{}),
     .@"return" = .gen(.@"return", &.{.int}),
 });
 
-fn decompile(cx: *DecompileCx) !void {
-    var disasm: lang.Disasm = .init(cx.language, cx.bytecode);
+fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: u16) !void {
+    const first_stmt: u16 = @intCast(cx.stmts.items.len);
+
+    var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
+    disasm.reader.pos = bb_start;
     while (try disasm.next()) |ins| {
         const op = switch (ins.name) {
             .op => |op| op,
@@ -124,6 +194,15 @@ fn decompile(cx: *DecompileCx) !void {
             .push_var => {
                 const ei = try storeExpr(cx, .{ .variable = ins.operands.get(0).variable });
                 try cx.stack.append(ei);
+            },
+            .jump_unless => {
+                const rel = ins.operands.get(0).relative_offset;
+                const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+                const condition = cx.stack.pop() orelse return error.BadData;
+                try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
+                    .target = target,
+                    .condition = condition,
+                } });
             },
             .generic => |gen| {
                 var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
@@ -147,6 +226,9 @@ fn decompile(cx: *DecompileCx) !void {
             },
         }
     }
+
+    const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
+    bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
@@ -172,6 +254,13 @@ const EmitCx = struct {
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
     try cx.out.appendSlice(cx.gpa, "    ");
     switch (stmt.*) {
+        .jump_unless => |j| {
+            try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.@"jump-unless"));
+            try cx.out.append(cx.gpa, ' ');
+            try emitLabel(cx, j.target);
+            try cx.out.append(cx.gpa, ' ');
+            try emitExpr(cx, j.condition);
+        },
         .call => |call| {
             try cx.out.appendSlice(cx.gpa, @tagName(call.op));
             for (getExtra(cx, call.args)) |ei| {
@@ -193,6 +282,10 @@ fn emitExpr(cx: *const EmitCx, ei: ExprIndex) !void {
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
     const kind, const number = try variable.decode2();
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
+}
+
+fn emitLabel(cx: *const EmitCx, pc: u16) !void {
+    try cx.out.writer(cx.gpa).print("L{x:0>4}", .{pc});
 }
 
 fn getExtra(cx: *const EmitCx, slice: ExtraSlice) []const ExprIndex {

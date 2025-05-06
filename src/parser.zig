@@ -741,6 +741,16 @@ fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
 }
 
 fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
+    // Check for labels
+    if (token.kind == .identifier) {
+        const next = peekToken(state);
+        if (next.kind == .colon) {
+            _ = consumeToken(state);
+            const identifier = state.source[token.span.start.offset..token.span.end.offset];
+            return storeNode(state, .{ .label = identifier });
+        }
+    }
+
     const ei = try parseExpr(state, token, .all);
     const expr = &state.result.nodes.items[ei];
     if (expr.* == .identifier) {
@@ -753,6 +763,7 @@ fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
 pub const Precedence = enum {
     all,
     space,
+    field,
 };
 
 fn parseExpr(state: *State, first: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
@@ -760,6 +771,12 @@ fn parseExpr(state: *State, first: *const lexer.Token, prec: Precedence) ParseEr
     while (true) {
         const token = peekToken(state);
         switch (token.kind) {
+            .period => {
+                if (@intFromEnum(prec) >= @intFromEnum(Precedence.field)) break;
+                _ = consumeToken(state);
+                const field = try expectIdentifier(state);
+                cur = try storeNode(state, .{ .field = .{ .lhs = cur, .field = field } });
+            },
             .integer, .identifier => {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseArgs(state);
