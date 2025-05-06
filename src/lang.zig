@@ -1015,6 +1015,23 @@ pub fn buildInsMap(
     return inss;
 }
 
+pub fn lookup(
+    language: *const Language,
+    inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    name: []const u8,
+) ?struct { std.BoundedArray(u8, 2), *const LangIns } {
+    const opcode = inss.get(name) orelse return null;
+    const ins = switch (opcode.len) {
+        1 => &language.opcodes[opcode.get(0)].ins,
+        2 => blk: {
+            const nest_start = language.opcodes[opcode.get(0)].nested;
+            break :blk &language.opcodes[nest_start << 8 | opcode.get(1)].ins;
+        },
+        else => unreachable,
+    };
+    return .{ opcode, ins };
+}
+
 const Ins = struct {
     start: u16,
     end: u16,

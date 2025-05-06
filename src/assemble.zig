@@ -126,25 +126,17 @@ fn assembleLine(
         return;
     }
 
-    const ins_bytes = inss.get(ins_name) orelse {
+    const opcode, const ins = lang.lookup(language, inss, ins_name) orelse {
         report.fatal("{}: unknown instruction: \"{s}\"", .{
             FormatLoc{ .id = id, .line_number = line_number },
             ins_name,
         });
         return error.Reported;
     };
-    try bytecode.appendSlice(allocator, ins_bytes.slice());
 
-    const opcode = switch (ins_bytes.len) {
-        1 => language.opcodes[ins_bytes.get(0)],
-        2 => blk: {
-            const nest_start = language.opcodes[ins_bytes.get(0)].nested;
-            break :blk language.opcodes[nest_start << 8 | ins_bytes.get(1)];
-        },
-        else => unreachable,
-    };
+    try bytecode.appendSlice(allocator, opcode.slice());
 
-    for (opcode.ins.operands.slice()) |op| {
+    for (ins.operands.slice()) |op| {
         switch (op) {
             .u8 => {
                 const int, rest = try tokenizeInt(u8, rest);
