@@ -15,6 +15,7 @@ const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
+const compile = @import("compile.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
@@ -214,6 +215,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
             .lscr => try plan.add(.rmda_lscr, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
+            .script => try plan.add(.end, .{ .node = child_node }),
             else => unreachable,
         }
     }
@@ -269,6 +271,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
+                    .script => try spawnJob(planScript, cx, room_number, child_node),
                     else => unreachable,
                 },
             }
@@ -621,6 +624,25 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u
         .payload = .{ .glob = .{
             .block_id = blockId("AKOS"),
             .glob_number = node.glob_number,
+            .data = out,
+        } },
+    });
+}
+
+fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const script = &room_file.ast.nodes.items[node_index].script;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .glob = .{
+            .block_id = blockId("SCRP"),
+            .glob_number = script.glob_number,
             .data = out,
         } },
     });

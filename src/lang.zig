@@ -7,7 +7,7 @@ pub const unknown_byte_ins = ".db";
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
 
-const max_operands = 2;
+pub const max_operands = 2;
 
 pub const Language = struct {
     // TODO: don't hardcode maximum
@@ -69,8 +69,13 @@ pub const Language = struct {
     }
 };
 
-const Op = enum {
+pub const Op = enum {
+    @"push-u8",
     @"push-i16",
+    @"push-var",
+    set,
+    end,
+    @"return",
 };
 
 // stopgap while migrating from string to enum
@@ -100,12 +105,12 @@ const Opcode = union(enum) {
     nested: u16,
 };
 
-const LangIns = struct {
+pub const LangIns = struct {
     name: OpcodeName,
     operands: LangOperandArray,
 };
 
-const LangOperand = enum {
+pub const LangOperand = enum {
     u8,
     i16,
     i32,
@@ -124,10 +129,10 @@ pub fn buildLanguage(game: Game) Language {
 fn buildNormalLanguage() Language {
     var lang: Language = .{};
 
-    lang.add(0x00, "push-u8", &.{.u8});
+    lang.add(0x00, .@"push-u8", &.{.u8});
     lang.add(0x01, .@"push-i16", &.{.i16});
     lang.add(0x02, "push-i32", &.{.i32});
-    lang.add(0x03, "push-var", &.{.variable});
+    lang.add(0x03, .@"push-var", &.{.variable});
     lang.add(0x04, "push-str", &.{.string});
     lang.add(0x07, "get-array-item", &.{.variable});
     lang.add(0x0a, "dup-multi", &.{.i16});
@@ -264,7 +269,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
 
-    lang.add(0x43, "set", &.{.variable});
+    lang.add(0x43, .set, &.{.variable});
     lang.add(0x46, "file-size", &.{});
     lang.add(0x47, "set-array-item", &.{.variable});
     lang.add(0x48, "string-number", &.{});
@@ -313,7 +318,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x64, "free-arrays", &.{});
     lang.add(0x65, "end2", &.{});
-    lang.add(0x66, "end", &.{});
+    lang.add(0x66, .end, &.{});
 
     lang.addNested(0x69, 0x39, "window-select", &.{});
     lang.addNested(0x69, 0x3a, "window-set-script", &.{});
@@ -500,7 +505,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xbc, 0x07, "dim-array.string", &.{.variable});
     lang.addNested(0xbc, 0xcc, "undim", &.{.variable});
 
-    lang.add(0xbd, "return", &.{});
+    lang.add(0xbd, .@"return", &.{});
     lang.add(0xbf, "call-script", &.{});
     lang.add(0xc0, "dim-array-2d", &.{ .u8, .variable });
     lang.add(0xc1, "debug-string", &.{});
@@ -1071,6 +1076,15 @@ pub const Variable = struct {
         };
     }
 
+    pub fn init2(kind: Kind, num: u14) Variable {
+        const k: u16 = switch (kind) {
+            .global => 0,
+            .local => 0x4000,
+            .room => 0x8000,
+        };
+        return .{ .raw = k | num };
+    }
+
     pub fn decode(self: Variable) !Decoded {
         return switch (self.raw & 0xc000) {
             0x0000 => .{ .global = self.raw & 0x3fff },
@@ -1079,6 +1093,17 @@ pub const Variable = struct {
             0xc000 => error.BadData,
             else => unreachable,
         };
+    }
+
+    pub fn decode2(self: Variable) !struct { Kind, u14 } {
+        const kind: Kind = switch (self.raw & 0xc000) {
+            0x0000 => .global,
+            0x4000 => .local,
+            0x8000 => .room,
+            0xc000 => return error.BadData,
+            else => unreachable,
+        };
+        return .{ kind, @truncate(self.raw) };
     }
 };
 

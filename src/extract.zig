@@ -12,6 +12,7 @@ const Block = @import("block_reader.zig").Block;
 const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
 const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
 const cliargs = @import("cliargs.zig");
+const decompile = @import("decompile.zig");
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
@@ -1306,6 +1307,27 @@ fn extractScrp(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    if (cx.cx.options.script == .decompile)
+        if (extractScrpDecompile(cx, diag, glob_number, raw, code))
+            return
+        else |err| {
+            if (err != error.AddedToDiagnostic)
+                diag.zigErr(0, "unexpected error: {s}", .{}, err);
+            // Clear any partial results from the failure
+            code.clearRetainingCapacity();
+            diag.info(0, "decompiling failed, falling back to disassembly", .{});
+        };
+
+    try extractScrpDisassemble(cx, diag, glob_number, raw, code);
+}
+
+fn extractScrpDisassemble(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
     var diagnostic: DisasmDiagnostic = .init;
 
     const id: Symbols.ScriptId = .{ .global = glob_number };
@@ -1349,6 +1371,20 @@ const DisasmDiagnostic = struct {
         }
     }
 };
+
+fn extractScrpDecompile(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try code.writer(cx.cx.gpa).print("script {} {{\n", .{glob_number});
+    try decompile.run(cx.cx.gpa, diag, cx.cx.game, raw, code);
+    try code.appendSlice(cx.cx.gpa, "}\n");
+
+    cx.cx.incStat(.scrp_decompile);
+}
 
 fn extractAwiz(
     cx: *const RoomContext,

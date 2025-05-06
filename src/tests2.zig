@@ -27,8 +27,8 @@ test "Backyard Baseball 1997 round trip raw" {
 test "Backyard Baseball 1997 round trip decode" {
     try testRoundTrip(baseball1997, .decode, &.init(.{
         .scrp_total = 193,
-        .scrp_disassemble = 193,
-        .scrp_decompile = 0,
+        .scrp_disassemble = 191,
+        .scrp_decompile = 2,
         .scrp_raw = 0,
         .excd_total = 30,
         .excd_disassemble = 30,
@@ -57,8 +57,8 @@ test "Backyard Soccer round trip raw" {
 test "Backyard Soccer round trip decode" {
     try testRoundTrip(soccer, .decode, &.init(.{
         .scrp_total = 135,
-        .scrp_disassemble = 135,
-        .scrp_decompile = 0,
+        .scrp_disassemble = 132,
+        .scrp_decompile = 3,
         .scrp_raw = 0,
         .excd_total = 29,
         .excd_disassemble = 29,
@@ -87,8 +87,8 @@ test "Backyard Football round trip raw" {
 test "Backyard Football round trip decode" {
     try testRoundTrip(football, .decode, &.init(.{
         .scrp_total = 388,
-        .scrp_disassemble = 388,
-        .scrp_decompile = 0,
+        .scrp_disassemble = 380,
+        .scrp_decompile = 8,
         .scrp_raw = 0,
         .excd_total = 56,
         .excd_disassemble = 56,
@@ -118,8 +118,8 @@ test "Backyard Baseball 2001 round trip raw" {
 test "Backyard Baseball 2001 round trip decode" {
     try testRoundTrip(baseball2001, .decode, &.init(.{
         .scrp_total = 417,
-        .scrp_disassemble = 417,
-        .scrp_decompile = 0,
+        .scrp_disassemble = 409,
+        .scrp_decompile = 8,
         .scrp_raw = 0,
         .excd_total = 37,
         .excd_disassemble = 37,
@@ -184,7 +184,7 @@ fn testRoundTrip(
         .symbols_path = game.symbols_path,
         .options = switch (options) {
             .raw => .{
-                .script = .disassemble, // (ignored since everything is .raw)
+                .script = .decompile, // (ignored since everything is .raw)
                 .rmim = .raw,
                 .scrp = .raw,
                 .encd = .raw,
@@ -195,7 +195,7 @@ fn testRoundTrip(
                 .akos = .raw,
             },
             .decode => .{
-                .script = .disassemble,
+                .script = .decompile,
                 .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,

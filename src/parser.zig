@@ -240,6 +240,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         mult,
         akos,
         @"var",
+        script,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
@@ -333,6 +334,14 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                 .@"var" => {
                     const node_index = try parseVar(state, token.span);
                     try appendNode(state, token.span, &variables, node_index);
+                },
+                .script => {
+                    const glob_number_i32 = try expectInteger(state);
+                    const glob_number = std.math.cast(u16, glob_number_i32) orelse
+                        return reportError(state, token.span, "out of range", .{});
+                    try expect(state, .brace_l);
+                    const node_index = try parseScript(state, glob_number);
+                    try appendNode(state, token.span, &children, node_index);
                 },
             },
             .eof => break,
@@ -716,8 +725,82 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
     } });
 }
 
+fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
+    var statements: std.BoundedArray(Ast.NodeIndex, 256) = .{};
+    while (true) {
+        skipWhitespace(state);
+        const token = consumeToken(state);
+        if (token.kind == .brace_r) break;
+        const node = try parseStatement(state, token);
+        try appendNode(state, token.span, &statements, node);
+    }
+    return try storeNode(state, .{ .script = .{
+        .glob_number = glob_number,
+        .statements = try storeExtra(state, statements.slice()),
+    } });
+}
+
+fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
+    const ei = try parseExpr(state, token, .all);
+    const expr = &state.result.nodes.items[ei];
+    if (expr.* == .identifier) {
+        // A lonely identifier is a call with 0 args
+        return storeNode(state, .{ .call = .{ .callee = ei, .args = .empty } });
+    }
+    return ei;
+}
+
+pub const Precedence = enum {
+    all,
+    space,
+};
+
+fn parseExpr(state: *State, first: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
+    var cur = try parseAtom(state, first);
+    while (true) {
+        const token = peekToken(state);
+        switch (token.kind) {
+            .integer, .identifier => {
+                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
+                const args = try parseArgs(state);
+                cur = try storeNode(state, .{ .call = .{ .callee = cur, .args = args } });
+            },
+            else => break,
+        }
+    }
+    return cur;
+}
+
+fn parseAtom(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
+    switch (token.kind) {
+        .integer => {
+            const source = state.source[token.span.start.offset..token.span.end.offset];
+            const integer = std.fmt.parseInt(i32, source, 10) catch
+                return reportError(state, token.span, "invalid integer", .{});
+            return try storeNode(state, .{ .integer = integer });
+        },
+        .identifier => {
+            const identifier = state.source[token.span.start.offset..token.span.end.offset];
+            return try storeNode(state, .{ .identifier = identifier });
+        },
+        else => return reportUnexpected(state, token),
+    }
+}
+
+fn parseArgs(state: *State) !Ast.ExtraSlice {
+    var result: std.BoundedArray(Ast.NodeIndex, 8) = .{};
+    while (true) {
+        const token = peekToken(state);
+        if (token.kind == .newline) break;
+        _ = consumeToken(state);
+        const node = try parseExpr(state, token, .space);
+        try appendNode(state, token.span, &result, node);
+    }
+    return try storeExtra(state, result.slice());
+}
+
 fn storeNode(state: *State, node: Ast.Node) !Ast.NodeIndex {
-    const result: u32 = @intCast(state.result.nodes.items.len);
+    const result: Ast.NodeIndex = @intCast(state.result.nodes.items.len);
     try state.result.nodes.append(state.gpa, node);
     return result;
 }

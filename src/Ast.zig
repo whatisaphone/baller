@@ -121,9 +121,21 @@ pub const Node = union(enum) {
         name: []const u8,
         number: u16,
     },
+    script: struct {
+        glob_number: u16,
+        statements: ExtraSlice,
+    },
+    integer: i32,
+    identifier: []const u8,
+    call: struct {
+        callee: NodeIndex,
+        args: ExtraSlice,
+    },
 };
 
 pub const ExtraSlice = struct {
     start: u32,
     len: u32,
+
+    pub const empty: ExtraSlice = .{ .start = 0, .len = 0 };
 };
