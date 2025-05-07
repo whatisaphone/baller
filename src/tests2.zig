@@ -39,8 +39,8 @@ test "Backyard Baseball 1997 round trip decode" {
         .encd_decompile = 0,
         .encd_raw = 0,
         .lsc2_total = 202,
-        .lsc2_disassemble = 202,
-        .lsc2_decompile = 0,
+        .lsc2_disassemble = 201,
+        .lsc2_decompile = 1,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
@@ -69,8 +69,8 @@ test "Backyard Soccer round trip decode" {
         .encd_decompile = 0,
         .encd_raw = 0,
         .lsc2_total = 143,
-        .lsc2_disassemble = 143,
-        .lsc2_decompile = 0,
+        .lsc2_disassemble = 141,
+        .lsc2_decompile = 2,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
@@ -99,8 +99,8 @@ test "Backyard Football round trip decode" {
         .encd_decompile = 0,
         .encd_raw = 0,
         .lsc2_total = 890,
-        .lsc2_disassemble = 890,
-        .lsc2_decompile = 0,
+        .lsc2_disassemble = 873,
+        .lsc2_decompile = 17,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
@@ -130,8 +130,8 @@ test "Backyard Baseball 2001 round trip decode" {
         .encd_decompile = 0,
         .encd_raw = 0,
         .lsc2_total = 1529,
-        .lsc2_disassemble = 1529,
-        .lsc2_decompile = 0,
+        .lsc2_disassemble = 1519,
+        .lsc2_decompile = 10,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));

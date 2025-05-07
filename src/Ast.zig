@@ -125,6 +125,10 @@ pub const Node = union(enum) {
         glob_number: u16,
         statements: ExtraSlice,
     },
+    local_script: struct {
+        script_number: u16,
+        statements: ExtraSlice,
+    },
     label: []const u8,
     integer: i32,
     identifier: []const u8,

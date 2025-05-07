@@ -216,6 +216,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .lscr => try plan.add(.rmda_lscr, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
+            .local_script => try plan.add(.rmda_lscr, .{ .node = child_node }),
             else => unreachable,
         }
     }
@@ -272,6 +273,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
                     .script => try spawnJob(planScript, cx, room_number, child_node),
+                    .local_script => try spawnJob(planLocalScript, cx, room_number, child_node),
                     else => unreachable,
                 },
             }
@@ -643,6 +645,26 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
         .payload = .{ .glob = .{
             .block_id = blockId("SCRP"),
             .glob_number = script.glob_number,
+            .data = out,
+        } },
+    });
+}
+
+fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const script = &room_file.ast.nodes.items[node_index].local_script;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try out.writer(cx.gpa).writeInt(u32, script.script_number, .little);
+
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .raw_block = .{
+            .block_id = blockId("LSC2"),
             .data = out,
         } },
     });

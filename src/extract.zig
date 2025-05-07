@@ -1114,11 +1114,32 @@ fn extractLscr(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var diagnostic: DisasmDiagnostic = .init;
-
     if (raw.len < 4) return error.EndOfStream;
     const script_number = std.mem.readInt(u32, raw[0..4], .little);
     const bytecode = raw[4..];
+
+    if (cx.cx.options.script == .decompile)
+        if (extractLscrDecompile(cx, diag, script_number, bytecode, code))
+            return
+        else |err| {
+            if (err != error.AddedToDiagnostic)
+                diag.zigErr(0, "unexpected error: {s}", .{}, err);
+            // Clear any partial results from the failure
+            code.clearRetainingCapacity();
+            diag.info(0, "decompiling failed, falling back to disassembly", .{});
+        };
+
+    try extractLscrDisassemble(cx, diag, script_number, bytecode, code);
+}
+
+fn extractLscrDisassemble(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    script_number: u32,
+    bytecode: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var diagnostic: DisasmDiagnostic = .init;
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
@@ -1143,6 +1164,20 @@ fn extractLscr(
 
     cx.cx.incStat(.lsc2_disassemble);
     diagnostic.flushStats(cx.cx, diag);
+}
+
+fn extractLscrDecompile(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    script_number: u32,
+    bytecode: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try code.writer(cx.cx.gpa).print("local-script {} {{\n", .{script_number});
+    try decompile.run(cx.cx.gpa, diag, cx.cx.game, bytecode, code);
+    try code.appendSlice(cx.cx.gpa, "}\n");
+
+    cx.cx.incStat(.lsc2_decompile);
 }
 
 fn runRoomVarsJob(cx: *RoomContext, diagnostic: *Diagnostic, chunk_index: u16) void {

@@ -241,6 +241,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         akos,
         @"var",
         script,
+        @"local-script",
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
@@ -341,6 +342,14 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         return reportError(state, token.span, "out of range", .{});
                     try expect(state, .brace_l);
                     const node_index = try parseScript(state, glob_number);
+                    try appendNode(state, token.span, &children, node_index);
+                },
+                .@"local-script" => {
+                    const script_number_i32 = try expectInteger(state);
+                    const script_number = std.math.cast(u16, script_number_i32) orelse
+                        return reportError(state, token.span, "out of range", .{});
+                    try expect(state, .brace_l);
+                    const node_index = try parseLocalScript(state, script_number);
                     try appendNode(state, token.span, &children, node_index);
                 },
             },
@@ -726,6 +735,22 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
 }
 
 fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
+    const statements = try parseScriptBody(state);
+    return try storeNode(state, .{ .script = .{
+        .glob_number = glob_number,
+        .statements = statements,
+    } });
+}
+
+fn parseLocalScript(state: *State, script_number: u16) !Ast.NodeIndex {
+    const statements = try parseScriptBody(state);
+    return try storeNode(state, .{ .local_script = .{
+        .script_number = script_number,
+        .statements = statements,
+    } });
+}
+
+fn parseScriptBody(state: *State) !Ast.ExtraSlice {
     var statements: std.BoundedArray(Ast.NodeIndex, 256) = .{};
     while (true) {
         skipWhitespace(state);
@@ -734,10 +759,7 @@ fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
         const node = try parseStatement(state, token);
         try appendNode(state, token.span, &statements, node);
     }
-    return try storeNode(state, .{ .script = .{
-        .glob_number = glob_number,
-        .statements = try storeExtra(state, statements.slice()),
-    } });
+    return try storeExtra(state, statements.slice());
 }
 
 fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
