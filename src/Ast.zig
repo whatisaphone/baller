@@ -129,6 +129,12 @@ pub const Node = union(enum) {
         script_number: u16,
         statements: ExtraSlice,
     },
+    enter: struct {
+        statements: ExtraSlice,
+    },
+    exit: struct {
+        statements: ExtraSlice,
+    },
     label: []const u8,
     integer: i32,
     identifier: []const u8,

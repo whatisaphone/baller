@@ -1041,12 +1041,10 @@ fn extractRmdaChildJob(
 
     // First try to decode
     switch (block.id) {
-        blockId("EXCD") => if (cx.cx.options.excd == .decode)
-            if (tryDecodeAndSend(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .exit_script))
-                return,
-        blockId("ENCD") => if (cx.cx.options.encd == .decode)
-            if (tryDecodeAndSend(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .enter_script))
-                return,
+        blockId("EXCD"), blockId("ENCD") => {
+            if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
+                return;
+        },
         blockId("LSC2") => {
             if (extractLscr(cx, &diag, raw, &code, chunk_index))
                 return;
@@ -1066,19 +1064,60 @@ fn extractRmdaChildJob(
     });
 }
 
+const EncdExcd = enum {
+    encd,
+    excd,
+
+    fn from(block_id: BlockId) EncdExcd {
+        return switch (block_id) {
+            blockId("ENCD") => .encd,
+            blockId("EXCD") => .excd,
+            else => unreachable,
+        };
+    }
+};
+
 fn extractEncdExcd(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
-) !void {
-    const edge: enum { encd, excd } = switch (block_id) {
-        blockId("ENCD") => .encd,
-        blockId("EXCD") => .excd,
-        else => unreachable,
+    chunk_index: u16,
+) bool {
+    const edge = EncdExcd.from(block_id);
+
+    const option = switch (edge) {
+        .encd => cx.cx.options.encd,
+        .excd => cx.cx.options.excd,
+    };
+    if (option != .decode) return false;
+
+    const section: Section = switch (edge) {
+        .encd => .enter_script,
+        .excd => .exit_script,
     };
 
+    if (cx.cx.options.script == .decompile and
+        tryDecode("decompile", extractEncdExcdDecompile, cx, diag, .{ edge, raw }, code))
+    {
+        cx.sendChunk(chunk_index, section, code.*);
+        return true;
+    }
+    if (tryDecode("disassemble", extractEncdExcdDisassemble, cx, diag, .{ edge, raw }, code)) {
+        cx.sendChunk(chunk_index, section, code.*);
+        return true;
+    }
+    return false;
+}
+
+fn extractEncdExcdDisassemble(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    edge: EncdExcd,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
     var diagnostic: DisasmDiagnostic = .init;
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
@@ -1107,6 +1146,27 @@ fn extractEncdExcd(
         .excd => .excd_disassemble,
     });
     diagnostic.flushStats(cx.cx, diag);
+}
+
+fn extractEncdExcdDecompile(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    edge: EncdExcd,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const keyword = switch (edge) {
+        .encd => "enter",
+        .excd => "exit",
+    };
+    try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
+    try decompile.run(cx.cx.gpa, diag, cx.cx.game, raw, code);
+    try code.appendSlice(cx.cx.gpa, "}\n");
+
+    cx.cx.incStat(switch (edge) {
+        .encd => .encd_decompile,
+        .excd => .excd_decompile,
+    });
 }
 
 fn extractLscr(

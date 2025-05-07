@@ -75,6 +75,7 @@ pub const Op = enum {
     @"push-var",
     set,
     @"jump-unless",
+    end2,
     end,
     @"dim-array.int8",
     undim,
@@ -320,7 +321,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x63, 0x07, "array-get-y-end", &.{.variable});
 
     lang.add(0x64, "free-arrays", &.{});
-    lang.add(0x65, "end2", &.{});
+    lang.add(0x65, .end2, &.{});
     lang.add(0x66, .end, &.{});
 
     lang.addNested(0x69, 0x39, "window-select", &.{});

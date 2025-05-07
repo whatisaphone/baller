@@ -163,6 +163,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-var" = .push_var,
     .set = .gen(.set, &.{.int}),
     .@"jump-unless" = .jump_unless,
+    .end2 = .gen(.end2, &.{}),
     .end = .gen(.end, &.{}),
     .@"dim-array.int8" = .gen(.@"dim-array.int8", &.{.int}),
     .undim = .gen(.undim, &.{}),

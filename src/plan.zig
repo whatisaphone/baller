@@ -217,6 +217,8 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
             .local_script => try plan.add(.rmda_lscr, .{ .node = child_node }),
+            .enter => try plan.add(.rmda_encd, .{ .node = child_node }),
+            .exit => try plan.add(.rmda_excd, .{ .node = child_node }),
             else => unreachable,
         }
     }
@@ -274,6 +276,8 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
                     .script => try spawnJob(planScript, cx, room_number, child_node),
                     .local_script => try spawnJob(planLocalScript, cx, room_number, child_node),
+                    .enter => try spawnJob(planEnterScript, cx, room_number, child_node),
+                    .exit => try spawnJob(planExitScript, cx, room_number, child_node),
                     else => unreachable,
                 },
             }
@@ -665,6 +669,42 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
         .index = event_index,
         .payload = .{ .raw_block = .{
             .block_id = blockId("LSC2"),
+            .data = out,
+        } },
+    });
+}
+
+fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const script = &room_file.ast.nodes.items[node_index].enter;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .raw_block = .{
+            .block_id = blockId("ENCD"),
+            .data = out,
+        } },
+    });
+}
+
+fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const script = &room_file.ast.nodes.items[node_index].exit;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+
+    cx.events.send(.{
+        .index = event_index,
+        .payload = .{ .raw_block = .{
+            .block_id = blockId("EXCD"),
             .data = out,
         } },
     });

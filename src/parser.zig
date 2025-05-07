@@ -242,6 +242,8 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
         @"var",
         script,
         @"local-script",
+        enter,
+        exit,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
@@ -350,6 +352,22 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                         return reportError(state, token.span, "out of range", .{});
                     try expect(state, .brace_l);
                     const node_index = try parseLocalScript(state, script_number);
+                    try appendNode(state, token.span, &children, node_index);
+                },
+                .enter => {
+                    try expect(state, .brace_l);
+                    const statements = try parseScriptBody(state);
+                    const node_index = try storeNode(state, .{ .enter = .{
+                        .statements = statements,
+                    } });
+                    try appendNode(state, token.span, &children, node_index);
+                },
+                .exit => {
+                    try expect(state, .brace_l);
+                    const statements = try parseScriptBody(state);
+                    const node_index = try storeNode(state, .{ .exit = .{
+                        .statements = statements,
+                    } });
                     try appendNode(state, token.span, &children, node_index);
                 },
             },
