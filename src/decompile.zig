@@ -139,13 +139,11 @@ const Op = union(enum) {
     push_var,
     jump_unless,
     generic: struct {
-        op: lang.Op,
         params: std.BoundedArray(Param, max_params),
     },
 
-    fn gen(op: lang.Op, params: []const Param) Op {
+    fn gen(params: []const Param) Op {
         return .{ .generic = .{
-            .op = op,
             .params = std.BoundedArray(Param, max_params).fromSlice(params) catch unreachable,
         } };
     }
@@ -161,13 +159,13 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
     .@"push-var" = .push_var,
-    .set = .gen(.set, &.{.int}),
+    .set = .gen(&.{.int}),
     .@"jump-unless" = .jump_unless,
-    .end2 = .gen(.end2, &.{}),
-    .end = .gen(.end, &.{}),
-    .@"dim-array.int8" = .gen(.@"dim-array.int8", &.{.int}),
-    .undim = .gen(.undim, &.{}),
-    .@"return" = .gen(.@"return", &.{.int}),
+    .end2 = .gen(&.{}),
+    .end = .gen(&.{}),
+    .@"dim-array.int8" = .gen(&.{.int}),
+    .undim = .gen(&.{}),
+    .@"return" = .gen(&.{.int}),
 });
 
 fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: u16) !void {
