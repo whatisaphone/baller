@@ -75,6 +75,7 @@ pub const Op = enum {
     @"push-var",
     set,
     @"jump-unless",
+    @"start-script",
     @"array-get-height",
     @"array-get-width",
     end2,
@@ -305,7 +306,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x5c, "jump-if", &.{.relative_offset});
     lang.add(0x5d, .@"jump-unless", &.{.relative_offset});
 
-    lang.addNested(0x5e, 0x01, "start-script", &.{});
+    lang.addNested(0x5e, 0x01, .@"start-script", &.{});
     lang.addNested(0x5e, 0xc3, "start-script-rec", &.{});
 
     lang.addNested(0x60, 0x01, "start-object", &.{});

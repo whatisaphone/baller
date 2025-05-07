@@ -108,6 +108,7 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, BadData }!void {
             try emitVariable(cx, variable);
         },
         .call => try emitCall(cx, node_index),
+        .list => try pushList(cx, node_index),
         else => return error.BadData,
     }
 }
@@ -116,9 +117,19 @@ fn pushInt(cx: *const Cx, integer: i32) !void {
     if (std.math.cast(u8, integer)) |i| {
         try emitOpcodeByName(cx, "push-u8");
         try cx.out.append(cx.gpa, i);
+    } else if (std.math.cast(i16, integer)) |i| {
+        try emitOpcodeByName(cx, "push-i16");
+        try cx.out.writer(cx.gpa).writeInt(i16, i, .little);
     } else {
         return error.BadData;
     }
+}
+
+fn pushList(cx: *Cx, node_index: u32) !void {
+    const list = &cx.ast.nodes.items[node_index].list;
+    for (cx.ast.getExtra(list.items)) |ei|
+        try pushExpr(cx, ei);
+    try pushInt(cx, @intCast(list.items.len));
 }
 
 // TODO: this is why this is slow! don't use strings!

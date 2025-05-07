@@ -146,6 +146,9 @@ pub const Node = union(enum) {
         lhs: NodeIndex,
         field: []const u8,
     },
+    list: struct {
+        items: ExtraSlice,
+    },
 };
 
 pub const ExtraSlice = struct {

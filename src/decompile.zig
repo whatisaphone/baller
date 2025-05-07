@@ -128,6 +128,7 @@ const Expr = union(enum) {
     int: i32,
     variable: lang.Variable,
     call: struct { op: lang.Op, args: ExtraSlice },
+    list: struct { items: ExtraSlice },
 };
 
 const ExtraSlice = struct {
@@ -160,10 +161,11 @@ const Op = union(enum) {
     }
 };
 
-const max_params = 1;
+const max_params = 2;
 
 const Param = union(enum) {
     int,
+    list,
 };
 
 const ops: std.EnumArray(lang.Op, Op) = .init(.{
@@ -172,6 +174,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-var" = .push_var,
     .set = .gen(&.{.int}),
     .@"jump-unless" = .jump_unless,
+    .@"start-script" = .gen(&.{ .int, .list }),
     .@"array-get-height" = .genCall(&.{}),
     .@"array-get-width" = .genCall(&.{}),
     .end2 = .gen(&.{}),
@@ -225,11 +228,20 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                     const ei = try storeExpr(cx, expr);
                     args.appendAssumeCapacity(ei);
                 }
-                for (gen.params.slice()) |param| {
-                    comptime std.debug.assert(param == .int);
-                    const ei = try pop(cx);
-                    args.appendAssumeCapacity(ei);
+
+                // Pop args in reverse order
+                var pi = gen.params.len;
+                while (pi > 0) {
+                    pi -= 1;
+                    const param = gen.params.get(pi);
+                    const ei = switch (param) {
+                        .int => try pop(cx),
+                        .list => try popList(cx),
+                    };
+                    args.buffer[args.len + pi] = ei;
                 }
+                args.len += gen.params.len;
+
                 const args_extra = try storeExtra(cx, args.slice());
                 if (gen.call) {
                     try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
@@ -251,6 +263,22 @@ fn push(cx: *DecompileCx, expr: Expr) !void {
 
 fn pop(cx: *DecompileCx) !ExprIndex {
     return cx.stack.pop() orelse return error.BadData;
+}
+
+fn popList(cx: *DecompileCx) !ExprIndex {
+    const len_ei = try pop(cx);
+    const len_expr = &cx.exprs.items[len_ei];
+    if (len_expr.* != .int) return error.BadData;
+    // TODO: think about the actual maximum here
+    const len = std.math.cast(u8, len_expr.int) orelse return error.BadData;
+
+    if (len > cx.stack.len) return error.BadData;
+    const items = cx.stack.slice()[cx.stack.len - len ..];
+    cx.stack.len -= len;
+
+    return storeExpr(cx, .{ .list = .{
+        .items = try storeExtra(cx, items),
+    } });
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
@@ -302,6 +330,15 @@ fn emitExpr(
             try emitCall(cx, c.op, c.args);
             if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                 try cx.out.append(cx.gpa, ')');
+        },
+        .list => |list| {
+            try cx.out.append(cx.gpa, '[');
+            for (getExtra(cx, list.items), 0..) |e, i| {
+                if (i != 0)
+                    try cx.out.append(cx.gpa, ' ');
+                try emitExpr(cx, e, .space);
+            }
+            try cx.out.append(cx.gpa, ']');
         },
     }
 }

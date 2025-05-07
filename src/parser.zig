@@ -849,6 +849,11 @@ fn parseAtom(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
             try expect(state, .paren_r);
             return result;
         },
+        .bracket_l => {
+            const items = try parseArgs(state);
+            try expect(state, .bracket_r);
+            return try storeNode(state, .{ .list = .{ .items = items } });
+        },
         else => return reportUnexpected(state, token),
     }
 }
@@ -857,7 +862,10 @@ fn parseArgs(state: *State) !Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex, 8) = .{};
     while (true) {
         const token = peekToken(state);
-        if (token.kind == .newline or token.kind == .paren_r) break;
+        if (token.kind == .newline or
+            token.kind == .paren_r or
+            token.kind == .bracket_r)
+            break;
         _ = consumeToken(state);
         const node = try parseExpr(state, token, .space);
         try appendNode(state, token.span, &result, node);
