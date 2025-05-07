@@ -859,7 +859,7 @@ fn parseAtom(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseArgs(state: *State) !Ast.ExtraSlice {
-    var result: std.BoundedArray(Ast.NodeIndex, 8) = .{};
+    var result: std.BoundedArray(Ast.NodeIndex, 16) = .{};
     while (true) {
         const token = peekToken(state);
         if (token.kind == .newline or

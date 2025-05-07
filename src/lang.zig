@@ -73,17 +73,24 @@ pub const Op = enum {
     @"push-u8",
     @"push-i16",
     @"push-var",
+    @"get-array-item",
+    @"get-array-item-2d",
     set,
     @"jump-unless",
     @"start-script",
+    @"start-object",
     @"array-get-height",
     @"array-get-width",
     end2,
     end,
     @"current-room",
+    debug,
+    @"sleep-for-seconds",
+    @"stop-sentence",
     @"dim-array.int8",
     undim,
     @"return",
+    @"call-script",
     @"break-here-multi",
 };
 
@@ -143,9 +150,9 @@ fn buildNormalLanguage() Language {
     lang.add(0x02, "push-i32", &.{.i32});
     lang.add(0x03, .@"push-var", &.{.variable});
     lang.add(0x04, "push-str", &.{.string});
-    lang.add(0x07, "get-array-item", &.{.variable});
+    lang.add(0x07, .@"get-array-item", &.{.variable});
     lang.add(0x0a, "dup-multi", &.{.i16});
-    lang.add(0x0b, "get-array-item-2d", &.{.variable});
+    lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
     lang.add(0x0c, "dup", &.{});
     lang.add(0x0d, "not", &.{});
     lang.add(0x0e, "eq", &.{});
@@ -309,7 +316,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x5e, 0x01, .@"start-script", &.{});
     lang.addNested(0x5e, 0xc3, "start-script-rec", &.{});
 
-    lang.addNested(0x60, 0x01, "start-object", &.{});
+    lang.addNested(0x60, 0x01, .@"start-object", &.{});
     lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
 
     lang.addNested(0x61, 0x3f, "draw-object", &.{});
@@ -462,7 +469,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa4, 0xd4, "array-set-row", &.{.variable});
 
     lang.add(0xa6, "draw-box", &.{});
-    lang.add(0xa7, "debug", &.{});
+    lang.add(0xa7, .debug, &.{});
 
     lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
 
@@ -475,8 +482,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xae, 0xf4, "quit-quit", &.{});
 
     lang.add(0xb0, "sleep-for", &.{});
-    lang.add(0xb1, "sleep-for-seconds", &.{});
-    lang.add(0xb3, "stop-sentence", &.{});
+    lang.add(0xb1, .@"sleep-for-seconds", &.{});
+    lang.add(0xb3, .@"stop-sentence", &.{});
 
     lang.addNested(0xb5, 0x41, "print-text-position", &.{});
     lang.addNested(0xb5, 0x43, "print-text-clipped", &.{});
@@ -515,7 +522,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xbc, 0xcc, .undim, &.{.variable});
 
     lang.add(0xbd, .@"return", &.{});
-    lang.add(0xbf, "call-script", &.{});
+    lang.add(0xbf, .@"call-script", &.{});
     lang.add(0xc0, "dim-array-2d", &.{ .u8, .variable });
     lang.add(0xc1, "debug-string", &.{});
     lang.add(0xc4, "abs", &.{});

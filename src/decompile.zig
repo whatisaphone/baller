@@ -161,7 +161,7 @@ const Op = union(enum) {
     }
 };
 
-const max_params = 2;
+const max_params = 3;
 
 const Param = union(enum) {
     int,
@@ -172,17 +172,24 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
     .@"push-var" = .push_var,
+    .@"get-array-item" = .genCall(&.{.int}),
+    .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .set = .gen(&.{.int}),
     .@"jump-unless" = .jump_unless,
     .@"start-script" = .gen(&.{ .int, .list }),
+    .@"start-object" = .gen(&.{ .int, .int, .list }),
     .@"array-get-height" = .genCall(&.{}),
     .@"array-get-width" = .genCall(&.{}),
     .end2 = .gen(&.{}),
     .end = .gen(&.{}),
     .@"current-room" = .gen(&.{.int}),
+    .debug = .gen(&.{.int}),
+    .@"sleep-for-seconds" = .gen(&.{.int}),
+    .@"stop-sentence" = .gen(&.{}),
     .@"dim-array.int8" = .gen(&.{.int}),
     .undim = .gen(&.{}),
     .@"return" = .gen(&.{.int}),
+    .@"call-script" = .genCall(&.{ .int, .list }),
     .@"break-here-multi" = .gen(&.{.int}),
 });
 

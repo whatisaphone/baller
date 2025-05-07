@@ -87,8 +87,8 @@ test "Backyard Football round trip raw" {
 test "Backyard Football round trip decode" {
     try testRoundTrip(football, .decode, &.init(.{
         .scrp_total = 388,
-        .scrp_disassemble = 373,
-        .scrp_decompile = 15,
+        .scrp_disassemble = 370,
+        .scrp_decompile = 18,
         .scrp_raw = 0,
         .excd_total = 56,
         .excd_disassemble = 17,
@@ -99,8 +99,8 @@ test "Backyard Football round trip decode" {
         .encd_decompile = 27,
         .encd_raw = 0,
         .lsc2_total = 890,
-        .lsc2_disassemble = 866,
-        .lsc2_decompile = 24,
+        .lsc2_disassemble = 856,
+        .lsc2_decompile = 34,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
@@ -118,20 +118,20 @@ test "Backyard Baseball 2001 round trip raw" {
 test "Backyard Baseball 2001 round trip decode" {
     try testRoundTrip(baseball2001, .decode, &.init(.{
         .scrp_total = 417,
-        .scrp_disassemble = 407,
-        .scrp_decompile = 10,
+        .scrp_disassemble = 400,
+        .scrp_decompile = 17,
         .scrp_raw = 0,
         .excd_total = 37,
         .excd_disassemble = 11,
         .excd_decompile = 26,
         .excd_raw = 0,
         .encd_total = 37,
-        .encd_disassemble = 15,
-        .encd_decompile = 22,
+        .encd_disassemble = 14,
+        .encd_decompile = 23,
         .encd_raw = 0,
         .lsc2_total = 1529,
-        .lsc2_disassemble = 1428,
-        .lsc2_decompile = 101,
+        .lsc2_disassemble = 1403,
+        .lsc2_decompile = 126,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
