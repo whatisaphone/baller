@@ -198,21 +198,18 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
         };
         switch (ops.get(op)) {
             .push8 => {
-                const ei = try storeExpr(cx, .{ .int = ins.operands.get(0).u8 });
-                try cx.stack.append(ei);
+                try push(cx, .{ .int = ins.operands.get(0).u8 });
             },
             .push16 => {
-                const ei = try storeExpr(cx, .{ .int = ins.operands.get(0).i16 });
-                try cx.stack.append(ei);
+                try push(cx, .{ .int = ins.operands.get(0).i16 });
             },
             .push_var => {
-                const ei = try storeExpr(cx, .{ .variable = ins.operands.get(0).variable });
-                try cx.stack.append(ei);
+                try push(cx, .{ .variable = ins.operands.get(0).variable });
             },
             .jump_unless => {
                 const rel = ins.operands.get(0).relative_offset;
                 const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
-                const condition = cx.stack.pop() orelse return error.BadData;
+                const condition = try pop(cx);
                 try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
                     .target = target,
                     .condition = condition,
@@ -230,13 +227,12 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                 }
                 for (gen.params.slice()) |param| {
                     comptime std.debug.assert(param == .int);
-                    const ei = cx.stack.pop() orelse return error.BadData;
+                    const ei = try pop(cx);
                     args.appendAssumeCapacity(ei);
                 }
                 const args_extra = try storeExtra(cx, args.slice());
                 if (gen.call) {
-                    const ei = try storeExpr(cx, .{ .call = .{ .op = op, .args = args_extra } });
-                    try cx.stack.append(ei);
+                    try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
                 } else {
                     try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
                 }
@@ -246,6 +242,15 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
 
     const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
     bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
+}
+
+fn push(cx: *DecompileCx, expr: Expr) !void {
+    const ei = try storeExpr(cx, expr);
+    try cx.stack.append(ei);
+}
+
+fn pop(cx: *DecompileCx) !ExprIndex {
+    return cx.stack.pop() orelse return error.BadData;
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
