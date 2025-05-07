@@ -792,6 +792,8 @@ fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
     }
 
     const ei = try parseExpr(state, token, .all);
+    try expect(state, .newline);
+
     const expr = &state.result.nodes.items[ei];
     if (expr.* == .identifier) {
         // A lonely identifier is a call with 0 args
@@ -817,7 +819,8 @@ fn parseExpr(state: *State, first: *const lexer.Token, prec: Precedence) ParseEr
                 const field = try expectIdentifier(state);
                 cur = try storeNode(state, .{ .field = .{ .lhs = cur, .field = field } });
             },
-            .integer, .identifier => {
+            // This is everything that parseAtom recognizes
+            .integer, .identifier, .paren_l => {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseArgs(state);
                 cur = try storeNode(state, .{ .call = .{ .callee = cur, .args = args } });
@@ -840,6 +843,12 @@ fn parseAtom(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
             const identifier = state.source[token.span.start.offset..token.span.end.offset];
             return try storeNode(state, .{ .identifier = identifier });
         },
+        .paren_l => {
+            const next = consumeToken(state);
+            const result = try parseExpr(state, next, .all);
+            try expect(state, .paren_r);
+            return result;
+        },
         else => return reportUnexpected(state, token),
     }
 }
@@ -848,7 +857,7 @@ fn parseArgs(state: *State) !Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex, 8) = .{};
     while (true) {
         const token = peekToken(state);
-        if (token.kind == .newline) break;
+        if (token.kind == .newline or token.kind == .paren_r) break;
         _ = consumeToken(state);
         const node = try parseExpr(state, token, .space);
         try appendNode(state, token.span, &result, node);

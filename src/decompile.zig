@@ -3,6 +3,7 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
+const Precedence = @import("parser.zig").Precedence;
 const utils = @import("utils.zig");
 
 pub fn run(
@@ -62,7 +63,7 @@ const DecompileCx = struct {
     diag: *const Diagnostic.ForBinaryFile,
     language: *const lang.Language,
 
-    stack: std.BoundedArray(ExprIndex, 8),
+    stack: std.BoundedArray(ExprIndex, 16),
     stmts: std.ArrayListUnmanaged(Stmt),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
@@ -126,6 +127,7 @@ const ExprIndex = u16;
 const Expr = union(enum) {
     int: i32,
     variable: lang.Variable,
+    call: struct { op: lang.Op, args: ExtraSlice },
 };
 
 const ExtraSlice = struct {
@@ -139,11 +141,20 @@ const Op = union(enum) {
     push_var,
     jump_unless,
     generic: struct {
+        call: bool,
         params: std.BoundedArray(Param, max_params),
     },
 
     fn gen(params: []const Param) Op {
         return .{ .generic = .{
+            .call = false,
+            .params = std.BoundedArray(Param, max_params).fromSlice(params) catch unreachable,
+        } };
+    }
+
+    fn genCall(params: []const Param) Op {
+        return .{ .generic = .{
+            .call = true,
             .params = std.BoundedArray(Param, max_params).fromSlice(params) catch unreachable,
         } };
     }
@@ -161,11 +172,15 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-var" = .push_var,
     .set = .gen(&.{.int}),
     .@"jump-unless" = .jump_unless,
+    .@"array-get-height" = .genCall(&.{}),
+    .@"array-get-width" = .genCall(&.{}),
     .end2 = .gen(&.{}),
     .end = .gen(&.{}),
+    .@"current-room" = .gen(&.{.int}),
     .@"dim-array.int8" = .gen(&.{.int}),
     .undim = .gen(&.{}),
     .@"return" = .gen(&.{.int}),
+    .@"break-here-multi" = .gen(&.{.int}),
 });
 
 fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: u16) !void {
@@ -218,10 +233,13 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                     const ei = cx.stack.pop() orelse return error.BadData;
                     args.appendAssumeCapacity(ei);
                 }
-                try cx.stmts.append(cx.gpa, .{ .call = .{
-                    .op = op,
-                    .args = try storeExtra(cx, args.slice()),
-                } });
+                const args_extra = try storeExtra(cx, args.slice());
+                if (gen.call) {
+                    const ei = try storeExpr(cx, .{ .call = .{ .op = op, .args = args_extra } });
+                    try cx.stack.append(ei);
+                } else {
+                    try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
+                }
             },
         }
     }
@@ -258,23 +276,36 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try cx.out.append(cx.gpa, ' ');
             try emitLabel(cx, j.target);
             try cx.out.append(cx.gpa, ' ');
-            try emitExpr(cx, j.condition);
+            try emitExpr(cx, j.condition, .space);
         },
-        .call => |call| {
-            try cx.out.appendSlice(cx.gpa, @tagName(call.op));
-            for (getExtra(cx, call.args)) |ei| {
-                try cx.out.append(cx.gpa, ' ');
-                try emitExpr(cx, ei);
-            }
-        },
+        .call => |call| try emitCall(cx, call.op, call.args),
     }
     try cx.out.append(cx.gpa, '\n');
 }
 
-fn emitExpr(cx: *const EmitCx, ei: ExprIndex) !void {
+fn emitExpr(
+    cx: *const EmitCx,
+    ei: ExprIndex,
+    prec: Precedence,
+) error{ OutOfMemory, BadData }!void {
     switch (cx.exprs.get(ei)) {
         .int => |int| try cx.out.writer(cx.gpa).print("{}", .{int}),
         .variable => |v| try emitVariable(cx, v),
+        .call => |c| {
+            if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                try cx.out.append(cx.gpa, '(');
+            try emitCall(cx, c.op, c.args);
+            if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                try cx.out.append(cx.gpa, ')');
+        },
+    }
+}
+
+fn emitCall(cx: *const EmitCx, op: lang.Op, args: ExtraSlice) !void {
+    try cx.out.appendSlice(cx.gpa, @tagName(op));
+    for (getExtra(cx, args)) |ei| {
+        try cx.out.append(cx.gpa, ' ');
+        try emitExpr(cx, ei, .space);
     }
 }
 

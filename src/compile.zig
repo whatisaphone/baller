@@ -98,7 +98,7 @@ fn findIns(
     return lang.lookup(cx.language, cx.ins_map, name) orelse error.BadData;
 }
 
-fn pushExpr(cx: *const Cx, node_index: u32) !void {
+fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, BadData }!void {
     const expr = &cx.ast.nodes.items[node_index];
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
@@ -107,6 +107,7 @@ fn pushExpr(cx: *const Cx, node_index: u32) !void {
             try emitOpcodeByName(cx, "push-var");
             try emitVariable(cx, variable);
         },
+        .call => try emitCall(cx, node_index),
         else => return error.BadData,
     }
 }

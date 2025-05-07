@@ -37,6 +37,8 @@ pub const Token = struct {
         comma,
         period,
         colon,
+        paren_l,
+        paren_r,
         bracket_l,
         bracket_r,
         brace_l,
@@ -53,6 +55,8 @@ pub const Token = struct {
                 .comma => "','",
                 .period => "'.'",
                 .colon => "':'",
+                .paren_l => "'('",
+                .paren_r => "')'",
                 .bracket_l => "'['",
                 .bracket_r => "']'",
                 .brace_l => "'{'",
@@ -104,6 +108,10 @@ pub fn run(
             try appendToken(&state, loc, .period);
         } else if (ch == ':') {
             try appendToken(&state, loc, .colon);
+        } else if (ch == '(') {
+            try appendToken(&state, loc, .paren_l);
+        } else if (ch == ')') {
+            try appendToken(&state, loc, .paren_r);
         } else if (ch == '[') {
             try appendToken(&state, loc, .bracket_l);
         } else if (ch == ']') {

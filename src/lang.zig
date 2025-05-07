@@ -75,11 +75,15 @@ pub const Op = enum {
     @"push-var",
     set,
     @"jump-unless",
+    @"array-get-height",
+    @"array-get-width",
     end2,
     end,
+    @"current-room",
     @"dim-array.int8",
     undim,
     @"return",
+    @"break-here-multi",
 };
 
 // stopgap while migrating from string to enum
@@ -313,8 +317,8 @@ fn buildNormalLanguage() Language {
     lang.add(0x62, "print-image", &.{});
 
     lang.addNested(0x63, 0x01, "array-get-dim", &.{.variable});
-    lang.addNested(0x63, 0x02, "array-get-height", &.{.variable});
-    lang.addNested(0x63, 0x03, "array-get-width", &.{.variable});
+    lang.addNested(0x63, 0x02, .@"array-get-height", &.{.variable});
+    lang.addNested(0x63, 0x03, .@"array-get-width", &.{.variable});
     lang.addNested(0x63, 0x04, "array-get-x-start", &.{.variable});
     lang.addNested(0x63, 0x05, "array-get-x-end", &.{.variable});
     lang.addNested(0x63, 0x06, "array-get-y-start", &.{.variable});
@@ -360,7 +364,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x75, "stop-sound", &.{});
     lang.add(0x77, "stop-object", &.{});
-    lang.add(0x7b, "current-room", &.{});
+    lang.add(0x7b, .@"current-room", &.{});
     lang.add(0x7c, "stop-script", &.{});
     lang.add(0x7f, "put-actor", &.{});
     lang.add(0x82, "do-animation", &.{});
@@ -516,7 +520,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xc4, "abs", &.{});
     lang.add(0xc8, "kludge-call", &.{});
     lang.add(0xc9, "kludge", &.{});
-    lang.add(0xca, "break-here-multi", &.{});
+    lang.add(0xca, .@"break-here-multi", &.{});
     lang.add(0xcb, "pick", &.{});
     lang.add(0xcd, "stamp-object", &.{});
     lang.add(0xcf, "debug-input", &.{});

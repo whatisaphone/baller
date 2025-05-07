@@ -39,8 +39,8 @@ test "Backyard Baseball 1997 round trip decode" {
         .encd_decompile = 4,
         .encd_raw = 0,
         .lsc2_total = 202,
-        .lsc2_disassemble = 201,
-        .lsc2_decompile = 1,
+        .lsc2_disassemble = 200,
+        .lsc2_decompile = 2,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
@@ -130,8 +130,8 @@ test "Backyard Baseball 2001 round trip decode" {
         .encd_decompile = 20,
         .encd_raw = 0,
         .lsc2_total = 1529,
-        .lsc2_disassemble = 1519,
-        .lsc2_decompile = 10,
+        .lsc2_disassemble = 1514,
+        .lsc2_decompile = 15,
         .lsc2_raw = 0,
         .script_unknown_byte = 0,
     }));
