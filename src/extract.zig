@@ -990,7 +990,7 @@ fn extractRmimJob(
     errdefer code.deinit(cx.cx.gpa);
 
     if (cx.cx.options.rmim == .decode)
-        if (tryDecode(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index, .top))
+        if (tryDecodeAndSend(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index, .top))
             return;
 
     // If decoding failed or was skipped, extract as raw
@@ -1042,14 +1042,15 @@ fn extractRmdaChildJob(
     // First try to decode
     switch (block.id) {
         blockId("EXCD") => if (cx.cx.options.excd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .exit_script))
+            if (tryDecodeAndSend(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .exit_script))
                 return,
         blockId("ENCD") => if (cx.cx.options.encd == .decode)
-            if (tryDecode(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .enter_script))
+            if (tryDecodeAndSend(extractEncdExcd, cx, &diag, .{ block.id, raw }, &code, chunk_index, .enter_script))
                 return,
-        blockId("LSC2") => if (cx.cx.options.lsc2 == .decode)
-            if (tryDecode(extractLscr, cx, &diag, .{raw}, &code, chunk_index, .local_scripts))
-                return,
+        blockId("LSC2") => {
+            if (extractLscr(cx, &diag, raw, &code, chunk_index))
+                return;
+        },
         else => unreachable, // This is only called for the above block ids
     }
 
@@ -1113,23 +1114,26 @@ fn extractLscr(
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
-) !void {
-    if (raw.len < 4) return error.EndOfStream;
+    chunk_index: u16,
+) bool {
+    if (cx.cx.options.lsc2 == .raw) return false;
+
+    if (raw.len < 4)
+        return handleDecodeResult(error.EndOfStream, "decode", diag, code);
     const script_number = std.mem.readInt(u32, raw[0..4], .little);
     const bytecode = raw[4..];
 
-    if (cx.cx.options.script == .decompile)
-        if (extractLscrDecompile(cx, diag, script_number, bytecode, code))
-            return
-        else |err| {
-            if (err != error.AddedToDiagnostic)
-                diag.zigErr(0, "unexpected error: {s}", .{}, err);
-            // Clear any partial results from the failure
-            code.clearRetainingCapacity();
-            diag.info(0, "decompiling failed, falling back to disassembly", .{});
-        };
-
-    try extractLscrDisassemble(cx, diag, script_number, bytecode, code);
+    if (cx.cx.options.script == .decompile and
+        tryDecode("decompile", extractLscrDecompile, cx, diag, .{ script_number, bytecode }, code))
+    {
+        cx.sendChunk(chunk_index, .local_scripts, code.*);
+        return true;
+    }
+    if (tryDecode("disassemble", extractLscrDisassemble, cx, diag, .{ script_number, bytecode }, code)) {
+        cx.sendChunk(chunk_index, .local_scripts, code.*);
+        return true;
+    }
+    return false;
 }
 
 fn extractLscrDisassemble(
@@ -1272,17 +1276,18 @@ fn extractGlobJob(
 
     // First try to decode
     switch (block.id) {
-        blockId("SCRP") => if (cx.cx.options.scrp == .decode)
-            if (tryDecode(extractScrp, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .global_scripts))
-                return,
+        blockId("SCRP") => {
+            if (extractScrp(cx, &diag, glob_number, raw, &code, chunk_index))
+                return;
+        },
         blockId("AWIZ") => if (cx.cx.options.awiz == .decode)
-            if (tryDecode(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         blockId("MULT") => if (cx.cx.options.mult == .decode)
-            if (tryDecode(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         blockId("AKOS") => if (cx.cx.options.akos == .decode)
-            if (tryDecode(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         else => {},
     }
@@ -1299,6 +1304,39 @@ fn extractGlobJob(
 }
 
 fn tryDecode(
+    decoder_name: []const u8,
+    decodeFn: anytype,
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    decode_args: anytype,
+    code: *std.ArrayListUnmanaged(u8),
+) bool {
+    const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
+    return handleDecodeResult(result, decoder_name, diag, code);
+}
+
+// break out the non-generic code for better codegen
+fn handleDecodeResult(
+    result: anyerror!void,
+    decoder_name: []const u8,
+    diag: *const Diagnostic.ForBinaryFile,
+    code: *std.ArrayListUnmanaged(u8),
+) bool {
+    if (result) {
+        return true;
+    } else |err| {
+        if (err != error.AddedToDiagnostic)
+            diag.zigErr(0, "unexpected error: {s}", .{}, err);
+
+        // Clear any partial results from a failure
+        code.clearRetainingCapacity();
+
+        diag.info(0, "{s} failed", .{decoder_name});
+        return false;
+    }
+}
+
+fn tryDecodeAndSend(
     decodeFn: anytype,
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
@@ -1308,11 +1346,11 @@ fn tryDecode(
     section: Section,
 ) bool {
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
-    return tryDecodeHandleResult(result, cx, diag, code, chunk_index, section);
+    return handleDecodeAndSendResult(result, cx, diag, code, chunk_index, section);
 }
 
 // break out the non-generic code for better codegen
-fn tryDecodeHandleResult(
+fn handleDecodeAndSendResult(
     result: anyerror!void,
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
@@ -1320,19 +1358,11 @@ fn tryDecodeHandleResult(
     chunk_index: u16,
     section: Section,
 ) bool {
-    if (result) {
+    if (handleDecodeResult(result, "decode", diag, code)) {
         cx.sendChunk(chunk_index, section, code.*);
         return true;
-    } else |err| {
-        if (err != error.AddedToDiagnostic)
-            diag.zigErr(0, "unexpected error: {s}", .{}, err);
-
-        // Clear any partial results from a failure
-        code.clearRetainingCapacity();
-
-        diag.info(0, "decode error, falling back to raw", .{});
-        return false;
     }
+    return false;
 }
 
 fn extractScrp(
@@ -1341,19 +1371,21 @@ fn extractScrp(
     glob_number: u16,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
-) !void {
-    if (cx.cx.options.script == .decompile)
-        if (extractScrpDecompile(cx, diag, glob_number, raw, code))
-            return
-        else |err| {
-            if (err != error.AddedToDiagnostic)
-                diag.zigErr(0, "unexpected error: {s}", .{}, err);
-            // Clear any partial results from the failure
-            code.clearRetainingCapacity();
-            diag.info(0, "decompiling failed, falling back to disassembly", .{});
-        };
-
-    try extractScrpDisassemble(cx, diag, glob_number, raw, code);
+    chunk_index: u16,
+) bool {
+    if (cx.cx.options.scrp == .raw)
+        return false;
+    if (cx.cx.options.script == .decompile and
+        tryDecode("decompile", extractScrpDecompile, cx, diag, .{ glob_number, raw }, code))
+    {
+        cx.sendChunk(chunk_index, .global_scripts, code.*);
+        return true;
+    }
+    if (tryDecode("disassemble", extractScrpDisassemble, cx, diag, .{ glob_number, raw }, code)) {
+        cx.sendChunk(chunk_index, .global_scripts, code.*);
+        return true;
+    }
+    return false;
 }
 
 fn extractScrpDisassemble(
