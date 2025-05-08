@@ -535,7 +535,11 @@ fn buildNormalLanguage() Language {
 
     lang.add(0xbd, .@"return", &.{});
     lang.add(0xbf, .@"call-script", &.{});
-    lang.add(0xc0, "dim-array-2d", &.{ .u8, .variable });
+
+    lang.addNested(0xc0, 0x04, "dim-array-2d.int8", &.{.variable});
+    lang.addNested(0xc0, 0x05, "dim-array-2d.int16", &.{.variable});
+    lang.addNested(0xc0, 0x06, "dim-array-2d.int32", &.{.variable});
+
     lang.add(0xc1, "debug-string", &.{});
     lang.add(0xc4, "abs", &.{});
     lang.add(0xc8, .@"kludge-call", &.{});
