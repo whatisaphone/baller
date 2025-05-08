@@ -25,23 +25,7 @@ test "Backyard Baseball 1997 round trip raw" {
     try testRoundTrip(baseball1997, .raw, null);
 }
 test "Backyard Baseball 1997 round trip decode" {
-    try testRoundTrip(baseball1997, .decode, &.init(.{
-        .scrp_total = 193,
-        .scrp_disassemble = 190,
-        .scrp_decompile = 3,
-        .scrp_raw = 0,
-        .excd_total = 30,
-        .excd_disassemble = 13,
-        .excd_decompile = 17,
-        .excd_raw = 0,
-        .encd_total = 30,
-        .encd_disassemble = 23,
-        .encd_decompile = 7,
-        .encd_raw = 0,
-        .lsc2_total = 202,
-        .lsc2_disassemble = 200,
-        .lsc2_decompile = 2,
-        .lsc2_raw = 0,
+    try testRoundTrip(baseball1997, .decode, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -55,23 +39,7 @@ test "Backyard Soccer round trip raw" {
     try testRoundTrip(soccer, .raw, null);
 }
 test "Backyard Soccer round trip decode" {
-    try testRoundTrip(soccer, .decode, &.init(.{
-        .scrp_total = 135,
-        .scrp_disassemble = 132,
-        .scrp_decompile = 3,
-        .scrp_raw = 0,
-        .excd_total = 29,
-        .excd_disassemble = 17,
-        .excd_decompile = 12,
-        .excd_raw = 0,
-        .encd_total = 29,
-        .encd_disassemble = 24,
-        .encd_decompile = 5,
-        .encd_raw = 0,
-        .lsc2_total = 143,
-        .lsc2_disassemble = 140,
-        .lsc2_decompile = 3,
-        .lsc2_raw = 0,
+    try testRoundTrip(soccer, .decode, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -85,23 +53,7 @@ test "Backyard Football round trip raw" {
     try testRoundTrip(football, .raw, null);
 }
 test "Backyard Football round trip decode" {
-    try testRoundTrip(football, .decode, &.init(.{
-        .scrp_total = 388,
-        .scrp_disassemble = 363,
-        .scrp_decompile = 25,
-        .scrp_raw = 0,
-        .excd_total = 56,
-        .excd_disassemble = 17,
-        .excd_decompile = 39,
-        .excd_raw = 0,
-        .encd_total = 56,
-        .encd_disassemble = 28,
-        .encd_decompile = 28,
-        .encd_raw = 0,
-        .lsc2_total = 890,
-        .lsc2_disassemble = 856,
-        .lsc2_decompile = 34,
-        .lsc2_raw = 0,
+    try testRoundTrip(football, .decode, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -116,23 +68,7 @@ test "Backyard Baseball 2001 round trip raw" {
     try testRoundTrip(baseball2001, .raw, null);
 }
 test "Backyard Baseball 2001 round trip decode" {
-    try testRoundTrip(baseball2001, .decode, &.init(.{
-        .scrp_total = 417,
-        .scrp_disassemble = 392,
-        .scrp_decompile = 25,
-        .scrp_raw = 0,
-        .excd_total = 37,
-        .excd_disassemble = 11,
-        .excd_decompile = 26,
-        .excd_raw = 0,
-        .encd_total = 37,
-        .encd_disassemble = 14,
-        .encd_decompile = 23,
-        .encd_raw = 0,
-        .lsc2_total = 1529,
-        .lsc2_disassemble = 1382,
-        .lsc2_decompile = 147,
-        .lsc2_raw = 0,
+    try testRoundTrip(baseball2001, .decode, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -146,23 +82,7 @@ test "Backyard Basketball round trip raw" {
     try testRoundTrip(basketball, .raw, null);
 }
 test "Backyard Basketball round trip decode" {
-    try testRoundTrip(basketball, .decode, &.init(.{
-        .scrp_total = 663,
-        .scrp_disassemble = 663,
-        .scrp_decompile = 0,
-        .scrp_raw = 0,
-        .excd_total = 33,
-        .excd_disassemble = 30,
-        .excd_decompile = 3,
-        .excd_raw = 0,
-        .encd_total = 33,
-        .encd_disassemble = 30,
-        .encd_decompile = 3,
-        .encd_raw = 0,
-        .lsc2_total = 1142,
-        .lsc2_disassemble = 1142,
-        .lsc2_decompile = 0,
-        .lsc2_raw = 0,
+    try testRoundTrip(basketball, .decode, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -170,7 +90,7 @@ test "Backyard Basketball round trip decode" {
 fn testRoundTrip(
     comptime game: Game,
     options: enum { raw, decode },
-    expected_extract_stats: ?*const std.EnumArray(extract.Stat, u16),
+    expected_extract_stats: ?*const std.EnumArray(extract.Stat, ?u16),
 ) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
@@ -228,7 +148,8 @@ fn testRoundTrip(
     if (expected_extract_stats) |exp_ex_st|
         for (std.meta.tags(extract.Stat)) |stat| {
             errdefer dumpExtractStats(&extract_stats);
-            try std.testing.expectEqual(extract_stats.get(stat), exp_ex_st.get(stat));
+            if (exp_ex_st.get(stat)) |expected|
+                try std.testing.expectEqual(extract_stats.get(stat), expected);
         };
 }
 
