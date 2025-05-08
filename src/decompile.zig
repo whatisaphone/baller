@@ -245,7 +245,7 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
             },
             .jump_unless => {
                 const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
                 const condition = try pop(cx);
                 try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
                     .target = target,
@@ -254,7 +254,7 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
             },
             .jump => {
                 const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
                 try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
             },
             .generic => |gen| {
