@@ -78,6 +78,7 @@ pub const Op = enum {
     add,
     set,
     @"set-array-item",
+    inc,
     @"jump-unless",
     @"start-script",
     @"start-script-rec",
@@ -86,6 +87,9 @@ pub const Op = enum {
     @"array-get-width",
     end2,
     end,
+    @"window-select",
+    @"window-set-image",
+    @"window-commit",
     @"break-here",
     @"current-room",
     random,
@@ -93,6 +97,7 @@ pub const Op = enum {
     @"sleep-for-seconds",
     @"stop-sentence",
     @"dim-array.int8",
+    @"dim-array.int16",
     undim,
     @"return",
     @"call-script",
@@ -304,7 +309,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x4e, 0x06, "write-ini-int", &.{});
     lang.addNested(0x4e, 0x07, "write-ini-string", &.{});
 
-    lang.add(0x4f, "inc", &.{.variable});
+    lang.add(0x4f, .inc, &.{.variable});
     lang.add(0x50, "override-off-off", &.{});
     lang.add(0x53, "inc-array-item", &.{.variable});
     lang.add(0x54, "get-object-image-x", &.{});
@@ -343,12 +348,12 @@ fn buildNormalLanguage() Language {
     lang.add(0x65, .end2, &.{});
     lang.add(0x66, .end, &.{});
 
-    lang.addNested(0x69, 0x39, "window-select", &.{});
+    lang.addNested(0x69, 0x39, .@"window-select", &.{});
     lang.addNested(0x69, 0x3a, "window-set-script", &.{});
-    lang.addNested(0x69, 0x3f, "window-set-image", &.{});
+    lang.addNested(0x69, 0x3f, .@"window-set-image", &.{});
     lang.addNested(0x69, 0xd9, "window-new", &.{});
     lang.addNested(0x69, 0xf3, "window-set-title-bar", &.{});
-    lang.addNested(0x69, 0xff, "window-commit", &.{});
+    lang.addNested(0x69, 0xff, .@"window-commit", &.{});
 
     lang.add(0x6a, "freeze-scripts", &.{});
 
@@ -523,7 +528,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0xbc, 0x02, "dim-array.int1", &.{.variable});
     lang.addNested(0xbc, 0x04, .@"dim-array.int8", &.{.variable});
-    lang.addNested(0xbc, 0x05, "dim-array.int16", &.{.variable});
+    lang.addNested(0xbc, 0x05, .@"dim-array.int16", &.{.variable});
     lang.addNested(0xbc, 0x06, "dim-array.int32", &.{.variable});
     lang.addNested(0xbc, 0x07, "dim-array.string", &.{.variable});
     lang.addNested(0xbc, 0xcc, .undim, &.{.variable});
