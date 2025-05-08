@@ -820,7 +820,7 @@ fn parseExpr(state: *State, first: *const lexer.Token, prec: Precedence) ParseEr
                 cur = try storeNode(state, .{ .field = .{ .lhs = cur, .field = field } });
             },
             // This is everything that parseAtom recognizes
-            .integer, .identifier, .paren_l => {
+            .integer, .identifier, .paren_l, .bracket_l => {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseArgs(state);
                 cur = try storeNode(state, .{ .call = .{ .callee = cur, .args = args } });

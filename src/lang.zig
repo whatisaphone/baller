@@ -75,15 +75,20 @@ pub const Op = enum {
     @"push-var",
     @"get-array-item",
     @"get-array-item-2d",
+    add,
     set,
+    @"set-array-item",
     @"jump-unless",
     @"start-script",
+    @"start-script-rec",
     @"start-object",
     @"array-get-height",
     @"array-get-width",
     end2,
     end,
+    @"break-here",
     @"current-room",
+    random,
     debug,
     @"sleep-for-seconds",
     @"stop-sentence",
@@ -91,7 +96,9 @@ pub const Op = enum {
     undim,
     @"return",
     @"call-script",
+    @"kludge-call",
     @"break-here-multi",
+    @"chain-script",
 };
 
 // stopgap while migrating from string to enum
@@ -161,7 +168,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x11, "lt", &.{});
     lang.add(0x12, "le", &.{});
     lang.add(0x13, "ge", &.{});
-    lang.add(0x14, "add", &.{});
+    lang.add(0x14, .add, &.{});
     lang.add(0x15, "sub", &.{});
     lang.add(0x16, "mul", &.{});
     lang.add(0x17, "div", &.{});
@@ -287,7 +294,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x43, .set, &.{.variable});
     lang.add(0x46, "file-size", &.{});
-    lang.add(0x47, "set-array-item", &.{.variable});
+    lang.add(0x47, .@"set-array-item", &.{.variable});
     lang.add(0x48, "string-number", &.{});
     lang.add(0x4b, "set-array-item-2d", &.{.variable});
 
@@ -314,7 +321,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x5d, .@"jump-unless", &.{.relative_offset});
 
     lang.addNested(0x5e, 0x01, .@"start-script", &.{});
-    lang.addNested(0x5e, 0xc3, "start-script-rec", &.{});
+    lang.addNested(0x5e, 0xc3, .@"start-script-rec", &.{});
 
     lang.addNested(0x60, 0x01, .@"start-object", &.{});
     lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
@@ -356,7 +363,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x6b, 0x9c, "charset", &.{});
     lang.addNested(0x6b, 0x9d, "charset-color", &.{});
 
-    lang.add(0x6c, "break-here", &.{});
+    lang.add(0x6c, .@"break-here", &.{});
     lang.add(0x6d, "class-of", &.{});
     lang.add(0x6e, "object-set-class", &.{});
     lang.add(0x6f, "object-get-state", &.{});
@@ -376,7 +383,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x7c, "stop-script", &.{});
     lang.add(0x7f, "put-actor", &.{});
     lang.add(0x82, "do-animation", &.{});
-    lang.add(0x87, "random", &.{});
+    lang.add(0x87, .random, &.{});
     lang.add(0x88, "random-between", &.{});
     lang.add(0x8b, "script-running", &.{});
     lang.add(0x8c, "actor-room", &.{});
@@ -526,7 +533,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xc0, "dim-array-2d", &.{ .u8, .variable });
     lang.add(0xc1, "debug-string", &.{});
     lang.add(0xc4, "abs", &.{});
-    lang.add(0xc8, "kludge-call", &.{});
+    lang.add(0xc8, .@"kludge-call", &.{});
     lang.add(0xc9, "kludge", &.{});
     lang.add(0xca, .@"break-here-multi", &.{});
     lang.add(0xcb, "pick", &.{});
@@ -537,7 +544,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xd2, "actor-get-var", &.{});
     lang.add(0xd4, "shuffle", &.{.variable});
 
-    lang.addNested(0xd5, 0x01, "chain-script", &.{});
+    lang.addNested(0xd5, 0x01, .@"chain-script", &.{});
     lang.addNested(0xd5, 0xc3, "chain-script-rec", &.{});
 
     lang.add(0xd6, "band", &.{});
