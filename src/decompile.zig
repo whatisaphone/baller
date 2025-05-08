@@ -119,6 +119,7 @@ const BasicBlock = struct {
 
 const Stmt = union(enum) {
     jump_unless: struct { target: u16, condition: ExprIndex },
+    jump: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
 };
 
@@ -141,6 +142,7 @@ const Op = union(enum) {
     push16,
     push_var,
     jump_unless,
+    jump,
     generic: struct {
         call: bool,
         params: std.BoundedArray(Param, max_params),
@@ -161,7 +163,7 @@ const Op = union(enum) {
     }
 };
 
-const max_params = 3;
+const max_params = 8;
 
 const Param = union(enum) {
     int,
@@ -175,9 +177,14 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"get-array-item" = .genCall(&.{.int}),
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .add = .genCall(&.{ .int, .int }),
+    .sub = .genCall(&.{ .int, .int }),
+    .mul = .genCall(&.{ .int, .int }),
+    .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
+    .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
     .inc = .gen(&.{}),
+    .dec = .gen(&.{}),
     .@"jump-unless" = .jump_unless,
     .@"start-script" = .gen(&.{ .int, .list }),
     .@"start-script-rec" = .gen(&.{ .int, .list }),
@@ -189,9 +196,13 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"window-select" = .gen(&.{.int}),
     .@"window-set-image" = .gen(&.{.int}),
     .@"window-commit" = .gen(&.{}),
+    .@"cursor-on" = .gen(&.{}),
     .@"break-here" = .gen(&.{}),
+    .jump = .jump,
     .@"current-room" = .gen(&.{.int}),
+    .@"stop-script" = .gen(&.{.int}),
     .random = .genCall(&.{.int}),
+    .@"array-assign-slice" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }),
     .debug = .gen(&.{.int}),
     .@"sleep-for-seconds" = .gen(&.{.int}),
     .@"stop-sentence" = .gen(&.{}),
@@ -200,8 +211,12 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .undim = .gen(&.{}),
     .@"return" = .gen(&.{.int}),
     .@"call-script" = .genCall(&.{ .int, .list }),
+    .@"dim-array-2d.int8" = .gen(&.{ .int, .int }),
+    .@"dim-array-2d.int16" = .gen(&.{ .int, .int }),
     .@"kludge-call" = .genCall(&.{.list}),
+    .kludge = .gen(&.{.list}),
     .@"break-here-multi" = .gen(&.{.int}),
+    .@"actor-get-var" = .genCall(&.{ .int, .int }),
     .@"chain-script" = .gen(&.{ .int, .list }),
 });
 
@@ -236,6 +251,11 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                     .target = target,
                     .condition = condition,
                 } });
+            },
+            .jump => {
+                const rel = ins.operands.get(0).relative_offset;
+                const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+                try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
             },
             .generic => |gen| {
                 var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
@@ -329,6 +349,11 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try emitLabel(cx, j.target);
             try cx.out.append(cx.gpa, ' ');
             try emitExpr(cx, j.condition, .space);
+        },
+        .jump => |j| {
+            try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.jump));
+            try cx.out.append(cx.gpa, ' ');
+            try emitLabel(cx, j.target);
         },
         .call => |call| try emitCall(cx, call.op, call.args),
     }

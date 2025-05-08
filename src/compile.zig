@@ -83,7 +83,7 @@ fn findIns(
     node_index: u32,
 ) !struct { std.BoundedArray(u8, 2), *const lang.LangIns } {
     const expr = &cx.ast.nodes.items[node_index];
-    var name_buf: [16]u8 = undefined;
+    var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
         .identifier => |id| id,
         .field => |f| blk: {
