@@ -19,8 +19,8 @@ pub fn run(
 
     const language = lang.buildLanguage(game);
 
-    const basic_blocks = try scanBasicBlocks(gpa, &language, bytecode);
-    defer gpa.free(basic_blocks);
+    var basic_blocks = try scanBasicBlocks(gpa, &language, bytecode);
+    defer basic_blocks.deinit(gpa);
 
     var dcx: DecompileCx = .{
         .gpa = gpa,
@@ -35,8 +35,8 @@ pub fn run(
     defer dcx.exprs.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
 
-    for (basic_blocks, 0..) |*bb, i| {
-        const bb_start = if (i == 0) 0 else basic_blocks[i - 1].end;
+    for (basic_blocks.items, 0..) |*bb, i| {
+        const bb_start = if (i == 0) 0 else basic_blocks.items[i - 1].end;
         try decompile(&dcx, bytecode, bb, bb_start);
     }
 
@@ -46,8 +46,8 @@ pub fn run(
         .extra = .init(dcx.extra.items),
         .out = out,
     };
-    for (basic_blocks, 0..) |*bb, i| {
-        const bb_start = if (i == 0) 0 else basic_blocks[i - 1].end;
+    for (basic_blocks.items, 0..) |*bb, i| {
+        const bb_start = if (i == 0) 0 else basic_blocks.items[i - 1].end;
 
         try emitLabel(&ecx, bb_start);
         try out.appendSlice(gpa, ":\n");
@@ -73,48 +73,82 @@ fn scanBasicBlocks(
     gpa: std.mem.Allocator,
     language: *const lang.Language,
     bytecode: []const u8,
-) ![]BasicBlock {
-    var ends: std.ArrayListUnmanaged(u16) = .empty;
-    defer ends.deinit(gpa);
+) !std.ArrayListUnmanaged(BasicBlock) {
+    var result: std.ArrayListUnmanaged(BasicBlock) = .empty;
+    errdefer result.deinit(gpa);
 
     var disasm: lang.Disasm = .init(language, bytecode);
     while (try disasm.next()) |ins| {
-        if (ins.operands.len == 0) continue;
-        if (ins.operands.get(0) != .relative_offset) continue;
-        const rel = ins.operands.get(0).relative_offset;
-        const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
-        if (target >= bytecode.len) return error.BadData;
-        try insertSortedNoDup(gpa, &ends, ins.end);
-        try insertSortedNoDup(gpa, &ends, target);
-    }
-    try ends.append(gpa, @intCast(bytecode.len));
-
-    const blocks = try gpa.alloc(BasicBlock, ends.items.len);
-    errdefer gpa.free(blocks);
-
-    for (ends.items, blocks) |end, *block|
-        block.* = .{
-            .end = end,
-            .statements = .undef,
+        if (ins.name == .op) switch (ins.name.op) {
+            .@"jump-unless" => {
+                const target = try jumpTarget(&ins, @intCast(bytecode.len));
+                try insertBasicBlock(gpa, &result, ins.end, .{
+                    .jump_unless = .{ .target = target },
+                });
+                try insertBasicBlock(gpa, &result, target, .no_jump);
+            },
+            .jump => {
+                const target = try jumpTarget(&ins, @intCast(bytecode.len));
+                try insertBasicBlock(gpa, &result, ins.end, .{
+                    .jump = .{ .target = target },
+                });
+                try insertBasicBlock(gpa, &result, target, .no_jump);
+            },
+            else => {},
         };
-
-    return blocks;
+    }
+    try result.append(gpa, .{
+        .end = @intCast(bytecode.len),
+        .exit = .no_jump,
+        .statements = .undef,
+    });
+    return result;
 }
 
-fn insertSortedNoDup(gpa: std.mem.Allocator, xs: *std.ArrayListUnmanaged(u16), item: u16) !void {
-    const index = std.sort.lowerBound(u16, xs.items, item, orderU16);
-    if (index != xs.items.len and xs.items[index] == item)
-        return;
-    try xs.insert(gpa, index, item);
+fn jumpTarget(ins: *const lang.Ins, bytecode_len: u16) !u16 {
+    const rel = ins.operands.get(0).relative_offset;
+    const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+    if (target >= bytecode_len) return error.BadData;
+    return target;
 }
 
-fn orderU16(a: u16, b: u16) std.math.Order {
-    return std.math.order(a, b);
+fn insertBasicBlock(
+    gpa: std.mem.Allocator,
+    basic_blocks: *std.ArrayListUnmanaged(BasicBlock),
+    end: u16,
+    exit: BasicBlockExit,
+) !void {
+    const index = std.sort.lowerBound(BasicBlock, basic_blocks.items, end, BasicBlock.order);
+    if (index != basic_blocks.items.len and basic_blocks.items[index].end == end) {
+        // If there's a dup, update the exit
+        if (exit != .no_jump) {
+            std.debug.assert(basic_blocks.items[index].exit == .no_jump);
+            basic_blocks.items[index].exit = exit;
+        }
+    } else {
+        // Otherwise insert the new block
+        try basic_blocks.insert(gpa, index, .{
+            .end = end,
+            .exit = exit,
+            .statements = .undef,
+        });
+    }
 }
 
 const BasicBlock = struct {
     end: u16,
+    exit: BasicBlockExit,
     statements: utils.SafeUndefined(ExtraSlice),
+
+    fn order(end: u16, item: BasicBlock) std.math.Order {
+        return std.math.order(end, item.end);
+    }
+};
+
+const BasicBlockExit = union(enum) {
+    no_jump,
+    jump: struct { target: u16 },
+    jump_unless: struct { target: u16 },
 };
 
 const Stmt = union(enum) {

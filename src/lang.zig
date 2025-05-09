@@ -1082,7 +1082,7 @@ pub fn lookup(
     return .{ opcode, ins };
 }
 
-const Ins = struct {
+pub const Ins = struct {
     start: u16,
     end: u16,
     name: OpcodeName,
