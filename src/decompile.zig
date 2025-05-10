@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const Symbols = @import("Symbols.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
@@ -9,7 +10,7 @@ const utils = @import("utils.zig");
 pub fn run(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    game: games.Game,
+    symbols: *const Symbols,
     bytecode: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
@@ -17,7 +18,7 @@ pub fn run(
     // Leave an extra byte so the end of a slice is representable as 0xffff.
     if (bytecode.len > 0xfffe) return error.BadData;
 
-    const language = lang.buildLanguage(game);
+    const language = lang.buildLanguage(symbols.game);
 
     var basic_blocks = try scanBasicBlocks(gpa, &language, bytecode);
     defer basic_blocks.deinit(gpa);
@@ -53,6 +54,7 @@ pub fn run(
 
     var ecx: EmitCx = .{
         .gpa = gpa,
+        .symbols = symbols,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
@@ -547,6 +549,7 @@ const indent_size = 4;
 
 const EmitCx = struct {
     gpa: std.mem.Allocator,
+    symbols: *const Symbols,
     nodes: utils.SafeManyPointer([*]const Node),
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
@@ -649,6 +652,14 @@ fn emitCall(cx: *const EmitCx, op: lang.Op, args: ExtraSlice) !void {
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
     const kind, const number = try variable.decode2();
+    switch (kind) {
+        .global => {
+            if (cx.symbols.globals.get(number)) |name|
+                return try cx.out.appendSlice(cx.gpa, name);
+        },
+        .local => {}, // TODO
+        .room => {}, // TODO
+    }
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
 }
 

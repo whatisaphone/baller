@@ -7,6 +7,7 @@ pub fn compile(
     gpa: std.mem.Allocator,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
     ast: *const Ast,
     statements: Ast.ExtraSlice,
     out: *std.ArrayListUnmanaged(u8),
@@ -15,6 +16,7 @@ pub fn compile(
         .gpa = gpa,
         .language = language,
         .ins_map = ins_map,
+        .project_scope = project_scope,
         .ast = ast,
         .out = out,
         .label_offsets = .empty,
@@ -37,6 +39,7 @@ const Cx = struct {
     gpa: std.mem.Allocator,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
     ast: *const Ast,
 
     out: *std.ArrayListUnmanaged(u8),
@@ -115,7 +118,7 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, BadData }!void {
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
         .identifier => |id| {
-            const variable = parseVariable(id) orelse return error.BadData;
+            const variable = parseVariable(cx, id) orelse return error.BadData;
             try emitOpcodeByName(cx, "push-var");
             try emitVariable(cx, variable);
         },
@@ -171,7 +174,7 @@ fn emitVariableByExpr(cx: *const Cx, node_index: u32) !void {
     const expr = &cx.ast.nodes.items[node_index];
     if (expr.* != .identifier) return error.BadData;
     const id = expr.identifier;
-    const variable = parseVariable(id) orelse return error.BadData;
+    const variable = parseVariable(cx, id) orelse return error.BadData;
     try emitVariable(cx, variable);
 }
 
@@ -179,7 +182,11 @@ fn emitVariable(cx: *const Cx, variable: lang.Variable) !void {
     try cx.out.writer(cx.gpa).writeInt(u16, variable.raw, .little);
 }
 
-fn parseVariable(str: []const u8) ?lang.Variable {
+fn parseVariable(cx: *const Cx, str: []const u8) ?lang.Variable {
+    if (cx.project_scope.get(str)) |v|
+        return v;
+
+    // TODO: get rid of this fallback eventually
     const kind: lang.Variable.Kind, const num_str =
         if (str.len >= 6 and std.mem.startsWith(u8, str, "global"))
             .{ .global, str[6..] }

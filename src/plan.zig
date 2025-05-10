@@ -642,7 +642,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -663,7 +663,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
     try out.writer(cx.gpa).writeInt(u32, script.script_number, .little);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -681,7 +681,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -699,7 +699,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,

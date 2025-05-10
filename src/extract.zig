@@ -1160,7 +1160,7 @@ fn extractEncdExcdDecompile(
         .excd => "exit",
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.game, raw, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, raw, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(switch (edge) {
@@ -1238,7 +1238,7 @@ fn extractLscrDecompile(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try code.writer(cx.cx.gpa).print("local-script {} {{\n", .{script_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.game, bytecode, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, bytecode, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(.lsc2_decompile);
@@ -1507,7 +1507,7 @@ fn extractScrpDecompile(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try code.writer(cx.cx.gpa).print("script {} {{\n", .{glob_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.game, raw, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, raw, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(.scrp_decompile);
