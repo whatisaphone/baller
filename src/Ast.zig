@@ -149,6 +149,10 @@ pub const Node = union(enum) {
     list: struct {
         items: ExtraSlice,
     },
+    @"if": struct {
+        condition: NodeIndex,
+        true: ExtraSlice,
+    },
 };
 
 pub const ExtraSlice = struct {

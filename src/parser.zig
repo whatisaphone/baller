@@ -356,7 +356,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                 },
                 .enter => {
                     try expect(state, .brace_l);
-                    const statements = try parseScriptBody(state);
+                    const statements = try parseScriptBlock(state);
                     const node_index = try storeNode(state, .{ .enter = .{
                         .statements = statements,
                     } });
@@ -364,7 +364,7 @@ fn parseRoomChildren(state: *State) !Ast.NodeIndex {
                 },
                 .exit => {
                     try expect(state, .brace_l);
-                    const statements = try parseScriptBody(state);
+                    const statements = try parseScriptBlock(state);
                     const node_index = try storeNode(state, .{ .exit = .{
                         .statements = statements,
                     } });
@@ -753,7 +753,7 @@ fn parseRawGlobBlock(state: *State, block_id: BlockId, glob_number: u16) !Ast.No
 }
 
 fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
-    const statements = try parseScriptBody(state);
+    const statements = try parseScriptBlock(state);
     return try storeNode(state, .{ .script = .{
         .glob_number = glob_number,
         .statements = statements,
@@ -761,14 +761,14 @@ fn parseScript(state: *State, glob_number: u16) !Ast.NodeIndex {
 }
 
 fn parseLocalScript(state: *State, script_number: u16) !Ast.NodeIndex {
-    const statements = try parseScriptBody(state);
+    const statements = try parseScriptBlock(state);
     return try storeNode(state, .{ .local_script = .{
         .script_number = script_number,
         .statements = statements,
     } });
 }
 
-fn parseScriptBody(state: *State) !Ast.ExtraSlice {
+fn parseScriptBlock(state: *State) ParseError!Ast.ExtraSlice {
     var statements: std.BoundedArray(Ast.NodeIndex, 256) = .{};
     while (true) {
         skipWhitespace(state);
@@ -781,14 +781,32 @@ fn parseScriptBody(state: *State) !Ast.ExtraSlice {
 }
 
 fn parseStatement(state: *State, token: *const lexer.Token) !Ast.NodeIndex {
-    // Check for labels
+    const Keyword = enum {
+        @"if",
+    };
+
     if (token.kind == .identifier) {
-        const next = peekToken(state);
-        if (next.kind == .colon) {
+        // Check for labels
+        if (peekToken(state).kind == .colon) {
             _ = consumeToken(state);
             const identifier = state.source[token.span.start.offset..token.span.end.offset];
             return storeNode(state, .{ .label = identifier });
         }
+        // Check for keywords
+        if (parseIdentifierOpt(state, token, Keyword)) |kw| switch (kw) {
+            .@"if" => {
+                try expect(state, .paren_l);
+                const next = consumeToken(state);
+                const condition = try parseExpr(state, next, .all);
+                try expect(state, .paren_r);
+                try expect(state, .brace_l);
+                const true_stmts = try parseScriptBlock(state);
+                return storeNode(state, .{ .@"if" = .{
+                    .condition = condition,
+                    .true = true_stmts,
+                } });
+            },
+        };
     }
 
     const ei = try parseExpr(state, token, .all);
@@ -935,14 +953,18 @@ fn expectIdentifier(state: *State) ![]const u8 {
     return state.source[token.span.start.offset..token.span.end.offset];
 }
 
-fn parseIdentifier(state: *State, token: *const lexer.Token, T: type) !T {
-    if (token.kind != .identifier)
-        return reportExpected(state, token, .identifier);
+fn parseIdentifierOpt(state: *State, token: *const lexer.Token, T: type) ?T {
+    if (token.kind != .identifier) return null;
     const identifier = state.source[token.span.start.offset..token.span.end.offset];
     inline for (comptime std.meta.fieldNames(T)) |f|
         if (std.mem.eql(u8, identifier, f))
             return @field(T, f);
-    return reportUnexpected(state, token);
+    return null;
+}
+
+fn parseIdentifier(state: *State, token: *const lexer.Token, T: type) !T {
+    return parseIdentifierOpt(state, token, T) orelse
+        return reportUnexpected(state, token);
 }
 
 fn expect(state: *State, kind: lexer.Token.Kind) !void {

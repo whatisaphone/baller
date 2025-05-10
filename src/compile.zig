@@ -23,8 +23,7 @@ pub fn compile(
     defer cx.label_fixups.deinit(gpa);
     defer cx.label_offsets.deinit(gpa);
 
-    for (ast.getExtra(statements)) |i|
-        try emitStatement(&cx, i);
+    try emitBlock(&cx, statements);
 
     for (cx.label_fixups.items) |fixup| {
         const label_offset = cx.label_offsets.get(fixup.label_name) orelse return error.BadData;
@@ -45,6 +44,11 @@ const Cx = struct {
     label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
 };
 
+fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, BadData }!void {
+    for (cx.ast.getExtra(slice)) |i|
+        try emitStatement(cx, i);
+}
+
 fn emitStatement(cx: *Cx, node_index: u32) !void {
     const node = &cx.ast.nodes.items[node_index];
     switch (node.*) {
@@ -54,6 +58,14 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             entry.value_ptr.* = @intCast(cx.out.items.len);
         },
         .call => try emitCall(cx, node_index),
+        .@"if" => |s| {
+            try pushExpr(cx, s.condition);
+            try emitOpcodeByName(cx, "jump-unless");
+            const target = try cx.out.addManyAsArray(cx.gpa, 2);
+            try emitBlock(cx, s.true);
+            try writeJumpHere(cx, target);
+        },
+        // TODO: handle all errors during parsing and make this unreachable
         else => return error.BadData,
     }
 }
@@ -179,4 +191,11 @@ fn parseVariable(str: []const u8) ?lang.Variable {
             return null;
     const num = std.fmt.parseInt(u14, num_str, 10) catch return null;
     return .init2(kind, num);
+}
+
+fn writeJumpHere(cx: *Cx, dest: *[2]u8) !void {
+    const target = cx.out.unusedCapacitySlice().ptr;
+    const rel_wide = target - (dest.ptr + 2);
+    const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
+    std.mem.writeInt(i16, dest, rel, .little);
 }

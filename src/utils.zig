@@ -114,6 +114,10 @@ pub fn SafeManyPointer(ManyPtr: type) type {
         pub fn get(self: Self, index: usize) Element {
             return self.use()[index];
         }
+
+        pub fn getPtr(self: Self, index: usize) *const Element {
+            return &self.use()[index];
+        }
     };
 }
 

@@ -40,22 +40,23 @@ pub fn run(
         try decompile(&dcx, bytecode, bb, bb_start);
     }
 
+    var scx: StructuringCx = .{
+        .gpa = gpa,
+        .stmts = .init(dcx.stmts.items),
+        .nodes = .empty,
+    };
+    defer scx.nodes.deinit(gpa);
+    try structure(&scx, basic_blocks.items);
+
     var ecx: EmitCx = .{
         .gpa = gpa,
+        .nodes = .init(scx.nodes.items),
+        .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
         .out = out,
     };
-    for (basic_blocks.items, 0..) |*bb, i| {
-        const bb_start = if (i == 0) 0 else basic_blocks.items[i - 1].end;
-
-        try emitLabel(&ecx, bb_start);
-        try out.appendSlice(gpa, ":\n");
-
-        const ss = bb.statements.defined;
-        for (dcx.stmts.items[ss.start..][0..ss.len]) |*stmt|
-            try emitStmt(&ecx, stmt);
-    }
+    try emitNodeList(&ecx, root_node_index);
 }
 
 const DecompileCx = struct {
@@ -367,12 +368,154 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
     return .{ .start = start, .len = len };
 }
 
+const StructuringCx = struct {
+    gpa: std.mem.Allocator,
+    stmts: utils.SafeManyPointer([*]const Stmt),
+
+    nodes: std.ArrayListUnmanaged(Node),
+};
+
+const NodeIndex = u16;
+
+const null_node: NodeIndex = 0xffff;
+
+const Node = struct {
+    start: u16,
+    end: u16,
+    next: NodeIndex,
+    kind: NodeKind,
+};
+
+const NodeKind = union(enum) {
+    basic_block: struct {
+        exit: BasicBlockExit,
+        statements: ExtraSlice,
+    },
+    @"if": struct {
+        condition: ExprIndex,
+        true: NodeIndex,
+    },
+};
+
+const root_node_index = 0;
+
+fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
+    // Populate initial nodes, just every basic block one after the other
+    const bb_nodes = try cx.nodes.addManyAsSlice(cx.gpa, basic_blocks.len);
+    for (bb_nodes, basic_blocks, 0..) |*node, *bb, bbi_usize| {
+        const bbi: u16 = @intCast(bbi_usize);
+        const bb_start = if (bbi == 0) 0 else basic_blocks[bbi - 1].end;
+        const next = if (bbi == basic_blocks.len - 1) null_node else bbi + 1;
+        node.* = .{
+            .start = bb_start,
+            .end = bb.end,
+            .next = next,
+            .kind = .{ .basic_block = .{
+                .exit = bb.exit,
+                .statements = bb.statements.defined,
+            } },
+        };
+    }
+
+    try huntIf(cx, root_node_index);
+}
+
+fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
+    var ni = ni_first;
+    const ni_true_end = while (ni != null_node) {
+        const node = &cx.nodes.items[ni];
+        if (node.kind == .basic_block and
+            node.kind.basic_block.exit == .jump_unless and
+            node.kind.basic_block.exit.jump_unless.target > node.end)
+            if (findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless.target)) |n|
+                break n;
+        ni = node.next;
+    } else return;
+
+    try makeIf(cx, ni, ni_true_end);
+}
+
+fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
+    const condition = chopJumpUnless(cx, ni_before);
+    const ni_if = try appendNode(cx, .{
+        .start = cx.nodes.items[ni_before].end,
+        .end = cx.nodes.items[ni_true_end].end,
+        .next = cx.nodes.items[ni_true_end].next,
+        .kind = .{ .@"if" = .{
+            .condition = condition,
+            .true = cx.nodes.items[ni_before].next,
+        } },
+    });
+    cx.nodes.items[ni_before].next = ni_if;
+    cx.nodes.items[ni_true_end].next = null_node;
+}
+
+fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex {
+    var ni = ni_first;
+    while (ni != null_node) {
+        const node = &cx.nodes.items[ni];
+        if (node.end == end) return ni;
+        ni = node.next;
+    }
+    return null;
+}
+
+fn appendNode(cx: *StructuringCx, node: Node) !NodeIndex {
+    const ni: NodeIndex = @intCast(cx.nodes.items.len);
+    try cx.nodes.append(cx.gpa, node);
+    return ni;
+}
+
+fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
+    const jump_len = 3;
+
+    const node = &cx.nodes.items[ni];
+
+    const ss = node.kind.basic_block.statements;
+    const condition = cx.stmts.getPtr(ss.start + ss.len - 1).jump_unless.condition;
+
+    node.end -= jump_len;
+    node.kind.basic_block.exit = .no_jump;
+    node.kind.basic_block.statements.len -= 1;
+    return condition;
+}
+
 const EmitCx = struct {
     gpa: std.mem.Allocator,
+    nodes: utils.SafeManyPointer([*]const Node),
+    stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
     out: *std.ArrayListUnmanaged(u8),
 };
+
+fn emitNodeList(cx: *const EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
+    var ni = ni_start;
+    while (ni != null_node) {
+        try emitSingleNode(cx, ni);
+        ni = cx.nodes.getPtr(ni).next;
+    }
+}
+
+fn emitSingleNode(cx: *const EmitCx, ni: NodeIndex) !void {
+    const node = cx.nodes.getPtr(ni);
+    switch (node.kind) {
+        .basic_block => |bb| {
+            try emitLabel(cx, node.start);
+            try cx.out.appendSlice(cx.gpa, ":\n");
+
+            for (cx.stmts.use()[bb.statements.start..][0..bb.statements.len]) |*stmt|
+                try emitStmt(cx, stmt);
+        },
+        .@"if" => |k| {
+            try cx.out.appendSlice(cx.gpa, "    if (");
+            try emitExpr(cx, k.condition, .all);
+            try cx.out.appendSlice(cx.gpa, ") {\n");
+            try emitNodeList(cx, k.true);
+            try cx.out.appendSlice(cx.gpa, "    }\n");
+        },
+    }
+}
 
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
     try cx.out.appendSlice(cx.gpa, "    ");
