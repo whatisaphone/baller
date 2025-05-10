@@ -48,12 +48,16 @@ pub fn run(
     defer scx.nodes.deinit(gpa);
     try structure(&scx, basic_blocks.items);
 
+    var jump_targets = try findJumpTargets(gpa, .init(scx.nodes.items));
+    defer jump_targets.deinit(gpa);
+
     var ecx: EmitCx = .{
         .gpa = gpa,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
+        .jump_targets = jump_targets.items,
         .out = out,
     };
     try emitNodeList(&ecx, root_node_index);
@@ -480,12 +484,72 @@ fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     return condition;
 }
 
+const FindJumpTargetsCx = struct {
+    gpa: std.mem.Allocator,
+    nodes: utils.SafeManyPointer([*]const Node),
+    result: std.ArrayListUnmanaged(u16),
+};
+
+fn findJumpTargets(
+    gpa: std.mem.Allocator,
+    nodes: utils.SafeManyPointer([*]const Node),
+) !std.ArrayListUnmanaged(u16) {
+    var cx: FindJumpTargetsCx = .{
+        .gpa = gpa,
+        .nodes = nodes,
+        .result = .empty,
+    };
+    errdefer cx.result.deinit(cx.gpa);
+
+    try findJumpTargetsInNodeList(&cx, root_node_index);
+
+    return cx.result;
+}
+
+fn findJumpTargetsInNodeList(cx: *FindJumpTargetsCx, ni_start: NodeIndex) error{OutOfMemory}!void {
+    var ni = ni_start;
+    while (ni != null_node) {
+        try findJumpTargetsInSingleNode(cx, ni);
+        ni = cx.nodes.getPtr(ni).next;
+    }
+}
+
+fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
+    const node = cx.nodes.getPtr(ni);
+    switch (node.kind) {
+        .basic_block => |*bb| {
+            const target = switch (bb.exit) {
+                .no_jump => return,
+                .jump => |j| j.target,
+                .jump_unless => |j| j.target,
+            };
+            try insertSortedNoDup(cx.gpa, &cx.result, target);
+        },
+        .@"if" => |s| {
+            try findJumpTargetsInNodeList(cx, s.true);
+        },
+    }
+}
+
+fn insertSortedNoDup(gpa: std.mem.Allocator, xs: *std.ArrayListUnmanaged(u16), item: u16) !void {
+    const index = std.sort.lowerBound(u16, xs.items, item, orderU16);
+    if (index != xs.items.len and xs.items[index] == item)
+        return;
+    try xs.insert(gpa, index, item);
+}
+
+fn orderU16(a: u16, b: u16) std.math.Order {
+    return std.math.order(a, b);
+}
+
 const EmitCx = struct {
     gpa: std.mem.Allocator,
     nodes: utils.SafeManyPointer([*]const Node),
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
+    jump_targets: []const u16,
+
     out: *std.ArrayListUnmanaged(u8),
 };
 
@@ -501,8 +565,11 @@ fn emitSingleNode(cx: *const EmitCx, ni: NodeIndex) !void {
     const node = cx.nodes.getPtr(ni);
     switch (node.kind) {
         .basic_block => |bb| {
-            try emitLabel(cx, node.start);
-            try cx.out.appendSlice(cx.gpa, ":\n");
+            // TODO: keep track of list position instead of searching every time
+            if (std.sort.binarySearch(u16, cx.jump_targets, node.start, orderU16) != null) {
+                try emitLabel(cx, node.start);
+                try cx.out.appendSlice(cx.gpa, ":\n");
+            }
 
             for (cx.stmts.use()[bb.statements.start..][0..bb.statements.len]) |*stmt|
                 try emitStmt(cx, stmt);
