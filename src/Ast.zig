@@ -8,10 +8,12 @@ const Ast = @This();
 
 root: NodeIndex,
 nodes: std.ArrayListUnmanaged(Node),
+node_tokens: std.ArrayListUnmanaged(u32),
 extra: std.ArrayListUnmanaged(u32),
 
 pub fn deinit(self: *Ast, gpa: std.mem.Allocator) void {
     self.extra.deinit(gpa);
+    self.node_tokens.deinit(gpa);
     self.nodes.deinit(gpa);
 }
 

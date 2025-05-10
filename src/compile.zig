@@ -1,23 +1,30 @@
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
+const Diagnostic = @import("Diagnostic.zig");
+const Project = @import("Project.zig");
 const lang = @import("lang.zig");
+const lexer = @import("lexer.zig");
 
 pub fn compile(
     gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
-    ast: *const Ast,
+    file: *const Project.SourceFile,
+    root_node: Ast.NodeIndex,
     statements: Ast.ExtraSlice,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     var cx: Cx = .{
         .gpa = gpa,
+        .diag = diag,
         .language = language,
         .ins_map = ins_map,
         .project_scope = project_scope,
-        .ast = ast,
+        .lex = &file.lex,
+        .ast = &file.ast,
         .out = out,
         .label_offsets = .empty,
         .label_fixups = .empty,
@@ -25,7 +32,17 @@ pub fn compile(
     defer cx.label_fixups.deinit(gpa);
     defer cx.label_offsets.deinit(gpa);
 
-    try emitBlock(&cx, statements);
+    compileInner(&cx, statements) catch |err| {
+        if (err != error.AddedToDiagnostic) {
+            const token_index = file.ast.node_tokens.items[root_node];
+            const s = &file.lex.tokens.items[token_index].span.start;
+            diag.zigErr(s.line, s.column, "unexpected error: {s}", .{}, err);
+        }
+    };
+}
+
+pub fn compileInner(cx: *Cx, statements: Ast.ExtraSlice) !void {
+    try emitBlock(cx, statements);
 
     for (cx.label_fixups.items) |fixup| {
         const label_offset = cx.label_offsets.get(fixup.label_name) orelse return error.BadData;
@@ -37,9 +54,11 @@ pub fn compile(
 
 const Cx = struct {
     gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
+    lex: *const lexer.Lex,
     ast: *const Ast,
 
     out: *std.ArrayListUnmanaged(u8),
@@ -47,7 +66,7 @@ const Cx = struct {
     label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
 };
 
-fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, BadData }!void {
+fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
     for (cx.ast.getExtra(slice)) |i|
         try emitStatement(cx, i);
 }
@@ -76,7 +95,12 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
 fn emitCall(cx: *Cx, node_index: u32) !void {
     const call = &cx.ast.nodes.items[node_index].call;
 
-    const opcode, const ins = try findIns(cx, call.callee);
+    const opcode, const ins = findIns(cx, call.callee) orelse {
+        const token_index = cx.ast.node_tokens.items[node_index];
+        const s = cx.lex.tokens.items[token_index].span.start;
+        cx.diag.err(s.line, s.column, "instruction not found", .{});
+        return error.AddedToDiagnostic;
+    };
 
     const args = cx.ast.getExtra(call.args);
     // TODO: type check number of stack pushes
@@ -96,31 +120,30 @@ fn emitCall(cx: *Cx, node_index: u32) !void {
 fn findIns(
     cx: *const Cx,
     node_index: u32,
-) !struct { std.BoundedArray(u8, 2), *const lang.LangIns } {
+) ?struct { std.BoundedArray(u8, 2), *const lang.LangIns } {
     const expr = &cx.ast.nodes.items[node_index];
     var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
         .identifier => |id| id,
         .field => |f| blk: {
             const lhs = &cx.ast.nodes.items[f.lhs];
-            if (lhs.* != .identifier) return error.BadData;
+            if (lhs.* != .identifier) return null;
             const lhs_str = lhs.identifier;
             break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{ lhs_str, f.field }) catch
-                return error.BadData;
+                return null;
         },
-        else => return error.BadData,
+        else => return null,
     };
-    return lang.lookup(cx.language, cx.ins_map, name) orelse error.BadData;
+    return lang.lookup(cx.language, cx.ins_map, name);
 }
 
-fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, BadData }!void {
+fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
     const expr = &cx.ast.nodes.items[node_index];
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
-        .identifier => |id| {
-            const variable = parseVariable(cx, id) orelse return error.BadData;
+        .identifier => {
             try emitOpcodeByName(cx, "push-var");
-            try emitVariable(cx, variable);
+            try emitVariable(cx, node_index);
         },
         .call => try emitCall(cx, node_index),
         .list => try pushList(cx, node_index),
@@ -165,20 +188,21 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try cx.label_fixups.append(cx.gpa, .{ .offset = offset, .label_name = label_name });
         },
-        .variable => try emitVariableByExpr(cx, node_index),
+        .variable => try emitVariable(cx, node_index),
         else => unreachable,
     }
 }
 
-fn emitVariableByExpr(cx: *const Cx, node_index: u32) !void {
+fn emitVariable(cx: *const Cx, node_index: u32) !void {
     const expr = &cx.ast.nodes.items[node_index];
     if (expr.* != .identifier) return error.BadData;
     const id = expr.identifier;
-    const variable = parseVariable(cx, id) orelse return error.BadData;
-    try emitVariable(cx, variable);
-}
-
-fn emitVariable(cx: *const Cx, variable: lang.Variable) !void {
+    const variable = parseVariable(cx, id) orelse {
+        const token_index = cx.ast.node_tokens.items[node_index];
+        const s = cx.lex.tokens.items[token_index].span.start;
+        cx.diag.err(s.line, s.column, "variable not found", .{});
+        return error.AddedToDiagnostic;
+    };
     try cx.out.writer(cx.gpa).writeInt(u16, variable.raw, .little);
 }
 

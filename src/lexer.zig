@@ -2,6 +2,8 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 
+pub const TokenIndex = u32;
+
 pub const Lex = struct {
     tokens: std.ArrayListUnmanaged(Token),
 

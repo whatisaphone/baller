@@ -239,7 +239,27 @@ pub const ForTextFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
+        self.diagnostic.mutex.lock();
+        defer self.diagnostic.mutex.unlock();
+
         self.formatAndAdd(.err, line, column, fmt, args);
+    }
+
+    pub fn zigErr(
+        self: *const ForTextFile,
+        line: u32,
+        column: u32,
+        comptime fmt: []const u8,
+        args: anytype,
+        zig_err: anytype,
+    ) void {
+        self.diagnostic.mutex.lock();
+        defer self.diagnostic.mutex.unlock();
+
+        self.formatAndAdd(.err, line, column, fmt, args ++ .{@errorName(zig_err)});
+
+        if (live_spew) if (@errorReturnTrace()) |err_trace|
+            std.debug.dumpStackTrace(err_trace.*);
     }
 
     pub fn formatAndAdd(
@@ -250,9 +270,6 @@ pub const ForTextFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
         const text_count =
             std.fmt.count("{s}:{}:{}: ", .{ self.path, line, column }) +
             std.fmt.count(fmt, args);

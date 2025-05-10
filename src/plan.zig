@@ -639,10 +639,15 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     const room_file = &cx.project.files.items[room_number].?;
     const script = &room_file.ast.nodes.items[node_index].script;
 
+    const diag: Diagnostic.ForTextFile = .{
+        .diagnostic = cx.diagnostic,
+        .path = room_file.path,
+    };
+
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -658,12 +663,17 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     const room_file = &cx.project.files.items[room_number].?;
     const script = &room_file.ast.nodes.items[node_index].local_script;
 
+    const diag: Diagnostic.ForTextFile = .{
+        .diagnostic = cx.diagnostic,
+        .path = room_file.path,
+    };
+
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try out.writer(cx.gpa).writeInt(u32, script.script_number, .little);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -678,10 +688,15 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     const room_file = &cx.project.files.items[room_number].?;
     const script = &room_file.ast.nodes.items[node_index].enter;
 
+    const diag: Diagnostic.ForTextFile = .{
+        .diagnostic = cx.diagnostic,
+        .path = room_file.path,
+    };
+
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -696,10 +711,15 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     const room_file = &cx.project.files.items[room_number].?;
     const script = &room_file.ast.nodes.items[node_index].exit;
 
+    const diag: Diagnostic.ForTextFile = .{
+        .diagnostic = cx.diagnostic,
+        .path = room_file.path,
+    };
+
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, cx.language, cx.ins_map, &cx.project_scope, &room_file.ast, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,

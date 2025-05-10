@@ -120,6 +120,7 @@ fn addFile(
     errdefer ast.deinit(gpa);
 
     return .{
+        .path = path,
         .source = source,
         .lex = lex,
         .ast = ast,
