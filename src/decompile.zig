@@ -59,6 +59,7 @@ pub fn run(
         .extra = .init(dcx.extra.items),
         .jump_targets = jump_targets.items,
         .out = out,
+        .indent = indent_size * 1,
     };
     try emitNodeList(&ecx, root_node_index);
 }
@@ -542,6 +543,8 @@ fn orderU16(a: u16, b: u16) std.math.Order {
     return std.math.order(a, b);
 }
 
+const indent_size = 4;
+
 const EmitCx = struct {
     gpa: std.mem.Allocator,
     nodes: utils.SafeManyPointer([*]const Node),
@@ -551,9 +554,10 @@ const EmitCx = struct {
     jump_targets: []const u16,
 
     out: *std.ArrayListUnmanaged(u8),
+    indent: u16,
 };
 
-fn emitNodeList(cx: *const EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
+fn emitNodeList(cx: *EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
     var ni = ni_start;
     while (ni != null_node) {
         try emitSingleNode(cx, ni);
@@ -561,7 +565,7 @@ fn emitNodeList(cx: *const EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadD
     }
 }
 
-fn emitSingleNode(cx: *const EmitCx, ni: NodeIndex) !void {
+fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
     const node = cx.nodes.getPtr(ni);
     switch (node.kind) {
         .basic_block => |bb| {
@@ -575,17 +579,21 @@ fn emitSingleNode(cx: *const EmitCx, ni: NodeIndex) !void {
                 try emitStmt(cx, stmt);
         },
         .@"if" => |k| {
-            try cx.out.appendSlice(cx.gpa, "    if (");
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "if (");
             try emitExpr(cx, k.condition, .all);
             try cx.out.appendSlice(cx.gpa, ") {\n");
+            cx.indent += indent_size;
             try emitNodeList(cx, k.true);
-            try cx.out.appendSlice(cx.gpa, "    }\n");
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
         },
     }
 }
 
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
-    try cx.out.appendSlice(cx.gpa, "    ");
+    try writeIndent(cx);
     switch (stmt.*) {
         .jump_unless => |j| {
             try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.@"jump-unless"));
@@ -646,6 +654,11 @@ fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
 
 fn emitLabel(cx: *const EmitCx, pc: u16) !void {
     try cx.out.writer(cx.gpa).print("L{x:0>4}", .{pc});
+}
+
+fn writeIndent(cx: *const EmitCx) !void {
+    const bytes = try cx.out.addManyAsSlice(cx.gpa, cx.indent);
+    @memset(bytes, ' ');
 }
 
 fn getExtra(cx: *const EmitCx, slice: ExtraSlice) []const ExprIndex {
