@@ -47,7 +47,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
     };
-    try diagnostic.writeToStderr();
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 
 const Build = struct {

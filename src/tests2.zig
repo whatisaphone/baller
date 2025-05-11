@@ -127,6 +127,7 @@ fn testRoundTrip(
             },
         },
     });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 
     try build.run(std.testing.allocator, &diagnostic, .{
         .project_path = extract_path ++ "/project.scu",
@@ -135,6 +136,7 @@ fn testRoundTrip(
             .awiz_strategy = .original,
         },
     });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 
     var output_dir = try std.fs.cwd().openDirZ(build_path, .{});
     defer output_dir.close();

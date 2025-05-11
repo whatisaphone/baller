@@ -109,7 +109,7 @@ fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     }) catch oom();
 }
 
-pub fn writeToStderr(self: *Diagnostic) !void {
+pub fn writeToStderrAndPropagateIfAnyErrors(self: *Diagnostic) !void {
     const out_file = std.io.getStdErr();
     var out = std.io.bufferedWriter(out_file.writer());
 

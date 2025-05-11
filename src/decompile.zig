@@ -126,6 +126,9 @@ fn insertBasicBlock(
     end: u16,
     exit: BasicBlockExit,
 ) !void {
+    // A basic block ending at 0 would have been a zero-length block
+    if (end == 0) return;
+
     const index = std.sort.lowerBound(BasicBlock, basic_blocks.items, end, BasicBlock.order);
     if (index != basic_blocks.items.len and basic_blocks.items[index].end == end) {
         // If there's a dup, update the exit
