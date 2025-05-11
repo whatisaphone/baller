@@ -1168,6 +1168,7 @@ fn extractLscr(
 
     // mild hack: patch the log context now that we know the script number
     diag.section = .{ .glob = .{ blockId("LSC2"), script_number } };
+    diag.trace(0, "found script number", .{});
 
     if (cx.cx.options.script == .decompile and
         tryDecode("decompile", extractLscrDecompile, cx, diag, .{ script_number, bytecode }, code))
