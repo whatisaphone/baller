@@ -401,6 +401,7 @@ const NodeKind = union(enum) {
     @"if": struct {
         condition: ExprIndex,
         true: NodeIndex,
+        false: NodeIndex,
     },
 };
 
@@ -439,7 +440,20 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
         ni = node.next;
     } else return;
 
-    try makeIf(cx, ni, ni_true_end);
+    var ni_false_end = null_node;
+    const true_end = &cx.nodes.items[ni_true_end];
+    if (true_end.kind == .basic_block and
+        true_end.kind.basic_block.exit == .jump and
+        true_end.kind.basic_block.exit.jump.target > true_end.end)
+    {
+        if (findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump.target)) |n|
+            ni_false_end = n;
+    }
+
+    if (ni_false_end == null_node)
+        try makeIf(cx, ni, ni_true_end)
+    else
+        try makeIfElse(cx, ni, ni_true_end, ni_false_end);
 }
 
 fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
@@ -451,10 +465,34 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
         .kind = .{ .@"if" = .{
             .condition = condition,
             .true = cx.nodes.items[ni_before].next,
+            .false = null_node,
         } },
     });
     cx.nodes.items[ni_before].next = ni_if;
     cx.nodes.items[ni_true_end].next = null_node;
+}
+
+fn makeIfElse(
+    cx: *StructuringCx,
+    ni_before: NodeIndex,
+    ni_true_end: NodeIndex,
+    ni_false_end: NodeIndex,
+) !void {
+    const condition = chopJumpUnless(cx, ni_before);
+    chopJump(cx, ni_true_end);
+    const ni_if = try appendNode(cx, .{
+        .start = cx.nodes.items[ni_before].end,
+        .end = cx.nodes.items[ni_false_end].end,
+        .next = cx.nodes.items[ni_false_end].next,
+        .kind = .{ .@"if" = .{
+            .condition = condition,
+            .true = cx.nodes.items[ni_before].next,
+            .false = cx.nodes.items[ni_true_end].next,
+        } },
+    });
+    cx.nodes.items[ni_before].next = ni_if;
+    cx.nodes.items[ni_true_end].next = null_node;
+    cx.nodes.items[ni_false_end].next = null_node;
 }
 
 fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex {
@@ -473,9 +511,16 @@ fn appendNode(cx: *StructuringCx, node: Node) !NodeIndex {
     return ni;
 }
 
-fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
-    const jump_len = 3;
+const jump_len = 3;
 
+fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
+    const node = &cx.nodes.items[ni];
+    node.end -= jump_len;
+    node.kind.basic_block.exit = .no_jump;
+    node.kind.basic_block.statements.len -= 1;
+}
+
+fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     const node = &cx.nodes.items[ni];
 
     const ss = node.kind.basic_block.statements;
@@ -589,6 +634,13 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
+            if (k.false != null_node) {
+                try writeIndent(cx);
+                try cx.out.appendSlice(cx.gpa, "} else {\n");
+                cx.indent += indent_size;
+                try emitNodeList(cx, k.false);
+                cx.indent -= indent_size;
+            }
             try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },

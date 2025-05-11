@@ -83,9 +83,17 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .@"if" => |s| {
             try pushExpr(cx, s.condition);
             try emitOpcodeByName(cx, "jump-unless");
-            const target = try cx.out.addManyAsArray(cx.gpa, 2);
+            const cond_fixup = try cx.out.addManyAsArray(cx.gpa, 2);
             try emitBlock(cx, s.true);
-            try writeJumpHere(cx, target);
+            if (s.false.len != 0) {
+                try emitOpcodeByName(cx, "jump");
+                const true_end_fixup = try cx.out.addManyAsArray(cx.gpa, 2);
+                try fixupJumpToHere(cx, cond_fixup);
+                try emitBlock(cx, s.false);
+                try fixupJumpToHere(cx, true_end_fixup);
+            } else {
+                try fixupJumpToHere(cx, cond_fixup);
+            }
         },
         // TODO: handle all errors during parsing and make this unreachable
         else => return error.BadData,
@@ -224,7 +232,7 @@ fn parseVariable(cx: *const Cx, str: []const u8) ?lang.Variable {
     return .init2(kind, num);
 }
 
-fn writeJumpHere(cx: *Cx, dest: *[2]u8) !void {
+fn fixupJumpToHere(cx: *Cx, dest: *[2]u8) !void {
     const target = cx.out.unusedCapacitySlice().ptr;
     const rel_wide = target - (dest.ptr + 2);
     const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;

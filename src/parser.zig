@@ -808,9 +808,18 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 try expect(cx, .paren_r);
                 try expect(cx, .brace_l);
                 const true_stmts = try parseScriptBlock(cx);
+
+                var false_stmts = Ast.ExtraSlice.empty;
+                if (parseIdentifierOpt(cx, peekToken(cx), enum { @"else" })) |_| {
+                    _ = consumeToken(cx);
+                    try expect(cx, .brace_l);
+                    false_stmts = try parseScriptBlock(cx);
+                }
+
                 return storeNode(cx, token, .{ .@"if" = .{
                     .condition = condition,
                     .true = true_stmts,
+                    .false = false_stmts,
                 } });
             },
         };
