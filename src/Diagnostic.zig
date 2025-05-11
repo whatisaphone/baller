@@ -1,6 +1,8 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Loc = @import("lexer.zig").Loc;
+
 const Diagnostic = @This();
 
 const live_spew = builtin.mode == .Debug and !builtin.is_test;
@@ -234,21 +236,19 @@ pub const ForTextFile = struct {
 
     pub fn err(
         self: *const ForTextFile,
-        line: u32,
-        column: u32,
+        loc: Loc,
         comptime fmt: []const u8,
         args: anytype,
     ) void {
         self.diagnostic.mutex.lock();
         defer self.diagnostic.mutex.unlock();
 
-        self.formatAndAdd(.err, line, column, fmt, args);
+        self.formatAndAdd(.err, loc, fmt, args);
     }
 
     pub fn zigErr(
         self: *const ForTextFile,
-        line: u32,
-        column: u32,
+        loc: Loc,
         comptime fmt: []const u8,
         args: anytype,
         zig_err: anytype,
@@ -256,7 +256,7 @@ pub const ForTextFile = struct {
         self.diagnostic.mutex.lock();
         defer self.diagnostic.mutex.unlock();
 
-        self.formatAndAdd(.err, line, column, fmt, args ++ .{@errorName(zig_err)});
+        self.formatAndAdd(.err, loc, fmt, args ++ .{@errorName(zig_err)});
 
         if (live_spew) if (@errorReturnTrace()) |err_trace|
             std.debug.dumpStackTrace(err_trace.*);
@@ -265,20 +265,19 @@ pub const ForTextFile = struct {
     pub fn formatAndAdd(
         self: *const ForTextFile,
         level: Level,
-        line: u32,
-        column: u32,
+        loc: Loc,
         comptime fmt: []const u8,
         args: anytype,
     ) void {
         const text_count =
-            std.fmt.count("{s}:{}:{}: ", .{ self.path, line, column }) +
+            std.fmt.count("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) +
             std.fmt.count(fmt, args);
         const text = self.diagnostic.arena.allocator().alloc(u8, text_count) catch oom();
         var fba = std.heap.FixedBufferAllocator.init(text);
         _ = std.fmt.allocPrint(
             fba.allocator(),
             "{s}:{}:{}: ",
-            .{ self.path, line, column },
+            .{ self.path, loc.line, loc.column },
         ) catch unreachable;
         _ = std.fmt.allocPrint(fba.allocator(), fmt, args) catch unreachable;
         std.debug.assert(fba.end_index == text_count);

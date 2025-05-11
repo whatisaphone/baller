@@ -227,6 +227,6 @@ fn reportError(
     comptime fmt: []const u8,
     args: anytype,
 ) error{AddedToDiagnostic} {
-    state.diag.err(loc.line, loc.column, fmt, args);
+    state.diag.err(loc, fmt, args);
     return error.AddedToDiagnostic;
 }

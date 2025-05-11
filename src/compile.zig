@@ -35,8 +35,8 @@ pub fn compile(
     compileInner(&cx, statements) catch |err| {
         if (err != error.AddedToDiagnostic) {
             const token_index = file.ast.node_tokens.items[root_node];
-            const s = &file.lex.tokens.items[token_index].span.start;
-            diag.zigErr(s.line, s.column, "unexpected error: {s}", .{}, err);
+            const loc = file.lex.tokens.items[token_index].span.start;
+            diag.zigErr(loc, "unexpected error: {s}", .{}, err);
         }
     };
 }
@@ -97,8 +97,8 @@ fn emitCall(cx: *Cx, node_index: u32) !void {
 
     const opcode, const ins = findIns(cx, call.callee) orelse {
         const token_index = cx.ast.node_tokens.items[node_index];
-        const s = cx.lex.tokens.items[token_index].span.start;
-        cx.diag.err(s.line, s.column, "instruction not found", .{});
+        const loc = cx.lex.tokens.items[token_index].span.start;
+        cx.diag.err(loc, "instruction not found", .{});
         return error.AddedToDiagnostic;
     };
 
@@ -199,8 +199,8 @@ fn emitVariable(cx: *const Cx, node_index: u32) !void {
     const id = expr.identifier;
     const variable = parseVariable(cx, id) orelse {
         const token_index = cx.ast.node_tokens.items[node_index];
-        const s = cx.lex.tokens.items[token_index].span.start;
-        cx.diag.err(s.line, s.column, "variable not found", .{});
+        const loc = cx.lex.tokens.items[token_index].span.start;
+        cx.diag.err(loc, "variable not found", .{});
         return error.AddedToDiagnostic;
     };
     try cx.out.writer(cx.gpa).writeInt(u16, variable.raw, .little);

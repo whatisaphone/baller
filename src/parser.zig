@@ -1012,7 +1012,7 @@ fn reportError(
     comptime message: []const u8,
     args: anytype,
 ) error{AddedToDiagnostic} {
-    const s = &token.span.start;
-    cx.diag.err(s.line, s.column, message, args);
+    const loc = token.span.start;
+    cx.diag.err(loc, message, args);
     return error.AddedToDiagnostic;
 }
