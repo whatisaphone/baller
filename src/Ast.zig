@@ -139,6 +139,7 @@ pub const Node = union(enum) {
     },
     label: []const u8,
     integer: i32,
+    string: []const u8,
     identifier: []const u8,
     call: struct {
         callee: NodeIndex,

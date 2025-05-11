@@ -172,6 +172,7 @@ const ExprIndex = u16;
 
 const Expr = union(enum) {
     int: i32,
+    string: []const u8,
     variable: lang.Variable,
     call: struct { op: lang.Op, args: ExtraSlice },
     list: struct { items: ExtraSlice },
@@ -255,6 +256,8 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .debug = .gen(&.{.int}),
     .@"sleep-for-seconds" = .gen(&.{.int}),
     .@"stop-sentence" = .gen(&.{}),
+    .@"print-debug-printf" = .gen(&.{ .int, .list }),
+    .@"print-debug-start" = .gen(&.{}),
     .@"dim-array.int8" = .gen(&.{.int}),
     .@"dim-array.int16" = .gen(&.{.int}),
     .undim = .gen(&.{}),
@@ -311,6 +314,7 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                 for (ins.operands.slice()) |operand| {
                     const expr: Expr = switch (operand) {
                         .variable => |v| .{ .variable = v },
+                        .string => |s| .{ .string = s },
                         else => unreachable,
                     };
                     const ei = try storeExpr(cx, expr);
@@ -682,6 +686,7 @@ fn emitExpr(
     switch (cx.exprs.get(ei)) {
         .int => |int| try cx.out.writer(cx.gpa).print("{}", .{int}),
         .variable => |v| try emitVariable(cx, v),
+        .string => |s| try cx.out.writer(cx.gpa).print("\"{s}\"", .{s}),
         .call => |c| {
             if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                 try cx.out.append(cx.gpa, '(');

@@ -109,6 +109,8 @@ pub const Op = enum {
     debug,
     @"sleep-for-seconds",
     @"stop-sentence",
+    @"print-debug-printf",
+    @"print-debug-start",
     @"dim-array.int8",
     @"dim-array.int16",
     undim,
@@ -523,8 +525,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb5, 0xfe, "print-text-start", &.{});
 
     lang.addNested(0xb6, 0x4b, "print-debug-string", &.{.string});
-    lang.addNested(0xb6, 0xc2, "print-debug-printf", &.{.string});
-    lang.addNested(0xb6, 0xfe, "print-debug-start", &.{});
+    lang.addNested(0xb6, 0xc2, .@"print-debug-printf", &.{.string});
+    lang.addNested(0xb6, 0xfe, .@"print-debug-start", &.{});
     lang.addNested(0xb6, 0xff, "print-debug-empty", &.{});
 
     lang.addNested(0xb7, 0x4b, "print-system-string", &.{.string});

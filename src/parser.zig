@@ -857,7 +857,7 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 cur = try storeNode(cx, token2, .{ .field = .{ .lhs = cur, .field = field } });
             },
             // This is everything that parseAtom recognizes
-            .integer, .identifier, .paren_l, .bracket_l => {
+            .integer, .string, .identifier, .paren_l, .bracket_l => {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseArgs(cx);
                 cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
@@ -875,6 +875,11 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             const integer = std.fmt.parseInt(i32, source, 10) catch
                 return reportError(cx, token, "invalid integer", .{});
             return try storeNode(cx, token, .{ .integer = integer });
+        },
+        .string => {
+            const source = cx.source[token.span.start.offset..token.span.end.offset];
+            const string = source[1 .. source.len - 1];
+            return try storeNode(cx, token, .{ .string = string });
         },
         .identifier => {
             const identifier = cx.source[token.span.start.offset..token.span.end.offset];

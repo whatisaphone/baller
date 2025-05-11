@@ -197,6 +197,7 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
             try cx.label_fixups.append(cx.gpa, .{ .offset = offset, .label_name = label_name });
         },
         .variable => try emitVariable(cx, node_index),
+        .string => try emitString(cx, node_index),
         else => unreachable,
     }
 }
@@ -230,6 +231,14 @@ fn parseVariable(cx: *const Cx, str: []const u8) ?lang.Variable {
             return null;
     const num = std.fmt.parseInt(u14, num_str, 10) catch return null;
     return .init2(kind, num);
+}
+
+fn emitString(cx: *const Cx, node_index: u32) !void {
+    const expr = &cx.ast.nodes.items[node_index];
+    if (expr.* != .string) return error.BadData;
+    const str = expr.string;
+    try cx.out.appendSlice(cx.gpa, str);
+    try cx.out.append(cx.gpa, 0);
 }
 
 fn fixupJumpToHere(cx: *Cx, dest: *[2]u8) !void {
