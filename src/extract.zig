@@ -1178,10 +1178,13 @@ fn extractLscr(
 ) bool {
     if (cx.cx.options.lsc2 == .raw) return false;
 
-    if (raw.len < 4)
-        return handleDecodeResult(error.EndOfStream, "decode", diag, code);
-    const script_number = std.mem.readInt(u32, raw[0..4], .little);
-    const bytecode = raw[4..];
+    const script_number, const bytecode = (hdr: {
+        if (raw.len < 4) break :hdr error.EndOfStream;
+        const script_number = std.mem.readInt(u32, raw[0..4], .little);
+        const bytecode = raw[4..];
+        break :hdr .{ script_number, bytecode };
+    }) catch |err|
+        return handleDecodeResult(err, "decode", diag, code);
 
     if (cx.cx.options.script == .decompile and
         tryDecode("decompile", extractLscrDecompile, cx, diag, .{ script_number, bytecode }, code))
