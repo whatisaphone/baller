@@ -825,15 +825,18 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         };
     }
 
-    const ei = try parseExpr(cx, token, .all);
+    const ei = try parseTopLevelExpr(cx, token);
     try expect(cx, .newline);
-
-    const expr = &cx.result.nodes.items[ei];
-    if (expr.* == .identifier) {
-        // A lonely identifier is a call with 0 args
-        return storeNode(cx, token, .{ .call = .{ .callee = ei, .args = .empty } });
-    }
     return ei;
+}
+
+fn parseTopLevelExpr(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const result = try parseExpr(cx, token, .all);
+    if (cx.result.nodes.items[result] == .identifier) {
+        // A lonely identifier is a call with 0 args
+        return storeNode(cx, token, .{ .call = .{ .callee = result, .args = .empty } });
+    }
+    return result;
 }
 
 pub const Precedence = enum {
@@ -879,7 +882,7 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         },
         .paren_l => {
             const next = consumeToken(cx);
-            const result = try parseExpr(cx, next, .all);
+            const result = try parseTopLevelExpr(cx, next);
             try expect(cx, .paren_r);
             return result;
         },

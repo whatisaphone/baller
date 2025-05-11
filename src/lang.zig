@@ -75,9 +75,13 @@ pub const Op = enum {
     @"push-var",
     @"get-array-item",
     @"get-array-item-2d",
+    dup,
     add,
     sub,
     mul,
+    @"sprite-get-state",
+    @"sprite-set-state",
+    @"sprite-select-range",
     @"dim-array-range.int16",
     set,
     @"set-array-item",
@@ -178,7 +182,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x07, .@"get-array-item", &.{.variable});
     lang.add(0x0a, "dup-multi", &.{.i16});
     lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
-    lang.add(0x0c, "dup", &.{});
+    lang.add(0x0c, .dup, &.{});
     lang.add(0x0d, "not", &.{});
     lang.add(0x0e, "eq", &.{});
     lang.add(0x0f, "ne", &.{});
@@ -238,7 +242,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x25, 0x2a, "sprite-get-property", &.{});
     lang.addNested(0x25, 0x2b, "sprite-get-order", &.{});
     lang.addNested(0x25, 0x2d, "find-sprite", &.{});
-    lang.addNested(0x25, 0x34, "sprite-get-state", &.{});
+    lang.addNested(0x25, 0x34, .@"sprite-get-state", &.{});
     lang.addNested(0x25, 0x3f, "sprite-get-image", &.{});
     lang.addNested(0x25, 0x52, "sprite-get-animation", &.{});
     lang.addNested(0x25, 0x56, "sprite-get-palette", &.{});
@@ -250,8 +254,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0x2a, "sprite-set-property", &.{});
     lang.addNested(0x26, 0x2b, "sprite-set-order", &.{});
     lang.addNested(0x26, 0x2c, "sprite-move", &.{});
-    lang.addNested(0x26, 0x34, "sprite-set-state", &.{});
-    lang.addNested(0x26, 0x39, "sprite-select-range", &.{});
+    lang.addNested(0x26, 0x34, .@"sprite-set-state", &.{});
+    lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
     lang.addNested(0x26, 0x3f, "sprite-set-image", &.{});
     lang.addNested(0x26, 0x41, "sprite-set-position", &.{});
     lang.addNested(0x26, 0x44, "sprite-erase", &.{});
