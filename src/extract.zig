@@ -329,12 +329,7 @@ fn extractIndex(
     output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
 ) !struct { Index, []u8 } {
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = diagnostic,
-        .path = index_name,
-        .offset = 0,
-        .cap_level = false,
-    };
+    const diag: Diagnostic.ForBinaryFile = .init(diagnostic, index_name);
 
     const raw = try fs.readFileZ(gpa, input_dir, index_name);
     defer gpa.free(raw);
@@ -619,12 +614,7 @@ fn extractDisk(
     const disk_name = try pathf.append(&disk_name_buf, index_name);
     games.pointPathToDisk(cx.game, disk_name.full(), disk_number);
 
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = diagnostic,
-        .path = disk_name.full(),
-        .offset = 0,
-        .cap_level = false,
-    };
+    const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name.full());
 
     const in_file = try input_dir.openFileZ(disk_name.full(), .{});
     defer in_file.close();
@@ -674,16 +664,18 @@ fn extractRoom(
     cx: *Context,
     disk_number: u8,
     in: anytype,
-    diag: *const Diagnostic.ForBinaryFile,
+    disk_diag: *const Diagnostic.ForBinaryFile,
     lflf_end: u32,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
     const room_number = findRoomNumber(cx.game, cx.index, disk_number, @intCast(in.bytes_read)) orelse
         return error.BadData;
 
+    const diag = disk_diag.child(0, .{ .glob = .{ blockId("LFLF"), room_number } });
+
     var events: sync.Channel(Event, 16) = .init;
 
-    try cx.pool.spawn(readRoomJob, .{ cx, in, diag, lflf_end, room_number, &events });
+    try cx.pool.spawn(readRoomJob, .{ cx, in, &diag, lflf_end, room_number, &events });
 
     try emitRoom(cx, room_number, project_code, &events);
 }
@@ -884,13 +876,7 @@ fn extractPals(
     block: *const Block,
     code: *std.ArrayListUnmanaged(u8),
 ) ![0x300]u8 {
-    std.debug.assert(disk_diag.offset == 0);
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = disk_diag.diagnostic,
-        .path = disk_diag.path,
-        .offset = disk_diag.offset + block.start,
-        .cap_level = false,
-    };
+    const diag = disk_diag.child(block.start, .{ .block_id = blockId("PALS") });
 
     const expected_len = 796;
     if (block.size != expected_len) return error.BadData;
@@ -979,12 +965,8 @@ fn extractRmimJob(
     chunk_index: u16,
 ) !void {
     std.debug.assert(disk_diag.offset == 0);
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = disk_diag.diagnostic,
-        .path = disk_diag.path,
-        .offset = disk_diag.offset + block.start,
-        .cap_level = true,
-    };
+    var diag = disk_diag.child(block.start, .{ .block_id = blockId("RMIM") });
+    diag.cap_level = true;
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
@@ -1029,12 +1011,8 @@ fn extractRmdaChildJob(
     });
 
     std.debug.assert(disk_diag.offset == 0);
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = disk_diag.diagnostic,
-        .path = disk_diag.path,
-        .offset = disk_diag.offset + block.start,
-        .cap_level = true,
-    };
+    var diag = disk_diag.child(block.start, .{ .block_id = block.id });
+    diag.cap_level = true;
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
@@ -1171,7 +1149,7 @@ fn extractEncdExcdDecompile(
 
 fn extractLscr(
     cx: *const RoomContext,
-    diag: *const Diagnostic.ForBinaryFile,
+    diag: *Diagnostic.ForBinaryFile,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
@@ -1180,11 +1158,16 @@ fn extractLscr(
 
     const script_number, const bytecode = (hdr: {
         if (raw.len < 4) break :hdr error.EndOfStream;
-        const script_number = std.mem.readInt(u32, raw[0..4], .little);
+        const script_number_u32 = std.mem.readInt(u32, raw[0..4], .little);
         const bytecode = raw[4..];
+        const script_number = std.math.cast(u16, script_number_u32) orelse
+            break :hdr error.Overflow;
         break :hdr .{ script_number, bytecode };
     }) catch |err|
         return handleDecodeResult(err, "decode", diag, code);
+
+    // mild hack: patch the log context now that we know the script number
+    diag.section = .{ .glob = .{ blockId("LSC2"), script_number } };
 
     if (cx.cx.options.script == .decompile and
         tryDecode("decompile", extractLscrDecompile, cx, diag, .{ script_number, bytecode }, code))
@@ -1330,12 +1313,8 @@ fn extractGlobJob(
     disk_diag.trace(block.offset(), "glob number {}", .{glob_number});
 
     std.debug.assert(disk_diag.offset == 0);
-    const diag: Diagnostic.ForBinaryFile = .{
-        .diagnostic = disk_diag.diagnostic,
-        .path = disk_diag.path,
-        .offset = disk_diag.offset + block.start,
-        .cap_level = true,
-    };
+    var diag = disk_diag.child(block.start, .{ .glob = .{ block.id, glob_number } });
+    diag.cap_level = true;
 
     // First try to decode
     switch (block.id) {

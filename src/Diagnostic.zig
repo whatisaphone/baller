@@ -1,6 +1,9 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const BlockId = @import("block_id.zig").BlockId;
+const blockIdToStr = @import("block_id.zig").blockIdToStr;
+const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const Loc = @import("lexer.zig").Loc;
 
 const Diagnostic = @This();
@@ -79,33 +82,31 @@ pub fn trace(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
 
 fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args: anytype) void {
     const text = std.fmt.allocPrint(self.arena.allocator(), fmt, args) catch oom();
-    self.add(level, text);
+    self.add(level, .fromOwnedSlice(text));
 }
 
-fn add(self: *Diagnostic, level: Level, text: []const u8) void {
+fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     if (live_spew) {
         var buf = std.io.bufferedWriter(std.io.getStdErr().writer());
         buf.writer().print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
-        buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text }) catch @panic("spew");
+        buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text.items }) catch @panic("spew");
         buf.flush() catch @panic("spew");
     }
 
     // traces are not stored, only spewed
     if (level == .trace) {
-        ensureFree(&self.arena, text);
+        const old_end = self.arena.state.end_index;
+        var text_mut = text;
+        text_mut.deinit(self.arena.allocator());
+        // assert the memory was actually freed
+        std.debug.assert(self.arena.state.end_index != old_end);
         return;
     }
 
     self.messages.append(self.arena.allocator(), .{
         .level = level,
-        .text = text,
+        .text = text.items,
     }) catch oom();
-}
-
-fn ensureFree(arena: *std.heap.ArenaAllocator, memory: anytype) void {
-    const old_end = arena.state.end_index;
-    arena.allocator().free(memory);
-    std.debug.assert(arena.state.end_index != old_end);
 }
 
 pub fn writeToStderr(self: *Diagnostic) !void {
@@ -147,9 +148,36 @@ fn oom() noreturn {
 
 pub const ForBinaryFile = struct {
     diagnostic: *Diagnostic,
-    path: []const u8,
+    parent: ?*const ForBinaryFile,
     offset: u32,
+    section: Section,
     cap_level: bool,
+
+    const Section = union(enum) {
+        string: []const u8,
+        block_id: BlockId,
+        glob: struct { BlockId, u16 },
+    };
+
+    pub fn init(diagnostic: *Diagnostic, string: []const u8) ForBinaryFile {
+        return .{
+            .diagnostic = diagnostic,
+            .parent = null,
+            .offset = 0,
+            .section = .{ .string = string },
+            .cap_level = false,
+        };
+    }
+
+    pub fn child(self: *const ForBinaryFile, offset: u32, section: Section) ForBinaryFile {
+        return .{
+            .diagnostic = self.diagnostic,
+            .parent = self,
+            .offset = self.offset + offset,
+            .section = section,
+            .cap_level = false,
+        };
+    }
 
     pub fn err(
         self: *const ForBinaryFile,
@@ -212,21 +240,26 @@ pub const ForBinaryFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        const text_count =
-            std.fmt.count("{s}:{x:0>8}: ", .{ self.path, self.offset + offset }) +
-            std.fmt.count(fmt, args);
-        const text = self.diagnostic.arena.allocator().alloc(u8, text_count) catch oom();
-        var fba = std.heap.FixedBufferAllocator.init(text);
-        _ = std.fmt.allocPrint(
-            fba.allocator(),
-            "{s}:{x:0>8}: ",
-            .{ self.path, self.offset + offset },
-        ) catch unreachable;
-        _ = std.fmt.allocPrint(fba.allocator(), fmt, args) catch unreachable;
-        std.debug.assert(fba.end_index == text_count);
+        var text: std.ArrayListUnmanaged(u8) = .empty;
+        const writer = text.writer(self.diagnostic.arena.allocator());
+        self.writeSection(writer) catch oom();
+        writer.print(":0x{x:0>8}: ", .{self.offset + offset}) catch oom();
+        writer.print(fmt, args) catch oom();
 
         const effective_level: Level = if (self.cap_level and level == .err) .info else level;
         self.diagnostic.add(effective_level, text);
+    }
+
+    fn writeSection(self: *const ForBinaryFile, writer: anytype) !void {
+        if (self.parent) |parent| {
+            try parent.writeSection(writer);
+            try writer.writeByte(':');
+        }
+        switch (self.section) {
+            .string => |s| try writer.writeAll(s),
+            .block_id => |id| try writer.writeAll(blockIdToStr(&id)),
+            .glob => |g| try writer.print("{s}_{:0>4}", .{ fmtBlockId(&g[0]), g[1] }),
+        }
     }
 };
 
@@ -282,7 +315,7 @@ pub const ForTextFile = struct {
         _ = std.fmt.allocPrint(fba.allocator(), fmt, args) catch unreachable;
         std.debug.assert(fba.end_index == text_count);
 
-        self.diagnostic.add(level, text);
+        self.diagnostic.add(level, .fromOwnedSlice(text));
     }
 };
 
