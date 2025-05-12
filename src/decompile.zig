@@ -67,18 +67,6 @@ pub fn run(
     try emitNodeList(&ecx, root_node_index);
 }
 
-const DecompileCx = struct {
-    gpa: std.mem.Allocator,
-    diag: *const Diagnostic.ForBinaryFile,
-    language: *const lang.Language,
-
-    stack: std.BoundedArray(ExprIndex, 16),
-    str_stack: std.BoundedArray(ExprIndex, 1),
-    stmts: std.ArrayListUnmanaged(Stmt),
-    exprs: std.ArrayListUnmanaged(Expr),
-    extra: std.ArrayListUnmanaged(ExprIndex),
-};
-
 fn scanBasicBlocks(
     gpa: std.mem.Allocator,
     language: *const lang.Language,
@@ -172,6 +160,18 @@ const BasicBlockExit = union(enum) {
     jump: struct { target: u16 },
     jump_if: struct { target: u16 },
     jump_unless: struct { target: u16 },
+};
+
+const DecompileCx = struct {
+    gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForBinaryFile,
+    language: *const lang.Language,
+
+    stack: std.BoundedArray(ExprIndex, 16),
+    str_stack: std.BoundedArray(ExprIndex, 1),
+    stmts: std.ArrayListUnmanaged(Stmt),
+    exprs: std.ArrayListUnmanaged(Expr),
+    extra: std.ArrayListUnmanaged(ExprIndex),
 };
 
 const Stmt = union(enum) {
