@@ -805,6 +805,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
         .basic_block => |bb| {
             // TODO: keep track of list position instead of searching every time
             if (std.sort.binarySearch(u16, cx.jump_targets, node.start, orderU16) != null) {
+                try writeIndent(cx);
                 try emitLabel(cx, node.start);
                 try cx.out.appendSlice(cx.gpa, ":\n");
             }
