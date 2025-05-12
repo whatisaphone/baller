@@ -46,9 +46,11 @@ pub fn run(
     var scx: StructuringCx = .{
         .gpa = gpa,
         .stmts = .init(dcx.stmts.items),
+        .queue = .empty,
         .nodes = .empty,
     };
     defer scx.nodes.deinit(gpa);
+    defer scx.queue.deinit(gpa);
     try structure(&scx, basic_blocks.items);
 
     var jump_targets = try findJumpTargets(gpa, .init(scx.nodes.items));
@@ -563,6 +565,7 @@ const StructuringCx = struct {
     gpa: std.mem.Allocator,
     stmts: utils.SafeManyPointer([*]const Stmt),
 
+    queue: std.ArrayListUnmanaged(NodeIndex),
     nodes: std.ArrayListUnmanaged(Node),
 };
 
@@ -609,7 +612,9 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
         };
     }
 
-    try huntIf(cx, root_node_index);
+    try cx.queue.append(cx.gpa, root_node_index);
+    while (cx.queue.pop()) |ni|
+        try huntIf(cx, ni);
 }
 
 fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
@@ -654,6 +659,9 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
     });
     cx.nodes.items[ni_before].next = ni_if;
     cx.nodes.items[ni_true_end].next = null_node;
+
+    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
+    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".true);
 }
 
 fn makeIfElse(
@@ -677,6 +685,10 @@ fn makeIfElse(
     cx.nodes.items[ni_before].next = ni_if;
     cx.nodes.items[ni_true_end].next = null_node;
     cx.nodes.items[ni_false_end].next = null_node;
+
+    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
+    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".true);
+    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".false);
 }
 
 fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex {
