@@ -170,7 +170,8 @@ fn pushInt(cx: *const Cx, integer: i32) !void {
         try emitOpcodeByName(cx, "push-i16");
         try cx.out.writer(cx.gpa).writeInt(i16, i, .little);
     } else {
-        return error.BadData;
+        try emitOpcodeByName(cx, "push-i32");
+        try cx.out.writer(cx.gpa).writeInt(i32, integer, .little);
     }
 }
 

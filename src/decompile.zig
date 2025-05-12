@@ -223,6 +223,7 @@ const ExtraSlice = struct {
 const Op = union(enum) {
     push8,
     push16,
+    push32,
     push_var,
     push_str,
     dup,
@@ -261,6 +262,7 @@ const Param = union(enum) {
 const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
+    .@"push-i32" = .push32,
     .@"push-var" = .push_var,
     .@"push-str" = .push_str,
     .@"get-array-item" = .genCall(&.{.int}),
@@ -269,6 +271,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .not = .genCall(&.{.int}),
     .eq = .genCall(&.{ .int, .int }),
     .gt = .genCall(&.{ .int, .int }),
+    .lt = .genCall(&.{ .int, .int }),
     .le = .genCall(&.{ .int, .int }),
     .ge = .genCall(&.{ .int, .int }),
     .add = .genCall(&.{ .int, .int }),
@@ -286,13 +289,16 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"image-commit" = .gen(&.{}),
     .@"line-length-2d" = .genCall(&.{ .int, .int, .int, .int }),
     .@"sprite-get-state" = .genCall(&.{.int}),
+    .@"sprite-get-variable" = .genCall(&.{ .int, .int }),
     .@"sprite-set-state" = .gen(&.{.int}),
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
     .@"sprite-set-image" = .gen(&.{.int}),
     .@"sprite-new" = .gen(&.{}),
     .@"sprite-group-select" = .gen(&.{.int}),
     .@"sprite-group-new" = .gen(&.{}),
+    .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
     .mod = .genCall(&.{ .int, .int }),
+    .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
@@ -315,13 +321,17 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"cursor-on" = .gen(&.{}),
     .@"break-here" = .gen(&.{}),
     .jump = .jump,
+    .@"sound-channel" = .gen(&.{.int}),
     .@"sound-select" = .gen(&.{.int}),
     .@"sound-start" = .gen(&.{}),
     .@"stop-sound" = .gen(&.{.int}),
     .@"current-room" = .gen(&.{.int}),
     .@"stop-script" = .gen(&.{.int}),
+    .@"do-animation" = .gen(&.{ .int, .int }),
     .random = .genCall(&.{.int}),
     .@"random-between" = .genCall(&.{ .int, .int }),
+    .@"script-running" = .genCall(&.{.int}),
+    .@"sound-running" = .genCall(&.{.int}),
     .@"nuke-image" = .gen(&.{.int}),
     .@"palette-select" = .gen(&.{.int}),
     .@"palette-from-image" = .gen(&.{ .int, .int }),
@@ -344,6 +354,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"call-script" = .genCall(&.{ .int, .list }),
     .@"dim-array-2d.int8" = .gen(&.{ .int, .int }),
     .@"dim-array-2d.int16" = .gen(&.{ .int, .int }),
+    .abs = .genCall(&.{.int}),
     .@"kludge-call" = .genCall(&.{.list}),
     .kludge = .gen(&.{.list}),
     .@"break-here-multi" = .gen(&.{.int}),
@@ -351,6 +362,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"chain-script" = .gen(&.{ .int, .list }),
     .@"delete-file" = .gen(&.{.string}),
     .localize = .gen(&.{.int}),
+    .@"read-system-ini-int" = .genCall(&.{.string}),
 });
 
 fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
@@ -443,6 +455,9 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         },
         .push16 => {
             try push(cx, .{ .int = ins.operands.get(0).i16 });
+        },
+        .push32 => {
+            try push(cx, .{ .int = ins.operands.get(0).i32 });
         },
         .push_var => {
             try push(cx, .{ .variable = ins.operands.get(0).variable });

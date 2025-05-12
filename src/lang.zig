@@ -72,6 +72,7 @@ pub const Language = struct {
 pub const Op = enum {
     @"push-u8",
     @"push-i16",
+    @"push-i32",
     @"push-var",
     @"push-str",
     @"get-array-item",
@@ -80,6 +81,7 @@ pub const Op = enum {
     not,
     eq,
     gt,
+    lt,
     le,
     ge,
     add,
@@ -97,13 +99,16 @@ pub const Op = enum {
     @"image-commit",
     @"line-length-2d",
     @"sprite-get-state",
+    @"sprite-get-variable",
     @"sprite-set-state",
     @"sprite-select-range",
     @"sprite-set-image",
     @"sprite-new",
     @"sprite-group-select",
     @"sprite-group-new",
+    @"actor-get-property",
     mod,
+    iif,
     @"dim-array-range.int16",
     set,
     @"set-array-item",
@@ -126,13 +131,17 @@ pub const Op = enum {
     @"cursor-on",
     @"break-here",
     jump,
+    @"sound-channel",
     @"sound-select",
     @"sound-start",
     @"stop-sound",
     @"current-room",
     @"stop-script",
+    @"do-animation",
     random,
     @"random-between",
+    @"script-running",
+    @"sound-running",
     @"nuke-image",
     @"palette-select",
     @"palette-from-image",
@@ -155,6 +164,7 @@ pub const Op = enum {
     @"call-script",
     @"dim-array-2d.int8",
     @"dim-array-2d.int16",
+    abs,
     @"kludge-call",
     kludge,
     @"break-here-multi",
@@ -162,6 +172,7 @@ pub const Op = enum {
     @"chain-script",
     @"delete-file",
     localize,
+    @"read-system-ini-int",
 };
 
 // stopgap while migrating from string to enum
@@ -217,7 +228,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x00, .@"push-u8", &.{.u8});
     lang.add(0x01, .@"push-i16", &.{.i16});
-    lang.add(0x02, "push-i32", &.{.i32});
+    lang.add(0x02, .@"push-i32", &.{.i32});
     lang.add(0x03, .@"push-var", &.{.variable});
     lang.add(0x04, .@"push-str", &.{.string});
     lang.add(0x07, .@"get-array-item", &.{.variable});
@@ -228,7 +239,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x0e, .eq, &.{});
     lang.add(0x0f, "ne", &.{});
     lang.add(0x10, .gt, &.{});
-    lang.add(0x11, "lt", &.{});
+    lang.add(0x11, .lt, &.{});
     lang.add(0x12, .le, &.{});
     lang.add(0x13, .ge, &.{});
     lang.add(0x14, .add, &.{});
@@ -289,7 +300,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x25, 0x56, "sprite-get-palette", &.{});
     lang.addNested(0x25, 0x7c, "sprite-get-update-type", &.{});
     lang.addNested(0x25, 0x7d, "sprite-class", &.{});
-    lang.addNested(0x25, 0xc6, "sprite-get-variable", &.{});
+    lang.addNested(0x25, 0xc6, .@"sprite-get-variable", &.{});
 
     lang.addNested(0x26, 0x25, "sprite-set-group", &.{});
     lang.addNested(0x26, 0x2a, "sprite-set-property", &.{});
@@ -333,7 +344,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x29, 0x24, "image-get-state-count", &.{});
     lang.addNested(0x29, 0x42, "image-get-color-at", &.{});
 
-    lang.add(0x2a, "actor-get-property", &.{});
+    lang.add(0x2a, .@"actor-get-property", &.{});
 
     lang.addNested(0x2b, 0x01, "start-script-order", &.{});
     lang.addNested(0x2b, 0xc3, "start-script-rec-order", &.{});
@@ -344,7 +355,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x31, "shl", &.{});
     lang.add(0x32, "shr", &.{});
     lang.add(0x34, "find-all-objects", &.{});
-    lang.add(0x36, "iif", &.{});
+    lang.add(0x36, .iif, &.{});
 
     lang.addNested(0x37, 0x04, "dim-array-range.int8", &.{.variable});
     lang.addNested(0x37, 0x05, .@"dim-array-range.int16", &.{.variable});
@@ -434,7 +445,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x73, .jump, &.{.relative_offset});
 
     lang.addNested(0x74, 0x09, "sound-soft", &.{});
-    lang.addNested(0x74, 0xe6, "sound-channel", &.{});
+    lang.addNested(0x74, 0xe6, .@"sound-channel", &.{});
     lang.addNested(0x74, 0xe7, "sound-at", &.{});
     lang.addNested(0x74, 0xe8, .@"sound-select", &.{});
     lang.addNested(0x74, 0xf5, "sound-looping", &.{});
@@ -445,10 +456,10 @@ fn buildNormalLanguage() Language {
     lang.add(0x7b, .@"current-room", &.{});
     lang.add(0x7c, .@"stop-script", &.{});
     lang.add(0x7f, "put-actor", &.{});
-    lang.add(0x82, "do-animation", &.{});
+    lang.add(0x82, .@"do-animation", &.{});
     lang.add(0x87, .random, &.{});
     lang.add(0x88, .@"random-between", &.{});
-    lang.add(0x8b, "script-running", &.{});
+    lang.add(0x8b, .@"script-running", &.{});
     lang.add(0x8c, "actor-room", &.{});
     lang.add(0x8d, "actor-x", &.{});
     lang.add(0x8e, "actor-y", &.{});
@@ -460,7 +471,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x95, "override", &.{ .u8, .relative_offset });
     lang.add(0x96, "override-off", &.{});
-    lang.add(0x98, "sound-running", &.{});
+    lang.add(0x98, .@"sound-running", &.{});
 
     lang.addNested(0x9b, 0x64, "load-script", &.{});
     lang.addNested(0x9b, 0x65, "load-sound", &.{});
@@ -599,7 +610,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xc0, 0x06, "dim-array-2d.int32", &.{.variable});
 
     lang.add(0xc1, "debug-string", &.{});
-    lang.add(0xc4, "abs", &.{});
+    lang.add(0xc4, .abs, &.{});
     lang.add(0xc8, .@"kludge-call", &.{});
     lang.add(0xc9, .kludge, &.{});
     lang.add(0xca, .@"break-here-multi", &.{});
@@ -646,7 +657,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xf2, 0xe3, "costume-loaded", &.{});
     lang.addNested(0xf2, 0xe4, "sound-loaded", &.{});
 
-    lang.addNested(0xf3, 0x06, "read-system-ini-int", &.{});
+    lang.addNested(0xf3, 0x06, .@"read-system-ini-int", &.{});
     lang.addNested(0xf3, 0x07, "read-system-ini-string", &.{});
 
     lang.addNested(0xf4, 0x06, "write-system-ini-int", &.{});
