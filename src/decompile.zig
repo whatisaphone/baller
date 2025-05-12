@@ -28,6 +28,7 @@ pub fn run(
         .diag = diag,
         .language = &language,
         .stack = .{},
+        .str_stack = .{},
         .stmts = .empty,
         .exprs = .empty,
         .extra = .empty,
@@ -72,6 +73,7 @@ const DecompileCx = struct {
     language: *const lang.Language,
 
     stack: std.BoundedArray(ExprIndex, 16),
+    str_stack: std.BoundedArray(ExprIndex, 1),
     stmts: std.ArrayListUnmanaged(Stmt),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
@@ -187,6 +189,7 @@ const Op = union(enum) {
     push8,
     push16,
     push_var,
+    push_str,
     jump_unless,
     jump,
     generic: struct {
@@ -213,6 +216,7 @@ const max_params = 8;
 
 const Param = union(enum) {
     int,
+    string,
     list,
 };
 
@@ -220,12 +224,16 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
     .@"push-var" = .push_var,
+    .@"push-str" = .push_str,
     .@"get-array-item" = .genCall(&.{.int}),
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .dup = .genCall(&.{}), // TODO: real dup
     .add = .genCall(&.{ .int, .int }),
     .sub = .genCall(&.{ .int, .int }),
     .mul = .genCall(&.{ .int, .int }),
+    .div = .genCall(&.{ .int, .int }),
+    .lor = .genCall(&.{ .int, .int }),
+    .@"line-length-2d" = .genCall(&.{ .int, .int, .int, .int }),
     .@"sprite-get-state" = .genCall(&.{.int}),
     .@"sprite-set-state" = .gen(&.{.int}),
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
@@ -253,6 +261,9 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"cursor-on" = .gen(&.{}),
     .@"break-here" = .gen(&.{}),
     .jump = .jump,
+    .@"sound-select" = .gen(&.{.int}),
+    .@"sound-start" = .gen(&.{}),
+    .@"stop-sound" = .gen(&.{.int}),
     .@"current-room" = .gen(&.{.int}),
     .@"stop-script" = .gen(&.{.int}),
     .random = .genCall(&.{.int}),
@@ -261,6 +272,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"palette-new" = .gen(&.{}),
     .@"palette-commit" = .gen(&.{}),
     .@"array-assign-slice" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }),
+    .sprintf = .gen(&.{ .string, .int, .list }),
     .debug = .gen(&.{.int}),
     .@"sleep-for-seconds" = .gen(&.{.int}),
     .@"stop-sentence" = .gen(&.{}),
@@ -278,6 +290,8 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"break-here-multi" = .gen(&.{.int}),
     .@"actor-get-var" = .genCall(&.{ .int, .int }),
     .@"chain-script" = .gen(&.{ .int, .list }),
+    .@"delete-file" = .gen(&.{.string}),
+    .localize = .gen(&.{.int}),
 });
 
 fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: u16) !void {
@@ -302,6 +316,10 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
             },
             .push_var => {
                 try push(cx, .{ .variable = ins.operands.get(0).variable });
+            },
+            .push_str => {
+                const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
+                try cx.str_stack.append(ei);
             },
             .jump_unless => {
                 const rel = ins.operands.get(0).relative_offset;
@@ -336,6 +354,7 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
                     const param = gen.params.get(pi);
                     const ei = switch (param) {
                         .int => try pop(cx),
+                        .string => try popString(cx),
                         .list => try popList(cx),
                     };
                     args.buffer[args.len + pi] = ei;
@@ -363,6 +382,16 @@ fn push(cx: *DecompileCx, expr: Expr) !void {
 
 fn pop(cx: *DecompileCx) !ExprIndex {
     return cx.stack.pop() orelse return error.BadData;
+}
+
+fn popString(cx: *DecompileCx) !ExprIndex {
+    const ei = try pop(cx);
+    const expr = &cx.exprs.items[ei];
+    if (expr.* == .int and expr.int == -1)
+        return cx.str_stack.pop() orelse return error.BadData;
+    if (expr.* == .variable)
+        return ei;
+    return error.BadData;
 }
 
 fn popList(cx: *DecompileCx) !ExprIndex {

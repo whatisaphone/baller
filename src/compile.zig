@@ -151,6 +151,7 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
     const expr = &cx.ast.nodes.items[node_index];
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
+        .string => try pushStr(cx, node_index),
         .identifier => {
             try emitOpcodeByName(cx, "push-var");
             try emitVariable(cx, node_index);
@@ -171,6 +172,12 @@ fn pushInt(cx: *const Cx, integer: i32) !void {
     } else {
         return error.BadData;
     }
+}
+
+fn pushStr(cx: *Cx, node_index: u32) !void {
+    try emitOpcodeByName(cx, "push-str");
+    try emitString(cx, node_index);
+    try pushInt(cx, -1);
 }
 
 fn pushList(cx: *Cx, node_index: u32) !void {

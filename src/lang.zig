@@ -73,12 +73,16 @@ pub const Op = enum {
     @"push-u8",
     @"push-i16",
     @"push-var",
+    @"push-str",
     @"get-array-item",
     @"get-array-item-2d",
     dup,
     add,
     sub,
     mul,
+    div,
+    lor,
+    @"line-length-2d",
     @"sprite-get-state",
     @"sprite-set-state",
     @"sprite-select-range",
@@ -106,6 +110,9 @@ pub const Op = enum {
     @"cursor-on",
     @"break-here",
     jump,
+    @"sound-select",
+    @"sound-start",
+    @"stop-sound",
     @"current-room",
     @"stop-script",
     random,
@@ -114,6 +121,7 @@ pub const Op = enum {
     @"palette-new",
     @"palette-commit",
     @"array-assign-slice",
+    sprintf,
     debug,
     @"sleep-for-seconds",
     @"stop-sentence",
@@ -131,6 +139,8 @@ pub const Op = enum {
     @"break-here-multi",
     @"actor-get-var",
     @"chain-script",
+    @"delete-file",
+    localize,
 };
 
 // stopgap while migrating from string to enum
@@ -188,7 +198,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x01, .@"push-i16", &.{.i16});
     lang.add(0x02, "push-i32", &.{.i32});
     lang.add(0x03, .@"push-var", &.{.variable});
-    lang.add(0x04, "push-str", &.{.string});
+    lang.add(0x04, .@"push-str", &.{.string});
     lang.add(0x07, .@"get-array-item", &.{.variable});
     lang.add(0x0a, "dup-multi", &.{.i16});
     lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
@@ -203,9 +213,9 @@ fn buildNormalLanguage() Language {
     lang.add(0x14, .add, &.{});
     lang.add(0x15, .sub, &.{});
     lang.add(0x16, .mul, &.{});
-    lang.add(0x17, "div", &.{});
+    lang.add(0x17, .div, &.{});
     lang.add(0x18, "land", &.{});
-    lang.add(0x19, "lor", &.{});
+    lang.add(0x19, .lor, &.{});
     lang.add(0x1a, "pop", &.{});
     lang.add(0x1b, "in-list", &.{});
 
@@ -240,7 +250,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x22, "angle-from-delta", &.{});
     lang.add(0x23, "angle-from-line", &.{});
 
-    lang.addNested(0x24, 0x1c, "line-length-2d", &.{});
+    lang.addNested(0x24, 0x1c, .@"line-length-2d", &.{});
     lang.addNested(0x24, 0x1d, "line-length-3d", &.{});
 
     lang.addNested(0x25, 0x1e, "sprite-get-object-x", &.{});
@@ -405,11 +415,11 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x74, 0x09, "sound-soft", &.{});
     lang.addNested(0x74, 0xe6, "sound-channel", &.{});
     lang.addNested(0x74, 0xe7, "sound-at", &.{});
-    lang.addNested(0x74, 0xe8, "sound-select", &.{});
+    lang.addNested(0x74, 0xe8, .@"sound-select", &.{});
     lang.addNested(0x74, 0xf5, "sound-looping", &.{});
-    lang.addNested(0x74, 0xff, "sound-start", &.{});
+    lang.addNested(0x74, 0xff, .@"sound-start", &.{});
 
-    lang.add(0x75, "stop-sound", &.{});
+    lang.add(0x75, .@"stop-sound", &.{});
     lang.add(0x77, "stop-object", &.{});
     lang.add(0x7b, .@"current-room", &.{});
     lang.add(0x7c, .@"stop-script", &.{});
@@ -503,7 +513,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa4, 0x7f, .@"array-assign-slice", &.{ .variable, .variable });
     lang.addNested(0xa4, 0x80, "array-assign-range", &.{.variable});
     lang.addNested(0xa4, 0x8a, "array-math", &.{ .variable, .variable });
-    lang.addNested(0xa4, 0xc2, "sprintf", &.{.variable});
+    lang.addNested(0xa4, 0xc2, .sprintf, &.{.variable});
     lang.addNested(0xa4, 0xd0, "array-assign", &.{.variable});
     lang.addNested(0xa4, 0xd4, "array-set-row", &.{.variable});
 
@@ -595,12 +605,12 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xdc, 0x08, "write-file-int8", &.{.u8});
 
     lang.add(0xdd, "find-all-objects2", &.{});
-    lang.add(0xde, "delete-file", &.{});
+    lang.add(0xde, .@"delete-file", &.{});
     lang.add(0xdf, "rename-file", &.{});
 
     lang.addNested(0xe0, 0x42, "array-line-draw", &.{});
 
-    lang.add(0xe2, "localize", &.{});
+    lang.add(0xe2, .localize, &.{});
     lang.add(0xe3, "pick-random", &.{.variable});
     lang.add(0xe9, "seek-file", &.{});
     lang.add(0xea, "redim-array", &.{ .u8, .variable });
