@@ -109,6 +109,7 @@ fn scanBasicBlocks(
         .end = @intCast(bytecode.len),
         .exit = .no_jump,
         .state = .new,
+        .stack_on_enter = .undef,
         .statements = .undef,
     });
     return result;
@@ -143,6 +144,7 @@ fn insertBasicBlock(
             .end = end,
             .exit = exit,
             .state = .new,
+            .stack_on_enter = .undef,
             .statements = .undef,
         });
     }
@@ -154,6 +156,9 @@ const BasicBlock = struct {
     end: u16,
     exit: BasicBlockExit,
     state: enum { new, pending, decompiled },
+    /// valid in {pending,decompiled}
+    stack_on_enter: utils.SafeUndefined(std.BoundedArray(ExprIndex, 1)),
+    /// valid in {decompiled}
     statements: utils.SafeUndefined(ExtraSlice),
 
     fn order(end: u16, item: BasicBlock) std.math.Order {
@@ -218,6 +223,8 @@ const Op = union(enum) {
     push16,
     push_var,
     push_str,
+    dup,
+    pop,
     jump_if,
     jump_unless,
     jump,
@@ -256,7 +263,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"push-str" = .push_str,
     .@"get-array-item" = .genCall(&.{.int}),
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
-    .dup = .genCall(&.{}), // TODO: real dup
+    .dup = .dup,
     .not = .genCall(&.{.int}),
     .eq = .genCall(&.{ .int, .int }),
     .gt = .genCall(&.{ .int, .int }),
@@ -268,6 +275,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .div = .genCall(&.{ .int, .int }),
     .land = .genCall(&.{ .int, .int }),
     .lor = .genCall(&.{ .int, .int }),
+    .pop = .pop,
     .@"image-draw" = .gen(&.{}),
     .@"image-select" = .gen(&.{.int}),
     .@"image-set-pos" = .gen(&.{ .int, .int }),
@@ -324,6 +332,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .in = .genCall(&.{ .int, .list }),
     .@"sleep-for-seconds" = .gen(&.{.int}),
     .@"stop-sentence" = .gen(&.{}),
+    .@"print-debug-string" = .gen(&.{}),
     .@"print-debug-printf" = .gen(&.{ .int, .list }),
     .@"print-debug-start" = .gen(&.{}),
     .@"dim-array.int8" = .gen(&.{.int}),
@@ -347,15 +356,21 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     while (cx.pending_basic_blocks.pop()) |bbi| {
         const bb = &cx.basic_blocks[bbi];
         const bb_start = if (bbi == 0) 0 else cx.basic_blocks[bbi - 1].end;
-        try decompileBasicBlock(cx, bytecode, bb, bb_start);
 
-        if (cx.stack.len != 0 or cx.str_stack.len != 0)
-            return error.BadData;
+        std.debug.assert(cx.stack.len == 0);
+        cx.stack.appendSlice(bb.stack_on_enter.defined.slice()) catch unreachable;
+
+        try decompileBasicBlock(cx, bytecode, bb, bb_start);
 
         switch (bb.exit) {
             .no_jump => {
-                if (bbi != cx.basic_blocks.len - 1)
+                if (bbi != cx.basic_blocks.len - 1) {
+                    // middle blocks fall through to the next block
                     try scheduleBasicBlock(cx, bbi + 1);
+                } else {
+                    // the last block should finish with an empty stack
+                    if (cx.stack.len != 0) return error.BadData;
+                }
             },
             .jump => |j| {
                 const target_bbi = findBasicBlockWithStart(cx, j.target);
@@ -369,6 +384,11 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
                 try scheduleBasicBlock(cx, target_bbi);
             },
         }
+
+        // Above, the stack was dealt with, so we no longer need it. Clear it for the next block.
+        cx.stack.clear();
+        // However the string stack wasn't, so make sure it ended up empty.
+        if (cx.str_stack.len != 0) return error.BadData;
     }
 
     // Bail if any basic blocks were unreachable and not decompiled. If this comes up I'll fix it
@@ -388,8 +408,14 @@ fn findBasicBlockWithStart(cx: *const DecompileCx, start: u16) BasicBlockIndex {
 
 fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16) !void {
     const bb = &cx.basic_blocks[bbi];
-    if (bb.state != .new) return;
+    if (bb.state != .new) {
+        // Make sure the stack is identical on all entrances to each basic block
+        if (!std.mem.eql(ExprIndex, bb.stack_on_enter.defined.slice(), cx.stack.slice()))
+            return error.BadData;
+        return;
+    }
     bb.state = .pending;
+    bb.stack_on_enter.setOnce(try .fromSlice(cx.stack.slice()));
     try cx.pending_basic_blocks.append(cx.gpa, bbi);
 }
 
@@ -424,6 +450,9 @@ fn decompileBasicBlock(
             .push_str => {
                 const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
                 try cx.str_stack.append(ei);
+            },
+            .dup, .pop => {
+                return error.BadData; // TODO
             },
             .jump_if => {
                 const rel = ins.operands.get(0).relative_offset;

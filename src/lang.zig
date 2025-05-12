@@ -88,6 +88,7 @@ pub const Op = enum {
     div,
     land,
     lor,
+    pop,
     @"image-draw",
     @"image-select",
     @"image-set-pos",
@@ -144,6 +145,7 @@ pub const Op = enum {
     in,
     @"sleep-for-seconds",
     @"stop-sentence",
+    @"print-debug-string",
     @"print-debug-printf",
     @"print-debug-start",
     @"dim-array.int8",
@@ -235,7 +237,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x17, .div, &.{});
     lang.add(0x18, .land, &.{});
     lang.add(0x19, .lor, &.{});
-    lang.add(0x1a, "pop", &.{});
+    lang.add(0x1a, .pop, &.{});
     lang.add(0x1b, "in-list", &.{});
 
     lang.addNested(0x1c, 0x20, "image-set-width", &.{});
@@ -561,7 +563,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb5, 0xf9, "print-text-color", &.{});
     lang.addNested(0xb5, 0xfe, "print-text-start", &.{});
 
-    lang.addNested(0xb6, 0x4b, "print-debug-string", &.{.string});
+    lang.addNested(0xb6, 0x4b, .@"print-debug-string", &.{.string});
     lang.addNested(0xb6, 0xc2, .@"print-debug-printf", &.{.string});
     lang.addNested(0xb6, 0xfe, .@"print-debug-start", &.{});
     lang.addNested(0xb6, 0xff, "print-debug-empty", &.{});
