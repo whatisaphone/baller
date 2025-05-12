@@ -77,18 +77,32 @@ pub const Op = enum {
     @"get-array-item",
     @"get-array-item-2d",
     dup,
+    not,
+    eq,
+    gt,
+    le,
+    ge,
     add,
     sub,
     mul,
     div,
+    land,
     lor,
+    @"image-draw",
+    @"image-select",
+    @"image-set-pos",
+    @"image-set-palette",
+    @"image-set-shadow",
+    @"image-commit",
     @"line-length-2d",
     @"sprite-get-state",
     @"sprite-set-state",
     @"sprite-select-range",
+    @"sprite-set-image",
     @"sprite-new",
     @"sprite-group-select",
     @"sprite-group-new",
+    mod,
     @"dim-array-range.int16",
     set,
     @"set-array-item",
@@ -116,13 +130,17 @@ pub const Op = enum {
     @"current-room",
     @"stop-script",
     random,
+    @"random-between",
+    @"nuke-image",
     @"palette-select",
     @"palette-from-image",
     @"palette-new",
     @"palette-commit",
+    @"assign-string",
     @"array-assign-slice",
     sprintf,
     debug,
+    in,
     @"sleep-for-seconds",
     @"stop-sentence",
     @"print-debug-printf",
@@ -203,36 +221,36 @@ fn buildNormalLanguage() Language {
     lang.add(0x0a, "dup-multi", &.{.i16});
     lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
     lang.add(0x0c, .dup, &.{});
-    lang.add(0x0d, "not", &.{});
-    lang.add(0x0e, "eq", &.{});
+    lang.add(0x0d, .not, &.{});
+    lang.add(0x0e, .eq, &.{});
     lang.add(0x0f, "ne", &.{});
-    lang.add(0x10, "gt", &.{});
+    lang.add(0x10, .gt, &.{});
     lang.add(0x11, "lt", &.{});
-    lang.add(0x12, "le", &.{});
-    lang.add(0x13, "ge", &.{});
+    lang.add(0x12, .le, &.{});
+    lang.add(0x13, .ge, &.{});
     lang.add(0x14, .add, &.{});
     lang.add(0x15, .sub, &.{});
     lang.add(0x16, .mul, &.{});
     lang.add(0x17, .div, &.{});
-    lang.add(0x18, "land", &.{});
+    lang.add(0x18, .land, &.{});
     lang.add(0x19, .lor, &.{});
     lang.add(0x1a, "pop", &.{});
     lang.add(0x1b, "in-list", &.{});
 
     lang.addNested(0x1c, 0x20, "image-set-width", &.{});
     lang.addNested(0x1c, 0x21, "image-set-height", &.{});
-    lang.addNested(0x1c, 0x30, "image-draw", &.{});
+    lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
     lang.addNested(0x1c, 0x31, "image-load-external", &.{});
     lang.addNested(0x1c, 0x33, "image-capture", &.{});
     lang.addNested(0x1c, 0x34, "image-set-state", &.{});
     lang.addNested(0x1c, 0x36, "image-set-flags", &.{});
     lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
-    lang.addNested(0x1c, 0x39, "image-select", &.{});
-    lang.addNested(0x1c, 0x41, "image-set-pos", &.{});
+    lang.addNested(0x1c, 0x39, .@"image-select", &.{});
+    lang.addNested(0x1c, 0x41, .@"image-set-pos", &.{});
     lang.addNested(0x1c, 0x42, "image-set-color", &.{});
     lang.addNested(0x1c, 0x43, "image-set-clip", &.{});
-    lang.addNested(0x1c, 0x56, "image-set-palette", &.{});
-    lang.addNested(0x1c, 0x62, "image-set-shadow", &.{});
+    lang.addNested(0x1c, 0x56, .@"image-set-palette", &.{});
+    lang.addNested(0x1c, 0x62, .@"image-set-shadow", &.{});
     lang.addNested(0x1c, 0x85, "image-set-draw-box", &.{});
     lang.addNested(0x1c, 0x86, "image-set-draw-line", &.{});
     lang.addNested(0x1c, 0x89, "image-set-render-image", &.{});
@@ -240,7 +258,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0xd9, "image-new", &.{});
     lang.addNested(0x1c, 0xf6, "image-set-polygon", &.{});
     lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
-    lang.addNested(0x1c, 0xff, "image-commit", &.{});
+    lang.addNested(0x1c, 0xff, .@"image-commit", &.{});
 
     lang.add(0x1d, "min", &.{});
     lang.add(0x1e, "max", &.{});
@@ -276,7 +294,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0x2c, "sprite-move", &.{});
     lang.addNested(0x26, 0x34, .@"sprite-set-state", &.{});
     lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
-    lang.addNested(0x26, 0x3f, "sprite-set-image", &.{});
+    lang.addNested(0x26, 0x3f, .@"sprite-set-image", &.{});
     lang.addNested(0x26, 0x41, "sprite-set-position", &.{});
     lang.addNested(0x26, 0x44, "sprite-erase", &.{});
     lang.addNested(0x26, 0x4d, "sprite-set-step-dist", &.{});
@@ -319,7 +337,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x2c, 0x01, "chain-script-order", &.{});
 
-    lang.add(0x30, "mod", &.{});
+    lang.add(0x30, .mod, &.{});
     lang.add(0x31, "shl", &.{});
     lang.add(0x32, "shr", &.{});
     lang.add(0x34, "find-all-objects", &.{});
@@ -426,7 +444,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x7f, "put-actor", &.{});
     lang.add(0x82, "do-animation", &.{});
     lang.add(0x87, .random, &.{});
-    lang.add(0x88, "random-between", &.{});
+    lang.add(0x88, .@"random-between", &.{});
     lang.add(0x8b, "script-running", &.{});
     lang.add(0x8c, "actor-room", &.{});
     lang.add(0x8d, "actor-x", &.{});
@@ -456,7 +474,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9b, 0x7a, "preload-costume", &.{});
     lang.addNested(0x9b, 0x7b, "preload-room", &.{});
     lang.addNested(0x9b, 0x9f, "unlock-image", &.{});
-    lang.addNested(0x9b, 0xc0, "nuke-image", &.{});
+    lang.addNested(0x9b, 0xc0, .@"nuke-image", &.{});
     lang.addNested(0x9b, 0xc9, "load-image", &.{});
     lang.addNested(0x9b, 0xca, "lock-image", &.{});
     lang.addNested(0x9b, 0xcb, "preload-image", &.{});
@@ -508,7 +526,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xa2, "actor-get-elevation", &.{});
     lang.add(0xa3, "valid-verb", &.{});
 
-    lang.addNested(0xa4, 0x07, "assign-string", &.{.variable});
+    lang.addNested(0xa4, 0x07, .@"assign-string", &.{.variable});
     lang.addNested(0xa4, 0x7e, "array-assign-list", &.{.variable});
     lang.addNested(0xa4, 0x7f, .@"array-assign-slice", &.{ .variable, .variable });
     lang.addNested(0xa4, 0x80, "array-assign-range", &.{.variable});
@@ -523,7 +541,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
 
     lang.add(0xaa, "actor-get-scale", &.{});
-    lang.add(0xad, "in", &.{});
+    lang.add(0xad, .in, &.{});
 
     lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
     lang.addNested(0xae, 0x1a, "update-screen", &.{});
