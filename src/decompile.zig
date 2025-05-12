@@ -371,6 +371,9 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
         }
     }
 
+    if (cx.stack.len != 0 or cx.str_stack.len != 0)
+        return error.BadData;
+
     const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
     bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
 }
