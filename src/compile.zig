@@ -83,11 +83,13 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .@"if" => |s| {
             try pushExpr(cx, s.condition);
             try emitOpcodeByName(cx, "jump-unless");
-            const cond_fixup = try cx.out.addManyAsArray(cx.gpa, 2);
+            const cond_fixup: u32 = @intCast(cx.out.items.len);
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try emitBlock(cx, s.true);
             if (s.false.len != 0) {
                 try emitOpcodeByName(cx, "jump");
-                const true_end_fixup = try cx.out.addManyAsArray(cx.gpa, 2);
+                const true_end_fixup: u32 = @intCast(cx.out.items.len);
+                _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                 try fixupJumpToHere(cx, cond_fixup);
                 try emitBlock(cx, s.false);
                 try fixupJumpToHere(cx, true_end_fixup);
@@ -241,9 +243,8 @@ fn emitString(cx: *const Cx, node_index: u32) !void {
     try cx.out.append(cx.gpa, 0);
 }
 
-fn fixupJumpToHere(cx: *Cx, dest: *[2]u8) !void {
-    const target = cx.out.unusedCapacitySlice().ptr;
-    const rel_wide = target - (dest.ptr + 2);
+fn fixupJumpToHere(cx: *Cx, dest: u32) !void {
+    const rel_wide = @as(u32, @intCast(cx.out.items.len)) - (dest + 2);
     const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
-    std.mem.writeInt(i16, dest, rel, .little);
+    std.mem.writeInt(i16, cx.out.items[dest..][0..2], rel, .little);
 }
