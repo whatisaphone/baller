@@ -360,7 +360,15 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
         std.debug.assert(cx.stack.len == 0);
         cx.stack.appendSlice(bb.stack_on_enter.defined.slice()) catch unreachable;
 
-        try decompileBasicBlock(cx, bytecode, bb, bb_start);
+        const first_stmt: u16 = @intCast(cx.stmts.items.len);
+
+        var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
+        disasm.reader.pos = bb_start;
+        while (try disasm.next()) |ins|
+            try decompileIns(cx, ins);
+
+        const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
+        bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
 
         switch (bb.exit) {
             .no_jump => {
@@ -419,102 +427,88 @@ fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16) !void {
     try cx.pending_basic_blocks.append(cx.gpa, bbi);
 }
 
-fn decompileBasicBlock(
-    cx: *DecompileCx,
-    bytecode: []const u8,
-    bb: *BasicBlock,
-    bb_start: u16,
-) !void {
-    const first_stmt: u16 = @intCast(cx.stmts.items.len);
+fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
+    const op = switch (ins.name) {
+        .op => |op| op,
+        .str => |s| {
+            cx.diag.err(ins.start, "unhandled opcode {s}", .{s});
+            return error.AddedToDiagnostic;
+        },
+    };
+    switch (ops.get(op)) {
+        .push8 => {
+            try push(cx, .{ .int = ins.operands.get(0).u8 });
+        },
+        .push16 => {
+            try push(cx, .{ .int = ins.operands.get(0).i16 });
+        },
+        .push_var => {
+            try push(cx, .{ .variable = ins.operands.get(0).variable });
+        },
+        .push_str => {
+            const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
+            try cx.str_stack.append(ei);
+        },
+        .dup, .pop => {
+            return error.BadData; // TODO
+        },
+        .jump_if => {
+            const rel = ins.operands.get(0).relative_offset;
+            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const condition = try pop(cx);
+            try cx.stmts.append(cx.gpa, .{ .jump_if = .{
+                .target = target,
+                .condition = condition,
+            } });
+        },
+        .jump_unless => {
+            const rel = ins.operands.get(0).relative_offset;
+            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const condition = try pop(cx);
+            try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
+                .target = target,
+                .condition = condition,
+            } });
+        },
+        .jump => {
+            const rel = ins.operands.get(0).relative_offset;
+            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
+        },
+        .generic => |gen| {
+            var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
+            for (ins.operands.slice()) |operand| {
+                const expr: Expr = switch (operand) {
+                    .variable => |v| .{ .variable = v },
+                    .string => |s| .{ .string = s },
+                    else => unreachable,
+                };
+                const ei = try storeExpr(cx, expr);
+                args.appendAssumeCapacity(ei);
+            }
 
-    var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
-    disasm.reader.pos = bb_start;
-    while (try disasm.next()) |ins| {
-        const op = switch (ins.name) {
-            .op => |op| op,
-            .str => |s| {
-                cx.diag.err(ins.start, "unhandled opcode {s}", .{s});
-                return error.AddedToDiagnostic;
-            },
-        };
-        switch (ops.get(op)) {
-            .push8 => {
-                try push(cx, .{ .int = ins.operands.get(0).u8 });
-            },
-            .push16 => {
-                try push(cx, .{ .int = ins.operands.get(0).i16 });
-            },
-            .push_var => {
-                try push(cx, .{ .variable = ins.operands.get(0).variable });
-            },
-            .push_str => {
-                const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
-                try cx.str_stack.append(ei);
-            },
-            .dup, .pop => {
-                return error.BadData; // TODO
-            },
-            .jump_if => {
-                const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel).?;
-                const condition = try pop(cx);
-                try cx.stmts.append(cx.gpa, .{ .jump_if = .{
-                    .target = target,
-                    .condition = condition,
-                } });
-            },
-            .jump_unless => {
-                const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel).?;
-                const condition = try pop(cx);
-                try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
-                    .target = target,
-                    .condition = condition,
-                } });
-            },
-            .jump => {
-                const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel).?;
-                try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
-            },
-            .generic => |gen| {
-                var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
-                for (ins.operands.slice()) |operand| {
-                    const expr: Expr = switch (operand) {
-                        .variable => |v| .{ .variable = v },
-                        .string => |s| .{ .string = s },
-                        else => unreachable,
-                    };
-                    const ei = try storeExpr(cx, expr);
-                    args.appendAssumeCapacity(ei);
-                }
+            // Pop args in reverse order
+            var pi = gen.params.len;
+            while (pi > 0) {
+                pi -= 1;
+                const param = gen.params.get(pi);
+                const ei = switch (param) {
+                    .int => try pop(cx),
+                    .string => try popString(cx),
+                    .list => try popList(cx),
+                };
+                args.buffer[args.len + pi] = ei;
+            }
+            args.len += gen.params.len;
 
-                // Pop args in reverse order
-                var pi = gen.params.len;
-                while (pi > 0) {
-                    pi -= 1;
-                    const param = gen.params.get(pi);
-                    const ei = switch (param) {
-                        .int => try pop(cx),
-                        .string => try popString(cx),
-                        .list => try popList(cx),
-                    };
-                    args.buffer[args.len + pi] = ei;
-                }
-                args.len += gen.params.len;
-
-                const args_extra = try storeExtra(cx, args.slice());
-                if (gen.call) {
-                    try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
-                } else {
-                    try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
-                }
-            },
-        }
+            const args_extra = try storeExtra(cx, args.slice());
+            if (gen.call) {
+                try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
+            } else {
+                try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
+            }
+        },
     }
-
-    const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
-    bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
 }
 
 fn push(cx: *DecompileCx, expr: Expr) !void {
