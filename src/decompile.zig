@@ -27,6 +27,9 @@ pub fn run(
         .gpa = gpa,
         .diag = diag,
         .language = &language,
+        .basic_blocks = basic_blocks.items,
+
+        .pending_basic_blocks = .empty,
         .stack = .{},
         .str_stack = .{},
         .stmts = .empty,
@@ -36,11 +39,9 @@ pub fn run(
     defer dcx.extra.deinit(gpa);
     defer dcx.exprs.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
+    defer dcx.pending_basic_blocks.deinit(gpa);
 
-    for (basic_blocks.items, 0..) |*bb, i| {
-        const bb_start = if (i == 0) 0 else basic_blocks.items[i - 1].end;
-        try decompile(&dcx, bytecode, bb, bb_start);
-    }
+    try decompileBasicBlocks(&dcx, bytecode);
 
     var scx: StructuringCx = .{
         .gpa = gpa,
@@ -107,6 +108,7 @@ fn scanBasicBlocks(
     try result.append(gpa, .{
         .end = @intCast(bytecode.len),
         .exit = .no_jump,
+        .state = .new,
         .statements = .undef,
     });
     return result;
@@ -140,14 +142,18 @@ fn insertBasicBlock(
         try basic_blocks.insert(gpa, index, .{
             .end = end,
             .exit = exit,
+            .state = .new,
             .statements = .undef,
         });
     }
 }
 
+const BasicBlockIndex = u16;
+
 const BasicBlock = struct {
     end: u16,
     exit: BasicBlockExit,
+    state: enum { new, pending, decompiled },
     statements: utils.SafeUndefined(ExtraSlice),
 
     fn order(end: u16, item: BasicBlock) std.math.Order {
@@ -158,15 +164,21 @@ const BasicBlock = struct {
 const BasicBlockExit = union(enum) {
     no_jump,
     jump: struct { target: u16 },
-    jump_if: struct { target: u16 },
-    jump_unless: struct { target: u16 },
+    jump_if: JumpTarget,
+    jump_unless: JumpTarget,
+};
+
+const JumpTarget = struct {
+    target: u16,
 };
 
 const DecompileCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     language: *const lang.Language,
+    basic_blocks: []BasicBlock,
 
+    pending_basic_blocks: std.ArrayListUnmanaged(u16),
     stack: std.BoundedArray(ExprIndex, 16),
     str_stack: std.BoundedArray(ExprIndex, 1),
     stmts: std.ArrayListUnmanaged(Stmt),
@@ -330,7 +342,63 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .localize = .gen(&.{.int}),
 });
 
-fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: u16) !void {
+fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
+    try scheduleBasicBlock(cx, 0);
+    while (cx.pending_basic_blocks.pop()) |bbi| {
+        const bb = &cx.basic_blocks[bbi];
+        const bb_start = if (bbi == 0) 0 else cx.basic_blocks[bbi - 1].end;
+        try decompileBasicBlock(cx, bytecode, bb, bb_start);
+
+        if (cx.stack.len != 0 or cx.str_stack.len != 0)
+            return error.BadData;
+
+        switch (bb.exit) {
+            .no_jump => {
+                if (bbi != cx.basic_blocks.len - 1)
+                    try scheduleBasicBlock(cx, bbi + 1);
+            },
+            .jump => |j| {
+                const target_bbi = findBasicBlockWithStart(cx, j.target);
+                try scheduleBasicBlock(cx, target_bbi);
+            },
+            .jump_if, .jump_unless => |j| {
+                if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
+                    return error.BadData;
+                try scheduleBasicBlock(cx, bbi + 1);
+                const target_bbi = findBasicBlockWithStart(cx, j.target);
+                try scheduleBasicBlock(cx, target_bbi);
+            },
+        }
+    }
+
+    // Bail if any basic blocks were unreachable and not decompiled. If this comes up I'll fix it
+    for (cx.basic_blocks) |*bb|
+        if (bb.state == .new)
+            return error.BadData;
+}
+
+fn findBasicBlockWithStart(cx: *const DecompileCx, start: u16) BasicBlockIndex {
+    if (start == 0) return 0;
+    // We're storing the end, not the start, so search for the end of one block
+    // which will also be the beginning of the next.
+    const bbi_usize = std.sort.binarySearch(BasicBlock, cx.basic_blocks, start, BasicBlock.order).?;
+    const bbi: BasicBlockIndex = @intCast(bbi_usize);
+    return bbi + 1;
+}
+
+fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16) !void {
+    const bb = &cx.basic_blocks[bbi];
+    if (bb.state != .new) return;
+    bb.state = .pending;
+    try cx.pending_basic_blocks.append(cx.gpa, bbi);
+}
+
+fn decompileBasicBlock(
+    cx: *DecompileCx,
+    bytecode: []const u8,
+    bb: *BasicBlock,
+    bb_start: u16,
+) !void {
     const first_stmt: u16 = @intCast(cx.stmts.items.len);
 
     var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
@@ -415,9 +483,6 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
             },
         }
     }
-
-    if (cx.stack.len != 0 or cx.str_stack.len != 0)
-        return error.BadData;
 
     const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
     bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
@@ -507,7 +572,7 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     // Populate initial nodes, just every basic block one after the other
     const bb_nodes = try cx.nodes.addManyAsSlice(cx.gpa, basic_blocks.len);
     for (bb_nodes, basic_blocks, 0..) |*node, *bb, bbi_usize| {
-        const bbi: u16 = @intCast(bbi_usize);
+        const bbi: BasicBlockIndex = @intCast(bbi_usize);
         const bb_start = if (bbi == 0) 0 else basic_blocks[bbi - 1].end;
         const next = if (bbi == basic_blocks.len - 1) null_node else bbi + 1;
         node.* = .{
