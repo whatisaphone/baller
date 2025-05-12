@@ -109,6 +109,7 @@ pub const Op = enum {
     @"set-array-item-2d",
     inc,
     dec,
+    @"jump-if",
     @"jump-unless",
     @"start-script",
     @"start-script-rec",
@@ -377,7 +378,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x5a, "sound-position", &.{});
     lang.add(0x5b, "dec-array-item", &.{.variable});
-    lang.add(0x5c, "jump-if", &.{.relative_offset});
+    lang.add(0x5c, .@"jump-if", &.{.relative_offset});
     lang.add(0x5d, .@"jump-unless", &.{.relative_offset});
 
     lang.addNested(0x5e, 0x01, .@"start-script", &.{});

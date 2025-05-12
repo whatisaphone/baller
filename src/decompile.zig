@@ -90,6 +90,13 @@ fn scanBasicBlocks(
     var disasm: lang.Disasm = .init(language, bytecode);
     while (try disasm.next()) |ins| {
         if (ins.name == .op) switch (ins.name.op) {
+            .@"jump-if" => {
+                const target = try jumpTarget(&ins, @intCast(bytecode.len));
+                try insertBasicBlock(gpa, &result, ins.end, .{
+                    .jump_if = .{ .target = target },
+                });
+                try insertBasicBlock(gpa, &result, target, .no_jump);
+            },
             .@"jump-unless" => {
                 const target = try jumpTarget(&ins, @intCast(bytecode.len));
                 try insertBasicBlock(gpa, &result, ins.end, .{
@@ -104,7 +111,9 @@ fn scanBasicBlocks(
                 });
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
-            else => {},
+            else => {
+                std.debug.assert(ins.operands.len == 0 or ins.operands.get(0) != .relative_offset);
+            },
         };
     }
     try result.append(gpa, .{
@@ -161,13 +170,20 @@ const BasicBlock = struct {
 const BasicBlockExit = union(enum) {
     no_jump,
     jump: struct { target: u16 },
+    jump_if: struct { target: u16 },
     jump_unless: struct { target: u16 },
 };
 
 const Stmt = union(enum) {
-    jump_unless: struct { target: u16, condition: ExprIndex },
+    jump_if: JumpTargetAndCondition,
+    jump_unless: JumpTargetAndCondition,
     jump: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
+};
+
+const JumpTargetAndCondition = struct {
+    target: u16,
+    condition: ExprIndex,
 };
 
 const ExprIndex = u16;
@@ -190,6 +206,7 @@ const Op = union(enum) {
     push16,
     push_var,
     push_str,
+    jump_if,
     jump_unless,
     jump,
     generic: struct {
@@ -260,6 +277,7 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
     .inc = .gen(&.{}),
     .dec = .gen(&.{}),
+    .@"jump-if" = .jump_if,
     .@"jump-unless" = .jump_unless,
     .@"start-script" = .gen(&.{ .int, .list }),
     .@"start-script-rec" = .gen(&.{ .int, .list }),
@@ -338,6 +356,15 @@ fn decompile(cx: *DecompileCx, bytecode: []const u8, bb: *BasicBlock, bb_start: 
             .push_str => {
                 const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
                 try cx.str_stack.append(ei);
+            },
+            .jump_if => {
+                const rel = ins.operands.get(0).relative_offset;
+                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
+                const condition = try pop(cx);
+                try cx.stmts.append(cx.gpa, .{ .jump_if = .{
+                    .target = target,
+                    .condition = condition,
+                } });
             },
             .jump_unless => {
                 const rel = ins.operands.get(0).relative_offset;
@@ -638,6 +665,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
             const target = switch (bb.exit) {
                 .no_jump => return,
                 .jump => |j| j.target,
+                .jump_if => |j| j.target,
                 .jump_unless => |j| j.target,
             };
             try insertSortedNoDup(cx.gpa, &cx.result, target);
@@ -720,8 +748,13 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
     try writeIndent(cx);
     switch (stmt.*) {
-        .jump_unless => |j| {
-            try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.@"jump-unless"));
+        .jump_if, .jump_unless => |j| {
+            const op = switch (stmt.*) {
+                .jump_if => @tagName(lang.Op.@"jump-if"),
+                .jump_unless => @tagName(lang.Op.@"jump-unless"),
+                else => unreachable,
+            };
+            try cx.out.appendSlice(cx.gpa, op);
             try cx.out.append(cx.gpa, ' ');
             try emitLabel(cx, j.target);
             try cx.out.append(cx.gpa, ' ');
