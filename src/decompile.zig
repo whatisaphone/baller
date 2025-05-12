@@ -456,7 +456,7 @@ fn decompileBasicBlock(
             },
             .jump_if => {
                 const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
+                const target = utils.addUnsignedSigned(ins.end, rel).?;
                 const condition = try pop(cx);
                 try cx.stmts.append(cx.gpa, .{ .jump_if = .{
                     .target = target,
@@ -465,7 +465,7 @@ fn decompileBasicBlock(
             },
             .jump_unless => {
                 const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
+                const target = utils.addUnsignedSigned(ins.end, rel).?;
                 const condition = try pop(cx);
                 try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
                     .target = target,
@@ -474,7 +474,7 @@ fn decompileBasicBlock(
             },
             .jump => {
                 const rel = ins.operands.get(0).relative_offset;
-                const target = utils.addUnsignedSigned(ins.end, rel) orelse unreachable;
+                const target = utils.addUnsignedSigned(ins.end, rel).?;
                 try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
             },
             .generic => |gen| {
