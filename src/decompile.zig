@@ -845,9 +845,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
             };
             try insertSortedNoDup(cx.gpa, &cx.result, target);
         },
-        .@"if" => |s| {
-            try findJumpTargetsInNodeList(cx, s.true);
-            try findJumpTargetsInNodeList(cx, s.false);
+        .@"if" => |*n| {
+            try findJumpTargetsInNodeList(cx, n.true);
+            try findJumpTargetsInNodeList(cx, n.false);
         },
     }
 }
