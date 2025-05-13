@@ -157,6 +157,10 @@ pub const Node = union(enum) {
         true: ExtraSlice,
         false: ExtraSlice,
     },
+    @"while": struct {
+        condition: NodeIndex,
+        body: ExtraSlice,
+    },
 };
 
 pub const ExtraSlice = struct {

@@ -622,9 +622,12 @@ const StructuringCx = struct {
 const NodeIndex = u16;
 
 const null_node: NodeIndex = 0xffff;
+const pc_unknown = 0xffff;
 
 const Node = struct {
+    /// start pc, or `pc_unknown` if we didn't bother to keep track exactly
     start: u16,
+    /// end pc
     end: u16,
 
     // doubly linked list of sibling nodes
@@ -643,6 +646,10 @@ const NodeKind = union(enum) {
         condition: ExprIndex,
         true: NodeIndex,
         false: NodeIndex,
+    },
+    @"while": struct {
+        condition: ExprIndex,
+        body: NodeIndex,
     },
 };
 
@@ -668,9 +675,30 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
         };
     }
 
-    try cx.queue.append(cx.gpa, root_node_index);
+    try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntIf(cx, ni);
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
+        try huntWhile(cx, ni);
+}
+
+fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
+    try cx.queue.append(cx.gpa, ni);
+}
+
+fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
+    switch (cx.nodes.items[ni].kind) {
+        .basic_block => {},
+        .@"if" => |n| {
+            try queueNode(cx, n.true);
+            try queueNode(cx, n.false);
+        },
+        .@"while" => |n| {
+            try queueNode(cx, n.body);
+        },
+    }
 }
 
 fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
@@ -766,6 +794,43 @@ fn makeIfElse(
     try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".false);
 }
 
+fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        const node = &cx.nodes.items[ni];
+        if (node.kind != .@"if") continue;
+        if (node.kind.@"if".false != null_node) continue;
+
+        const ni_true_last = findLastNode(cx, node.kind.@"if".true);
+        const true_last = &cx.nodes.items[ni_true_last];
+        if (true_last.kind != .basic_block) continue;
+        if (true_last.kind.basic_block.exit != .jump) continue;
+        if (true_last.kind.basic_block.exit.jump.target != node.start) continue;
+
+        makeWhile(cx, ni, ni_true_last);
+    }
+}
+
+fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void {
+    chopJump(cx, ni_true_last);
+    cx.nodes.items[ni_if].kind = .{ .@"while" = .{
+        .condition = cx.nodes.items[ni_if].kind.@"if".condition,
+        .body = cx.nodes.items[ni_if].kind.@"if".true,
+    } };
+}
+
+fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
+    var ni = ni_initial;
+    while (true) {
+        const node = &cx.nodes.items[ni];
+        if (node.next == null_node) return ni;
+        ni = node.next;
+    }
+    return null;
+}
+
 fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex {
     var ni = ni_first;
     while (ni != null_node) {
@@ -797,9 +862,12 @@ fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     const ss = node.kind.basic_block.statements;
     const condition = cx.stmts.getPtr(ss.start + ss.len - 1).jump_unless.condition;
 
-    node.end -= jump_len;
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
+    node.end = if (node.kind.basic_block.statements.len == 0)
+        node.start
+    else
+        pc_unknown;
     return condition;
 }
 
@@ -848,6 +916,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .@"if" => |*n| {
             try findJumpTargetsInNodeList(cx, n.true);
             try findJumpTargetsInNodeList(cx, n.false);
+        },
+        .@"while" => |*n| {
+            try findJumpTargetsInNodeList(cx, n.body);
         },
     }
 }
@@ -915,6 +986,17 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
                 try emitNodeList(cx, k.false);
                 cx.indent -= indent_size;
             }
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .@"while" => |n| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "while (");
+            try emitExpr(cx, n.condition, .all);
+            try cx.out.appendSlice(cx.gpa, ") {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.body);
+            cx.indent -= indent_size;
             try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },

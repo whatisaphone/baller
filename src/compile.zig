@@ -97,6 +97,17 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                 try fixupJumpToHere(cx, cond_fixup);
             }
         },
+        .@"while" => |s| {
+            const loop_target: u32 = @intCast(cx.out.items.len);
+            try pushExpr(cx, s.condition);
+            try emitOpcodeByName(cx, "jump-unless");
+            const cond_fixup: u32 = @intCast(cx.out.items.len);
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+            try emitBlock(cx, s.body);
+            try emitOpcodeByName(cx, "jump");
+            try writeJumpTargetBackwards(cx, loop_target);
+            try fixupJumpToHere(cx, cond_fixup);
+        },
         // TODO: handle all errors during parsing and make this unreachable
         else => return error.BadData,
     }
@@ -255,4 +266,12 @@ fn fixupJumpToHere(cx: *Cx, dest: u32) !void {
     const rel_wide = @as(u32, @intCast(cx.out.items.len)) - (dest + 2);
     const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
     std.mem.writeInt(i16, cx.out.items[dest..][0..2], rel, .little);
+}
+
+fn writeJumpTargetBackwards(cx: *Cx, target: u32) !void {
+    const here: i32 = @intCast(cx.out.items.len);
+    const target_signed: i32 = @intCast(target);
+    const rel_wide = target_signed - (here + 2);
+    const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
+    try cx.out.writer(cx.gpa).writeInt(i16, rel, .little);
 }

@@ -790,6 +790,7 @@ fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
 fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"if",
+        @"while",
     };
 
     if (token.kind == .identifier) {
@@ -820,6 +821,18 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     .condition = condition,
                     .true = true_stmts,
                     .false = false_stmts,
+                } });
+            },
+            .@"while" => {
+                try expect(cx, .paren_l);
+                const next = consumeToken(cx);
+                const condition = try parseExpr(cx, next, .all);
+                try expect(cx, .paren_r);
+                try expect(cx, .brace_l);
+                const body = try parseScriptBlock(cx);
+                return storeNode(cx, token, .{ .@"while" = .{
+                    .condition = condition,
+                    .body = body,
                 } });
             },
         };
