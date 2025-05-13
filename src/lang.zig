@@ -92,12 +92,18 @@ pub const Op = enum {
     land,
     lor,
     pop,
+    @"image-set-width",
+    @"image-set-height",
     @"image-draw",
     @"image-select",
     @"image-set-pos",
     @"image-set-palette",
     @"image-set-shadow",
+    @"image-set-draw-box",
+    @"image-set-render-image",
+    @"image-new",
     @"image-commit",
+    max,
     @"line-length-2d",
     @"sprite-get-state",
     @"sprite-get-variable",
@@ -107,6 +113,8 @@ pub const Op = enum {
     @"sprite-new",
     @"sprite-group-select",
     @"sprite-group-new",
+    @"image-get-width",
+    @"image-get-height",
     @"actor-get-property",
     @"start-script-order",
     mod,
@@ -150,6 +158,7 @@ pub const Op = enum {
     random,
     @"random-between",
     @"script-running",
+    @"palette-color",
     @"sound-running",
     @"unlock-costume",
     @"nuke-image",
@@ -190,6 +199,8 @@ pub const Op = enum {
     bor,
     @"delete-file",
     localize,
+    @"string-length",
+    @"string-substr",
     @"read-system-ini-int",
     @"delete-polygon",
 };
@@ -270,8 +281,8 @@ fn buildNormalLanguage() Language {
     lang.add(0x1a, .pop, &.{});
     lang.add(0x1b, "in-list", &.{});
 
-    lang.addNested(0x1c, 0x20, "image-set-width", &.{});
-    lang.addNested(0x1c, 0x21, "image-set-height", &.{});
+    lang.addNested(0x1c, 0x20, .@"image-set-width", &.{});
+    lang.addNested(0x1c, 0x21, .@"image-set-height", &.{});
     lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
     lang.addNested(0x1c, 0x31, "image-load-external", &.{});
     lang.addNested(0x1c, 0x33, "image-capture", &.{});
@@ -284,17 +295,17 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x43, "image-set-clip", &.{});
     lang.addNested(0x1c, 0x56, .@"image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, .@"image-set-shadow", &.{});
-    lang.addNested(0x1c, 0x85, "image-set-draw-box", &.{});
+    lang.addNested(0x1c, 0x85, .@"image-set-draw-box", &.{});
     lang.addNested(0x1c, 0x86, "image-set-draw-line", &.{});
-    lang.addNested(0x1c, 0x89, "image-set-render-image", &.{});
+    lang.addNested(0x1c, 0x89, .@"image-set-render-image", &.{});
     lang.addNested(0x1c, 0x9a, "image-set-hotspot", &.{});
-    lang.addNested(0x1c, 0xd9, "image-new", &.{});
+    lang.addNested(0x1c, 0xd9, .@"image-new", &.{});
     lang.addNested(0x1c, 0xf6, "image-set-polygon", &.{});
     lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
     lang.addNested(0x1c, 0xff, .@"image-commit", &.{});
 
     lang.add(0x1d, "min", &.{});
-    lang.add(0x1e, "max", &.{});
+    lang.add(0x1e, .max, &.{});
     lang.add(0x1f, "sin", &.{});
     lang.add(0x20, "cos", &.{});
     lang.add(0x21, "sqrt", &.{});
@@ -358,8 +369,8 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x29, 0x1e, "image-get-object-x", &.{});
     lang.addNested(0x29, 0x1f, "image-get-object-y", &.{});
-    lang.addNested(0x29, 0x20, "image-get-width", &.{});
-    lang.addNested(0x29, 0x21, "image-get-height", &.{});
+    lang.addNested(0x29, 0x20, .@"image-get-width", &.{});
+    lang.addNested(0x29, 0x21, .@"image-get-height", &.{});
     lang.addNested(0x29, 0x24, "image-get-state-count", &.{});
     lang.addNested(0x29, 0x42, "image-get-color-at", &.{});
 
@@ -485,7 +496,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x8f, "actor-facing", &.{});
     lang.add(0x91, "actor-get-costume", &.{});
 
-    lang.addNested(0x94, 0x42, "palette-color", &.{});
+    lang.addNested(0x94, 0x42, .@"palette-color", &.{});
     lang.addNested(0x94, 0xd9, "rgb", &.{});
 
     lang.add(0x95, "override", &.{ .u8, .relative_offset });
@@ -668,8 +679,8 @@ fn buildNormalLanguage() Language {
     lang.add(0xeb, "tell-file", &.{});
     lang.add(0xec, "string-copy", &.{});
     lang.add(0xed, "string-width", &.{});
-    lang.add(0xee, "string-length", &.{});
-    lang.add(0xef, "string-substr", &.{});
+    lang.add(0xee, .@"string-length", &.{});
+    lang.add(0xef, .@"string-substr", &.{});
     lang.add(0xf0, "string-concat", &.{});
     lang.add(0xf1, "string-compare", &.{});
 
