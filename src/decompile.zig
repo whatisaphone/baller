@@ -836,6 +836,7 @@ fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex
     while (ni != null_node) {
         const node = &cx.nodes.items[ni];
         if (node.end == end) return ni;
+        if (node.end > end) break;
         ni = node.next;
     }
     return null;
