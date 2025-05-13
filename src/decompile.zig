@@ -626,7 +626,11 @@ const null_node: NodeIndex = 0xffff;
 const Node = struct {
     start: u16,
     end: u16,
+
+    // doubly linked list of sibling nodes
+    prev: NodeIndex,
     next: NodeIndex,
+
     kind: NodeKind,
 };
 
@@ -650,10 +654,12 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     for (bb_nodes, basic_blocks, 0..) |*node, *bb, bbi_usize| {
         const bbi: BasicBlockIndex = @intCast(bbi_usize);
         const bb_start = if (bbi == 0) 0 else basic_blocks[bbi - 1].end;
+        const prev = if (bbi == 0) null_node else bbi - 1;
         const next = if (bbi == basic_blocks.len - 1) null_node else bbi + 1;
         node.* = .{
             .start = bb_start,
             .end = bb.end,
+            .prev = prev,
             .next = next,
             .kind = .{ .basic_block = .{
                 .exit = bb.exit,
@@ -696,18 +702,26 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
 }
 
 fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
+    const ni_true_start = cx.nodes.items[ni_before].next;
+    const ni_after = cx.nodes.items[ni_true_end].next;
+
     const condition = chopJumpUnless(cx, ni_before);
     const ni_if = try appendNode(cx, .{
         .start = cx.nodes.items[ni_before].end,
         .end = cx.nodes.items[ni_true_end].end,
-        .next = cx.nodes.items[ni_true_end].next,
+        .prev = ni_before,
+        .next = ni_after,
         .kind = .{ .@"if" = .{
             .condition = condition,
-            .true = cx.nodes.items[ni_before].next,
+            .true = ni_true_start,
             .false = null_node,
         } },
     });
     cx.nodes.items[ni_before].next = ni_if;
+    if (ni_after != null_node)
+        cx.nodes.items[ni_after].prev = ni_if;
+
+    cx.nodes.items[ni_true_start].prev = null_node;
     cx.nodes.items[ni_true_end].next = null_node;
 
     try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
@@ -720,20 +734,31 @@ fn makeIfElse(
     ni_true_end: NodeIndex,
     ni_false_end: NodeIndex,
 ) !void {
+    const ni_true_start = cx.nodes.items[ni_before].next;
+    const ni_false_start = cx.nodes.items[ni_true_end].next;
+    const ni_after = cx.nodes.items[ni_false_end].next;
+
     const condition = chopJumpUnless(cx, ni_before);
     chopJump(cx, ni_true_end);
     const ni_if = try appendNode(cx, .{
         .start = cx.nodes.items[ni_before].end,
         .end = cx.nodes.items[ni_false_end].end,
-        .next = cx.nodes.items[ni_false_end].next,
+        .prev = ni_before,
+        .next = ni_after,
         .kind = .{ .@"if" = .{
             .condition = condition,
-            .true = cx.nodes.items[ni_before].next,
-            .false = cx.nodes.items[ni_true_end].next,
+            .true = ni_true_start,
+            .false = ni_false_start,
         } },
     });
     cx.nodes.items[ni_before].next = ni_if;
+    if (ni_after != null_node)
+        cx.nodes.items[ni_after].prev = ni_if;
+
+    cx.nodes.items[ni_true_start].prev = null_node;
     cx.nodes.items[ni_true_end].next = null_node;
+
+    cx.nodes.items[ni_false_start].prev = null_node;
     cx.nodes.items[ni_false_end].next = null_node;
 
     try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
