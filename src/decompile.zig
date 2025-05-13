@@ -187,7 +187,7 @@ const DecompileCx = struct {
 
     pending_basic_blocks: std.ArrayListUnmanaged(u16),
     stack: std.BoundedArray(ExprIndex, 16),
-    str_stack: std.BoundedArray(ExprIndex, 1),
+    str_stack: std.BoundedArray(ExprIndex, 2),
     stmts: std.ArrayListUnmanaged(Stmt),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
@@ -259,7 +259,7 @@ const Param = union(enum) {
     list,
 };
 
-const ops: std.EnumArray(lang.Op, Op) = .init(.{
+const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
     .@"push-i32" = .push32,
@@ -298,13 +298,16 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"sprite-group-select" = .gen(&.{.int}),
     .@"sprite-group-new" = .gen(&.{}),
     .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
+    .@"start-script-order" = .gen(&.{ .int, .int, .list }),
     .mod = .genCall(&.{ .int, .int }),
+    .shl = .genCall(&.{ .int, .int }),
     .shr = .genCall(&.{ .int, .int }),
     .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
     .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
+    .@"read-ini-int" = .genCall(&.{ .int, .string, .string }),
     .inc = .gen(&.{}),
     .@"inc-array-item" = .gen(&.{.int}),
     .dec = .gen(&.{}),
@@ -332,11 +335,13 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"stop-sound" = .gen(&.{.int}),
     .@"current-room" = .gen(&.{.int}),
     .@"stop-script" = .gen(&.{.int}),
+    .@"put-actor" = .gen(&.{ .int, .int, .int, .int }),
     .@"do-animation" = .gen(&.{ .int, .int }),
     .random = .genCall(&.{.int}),
     .@"random-between" = .genCall(&.{ .int, .int }),
     .@"script-running" = .genCall(&.{.int}),
     .@"sound-running" = .genCall(&.{.int}),
+    .@"unlock-costume" = .gen(&.{.int}),
     .@"nuke-image" = .gen(&.{.int}),
     .@"palette-select" = .gen(&.{.int}),
     .@"palette-from-image" = .gen(&.{ .int, .int }),
@@ -354,6 +359,8 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"print-debug-string" = .gen(&.{}),
     .@"print-debug-printf" = .gen(&.{ .int, .list }),
     .@"print-debug-start" = .gen(&.{}),
+    .@"print-system-string" = .gen(&.{}),
+    .@"print-system-start" = .gen(&.{}),
     .@"dim-array.int8" = .gen(&.{.int}),
     .@"dim-array.int16" = .gen(&.{.int}),
     .@"dim-array.int32" = .gen(&.{.int}),
@@ -366,13 +373,21 @@ const ops: std.EnumArray(lang.Op, Op) = .init(.{
     .@"kludge-call" = .genCall(&.{.list}),
     .kludge = .gen(&.{.list}),
     .@"break-here-multi" = .gen(&.{.int}),
+    .pick = .genCall(&.{ .int, .list }),
     .@"actor-get-var" = .genCall(&.{ .int, .int }),
     .@"chain-script" = .gen(&.{ .int, .list }),
     .band = .genCall(&.{ .int, .int }),
+    .bor = .genCall(&.{ .int, .int }),
     .@"delete-file" = .gen(&.{.string}),
     .localize = .gen(&.{.int}),
     .@"read-system-ini-int" = .genCall(&.{.string}),
+    .@"delete-polygon" = .gen(&.{ .int, .int }),
 });
+
+fn initEnumArrayFixed(E: type, V: type, values: std.enums.EnumFieldStruct(E, V, null)) std.EnumArray(E, V) {
+    @setEvalBranchQuota(2000);
+    return .init(values);
+}
 
 fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     try scheduleBasicBlock(cx, 0);

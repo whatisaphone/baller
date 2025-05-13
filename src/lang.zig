@@ -108,13 +108,16 @@ pub const Op = enum {
     @"sprite-group-select",
     @"sprite-group-new",
     @"actor-get-property",
+    @"start-script-order",
     mod,
+    shl,
     shr,
     iif,
     @"dim-array-range.int16",
     set,
     @"set-array-item",
     @"set-array-item-2d",
+    @"read-ini-int",
     inc,
     @"inc-array-item",
     dec,
@@ -142,11 +145,13 @@ pub const Op = enum {
     @"stop-sound",
     @"current-room",
     @"stop-script",
+    @"put-actor",
     @"do-animation",
     random,
     @"random-between",
     @"script-running",
     @"sound-running",
+    @"unlock-costume",
     @"nuke-image",
     @"palette-select",
     @"palette-from-image",
@@ -164,6 +169,8 @@ pub const Op = enum {
     @"print-debug-string",
     @"print-debug-printf",
     @"print-debug-start",
+    @"print-system-string",
+    @"print-system-start",
     @"dim-array.int8",
     @"dim-array.int16",
     @"dim-array.int32",
@@ -176,12 +183,15 @@ pub const Op = enum {
     @"kludge-call",
     kludge,
     @"break-here-multi",
+    pick,
     @"actor-get-var",
     @"chain-script",
     band,
+    bor,
     @"delete-file",
     localize,
     @"read-system-ini-int",
+    @"delete-polygon",
 };
 
 // stopgap while migrating from string to enum
@@ -355,13 +365,13 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x2a, .@"actor-get-property", &.{});
 
-    lang.addNested(0x2b, 0x01, "start-script-order", &.{});
+    lang.addNested(0x2b, 0x01, .@"start-script-order", &.{});
     lang.addNested(0x2b, 0xc3, "start-script-rec-order", &.{});
 
     lang.addNested(0x2c, 0x01, "chain-script-order", &.{});
 
     lang.add(0x30, .mod, &.{});
-    lang.add(0x31, "shl", &.{});
+    lang.add(0x31, .shl, &.{});
     lang.add(0x32, .shr, &.{});
     lang.add(0x34, "find-all-objects", &.{});
     lang.add(0x36, .iif, &.{});
@@ -381,7 +391,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x48, "string-number", &.{});
     lang.add(0x4b, .@"set-array-item-2d", &.{.variable});
 
-    lang.addNested(0x4d, 0x06, "read-ini-int", &.{});
+    lang.addNested(0x4d, 0x06, .@"read-ini-int", &.{});
     lang.addNested(0x4d, 0x07, "read-ini-string", &.{});
 
     lang.addNested(0x4e, 0x06, "write-ini-int", &.{});
@@ -464,7 +474,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x77, "stop-object", &.{});
     lang.add(0x7b, .@"current-room", &.{});
     lang.add(0x7c, .@"stop-script", &.{});
-    lang.add(0x7f, "put-actor", &.{});
+    lang.add(0x7f, .@"put-actor", &.{});
     lang.add(0x82, .@"do-animation", &.{});
     lang.add(0x87, .random, &.{});
     lang.add(0x88, .@"random-between", &.{});
@@ -490,7 +500,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9b, 0x6a, "nuke-costume", &.{});
     lang.addNested(0x9b, 0x6c, "lock-script", &.{});
     lang.addNested(0x9b, 0x6e, "lock-costume", &.{});
-    lang.addNested(0x9b, 0x72, "unlock-costume", &.{});
+    lang.addNested(0x9b, 0x72, .@"unlock-costume", &.{});
     lang.addNested(0x9b, 0x75, "load-charset", &.{});
     lang.addNested(0x9b, 0x78, "preload-script", &.{});
     lang.addNested(0x9b, 0x79, "preload-sound", &.{});
@@ -588,9 +598,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb6, 0xfe, .@"print-debug-start", &.{});
     lang.addNested(0xb6, 0xff, "print-debug-empty", &.{});
 
-    lang.addNested(0xb7, 0x4b, "print-system-string", &.{.string});
+    lang.addNested(0xb7, 0x4b, .@"print-system-string", &.{.string});
     lang.addNested(0xb7, 0xc2, "print-system-printf", &.{.string});
-    lang.addNested(0xb7, 0xfe, "print-system-start", &.{});
+    lang.addNested(0xb7, 0xfe, .@"print-system-start", &.{});
 
     lang.addNested(0xb8, 0x41, "say-line-position", &.{});
     lang.addNested(0xb8, 0x45, "say-line-center", &.{});
@@ -623,7 +633,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xc8, .@"kludge-call", &.{});
     lang.add(0xc9, .kludge, &.{});
     lang.add(0xca, .@"break-here-multi", &.{});
-    lang.add(0xcb, "pick", &.{});
+    lang.add(0xcb, .pick, &.{});
     lang.add(0xcd, "stamp-object", &.{});
     lang.add(0xcf, "debug-input", &.{});
     lang.add(0xd0, "get-time-date", &.{});
@@ -635,7 +645,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xd5, 0xc3, "chain-script-rec", &.{});
 
     lang.add(0xd6, .band, &.{});
-    lang.add(0xd7, "bor", &.{});
+    lang.add(0xd7, .bor, &.{});
     lang.add(0xd9, "close-file", &.{});
     lang.add(0xda, "open-file", &.{});
 
@@ -682,7 +692,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xfa, 0xf3, "title-bar", &.{});
 
     lang.addNested(0xfb, 0xf6, "set-polygon-2", &.{});
-    lang.addNested(0xfb, 0xf7, "delete-polygon", &.{});
+    lang.addNested(0xfb, 0xf7, .@"delete-polygon", &.{});
     lang.addNested(0xfb, 0xf8, "set-polygon", &.{});
 
     lang.add(0xfc, "find-polygon", &.{});
