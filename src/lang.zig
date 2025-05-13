@@ -80,6 +80,7 @@ pub const Op = enum {
     dup,
     not,
     eq,
+    ne,
     gt,
     lt,
     le,
@@ -108,18 +109,22 @@ pub const Op = enum {
     @"sprite-group-new",
     @"actor-get-property",
     mod,
+    shr,
     iif,
     @"dim-array-range.int16",
     set,
     @"set-array-item",
     @"set-array-item-2d",
     inc,
+    @"inc-array-item",
     dec,
+    @"dec-array-item",
     @"jump-if",
     @"jump-unless",
     @"start-script",
     @"start-script-rec",
     @"start-object",
+    @"array-get-dim",
     @"array-get-height",
     @"array-get-width",
     end2,
@@ -148,7 +153,9 @@ pub const Op = enum {
     @"palette-new",
     @"palette-commit",
     @"assign-string",
+    @"array-assign-list",
     @"array-assign-slice",
+    @"array-assign-range",
     sprintf,
     debug,
     in,
@@ -159,6 +166,7 @@ pub const Op = enum {
     @"print-debug-start",
     @"dim-array.int8",
     @"dim-array.int16",
+    @"dim-array.int32",
     undim,
     @"return",
     @"call-script",
@@ -170,6 +178,7 @@ pub const Op = enum {
     @"break-here-multi",
     @"actor-get-var",
     @"chain-script",
+    band,
     @"delete-file",
     localize,
     @"read-system-ini-int",
@@ -237,7 +246,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x0c, .dup, &.{});
     lang.add(0x0d, .not, &.{});
     lang.add(0x0e, .eq, &.{});
-    lang.add(0x0f, "ne", &.{});
+    lang.add(0x0f, .ne, &.{});
     lang.add(0x10, .gt, &.{});
     lang.add(0x11, .lt, &.{});
     lang.add(0x12, .le, &.{});
@@ -353,7 +362,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x30, .mod, &.{});
     lang.add(0x31, "shl", &.{});
-    lang.add(0x32, "shr", &.{});
+    lang.add(0x32, .shr, &.{});
     lang.add(0x34, "find-all-objects", &.{});
     lang.add(0x36, .iif, &.{});
 
@@ -380,7 +389,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x4f, .inc, &.{.variable});
     lang.add(0x50, "override-off-off", &.{});
-    lang.add(0x53, "inc-array-item", &.{.variable});
+    lang.add(0x53, .@"inc-array-item", &.{.variable});
     lang.add(0x54, "get-object-image-x", &.{});
     lang.add(0x55, "get-object-image-y", &.{});
     lang.add(0x57, .dec, &.{.variable});
@@ -390,7 +399,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x59, 0x9e, "set-timer", &.{});
 
     lang.add(0x5a, "sound-position", &.{});
-    lang.add(0x5b, "dec-array-item", &.{.variable});
+    lang.add(0x5b, .@"dec-array-item", &.{.variable});
     lang.add(0x5c, .@"jump-if", &.{.relative_offset});
     lang.add(0x5d, .@"jump-unless", &.{.relative_offset});
 
@@ -405,7 +414,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x62, "print-image", &.{});
 
-    lang.addNested(0x63, 0x01, "array-get-dim", &.{.variable});
+    lang.addNested(0x63, 0x01, .@"array-get-dim", &.{.variable});
     lang.addNested(0x63, 0x02, .@"array-get-height", &.{.variable});
     lang.addNested(0x63, 0x03, .@"array-get-width", &.{.variable});
     lang.addNested(0x63, 0x04, "array-get-x-start", &.{.variable});
@@ -541,9 +550,9 @@ fn buildNormalLanguage() Language {
     lang.add(0xa3, "valid-verb", &.{});
 
     lang.addNested(0xa4, 0x07, .@"assign-string", &.{.variable});
-    lang.addNested(0xa4, 0x7e, "array-assign-list", &.{.variable});
+    lang.addNested(0xa4, 0x7e, .@"array-assign-list", &.{.variable});
     lang.addNested(0xa4, 0x7f, .@"array-assign-slice", &.{ .variable, .variable });
-    lang.addNested(0xa4, 0x80, "array-assign-range", &.{.variable});
+    lang.addNested(0xa4, 0x80, .@"array-assign-range", &.{.variable});
     lang.addNested(0xa4, 0x8a, "array-math", &.{ .variable, .variable });
     lang.addNested(0xa4, 0xc2, .sprintf, &.{.variable});
     lang.addNested(0xa4, 0xd0, "array-assign", &.{.variable});
@@ -598,7 +607,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xbc, 0x02, "dim-array.int1", &.{.variable});
     lang.addNested(0xbc, 0x04, .@"dim-array.int8", &.{.variable});
     lang.addNested(0xbc, 0x05, .@"dim-array.int16", &.{.variable});
-    lang.addNested(0xbc, 0x06, "dim-array.int32", &.{.variable});
+    lang.addNested(0xbc, 0x06, .@"dim-array.int32", &.{.variable});
     lang.addNested(0xbc, 0x07, "dim-array.string", &.{.variable});
     lang.addNested(0xbc, 0xcc, .undim, &.{.variable});
 
@@ -625,7 +634,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xd5, 0x01, .@"chain-script", &.{});
     lang.addNested(0xd5, 0xc3, "chain-script-rec", &.{});
 
-    lang.add(0xd6, "band", &.{});
+    lang.add(0xd6, .band, &.{});
     lang.add(0xd7, "bor", &.{});
     lang.add(0xd9, "close-file", &.{});
     lang.add(0xda, "open-file", &.{});
