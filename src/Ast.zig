@@ -23,6 +23,7 @@ pub fn getExtra(self: *const Ast, slice: ExtraSlice) []const u32 {
 
 pub const max_room_name_len = 255;
 pub const max_mult_children = 256;
+pub const max_case_branches = 320;
 
 pub const NodeIndex = u32;
 pub const null_node: NodeIndex = std.math.maxInt(NodeIndex);
@@ -164,6 +165,14 @@ pub const Node = union(enum) {
     do: struct {
         body: ExtraSlice,
         condition: NodeIndex,
+    },
+    case: struct {
+        value: NodeIndex,
+        branches: ExtraSlice,
+    },
+    case_branch: struct {
+        value: NodeIndex,
+        body: ExtraSlice,
     },
 };
 

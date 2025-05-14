@@ -792,6 +792,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         @"if",
         @"while",
         do,
+        case,
     };
 
     if (token.kind == .identifier) {
@@ -849,6 +850,33 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 return storeNode(cx, token, .{ .do = .{
                     .body = body,
                     .condition = condition,
+                } });
+            },
+            .case => {
+                try expect(cx, .paren_l);
+                const case_value = try parseExpr(cx, consumeToken(cx), .all);
+                try expect(cx, .paren_r);
+                try expect(cx, .brace_l);
+                var branches: std.BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
+                while (true) {
+                    skipWhitespace(cx);
+                    const token2 = consumeToken(cx);
+                    if (token2.kind == .brace_r) break;
+                    const branch_value = if (parseIdentifierOpt(cx, token2, enum { @"else" })) |_|
+                        Ast.null_node
+                    else
+                        try parseExpr(cx, token2, .space);
+                    try expect(cx, .brace_l);
+                    const stmts = try parseScriptBlock(cx);
+                    const node_index = try storeNode(cx, token2, .{ .case_branch = .{
+                        .value = branch_value,
+                        .body = stmts,
+                    } });
+                    try appendNode(cx, &branches, node_index);
+                }
+                return storeNode(cx, token, .{ .case = .{
+                    .value = case_value,
+                    .branches = try storeExtra(cx, branches.slice()),
                 } });
             },
         };

@@ -115,6 +115,33 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             try emitOpcodeByName(cx, "jump-unless");
             try writeJumpTargetBackwards(cx, loop_target);
         },
+        .case => |*s| {
+            var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};
+            try pushExpr(cx, s.value);
+            var cond_fixup: ?u32 = null;
+            for (cx.ast.getExtra(s.branches)) |ni_branch| {
+                const branch = &cx.ast.nodes.items[ni_branch].case_branch;
+                if (cond_fixup) |fixup|
+                    try fixupJumpToHere(cx, fixup);
+                if (branch.value != Ast.null_node) {
+                    try emitOpcodeByName(cx, "dup");
+                    try pushExpr(cx, branch.value);
+                    try emitOpcodeByName(cx, "eq");
+                    try emitOpcodeByName(cx, "jump-unless");
+                    cond_fixup = @intCast(cx.out.items.len);
+                    _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+                }
+                try emitOpcodeByName(cx, "pop");
+                try emitBlock(cx, branch.body);
+                if (branch.value != Ast.null_node) {
+                    try emitOpcodeByName(cx, "jump");
+                    end_fixups.append(@intCast(cx.out.items.len)) catch unreachable;
+                    _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+                }
+            }
+            for (end_fixups.slice()) |fixup|
+                try fixupJumpToHere(cx, fixup);
+        },
         // TODO: handle all errors during parsing and make this unreachable
         else => return error.BadData,
     }

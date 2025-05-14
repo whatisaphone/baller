@@ -47,6 +47,8 @@ pub fn run(
     var scx: StructuringCx = .{
         .gpa = gpa,
         .stmts = .init(dcx.stmts.items),
+        .exprs = .init(dcx.exprs.items),
+        .extra = .init(dcx.extra.items),
         .queue = .empty,
         .nodes = .empty,
     };
@@ -207,6 +209,7 @@ const JumpTargetAndCondition = struct {
 };
 
 const ExprIndex = u16;
+const null_expr = 0xffff;
 
 const Expr = union(enum) {
     int: i32,
@@ -214,6 +217,7 @@ const Expr = union(enum) {
     variable: lang.Variable,
     call: struct { op: lang.Op, args: ExtraSlice },
     list: struct { items: ExtraSlice },
+    dup: ExprIndex,
 };
 
 const ExtraSlice = struct {
@@ -228,7 +232,6 @@ const Op = union(enum) {
     push_var,
     push_str,
     dup,
-    pop,
     jump_if,
     jump_unless,
     jump,
@@ -283,7 +286,7 @@ const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .div = .genCall(&.{ .int, .int }),
     .land = .genCall(&.{ .int, .int }),
     .lor = .genCall(&.{ .int, .int }),
-    .pop = .pop,
+    .pop = .gen(&.{.int}),
     .@"image-set-width" = .gen(&.{.int}),
     .@"image-set-height" = .gen(&.{.int}),
     .@"image-draw" = .gen(&.{}),
@@ -528,8 +531,10 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const ei = try storeExpr(cx, .{ .string = ins.operands.get(0).string });
             try cx.str_stack.append(ei);
         },
-        .dup, .pop => {
-            return error.BadData; // TODO
+        .dup => {
+            if (cx.stack.len == 0) return error.BadData;
+            const top = cx.stack.get(cx.stack.len - 1);
+            try push(cx, .{ .dup = top });
         },
         .jump_if => {
             const rel = ins.operands.get(0).relative_offset;
@@ -641,6 +646,8 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
 const StructuringCx = struct {
     gpa: std.mem.Allocator,
     stmts: utils.SafeManyPointer([*]const Stmt),
+    exprs: utils.SafeManyPointer([*]const Expr),
+    extra: utils.SafeManyPointer([*]const ExprIndex),
 
     queue: std.ArrayListUnmanaged(NodeIndex),
     nodes: std.ArrayListUnmanaged(Node),
@@ -690,6 +697,14 @@ const NodeKind = union(enum) {
         body: NodeIndex,
         condition: ExprIndex,
     },
+    case: struct {
+        value: ExprIndex,
+        first_branch: NodeIndex,
+    },
+    case_branch: struct {
+        value: ExprIndex,
+        body: NodeIndex,
+    },
 };
 
 const root_node_index = 0;
@@ -733,6 +748,12 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
         try huntDo(cx, ni);
         checkInvariants(cx) catch unreachable;
     }
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni| {
+        try huntCase(cx, ni);
+        checkInvariants(cx) catch unreachable;
+    }
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
@@ -742,14 +763,20 @@ fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
 fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
     switch (cx.nodes.items[ni].kind) {
         .basic_block => {},
-        .@"if" => |n| {
+        .@"if" => |*n| {
             try queueNode(cx, n.true);
             try queueNode(cx, n.false);
         },
-        .@"while" => |n| {
+        .@"while" => |*n| {
             try queueNode(cx, n.body);
         },
-        .do => |n| {
+        .do => |*n| {
+            try queueNode(cx, n.body);
+        },
+        .case => |*n| {
+            try queueNode(cx, n.first_branch);
+        },
+        .case_branch => |*n| {
             try queueNode(cx, n.body);
         },
     }
@@ -927,6 +954,197 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
     cx.nodes.items[ni_condition].next = null_node;
 }
 
+fn huntCase(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        if (isCase(cx, ni)) |ni_last|
+            try makeCase(cx, ni, ni_last);
+    }
+}
+
+fn isCase(cx: *StructuringCx, ni_start: NodeIndex) ?NodeIndex {
+    var ni = ni_start;
+    const value = checkCaseBranch(cx, ni) orelse return null;
+    ni = cx.nodes.items[ni].kind.@"if".false;
+    while (true) {
+        if (checkCaseBranchAnother(cx, ni, value)) |i| {
+            ni = i;
+            continue;
+        }
+        // If it's not a continue, it must be the else branch. Check if it's
+        // well-formed and if so return success.
+        if (!nodeStartsWithPop(cx, ni, value)) return null;
+        return ni;
+    }
+}
+
+fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
+    const node = &cx.nodes.items[ni];
+    if (node.kind != .@"if") return null;
+    if (node.kind.@"if".false == null_node) return null;
+
+    const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    if (cond.* != .call) return null;
+    if (cond.call.op != .eq) return null;
+    const eq_args = getExtra2(cx.extra, cond.call.args);
+    const eq_lhs = cx.exprs.getPtr(eq_args[0]);
+    if (eq_lhs.* != .dup) return null;
+
+    if (!nodeStartsWithPop(cx, node.kind.@"if".true, eq_lhs.dup)) return null;
+
+    return eq_lhs.dup;
+}
+
+fn checkCaseBranchAnother(
+    cx: *StructuringCx,
+    ni_leading: NodeIndex,
+    expected_value: ExprIndex,
+) ?NodeIndex {
+    // Due to a quirk of how if statements are structured, the false branch will
+    // start with a zero-length basic block before the if statement we're
+    // actually interested in. Check for it and skip over it.
+    const leading = &cx.nodes.items[ni_leading];
+    if (leading.start != leading.end) return null;
+    if (leading.kind != .basic_block) return null;
+    if (leading.next == null_node) return null;
+
+    const ni = leading.next;
+    const node = &cx.nodes.items[ni];
+    if (node.next != null_node) return null;
+    const cond_lhs = checkCaseBranch(cx, ni) orelse return null;
+    if (cond_lhs != expected_value) return null;
+    return node.kind.@"if".false;
+}
+
+fn nodeStartsWithPop(cx: *StructuringCx, ni: NodeIndex, expected_value: ExprIndex) bool {
+    const node = &cx.nodes.items[ni];
+    if (node.kind != .basic_block) return false;
+    const node_stmts = node.kind.basic_block.statements;
+    const stmts = cx.stmts.use()[node_stmts.start..][0..node_stmts.len];
+    if (stmts.len == 0) return false;
+    const pop_stmt = &stmts[0];
+    if (pop_stmt.* != .call) return false;
+    if (pop_stmt.call.op != .pop) return false;
+    const pop_args = getExtra2(cx.extra, pop_stmt.call.args);
+    if (pop_args[0] != expected_value) return false;
+    return true;
+}
+
+fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
+    // convert node tree from this:
+
+    // if a
+    //     w
+    // else
+    //     if b
+    //         x
+    //     else
+    //         if c
+    //             y
+    //         else
+    //             z
+
+    // to this:
+
+    // case
+    //     branch a
+    //         w
+    //     branch b
+    //         x
+    //     branch c
+    //         y
+    //     branch else
+    //         z
+
+    // reusing nodes like so:
+
+    // before after
+    // -------------
+    // if a   case
+    // (new)  branch a
+    // w      w
+    // if b   branch b
+    // x      x
+    // if c   branch c
+    // y      y
+    // (new)  branch else
+    // z      z
+
+    const node = &cx.nodes.items[ni];
+    const ni_first_true = node.kind.@"if".true;
+    const ni_first_false = node.kind.@"if".false;
+    const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    const cond_args = getExtra2(cx.extra, cond.call.args);
+    const case_value = cx.exprs.getPtr(cond_args[0]).dup;
+
+    node.kind = .{
+        .case = .{
+            .value = case_value,
+            .first_branch = undefined, // set below
+        },
+    };
+    const ni_first_branch = try appendNode(cx, .{
+        .start = node.start,
+        .end = pc_unknown,
+        .prev = null_node,
+        .next = undefined, // set below
+        .kind = .{ .case_branch = .{
+            .value = cond_args[1],
+            .body = ni_first_true,
+        } },
+    });
+    cx.nodes.items[ni].kind.case.first_branch = ni_first_branch;
+    chopFirstPop(cx, ni_first_true);
+
+    var ni_prev_branch = ni_first_branch;
+    var ni_cur = ni_first_false;
+    while (ni_cur != ni_last) {
+        // As above, skip over the quirky empty node.
+        const ni_real_cur = cx.nodes.items[ni_cur].next;
+        // We're about to orphan the node. In debug builds, store this
+        // explicitly so it doesn't trigger violations during invariant checks.
+        if (builtin.mode == .Debug)
+            cx.nodes.items[ni_cur].next = null_node;
+
+        ni_cur = ni_real_cur;
+        const cur = &cx.nodes.items[ni_cur];
+        const eq = cx.exprs.getPtr(cur.kind.@"if".condition);
+        const eq_args = getExtra2(cx.extra, eq.call.args);
+        const branch_expr = eq_args[1];
+        const ni_body = cur.kind.@"if".true;
+        const ni_next = cur.kind.@"if".false;
+        cx.nodes.items[ni_cur] = .{
+            .start = cur.start,
+            .end = pc_unknown,
+            .prev = ni_prev_branch,
+            .next = undefined, // set either in the next loop iteration or at the end
+            .kind = .{ .case_branch = .{
+                .value = branch_expr,
+                .body = ni_body,
+            } },
+        };
+        cx.nodes.items[ni_prev_branch].next = ni_cur;
+        chopFirstPop(cx, cur.kind.case_branch.body);
+        ni_prev_branch = ni_cur;
+        ni_cur = ni_next;
+    }
+
+    const ni_else_branch = try appendNode(cx, .{
+        .start = cx.nodes.items[ni_cur].start,
+        .end = pc_unknown,
+        .prev = ni_prev_branch,
+        .next = null_node,
+        .kind = .{ .case_branch = .{
+            .value = null_expr,
+            .body = ni_cur,
+        } },
+    });
+    cx.nodes.items[ni_prev_branch].next = ni_else_branch;
+    chopFirstPop(cx, ni_cur);
+}
+
 fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
     var ni = ni_initial;
     while (true) {
@@ -1041,6 +1259,8 @@ fn dumpNodes(cx: *StructuringCx) !void {
             .@"if" => |*n| try out.print("  true={} false={}\n", .{ n.true, n.false }),
             .@"while" => |*n| try out.print("  body={}\n", .{n.body}),
             .do => |*n| try out.print("  body={}\n", .{n.body}),
+            .case => |*n| try out.print("  first={}\n", .{n.first_branch}),
+            .case_branch => |*n| try out.print("  body={}\n", .{n.body}),
         }
     }
 }
@@ -1049,6 +1269,13 @@ const jump_len = 3;
 
 fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
     const node = &cx.nodes.items[ni];
+
+    if (builtin.mode == .Debug) {
+        const ss = node.kind.basic_block.statements;
+        const stmt = cx.stmts.getPtr(ss.start + ss.len - 1);
+        std.debug.assert(stmt.* == .jump);
+    }
+
     node.end -= jump_len;
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
@@ -1067,6 +1294,27 @@ fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     else
         pc_unknown;
     return condition;
+}
+
+fn chopFirstPop(cx: *StructuringCx, ni: NodeIndex) void {
+    const node = &cx.nodes.items[ni];
+
+    if (builtin.mode == .Debug) {
+        const ss = node.kind.basic_block.statements;
+        const stmt = cx.stmts.getPtr(ss.start);
+        std.debug.assert(stmt.call.op == .pop);
+    }
+
+    node.start += 1;
+    node.kind.basic_block.statements.start += 1;
+    node.kind.basic_block.statements.len -= 1;
+}
+
+fn getExtra2(
+    extra: utils.SafeManyPointer([*]const ExprIndex),
+    slice: ExtraSlice,
+) []const ExprIndex {
+    return extra.use()[slice.start..][0..slice.len];
 }
 
 const FindJumpTargetsCx = struct {
@@ -1119,6 +1367,12 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
             try findJumpTargetsInNodeList(cx, n.body);
         },
         .do => |*n| {
+            try findJumpTargetsInNodeList(cx, n.body);
+        },
+        .case => |*n| {
+            try findJumpTargetsInNodeList(cx, n.first_branch);
+        },
+        .case_branch => |*n| {
             try findJumpTargetsInNodeList(cx, n.body);
         },
     }
@@ -1212,6 +1466,30 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitExpr(cx, n.condition, .all);
             try cx.out.appendSlice(cx.gpa, ")\n");
         },
+        .case => |*n| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "case (");
+            try emitExpr(cx, n.value, .all);
+            try cx.out.appendSlice(cx.gpa, ") {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.first_branch);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .case_branch => |*n| {
+            try writeIndent(cx);
+            if (n.value != null_expr)
+                try emitExpr(cx, n.value, .space)
+            else
+                try cx.out.appendSlice(cx.gpa, "else");
+            try cx.out.appendSlice(cx.gpa, " {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.body);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
     }
 }
 
@@ -1265,6 +1543,7 @@ fn emitExpr(
             }
             try cx.out.append(cx.gpa, ']');
         },
+        .dup => return error.BadData,
     }
 }
 
