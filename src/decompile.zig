@@ -629,6 +629,10 @@ fn niOpt(ni: NodeIndex) ?NodeIndex {
 
 const pc_unknown = 0xffff;
 
+fn pcOpt(pc: u16) ?u16 {
+    return if (pc == pc_unknown) null else pc;
+}
+
 const Node = struct {
     /// start pc
     start: u16,
@@ -873,13 +877,14 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
         ni_condition_orig;
     const ni_do = ni_body_first_orig;
 
+    const end = cx.nodes.items[ni_condition].end;
     const ni_before = cx.nodes.items[ni_body_first].prev;
     const ni_after = cx.nodes.items[ni_condition].next;
     const condition = chopJumpUnless(cx, ni_condition);
 
     cx.nodes.items[ni_do] = .{
         .start = cx.nodes.items[ni_body_first].start,
-        .end = cx.nodes.items[ni_condition].end,
+        .end = end,
         .prev = ni_before,
         .next = ni_after,
         .kind = .{ .do = .{
@@ -958,10 +963,18 @@ fn checkInvariants(cx: *StructuringCx) !void {
             std.debug.print("broken node: {}\n", .{ni});
         }
 
-        if (node.prev != null_node)
-            try std.testing.expect(cx.nodes.items[node.prev].next == ni);
-        if (node.next != null_node)
-            try std.testing.expect(cx.nodes.items[node.next].prev == ni);
+        if (node.prev != null_node) {
+            const prev = &cx.nodes.items[node.prev];
+            try std.testing.expect(prev.next == ni);
+            if (pcOpt(prev.end)) |prev_end|
+                try std.testing.expect(prev_end == node.start);
+        }
+        if (node.next != null_node) {
+            const next = &cx.nodes.items[node.next];
+            try std.testing.expect(next.prev == ni);
+            if (pcOpt(node.end)) |node_end|
+                try std.testing.expect(next.start == node_end);
+        }
     }
 }
 
