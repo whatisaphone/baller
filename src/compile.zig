@@ -80,7 +80,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             entry.value_ptr.* = @intCast(cx.out.items.len);
         },
         .call => try emitCall(cx, node_index),
-        .@"if" => |s| {
+        .@"if" => |*s| {
             try pushExpr(cx, s.condition);
             try emitOpcodeByName(cx, "jump-unless");
             const cond_fixup: u32 = @intCast(cx.out.items.len);
@@ -97,7 +97,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                 try fixupJumpToHere(cx, cond_fixup);
             }
         },
-        .@"while" => |s| {
+        .@"while" => |*s| {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try pushExpr(cx, s.condition);
             try emitOpcodeByName(cx, "jump-unless");
@@ -107,6 +107,13 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             try emitOpcodeByName(cx, "jump");
             try writeJumpTargetBackwards(cx, loop_target);
             try fixupJumpToHere(cx, cond_fixup);
+        },
+        .do => |*s| {
+            const loop_target: u32 = @intCast(cx.out.items.len);
+            try emitBlock(cx, s.body);
+            try pushExpr(cx, s.condition);
+            try emitOpcodeByName(cx, "jump-unless");
+            try writeJumpTargetBackwards(cx, loop_target);
         },
         // TODO: handle all errors during parsing and make this unreachable
         else => return error.BadData,

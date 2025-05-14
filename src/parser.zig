@@ -791,6 +791,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"if",
         @"while",
+        do,
     };
 
     if (token.kind == .identifier) {
@@ -833,6 +834,21 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 return storeNode(cx, token, .{ .@"while" = .{
                     .condition = condition,
                     .body = body,
+                } });
+            },
+            .do => {
+                try expect(cx, .brace_l);
+                const body = try parseScriptBlock(cx);
+                const while_token = consumeToken(cx);
+                _ = try parseIdentifier(cx, while_token, enum { @"while" });
+                try expect(cx, .paren_l);
+                const next = consumeToken(cx);
+                const condition = try parseExpr(cx, next, .all);
+                try expect(cx, .paren_r);
+                try expect(cx, .newline);
+                return storeNode(cx, token, .{ .do = .{
+                    .body = body,
+                    .condition = condition,
                 } });
             },
         };

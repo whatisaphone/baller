@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
@@ -620,14 +621,18 @@ const StructuringCx = struct {
 };
 
 const NodeIndex = u16;
-
 const null_node: NodeIndex = 0xffff;
+
+fn niOpt(ni: NodeIndex) ?NodeIndex {
+    return if (ni == null_node) null else ni;
+}
+
 const pc_unknown = 0xffff;
 
 const Node = struct {
-    /// start pc, or `pc_unknown` if we didn't bother to keep track exactly
+    /// start pc
     start: u16,
-    /// end pc
+    /// end pc, or `pc_unknown` if we didn't bother to keep track exactly
     end: u16,
 
     // doubly linked list of sibling nodes
@@ -650,6 +655,10 @@ const NodeKind = union(enum) {
     @"while": struct {
         condition: ExprIndex,
         body: NodeIndex,
+    },
+    do: struct {
+        body: NodeIndex,
+        condition: ExprIndex,
     },
 };
 
@@ -675,13 +684,25 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
         };
     }
 
-    try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
-        try huntIf(cx, ni);
+    checkInvariants(cx) catch unreachable;
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.pop()) |ni| {
+        try huntIf(cx, ni);
+        checkInvariants(cx) catch unreachable;
+    }
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni| {
         try huntWhile(cx, ni);
+        checkInvariants(cx) catch unreachable;
+    }
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni| {
+        try huntDo(cx, ni);
+        checkInvariants(cx) catch unreachable;
+    }
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
@@ -698,6 +719,9 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
         .@"while" => |n| {
             try queueNode(cx, n.body);
         },
+        .do => |n| {
+            try queueNode(cx, n.body);
+        },
     }
 }
 
@@ -707,6 +731,7 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
         const node = &cx.nodes.items[ni];
         if (node.kind == .basic_block and
             node.kind.basic_block.exit == .jump_unless and
+            node.end != pc_unknown and
             node.kind.basic_block.exit.jump_unless.target > node.end)
             if (findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless.target)) |n|
                 break n;
@@ -717,6 +742,7 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     const true_end = &cx.nodes.items[ni_true_end];
     if (true_end.kind == .basic_block and
         true_end.kind.basic_block.exit == .jump and
+        true_end.end != pc_unknown and
         true_end.kind.basic_block.exit.jump.target > true_end.end)
     {
         if (findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump.target)) |n|
@@ -752,8 +778,8 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
     cx.nodes.items[ni_true_start].prev = null_node;
     cx.nodes.items[ni_true_end].next = null_node;
 
-    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
-    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".true);
+    try queueNode(cx, ni_after);
+    try queueNode(cx, ni_true_start);
 }
 
 fn makeIfElse(
@@ -789,9 +815,9 @@ fn makeIfElse(
     cx.nodes.items[ni_false_start].prev = null_node;
     cx.nodes.items[ni_false_end].next = null_node;
 
-    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].next);
-    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".true);
-    try cx.queue.append(cx.gpa, cx.nodes.items[ni_if].kind.@"if".false);
+    try queueNode(cx, ni_after);
+    try queueNode(cx, ni_true_start);
+    try queueNode(cx, ni_false_start);
 }
 
 fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -821,6 +847,55 @@ fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void
     } };
 }
 
+fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        const node = &cx.nodes.items[ni];
+        if (node.end == pc_unknown) continue;
+        if (node.kind != .basic_block) continue;
+        if (node.kind.basic_block.exit != .jump_unless) continue;
+        const target = node.kind.basic_block.exit.jump_unless.target;
+        if (target >= node.end) continue;
+
+        const ni_body_first = findBackwardsNodeWithStart(cx, ni, target) orelse continue;
+
+        try makeDo(cx, ni_body_first, ni);
+    }
+}
+
+fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: NodeIndex) !void {
+    const ni_body_first = try moveNode(cx, ni_body_first_orig);
+    const ni_condition = if (ni_condition_orig == ni_body_first_orig)
+        ni_body_first
+    else
+        ni_condition_orig;
+    const ni_do = ni_body_first_orig;
+
+    const ni_before = cx.nodes.items[ni_body_first].prev;
+    const ni_after = cx.nodes.items[ni_condition].next;
+    const condition = chopJumpUnless(cx, ni_condition);
+
+    cx.nodes.items[ni_do] = .{
+        .start = cx.nodes.items[ni_body_first].start,
+        .end = cx.nodes.items[ni_condition].end,
+        .prev = ni_before,
+        .next = ni_after,
+        .kind = .{ .do = .{
+            .body = ni_body_first,
+            .condition = condition,
+        } },
+    };
+    if (ni_before != null_node)
+        cx.nodes.items[ni_before].next = ni_do;
+    if (ni_after != null_node)
+        cx.nodes.items[ni_after].prev = ni_do;
+
+    cx.nodes.items[ni_body_first].prev = null_node;
+    cx.nodes.items[ni_condition].next = null_node;
+}
+
 fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
     var ni = ni_initial;
     while (true) {
@@ -836,16 +911,97 @@ fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex
     while (ni != null_node) {
         const node = &cx.nodes.items[ni];
         if (node.end == end) return ni;
-        if (node.end > end) break;
+        if (node.end != pc_unknown and node.end > end) break;
         ni = node.next;
+    }
+    return null;
+}
+
+fn findBackwardsNodeWithStart(cx: *StructuringCx, ni_initial: NodeIndex, start: u16) ?NodeIndex {
+    var ni = ni_initial;
+    while (ni != null_node) {
+        const node = &cx.nodes.items[ni];
+        if (node.start == start) return ni;
+        if (node.start < start) break;
+        ni = node.prev;
     }
     return null;
 }
 
 fn appendNode(cx: *StructuringCx, node: Node) !NodeIndex {
     const ni: NodeIndex = @intCast(cx.nodes.items.len);
-    try cx.nodes.append(cx.gpa, node);
+    try cx.nodes.append(cx.gpa, (&node).*); // work around compiler bug
     return ni;
+}
+
+/// Move the given node to a new index, so its current index can be taken over
+/// by a new node, and existing references will automatically point to the new
+/// node without needing to update them manually.
+fn moveNode(cx: *StructuringCx, ni_orig: NodeIndex) !NodeIndex {
+    const ni_new = try appendNode(cx, cx.nodes.items[ni_orig]);
+    cx.nodes.items[ni_orig] = undefined;
+
+    if (niOpt(cx.nodes.items[ni_new].prev)) |ni_prev|
+        cx.nodes.items[ni_prev].next = ni_new;
+    if (niOpt(cx.nodes.items[ni_new].next)) |ni_next|
+        cx.nodes.items[ni_next].prev = ni_new;
+
+    return ni_new;
+}
+
+fn checkInvariants(cx: *StructuringCx) !void {
+    if (builtin.mode != .Debug) return;
+
+    for (cx.nodes.items, 0..) |*node, ni| {
+        errdefer {
+            dumpNodes(cx, std.io.getStdErr().writer()) catch @panic("spew");
+            std.debug.print("broken node: {}\n", .{ni});
+        }
+
+        if (node.prev != null_node)
+            try std.testing.expect(cx.nodes.items[node.prev].next == ni);
+        if (node.next != null_node)
+            try std.testing.expect(cx.nodes.items[node.next].prev == ni);
+    }
+}
+
+fn dumpNodes(cx: *StructuringCx, out: anytype) !void {
+    const Item = struct {
+        index: usize,
+        node: Node,
+
+        fn lt(_: void, a: @This(), b: @This()) bool {
+            if (std.math.order(a.node.start, b.node.start).differ()) |x| return x == .lt;
+            if (std.math.order(a.node.end, b.node.end).differ()) |x| return x == .lt;
+            return false;
+        }
+    };
+
+    const items = try cx.gpa.alloc(Item, cx.nodes.items.len);
+    defer cx.gpa.free(items);
+    for (items, cx.nodes.items, 0..) |*item, *node, ni|
+        item.* = .{ .index = ni, .node = node.* };
+    std.mem.sort(Item, items, {}, Item.lt);
+
+    std.Progress.lockStdErr();
+    defer std.Progress.unlockStdErr();
+
+    try out.writeAll("----------------------------------------\n");
+
+    for (items) |item| {
+        const ni = item.index;
+        const node = item.node;
+        try out.print(
+            "{}: {}/{} 0x{x:0>4}-0x{x:0>4} {s}\n",
+            .{ ni, node.prev, node.next, node.start, node.end, @tagName(node.kind) },
+        );
+        switch (node.kind) {
+            .basic_block => {},
+            .@"if" => |*n| try out.print("  true={} false={}\n", .{ n.true, n.false }),
+            .@"while" => |*n| try out.print("  body={}\n", .{n.body}),
+            .do => |*n| try out.print("  body={}\n", .{n.body}),
+        }
+    }
 }
 
 const jump_len = 3;
@@ -919,6 +1075,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
             try findJumpTargetsInNodeList(cx, n.false);
         },
         .@"while" => |*n| {
+            try findJumpTargetsInNodeList(cx, n.body);
+        },
+        .do => |*n| {
             try findJumpTargetsInNodeList(cx, n.body);
         },
     }
@@ -1000,6 +1159,17 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             cx.indent -= indent_size;
             try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .do => |n| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "do {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.body);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "} while (");
+            try emitExpr(cx, n.condition, .all);
+            try cx.out.appendSlice(cx.gpa, ")\n");
         },
     }
 }

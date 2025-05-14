@@ -161,6 +161,10 @@ pub const Node = union(enum) {
         condition: NodeIndex,
         body: ExtraSlice,
     },
+    do: struct {
+        body: ExtraSlice,
+        condition: NodeIndex,
+    },
 };
 
 pub const ExtraSlice = struct {
