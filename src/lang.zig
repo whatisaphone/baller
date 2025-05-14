@@ -95,6 +95,7 @@ pub const Op = enum {
     @"image-set-width",
     @"image-set-height",
     @"image-draw",
+    @"image-set-state",
     @"image-select",
     @"image-set-pos",
     @"image-set-palette",
@@ -103,7 +104,9 @@ pub const Op = enum {
     @"image-set-render-image",
     @"image-new",
     @"image-commit",
+    min,
     max,
+    @"angle-from-line",
     @"line-length-2d",
     @"sprite-get-state",
     @"sprite-get-variable",
@@ -113,6 +116,8 @@ pub const Op = enum {
     @"sprite-new",
     @"sprite-group-select",
     @"sprite-group-new",
+    @"image-get-object-x",
+    @"image-get-object-y",
     @"image-get-width",
     @"image-get-height",
     @"actor-get-property",
@@ -126,6 +131,8 @@ pub const Op = enum {
     @"set-array-item",
     @"set-array-item-2d",
     @"read-ini-int",
+    @"write-ini-int",
+    @"write-ini-string",
     inc,
     @"inc-array-item",
     dec,
@@ -146,6 +153,7 @@ pub const Op = enum {
     @"window-commit",
     @"cursor-on",
     @"break-here",
+    @"object-set-class",
     jump,
     @"sound-channel",
     @"sound-select",
@@ -162,6 +170,7 @@ pub const Op = enum {
     @"sound-running",
     @"unlock-costume",
     @"nuke-image",
+    @"actor-set-clipped",
     @"palette-select",
     @"palette-from-image",
     @"palette-new",
@@ -197,8 +206,11 @@ pub const Op = enum {
     @"chain-script",
     band,
     bor,
+    @"close-file",
+    @"open-file",
     @"delete-file",
     localize,
+    @"pick-random",
     @"string-length",
     @"string-substr",
     @"read-system-ini-int",
@@ -286,7 +298,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
     lang.addNested(0x1c, 0x31, "image-load-external", &.{});
     lang.addNested(0x1c, 0x33, "image-capture", &.{});
-    lang.addNested(0x1c, 0x34, "image-set-state", &.{});
+    lang.addNested(0x1c, 0x34, .@"image-set-state", &.{});
     lang.addNested(0x1c, 0x36, "image-set-flags", &.{});
     lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
     lang.addNested(0x1c, 0x39, .@"image-select", &.{});
@@ -304,13 +316,13 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
     lang.addNested(0x1c, 0xff, .@"image-commit", &.{});
 
-    lang.add(0x1d, "min", &.{});
+    lang.add(0x1d, .min, &.{});
     lang.add(0x1e, .max, &.{});
     lang.add(0x1f, "sin", &.{});
     lang.add(0x20, "cos", &.{});
     lang.add(0x21, "sqrt", &.{});
     lang.add(0x22, "angle-from-delta", &.{});
-    lang.add(0x23, "angle-from-line", &.{});
+    lang.add(0x23, .@"angle-from-line", &.{});
 
     lang.addNested(0x24, 0x1c, .@"line-length-2d", &.{});
     lang.addNested(0x24, 0x1d, "line-length-3d", &.{});
@@ -367,8 +379,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x28, 0x43, "sprite-group-set-clip", &.{});
     lang.addNested(0x28, 0xd9, .@"sprite-group-new", &.{});
 
-    lang.addNested(0x29, 0x1e, "image-get-object-x", &.{});
-    lang.addNested(0x29, 0x1f, "image-get-object-y", &.{});
+    lang.addNested(0x29, 0x1e, .@"image-get-object-x", &.{});
+    lang.addNested(0x29, 0x1f, .@"image-get-object-y", &.{});
     lang.addNested(0x29, 0x20, .@"image-get-width", &.{});
     lang.addNested(0x29, 0x21, .@"image-get-height", &.{});
     lang.addNested(0x29, 0x24, "image-get-state-count", &.{});
@@ -405,8 +417,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x4d, 0x06, .@"read-ini-int", &.{});
     lang.addNested(0x4d, 0x07, "read-ini-string", &.{});
 
-    lang.addNested(0x4e, 0x06, "write-ini-int", &.{});
-    lang.addNested(0x4e, 0x07, "write-ini-string", &.{});
+    lang.addNested(0x4e, 0x06, .@"write-ini-int", &.{});
+    lang.addNested(0x4e, 0x07, .@"write-ini-string", &.{});
 
     lang.add(0x4f, .inc, &.{.variable});
     lang.add(0x50, "override-off-off", &.{});
@@ -469,7 +481,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x6c, .@"break-here", &.{});
     lang.add(0x6d, "class-of", &.{});
-    lang.add(0x6e, "object-set-class", &.{});
+    lang.add(0x6e, .@"object-set-class", &.{});
     lang.add(0x6f, "object-get-state", &.{});
     lang.add(0x70, "object-set-state", &.{});
     lang.add(0x73, .jump, &.{.relative_offset});
@@ -535,7 +547,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x9d, 0x15, "actor-set-condition", &.{});
     lang.addNested(0x9d, 0x2b, "actor-set-order", &.{});
-    lang.addNested(0x9d, 0x40, "actor-set-clipped", &.{});
+    lang.addNested(0x9d, 0x40, .@"actor-set-clipped", &.{});
     lang.addNested(0x9d, 0x41, "actor-set-position", &.{});
     lang.addNested(0x9d, 0x44, "actor-erase", &.{});
     lang.addNested(0x9d, 0x43, "actor-set-clip", &.{});
@@ -657,8 +669,8 @@ fn buildNormalLanguage() Language {
 
     lang.add(0xd6, .band, &.{});
     lang.add(0xd7, .bor, &.{});
-    lang.add(0xd9, "close-file", &.{});
-    lang.add(0xda, "open-file", &.{});
+    lang.add(0xd9, .@"close-file", &.{});
+    lang.add(0xda, .@"open-file", &.{});
 
     lang.addNested(0xdb, 0x05, "read-file-int16", &.{});
     lang.addNested(0xdb, 0x08, "read-file-int8", &.{.u8});
@@ -673,7 +685,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xe0, 0x42, "array-line-draw", &.{});
 
     lang.add(0xe2, .localize, &.{});
-    lang.add(0xe3, "pick-random", &.{.variable});
+    lang.add(0xe3, .@"pick-random", &.{.variable});
     lang.add(0xe9, "seek-file", &.{});
     lang.add(0xea, "redim-array", &.{ .u8, .variable });
     lang.add(0xeb, "tell-file", &.{});
