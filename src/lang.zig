@@ -114,6 +114,7 @@ pub const Op = enum {
     @"sprite-select-range",
     @"sprite-set-image",
     @"sprite-new",
+    @"sprite-group-get",
     @"sprite-group-select",
     @"sprite-group-new",
     @"image-get-object-x",
@@ -152,6 +153,7 @@ pub const Op = enum {
     @"window-new",
     @"window-commit",
     @"cursor-on",
+    charset,
     @"break-here",
     @"object-set-class",
     jump,
@@ -166,11 +168,16 @@ pub const Op = enum {
     random,
     @"random-between",
     @"script-running",
+    @"actor-room",
     @"palette-color",
     @"sound-running",
     @"unlock-costume",
     @"nuke-image",
     @"actor-set-clipped",
+    @"actor-set-costume",
+    @"actor-set-shadow",
+    @"actor-select",
+    @"actor-new",
     @"palette-select",
     @"palette-from-image",
     @"palette-new",
@@ -180,14 +187,20 @@ pub const Op = enum {
     @"array-assign-slice",
     @"array-assign-range",
     sprintf,
+    @"draw-box",
     debug,
     in,
     @"sleep-for-seconds",
     @"stop-sentence",
+    @"print-text-position",
+    @"print-text-center",
+    @"print-text-printf",
+    @"print-text-start",
     @"print-debug-string",
     @"print-debug-printf",
     @"print-debug-start",
     @"print-system-string",
+    @"print-system-printf",
     @"print-system-start",
     @"dim-array.int8",
     @"dim-array.int16",
@@ -366,7 +379,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0xd9, .@"sprite-new", &.{});
 
     lang.addNested(0x27, 0x02, "sprite-group-unknown-27-02", &.{});
-    lang.addNested(0x27, 0x08, "sprite-group-get", &.{});
+    lang.addNested(0x27, 0x08, .@"sprite-group-get", &.{});
     lang.addNested(0x27, 0x1e, "sprite-group-get-object-x", &.{});
     lang.addNested(0x27, 0x1f, "sprite-group-get-object-y", &.{});
     lang.addNested(0x27, 0x2b, "sprite-group-get-order", &.{});
@@ -476,7 +489,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x6b, 0x93, "userput-off", &.{});
     lang.addNested(0x6b, 0x94, "cursor-soft-on", &.{});
     lang.addNested(0x6b, 0x95, "cursor-soft-off", &.{});
-    lang.addNested(0x6b, 0x9c, "charset", &.{});
+    lang.addNested(0x6b, 0x9c, .charset, &.{});
     lang.addNested(0x6b, 0x9d, "charset-color", &.{});
 
     lang.add(0x6c, .@"break-here", &.{});
@@ -502,7 +515,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x87, .random, &.{});
     lang.add(0x88, .@"random-between", &.{});
     lang.add(0x8b, .@"script-running", &.{});
-    lang.add(0x8c, "actor-room", &.{});
+    lang.add(0x8c, .@"actor-room", &.{});
     lang.add(0x8d, "actor-x", &.{});
     lang.add(0x8e, "actor-y", &.{});
     lang.add(0x8f, "actor-facing", &.{});
@@ -551,7 +564,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9d, 0x41, "actor-set-position", &.{});
     lang.addNested(0x9d, 0x44, "actor-erase", &.{});
     lang.addNested(0x9d, 0x43, "actor-set-clip", &.{});
-    lang.addNested(0x9d, 0x4c, "actor-set-costume", &.{});
+    lang.addNested(0x9d, 0x4c, .@"actor-set-costume", &.{});
     lang.addNested(0x9d, 0x4e, "actor-set-sounds", &.{});
     lang.addNested(0x9d, 0x50, "actor-set-talk-animation", &.{});
     lang.addNested(0x9d, 0x54, "actor-set-elevation", &.{});
@@ -562,11 +575,11 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9d, 0x5e, "actor-always-zclip", &.{});
     lang.addNested(0x9d, 0x5f, "actor-ignore-boxes", &.{});
     lang.addNested(0x9d, 0x61, "actor-set-animation-speed", &.{});
-    lang.addNested(0x9d, 0x62, "actor-set-shadow", &.{});
+    lang.addNested(0x9d, 0x62, .@"actor-set-shadow", &.{});
     lang.addNested(0x9d, 0x63, "actor-set-text-offset", &.{});
-    lang.addNested(0x9d, 0xc5, "actor-select", &.{});
+    lang.addNested(0x9d, 0xc5, .@"actor-select", &.{});
     lang.addNested(0x9d, 0xc6, "actor-set-var", &.{});
-    lang.addNested(0x9d, 0xd9, "actor-new", &.{});
+    lang.addNested(0x9d, 0xd9, .@"actor-new", &.{});
     lang.addNested(0x9d, 0xda, "actor-bak-on", &.{});
 
     lang.addNested(0x9e, 0x39, .@"palette-select", &.{});
@@ -591,7 +604,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa4, 0xd0, "array-assign", &.{.variable});
     lang.addNested(0xa4, 0xd4, "array-set-row", &.{.variable});
 
-    lang.add(0xa6, "draw-box", &.{});
+    lang.add(0xa6, .@"draw-box", &.{});
     lang.add(0xa7, .debug, &.{});
 
     lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
@@ -608,13 +621,13 @@ fn buildNormalLanguage() Language {
     lang.add(0xb1, .@"sleep-for-seconds", &.{});
     lang.add(0xb3, .@"stop-sentence", &.{});
 
-    lang.addNested(0xb5, 0x41, "print-text-position", &.{});
+    lang.addNested(0xb5, 0x41, .@"print-text-position", &.{});
     lang.addNested(0xb5, 0x43, "print-text-clipped", &.{});
-    lang.addNested(0xb5, 0x45, "print-text-center", &.{});
+    lang.addNested(0xb5, 0x45, .@"print-text-center", &.{});
     lang.addNested(0xb5, 0x4b, "print-text-string", &.{.string});
-    lang.addNested(0xb5, 0xc2, "print-text-printf", &.{.string});
+    lang.addNested(0xb5, 0xc2, .@"print-text-printf", &.{.string});
     lang.addNested(0xb5, 0xf9, "print-text-color", &.{});
-    lang.addNested(0xb5, 0xfe, "print-text-start", &.{});
+    lang.addNested(0xb5, 0xfe, .@"print-text-start", &.{});
 
     lang.addNested(0xb6, 0x4b, .@"print-debug-string", &.{.string});
     lang.addNested(0xb6, 0xc2, .@"print-debug-printf", &.{.string});
@@ -622,7 +635,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb6, 0xff, "print-debug-empty", &.{});
 
     lang.addNested(0xb7, 0x4b, .@"print-system-string", &.{.string});
-    lang.addNested(0xb7, 0xc2, "print-system-printf", &.{.string});
+    lang.addNested(0xb7, 0xc2, .@"print-system-printf", &.{.string});
     lang.addNested(0xb7, 0xfe, .@"print-system-start", &.{});
 
     lang.addNested(0xb8, 0x41, "say-line-position", &.{});
