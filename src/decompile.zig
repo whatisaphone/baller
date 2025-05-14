@@ -954,7 +954,7 @@ fn checkInvariants(cx: *StructuringCx) !void {
 
     for (cx.nodes.items, 0..) |*node, ni| {
         errdefer {
-            dumpNodes(cx, std.io.getStdErr().writer()) catch @panic("spew");
+            dumpNodes(cx) catch @panic("spew");
             std.debug.print("broken node: {}\n", .{ni});
         }
 
@@ -965,7 +965,7 @@ fn checkInvariants(cx: *StructuringCx) !void {
     }
 }
 
-fn dumpNodes(cx: *StructuringCx, out: anytype) !void {
+fn dumpNodes(cx: *StructuringCx) !void {
     const Item = struct {
         index: usize,
         node: Node,
@@ -985,6 +985,8 @@ fn dumpNodes(cx: *StructuringCx, out: anytype) !void {
 
     std.Progress.lockStdErr();
     defer std.Progress.unlockStdErr();
+
+    const out = std.io.getStdErr().writer();
 
     try out.writeAll("----------------------------------------\n");
 
