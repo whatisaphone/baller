@@ -988,6 +988,7 @@ fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
     const cond = cx.exprs.getPtr(node.kind.@"if".condition);
     if (cond.* != .call) return null;
     if (cond.call.op != .eq) return null;
+    std.debug.assert(cond.call.args.len == 2);
     const eq_args = getExtra2(cx.extra, cond.call.args);
     const eq_lhs = cx.exprs.getPtr(eq_args[0]);
     if (eq_lhs.* != .dup) return null;
@@ -1027,6 +1028,7 @@ fn nodeStartsWithPop(cx: *StructuringCx, ni: NodeIndex, expected_value: ExprInde
     const pop_stmt = &stmts[0];
     if (pop_stmt.* != .call) return false;
     if (pop_stmt.call.op != .pop) return false;
+    std.debug.assert(pop_stmt.call.args.len == 1);
     const pop_args = getExtra2(cx.extra, pop_stmt.call.args);
     if (pop_args[0] != expected_value) return false;
     return true;
@@ -1076,6 +1078,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
     const ni_first_true = node.kind.@"if".true;
     const ni_first_false = node.kind.@"if".false;
     const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    std.debug.assert(cond.call.args.len == 2);
     const cond_args = getExtra2(cx.extra, cond.call.args);
     const case_value = cx.exprs.getPtr(cond_args[0]).dup;
 
@@ -1111,6 +1114,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
         ni_cur = ni_real_cur;
         const cur = &cx.nodes.items[ni_cur];
         const eq = cx.exprs.getPtr(cur.kind.@"if".condition);
+        std.debug.assert(eq.call.args.len == 2);
         const eq_args = getExtra2(cx.extra, eq.call.args);
         const branch_expr = eq_args[1];
         const ni_body = cur.kind.@"if".true;
