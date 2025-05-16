@@ -143,6 +143,10 @@ pub const Node = union(enum) {
     integer: i32,
     string: []const u8,
     identifier: []const u8,
+    set: struct {
+        lhs: NodeIndex,
+        rhs: NodeIndex,
+    },
     binop: struct {
         op: BinOp,
         lhs: NodeIndex,

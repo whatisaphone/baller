@@ -882,18 +882,28 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         };
     }
 
-    const ei = try parseTopLevelExpr(cx, token);
+    const ei = try parseExpr(cx, token, .all);
+    if (peekToken(cx).kind == .eq) {
+        const eq_token = consumeToken(cx);
+        const rhs = try parseExpr(cx, consumeToken(cx), .all);
+        return try storeNode(cx, eq_token, .{ .set = .{ .lhs = ei, .rhs = rhs } });
+    }
     try expect(cx, .newline);
-    return ei;
+    return try makeExprTopLevel(cx, ei);
 }
 
 fn parseTopLevelExpr(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const result = try parseExpr(cx, token, .all);
-    if (cx.result.nodes.items[result] == .identifier) {
+    return makeExprTopLevel(cx, result);
+}
+
+fn makeExprTopLevel(cx: *Cx, ei: Ast.NodeIndex) !Ast.NodeIndex {
+    if (cx.result.nodes.items[ei] == .identifier) {
         // A lonely identifier is a call with 0 args
-        return storeNode(cx, token, .{ .call = .{ .callee = result, .args = .empty } });
+        const token = cx.result.node_tokens.items[ei];
+        return storeNodeWithTokenIndex(cx, token, .{ .call = .{ .callee = ei, .args = .empty } });
     }
-    return result;
+    return ei;
 }
 
 pub const Precedence = enum {
@@ -1021,9 +1031,13 @@ fn parseArgs(cx: *Cx) !Ast.ExtraSlice {
 }
 
 fn storeNode(cx: *Cx, token: *const lexer.Token, node: Ast.Node) !Ast.NodeIndex {
+    const token_index = recoverTokenIndex(cx, token);
+    return storeNodeWithTokenIndex(cx, token_index, node);
+}
+
+fn storeNodeWithTokenIndex(cx: *Cx, token_index: lexer.TokenIndex, node: Ast.Node) !Ast.NodeIndex {
     const result: Ast.NodeIndex = @intCast(cx.result.nodes.items.len);
     try cx.result.nodes.append(cx.gpa, node);
-    const token_index = recoverTokenIndex(cx, token);
     try cx.result.node_tokens.append(cx.gpa, token_index);
     return result;
 }

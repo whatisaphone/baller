@@ -79,6 +79,11 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             if (entry.found_existing) return error.BadData;
             entry.value_ptr.* = @intCast(cx.out.items.len);
         },
+        .set => |*s| {
+            try pushExpr(cx, s.rhs);
+            try emitOpcodeByName(cx, "set");
+            try emitVariable(cx, s.lhs);
+        },
         .call => try emitCall(cx, node_index),
         .@"if" => |*s| {
             try pushExpr(cx, s.condition);

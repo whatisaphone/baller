@@ -43,6 +43,7 @@ pub const Token = struct {
         lt,
         lt_lt,
         lt_eq,
+        eq,
         eq_eq,
         gt,
         gt_gt,
@@ -76,6 +77,7 @@ pub const Token = struct {
                 .lt => "'<'",
                 .lt_lt => "'<<'",
                 .lt_eq => "'<='",
+                .eq => "'='",
                 .eq_eq => "'=='",
                 .gt => "'>'",
                 .gt_gt => "'>>'",
@@ -153,9 +155,13 @@ pub fn run(
             } else {
                 try appendToken(&state, loc, .lt);
             }
-        } else if (ch == '=' and peekChar(&state) == '=') {
-            _ = consumeChar(&state);
-            try appendToken(&state, loc, .eq_eq);
+        } else if (ch == '=') {
+            if (peekChar(&state) == '=') {
+                _ = consumeChar(&state);
+                try appendToken(&state, loc, .eq_eq);
+            } else {
+                try appendToken(&state, loc, .eq);
+            }
         } else if (ch == '>') {
             if (peekChar(&state) == '>') {
                 _ = consumeChar(&state);

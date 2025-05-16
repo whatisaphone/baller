@@ -201,6 +201,7 @@ const Stmt = union(enum) {
     jump_if: JumpTargetAndCondition,
     jump_unless: JumpTargetAndCondition,
     jump: struct { target: u16 },
+    set: struct { lhs: ExprIndex, rhs: ExprIndex },
     call: struct { op: lang.Op, args: ExtraSlice },
 };
 
@@ -234,6 +235,7 @@ const Op = union(enum) {
     push_var,
     push_str,
     dup,
+    set,
     jump_if,
     jump_unless,
     jump,
@@ -326,7 +328,7 @@ const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .shr = .{ .bin_op = .shr },
     .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .set = .gen(&.{.int}),
+    .set = .set,
     .@"set-array-item" = .gen(&.{ .int, .int }),
     .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
     .@"read-ini-int" = .genCall(&.{ .int, .string, .string }),
@@ -538,6 +540,11 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             if (cx.stack.len == 0) return error.BadData;
             const top = cx.stack.get(cx.stack.len - 1);
             try push(cx, .{ .dup = top });
+        },
+        .set => {
+            const lhs = try storeExpr(cx, .{ .variable = ins.operands.get(0).variable });
+            const rhs = try pop(cx);
+            try cx.stmts.append(cx.gpa, .{ .set = .{ .lhs = lhs, .rhs = rhs } });
         },
         .jump_if => {
             const rel = ins.operands.get(0).relative_offset;
@@ -1524,6 +1531,11 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.jump));
             try cx.out.append(cx.gpa, ' ');
             try emitLabel(cx, j.target);
+        },
+        .set => |set| {
+            try emitExpr(cx, set.lhs, .all);
+            try cx.out.appendSlice(cx.gpa, " = ");
+            try emitExpr(cx, set.rhs, .all);
         },
         .call => |call| try emitCall(cx, call.op, call.args),
     }
