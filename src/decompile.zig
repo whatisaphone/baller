@@ -1556,6 +1556,13 @@ fn emitExpr(
                 try cx.out.append(cx.gpa, '[');
                 try emitExpr(cx, args[1], .all);
                 try cx.out.append(cx.gpa, ']');
+            } else if (call.op == .@"get-array-item-2d") {
+                try emitExpr(cx, args[0], .all);
+                try cx.out.append(cx.gpa, '[');
+                try emitExpr(cx, args[1], .all);
+                try cx.out.appendSlice(cx.gpa, "][");
+                try emitExpr(cx, args[2], .all);
+                try cx.out.append(cx.gpa, ']');
             } else if (@as(?Ast.BinOp, switch (call.op) {
                 .eq => .eq,
                 .ne => .ne,

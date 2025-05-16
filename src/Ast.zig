@@ -151,6 +151,11 @@ pub const Node = union(enum) {
         lhs: NodeIndex,
         index: NodeIndex,
     },
+    array_get2: struct {
+        lhs: NodeIndex,
+        index1: NodeIndex,
+        index2: NodeIndex,
+    },
     binop: struct {
         op: BinOp,
         lhs: NodeIndex,

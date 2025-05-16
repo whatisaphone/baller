@@ -949,6 +949,17 @@ fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         try expect(cx, .bracket_r);
         cur = try storeNode(cx, token2, .{ .array_get = .{ .lhs = cur, .index = index } });
     }
+    if (peekToken(cx).kind == .bracket_l) {
+        _ = consumeToken(cx);
+        const index2 = try parseExpr(cx, consumeToken(cx), .all);
+        try expect(cx, .bracket_r);
+        const cur_node = &cx.result.nodes.items[cur];
+        cur_node.* = .{ .array_get2 = .{
+            .lhs = cur_node.array_get.lhs,
+            .index1 = cur_node.array_get.index,
+            .index2 = index2,
+        } };
+    }
     return cur;
 }
 

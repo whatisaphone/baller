@@ -248,6 +248,12 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
             try emitOpcodeByName(cx, "get-array-item");
             try emitVariable(cx, e.lhs);
         },
+        .array_get2 => |e| {
+            try pushExpr(cx, e.index1);
+            try pushExpr(cx, e.index2);
+            try emitOpcodeByName(cx, "get-array-item-2d");
+            try emitVariable(cx, e.lhs);
+        },
         .binop => |e| {
             try pushExpr(cx, e.lhs);
             try pushExpr(cx, e.rhs);
