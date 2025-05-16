@@ -201,7 +201,6 @@ const Stmt = union(enum) {
     jump_if: JumpTargetAndCondition,
     jump_unless: JumpTargetAndCondition,
     jump: struct { target: u16 },
-    set: struct { lhs: ExprIndex, rhs: ExprIndex },
     call: struct { op: lang.Op, args: ExtraSlice },
 };
 
@@ -235,11 +234,9 @@ const Op = union(enum) {
     push_var,
     push_str,
     dup,
-    set,
     jump_if,
     jump_unless,
     jump,
-    bin_op: Ast.BinOp,
     generic: struct {
         call: bool,
         params: std.BoundedArray(Param, max_params),
@@ -279,18 +276,18 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .dup = .dup,
     .not = .genCall(&.{.int}),
-    .eq = .{ .bin_op = .eq },
-    .ne = .{ .bin_op = .ne },
-    .gt = .{ .bin_op = .gt },
-    .lt = .{ .bin_op = .lt },
-    .le = .{ .bin_op = .le },
-    .ge = .{ .bin_op = .ge },
-    .add = .{ .bin_op = .add },
-    .sub = .{ .bin_op = .sub },
-    .mul = .{ .bin_op = .mul },
-    .div = .{ .bin_op = .div },
-    .land = .{ .bin_op = .land },
-    .lor = .{ .bin_op = .lor },
+    .eq = .genCall(&.{ .int, .int }),
+    .ne = .genCall(&.{ .int, .int }),
+    .gt = .genCall(&.{ .int, .int }),
+    .lt = .genCall(&.{ .int, .int }),
+    .le = .genCall(&.{ .int, .int }),
+    .ge = .genCall(&.{ .int, .int }),
+    .add = .genCall(&.{ .int, .int }),
+    .sub = .genCall(&.{ .int, .int }),
+    .mul = .genCall(&.{ .int, .int }),
+    .div = .genCall(&.{ .int, .int }),
+    .land = .genCall(&.{ .int, .int }),
+    .lor = .genCall(&.{ .int, .int }),
     .pop = .gen(&.{.int}),
     .@"image-set-width" = .gen(&.{.int}),
     .@"image-set-height" = .gen(&.{.int}),
@@ -323,12 +320,12 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"image-get-height" = .genCall(&.{ .int, .int }),
     .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
     .@"start-script-order" = .gen(&.{ .int, .int, .list }),
-    .mod = .{ .bin_op = .mod },
-    .shl = .{ .bin_op = .shl },
-    .shr = .{ .bin_op = .shr },
+    .mod = .genCall(&.{ .int, .int }),
+    .shl = .genCall(&.{ .int, .int }),
+    .shr = .genCall(&.{ .int, .int }),
     .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .set = .set,
+    .set = .gen(&.{.int}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
     .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
     .@"read-ini-int" = .genCall(&.{ .int, .string, .string }),
@@ -541,11 +538,6 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const top = cx.stack.get(cx.stack.len - 1);
             try push(cx, .{ .dup = top });
         },
-        .set => {
-            const lhs = try storeExpr(cx, .{ .variable = ins.operands.get(0).variable });
-            const rhs = try pop(cx);
-            try cx.stmts.append(cx.gpa, .{ .set = .{ .lhs = lhs, .rhs = rhs } });
-        },
         .jump_if => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.addUnsignedSigned(ins.end, rel).?;
@@ -568,11 +560,6 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.addUnsignedSigned(ins.end, rel).?;
             try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
-        },
-        .bin_op => |oper| {
-            const rhs = try pop(cx);
-            const lhs = try pop(cx);
-            try push(cx, .{ .bin_op = .{ .op = oper, .lhs = lhs, .rhs = rhs } });
         },
         .generic => |gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
@@ -1532,12 +1519,14 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try cx.out.append(cx.gpa, ' ');
             try emitLabel(cx, j.target);
         },
-        .set => |set| {
-            try emitExpr(cx, set.lhs, .all);
+        .call => |call| if (call.op == .set) {
+            const args = getExtra(cx, call.args);
+            try emitExpr(cx, args[0], .all);
             try cx.out.appendSlice(cx.gpa, " = ");
-            try emitExpr(cx, set.rhs, .all);
+            try emitExpr(cx, args[1], .all);
+        } else {
+            try emitCall(cx, call.op, call.args);
         },
-        .call => |call| try emitCall(cx, call.op, call.args),
     }
     try cx.out.append(cx.gpa, '\n');
 }
@@ -1560,12 +1549,41 @@ fn emitExpr(
             if (@intFromEnum(prec) >= @intFromEnum(b.op.precedence()))
                 try cx.out.append(cx.gpa, ')');
         },
-        .call => |c| {
-            if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
-                try cx.out.append(cx.gpa, '(');
-            try emitCall(cx, c.op, c.args);
-            if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
-                try cx.out.append(cx.gpa, ')');
+        .call => |call| {
+            if (@as(?Ast.BinOp, switch (call.op) {
+                .eq => .eq,
+                .ne => .ne,
+                .gt => .gt,
+                .lt => .lt,
+                .le => .le,
+                .ge => .ge,
+                .add => .add,
+                .sub => .sub,
+                .mul => .mul,
+                .div => .div,
+                .land => .land,
+                .lor => .lor,
+                .mod => .mod,
+                .shl => .shl,
+                .shr => .shr,
+                else => null,
+            })) |op| {
+                const op_prec = op.precedence();
+                if (@intFromEnum(prec) >= @intFromEnum(op_prec))
+                    try cx.out.append(cx.gpa, '(');
+                const args = getExtra(cx, call.args);
+                try emitExpr(cx, args[0], op_prec);
+                try cx.out.writer(cx.gpa).print(" {s} ", .{op.str()});
+                try emitExpr(cx, args[1], op_prec);
+                if (@intFromEnum(prec) >= @intFromEnum(op_prec))
+                    try cx.out.append(cx.gpa, ')');
+            } else {
+                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                    try cx.out.append(cx.gpa, '(');
+                try emitCall(cx, call.op, call.args);
+                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                    try cx.out.append(cx.gpa, ')');
+            }
         },
         .list => unreachable, // only appears in call args, handled elsewhere
         .dup => return error.BadData,
