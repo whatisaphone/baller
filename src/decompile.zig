@@ -263,13 +263,13 @@ const Op = union(enum) {
 
 const max_params = 8;
 
-const Param = union(enum) {
+pub const Param = union(enum) {
     int,
     string,
     list,
 };
 
-const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
+pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"push-u8" = .push8,
     .@"push-i16" = .push16,
     .@"push-i32" = .push32,
@@ -1567,22 +1567,23 @@ fn emitExpr(
             if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                 try cx.out.append(cx.gpa, ')');
         },
-        .list => |list| {
-            try cx.out.append(cx.gpa, '[');
-            for (getExtra(cx, list.items), 0..) |e, i| {
-                if (i != 0)
-                    try cx.out.append(cx.gpa, ' ');
-                try emitExpr(cx, e, .space);
-            }
-            try cx.out.append(cx.gpa, ']');
-        },
+        .list => unreachable, // only appears in call args, handled elsewhere
         .dup => return error.BadData,
     }
 }
 
 fn emitCall(cx: *const EmitCx, op: lang.Op, args: ExtraSlice) !void {
     try cx.out.appendSlice(cx.gpa, @tagName(op));
-    for (getExtra(cx, args)) |ei| {
+    try emitArgsFlat(cx, args);
+}
+
+fn emitArgsFlat(cx: *const EmitCx, items: ExtraSlice) !void {
+    for (getExtra(cx, items)) |ei| {
+        const arg = cx.exprs.getPtr(ei);
+        if (arg.* == .list) {
+            try emitArgsFlat(cx, arg.list.items);
+            continue;
+        }
         try cx.out.append(cx.gpa, ' ');
         try emitExpr(cx, ei, .space);
     }

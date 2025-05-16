@@ -3,6 +3,8 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
+const Param = @import("decompile.zig").Param;
+const ops = @import("decompile.zig").ops;
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
 
@@ -155,7 +157,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
 fn emitCall(cx: *Cx, node_index: u32) !void {
     const call = &cx.ast.nodes.items[node_index].call;
 
-    const opcode, const ins = findIns(cx, call.callee) orelse {
+    const ins = findIns(cx, call.callee) orelse {
         const token_index = cx.ast.node_tokens.items[node_index];
         const loc = cx.lex.tokens.items[token_index].span.start;
         cx.diag.err(loc, "instruction not found", .{});
@@ -163,24 +165,37 @@ fn emitCall(cx: *Cx, node_index: u32) !void {
     };
 
     const args = cx.ast.getExtra(call.args);
-    // TODO: type check number of stack pushes
-    if (args.len < ins.operands.len) return error.BadData;
+    const required = ins.operands.len + ins.normal_params;
+    if (args.len < required) return error.BadData;
     const args_operands = args[0..ins.operands.len];
-    const args_stack = args[ins.operands.len..];
+    const args_stack = args[ins.operands.len..required];
+    const args_variadic = args[required..];
+    if (!ins.variadic and args_variadic.len != 0) return error.BadData;
 
     for (args_stack) |ei|
         try pushExpr(cx, ei);
 
-    try cx.out.appendSlice(cx.gpa, opcode.slice());
+    if (ins.variadic) {
+        for (args_variadic) |ei|
+            try pushExpr(cx, ei);
+        try pushInt(cx, @intCast(args_variadic.len));
+    }
+
+    try cx.out.appendSlice(cx.gpa, ins.opcode.slice());
 
     for (ins.operands.slice(), args_operands) |op, ei|
         try emitOperand(cx, op, ei);
 }
 
-fn findIns(
-    cx: *const Cx,
-    node_index: u32,
-) ?struct { std.BoundedArray(u8, 2), *const lang.LangIns } {
+const InsData = struct {
+    opcode: std.BoundedArray(u8, 2),
+    name: lang.Op,
+    operands: std.BoundedArray(lang.LangOperand, lang.max_operands),
+    normal_params: usize,
+    variadic: bool,
+};
+
+fn findIns(cx: *const Cx, node_index: u32) ?InsData {
     const expr = &cx.ast.nodes.items[node_index];
     var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
@@ -194,7 +209,32 @@ fn findIns(
         },
         else => return null,
     };
-    return lang.lookup(cx.language, cx.ins_map, name);
+    const opcode, const ins = lang.lookup(cx.language, cx.ins_map, name) orelse return null;
+    if (ins.name != .op) return null;
+    const params: []const Param = switch (ops.getPtrConst(ins.name.op).*) {
+        .jump_if, .jump_unless => &.{.int},
+        .jump => &.{},
+        .generic => |*g| g.params.slice(),
+        else => return null,
+    };
+    var param_exprs = params.len;
+    var variadic = false;
+    if (params.len != 0) {
+        // Only support lists if they're in the last position
+        for (params[0 .. params.len - 1]) |param|
+            if (param == .list) return null;
+        if (params[params.len - 1] == .list) {
+            variadic = true;
+            param_exprs -= 1;
+        }
+    }
+    return .{
+        .opcode = opcode,
+        .name = ins.name.op,
+        .operands = ins.operands,
+        .normal_params = param_exprs,
+        .variadic = variadic,
+    };
 }
 
 fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
