@@ -898,6 +898,12 @@ fn parseTopLevelExpr(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
 pub const Precedence = enum {
     all,
+    logical,
+    equality,
+    inequality,
+    add,
+    mul,
+    bit,
     space,
     field,
 };
@@ -913,16 +919,23 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 const field = try expectIdentifier(cx);
                 cur = try storeNode(cx, token2, .{ .field = .{ .lhs = cur, .field = field } });
             },
-            // This is everything that parseAtom recognizes
-            .integer, .string, .identifier, .paren_l, .bracket_l => {
+            else => if (getBinOp(token2)) |op| {
+                cur = try parseBinOp(cx, cur, token2, prec, op) orelse break;
+            } else if (isAtomToken(token2)) {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseArgs(cx);
                 cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
-            },
-            else => break,
+            } else break,
         }
     }
     return cur;
+}
+
+fn isAtomToken(token: *const lexer.Token) bool {
+    return switch (token.kind) {
+        .integer, .string, .identifier, .paren_l, .bracket_l => true,
+        else => false,
+    };
 }
 
 fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
@@ -957,14 +970,49 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     }
 }
 
+fn getBinOp(token: *const lexer.Token) ?Ast.BinOp {
+    return switch (token.kind) {
+        .eq_eq => .eq,
+        .bang_eq => .ne,
+        .lt => .lt,
+        .lt_eq => .le,
+        .gt => .gt,
+        .gt_eq => .ge,
+        .plus => .add,
+        .minus => .sub,
+        .star => .mul,
+        .slash => .div,
+        .percent => .mod,
+        .lt_lt => .shl,
+        .gt_gt => .shr,
+        .amp_amp => .land,
+        .pipe_pipe => .lor,
+        else => null,
+    };
+}
+
+fn parseBinOp(
+    cx: *Cx,
+    lhs: Ast.NodeIndex,
+    token: *const lexer.Token,
+    prec: Precedence,
+    op: Ast.BinOp,
+) !?Ast.NodeIndex {
+    if (@intFromEnum(prec) >= @intFromEnum(op.precedence())) return null;
+    _ = consumeToken(cx);
+    const rhs = try parseExpr(cx, consumeToken(cx), op.precedence());
+    return try storeNode(cx, token, .{ .binop = .{
+        .op = op,
+        .lhs = lhs,
+        .rhs = rhs,
+    } });
+}
+
 fn parseArgs(cx: *Cx) !Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex, 16) = .{};
     while (true) {
         const token = peekToken(cx);
-        if (token.kind == .newline or
-            token.kind == .paren_r or
-            token.kind == .bracket_r)
-            break;
+        if (!isAtomToken(token)) break;
         _ = consumeToken(cx);
         const node = try parseExpr(cx, token, .space);
         try appendNode(cx, &result, node);

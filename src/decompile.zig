@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const games = @import("games.zig");
@@ -215,6 +216,7 @@ const Expr = union(enum) {
     int: i32,
     string: []const u8,
     variable: lang.Variable,
+    bin_op: struct { op: Ast.BinOp, lhs: ExprIndex, rhs: ExprIndex },
     call: struct { op: lang.Op, args: ExtraSlice },
     list: struct { items: ExtraSlice },
     dup: ExprIndex,
@@ -235,6 +237,7 @@ const Op = union(enum) {
     jump_if,
     jump_unless,
     jump,
+    bin_op: Ast.BinOp,
     generic: struct {
         call: bool,
         params: std.BoundedArray(Param, max_params),
@@ -274,18 +277,18 @@ const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .dup = .dup,
     .not = .genCall(&.{.int}),
-    .eq = .genCall(&.{ .int, .int }),
-    .ne = .genCall(&.{ .int, .int }),
-    .gt = .genCall(&.{ .int, .int }),
-    .lt = .genCall(&.{ .int, .int }),
-    .le = .genCall(&.{ .int, .int }),
-    .ge = .genCall(&.{ .int, .int }),
-    .add = .genCall(&.{ .int, .int }),
-    .sub = .genCall(&.{ .int, .int }),
-    .mul = .genCall(&.{ .int, .int }),
-    .div = .genCall(&.{ .int, .int }),
-    .land = .genCall(&.{ .int, .int }),
-    .lor = .genCall(&.{ .int, .int }),
+    .eq = .{ .bin_op = .eq },
+    .ne = .{ .bin_op = .ne },
+    .gt = .{ .bin_op = .gt },
+    .lt = .{ .bin_op = .lt },
+    .le = .{ .bin_op = .le },
+    .ge = .{ .bin_op = .ge },
+    .add = .{ .bin_op = .add },
+    .sub = .{ .bin_op = .sub },
+    .mul = .{ .bin_op = .mul },
+    .div = .{ .bin_op = .div },
+    .land = .{ .bin_op = .land },
+    .lor = .{ .bin_op = .lor },
     .pop = .gen(&.{.int}),
     .@"image-set-width" = .gen(&.{.int}),
     .@"image-set-height" = .gen(&.{.int}),
@@ -318,9 +321,9 @@ const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"image-get-height" = .genCall(&.{ .int, .int }),
     .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
     .@"start-script-order" = .gen(&.{ .int, .int, .list }),
-    .mod = .genCall(&.{ .int, .int }),
-    .shl = .genCall(&.{ .int, .int }),
-    .shr = .genCall(&.{ .int, .int }),
+    .mod = .{ .bin_op = .mod },
+    .shl = .{ .bin_op = .shl },
+    .shr = .{ .bin_op = .shr },
     .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
@@ -558,6 +561,11 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.addUnsignedSigned(ins.end, rel).?;
             try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
+        },
+        .bin_op => |oper| {
+            const rhs = try pop(cx);
+            const lhs = try pop(cx);
+            try push(cx, .{ .bin_op = .{ .op = oper, .lhs = lhs, .rhs = rhs } });
         },
         .generic => |gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
@@ -1531,6 +1539,15 @@ fn emitExpr(
         .int => |int| try cx.out.writer(cx.gpa).print("{}", .{int}),
         .variable => |v| try emitVariable(cx, v),
         .string => |s| try cx.out.writer(cx.gpa).print("\"{s}\"", .{s}),
+        .bin_op => |b| {
+            if (@intFromEnum(prec) >= @intFromEnum(b.op.precedence()))
+                try cx.out.append(cx.gpa, '(');
+            try emitExpr(cx, b.lhs, b.op.precedence());
+            try cx.out.writer(cx.gpa).print(" {s} ", .{b.op.str()});
+            try emitExpr(cx, b.rhs, b.op.precedence());
+            if (@intFromEnum(prec) >= @intFromEnum(b.op.precedence()))
+                try cx.out.append(cx.gpa, ')');
+        },
         .call => |c| {
             if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                 try cx.out.append(cx.gpa, '(');

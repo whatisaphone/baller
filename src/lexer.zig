@@ -39,6 +39,21 @@ pub const Token = struct {
         comma,
         period,
         colon,
+        bang_eq,
+        lt,
+        lt_lt,
+        lt_eq,
+        eq_eq,
+        gt,
+        gt_gt,
+        gt_eq,
+        plus,
+        minus,
+        star,
+        slash,
+        percent,
+        amp_amp,
+        pipe_pipe,
         paren_l,
         paren_r,
         bracket_l,
@@ -57,6 +72,21 @@ pub const Token = struct {
                 .comma => "','",
                 .period => "'.'",
                 .colon => "':'",
+                .bang_eq => "'!='",
+                .lt => "'<'",
+                .lt_lt => "'<<'",
+                .lt_eq => "'<='",
+                .eq_eq => "'=='",
+                .gt => "'>'",
+                .gt_gt => "'>>'",
+                .gt_eq => "'>='",
+                .plus => "+",
+                .minus => "-",
+                .star => "*",
+                .slash => "/",
+                .percent => "%",
+                .amp_amp => "&&",
+                .pipe_pipe => "||",
                 .paren_l => "'('",
                 .paren_r => "')'",
                 .bracket_l => "'['",
@@ -110,6 +140,55 @@ pub fn run(
             try appendToken(&state, loc, .period);
         } else if (ch == ':') {
             try appendToken(&state, loc, .colon);
+        } else if (ch == '!' and peekChar(&state) == '=') {
+            _ = consumeChar(&state);
+            try appendToken(&state, loc, .bang_eq);
+        } else if (ch == '<') {
+            if (peekChar(&state) == '<') {
+                _ = consumeChar(&state);
+                try appendToken(&state, loc, .lt_lt);
+            } else if (peekChar(&state) == '=') {
+                _ = consumeChar(&state);
+                try appendToken(&state, loc, .lt_eq);
+            } else {
+                try appendToken(&state, loc, .lt);
+            }
+        } else if (ch == '=' and peekChar(&state) == '=') {
+            _ = consumeChar(&state);
+            try appendToken(&state, loc, .eq_eq);
+        } else if (ch == '>') {
+            if (peekChar(&state) == '>') {
+                _ = consumeChar(&state);
+                try appendToken(&state, loc, .gt_gt);
+            } else if (peekChar(&state) == '=') {
+                _ = consumeChar(&state);
+                try appendToken(&state, loc, .gt_eq);
+            } else {
+                try appendToken(&state, loc, .gt);
+            }
+        } else if (ch == '+') {
+            try appendToken(&state, loc, .plus);
+        } else if (ch == '-') {
+            if (is_num: {
+                const ch2 = peekChar(&state) orelse break :is_num false;
+                break :is_num '0' <= ch2 and ch2 <= '9';
+            }) {
+                try lexInteger(&state, loc);
+            } else {
+                try appendToken(&state, loc, .minus);
+            }
+        } else if (ch == '*') {
+            try appendToken(&state, loc, .star);
+        } else if (ch == '/') {
+            try appendToken(&state, loc, .slash);
+        } else if (ch == '%') {
+            try appendToken(&state, loc, .percent);
+        } else if (ch == '&' and peekChar(&state) == '&') {
+            _ = consumeChar(&state);
+            try appendToken(&state, loc, .amp_amp);
+        } else if (ch == '|' and peekChar(&state) == '|') {
+            _ = consumeChar(&state);
+            try appendToken(&state, loc, .pipe_pipe);
         } else if (ch == '(') {
             try appendToken(&state, loc, .paren_l);
         } else if (ch == ')') {
@@ -124,11 +203,6 @@ pub fn run(
             try appendToken(&state, loc, .brace_r);
         } else if (ch == '@') {
             try appendToken(&state, loc, .swat);
-        } else if (ch == '-' and is_num: {
-            const ch2 = peekChar(&state) orelse break :is_num false;
-            break :is_num '0' <= ch2 and ch2 <= '9';
-        }) {
-            try lexInteger(&state, loc);
         } else if (ch >= '0' and ch <= '9') {
             try lexInteger(&state, loc);
         } else if (ch == '"') {

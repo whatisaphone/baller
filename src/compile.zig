@@ -203,6 +203,11 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
         },
         .call => try emitCall(cx, node_index),
         .list => try pushList(cx, node_index),
+        .binop => |e| {
+            try pushExpr(cx, e.lhs);
+            try pushExpr(cx, e.rhs);
+            try emitOpcodeByName(cx, @tagName(e.op));
+        },
         else => return error.BadData,
     }
 }

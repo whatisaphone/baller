@@ -3,6 +3,7 @@ const std = @import("std");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const Precedence = @import("parser.zig").Precedence;
 
 const Ast = @This();
 
@@ -142,6 +143,11 @@ pub const Node = union(enum) {
     integer: i32,
     string: []const u8,
     identifier: []const u8,
+    binop: struct {
+        op: BinOp,
+        lhs: NodeIndex,
+        rhs: NodeIndex,
+    },
     call: struct {
         callee: NodeIndex,
         args: ExtraSlice,
@@ -181,4 +187,62 @@ pub const ExtraSlice = struct {
     len: u32,
 
     pub const empty: ExtraSlice = .{ .start = 0, .len = 0 };
+};
+
+pub const BinOp = enum {
+    eq,
+    ne,
+    lt,
+    le,
+    gt,
+    ge,
+    add,
+    sub,
+    mul,
+    div,
+    mod,
+    shl,
+    shr,
+    land,
+    lor,
+
+    pub fn str(self: BinOp) []const u8 {
+        return switch (self) {
+            .eq => "==",
+            .ne => "!=",
+            .lt => "<",
+            .le => "<=",
+            .gt => ">",
+            .ge => ">=",
+            .add => "+",
+            .sub => "-",
+            .mul => "*",
+            .div => "/",
+            .mod => "%",
+            .shl => "<<",
+            .shr => ">>",
+            .land => "&&",
+            .lor => "||",
+        };
+    }
+
+    pub fn precedence(self: BinOp) Precedence {
+        return switch (self) {
+            .eq => .equality,
+            .ne => .equality,
+            .lt => .inequality,
+            .le => .inequality,
+            .gt => .inequality,
+            .ge => .inequality,
+            .add => .add,
+            .sub => .add,
+            .mul => .mul,
+            .div => .mul,
+            .mod => .mul,
+            .shl => .bit,
+            .shr => .bit,
+            .land => .logical,
+            .lor => .logical,
+        };
+    }
 };
