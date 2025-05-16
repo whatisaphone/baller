@@ -919,7 +919,7 @@ pub const Precedence = enum {
 };
 
 fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
-    var cur = try parseAtom(cx, token);
+    var cur = try parseUnit(cx, token);
     while (true) {
         const token2 = peekToken(cx);
         switch (token2.kind) {
@@ -937,6 +937,17 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
             } else break,
         }
+    }
+    return cur;
+}
+
+fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    var cur = try parseAtom(cx, token);
+    if (peekToken(cx).kind == .bracket_l) {
+        const token2 = consumeToken(cx);
+        const index = try parseExpr(cx, consumeToken(cx), .all);
+        try expect(cx, .bracket_r);
+        cur = try storeNode(cx, token2, .{ .array_get = .{ .lhs = cur, .index = index } });
     }
     return cur;
 }

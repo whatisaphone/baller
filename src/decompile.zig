@@ -1550,7 +1550,13 @@ fn emitExpr(
                 try cx.out.append(cx.gpa, ')');
         },
         .call => |call| {
-            if (@as(?Ast.BinOp, switch (call.op) {
+            const args = getExtra(cx, call.args);
+            if (call.op == .@"get-array-item") {
+                try emitExpr(cx, args[0], .all);
+                try cx.out.append(cx.gpa, '[');
+                try emitExpr(cx, args[1], .all);
+                try cx.out.append(cx.gpa, ']');
+            } else if (@as(?Ast.BinOp, switch (call.op) {
                 .eq => .eq,
                 .ne => .ne,
                 .gt => .gt,
@@ -1571,7 +1577,6 @@ fn emitExpr(
                 const op_prec = op.precedence();
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, '(');
-                const args = getExtra(cx, call.args);
                 try emitExpr(cx, args[0], op_prec);
                 try cx.out.writer(cx.gpa).print(" {s} ", .{op.str()});
                 try emitExpr(cx, args[1], op_prec);
