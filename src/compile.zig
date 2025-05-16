@@ -174,12 +174,8 @@ fn emitCall(cx: *Cx, node_index: u32) !void {
 
     for (args_stack) |ei|
         try pushExpr(cx, ei);
-
-    if (ins.variadic) {
-        for (args_variadic) |ei|
-            try pushExpr(cx, ei);
-        try pushInt(cx, @intCast(args_variadic.len));
-    }
+    if (ins.variadic)
+        try pushList(cx, args_variadic);
 
     try cx.out.appendSlice(cx.gpa, ins.opcode.slice());
 
@@ -247,7 +243,6 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
             try emitVariable(cx, node_index);
         },
         .call => try emitCall(cx, node_index),
-        .list => try pushList(cx, node_index),
         .binop => |e| {
             try pushExpr(cx, e.lhs);
             try pushExpr(cx, e.rhs);
@@ -276,11 +271,10 @@ fn pushStr(cx: *Cx, node_index: u32) !void {
     try pushInt(cx, -1);
 }
 
-fn pushList(cx: *Cx, node_index: u32) !void {
-    const list = &cx.ast.nodes.items[node_index].list;
-    for (cx.ast.getExtra(list.items)) |ei|
+fn pushList(cx: *Cx, items: []const Ast.NodeIndex) !void {
+    for (items) |ei|
         try pushExpr(cx, ei);
-    try pushInt(cx, @intCast(list.items.len));
+    try pushInt(cx, @intCast(items.len));
 }
 
 // TODO: this is why this is slow! don't use strings!

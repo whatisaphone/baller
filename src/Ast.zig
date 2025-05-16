@@ -160,9 +160,6 @@ pub const Node = union(enum) {
         lhs: NodeIndex,
         field: []const u8,
     },
-    list: struct {
-        items: ExtraSlice,
-    },
     @"if": struct {
         condition: NodeIndex,
         true: ExtraSlice,

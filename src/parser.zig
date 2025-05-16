@@ -971,11 +971,6 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             try expect(cx, .paren_r);
             return result;
         },
-        .bracket_l => {
-            const items = try parseArgs(cx);
-            try expect(cx, .bracket_r);
-            return try storeNode(cx, token, .{ .list = .{ .items = items } });
-        },
         else => return reportUnexpected(cx, token),
     }
 }
