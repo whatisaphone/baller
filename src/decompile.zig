@@ -448,51 +448,8 @@ fn initEnumArrayFixed(E: type, V: type, values: std.enums.EnumFieldStruct(E, V, 
 
 fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     try scheduleBasicBlock(cx, 0);
-    while (cx.pending_basic_blocks.pop()) |bbi| {
-        const bb = &cx.basic_blocks[bbi];
-        const bb_start = if (bbi == 0) 0 else cx.basic_blocks[bbi - 1].end;
-
-        std.debug.assert(cx.stack.len == 0);
-        cx.stack.appendSlice(bb.stack_on_enter.defined.slice()) catch unreachable;
-
-        const first_stmt: u16 = @intCast(cx.stmts.items.len);
-
-        var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
-        disasm.reader.pos = bb_start;
-        while (try disasm.next()) |ins|
-            try decompileIns(cx, ins);
-
-        const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
-        bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
-
-        switch (bb.exit) {
-            .no_jump => {
-                if (bbi != cx.basic_blocks.len - 1) {
-                    // middle blocks fall through to the next block
-                    try scheduleBasicBlock(cx, bbi + 1);
-                } else {
-                    // the last block should finish with an empty stack
-                    if (cx.stack.len != 0) return error.BadData;
-                }
-            },
-            .jump => |j| {
-                const target_bbi = findBasicBlockWithStart(cx, j.target);
-                try scheduleBasicBlock(cx, target_bbi);
-            },
-            .jump_if, .jump_unless => |j| {
-                if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
-                    return error.BadData;
-                try scheduleBasicBlock(cx, bbi + 1);
-                const target_bbi = findBasicBlockWithStart(cx, j.target);
-                try scheduleBasicBlock(cx, target_bbi);
-            },
-        }
-
-        // Above, the stack was dealt with, so we no longer need it. Clear it for the next block.
-        cx.stack.clear();
-        // However the string stack wasn't, so make sure it ended up empty.
-        if (cx.str_stack.len != 0) return error.BadData;
-    }
+    while (cx.pending_basic_blocks.pop()) |bbi|
+        try decompileBasicBlock(cx, bytecode, bbi);
 
     // Bail if any basic blocks were unreachable and not decompiled. If this comes up I'll fix it
     for (cx.basic_blocks) |*bb|
@@ -520,6 +477,52 @@ fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16) !void {
     bb.state = .pending;
     bb.stack_on_enter.setOnce(try .fromSlice(cx.stack.slice()));
     try cx.pending_basic_blocks.append(cx.gpa, bbi);
+}
+
+fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
+    const bb = &cx.basic_blocks[bbi];
+    const bb_start = if (bbi == 0) 0 else cx.basic_blocks[bbi - 1].end;
+
+    std.debug.assert(cx.stack.len == 0);
+    cx.stack.appendSlice(bb.stack_on_enter.defined.slice()) catch unreachable;
+
+    const first_stmt: u16 = @intCast(cx.stmts.items.len);
+
+    var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
+    disasm.reader.pos = bb_start;
+    while (try disasm.next()) |ins|
+        try decompileIns(cx, ins);
+
+    const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
+    bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
+
+    switch (bb.exit) {
+        .no_jump => {
+            if (bbi != cx.basic_blocks.len - 1) {
+                // middle blocks fall through to the next block
+                try scheduleBasicBlock(cx, bbi + 1);
+            } else {
+                // the last block should finish with an empty stack
+                if (cx.stack.len != 0) return error.BadData;
+            }
+        },
+        .jump => |j| {
+            const target_bbi = findBasicBlockWithStart(cx, j.target);
+            try scheduleBasicBlock(cx, target_bbi);
+        },
+        .jump_if, .jump_unless => |j| {
+            if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
+                return error.BadData;
+            try scheduleBasicBlock(cx, bbi + 1);
+            const target_bbi = findBasicBlockWithStart(cx, j.target);
+            try scheduleBasicBlock(cx, target_bbi);
+        },
+    }
+
+    // Above, the stack was dealt with, so we no longer need it. Clear it for the next block.
+    cx.stack.clear();
+    // However the string stack wasn't, so make sure it ended up empty.
+    if (cx.str_stack.len != 0) return error.BadData;
 }
 
 fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
