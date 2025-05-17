@@ -10,10 +10,9 @@ const OperandArray = std.BoundedArray(Operand, max_operands);
 pub const max_operands = 2;
 
 pub const Language = struct {
-    // TODO: don't hardcode maximum
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 48]Opcode = @splat(.unknown),
+    opcodes: [256 * 49]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
     fn add(self: *Language, byte: u8, name: anytype, operands: []const LangOperand) void {
@@ -713,7 +712,11 @@ fn buildNormalLanguage() Language {
     lang.add(0xe2, .localize, &.{});
     lang.add(0xe3, .@"pick-random", &.{.variable});
     lang.add(0xe9, "seek-file", &.{});
-    lang.add(0xea, "redim-array", &.{ .u8, .variable });
+
+    lang.addNested(0xea, 0x04, "redim-array.int8", &.{.variable});
+    lang.addNested(0xea, 0x05, "redim-array.int16", &.{.variable});
+    lang.addNested(0xea, 0x06, "redim-array.int32", &.{.variable});
+
     lang.add(0xeb, "tell-file", &.{});
     lang.add(0xec, "string-copy", &.{});
     lang.add(0xed, "string-width", &.{});
