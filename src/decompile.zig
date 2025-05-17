@@ -176,7 +176,7 @@ const BasicBlock = struct {
 
 const BasicBlockExit = union(enum) {
     no_jump,
-    jump: struct { target: u16 },
+    jump: JumpTarget,
     jump_if: JumpTarget,
     jump_unless: JumpTarget,
 };
@@ -1000,7 +1000,7 @@ fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         if (node.end == pc_unknown) continue;
         if (node.kind != .basic_block) continue;
         const target = switch (node.kind.basic_block.exit) {
-            inline .jump, .jump_unless => |j| j.target,
+            .jump, .jump_unless => |j| j.target,
             else => continue,
         };
         if (target >= node.end) continue;
@@ -1526,9 +1526,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .basic_block => |*bb| {
             const target = switch (bb.exit) {
                 .no_jump => return,
-                .jump => |j| j.target,
-                .jump_if => |j| j.target,
-                .jump_unless => |j| j.target,
+                .jump, .jump_if, .jump_unless => |j| j.target,
             };
             try insertSortedNoDup(cx.gpa, &cx.result, target);
         },
