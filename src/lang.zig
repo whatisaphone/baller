@@ -179,6 +179,7 @@ pub const Op = enum {
     @"script-running",
     @"actor-room",
     @"palette-color",
+    rgb,
     @"sound-running",
     @"unlock-costume",
     @"nuke-image",
@@ -199,6 +200,7 @@ pub const Op = enum {
     sprintf,
     @"draw-box",
     debug,
+    @"wait-for-message",
     in,
     @"sleep-for",
     @"sleep-for-seconds",
@@ -213,6 +215,9 @@ pub const Op = enum {
     @"print-system-string",
     @"print-system-printf",
     @"print-system-start",
+    @"say-line-talkie",
+    @"say-line-color",
+    @"say-line-start",
     @"dim-array.int8",
     @"dim-array.int16",
     @"dim-array.int32",
@@ -236,6 +241,7 @@ pub const Op = enum {
     @"delete-file",
     localize,
     @"pick-random",
+    @"redim-array.int16",
     @"string-length",
     @"string-substr",
     @"read-system-ini-int",
@@ -534,7 +540,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x91, "actor-get-costume", &.{});
 
     lang.addNested(0x94, 0x42, .@"palette-color", &.{});
-    lang.addNested(0x94, 0xd9, "rgb", &.{});
+    lang.addNested(0x94, 0xd9, .rgb, &.{});
 
     lang.add(0x95, "override", &.{ .u8, .relative_offset });
     lang.add(0x96, "override-off", &.{});
@@ -619,7 +625,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xa6, .@"draw-box", &.{});
     lang.add(0xa7, .debug, &.{});
 
-    lang.addNested(0xa9, 0xa9, "wait-for-message", &.{});
+    lang.addNested(0xa9, 0xa9, .@"wait-for-message", &.{});
 
     lang.add(0xaa, "actor-get-scale", &.{});
     lang.add(0xad, .in, &.{});
@@ -653,9 +659,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb8, 0x41, "say-line-position", &.{});
     lang.addNested(0xb8, 0x45, "say-line-center", &.{});
     lang.addNested(0xb8, 0x4b, "say-line-string", &.{.string});
-    lang.addNested(0xb8, 0xe1, "say-line-talkie", &.{});
-    lang.addNested(0xb8, 0xf9, "say-line-color", &.{});
-    lang.addNested(0xb8, 0xfe, "say-line-start", &.{});
+    lang.addNested(0xb8, 0xe1, .@"say-line-talkie", &.{});
+    lang.addNested(0xb8, 0xf9, .@"say-line-color", &.{});
+    lang.addNested(0xb8, 0xfe, .@"say-line-start", &.{});
 
     lang.addNested(0xb9, 0xfe, "say-line-actor-start", &.{});
 
@@ -714,7 +720,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xe9, "seek-file", &.{});
 
     lang.addNested(0xea, 0x04, "redim-array.int8", &.{.variable});
-    lang.addNested(0xea, 0x05, "redim-array.int16", &.{.variable});
+    lang.addNested(0xea, 0x05, .@"redim-array.int16", &.{.variable});
     lang.addNested(0xea, 0x06, "redim-array.int32", &.{.variable});
 
     lang.add(0xeb, "tell-file", &.{});
