@@ -82,9 +82,28 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             entry.value_ptr.* = @intCast(cx.out.items.len);
         },
         .set => |*s| {
-            try pushExpr(cx, s.rhs);
-            try emitOpcodeByName(cx, "set");
-            try emitVariable(cx, s.lhs);
+            const lhs = &cx.ast.nodes.items[s.lhs];
+            switch (lhs.*) {
+                .identifier => {
+                    try pushExpr(cx, s.rhs);
+                    try emitOpcodeByName(cx, "set");
+                    try emitVariable(cx, s.lhs);
+                },
+                .array_get => |a| {
+                    try pushExpr(cx, a.index);
+                    try pushExpr(cx, s.rhs);
+                    try emitOpcodeByName(cx, "set-array-item");
+                    try emitVariable(cx, a.lhs);
+                },
+                .array_get2 => |a| {
+                    try pushExpr(cx, a.index1);
+                    try pushExpr(cx, a.index2);
+                    try pushExpr(cx, s.rhs);
+                    try emitOpcodeByName(cx, "set-array-item-2d");
+                    try emitVariable(cx, a.lhs);
+                },
+                else => return error.BadData,
+            }
         },
         .call => try emitCall(cx, node_index),
         .@"if" => |*s| {

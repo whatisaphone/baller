@@ -1524,6 +1524,22 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try emitExpr(cx, args[0], .all);
             try cx.out.appendSlice(cx.gpa, " = ");
             try emitExpr(cx, args[1], .all);
+        } else if (call.op == .@"set-array-item") {
+            const args = getExtra(cx, call.args);
+            try emitExpr(cx, args[0], .all);
+            try cx.out.append(cx.gpa, '[');
+            try emitExpr(cx, args[1], .all);
+            try cx.out.appendSlice(cx.gpa, "] = ");
+            try emitExpr(cx, args[2], .all);
+        } else if (call.op == .@"set-array-item-2d") {
+            const args = getExtra(cx, call.args);
+            try emitExpr(cx, args[0], .all);
+            try cx.out.append(cx.gpa, '[');
+            try emitExpr(cx, args[1], .all);
+            try cx.out.appendSlice(cx.gpa, "][");
+            try emitExpr(cx, args[2], .all);
+            try cx.out.appendSlice(cx.gpa, "] = ");
+            try emitExpr(cx, args[3], .all);
         } else {
             try emitCall(cx, call.op, call.args);
         },
