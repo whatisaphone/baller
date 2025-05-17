@@ -840,13 +840,20 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .do => {
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
-                const until_token = consumeToken(cx);
-                _ = try parseIdentifier(cx, until_token, enum { until });
-                try expect(cx, .paren_l);
-                const next = consumeToken(cx);
-                const condition = try parseExpr(cx, next, .all);
-                try expect(cx, .paren_r);
-                try expect(cx, .newline);
+                const token2 = consumeToken(cx);
+                const condition = condition: switch (token2.kind) {
+                    .newline => Ast.null_node,
+                    .identifier => {
+                        _ = try parseIdentifier(cx, token2, enum { until });
+                        try expect(cx, .paren_l);
+                        const next = consumeToken(cx);
+                        const condition = try parseExpr(cx, next, .all);
+                        try expect(cx, .paren_r);
+                        try expect(cx, .newline);
+                        break :condition condition;
+                    },
+                    else => return reportUnexpected(cx, token2),
+                };
                 return storeNode(cx, token, .{ .do = .{
                     .body = body,
                     .condition = condition,

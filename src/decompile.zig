@@ -993,8 +993,10 @@ fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         const node = &cx.nodes.items[ni];
         if (node.end == pc_unknown) continue;
         if (node.kind != .basic_block) continue;
-        if (node.kind.basic_block.exit != .jump_unless) continue;
-        const target = node.kind.basic_block.exit.jump_unless.target;
+        const target = switch (node.kind.basic_block.exit) {
+            inline .jump, .jump_unless => |j| j.target,
+            else => continue,
+        };
         if (target >= node.end) continue;
 
         const ni_body_first = findBackwardsNodeWithStart(cx, ni, target) orelse continue;
@@ -1014,7 +1016,14 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
     const end = cx.nodes.items[ni_condition].end;
     const ni_before = cx.nodes.items[ni_body_first].prev;
     const ni_after = cx.nodes.items[ni_condition].next;
-    const condition = chopJumpUnless(cx, ni_condition);
+    const condition = switch (cx.nodes.items[ni_condition].kind.basic_block.exit) {
+        .jump => blk: {
+            chopJump(cx, ni_condition);
+            break :blk null_expr;
+        },
+        .jump_unless => chopJumpUnless(cx, ni_condition),
+        else => unreachable,
+    };
 
     cx.nodes.items[ni_do] = .{
         .start = cx.nodes.items[ni_body_first].start,
@@ -1547,9 +1556,13 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "} until (");
-            try emitExpr(cx, n.condition, .all);
-            try cx.out.appendSlice(cx.gpa, ")\n");
+            if (n.condition == null_expr) {
+                try cx.out.appendSlice(cx.gpa, "}\n");
+            } else {
+                try cx.out.appendSlice(cx.gpa, "} until (");
+                try emitExpr(cx, n.condition, .all);
+                try cx.out.appendSlice(cx.gpa, ")\n");
+            }
         },
         .case => |*n| {
             try writeIndent(cx);

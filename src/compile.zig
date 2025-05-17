@@ -137,9 +137,14 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .do => |*s| {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try emitBlock(cx, s.body);
-            try pushExpr(cx, s.condition);
-            try emitOpcodeByName(cx, "jump-unless");
-            try writeJumpTargetBackwards(cx, loop_target);
+            if (s.condition == Ast.null_node) {
+                try emitOpcodeByName(cx, "jump");
+                try writeJumpTargetBackwards(cx, loop_target);
+            } else {
+                try pushExpr(cx, s.condition);
+                try emitOpcodeByName(cx, "jump-unless");
+                try writeJumpTargetBackwards(cx, loop_target);
+            }
         },
         .case => |*s| {
             var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};
