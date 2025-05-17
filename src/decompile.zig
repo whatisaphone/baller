@@ -302,9 +302,16 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"line-length-2d" = .genCall(&.{ .int, .int, .int, .int }),
     .@"sprite-get-state" = .genCall(&.{.int}),
     .@"sprite-get-variable" = .genCall(&.{ .int, .int }),
+    .@"sprite-set-order" = .gen(&.{.int}),
     .@"sprite-set-state" = .gen(&.{.int}),
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
     .@"sprite-set-image" = .gen(&.{.int}),
+    .@"sprite-set-position" = .gen(&.{ .int, .int }),
+    .@"sprite-set-animation-type" = .gen(&.{.int}),
+    .@"sprite-set-palette" = .gen(&.{.int}),
+    .@"sprite-set-animation-speed" = .gen(&.{.int}),
+    .@"sprite-set-update-type" = .gen(&.{.int}),
+    .@"sprite-set-class" = .gen(&.{.list}),
     .@"sprite-new" = .gen(&.{}),
     .@"sprite-group-get" = .genCall(&.{.int}),
     .@"sprite-group-select" = .gen(&.{.int}),
@@ -345,6 +352,9 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"window-new" = .gen(&.{}),
     .@"window-commit" = .gen(&.{}),
     .@"cursor-on" = .gen(&.{}),
+    .@"cursor-off" = .gen(&.{}),
+    .@"userput-on" = .gen(&.{}),
+    .@"userput-off" = .gen(&.{}),
     .charset = .gen(&.{.int}),
     .@"break-here" = .gen(&.{}),
     .@"object-set-class" = .gen(&.{ .int, .list }),
@@ -372,6 +382,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"actor-new" = .gen(&.{}),
     .@"palette-select" = .gen(&.{.int}),
     .@"palette-from-image" = .gen(&.{ .int, .int }),
+    .@"palette-set-color" = .gen(&.{ .int, .int, .int }),
     .@"palette-new" = .gen(&.{}),
     .@"palette-commit" = .gen(&.{}),
     .@"assign-string" = .gen(&.{.string}),
@@ -382,6 +393,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
     .debug = .gen(&.{.int}),
     .in = .genCall(&.{ .int, .list }),
+    .@"sleep-for" = .gen(&.{.int}),
     .@"sleep-for-seconds" = .gen(&.{.int}),
     .@"stop-sentence" = .gen(&.{}),
     .@"print-text-position" = .gen(&.{ .int, .int }),
@@ -413,6 +425,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .bor = .genCall(&.{ .int, .int }),
     .@"close-file" = .gen(&.{.int}),
     .@"open-file" = .genCall(&.{ .string, .int }),
+    .@"read-file-int8" = .genCall(&.{ .int, .int }),
     .@"delete-file" = .gen(&.{.string}),
     .localize = .gen(&.{.int}),
     .@"pick-random" = .genCall(&.{.list}),
@@ -560,6 +573,9 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
             for (ins.operands.slice()) |operand| {
                 const expr: Expr = switch (operand) {
+                    // TODO: try to get rid of u8 here. all occurrences are
+                    // probably better represented as subopcodes
+                    .u8 => |i| .{ .int = i },
                     .variable => |v| .{ .variable = v },
                     .string => |s| .{ .string = s },
                     else => unreachable,
@@ -645,6 +661,7 @@ fn peephole(cx: *DecompileCx) void {
         const ss = bb.statements.defined;
         for (cx.stmts.items[ss.start..][0..ss.len]) |*stmt| {
             peepholeSpriteSelect(cx, stmt);
+            peepholePaletteSetColor(cx, stmt);
         }
     }
 }
@@ -661,6 +678,22 @@ fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
     stmt.* = .{ .compound = .{
         .op = .@"sprite-select",
         .args = .{ .start = stmt.call.args.start, .len = 1 },
+    } };
+}
+
+/// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
+fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
+    if (stmt.* != .call) return;
+    if (stmt.call.op != .@"palette-set-color") return;
+    std.debug.assert(stmt.call.args.len == 3);
+    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const second = &cx.exprs.items[args[1]];
+    if (second.* != .dup) return;
+    if (second.dup != args[0]) return;
+    args[1] = args[2];
+    stmt.* = .{ .compound = .{
+        .op = .@"palette-set-slot-color",
+        .args = .{ .start = stmt.call.args.start, .len = 2 },
     } };
 }
 

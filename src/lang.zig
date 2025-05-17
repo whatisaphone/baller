@@ -110,9 +110,16 @@ pub const Op = enum {
     @"line-length-2d",
     @"sprite-get-state",
     @"sprite-get-variable",
+    @"sprite-set-order",
     @"sprite-set-state",
     @"sprite-select-range",
     @"sprite-set-image",
+    @"sprite-set-position",
+    @"sprite-set-animation-type",
+    @"sprite-set-palette",
+    @"sprite-set-animation-speed",
+    @"sprite-set-update-type",
+    @"sprite-set-class",
     @"sprite-new",
     @"sprite-group-get",
     @"sprite-group-select",
@@ -153,6 +160,9 @@ pub const Op = enum {
     @"window-new",
     @"window-commit",
     @"cursor-on",
+    @"cursor-off",
+    @"userput-on",
+    @"userput-off",
     charset,
     @"break-here",
     @"object-set-class",
@@ -180,6 +190,7 @@ pub const Op = enum {
     @"actor-new",
     @"palette-select",
     @"palette-from-image",
+    @"palette-set-color",
     @"palette-new",
     @"palette-commit",
     @"assign-string",
@@ -190,6 +201,7 @@ pub const Op = enum {
     @"draw-box",
     debug,
     in,
+    @"sleep-for",
     @"sleep-for-seconds",
     @"stop-sentence",
     @"print-text-position",
@@ -221,6 +233,7 @@ pub const Op = enum {
     bor,
     @"close-file",
     @"open-file",
+    @"read-file-int8",
     @"delete-file",
     localize,
     @"pick-random",
@@ -359,20 +372,20 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x26, 0x25, "sprite-set-group", &.{});
     lang.addNested(0x26, 0x2a, "sprite-set-property", &.{});
-    lang.addNested(0x26, 0x2b, "sprite-set-order", &.{});
+    lang.addNested(0x26, 0x2b, .@"sprite-set-order", &.{});
     lang.addNested(0x26, 0x2c, "sprite-move", &.{});
     lang.addNested(0x26, 0x34, .@"sprite-set-state", &.{});
     lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
     lang.addNested(0x26, 0x3f, .@"sprite-set-image", &.{});
-    lang.addNested(0x26, 0x41, "sprite-set-position", &.{});
+    lang.addNested(0x26, 0x41, .@"sprite-set-position", &.{});
     lang.addNested(0x26, 0x44, "sprite-erase", &.{});
     lang.addNested(0x26, 0x4d, "sprite-set-step-dist", &.{});
-    lang.addNested(0x26, 0x52, "sprite-set-animation-type", &.{});
-    lang.addNested(0x26, 0x56, "sprite-set-palette", &.{});
-    lang.addNested(0x26, 0x61, "sprite-set-animation-speed", &.{});
+    lang.addNested(0x26, 0x52, .@"sprite-set-animation-type", &.{});
+    lang.addNested(0x26, 0x56, .@"sprite-set-palette", &.{});
+    lang.addNested(0x26, 0x61, .@"sprite-set-animation-speed", &.{});
     lang.addNested(0x26, 0x62, "sprite-set-shadow", &.{});
-    lang.addNested(0x26, 0x7c, "sprite-set-update-type", &.{});
-    lang.addNested(0x26, 0x7d, "sprite-set-class", &.{});
+    lang.addNested(0x26, 0x7c, .@"sprite-set-update-type", &.{});
+    lang.addNested(0x26, 0x7d, .@"sprite-set-class", &.{});
     lang.addNested(0x26, 0x8c, "sprite-mask-image", &.{});
     lang.addNested(0x26, 0x9e, "sprite-restart", &.{});
     lang.addNested(0x26, 0xc6, "sprite-variable-range", &.{});
@@ -484,9 +497,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x6b, 0x13, "cursor-bw", &.{});
     lang.addNested(0x6b, 0x14, "cursor-color", &.{});
     lang.addNested(0x6b, 0x90, .@"cursor-on", &.{});
-    lang.addNested(0x6b, 0x91, "cursor-off", &.{});
-    lang.addNested(0x6b, 0x92, "userput-on", &.{});
-    lang.addNested(0x6b, 0x93, "userput-off", &.{});
+    lang.addNested(0x6b, 0x91, .@"cursor-off", &.{});
+    lang.addNested(0x6b, 0x92, .@"userput-on", &.{});
+    lang.addNested(0x6b, 0x93, .@"userput-off", &.{});
     lang.addNested(0x6b, 0x94, "cursor-soft-on", &.{});
     lang.addNested(0x6b, 0x95, "cursor-soft-off", &.{});
     lang.addNested(0x6b, 0x9c, .charset, &.{});
@@ -585,7 +598,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9e, 0x39, .@"palette-select", &.{});
     lang.addNested(0x9e, 0x3f, .@"palette-from-image", &.{});
     lang.addNested(0x9e, 0x42, "palette-set-rgb", &.{});
-    lang.addNested(0x9e, 0x46, "palette-set-color", &.{});
+    lang.addNested(0x9e, 0x46, .@"palette-set-color", &.{});
     lang.addNested(0x9e, 0x56, "palette-from-palette", &.{});
     lang.addNested(0x9e, 0xd9, .@"palette-new", &.{});
     lang.addNested(0x9e, 0xff, .@"palette-commit", &.{});
@@ -617,7 +630,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xae, 0xa0, "quit", &.{});
     lang.addNested(0xae, 0xf4, "quit-quit", &.{});
 
-    lang.add(0xb0, "sleep-for", &.{});
+    lang.add(0xb0, .@"sleep-for", &.{});
     lang.add(0xb1, .@"sleep-for-seconds", &.{});
     lang.add(0xb3, .@"stop-sentence", &.{});
 
@@ -686,7 +699,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xda, .@"open-file", &.{});
 
     lang.addNested(0xdb, 0x05, "read-file-int16", &.{});
-    lang.addNested(0xdb, 0x08, "read-file-int8", &.{.u8});
+    lang.addNested(0xdb, 0x08, .@"read-file-int8", &.{.u8});
 
     lang.addNested(0xdc, 0x05, "write-file-int16", &.{});
     lang.addNested(0xdc, 0x08, "write-file-int8", &.{.u8});

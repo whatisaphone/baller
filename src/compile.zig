@@ -278,6 +278,13 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcodeByName(cx, "dup");
             try emitOpcodeByName(cx, "sprite-select-range");
         },
+        .@"palette-set-slot-color" => {
+            if (args.len != 2) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try pushExpr(cx, args[1]);
+            try emitOpcodeByName(cx, "palette-set-color");
+        },
     }
 }
 
@@ -344,6 +351,14 @@ fn emitOpcodeByName(cx: *const Cx, name: []const u8) !void {
 
 fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
     switch (op) {
+        // TODO: try to get rid of u8 here. all occurrences are probably better
+        // represented as subopcodes
+        .u8 => {
+            const node = &cx.ast.nodes.items[node_index];
+            if (node.* != .integer) return error.BadData;
+            const i = std.math.cast(u8, node.integer) orelse return error.BadData;
+            try cx.out.append(cx.gpa, i);
+        },
         .relative_offset => {
             const label_expr = &cx.ast.nodes.items[node_index];
             if (label_expr.* != .identifier) return error.BadData;
