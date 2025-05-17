@@ -840,8 +840,8 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .do => {
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
-                const while_token = consumeToken(cx);
-                _ = try parseIdentifier(cx, while_token, enum { @"while" });
+                const until_token = consumeToken(cx);
+                _ = try parseIdentifier(cx, until_token, enum { until });
                 try expect(cx, .paren_l);
                 const next = consumeToken(cx);
                 const condition = try parseExpr(cx, next, .all);

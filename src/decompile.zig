@@ -1547,7 +1547,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "} while (");
+            try cx.out.appendSlice(cx.gpa, "} until (");
             try emitExpr(cx, n.condition, .all);
             try cx.out.appendSlice(cx.gpa, ")\n");
         },
