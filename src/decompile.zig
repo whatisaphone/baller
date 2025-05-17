@@ -451,10 +451,14 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     while (cx.pending_basic_blocks.pop()) |bbi|
         try decompileBasicBlock(cx, bytecode, bbi);
 
-    // Bail if any basic blocks were unreachable and not decompiled. If this comes up I'll fix it
-    for (cx.basic_blocks) |*bb|
-        if (bb.state == .new)
-            return error.BadData;
+    // Check if any basic blocks were unreachable and not decompiled. If so,
+    // handle the case where it's an infinite loop, otherwise fail.
+    for (cx.basic_blocks, 0..) |*bb, bbi_usize| {
+        const bbi: BasicBlockIndex = @intCast(bbi_usize);
+        if (bb.state != .new) continue;
+        try scheduleAfterInfiniteLoop(cx, bbi);
+        return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
+    }
 }
 
 fn findBasicBlockWithStart(cx: *const DecompileCx, start: u16) BasicBlockIndex {
@@ -477,6 +481,20 @@ fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16, stack: []const ExprIndex) !voi
     bb.state = .pending;
     bb.stack_on_enter.setOnce(try .fromSlice(cx.stack.slice()));
     try cx.pending_basic_blocks.append(cx.gpa, bbi);
+}
+
+fn scheduleAfterInfiniteLoop(cx: *DecompileCx, bbi: u16) !void {
+    // Check if the previous block forms a loop (presumably infinite loop). If
+    // so, schedule the current block using the stack from the loop entry point.
+    if (bbi == 0) return error.BadData;
+    const bbi_prev = bbi - 1;
+    const prev = &cx.basic_blocks[bbi_prev];
+    if (prev.exit != .jump) return error.BadData;
+    if (prev.exit.jump.target >= prev.end) return error.BadData;
+    const bbi_start = findBasicBlockWithStart(cx, prev.exit.jump.target);
+    const start = &cx.basic_blocks[bbi_start];
+    if (start.state == .new) return error.BadData;
+    try scheduleBasicBlock(cx, bbi, start.stack_on_enter.defined.slice());
 }
 
 fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
