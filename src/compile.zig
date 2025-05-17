@@ -290,6 +290,18 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try pushExpr(cx, args[1]);
             try emitOpcodeByName(cx, "palette-set-color");
         },
+        .@"break-until" => {
+            if (args.len != 1) return error.BadData;
+            const start: u32 = @intCast(cx.out.items.len);
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "jump-if");
+            const fixup: u32 = @intCast(cx.out.items.len);
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+            try emitOpcodeByName(cx, "break-here");
+            try emitOpcodeByName(cx, "jump");
+            try writeJumpTargetBackwards(cx, start);
+            try fixupJumpToHere(cx, fixup);
+        },
     }
 }
 

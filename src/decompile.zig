@@ -51,7 +51,7 @@ pub fn run(
         .gpa = gpa,
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
-        .extra = .init(dcx.extra.items),
+        .extra = &dcx.extra,
         .queue = .empty,
         .nodes = .empty,
     };
@@ -726,9 +726,9 @@ fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
 
 const StructuringCx = struct {
     gpa: std.mem.Allocator,
-    stmts: utils.SafeManyPointer([*]const Stmt),
+    stmts: utils.SafeManyPointer([*]Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
-    extra: utils.SafeManyPointer([*]const ExprIndex),
+    extra: *std.ArrayListUnmanaged(ExprIndex),
 
     queue: std.ArrayListUnmanaged(NodeIndex),
     nodes: std.ArrayListUnmanaged(Node),
@@ -826,6 +826,12 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni| {
+        try huntBreakUntil(cx, ni);
+        checkInvariants(cx) catch unreachable;
+    }
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni| {
         try huntDo(cx, ni);
         checkInvariants(cx) catch unreachable;
     }
@@ -897,7 +903,7 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
     const ni_true_start = cx.nodes.items[ni_before].next;
     const ni_after = cx.nodes.items[ni_true_end].next;
 
-    const condition = chopJumpUnless(cx, ni_before);
+    const condition = chopJumpCondition(cx, ni_before);
     const ni_if = try appendNode(cx, .{
         .start = cx.nodes.items[ni_before].end,
         .end = cx.nodes.items[ni_true_end].end,
@@ -930,7 +936,7 @@ fn makeIfElse(
     const ni_false_start = cx.nodes.items[ni_true_end].next;
     const ni_after = cx.nodes.items[ni_false_end].next;
 
-    const condition = chopJumpUnless(cx, ni_before);
+    const condition = chopJumpCondition(cx, ni_before);
     chopJump(cx, ni_true_end);
     const ni_if = try appendNode(cx, .{
         .start = cx.nodes.items[ni_before].end,
@@ -1021,7 +1027,7 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
             chopJump(cx, ni_condition);
             break :blk null_expr;
         },
-        .jump_unless => chopJumpUnless(cx, ni_condition),
+        .jump_unless => chopJumpCondition(cx, ni_condition),
         else => unreachable,
     };
 
@@ -1042,6 +1048,59 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
 
     cx.nodes.items[ni_body_first].prev = null_node;
     cx.nodes.items[ni_condition].next = null_node;
+}
+
+fn huntBreakUntil(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        if (isBreakUntil(cx, ni))
+            try makeBreakUntil(cx, ni);
+    }
+}
+
+fn isBreakUntil(cx: *StructuringCx, ni: NodeIndex) bool {
+    const node = &cx.nodes.items[ni];
+    if (node.next == null_node) return false;
+    const next = &cx.nodes.items[node.next];
+
+    if (node.kind != .basic_block) return false;
+    if (node.kind.basic_block.exit != .jump_if) return false;
+    if (node.kind.basic_block.exit.jump_if.target != next.end) return false;
+    if (node.kind.basic_block.statements.len != 1) return false;
+
+    if (next.kind != .basic_block) return false;
+    if (next.kind.basic_block.exit != .jump) return false;
+    if (next.kind.basic_block.exit.jump.target != node.start) return false;
+    const ss = next.kind.basic_block.statements;
+    const stmts = cx.stmts.use()[ss.start..][0..ss.len];
+    if (stmts.len != 2) return false;
+    if (stmts[0] != .call) return false;
+    if (stmts[0].call.op != .@"break-here") return false;
+
+    return true;
+}
+
+fn makeBreakUntil(cx: *StructuringCx, ni: NodeIndex) !void {
+    const node = &cx.nodes.items[ni];
+    const ni_loop = cx.nodes.items[ni].next;
+    const ni_after = cx.nodes.items[ni_loop].next;
+
+    const stmt = cx.stmts.getPtr(node.kind.basic_block.statements.start);
+    const condition = stmt.jump_if.condition;
+    stmt.* = .{ .compound = .{
+        .op = .@"break-until",
+        .args = try storeExtra2(cx.gpa, cx.extra, &.{condition}),
+    } };
+
+    node.end = cx.nodes.items[ni_loop].end;
+    node.next = ni_after;
+    if (ni_after != null_node)
+        cx.nodes.items[ni_after].prev = ni;
+    node.kind.basic_block.exit = .no_jump;
+
+    orphanNode(cx, ni_loop);
 }
 
 fn huntCase(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1196,11 +1255,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
     while (ni_cur != ni_last) {
         // As above, skip over the quirky empty node.
         const ni_real_cur = cx.nodes.items[ni_cur].next;
-        // We're about to orphan the node. In debug builds, store this
-        // explicitly so it doesn't trigger violations during invariant checks.
-        if (builtin.mode == .Debug)
-            cx.nodes.items[ni_cur].next = null_node;
-
+        orphanNode(cx, ni_cur);
         ni_cur = ni_real_cur;
         const cur = &cx.nodes.items[ni_cur];
         const eq = cx.exprs.getPtr(cur.kind.@"if".condition);
@@ -1292,6 +1347,15 @@ fn moveNode(cx: *StructuringCx, ni_orig: NodeIndex) !NodeIndex {
     return ni_new;
 }
 
+fn orphanNode(cx: *StructuringCx, ni: NodeIndex) void {
+    // In debug builds, when orphaning a node, update the links so it doesn't
+    // trigger invariant violations.
+    if (builtin.mode != .Debug) return;
+    const node = &cx.nodes.items[ni];
+    node.prev = null_node;
+    node.next = null_node;
+}
+
 fn checkInvariants(cx: *StructuringCx) !void {
     if (builtin.mode != .Debug) return;
 
@@ -1375,11 +1439,15 @@ fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
     node.kind.basic_block.statements.len -= 1;
 }
 
-fn chopJumpUnless(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
+fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     const node = &cx.nodes.items[ni];
 
     const ss = node.kind.basic_block.statements;
-    const condition = cx.stmts.getPtr(ss.start + ss.len - 1).jump_unless.condition;
+    const stmt = cx.stmts.getPtr(ss.start + ss.len - 1);
+    const condition = switch (stmt.*) {
+        .jump_if, .jump_unless => |j| j.condition,
+        else => unreachable,
+    };
 
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
@@ -1405,10 +1473,21 @@ fn chopFirstPop(cx: *StructuringCx, ni: NodeIndex) void {
 }
 
 fn getExtra2(
-    extra: utils.SafeManyPointer([*]const ExprIndex),
+    extra: *std.ArrayListUnmanaged(ExprIndex),
     slice: ExtraSlice,
 ) []const ExprIndex {
-    return extra.use()[slice.start..][0..slice.len];
+    return extra.items[slice.start..][0..slice.len];
+}
+
+fn storeExtra2(
+    gpa: std.mem.Allocator,
+    extra: *std.ArrayListUnmanaged(ExprIndex),
+    items: []const ExprIndex,
+) !ExtraSlice {
+    const start: u16 = @intCast(extra.items.len);
+    const len: u16 = @intCast(items.len);
+    try extra.appendSlice(gpa, items);
+    return .{ .start = start, .len = len };
 }
 
 const FindJumpTargetsCx = struct {

@@ -77,6 +77,10 @@ pub fn SafeManyPointer(ManyPtr: type) type {
     std.debug.assert(many_ptr_info.size == .many);
     const Element = many_ptr_info.child;
 
+    var single_ptr_info = many_ptr_info;
+    single_ptr_info.size = .one;
+    const SinglePtr = @Type(.{ .pointer = single_ptr_info });
+
     var slice_info = many_ptr_info;
     slice_info.size = .slice;
     const Slice = @Type(.{ .pointer = slice_info });
@@ -115,7 +119,7 @@ pub fn SafeManyPointer(ManyPtr: type) type {
             return self.use()[index];
         }
 
-        pub fn getPtr(self: Self, index: usize) *const Element {
+        pub fn getPtr(self: Self, index: usize) SinglePtr {
             return &self.use()[index];
         }
     };
