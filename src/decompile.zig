@@ -7,6 +7,7 @@ const Symbols = @import("Symbols.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
+const script = @import("script.zig");
 const utils = @import("utils.zig");
 
 pub fn run(
@@ -239,31 +240,23 @@ const Op = union(enum) {
     jump,
     generic: struct {
         call: bool,
-        params: std.BoundedArray(Param, max_params),
+        params: std.BoundedArray(script.Param, script.max_params),
     },
 
-    fn gen(params: []const Param) Op {
+    fn gen(params: []const script.Param) Op {
         return .{ .generic = .{
             .call = false,
-            .params = std.BoundedArray(Param, max_params).fromSlice(params) catch unreachable,
+            .params = std.BoundedArray(script.Param, script.max_params).fromSlice(params) catch unreachable,
         } };
     }
 
-    fn genCall(params: []const Param) Op {
+    fn genCall(params: []const script.Param) Op {
         @setEvalBranchQuota(2000);
         return .{ .generic = .{
             .call = true,
-            .params = std.BoundedArray(Param, max_params).fromSlice(params) catch unreachable,
+            .params = std.BoundedArray(script.Param, script.max_params).fromSlice(params) catch unreachable,
         } };
     }
-};
-
-const max_params = 8;
-
-pub const Param = union(enum) {
-    int,
-    string,
-    list,
 };
 
 pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
@@ -562,7 +555,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
         },
         .generic => |gen| {
-            var args: std.BoundedArray(ExprIndex, lang.max_operands + max_params) = .{};
+            var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
             for (ins.operands.slice()) |operand| {
                 const expr: Expr = switch (operand) {
                     .variable => |v| .{ .variable = v },

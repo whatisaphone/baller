@@ -3,10 +3,10 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
-const Param = @import("decompile.zig").Param;
 const ops = @import("decompile.zig").ops;
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
+const script = @import("script.zig");
 
 pub fn compile(
     gpa: std.mem.Allocator,
@@ -226,7 +226,7 @@ fn findIns(cx: *const Cx, node_index: u32) ?InsData {
     };
     const opcode, const ins = lang.lookup(cx.language, cx.ins_map, name) orelse return null;
     if (ins.name != .op) return null;
-    const params: []const Param = switch (ops.getPtrConst(ins.name.op).*) {
+    const params: []const script.Param = switch (ops.getPtrConst(ins.name.op).*) {
         .jump_if, .jump_unless => &.{.int},
         .jump => &.{},
         .generic => |*g| g.params.slice(),
