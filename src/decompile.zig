@@ -447,7 +447,7 @@ fn initEnumArrayFixed(E: type, V: type, values: std.enums.EnumFieldStruct(E, V, 
 }
 
 fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
-    try scheduleBasicBlock(cx, 0);
+    try scheduleBasicBlock(cx, 0, &.{});
     while (cx.pending_basic_blocks.pop()) |bbi|
         try decompileBasicBlock(cx, bytecode, bbi);
 
@@ -466,11 +466,11 @@ fn findBasicBlockWithStart(cx: *const DecompileCx, start: u16) BasicBlockIndex {
     return bbi + 1;
 }
 
-fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16) !void {
+fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16, stack: []const ExprIndex) !void {
     const bb = &cx.basic_blocks[bbi];
     if (bb.state != .new) {
         // Make sure the stack is identical on all entrances to each basic block
-        if (!std.mem.eql(ExprIndex, bb.stack_on_enter.defined.slice(), cx.stack.slice()))
+        if (!std.mem.eql(ExprIndex, bb.stack_on_enter.defined.slice(), stack))
             return error.BadData;
         return;
     }
@@ -500,7 +500,7 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
         .no_jump => {
             if (bbi != cx.basic_blocks.len - 1) {
                 // middle blocks fall through to the next block
-                try scheduleBasicBlock(cx, bbi + 1);
+                try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
             } else {
                 // the last block should finish with an empty stack
                 if (cx.stack.len != 0) return error.BadData;
@@ -508,14 +508,14 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
         },
         .jump => |j| {
             const target_bbi = findBasicBlockWithStart(cx, j.target);
-            try scheduleBasicBlock(cx, target_bbi);
+            try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
         },
         .jump_if, .jump_unless => |j| {
             if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
                 return error.BadData;
-            try scheduleBasicBlock(cx, bbi + 1);
+            try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
             const target_bbi = findBasicBlockWithStart(cx, j.target);
-            try scheduleBasicBlock(cx, target_bbi);
+            try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
         },
     }
 
