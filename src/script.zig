@@ -5,3 +5,7 @@ pub const Param = union(enum) {
     string,
     list,
 };
+
+pub const Compound = enum {
+    @"sprite-select",
+};

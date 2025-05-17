@@ -45,6 +45,7 @@ pub fn run(
     defer dcx.pending_basic_blocks.deinit(gpa);
 
     try decompileBasicBlocks(&dcx, bytecode);
+    peephole(&dcx);
 
     var scx: StructuringCx = .{
         .gpa = gpa,
@@ -203,6 +204,7 @@ const Stmt = union(enum) {
     jump_unless: JumpTargetAndCondition,
     jump: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
+    compound: struct { op: script.Compound, args: ExtraSlice },
 };
 
 const JumpTargetAndCondition = struct {
@@ -636,6 +638,30 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
     const len: u16 = @intCast(items.len);
     try cx.extra.appendSlice(cx.gpa, items);
     return .{ .start = start, .len = len };
+}
+
+fn peephole(cx: *DecompileCx) void {
+    for (cx.basic_blocks) |*bb| {
+        const ss = bb.statements.defined;
+        for (cx.stmts.items[ss.start..][0..ss.len]) |*stmt| {
+            peepholeSpriteSelect(cx, stmt);
+        }
+    }
+}
+
+/// Replace `sprite-select-range x dup{x}` with `sprite-select x`
+fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
+    if (stmt.* != .call) return;
+    if (stmt.call.op != .@"sprite-select-range") return;
+    std.debug.assert(stmt.call.args.len == 2);
+    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const second = &cx.exprs.items[args[1]];
+    if (second.* != .dup) return;
+    if (second.dup != args[0]) return;
+    stmt.* = .{ .compound = .{
+        .op = .@"sprite-select",
+        .args = .{ .start = stmt.call.args.start, .len = 1 },
+    } };
 }
 
 const StructuringCx = struct {
@@ -1534,7 +1560,10 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try cx.out.appendSlice(cx.gpa, "] = ");
             try emitExpr(cx, args[3], .all);
         } else {
-            try emitCall(cx, call.op, call.args);
+            try emitCall(cx, @tagName(call.op), call.args);
+        },
+        .compound => |c| {
+            try emitCall(cx, @tagName(c.op), c.args);
         },
     }
     try cx.out.append(cx.gpa, '\n');
@@ -1601,7 +1630,7 @@ fn emitExpr(
             } else {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                     try cx.out.append(cx.gpa, '(');
-                try emitCall(cx, call.op, call.args);
+                try emitCall(cx, @tagName(call.op), call.args);
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
                     try cx.out.append(cx.gpa, ')');
             }
@@ -1611,8 +1640,8 @@ fn emitExpr(
     }
 }
 
-fn emitCall(cx: *const EmitCx, op: lang.Op, args: ExtraSlice) !void {
-    try cx.out.appendSlice(cx.gpa, @tagName(op));
+fn emitCall(cx: *const EmitCx, op: []const u8, args: ExtraSlice) !void {
+    try cx.out.appendSlice(cx.gpa, op);
     try emitArgsFlat(cx, args);
 }
 

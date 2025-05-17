@@ -176,14 +176,20 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
 fn emitCall(cx: *Cx, node_index: u32) !void {
     const call = &cx.ast.nodes.items[node_index].call;
 
-    const ins = findIns(cx, call.callee) orelse {
+    const callee = findCallee(cx, call.callee) orelse {
         const token_index = cx.ast.node_tokens.items[node_index];
         const loc = cx.lex.tokens.items[token_index].span.start;
         cx.diag.err(loc, "instruction not found", .{});
         return error.AddedToDiagnostic;
     };
+    switch (callee) {
+        .ins => |*ins| try emitCallIns(cx, ins, call.args),
+        .compound => |c| try emitCallCompound(cx, c, call.args),
+    }
+}
 
-    const args = cx.ast.getExtra(call.args);
+fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
+    const args = cx.ast.getExtra(args_slice);
     const required = ins.operands.len + ins.normal_params;
     if (args.len < required) return error.BadData;
     const args_operands = args[0..ins.operands.len];
@@ -210,7 +216,10 @@ const InsData = struct {
     variadic: bool,
 };
 
-fn findIns(cx: *const Cx, node_index: u32) ?InsData {
+fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
+    ins: InsData,
+    compound: script.Compound,
+} {
     const expr = &cx.ast.nodes.items[node_index];
     var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
@@ -224,7 +233,15 @@ fn findIns(cx: *const Cx, node_index: u32) ?InsData {
         },
         else => return null,
     };
-    const opcode, const ins = lang.lookup(cx.language, cx.ins_map, name) orelse return null;
+    return if (lang.lookup(cx.language, cx.ins_map, name)) |i|
+        .{ .ins = makeInsData(i[0], i[1]) orelse return null }
+    else if (std.meta.stringToEnum(script.Compound, name)) |c|
+        .{ .compound = c }
+    else
+        null;
+}
+
+fn makeInsData(opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsData {
     if (ins.name != .op) return null;
     const params: []const script.Param = switch (ops.getPtrConst(ins.name.op).*) {
         .jump_if, .jump_unless => &.{.int},
@@ -250,6 +267,18 @@ fn findIns(cx: *const Cx, node_index: u32) ?InsData {
         .normal_params = param_exprs,
         .variadic = variadic,
     };
+}
+
+fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSlice) !void {
+    const args = cx.ast.getExtra(args_slice);
+    switch (compound) {
+        .@"sprite-select" => {
+            if (args.len != 1) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try emitOpcodeByName(cx, "sprite-select-range");
+        },
+    }
 }
 
 fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
