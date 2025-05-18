@@ -222,6 +222,19 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             else => unreachable,
         }
     }
+
+    // Even if there's no enter/exit scripts, the original compiler still
+    // outputs an empty block.
+    if (plan.work.getPtr(.rmda_excd).items.len == 0)
+        plan.work.getPtr(.rmda_excd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
+            .block_id = blockId("EXCD"),
+            .data = .empty,
+        } } });
+    if (plan.work.getPtr(.rmda_encd).items.len == 0)
+        plan.work.getPtr(.rmda_encd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
+            .block_id = blockId("ENCD"),
+            .data = .empty,
+        } } });
 }
 
 fn scanRmda(

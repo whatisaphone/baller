@@ -34,7 +34,7 @@ pub fn compile(
     defer cx.label_fixups.deinit(gpa);
     defer cx.label_offsets.deinit(gpa);
 
-    compileInner(&cx, statements) catch |err| {
+    compileInner(&cx, root_node, statements) catch |err| {
         if (err != error.AddedToDiagnostic) {
             const token_index = file.ast.node_tokens.items[root_node];
             const loc = file.lex.tokens.items[token_index].span.start;
@@ -43,8 +43,15 @@ pub fn compile(
     };
 }
 
-pub fn compileInner(cx: *Cx, statements: Ast.ExtraSlice) !void {
+pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlice) !void {
     try emitBlock(cx, statements);
+
+    const end = switch (cx.ast.nodes.items[root_node]) {
+        .script, .local_script => "end",
+        .enter, .exit => "end2",
+        else => unreachable,
+    };
+    try emitOpcodeByName(cx, end);
 
     for (cx.label_fixups.items) |fixup| {
         const label_offset = cx.label_offsets.get(fixup.label_name) orelse return error.BadData;

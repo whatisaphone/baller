@@ -499,6 +499,17 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
         try scheduleAfterInfiniteLoop(cx, bbi);
         return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
     }
+
+    // The last basic block should end with `end` or `end2`. This is
+    // emitted implicitly by the compiler, so don't output it explicitly here.
+    const bb_last = &cx.basic_blocks[cx.basic_blocks.len - 1];
+    const ss = bb_last.statements.defined;
+    if (ss.len == 0) return error.BadData;
+    const stmt = &cx.stmts.items[ss.start + ss.len - 1];
+    if (stmt.* != .call) return error.BadData;
+    if (stmt.call.op != .end and stmt.call.op != .end2) return error.BadData;
+    bb_last.end -= 1;
+    bb_last.statements.defined.len -= 1;
 }
 
 fn findBasicBlockWithStart(cx: *const DecompileCx, start: u16) BasicBlockIndex {

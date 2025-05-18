@@ -1071,6 +1071,8 @@ fn extractEncdExcd(
     };
     if (option != .decode) return false;
 
+    if (raw.len == 0) return true;
+
     const section: Section = switch (edge) {
         .encd => .enter_script,
         .excd => .exit_script,
