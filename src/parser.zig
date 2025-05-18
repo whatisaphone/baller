@@ -286,6 +286,8 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &children, node_index);
                 },
                 .scrp => {
+                    const name = try expectIdentifier(cx);
+                    try expect(cx, .swat);
                     const glob_number_i32 = try expectInteger(cx);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
@@ -294,6 +296,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                         return reportError(cx, token, "invalid glob number", .{});
 
                     const node_index = try storeNode(cx, token, .{ .scrp = .{
+                        .name = name,
                         .glob_number = glob_number,
                         .path = path,
                     } });
@@ -314,6 +317,8 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &children, node_index);
                 },
                 .lscr => {
+                    const name = try expectIdentifier(cx);
+                    try expect(cx, .swat);
                     const script_number_i32 = try expectInteger(cx);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
@@ -322,6 +327,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                         return reportError(cx, token, "invalid script number", .{});
 
                     const node_index = try storeNode(cx, token, .{ .lscr = .{
+                        .name = name,
                         .script_number = script_number,
                         .path = path,
                     } });
@@ -344,19 +350,23 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &variables, node_index);
                 },
                 .script => {
+                    const name = try expectIdentifier(cx);
+                    try expect(cx, .swat);
                     const glob_number_i32 = try expectInteger(cx);
                     const glob_number = std.math.cast(u16, glob_number_i32) orelse
                         return reportError(cx, token, "out of range", .{});
                     try expect(cx, .brace_l);
-                    const node_index = try parseScript(cx, token, glob_number);
+                    const node_index = try parseScript(cx, token, name, glob_number);
                     try appendNode(cx, &children, node_index);
                 },
                 .@"local-script" => {
+                    const name = try expectIdentifier(cx);
+                    try expect(cx, .swat);
                     const script_number_i32 = try expectInteger(cx);
                     const script_number = std.math.cast(u16, script_number_i32) orelse
                         return reportError(cx, token, "out of range", .{});
                     try expect(cx, .brace_l);
-                    const node_index = try parseLocalScript(cx, token, script_number);
+                    const node_index = try parseLocalScript(cx, token, name, script_number);
                     try appendNode(cx, &children, node_index);
                 },
                 .enter => {
@@ -759,17 +769,29 @@ fn parseRawGlobBlock(cx: *Cx, token: *const lexer.Token, block_id: BlockId, glob
     } });
 }
 
-fn parseScript(cx: *Cx, token: *const lexer.Token, glob_number: u16) !Ast.NodeIndex {
+fn parseScript(
+    cx: *Cx,
+    token: *const lexer.Token,
+    name: []const u8,
+    glob_number: u16,
+) !Ast.NodeIndex {
     const statements = try parseScriptBlock(cx);
     return try storeNode(cx, token, .{ .script = .{
+        .name = name,
         .glob_number = glob_number,
         .statements = statements,
     } });
 }
 
-fn parseLocalScript(cx: *Cx, token: *const lexer.Token, script_number: u16) !Ast.NodeIndex {
+fn parseLocalScript(
+    cx: *Cx,
+    token: *const lexer.Token,
+    name: []const u8,
+    script_number: u16,
+) !Ast.NodeIndex {
     const statements = try parseScriptBlock(cx);
     return try storeNode(cx, token, .{ .local_script = .{
+        .name = name,
         .script_number = script_number,
         .statements = statements,
     } });

@@ -3,12 +3,13 @@ const std = @import("std");
 const Symbols = @import("Symbols.zig");
 const lang = @import("lang.zig");
 const report = @import("report.zig");
+const script = @import("script.zig");
 
 const horizontal_whitespace = " \t";
 
 const Scopes = struct {
-    project: *const std.StringHashMapUnmanaged(lang.Variable),
-    room: *const std.StringHashMapUnmanaged(lang.Variable),
+    project: *const std.StringHashMapUnmanaged(script.Symbol),
+    room: *const std.StringHashMapUnmanaged(script.Symbol),
 };
 
 pub fn assemble(
@@ -16,8 +17,8 @@ pub fn assemble(
     language: *const lang.Language,
     inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     asm_str: []const u8,
-    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
-    room_scope: *const std.StringHashMapUnmanaged(lang.Variable),
+    project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
+    room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     id: Symbols.ScriptId,
 ) !std.ArrayListUnmanaged(u8) {
     // map from label name to offset
@@ -220,11 +221,8 @@ fn parseVariable(var_str: []const u8, locals: []const []const u8, scopes: Scopes
         if (std.mem.eql(u8, name, var_str))
             return .init(.{ .local = @intCast(i) });
 
-    if (scopes.room.get(var_str)) |variable|
-        return variable;
-
-    if (scopes.project.get(var_str)) |variable|
-        return variable;
+    if (scopes.room.get(var_str)) |s| if (s == .variable) return s.variable;
+    if (scopes.project.get(var_str)) |s| if (s == .variable) return s.variable;
 
     const kind: lang.Variable.Kind, const num_str =
         if (std.mem.startsWith(u8, var_str, "global"))

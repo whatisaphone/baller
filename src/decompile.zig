@@ -4,6 +4,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
+const ArrayMap = @import("array_map.zig").ArrayMap;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
@@ -14,6 +15,7 @@ pub fn run(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     symbols: *const Symbols,
+    room_number: u8,
     bytecode: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
@@ -45,6 +47,17 @@ pub fn run(
     defer dcx.pending_basic_blocks.deinit(gpa);
 
     try decompileBasicBlocks(&dcx, bytecode);
+
+    var tcx: TypeCx = .{
+        .basic_blocks = dcx.basic_blocks,
+        .stmts = .init(dcx.stmts.items),
+        .exprs = .init(dcx.exprs.items),
+        .extra = .init(dcx.extra.items),
+        .types = try .initCapacity(gpa, dcx.exprs.items.len),
+    };
+    defer tcx.types.deinit(gpa);
+    recoverTypes(&tcx);
+
     peephole(&dcx);
 
     var scx: StructuringCx = .{
@@ -65,10 +78,12 @@ pub fn run(
     var ecx: EmitCx = .{
         .gpa = gpa,
         .symbols = symbols,
+        .room_number = room_number,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
+        .types = &tcx.types,
         .jump_targets = jump_targets.items,
         .out = out,
         .indent = indent_size * 1,
@@ -731,6 +746,71 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
     const len: u16 = @intCast(items.len);
     try cx.extra.appendSlice(cx.gpa, items);
     return .{ .start = start, .len = len };
+}
+
+const TypeCx = struct {
+    basic_blocks: []const BasicBlock,
+    stmts: utils.SafeManyPointer([*]const Stmt),
+    exprs: utils.SafeManyPointer([*]const Expr),
+    extra: utils.SafeManyPointer([*]const ExprIndex),
+    types: ArrayMap(Type),
+};
+
+const Type = union(enum) {
+    script,
+};
+
+fn recoverTypes(cx: *TypeCx) void {
+    for (cx.basic_blocks) |*bb| {
+        const ss = bb.statements.defined;
+        const stmts = cx.stmts.use()[ss.start..][0..ss.len];
+        for (stmts) |*stmt| switch (stmt.*) {
+            .jump_if, .jump_unless => |j| recoverExpr(cx, j.condition),
+            .jump => {},
+            .call => |c| recoverCall(cx, c.op, c.args),
+            .compound, .tombstone => unreachable,
+        };
+    }
+}
+
+fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
+    switch (cx.exprs.getPtr(ei).*) {
+        .int, .string, .variable, .dup => {},
+        .call => |call| recoverCall(cx, call.op, call.args),
+        .list => |list| {
+            for (getExtra3(cx.extra, list.items)) |i|
+                recoverExpr(cx, i);
+        },
+    }
+}
+
+fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
+    const args = getExtra3(cx.extra, arg_eis);
+    for (args) |ei|
+        recoverExpr(cx, ei);
+    switch (op) {
+        .@"start-script" => {
+            setType(cx, args[0], .script);
+        },
+        .@"call-script" => {
+            setType(cx, args[0], .script);
+        },
+        .@"load-script" => {
+            setType(cx, args[0], .script);
+        },
+        else => {},
+    }
+}
+
+fn setType(cx: *TypeCx, ei: ExprIndex, typ: Type) void {
+    cx.types.put(utils.null_allocator, ei, typ) catch unreachable;
+}
+
+fn getExtra3(
+    extra: utils.SafeManyPointer([*]const ExprIndex),
+    slice: ExtraSlice,
+) []const ExprIndex {
+    return extra.use()[slice.start..][0..slice.len];
 }
 
 fn peephole(cx: *DecompileCx) void {
@@ -1644,10 +1724,12 @@ const indent_size = 4;
 const EmitCx = struct {
     gpa: std.mem.Allocator,
     symbols: *const Symbols,
+    room_number: u8,
     nodes: utils.SafeManyPointer([*]const Node),
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
+    types: *const ArrayMap(Type),
     jump_targets: []const u16,
 
     out: *std.ArrayListUnmanaged(u8),
@@ -1808,7 +1890,7 @@ fn emitExpr(
     prec: Precedence,
 ) error{ OutOfMemory, BadData }!void {
     switch (cx.exprs.get(ei)) {
-        .int => |int| try cx.out.writer(cx.gpa).print("{}", .{int}),
+        .int => try emitInt(cx, ei),
         .variable => |v| try emitVariable(cx, v),
         .string => |s| try cx.out.writer(cx.gpa).print("\"{s}\"", .{s}),
         .call => |call| {
@@ -1862,6 +1944,17 @@ fn emitExpr(
         .list => unreachable, // only appears in call args, handled elsewhere
         .dup => return error.BadData,
     }
+}
+
+fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
+    const int = cx.exprs.getPtr(ei).int;
+    if (cx.types.get(ei)) |t| switch (t) {
+        .script => if (std.math.cast(u32, int)) |n| {
+            try cx.symbols.writeScriptName(cx.room_number, n, cx.out.writer(cx.gpa));
+            return;
+        },
+    };
+    try cx.out.writer(cx.gpa).print("{}", .{int});
 }
 
 fn emitCall(cx: *const EmitCx, op: []const u8, args: ExtraSlice) !void {

@@ -1154,7 +1154,7 @@ fn extractEncdExcdDecompile(
         .excd => "exit",
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, raw, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(switch (edge) {
@@ -1252,10 +1252,9 @@ fn extractLscrDisassemble(
     const path = std.fmt.bufPrintZ(&path_buf, "lscr{:0>4}.s", .{script_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.writer(cx.cx.gpa).print(
-        "lscr {} \"{s}/{s}\"\n",
-        .{ script_number, cx.room_path, path },
-    );
+    try code.appendSlice(cx.cx.gpa, "lscr ");
+    try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ script_number, cx.room_path, path });
 
     cx.cx.incStat(switch (block_type) {
         .lscr => .lscr_disassemble,
@@ -1272,8 +1271,10 @@ fn extractLscrDecompile(
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.writer(cx.cx.gpa).print("local-script {} {{\n", .{script_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, bytecode, code);
+    try code.appendSlice(cx.cx.gpa, "local-script ");
+    try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, bytecode, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(switch (block_type) {
@@ -1505,7 +1506,9 @@ fn extractScrpDisassemble(
     const path = std.fmt.bufPrintZ(&path_buf, "scrp{:0>4}.s", .{glob_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.writer(cx.cx.gpa).print("scrp {} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
+    try code.appendSlice(cx.cx.gpa, "scrp ");
+    try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
 
     cx.cx.incStat(.scrp_disassemble);
     diagnostic.flushStats(cx.cx, diag);
@@ -1540,8 +1543,10 @@ fn extractScrpDecompile(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.writer(cx.cx.gpa).print("script {} {{\n", .{glob_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, raw, code);
+    try code.appendSlice(cx.cx.gpa, "script ");
+    try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     cx.cx.incStat(.scrp_decompile);

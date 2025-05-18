@@ -12,6 +12,12 @@ pub fn ArrayMap(V: type) type {
             .items = .empty,
         };
 
+        pub fn initCapacity(allocator: std.mem.Allocator, capacity: usize) !Self {
+            return .{
+                .items = try .initCapacity(allocator, capacity),
+            };
+        }
+
         pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
             self.items.deinit(allocator);
         }
@@ -37,6 +43,11 @@ pub fn ArrayMap(V: type) type {
         pub fn getOrPut(self: *Self, allocator: std.mem.Allocator, index: usize) !*?V {
             try utils.growArrayList(?V, &self.items, allocator, index + 1, null);
             return &self.items.items[index];
+        }
+
+        pub fn put(self: *Self, allocator: std.mem.Allocator, index: usize, value: V) !void {
+            const ptr = try self.getOrPut(allocator, index);
+            ptr.* = value;
         }
 
         pub fn putNew(self: *Self, allocator: std.mem.Allocator, index: usize, value: V) !void {

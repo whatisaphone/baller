@@ -74,6 +74,7 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     scrp: struct {
+        name: []const u8,
         glob_number: u16,
         path: []const u8,
     },
@@ -84,6 +85,7 @@ pub const Node = union(enum) {
         path: []const u8,
     },
     lscr: struct {
+        name: []const u8,
         script_number: u16,
         path: []const u8,
     },
@@ -126,10 +128,12 @@ pub const Node = union(enum) {
         number: u16,
     },
     script: struct {
+        name: []const u8,
         glob_number: u16,
         statements: ExtraSlice,
     },
     local_script: struct {
+        name: []const u8,
         script_number: u16,
         statements: ExtraSlice,
     },

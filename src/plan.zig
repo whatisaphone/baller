@@ -21,6 +21,7 @@ const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
 const rmim_encode = @import("rmim_encode.zig");
+const script = @import("script.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -57,6 +58,12 @@ pub fn run(
 ) void {
     var cx: Context = undefined;
 
+    // Bit messy, watch out
+    cx.project_scope = .empty;
+    defer cx.project_scope.deinit(gpa);
+    var room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol) = @splat(.empty);
+    defer for (&room_scopes) |*s| s.deinit(gpa);
+
     (blk: {
         const language = lang.buildLanguage(game);
         const ins_map = lang.buildInsMap(gpa, &language) catch |err| break :blk err;
@@ -70,7 +77,7 @@ pub fn run(
             .language = &language,
             .ins_map = &ins_map,
             .project_scope = .empty,
-            .room_scopes = undefined,
+            .room_scopes = &room_scopes,
             .room_lsc_types = @splat(.undef),
             .pool = pool,
             .events = events,
@@ -105,8 +112,8 @@ const Context = struct {
     awiz_strategy: awiz.EncodingStrategy,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    project_scope: std.StringHashMapUnmanaged(lang.Variable),
-    room_scopes: [256]std.StringHashMapUnmanaged(lang.Variable),
+    project_scope: std.StringHashMapUnmanaged(script.Symbol),
+    room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
@@ -123,12 +130,7 @@ fn planProject(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
 
-    for (project_file.ast.getExtra(project_node.variables)) |var_node_index| {
-        const var_node = &project_file.ast.nodes.items[var_node_index].variable;
-        const scope_entry = try cx.project_scope.getOrPut(cx.gpa, var_node.name);
-        if (scope_entry.found_existing) return error.BadData;
-        scope_entry.value_ptr.* = .init(.{ .global = var_node.number });
-    }
+    try buildProjectScope(cx);
 
     for (project_file.ast.getExtra(project_node.disks), 0..) |disk_node, disk_index| {
         if (disk_node == Ast.null_node) continue;
@@ -149,18 +151,57 @@ fn planProject(cx: *Context) !void {
     cx.sendSyncEvent(.project_end);
 }
 
-fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void {
-    const room_file = &cx.project.files.items[room.room_number].?;
-    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+fn buildProjectScope(cx: *Context) !void {
+    const project_file = &cx.project.files.items[0].?;
+    const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
 
-    const room_scope = &cx.room_scopes[room.room_number];
-    room_scope.* = .empty;
-    for (room_file.ast.getExtra(root.variables)) |var_node_index| {
-        const var_node = &room_file.ast.nodes.items[var_node_index].variable;
-        const scope_entry = try room_scope.getOrPut(cx.gpa, var_node.name);
-        if (scope_entry.found_existing) return error.BadData;
-        scope_entry.value_ptr.* = .init(.{ .room = var_node.number });
+    for (project_file.ast.getExtra(project_node.variables)) |node_index| {
+        const var_node = &project_file.ast.nodes.items[node_index].variable;
+        const var_num = std.math.cast(u14, var_node.number) orelse return error.BadData;
+        const symbol: script.Symbol = .{ .variable = .init2(.global, var_num) };
+        try addScopeSymbol(cx, &cx.project_scope, var_node.name, symbol);
     }
+
+    for (project_file.ast.getExtra(project_node.disks)) |disk_node| {
+        if (disk_node == Ast.null_node) continue;
+        const disk = &project_file.ast.nodes.items[disk_node].disk;
+        for (project_file.ast.getExtra(disk.children)) |room_node| {
+            const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
+            const room_file = &cx.project.files.items[disk_room.room_number].?;
+            const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+            for (room_file.ast.getExtra(root.children)) |child_index| {
+                switch (room_file.ast.nodes.items[child_index]) {
+                    .scrp => |n| {
+                        const symbol: script.Symbol = .{ .script = n.glob_number };
+                        try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
+                    },
+                    .script => |n| {
+                        const symbol: script.Symbol = .{ .script = n.glob_number };
+                        try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
+                    },
+                    else => {},
+                }
+            }
+        }
+    }
+}
+
+fn addScopeSymbol(
+    cx: *const Context,
+    scope: *std.StringHashMapUnmanaged(script.Symbol),
+    name: []const u8,
+    symbol: script.Symbol,
+) !void {
+    const entry = try scope.getOrPut(cx.gpa, name);
+    if (entry.found_existing) {
+        cx.diagnostic.err("duplicate name: {s}", .{name});
+        return error.AddedToDiagnostic;
+    }
+    entry.value_ptr.* = symbol;
+}
+
+fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void {
+    try buildRoomScope(cx, room.room_number);
 
     var start: [160]RoomWork = undefined;
     var rmda_excd: [1]RoomWork = undefined;
@@ -180,6 +221,34 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
 
     try scanRoom(cx, &state, room.room_number);
     try scheduleRoom(cx, &state, room.room_number);
+}
+
+fn buildRoomScope(cx: *Context, room_number: u8) !void {
+    const room_scope = &cx.room_scopes[room_number];
+
+    const room_file = &cx.project.files.items[room_number].?;
+    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+
+    for (room_file.ast.getExtra(root.variables)) |node_index| {
+        const node = &room_file.ast.nodes.items[node_index].variable;
+        const num = std.math.cast(u14, node.number) orelse return error.BadData;
+        const symbol: script.Symbol = .{ .variable = .init2(.room, num) };
+        try addScopeSymbol(cx, room_scope, node.name, symbol);
+    }
+
+    for (room_file.ast.getExtra(root.children)) |node_index| {
+        switch (room_file.ast.nodes.items[node_index]) {
+            .lscr => |n| {
+                const symbol: script.Symbol = .{ .script = n.script_number };
+                try addScopeSymbol(cx, room_scope, n.name, symbol);
+            },
+            .local_script => |n| {
+                const symbol: script.Symbol = .{ .script = n.script_number };
+                try addScopeSymbol(cx, room_scope, n.name, symbol);
+            },
+            else => {},
+        }
+    }
 }
 
 const RoomPlan = struct {
@@ -685,7 +754,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u
 
 fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
-    const script = &room_file.ast.nodes.items[node_index].script;
+    const node = &room_file.ast.nodes.items[node_index].script;
 
     const diag: Diagnostic.ForTextFile = .{
         .diagnostic = cx.diagnostic,
@@ -695,13 +764,13 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
         .payload = .{ .glob = .{
             .block_id = blockId("SCRP"),
-            .glob_number = script.glob_number,
+            .glob_number = node.glob_number,
             .data = out,
         } },
     });
@@ -709,7 +778,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
 
 fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
-    const script = &room_file.ast.nodes.items[node_index].local_script;
+    const node = &room_file.ast.nodes.items[node_index].local_script;
 
     const diag: Diagnostic.ForTextFile = .{
         .diagnostic = cx.diagnostic,
@@ -721,11 +790,11 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
     const block_id = cx.room_lsc_types[room_number].defined;
     switch (block_id) {
-        .lscr => try out.append(cx.gpa, @intCast(script.script_number)),
-        .lsc2 => try out.writer(cx.gpa).writeInt(u32, script.script_number, .little),
+        .lscr => try out.append(cx.gpa, @intCast(node.script_number)),
+        .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -738,7 +807,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
 fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
-    const script = &room_file.ast.nodes.items[node_index].enter;
+    const node = &room_file.ast.nodes.items[node_index].enter;
 
     const diag: Diagnostic.ForTextFile = .{
         .diagnostic = cx.diagnostic,
@@ -748,7 +817,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
@@ -761,7 +830,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
 fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
-    const script = &room_file.ast.nodes.items[node_index].exit;
+    const node = &room_file.ast.nodes.items[node_index].exit;
 
     const diag: Diagnostic.ForTextFile = .{
         .diagnostic = cx.diagnostic,
@@ -771,7 +840,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.events.send(.{
         .index = event_index,

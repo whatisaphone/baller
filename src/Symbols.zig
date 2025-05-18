@@ -275,3 +275,27 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
 pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {
     return self.rooms.getPtr(number - first_room);
 }
+
+pub fn writeScriptName(
+    self: *const Symbols,
+    room_number: u8,
+    script_number: u32,
+    out: anytype,
+) !void {
+    if (self.getScriptName(room_number, script_number)) |name| {
+        try out.writeAll(name);
+        return;
+    }
+    // If not found, generate a default name
+    const prefix = if (script_number < games.firstLocalScript(self.game)) "scr" else "lsc";
+    try out.print("{s}{}", .{ prefix, script_number });
+}
+
+fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]const u8 {
+    const id: ScriptId = if (script_number < games.firstLocalScript(self.game))
+        .{ .global = script_number }
+    else
+        .{ .local = .{ .room = room_number, .number = script_number } };
+    const script = self.getScript(id) orelse return null;
+    return script.name;
+}

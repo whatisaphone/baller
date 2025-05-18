@@ -13,7 +13,8 @@ pub fn compile(
     diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
+    project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
+    room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     file: *const Project.SourceFile,
     root_node: Ast.NodeIndex,
     statements: Ast.ExtraSlice,
@@ -25,6 +26,7 @@ pub fn compile(
         .language = language,
         .ins_map = ins_map,
         .project_scope = project_scope,
+        .room_scope = room_scope,
         .lex = &file.lex,
         .ast = &file.ast,
         .out = out,
@@ -66,7 +68,8 @@ const Cx = struct {
     diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    project_scope: *const std.StringHashMapUnmanaged(lang.Variable),
+    project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
+    room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     lex: *const lexer.Lex,
     ast: *const Ast,
 
@@ -335,10 +338,7 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
         .string => try pushStr(cx, node_index),
-        .identifier => {
-            try emitOpcodeByName(cx, "push-var");
-            try emitVariable(cx, node_index);
-        },
+        .identifier => try pushSymbol(cx, node_index),
         .call => try emitCall(cx, node_index),
         .array_get => |e| {
             try pushExpr(cx, e.index);
@@ -417,24 +417,46 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
     }
 }
 
+fn pushSymbol(cx: *const Cx, node_index: u32) !void {
+    switch (try lookupSymbol(cx, node_index)) {
+        .variable => |v| try pushVar(cx, v),
+        .script => |i| try pushInt(cx, i),
+    }
+}
+
+fn pushVar(cx: *const Cx, variable: lang.Variable) !void {
+    try emitOpcodeByName(cx, "push-var");
+    try emitVarNumber(cx, variable);
+}
+
 fn emitVariable(cx: *const Cx, node_index: u32) !void {
-    const expr = &cx.ast.nodes.items[node_index];
-    if (expr.* != .identifier) return error.BadData;
-    const id = expr.identifier;
-    const variable = parseVariable(cx, id) orelse {
-        const token_index = cx.ast.node_tokens.items[node_index];
-        const loc = cx.lex.tokens.items[token_index].span.start;
-        cx.diag.err(loc, "variable not found", .{});
-        return error.AddedToDiagnostic;
-    };
+    const symbol = try lookupSymbol(cx, node_index);
+    if (symbol != .variable) return error.BadData;
+    try emitVarNumber(cx, symbol.variable);
+}
+
+fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
     try cx.out.writer(cx.gpa).writeInt(u16, variable.raw, .little);
 }
 
-fn parseVariable(cx: *const Cx, str: []const u8) ?lang.Variable {
-    if (cx.project_scope.get(str)) |v|
-        return v;
+fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
+    const expr = &cx.ast.nodes.items[node_index];
+    if (expr.* != .identifier) return error.BadData;
+    const name = expr.identifier;
 
+    if (cx.room_scope.get(name)) |sym| return sym;
+    if (cx.project_scope.get(name)) |sym| return sym;
     // TODO: get rid of this fallback eventually
+    if (parseMagicVariableByNumber(name)) |v| return .{ .variable = v };
+
+    // Not found, return an error
+    const token_index = cx.ast.node_tokens.items[node_index];
+    const loc = cx.lex.tokens.items[token_index].span.start;
+    cx.diag.err(loc, "symbol not found", .{});
+    return error.AddedToDiagnostic;
+}
+
+fn parseMagicVariableByNumber(str: []const u8) ?lang.Variable {
     const kind: lang.Variable.Kind, const num_str =
         if (str.len >= 6 and std.mem.startsWith(u8, str, "global"))
             .{ .global, str[6..] }
