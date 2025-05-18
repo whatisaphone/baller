@@ -205,6 +205,7 @@ const Stmt = union(enum) {
     jump: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
     compound: struct { op: script.Compound, args: ExtraSlice },
+    tombstone,
 };
 
 const JumpTargetAndCondition = struct {
@@ -321,6 +322,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"sprite-set-shadow" = .gen(&.{.int}),
     .@"sprite-set-update-type" = .gen(&.{.int}),
     .@"sprite-set-class" = .gen(&.{.list}),
+    .@"sprite-restart" = .gen(&.{}),
     .@"sprite-new" = .gen(&.{}),
     .@"sprite-group-get" = .genCall(&.{.int}),
     .@"sprite-group-get-object-x" = .genCall(&.{.int}),
@@ -340,6 +342,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .shl = .genCall(&.{ .int, .int }),
     .shr = .genCall(&.{ .int, .int }),
     .iif = .genCall(&.{ .int, .int, .int }),
+    .@"dim-array-range.int8" = .gen(&.{ .int, .int, .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
@@ -390,11 +393,15 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"palette-color" = .genCall(&.{ .int, .int }),
     .rgb = .genCall(&.{ .int, .int, .int }),
     .@"sound-running" = .genCall(&.{.int}),
+    .@"load-script" = .gen(&.{.int}),
     .@"nuke-sound" = .gen(&.{.int}),
+    .@"lock-script" = .gen(&.{.int}),
     .@"unlock-costume" = .gen(&.{.int}),
+    .@"load-charset" = .gen(&.{.int}),
     .@"preload-sound" = .gen(&.{.int}),
     .@"nuke-image" = .gen(&.{.int}),
     .@"preload-image" = .gen(&.{.int}),
+    .fades = .gen(&.{.int}),
     .@"actor-set-clipped" = .gen(&.{ .int, .int, .int, .int }),
     .@"actor-set-costume" = .gen(&.{.int}),
     .@"actor-set-elevation" = .gen(&.{.int}),
@@ -449,6 +456,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .kludge = .gen(&.{.list}),
     .@"break-here-multi" = .gen(&.{.int}),
     .pick = .genCall(&.{ .int, .list }),
+    .@"get-time-date" = .gen(&.{}),
     .@"stop-line" = .gen(&.{}),
     .@"actor-get-var" = .genCall(&.{ .int, .int }),
     .@"chain-script" = .gen(&.{ .int, .list }),
@@ -468,6 +476,8 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"string-substr" = .genCall(&.{ .int, .int, .int }),
     .@"string-compare" = .genCall(&.{ .int, .int }),
     .@"read-system-ini-int" = .genCall(&.{.string}),
+    .@"read-system-ini-string" = .genCall(&.{.string}),
+    .@"title-bar" = .gen(&.{.string}),
     .@"delete-polygon" = .gen(&.{ .int, .int }),
 });
 
@@ -716,8 +726,10 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
 fn peephole(cx: *DecompileCx) void {
     for (cx.basic_blocks) |*bb| {
         const ss = bb.statements.defined;
-        for (cx.stmts.items[ss.start..][0..ss.len]) |*stmt| {
+        const stmts = cx.stmts.items[ss.start..][0..ss.len];
+        for (stmts, 0..) |*stmt, i| {
             peepholeSpriteSelect(cx, stmt);
+            peepLockAndLoadScript(cx, stmts, i);
             peepholePaletteSetColor(cx, stmt);
         }
     }
@@ -736,6 +748,32 @@ fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
         .op = .@"sprite-select",
         .args = .{ .start = stmt.call.args.start, .len = 1 },
     } };
+}
+
+fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
+    if (stmt_index + 1 >= stmts.len) return;
+    const lock = &stmts[stmt_index];
+    const load = &stmts[stmt_index + 1];
+
+    if (lock.* != .call) return;
+    if (lock.call.op != .@"lock-script") return;
+    std.debug.assert(lock.call.args.len == 1);
+    const lock_args = getExtra2(&cx.extra, lock.call.args);
+    const lock_arg = &cx.exprs.items[lock_args[0]];
+    if (lock_arg.* != .dup) return;
+    const resource = lock_arg.dup;
+
+    if (load.* != .call) return;
+    if (load.call.op != .@"load-script") return;
+    std.debug.assert(load.call.args.len == 1);
+    const load_args = getExtra2(&cx.extra, load.call.args);
+    if (load_args[0] != resource) return;
+
+    stmts[stmt_index] = .{ .compound = .{
+        .op = .@"lock-and-load-script",
+        .args = load.call.args,
+    } };
+    stmts[stmt_index + 1] = .tombstone;
 }
 
 /// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
@@ -1702,6 +1740,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
 }
 
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
+    if (stmt.* == .tombstone) return;
     try writeIndent(cx);
     switch (stmt.*) {
         .jump_if, .jump_unless => |j| {
@@ -1748,6 +1787,7 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
         .compound => |c| {
             try emitCall(cx, @tagName(c.op), c.args);
         },
+        .tombstone => unreachable,
     }
     try cx.out.append(cx.gpa, '\n');
 }

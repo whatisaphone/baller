@@ -294,6 +294,13 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcodeByName(cx, "dup");
             try emitOpcodeByName(cx, "sprite-select-range");
         },
+        .@"lock-and-load-script" => {
+            if (args.len != 1) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try emitOpcodeByName(cx, "lock-script");
+            try emitOpcodeByName(cx, "load-script");
+        },
         .@"palette-set-slot-color" => {
             if (args.len != 2) return error.BadData;
             try pushExpr(cx, args[0]);
