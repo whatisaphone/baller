@@ -187,9 +187,15 @@ pub const Node = union(enum) {
         branches: ExtraSlice,
     },
     case_branch: struct {
-        value: NodeIndex,
+        condition: CaseCondition,
         body: ExtraSlice,
     },
+};
+
+pub const CaseCondition = union(enum) {
+    eq: NodeIndex,
+    in: ExtraSlice,
+    default,
 };
 
 pub const ExtraSlice = struct {

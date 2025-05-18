@@ -91,6 +91,7 @@ pub const Op = enum {
     land,
     lor,
     pop,
+    @"in-list",
     @"image-set-width",
     @"image-set-height",
     @"image-draw",
@@ -322,7 +323,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x18, .land, &.{});
     lang.add(0x19, .lor, &.{});
     lang.add(0x1a, .pop, &.{});
-    lang.add(0x1b, "in-list", &.{});
+    lang.add(0x1b, .@"in-list", &.{});
 
     lang.addNested(0x1c, 0x20, .@"image-set-width", &.{});
     lang.addNested(0x1c, 0x21, .@"image-set-height", &.{});

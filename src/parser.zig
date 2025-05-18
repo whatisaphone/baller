@@ -869,14 +869,18 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     skipWhitespace(cx);
                     const token2 = consumeToken(cx);
                     if (token2.kind == .brace_r) break;
-                    const branch_value = if (parseIdentifierOpt(cx, token2, enum { @"else" })) |_|
-                        Ast.null_node
+                    const condition: Ast.CaseCondition = if (token2.kind == .bracket_l) blk: {
+                        const list = try parseArgs(cx);
+                        try expect(cx, .bracket_r);
+                        break :blk .{ .in = list };
+                    } else if (parseIdentifierOpt(cx, token2, enum { @"else" })) |_|
+                        .default
                     else
-                        try parseExpr(cx, token2, .space);
+                        .{ .eq = try parseExpr(cx, token2, .space) };
                     try expect(cx, .brace_l);
                     const stmts = try parseScriptBlock(cx);
                     const node_index = try storeNode(cx, token2, .{ .case_branch = .{
-                        .value = branch_value,
+                        .condition = condition,
                         .body = stmts,
                     } });
                     try appendNode(cx, &branches, node_index);

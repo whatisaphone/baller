@@ -284,6 +284,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .land = .genCall(&.{ .int, .int }),
     .lor = .genCall(&.{ .int, .int }),
     .pop = .gen(&.{.int}),
+    .@"in-list" = .genCall(&.{ .int, .list }),
     .@"image-set-width" = .gen(&.{.int}),
     .@"image-set-height" = .gen(&.{.int}),
     .@"image-draw" = .gen(&.{}),
@@ -1136,15 +1137,16 @@ fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
 
     const cond = cx.exprs.getPtr(node.kind.@"if".condition);
     if (cond.* != .call) return null;
-    if (cond.call.op != .eq) return null;
+    if (cond.call.op != .eq and cond.call.op != .@"in-list") return null;
+    // Both possible ops have args in the same place so just combine their logic
     std.debug.assert(cond.call.args.len == 2);
-    const eq_args = getExtra2(cx.extra, cond.call.args);
-    const eq_lhs = cx.exprs.getPtr(eq_args[0]);
-    if (eq_lhs.* != .dup) return null;
+    const cond_args = getExtra2(cx.extra, cond.call.args);
+    const cond_lhs = cx.exprs.getPtr(cond_args[0]);
+    if (cond_lhs.* != .dup) return null;
 
-    if (!nodeStartsWithPop(cx, node.kind.@"if".true, eq_lhs.dup)) return null;
+    if (!nodeStartsWithPop(cx, node.kind.@"if".true, cond_lhs.dup)) return null;
 
-    return eq_lhs.dup;
+    return cond_lhs.dup;
 }
 
 fn checkCaseBranchAnother(
@@ -1654,10 +1656,12 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
         },
         .case_branch => |*n| {
             try writeIndent(cx);
-            if (n.value != null_expr)
-                try emitExpr(cx, n.value, .space)
+            if (n.value == null_expr)
+                try cx.out.appendSlice(cx.gpa, "else")
+            else if (cx.exprs.getPtr(n.value).* == .list)
+                try emitList(cx, cx.exprs.getPtr(n.value).list.items)
             else
-                try cx.out.appendSlice(cx.gpa, "else");
+                try emitExpr(cx, n.value, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
@@ -1805,6 +1809,16 @@ fn emitArgsFlat(cx: *const EmitCx, items: ExtraSlice) !void {
         try cx.out.append(cx.gpa, ' ');
         try emitExpr(cx, ei, .space);
     }
+}
+
+fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
+    try cx.out.append(cx.gpa, '[');
+    for (getExtra(cx, items), 0..) |ei, i| {
+        if (i != 0)
+            try cx.out.append(cx.gpa, ' ');
+        try emitExpr(cx, ei, .space);
+    }
+    try cx.out.append(cx.gpa, ']');
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {

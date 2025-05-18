@@ -154,17 +154,28 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                 const branch = &cx.ast.nodes.items[ni_branch].case_branch;
                 if (cond_fixup) |fixup|
                     try fixupJumpToHere(cx, fixup);
-                if (branch.value != Ast.null_node) {
-                    try emitOpcodeByName(cx, "dup");
-                    try pushExpr(cx, branch.value);
-                    try emitOpcodeByName(cx, "eq");
-                    try emitOpcodeByName(cx, "jump-unless");
-                    cond_fixup = @intCast(cx.out.items.len);
-                    _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+                switch (branch.condition) {
+                    .eq => |ei| {
+                        try emitOpcodeByName(cx, "dup");
+                        try pushExpr(cx, ei);
+                        try emitOpcodeByName(cx, "eq");
+                        try emitOpcodeByName(cx, "jump-unless");
+                        cond_fixup = @intCast(cx.out.items.len);
+                        _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+                    },
+                    .in => |slice| {
+                        try emitOpcodeByName(cx, "dup");
+                        try pushList(cx, cx.ast.getExtra(slice));
+                        try emitOpcodeByName(cx, "in-list");
+                        try emitOpcodeByName(cx, "jump-unless");
+                        cond_fixup = @intCast(cx.out.items.len);
+                        _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+                    },
+                    .default => {},
                 }
                 try emitOpcodeByName(cx, "pop");
                 try emitBlock(cx, branch.body);
-                if (branch.value != Ast.null_node) {
+                if (branch.condition != .default) {
                     try emitOpcodeByName(cx, "jump");
                     end_fixups.append(@intCast(cx.out.items.len)) catch unreachable;
                     _ = try cx.out.addManyAsSlice(cx.gpa, 2);
