@@ -220,7 +220,6 @@ const Expr = union(enum) {
     int: i32,
     string: []const u8,
     variable: lang.Variable,
-    bin_op: struct { op: Ast.BinOp, lhs: ExprIndex, rhs: ExprIndex },
     call: struct { op: lang.Op, args: ExtraSlice },
     list: struct { items: ExtraSlice },
     dup: ExprIndex,
@@ -1812,15 +1811,6 @@ fn emitExpr(
         .int => |int| try cx.out.writer(cx.gpa).print("{}", .{int}),
         .variable => |v| try emitVariable(cx, v),
         .string => |s| try cx.out.writer(cx.gpa).print("\"{s}\"", .{s}),
-        .bin_op => |b| {
-            if (@intFromEnum(prec) >= @intFromEnum(b.op.precedence()))
-                try cx.out.append(cx.gpa, '(');
-            try emitExpr(cx, b.lhs, b.op.precedence());
-            try cx.out.writer(cx.gpa).print(" {s} ", .{b.op.str()});
-            try emitExpr(cx, b.rhs, b.op.precedence());
-            if (@intFromEnum(prec) >= @intFromEnum(b.op.precedence()))
-                try cx.out.append(cx.gpa, ')');
-        },
         .call => |call| {
             const args = getExtra(cx, call.args);
             if (call.op == .@"get-array-item") {
