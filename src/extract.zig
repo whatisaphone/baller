@@ -235,6 +235,8 @@ pub fn run(
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
+    try code.append(gpa, '\n');
+
     var cx: Context = .{
         .gpa = gpa,
         .pool = &pool,
@@ -253,6 +255,7 @@ pub fn run(
     }
 
     if (symbols.globals.len() != 0) {
+        try code.append(gpa, '\n');
         for (0..symbols.globals.len()) |i|
             if (symbols.globals.get(i)) |name|
                 try code.writer(gpa).print("var {s} @ {}\n", .{ name, i });
@@ -1252,7 +1255,7 @@ fn extractLscrDisassemble(
     const path = std.fmt.bufPrintZ(&path_buf, "lscr{:0>4}.s", .{script_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "lscr ");
+    try code.appendSlice(cx.cx.gpa, "\nlscr ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ script_number, cx.room_path, path });
 
@@ -1271,7 +1274,7 @@ fn extractLscrDecompile(
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.appendSlice(cx.cx.gpa, "local-script ");
+    try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, bytecode, code);
@@ -1305,6 +1308,7 @@ fn writeRoomVarsJob(cx: *RoomContext, chunk_index: u16) !void {
 
 fn writeRoomVarsInner(cx: *RoomContext, code: *std.ArrayListUnmanaged(u8)) !void {
     const room = cx.cx.symbols.getRoom(cx.room_number) orelse return;
+    try code.append(cx.cx.gpa, '\n');
     for (0..room.vars.len()) |i|
         if (room.vars.get(i)) |name|
             try code.writer(cx.cx.gpa).print("var {s} @ {}\n", .{ name, i });
@@ -1506,7 +1510,7 @@ fn extractScrpDisassemble(
     const path = std.fmt.bufPrintZ(&path_buf, "scrp{:0>4}.s", .{glob_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "scrp ");
+    try code.appendSlice(cx.cx.gpa, "\nscrp ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
 
@@ -1543,7 +1547,7 @@ fn extractScrpDecompile(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.appendSlice(cx.cx.gpa, "script ");
+    try code.appendSlice(cx.cx.gpa, "\nscript ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code);
@@ -1749,11 +1753,20 @@ fn emitRoom(
     if (!ok)
         try room_scu.writeAll("#error while extracting room; this file is incomplete!\n\n");
 
-    var iovecs_buf: [max_room_code_chunks]std.posix.iovec_const = undefined;
-    const iovecs = iovecs_buf[0..chunks.len];
-    for (iovecs, chunks.slice()) |*iovec, *chunk|
-        iovec.* = .{ .base = chunk.code.items.ptr, .len = chunk.code.items.len };
-    try room_scu.writevAll(iovecs);
+    const max_iovecs = max_room_code_chunks + std.meta.fields(Section).len;
+    var iovecs: std.BoundedArray(std.posix.iovec_const, max_iovecs) = .{};
+    var last_section: Section = .top;
+    for (chunks.slice()) |*chunk| {
+        if (chunk.section != last_section) {
+            last_section = chunk.section;
+            // For scripts, a blank line was already added before each decl. For
+            // all the rest, add a blank line between sections.
+            if (chunk.section != .global_scripts and chunk.section != .local_scripts)
+                iovecs.appendAssumeCapacity(iovec("\n"));
+        }
+        iovecs.appendAssumeCapacity(iovec(chunk.code.items));
+    }
+    try room_scu.writevAll(iovecs.slice());
 
     if (!ok)
         return error.AddedToDiagnostic;
@@ -1767,3 +1780,7 @@ const Chunk = struct {
         return @intFromEnum(lhs.section) < @intFromEnum(rhs.section);
     }
 };
+
+fn iovec(s: []const u8) std.posix.iovec_const {
+    return .{ .base = s.ptr, .len = s.len };
+}
