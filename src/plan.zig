@@ -71,6 +71,7 @@ pub fn run(
             .ins_map = &ins_map,
             .project_scope = .empty,
             .room_scopes = undefined,
+            .room_lsc_types = @splat(.undef),
             .pool = pool,
             .events = events,
             .next_event_index = 0,
@@ -106,6 +107,7 @@ const Context = struct {
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
     project_scope: std.StringHashMapUnmanaged(lang.Variable),
     room_scopes: [256]std.StringHashMapUnmanaged(lang.Variable),
+    room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
     next_event_index: u16,
@@ -189,6 +191,11 @@ const RoomPlan = struct {
     }
 };
 
+const LocalScriptBlockType = enum(BlockId) {
+    lscr = blockId("LSCR"),
+    lsc2 = blockId("LSC2"),
+};
+
 const RoomSection = enum {
     start,
     rmda_excd,
@@ -236,6 +243,21 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .block_id = blockId("ENCD"),
             .data = .empty,
         } } });
+
+    // Any rooms where every script number < 256, all local scripts are LSCR.
+    // Otherwise all are LSC2.
+    var max_lsc_number: u16 = 0;
+    for (plan.work.getPtrConst(.rmda_lscr).items) |*work| {
+        if (work.* == .node) {
+            const number: ?u16 = switch (room_file.ast.nodes.items[work.node]) {
+                inline .lscr, .local_script => |n| n.script_number,
+                else => null,
+            };
+            if (number) |num|
+                max_lsc_number = @max(max_lsc_number, num);
+        }
+    }
+    cx.room_lsc_types[room_number].setOnce(if (max_lsc_number < 256) .lscr else .lsc2);
 }
 
 fn scanRmda(
@@ -472,15 +494,27 @@ fn planLscr(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     var bytecode = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     defer bytecode.deinit(cx.gpa);
 
-    const result = try cx.gpa.alloc(u8, 4 + bytecode.items.len);
+    const block_type = cx.room_lsc_types[room_number].defined;
+    const script_number_size: usize = switch (block_type) {
+        .lscr => 1,
+        .lsc2 => 4,
+    };
+    const result = try cx.gpa.alloc(u8, script_number_size + bytecode.items.len);
     errdefer cx.gpa.free(result);
-    std.mem.writeInt(i32, result[0..4], lscr.script_number, .little);
-    @memcpy(result[4..], bytecode.items); // TODO: avoid this memcpy
+    switch (block_type) {
+        .lscr => result[0] = @intCast(lscr.script_number),
+        .lsc2 => std.mem.writeInt(i32, result[0..4], lscr.script_number, .little),
+    }
+    @memcpy(result[script_number_size..], bytecode.items); // TODO: avoid this memcpy
 
+    const block_id = switch (block_type) {
+        .lscr => blockId("LSCR"),
+        .lsc2 => blockId("LSC2"),
+    };
     cx.events.send(.{
         .index = event_index,
         .payload = .{ .raw_block = .{
-            .block_id = blockId("LSC2"),
+            .block_id = block_id,
             .data = .fromOwnedSlice(result),
         } },
     });
@@ -685,14 +719,18 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try out.writer(cx.gpa).writeInt(u32, script.script_number, .little);
+    const block_id = cx.room_lsc_types[room_number].defined;
+    switch (block_id) {
+        .lscr => try out.append(cx.gpa, @intCast(script.script_number)),
+        .lsc2 => try out.writer(cx.gpa).writeInt(u32, script.script_number, .little),
+    }
 
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, room_file, node_index, script.statements, &out);
 
     cx.events.send(.{
         .index = event_index,
         .payload = .{ .raw_block = .{
-            .block_id = blockId("LSC2"),
+            .block_id = @intFromEnum(block_id),
             .data = out,
         } },
     });

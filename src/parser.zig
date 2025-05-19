@@ -776,7 +776,7 @@ fn parseLocalScript(cx: *Cx, token: *const lexer.Token, script_number: u16) !Ast
 }
 
 fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
-    var statements: std.BoundedArray(Ast.NodeIndex, 256) = .{};
+    var statements: std.BoundedArray(Ast.NodeIndex, 512) = .{};
     while (true) {
         skipWhitespace(cx);
         const token = consumeToken(cx);

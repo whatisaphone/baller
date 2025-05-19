@@ -35,6 +35,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
     var excd_option: ?RawOrDecode = null;
+    var lscr_option: ?RawOrDecode = null;
     var lsc2_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
@@ -73,6 +74,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             } else if (std.mem.eql(u8, opt.flag, "excd")) {
                 if (excd_option != null) return arg.reportDuplicate();
                 excd_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "lscr")) {
+                if (lscr_option != null) return arg.reportDuplicate();
+                lscr_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "lsc2")) {
                 if (lsc2_option != null) return arg.reportDuplicate();
@@ -113,6 +118,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
             .excd = excd_option orelse .decode,
+            .lscr = lscr_option orelse .decode,
             .lsc2 = lsc2_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
@@ -138,6 +144,7 @@ const Options = struct {
     scrp: RawOrDecode,
     encd: RawOrDecode,
     excd: RawOrDecode,
+    lscr: RawOrDecode,
     lsc2: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
@@ -167,6 +174,10 @@ pub const Stat = enum {
     encd_disassemble,
     encd_decompile,
     encd_raw,
+    lscr_total,
+    lscr_disassemble,
+    lscr_decompile,
+    lscr_raw,
     lsc2_total,
     lsc2_disassemble,
     lsc2_decompile,
@@ -214,6 +225,7 @@ pub fn run(
     if (args.options.scrp == .decode or
         args.options.encd == .decode or
         args.options.excd == .decode or
+        args.options.lscr == .decode or
         args.options.lsc2 == .decode)
     {
         language = lang.buildLanguage(game);
@@ -850,7 +862,7 @@ fn extractRmda(
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
                 try cx.sendSync(.top, code);
             },
-            blockId("EXCD"), blockId("ENCD"), blockId("LSC2") => {
+            blockId("EXCD"), blockId("ENCD"), blockId("LSCR"), blockId("LSC2") => {
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
             else => {
@@ -1006,6 +1018,7 @@ fn extractRmdaChildJob(
     cx.cx.incStat(switch (block.id) {
         blockId("EXCD") => .excd_total,
         blockId("ENCD") => .encd_total,
+        blockId("LSCR") => .lscr_total,
         blockId("LSC2") => .lsc2_total,
         else => unreachable,
     });
@@ -1023,8 +1036,8 @@ fn extractRmdaChildJob(
             if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
-        blockId("LSC2") => {
-            if (extractLscr(cx, &diag, raw, &code, chunk_index))
+        blockId("LSCR"), blockId("LSC2") => {
+            if (extractLscr(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
         else => unreachable, // This is only called for the above block ids
@@ -1037,6 +1050,7 @@ fn extractRmdaChildJob(
     cx.cx.incStat(switch (block.id) {
         blockId("EXCD") => .excd_raw,
         blockId("ENCD") => .encd_raw,
+        blockId("LSCR") => .lscr_raw,
         blockId("LSC2") => .lsc2_raw,
         else => unreachable,
     });
@@ -1149,36 +1163,63 @@ fn extractEncdExcdDecompile(
     });
 }
 
+const LocalScriptBlockType = enum {
+    lscr,
+    lsc2,
+
+    fn from(block_id: BlockId) LocalScriptBlockType {
+        return switch (block_id) {
+            blockId("LSCR") => .lscr,
+            blockId("LSC2") => .lsc2,
+            else => unreachable,
+        };
+    }
+};
+
 fn extractLscr(
     cx: *const RoomContext,
     diag: *Diagnostic.ForBinaryFile,
+    block_id: BlockId,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
 ) bool {
-    if (cx.cx.options.lsc2 == .raw) return false;
+    const block_type: LocalScriptBlockType = .from(block_id);
+    const option = switch (block_type) {
+        .lscr => cx.cx.options.lscr,
+        .lsc2 => cx.cx.options.lsc2,
+    };
+    if (option == .raw) return false;
 
-    const script_number, const bytecode = (hdr: {
-        if (raw.len < 4) break :hdr error.EndOfStream;
-        const script_number_u32 = std.mem.readInt(u32, raw[0..4], .little);
-        const bytecode = raw[4..];
-        const script_number = std.math.cast(u16, script_number_u32) orelse
-            break :hdr error.Overflow;
-        break :hdr .{ script_number, bytecode };
+    const script_number, const bytecode = (hdr: switch (block_type) {
+        .lscr => {
+            if (raw.len == 0) break :hdr error.EndOfStream;
+            const script_number = raw[0];
+            const bytecode = raw[1..];
+            break :hdr .{ script_number, bytecode };
+        },
+        .lsc2 => {
+            if (raw.len < 4) break :hdr error.EndOfStream;
+            const script_number_u32 = std.mem.readInt(u32, raw[0..4], .little);
+            const bytecode = raw[4..];
+            const script_number = std.math.cast(u16, script_number_u32) orelse
+                break :hdr error.Overflow;
+            break :hdr .{ script_number, bytecode };
+        },
     }) catch |err|
         return handleDecodeResult(err, "decode", diag, code);
 
     // mild hack: patch the log context now that we know the script number
-    diag.section = .{ .glob = .{ blockId("LSC2"), script_number } };
+    diag.section = .{ .glob = .{ block_id, script_number } };
     diag.trace(0, "found script number", .{});
 
     if (cx.cx.options.script == .decompile and
-        tryDecode("decompile", extractLscrDecompile, cx, diag, .{ script_number, bytecode }, code))
+        tryDecode("decompile", extractLscrDecompile, cx, diag, .{ block_type, script_number, bytecode }, code))
     {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
-    if (tryDecode("disassemble", extractLscrDisassemble, cx, diag, .{ script_number, bytecode }, code)) {
+    if (tryDecode("disassemble", extractLscrDisassemble, cx, diag, .{ block_type, script_number, bytecode }, code)) {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
@@ -1188,6 +1229,7 @@ fn extractLscr(
 fn extractLscrDisassemble(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
+    block_type: LocalScriptBlockType,
     script_number: u32,
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
@@ -1215,13 +1257,17 @@ fn extractLscrDisassemble(
         .{ script_number, cx.room_path, path },
     );
 
-    cx.cx.incStat(.lsc2_disassemble);
+    cx.cx.incStat(switch (block_type) {
+        .lscr => .lscr_disassemble,
+        .lsc2 => .lsc2_disassemble,
+    });
     diagnostic.flushStats(cx.cx, diag);
 }
 
 fn extractLscrDecompile(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
+    block_type: LocalScriptBlockType,
     script_number: u32,
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
@@ -1230,7 +1276,10 @@ fn extractLscrDecompile(
     try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, bytecode, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
-    cx.cx.incStat(.lsc2_decompile);
+    cx.cx.incStat(switch (block_type) {
+        .lscr => .lscr_decompile,
+        .lsc2 => .lsc2_decompile,
+    });
 }
 
 fn runRoomVarsJob(cx: *RoomContext, diagnostic: *Diagnostic, chunk_index: u16) void {
