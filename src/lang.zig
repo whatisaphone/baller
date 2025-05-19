@@ -95,6 +95,7 @@ pub const Op = enum {
     @"image-set-width",
     @"image-set-height",
     @"image-draw",
+    @"image-capture",
     @"image-set-state",
     @"image-select",
     @"image-set-pos",
@@ -106,6 +107,7 @@ pub const Op = enum {
     @"image-commit",
     min,
     max,
+    sin,
     @"angle-from-delta",
     @"angle-from-line",
     @"line-length-2d",
@@ -129,6 +131,7 @@ pub const Op = enum {
     @"sprite-set-update-type",
     @"sprite-set-class",
     @"sprite-restart",
+    @"sprite-variable-range",
     @"sprite-new",
     @"sprite-group-get",
     @"sprite-group-get-object-x",
@@ -151,6 +154,7 @@ pub const Op = enum {
     @"dim-array-range.int8",
     @"dim-array-range.int16",
     set,
+    @"file-size",
     @"set-array-item",
     @"set-array-item-2d",
     @"read-ini-int",
@@ -167,6 +171,8 @@ pub const Op = enum {
     @"start-script",
     @"start-script-rec",
     @"start-object",
+    @"draw-object",
+    @"print-image",
     @"array-get-dim",
     @"array-get-height",
     @"array-get-width",
@@ -221,6 +227,8 @@ pub const Op = enum {
     @"palette-set-color",
     @"palette-new",
     @"palette-commit",
+    @"find-object",
+    @"valid-verb",
     @"assign-string",
     @"array-assign-list",
     @"array-assign-slice",
@@ -244,6 +252,8 @@ pub const Op = enum {
     @"print-system-string",
     @"print-system-printf",
     @"print-system-start",
+    @"say-line-position",
+    @"say-line-string",
     @"say-line-talkie",
     @"say-line-color",
     @"say-line-start",
@@ -262,9 +272,11 @@ pub const Op = enum {
     kludge,
     @"break-here-multi",
     pick,
+    @"debug-input",
     @"get-time-date",
     @"stop-line",
     @"actor-get-var",
+    shuffle,
     @"chain-script",
     band,
     bor,
@@ -283,6 +295,8 @@ pub const Op = enum {
     @"string-compare",
     @"read-system-ini-int",
     @"read-system-ini-string",
+    @"write-system-ini-int",
+    @"write-system-ini-string",
     @"title-bar",
     @"delete-polygon",
 };
@@ -367,7 +381,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x21, .@"image-set-height", &.{});
     lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
     lang.addNested(0x1c, 0x31, "image-load-external", &.{});
-    lang.addNested(0x1c, 0x33, "image-capture", &.{});
+    lang.addNested(0x1c, 0x33, .@"image-capture", &.{});
     lang.addNested(0x1c, 0x34, .@"image-set-state", &.{});
     lang.addNested(0x1c, 0x36, "image-set-flags", &.{});
     lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
@@ -388,7 +402,7 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x1d, .min, &.{});
     lang.add(0x1e, .max, &.{});
-    lang.add(0x1f, "sin", &.{});
+    lang.add(0x1f, .sin, &.{});
     lang.add(0x20, "cos", &.{});
     lang.add(0x21, "sqrt", &.{});
     lang.add(0x22, .@"angle-from-delta", &.{});
@@ -432,7 +446,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0x7d, .@"sprite-set-class", &.{});
     lang.addNested(0x26, 0x8c, "sprite-mask-image", &.{});
     lang.addNested(0x26, 0x9e, .@"sprite-restart", &.{});
-    lang.addNested(0x26, 0xc6, "sprite-variable-range", &.{});
+    lang.addNested(0x26, 0xc6, .@"sprite-variable-range", &.{});
     lang.addNested(0x26, 0xd9, .@"sprite-new", &.{});
 
     lang.addNested(0x27, 0x02, "sprite-group-unknown-27-02", &.{});
@@ -479,7 +493,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
 
     lang.add(0x43, .set, &.{.variable});
-    lang.add(0x46, "file-size", &.{});
+    lang.add(0x46, .@"file-size", &.{});
     lang.add(0x47, .@"set-array-item", &.{.variable});
     lang.add(0x48, "string-number", &.{});
     lang.add(0x4b, .@"set-array-item-2d", &.{.variable});
@@ -512,10 +526,10 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x60, 0x01, .@"start-object", &.{});
     lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
 
-    lang.addNested(0x61, 0x3f, "draw-object", &.{});
+    lang.addNested(0x61, 0x3f, .@"draw-object", &.{});
     lang.addNested(0x61, 0x41, "draw-object-at", &.{});
 
-    lang.add(0x62, "print-image", &.{});
+    lang.add(0x62, .@"print-image", &.{});
 
     lang.addNested(0x63, 0x01, .@"array-get-dim", &.{.variable});
     lang.addNested(0x63, 0x02, .@"array-get-height", &.{.variable});
@@ -648,9 +662,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9e, 0xff, .@"palette-commit", &.{});
 
     lang.add(0x9f, "find-actor", &.{});
-    lang.add(0xa0, "find-object", &.{});
+    lang.add(0xa0, .@"find-object", &.{});
     lang.add(0xa2, "actor-get-elevation", &.{});
-    lang.add(0xa3, "valid-verb", &.{});
+    lang.add(0xa3, .@"valid-verb", &.{});
 
     lang.addNested(0xa4, 0x07, .@"assign-string", &.{.variable});
     lang.addNested(0xa4, 0x7e, .@"array-assign-list", &.{.variable});
@@ -695,9 +709,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb7, 0xc2, .@"print-system-printf", &.{.string});
     lang.addNested(0xb7, 0xfe, .@"print-system-start", &.{});
 
-    lang.addNested(0xb8, 0x41, "say-line-position", &.{});
+    lang.addNested(0xb8, 0x41, .@"say-line-position", &.{});
     lang.addNested(0xb8, 0x45, "say-line-center", &.{});
-    lang.addNested(0xb8, 0x4b, "say-line-string", &.{.string});
+    lang.addNested(0xb8, 0x4b, .@"say-line-string", &.{.string});
     lang.addNested(0xb8, 0xe1, .@"say-line-talkie", &.{});
     lang.addNested(0xb8, 0xf9, .@"say-line-color", &.{});
     lang.addNested(0xb8, 0xfe, .@"say-line-start", &.{});
@@ -728,11 +742,11 @@ fn buildNormalLanguage() Language {
     lang.add(0xca, .@"break-here-multi", &.{});
     lang.add(0xcb, .pick, &.{});
     lang.add(0xcd, "stamp-object", &.{});
-    lang.add(0xcf, "debug-input", &.{});
+    lang.add(0xcf, .@"debug-input", &.{});
     lang.add(0xd0, .@"get-time-date", &.{});
     lang.add(0xd1, .@"stop-line", &.{});
     lang.add(0xd2, .@"actor-get-var", &.{});
-    lang.add(0xd4, "shuffle", &.{.variable});
+    lang.add(0xd4, .shuffle, &.{.variable});
 
     lang.addNested(0xd5, 0x01, .@"chain-script", &.{});
     lang.addNested(0xd5, 0xc3, "chain-script-rec", &.{});
@@ -776,8 +790,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xf3, 0x06, .@"read-system-ini-int", &.{});
     lang.addNested(0xf3, 0x07, .@"read-system-ini-string", &.{});
 
-    lang.addNested(0xf4, 0x06, "write-system-ini-int", &.{});
-    lang.addNested(0xf4, 0x07, "write-system-ini-string", &.{});
+    lang.addNested(0xf4, 0x06, .@"write-system-ini-int", &.{});
+    lang.addNested(0xf4, 0x07, .@"write-system-ini-string", &.{});
 
     lang.add(0xf5, "string-margin", &.{});
     lang.add(0xf6, "string-search", &.{});
