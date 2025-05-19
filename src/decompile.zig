@@ -1914,9 +1914,9 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
         },
         .@"if" => |k| {
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "if (");
-            try emitExpr(cx, k.condition, .all);
-            try cx.out.appendSlice(cx.gpa, ") {\n");
+            try cx.out.appendSlice(cx.gpa, "if ");
+            try emitExpr(cx, k.condition, .space);
+            try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
@@ -1932,9 +1932,9 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
         },
         .@"while" => |n| {
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "while (");
-            try emitExpr(cx, n.condition, .all);
-            try cx.out.appendSlice(cx.gpa, ") {\n");
+            try cx.out.appendSlice(cx.gpa, "while ");
+            try emitExpr(cx, n.condition, .space);
+            try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
@@ -1968,16 +1968,16 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             if (n.condition == null_expr) {
                 try cx.out.appendSlice(cx.gpa, "}\n");
             } else {
-                try cx.out.appendSlice(cx.gpa, "} until (");
-                try emitExpr(cx, n.condition, .all);
-                try cx.out.appendSlice(cx.gpa, ")\n");
+                try cx.out.appendSlice(cx.gpa, "} until ");
+                try emitExpr(cx, n.condition, .space);
+                try cx.out.appendSlice(cx.gpa, "\n");
             }
         },
         .case => |*n| {
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "case (");
-            try emitExpr(cx, n.value, .all);
-            try cx.out.appendSlice(cx.gpa, ") {\n");
+            try cx.out.appendSlice(cx.gpa, "case ");
+            try emitExpr(cx, n.value, .space);
+            try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.first_branch);
             cx.indent -= indent_size;

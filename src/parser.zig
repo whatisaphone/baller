@@ -828,10 +828,8 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         // Check for keywords
         if (parseIdentifierOpt(cx, token, Keyword)) |kw| switch (kw) {
             .@"if" => {
-                try expect(cx, .paren_l);
                 const next = consumeToken(cx);
-                const condition = try parseExpr(cx, next, .all);
-                try expect(cx, .paren_r);
+                const condition = try parseExpr(cx, next, .space);
                 try expect(cx, .brace_l);
                 const true_stmts = try parseScriptBlock(cx);
 
@@ -849,10 +847,8 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .@"while" => {
-                try expect(cx, .paren_l);
                 const next = consumeToken(cx);
-                const condition = try parseExpr(cx, next, .all);
-                try expect(cx, .paren_r);
+                const condition = try parseExpr(cx, next, .space);
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
                 return storeNode(cx, token, .{ .@"while" = .{
@@ -894,10 +890,8 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     .newline => Ast.null_node,
                     .identifier => {
                         _ = try parseIdentifier(cx, token2, enum { until });
-                        try expect(cx, .paren_l);
                         const next = consumeToken(cx);
-                        const condition = try parseExpr(cx, next, .all);
-                        try expect(cx, .paren_r);
+                        const condition = try parseExpr(cx, next, .space);
                         try expect(cx, .newline);
                         break :condition condition;
                     },
@@ -909,9 +903,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .case => {
-                try expect(cx, .paren_l);
-                const case_value = try parseExpr(cx, consumeToken(cx), .all);
-                try expect(cx, .paren_r);
+                const case_value = try parseExpr(cx, consumeToken(cx), .space);
                 try expect(cx, .brace_l);
                 var branches: std.BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
                 while (true) {
