@@ -1723,7 +1723,8 @@ fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
         std.debug.assert(stmt.* == .jump);
     }
 
-    node.end -= jump_len;
+    if (node.end != pc_unknown)
+        node.end -= jump_len;
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
 }
