@@ -163,12 +163,12 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try pushExpr(cx, s.accumulator);
             try pushExpr(cx, s.end);
-            try emitOpcodeByName(cx, "le");
+            try emitOpcodeByName(cx, if (s.direction == .up) "le" else "ge");
             try emitOpcodeByName(cx, "jump-unless");
             const end_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try emitBlock(cx, s.body);
-            try emitOpcodeByName(cx, "inc");
+            try emitOpcodeByName(cx, if (s.direction == .up) "inc" else "dec");
             try emitVariable(cx, s.accumulator);
             try emitOpcodeByName(cx, "jump");
             try writeJumpTargetBackwards(cx, loop_target);

@@ -190,6 +190,7 @@ pub const Node = union(enum) {
         accumulator: NodeIndex,
         start: NodeIndex,
         end: NodeIndex,
+        direction: ForDirection,
         body: ExtraSlice,
     },
     case: struct {
@@ -206,6 +207,11 @@ pub const CaseCondition = union(enum) {
     eq: NodeIndex,
     in: ExtraSlice,
     default,
+};
+
+pub const ForDirection = enum {
+    up,
+    down,
 };
 
 pub const ExtraSlice = struct {

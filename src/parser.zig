@@ -870,13 +870,19 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 const start = try parseExpr(cx, consumeToken(cx), .space);
                 _ = try parseIdentifier(cx, consumeToken(cx), enum { to });
                 const end = try parseExpr(cx, consumeToken(cx), .space);
-                try expect(cx, .plus);
+                const dir_tok = consumeToken(cx);
+                const dir: Ast.ForDirection = switch (dir_tok.kind) {
+                    .plus => .up,
+                    .minus => .down,
+                    else => return reportUnexpected(cx, dir_tok),
+                };
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
                 return storeNode(cx, token, .{ .@"for" = .{
                     .accumulator = accumulator,
                     .start = start,
                     .end = end,
+                    .direction = dir,
                     .body = body,
                 } });
             },

@@ -936,6 +936,7 @@ const NodeKind = union(enum) {
         accumulator: lang.Variable,
         start: ExprIndex,
         end: ExprIndex,
+        direction: Ast.ForDirection,
         body: NodeIndex,
     },
     do: struct {
@@ -1176,6 +1177,7 @@ const For = struct {
     accumulator: lang.Variable,
     start: ExprIndex,
     end: ExprIndex,
+    direction: Ast.ForDirection,
     body_last: NodeIndex,
 };
 
@@ -1184,7 +1186,11 @@ fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
     if (node.kind != .@"while") return null;
     const cond = cx.exprs.getPtr(node.kind.@"while".condition);
     if (cond.* != .call) return null;
-    if (cond.call.op != .le) return null;
+    const dir: Ast.ForDirection = switch (cond.call.op) {
+        .le => .up,
+        .ge => .down,
+        else => return null,
+    };
     std.debug.assert(cond.call.args.len == 2);
     const cond_args = getExtra2(cx.extra, cond.call.args);
     const accum_expr = cx.exprs.getPtr(cond_args[0]);
@@ -1219,7 +1225,8 @@ fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
     if (inc_ss.len == 0) return null;
     const inc = cx.stmts.getPtr(inc_ss.start + inc_ss.len - 1);
     if (inc.* != .call) return null;
-    if (inc.call.op != .inc) return null;
+    const expected_op: lang.Op = if (dir == .up) .inc else .dec;
+    if (inc.call.op != expected_op) return null;
     std.debug.assert(inc.call.args.len == 1);
     const inc_args = getExtra2(cx.extra, inc.call.args);
     const inc_lhs = cx.exprs.getPtr(inc_args[0]);
@@ -1230,6 +1237,7 @@ fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
         .accumulator = accum,
         .start = init_args[1],
         .end = cond_args[1],
+        .direction = dir,
         .body_last = ni_last,
     };
 }
@@ -1250,6 +1258,7 @@ fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
         .accumulator = info.accumulator,
         .start = info.start,
         .end = info.end,
+        .direction = info.direction,
         .body = ni_body,
     } };
 
@@ -1940,7 +1949,9 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitExpr(cx, n.start, .space);
             try cx.out.appendSlice(cx.gpa, " to ");
             try emitExpr(cx, n.end, .space);
-            try cx.out.appendSlice(cx.gpa, " + {\n");
+            try cx.out.append(cx.gpa, ' ');
+            try cx.out.append(cx.gpa, if (n.direction == .up) '+' else '-');
+            try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
