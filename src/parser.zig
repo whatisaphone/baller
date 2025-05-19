@@ -813,6 +813,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"if",
         @"while",
+        @"for",
         do,
         case,
     };
@@ -856,6 +857,26 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 const body = try parseScriptBlock(cx);
                 return storeNode(cx, token, .{ .@"while" = .{
                     .condition = condition,
+                    .body = body,
+                } });
+            },
+            .@"for" => {
+                const ac_tok = consumeToken(cx);
+                if (ac_tok.kind != .identifier)
+                    return reportUnexpected(cx, ac_tok);
+                const identifier = cx.source[ac_tok.span.start.offset..ac_tok.span.end.offset];
+                const accumulator = try storeNode(cx, ac_tok, .{ .identifier = identifier });
+                try expect(cx, .eq);
+                const start = try parseExpr(cx, consumeToken(cx), .space);
+                _ = try parseIdentifier(cx, consumeToken(cx), enum { to });
+                const end = try parseExpr(cx, consumeToken(cx), .space);
+                try expect(cx, .plus);
+                try expect(cx, .brace_l);
+                const body = try parseScriptBlock(cx);
+                return storeNode(cx, token, .{ .@"for" = .{
+                    .accumulator = accumulator,
+                    .start = start,
+                    .end = end,
                     .body = body,
                 } });
             },

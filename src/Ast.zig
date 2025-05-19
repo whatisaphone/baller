@@ -186,6 +186,12 @@ pub const Node = union(enum) {
         body: ExtraSlice,
         condition: NodeIndex,
     },
+    @"for": struct {
+        accumulator: NodeIndex,
+        start: NodeIndex,
+        end: NodeIndex,
+        body: ExtraSlice,
+    },
     case: struct {
         value: NodeIndex,
         branches: ExtraSlice,

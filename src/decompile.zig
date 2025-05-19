@@ -932,6 +932,12 @@ const NodeKind = union(enum) {
         condition: ExprIndex,
         body: NodeIndex,
     },
+    @"for": struct {
+        accumulator: lang.Variable,
+        start: ExprIndex,
+        end: ExprIndex,
+        body: NodeIndex,
+    },
     do: struct {
         body: NodeIndex,
         condition: ExprIndex,
@@ -980,6 +986,10 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
+        try huntFor(cx, ni);
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
         try huntBreakUntil(cx, ni);
 
     try queueNode(cx, root_node_index);
@@ -1006,6 +1016,9 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
             try queueNode(cx, n.body);
         },
         .do => |*n| {
+            try queueNode(cx, n.body);
+        },
+        .@"for" => |*n| {
             try queueNode(cx, n.body);
         },
         .case => |*n| {
@@ -1147,6 +1160,104 @@ fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void
     } };
 
     structureCheckpoint(cx, "makeWhile ni_if={} ni_true_last={}", .{ ni_if, ni_true_last });
+}
+
+fn huntFor(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        if (isFor(cx, ni)) |f|
+            makeFor(cx, ni, f);
+    }
+}
+
+const For = struct {
+    accumulator: lang.Variable,
+    start: ExprIndex,
+    end: ExprIndex,
+    body_last: NodeIndex,
+};
+
+fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
+    const node = &cx.nodes.items[ni];
+    if (node.kind != .@"while") return null;
+    const cond = cx.exprs.getPtr(node.kind.@"while".condition);
+    if (cond.* != .call) return null;
+    if (cond.call.op != .le) return null;
+    std.debug.assert(cond.call.args.len == 2);
+    const cond_args = getExtra2(cx.extra, cond.call.args);
+    const accum_expr = cx.exprs.getPtr(cond_args[0]);
+    if (accum_expr.* != .variable) return null;
+    const accum = accum_expr.variable;
+
+    // Due to a quirk of how if nodes are structured, there will always be an
+    // empty basic block leftover before the one we're interested in here.
+    if (node.prev == null_node) return null;
+    const empty = &cx.nodes.items[node.prev];
+    if (empty.kind != .basic_block) return null;
+    if (empty.start != empty.end) return null;
+
+    if (empty.prev == null_node) return null;
+    const prev = &cx.nodes.items[empty.prev];
+    if (prev.kind != .basic_block) return null;
+    const init_ss = prev.kind.basic_block.statements;
+    if (init_ss.len == 0) return null;
+    const init = cx.stmts.getPtr(init_ss.start + init_ss.len - 1);
+    if (init.* != .call) return null;
+    if (init.call.op != .set) return null;
+    std.debug.assert(init.call.args.len == 2);
+    const init_args = getExtra2(cx.extra, init.call.args);
+    const init_lhs = cx.exprs.getPtr(init_args[0]);
+    if (init_lhs.* != .variable) return null;
+    if (init_lhs.variable.raw != accum.raw) return null;
+
+    const ni_last = findLastNode(cx, node.kind.@"while".body);
+    const last = &cx.nodes.items[ni_last];
+    if (last.kind != .basic_block) return null;
+    const inc_ss = last.kind.basic_block.statements;
+    if (inc_ss.len == 0) return null;
+    const inc = cx.stmts.getPtr(inc_ss.start + inc_ss.len - 1);
+    if (inc.* != .call) return null;
+    if (inc.call.op != .inc) return null;
+    std.debug.assert(inc.call.args.len == 1);
+    const inc_args = getExtra2(cx.extra, inc.call.args);
+    const inc_lhs = cx.exprs.getPtr(inc_args[0]);
+    if (inc_lhs.* != .variable) return null;
+    if (inc_lhs.variable.raw != accum.raw) return null;
+
+    return .{
+        .accumulator = accum,
+        .start = init_args[1],
+        .end = cond_args[1],
+        .body_last = ni_last,
+    };
+}
+
+fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
+    const node = &cx.nodes.items[ni];
+    const ni_empty = node.prev;
+    const empty = &cx.nodes.items[ni_empty];
+    const ni_init = empty.prev;
+    const ni_body = cx.nodes.items[ni].kind.@"while".body;
+
+    chopLastStmt(cx, ni_init); // chop off the init
+    chopLastStmt(cx, info.body_last); // chop off the increment
+
+    cx.nodes.items[ni].start = cx.nodes.items[ni_init].end;
+    cx.nodes.items[ni].prev = ni_init;
+    cx.nodes.items[ni].kind = .{ .@"for" = .{
+        .accumulator = info.accumulator,
+        .start = info.start,
+        .end = info.end,
+        .body = ni_body,
+    } };
+
+    cx.nodes.items[ni_init].next = ni;
+
+    orphanNode(cx, ni_empty);
+
+    structureCheckpoint(cx, "makeFor ni={} body_last={}", .{ ni, info.body_last });
 }
 
 fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1593,6 +1704,7 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
             .basic_block => {},
             .@"if" => |*n| try out.print("      true={} false={}\n", .{ n.true, n.false }),
             .@"while" => |*n| try out.print("      body={}\n", .{n.body}),
+            .@"for" => |*n| try out.print("      body={}\n", .{n.body}),
             .do => |*n| try out.print("      body={}\n", .{n.body}),
             .case => |*n| try out.print("      first={}\n", .{n.first_branch}),
             .case_branch => |*n| try out.print("      body={}\n", .{n.body}),
@@ -1633,6 +1745,17 @@ fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     else
         pc_unknown;
     return condition;
+}
+
+fn chopLastStmt(cx: *StructuringCx, ni: NodeIndex) void {
+    const node = &cx.nodes.items[ni];
+
+    std.debug.assert(node.kind.basic_block.exit == .no_jump);
+    node.kind.basic_block.statements.len -= 1;
+    node.end = if (node.kind.basic_block.statements.len == 0)
+        node.start
+    else
+        pc_unknown;
 }
 
 fn chopFirstPop(cx: *StructuringCx, ni: NodeIndex) void {
@@ -1717,6 +1840,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .do => |*n| {
             try findJumpTargetsInNodeList(cx, n.body);
         },
+        .@"for" => |*n| {
+            try findJumpTargetsInNodeList(cx, n.body);
+        },
         .case => |*n| {
             try findJumpTargetsInNodeList(cx, n.first_branch);
         },
@@ -1799,6 +1925,21 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try cx.out.appendSlice(cx.gpa, "while (");
             try emitExpr(cx, n.condition, .all);
             try cx.out.appendSlice(cx.gpa, ") {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.body);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .@"for" => |*n| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "for ");
+            try emitVariable(cx, n.accumulator);
+            try cx.out.appendSlice(cx.gpa, " = ");
+            try emitExpr(cx, n.start, .space);
+            try cx.out.appendSlice(cx.gpa, " to ");
+            try emitExpr(cx, n.end, .space);
+            try cx.out.appendSlice(cx.gpa, " + {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;

@@ -156,6 +156,24 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                 try writeJumpTargetBackwards(cx, loop_target);
             }
         },
+        .@"for" => |*s| {
+            try pushExpr(cx, s.start);
+            try emitOpcodeByName(cx, "set");
+            try emitVariable(cx, s.accumulator);
+            const loop_target: u32 = @intCast(cx.out.items.len);
+            try pushExpr(cx, s.accumulator);
+            try pushExpr(cx, s.end);
+            try emitOpcodeByName(cx, "le");
+            try emitOpcodeByName(cx, "jump-unless");
+            const end_fixup: u32 = @intCast(cx.out.items.len);
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+            try emitBlock(cx, s.body);
+            try emitOpcodeByName(cx, "inc");
+            try emitVariable(cx, s.accumulator);
+            try emitOpcodeByName(cx, "jump");
+            try writeJumpTargetBackwards(cx, loop_target);
+            try fixupJumpToHere(cx, end_fixup);
+        },
         .case => |*s| {
             var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};
             try pushExpr(cx, s.value);
