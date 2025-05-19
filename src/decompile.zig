@@ -968,37 +968,27 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
         };
     }
 
-    checkInvariants(cx) catch unreachable;
+    structureCheckpoint(cx, "initial", .{});
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni| {
+    while (cx.queue.pop()) |ni|
         try huntIf(cx, ni);
-        checkInvariants(cx) catch unreachable;
-    }
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni| {
+    while (cx.queue.pop()) |ni|
         try huntWhile(cx, ni);
-        checkInvariants(cx) catch unreachable;
-    }
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni| {
+    while (cx.queue.pop()) |ni|
         try huntBreakUntil(cx, ni);
-        checkInvariants(cx) catch unreachable;
-    }
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni| {
+    while (cx.queue.pop()) |ni|
         try huntDo(cx, ni);
-        checkInvariants(cx) catch unreachable;
-    }
 
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni| {
+    while (cx.queue.pop()) |ni|
         try huntCase(cx, ni);
-        checkInvariants(cx) catch unreachable;
-    }
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
@@ -1080,6 +1070,8 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
     cx.nodes.items[ni_true_start].prev = null_node;
     cx.nodes.items[ni_true_end].next = null_node;
 
+    structureCheckpoint(cx, "makeIf ni_before={} ni_true_end={}", .{ ni_before, ni_true_end });
+
     try queueNode(cx, ni_after);
     try queueNode(cx, ni_true_start);
 }
@@ -1117,6 +1109,12 @@ fn makeIfElse(
     cx.nodes.items[ni_false_start].prev = null_node;
     cx.nodes.items[ni_false_end].next = null_node;
 
+    structureCheckpoint(
+        cx,
+        "makeIfElse ni_before={} ni_true_end={} ni_false_end={}",
+        .{ ni_before, ni_true_end, ni_false_end },
+    );
+
     try queueNode(cx, ni_after);
     try queueNode(cx, ni_true_start);
     try queueNode(cx, ni_false_start);
@@ -1147,6 +1145,8 @@ fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void
         .condition = cx.nodes.items[ni_if].kind.@"if".condition,
         .body = cx.nodes.items[ni_if].kind.@"if".true,
     } };
+
+    structureCheckpoint(cx, "makeWhile ni_if={} ni_true_last={}", .{ ni_if, ni_true_last });
 }
 
 fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1206,6 +1206,12 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
 
     cx.nodes.items[ni_body_first].prev = null_node;
     cx.nodes.items[ni_condition].next = null_node;
+
+    structureCheckpoint(
+        cx,
+        "makeDo ni_body_first_orig={} ni_condition_orig={}",
+        .{ ni_body_first_orig, ni_condition_orig },
+    );
 }
 
 fn huntBreakUntil(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1259,6 +1265,8 @@ fn makeBreakUntil(cx: *StructuringCx, ni: NodeIndex) !void {
     node.kind.basic_block.exit = .no_jump;
 
     orphanNode(cx, ni_loop);
+
+    structureCheckpoint(cx, "makeBreakUntil ni={}", .{ni});
 }
 
 fn huntCase(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1451,6 +1459,8 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
     });
     cx.nodes.items[ni_prev_branch].next = ni_else_branch;
     chopFirstPop(cx, ni_cur);
+
+    structureCheckpoint(cx, "makeCase ni={} ni_last={}", .{ ni, ni_last });
 }
 
 fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
@@ -1515,14 +1525,16 @@ fn orphanNode(cx: *StructuringCx, ni: NodeIndex) void {
     node.next = null_node;
 }
 
+fn structureCheckpoint(cx: *StructuringCx, comptime fmt: []const u8, args: anytype) void {
+    dumpNodes(cx, fmt, args) catch @panic("spew");
+    checkInvariants(cx) catch @panic("invariant violation");
+}
+
 fn checkInvariants(cx: *StructuringCx) !void {
     if (builtin.mode != .Debug) return;
 
     for (cx.nodes.items, 0..) |*node, ni| {
-        errdefer {
-            dumpNodes(cx) catch @panic("spew");
-            std.debug.print("broken node: {}\n", .{ni});
-        }
+        errdefer std.debug.print("broken node: {}\n", .{ni});
 
         if (node.prev != null_node) {
             const prev = &cx.nodes.items[node.prev];
@@ -1539,7 +1551,20 @@ fn checkInvariants(cx: *StructuringCx) !void {
     }
 }
 
-fn dumpNodes(cx: *StructuringCx) !void {
+fn dumpNodes(cx: *StructuringCx, comptime fmt: []const u8, args: anytype) !void {
+    if (true) return;
+
+    std.Progress.lockStdErr();
+    defer std.Progress.unlockStdErr();
+
+    const out = std.io.getStdErr().writer();
+    try out.writeAll("-------------------- ");
+    try out.print(fmt, args);
+    try out.writeByte('\n');
+    try dumpNodesInner(cx, out);
+}
+
+fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
     const Item = struct {
         index: usize,
         node: Node,
@@ -1557,27 +1582,20 @@ fn dumpNodes(cx: *StructuringCx) !void {
         item.* = .{ .index = ni, .node = node.* };
     std.mem.sort(Item, items, {}, Item.lt);
 
-    std.Progress.lockStdErr();
-    defer std.Progress.unlockStdErr();
-
-    const out = std.io.getStdErr().writer();
-
-    try out.writeAll("----------------------------------------\n");
-
     for (items) |item| {
         const ni = item.index;
         const node = item.node;
         try out.print(
-            "{}: {}/{} 0x{x:0>4}-0x{x:0>4} {s}\n",
-            .{ ni, node.prev, node.next, node.start, node.end, @tagName(node.kind) },
+            "{}: {s:<11} {}/{} 0x{x:0>4}-0x{x:0>4}\n",
+            .{ ni, @tagName(node.kind), node.prev, node.next, node.start, node.end },
         );
         switch (node.kind) {
             .basic_block => {},
-            .@"if" => |*n| try out.print("  true={} false={}\n", .{ n.true, n.false }),
-            .@"while" => |*n| try out.print("  body={}\n", .{n.body}),
-            .do => |*n| try out.print("  body={}\n", .{n.body}),
-            .case => |*n| try out.print("  first={}\n", .{n.first_branch}),
-            .case_branch => |*n| try out.print("  body={}\n", .{n.body}),
+            .@"if" => |*n| try out.print("      true={} false={}\n", .{ n.true, n.false }),
+            .@"while" => |*n| try out.print("      body={}\n", .{n.body}),
+            .do => |*n| try out.print("      body={}\n", .{n.body}),
+            .case => |*n| try out.print("      first={}\n", .{n.first_branch}),
+            .case_branch => |*n| try out.print("      body={}\n", .{n.body}),
         }
     }
 }
