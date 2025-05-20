@@ -225,21 +225,17 @@ fn parseVariable(var_str: []const u8, locals: []const []const u8, scopes: Scopes
     if (scopes.project.get(var_str)) |s| if (s == .variable) return s.variable;
 
     const kind: lang.Variable.Kind, const num_str =
-        if (std.mem.startsWith(u8, var_str, "global"))
-            .{ .global, var_str[6..] }
-        else if (std.mem.startsWith(u8, var_str, "local"))
+        if (std.mem.startsWith(u8, var_str, "local"))
             .{ .local, var_str[5..] }
-        else if (std.mem.startsWith(u8, var_str, "room"))
-            .{ .room, var_str[4..] }
         else
             return error.BadData;
 
     const num = try std.fmt.parseInt(u14, num_str, 10);
 
     return switch (kind) {
-        .global => .init(.{ .global = num }),
+        .global => unreachable,
         .local => .init(.{ .local = num }),
-        .room => .init(.{ .room = num }),
+        .room => unreachable,
     };
 }
 

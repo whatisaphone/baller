@@ -515,7 +515,7 @@ fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .global = scrp.glob_number };
-    const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &.{}, id);
+    const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.events.send(.{
         .index = event_index,

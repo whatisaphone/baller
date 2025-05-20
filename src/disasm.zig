@@ -1,25 +1,30 @@
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
 pub fn disassemble(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
+    room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
+    usage: *UsageTracker,
     diagnostic: anytype,
 ) !void {
     disassembleInner(
         allocator,
         language,
+        room_number,
         id,
         bytecode,
         symbols,
         out,
+        usage,
         diagnostic,
     ) catch |err| switch (err) {
         error.BadData, error.EndOfStream => return error.BadData,
@@ -30,10 +35,12 @@ pub fn disassemble(
 fn disassembleInner(
     allocator: std.mem.Allocator,
     language: *const lang.Language,
+    room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
     out: anytype,
+    usage: *UsageTracker,
     diagnostic: anytype,
 ) !void {
     var warned_for_unknown_byte = false;
@@ -42,7 +49,7 @@ fn disassembleInner(
     if (bytecode.len > 0xffff)
         return error.BadData;
 
-    try writePreamble(id, symbols, out);
+    try writePreamble(room_number, id, symbols, out);
 
     var dasm: lang.Disasm = .init(language, bytecode);
 
@@ -75,7 +82,7 @@ fn disassembleInner(
         try out.writeAll(ins.name.asStr());
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
-            try emitOperand(op, ins.end, jump_targets.items, out, symbols, id);
+            try emitOperand(op, ins.end, jump_targets.items, out, usage, symbols, room_number, id);
         }
         try out.writeByte('\n');
     }
@@ -86,7 +93,7 @@ fn disassembleInner(
         return error.BadData;
 }
 
-fn writePreamble(id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !void {
+fn writePreamble(room_number: u8, id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !void {
     const script = symbols.getScript(id) orelse return;
 
     if (script.name) |name|
@@ -96,7 +103,7 @@ fn writePreamble(id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !v
         for (0..script.locals.len()) |i| {
             const variable: lang.Variable = .init(.{ .local = @intCast(i) });
             try out.writeAll(".local ");
-            try emitVariable(out, variable, symbols, id);
+            try emitVariable(out, variable, symbols, room_number, id);
             try out.writeByte('\n');
         }
         try out.writeByte('\n');
@@ -152,7 +159,9 @@ fn emitOperand(
     pc: u16,
     jump_targets: []const u16,
     out: anytype,
+    usage: *UsageTracker,
     symbols: *const Symbols,
+    room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
     switch (op) {
@@ -166,7 +175,8 @@ fn emitOperand(
             try emitLabel(abs, out);
         },
         .variable => |v| {
-            try emitVariable(out, v, symbols, id);
+            try emitVariable(out, v, symbols, room_number, id);
+            try usage.track(v);
         },
         .string => |s| {
             // TODO: escaping
@@ -181,6 +191,7 @@ fn emitVariable(
     out: anytype,
     variable: lang.Variable,
     symbols: *const Symbols,
+    room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
     switch (try variable.decode()) {
@@ -201,12 +212,10 @@ fn emitVariable(
             try out.print("local{}", .{num});
         },
         .room => |num| {
-            if (id.room()) |room_number| {
-                if (symbols.getRoom(room_number)) |room| {
-                    if (room.vars.get(num)) |name| {
-                        try out.writeAll(name);
-                        return;
-                    }
+            if (symbols.getRoom(room_number)) |room| {
+                if (room.vars.get(num)) |name| {
+                    try out.writeAll(name);
+                    return;
                 }
             }
             try out.print("room{}", .{num});

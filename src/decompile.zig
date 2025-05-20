@@ -4,6 +4,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
@@ -18,6 +19,7 @@ pub fn run(
     room_number: u8,
     bytecode: []const u8,
     out: *std.ArrayListUnmanaged(u8),
+    usage: *UsageTracker,
 ) !void {
     // This code uses u16 all over the place. Make sure everything will fit.
     // Leave an extra byte so the end of a slice is representable as 0xffff.
@@ -40,6 +42,7 @@ pub fn run(
         .stmts = .empty,
         .exprs = .empty,
         .extra = .empty,
+        .usage = usage,
     };
     defer dcx.extra.deinit(gpa);
     defer dcx.exprs.deinit(gpa);
@@ -212,6 +215,7 @@ const DecompileCx = struct {
     stmts: std.ArrayListUnmanaged(Stmt),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
+    usage: *UsageTracker,
 };
 
 const Stmt = union(enum) {
@@ -630,6 +634,9 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             return error.AddedToDiagnostic;
         },
     };
+    for (ins.operands.slice()) |o|
+        if (o == .variable)
+            try cx.usage.track(o.variable);
     switch (ops.get(op)) {
         .push8 => {
             try push(cx, .{ .int = ins.operands.get(0).u8 });
@@ -2180,7 +2187,11 @@ fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
                 return try cx.out.appendSlice(cx.gpa, name);
         },
         .local => {}, // TODO
-        .room => {}, // TODO
+        .room => {
+            if (cx.symbols.getRoom(cx.room_number)) |room|
+                if (room.vars.get(number)) |name|
+                    return try cx.out.appendSlice(cx.gpa, name);
+        },
     }
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
 }

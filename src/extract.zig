@@ -3,6 +3,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -149,6 +150,14 @@ const Options = struct {
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
+
+    fn anyScriptDecode(self: *const Options) bool {
+        return self.scrp == .decode or
+            self.encd == .decode or
+            self.excd == .decode or
+            self.lscr == .decode or
+            self.lsc2 == .decode;
+    }
 };
 
 const RawOrDecode = enum {
@@ -222,12 +231,7 @@ pub fn run(
 
     var language: lang.Language = undefined;
     var language_ptr: utils.SafeUndefined(*const lang.Language) = .undef;
-    if (args.options.scrp == .decode or
-        args.options.encd == .decode or
-        args.options.excd == .decode or
-        args.options.lscr == .decode or
-        args.options.lsc2 == .decode)
-    {
+    if (args.options.anyScriptDecode()) {
         language = lang.buildLanguage(game);
         language_ptr = .{ .defined = &language };
     }
@@ -245,6 +249,7 @@ pub fn run(
         .language = language_ptr,
         .symbols = &symbols,
         .index = &index,
+        .global_var_usage = @splat(0),
         .output_dir = output_dir,
         .stats = .initFill(0),
     };
@@ -254,11 +259,17 @@ pub fn run(
         try extractDisk(&cx, diagnostic, input_dir, index_name, disk_number, &code);
     }
 
-    if (symbols.globals.len() != 0) {
+    if (args.options.anyScriptDecode()) {
         try code.append(gpa, '\n');
-        for (0..symbols.globals.len()) |i|
-            if (symbols.globals.get(i)) |name|
-                try code.writer(gpa).print("var {s} @ {}\n", .{ name, i });
+        for (0..UsageTracker.max_global_vars) |num| {
+            if (!UsageTracker.get(&cx.global_var_usage, num)) continue;
+            try code.appendSlice(gpa, "var ");
+            if (symbols.globals.get(num)) |name|
+                try code.appendSlice(gpa, name)
+            else // Fall back to generated name
+                try code.writer(gpa).print("global{}", .{num});
+            try code.writer(gpa).print("@{}\n", .{num});
+        }
     }
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
@@ -602,6 +613,7 @@ const Context = struct {
     language: utils.SafeUndefined(*const lang.Language),
     symbols: *const Symbols,
     index: *const Index,
+    global_var_usage: UsageTracker.GlobalVars,
     output_dir: std.fs.Dir,
     stats: std.EnumArray(Stat, u16),
 
@@ -717,6 +729,7 @@ const RoomContext = struct {
     room_path: []const u8,
     room_dir: std.fs.Dir,
     room_palette: utils.SafeUndefined([0x300]u8),
+    room_var_usage: UsageTracker.RoomVars,
     events: *sync.Channel(Event, 16),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
@@ -778,6 +791,7 @@ fn readRoomJob(
         .room_path = undefined, // set below
         .room_dir = undefined, // set below
         .room_palette = .undef,
+        .room_var_usage = @splat(0),
         .events = events,
         .pending_jobs = .init(0),
         .next_chunk_index = 0,
@@ -804,7 +818,44 @@ fn readRoomJob(
     }
     diag.trace(@intCast(in.bytes_read), "all jobs finished", .{});
 
+    // This depends on usage data that the script jobs wrote to context. Do it
+    // after the join so we know they finished.
+    emitRoomVars(&rcx) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diag.zigErr(@intCast(in.bytes_read), "room {}: unexpected error: {s}", .{room_number}, err);
+        events.send(.err);
+    };
+
     events.send(.end);
+}
+
+fn emitRoomVars(cx: *RoomContext) !void {
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.cx.gpa);
+
+    try out.append(cx.cx.gpa, '\n');
+
+    const symbols_room = cx.cx.symbols.getRoom(cx.room_number);
+
+    for (0..UsageTracker.max_room_vars) |num| {
+        if (!UsageTracker.get(&cx.room_var_usage, num)) continue;
+        try out.appendSlice(cx.cx.gpa, "var ");
+        write_name: {
+            if (symbols_room) |sr| if (sr.vars.get(num)) |name| {
+                try out.appendSlice(cx.cx.gpa, name);
+                break :write_name;
+            };
+            // Fall back to generated name
+            try out.writer(cx.cx.gpa).print("room{}", .{num});
+        }
+        try out.writer(cx.cx.gpa).print("@{}\n", .{num});
+    }
+
+    // If there were no vars, don't output an extra newline with nothing below it
+    if (out.items.len == 1)
+        out.clearRetainingCapacity();
+
+    try cx.sendSync(.top, out);
 }
 
 fn readRoomInner(
@@ -837,10 +888,6 @@ fn readRoomInner(
     }
 
     try lflf_blocks.finish(lflf_end);
-
-    const room_vars_chunk_index = try cx.claimChunkIndex();
-    _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.cx.pool.spawn(runRoomVarsJob, .{ cx, diag.diagnostic, room_vars_chunk_index });
 }
 
 fn extractRmda(
@@ -967,7 +1014,7 @@ fn runBlockJob(
         cx.events.send(.err);
     };
 
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
+    const prev_pending = cx.pending_jobs.fetchSub(1, .acq_rel);
     if (prev_pending == 1)
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
@@ -1073,7 +1120,7 @@ const EncdExcd = enum {
 };
 
 fn extractEncdExcd(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
@@ -1109,7 +1156,7 @@ fn extractEncdExcd(
 }
 
 fn extractEncdExcdDisassemble(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     edge: EncdExcd,
     raw: []const u8,
@@ -1124,7 +1171,9 @@ fn extractEncdExcdDisassemble(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    var usage: UsageTracker = .init(cx.cx.game);
+
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1138,6 +1187,11 @@ fn extractEncdExcdDisassemble(
         .{ @tagName(edge), cx.room_path, path },
     );
 
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
+
     cx.cx.incStat(switch (edge) {
         .encd => .encd_disassemble,
         .excd => .excd_disassemble,
@@ -1146,19 +1200,26 @@ fn extractEncdExcdDisassemble(
 }
 
 fn extractEncdExcdDecompile(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     edge: EncdExcd,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    var usage: UsageTracker = .init(cx.cx.game);
+
     const keyword = switch (edge) {
         .encd => "enter",
         .excd => "exit",
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
 
     cx.cx.incStat(switch (edge) {
         .encd => .encd_decompile,
@@ -1180,7 +1241,7 @@ const LocalScriptBlockType = enum {
 };
 
 fn extractLscr(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
@@ -1230,7 +1291,7 @@ fn extractLscr(
 }
 
 fn extractLscrDisassemble(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_type: LocalScriptBlockType,
     script_number: u32,
@@ -1242,11 +1303,13 @@ fn extractLscrDisassemble(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
 
+    var usage: UsageTracker = .init(cx.cx.game);
+
     const id: Symbols.ScriptId = .{ .local = .{
         .room = cx.room_number,
         .number = script_number,
     } };
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, bytecode, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1259,6 +1322,11 @@ fn extractLscrDisassemble(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ script_number, cx.room_path, path });
 
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
+
     cx.cx.incStat(switch (block_type) {
         .lscr => .lscr_disassemble,
         .lsc2 => .lsc2_disassemble,
@@ -1267,51 +1335,30 @@ fn extractLscrDisassemble(
 }
 
 fn extractLscrDecompile(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_type: LocalScriptBlockType,
     script_number: u32,
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    var usage: UsageTracker = .init(cx.cx.game);
+
     try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, bytecode, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, bytecode, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
 
     cx.cx.incStat(switch (block_type) {
         .lscr => .lscr_decompile,
         .lsc2 => .lsc2_decompile,
     });
-}
-
-fn runRoomVarsJob(cx: *RoomContext, diagnostic: *Diagnostic, chunk_index: u16) void {
-    writeRoomVarsJob(cx, chunk_index) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            diagnostic.zigErr("unexpected error: {s}", .{}, err);
-        cx.events.send(.err);
-    };
-
-    const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
-    if (prev_pending == 1)
-        std.Thread.Futex.wake(&cx.pending_jobs, 1);
-}
-
-fn writeRoomVarsJob(cx: *RoomContext, chunk_index: u16) !void {
-    var code: std.ArrayListUnmanaged(u8) = .empty;
-    errdefer code.deinit(cx.cx.gpa);
-
-    try writeRoomVarsInner(cx, &code);
-    cx.sendChunk(chunk_index, .top, code);
-}
-
-fn writeRoomVarsInner(cx: *RoomContext, code: *std.ArrayListUnmanaged(u8)) !void {
-    const room = cx.cx.symbols.getRoom(cx.room_number) orelse return;
-    try code.append(cx.cx.gpa, '\n');
-    for (0..room.vars.len()) |i|
-        if (room.vars.get(i)) |name|
-            try code.writer(cx.cx.gpa).print("var {s} @ {}\n", .{ name, i });
 }
 
 fn findGlobNumber(
@@ -1339,7 +1386,7 @@ fn findGlobNumber(
 }
 
 fn extractGlobJob(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     disk_diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
     raw: []const u8,
@@ -1400,7 +1447,7 @@ fn extractGlobJob(
 fn tryDecode(
     decoder_name: []const u8,
     decodeFn: anytype,
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     decode_args: anytype,
     code: *std.ArrayListUnmanaged(u8),
@@ -1460,7 +1507,7 @@ fn handleDecodeAndSendResult(
 }
 
 fn extractScrp(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
@@ -1483,7 +1530,7 @@ fn extractScrp(
 }
 
 fn extractScrpDisassemble(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
@@ -1496,7 +1543,9 @@ fn extractScrpDisassemble(
     var out: std.ArrayListUnmanaged(u8) = .empty;
     defer out.deinit(cx.cx.gpa);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &diagnostic) catch |err| {
+    var usage: UsageTracker = .init(cx.cx.game);
+
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1508,6 +1557,11 @@ fn extractScrpDisassemble(
     try code.appendSlice(cx.cx.gpa, "\nscrp ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
 
     cx.cx.incStat(.scrp_disassemble);
     diagnostic.flushStats(cx.cx, diag);
@@ -1536,17 +1590,24 @@ const DisasmDiagnostic = struct {
 };
 
 fn extractScrpDecompile(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    var usage: UsageTracker = .init(cx.cx.game);
+
     try code.appendSlice(cx.cx.gpa, "\nscript ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
 
     cx.cx.incStat(.scrp_decompile);
 }

@@ -476,12 +476,8 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
 
 fn parseMagicVariableByNumber(str: []const u8) ?lang.Variable {
     const kind: lang.Variable.Kind, const num_str =
-        if (str.len >= 6 and std.mem.startsWith(u8, str, "global"))
-            .{ .global, str[6..] }
-        else if (str.len >= 5 and std.mem.startsWith(u8, str, "local"))
+        if (str.len >= 5 and std.mem.startsWith(u8, str, "local"))
             .{ .local, str[5..] }
-        else if (str.len >= 4 and std.mem.startsWith(u8, str, "room"))
-            .{ .room, str[4..] }
         else
             return null;
     const num = std.fmt.parseInt(u14, num_str, 10) catch return null;
