@@ -991,7 +991,7 @@ fn extractRmimJob(
             return;
 
     // If decoding failed or was skipped, extract as raw
-    try writeRawGlob(cx.cx.gpa, block, cx.room_number, raw, cx.room_dir, cx.room_path, &code);
+    try writeRawGlob(cx, block, cx.room_number, raw, &code);
     cx.sendChunk(chunk_index, .top, code);
 }
 
@@ -1388,7 +1388,7 @@ fn extractGlobJob(
 
     // If decoding failed or was skipped, extract as raw
 
-    try writeRawGlob(cx.cx.gpa, block, glob_number, raw, cx.room_dir, cx.room_path, &code);
+    try writeRawGlob(cx, block, glob_number, raw, &code);
     cx.sendChunk(chunk_index, .bottom, code);
 
     cx.cx.incStatOpt(switch (block.id) {
@@ -1618,12 +1618,10 @@ fn extractAkos(
 }
 
 fn writeRawGlob(
-    gpa: std.mem.Allocator,
+    cx: *const RoomContext,
     block: *const Block,
     glob_number: u16,
     data: []const u8,
-    output_dir: std.fs.Dir,
-    output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
@@ -1632,12 +1630,43 @@ fn writeRawGlob(
         "{s}_{:0>4}.bin",
         .{ fmtBlockId(&block.id), glob_number },
     );
-    try fs.writeFileZ(output_dir, filename, data);
+    try fs.writeFileZ(cx.room_dir, filename, data);
 
-    try code.writer(gpa).print(
-        "raw-glob \"{s}\" {} \"{s}/{s}\"\n",
-        .{ fmtBlockId(&block.id), glob_number, output_path, filename },
+    try code.writer(cx.cx.gpa).print("raw-glob \"{s}\" ", .{fmtBlockId(&block.id)});
+    if (getGlobName(cx, block.id, glob_number)) |name| {
+        switch (name) {
+            .string => |s| try code.appendSlice(cx.cx.gpa, s),
+            .prefixed => |p| try code.writer(cx.cx.gpa).print("{s}{}", .{ p, glob_number }),
+        }
+        try code.append(cx.cx.gpa, '@');
+    }
+    try code.writer(cx.cx.gpa).print(
+        "{} \"{s}/{s}\"\n",
+        .{ glob_number, cx.room_path, filename },
     );
+}
+
+fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?union(enum) {
+    string: []const u8,
+    prefixed: []const u8,
+} {
+    const kind = Symbols.GlobKind.fromBlockId(block_id) orelse unreachable;
+    switch (kind) {
+        .script => if (cx.cx.symbols.scripts.getPtr(glob_number)) |s|
+            if (s.name) |n| return .{ .string = n },
+        else => {},
+    }
+
+    const prefix = switch (kind) {
+        .room_image, .room => return null,
+        .script => "scr",
+        .sound => "sound",
+        .costume => "costume",
+        .charset => "charset",
+        .image => "image",
+        .talkie => "talkie",
+    };
+    return .{ .prefixed = prefix };
 }
 
 fn extractRawBlock(

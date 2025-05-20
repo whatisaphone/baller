@@ -171,12 +171,20 @@ fn buildProjectScope(cx: *Context) !void {
             const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
             for (room_file.ast.getExtra(root.children)) |child_index| {
                 switch (room_file.ast.nodes.items[child_index]) {
+                    .raw_glob_file => |n| if (n.name) |name| {
+                        const symbol: script.Symbol = .{ .constant = n.glob_number };
+                        try addScopeSymbol(cx, &cx.project_scope, name, symbol);
+                    },
+                    .raw_glob_block => |n| if (n.name) |name| {
+                        const symbol: script.Symbol = .{ .constant = n.glob_number };
+                        try addScopeSymbol(cx, &cx.project_scope, name, symbol);
+                    },
                     .scrp => |n| {
-                        const symbol: script.Symbol = .{ .script = n.glob_number };
+                        const symbol: script.Symbol = .{ .constant = n.glob_number };
                         try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
                     },
                     .script => |n| {
-                        const symbol: script.Symbol = .{ .script = n.glob_number };
+                        const symbol: script.Symbol = .{ .constant = n.glob_number };
                         try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
                     },
                     else => {},
@@ -239,11 +247,11 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.items[node_index]) {
             .lscr => |n| {
-                const symbol: script.Symbol = .{ .script = n.script_number };
+                const symbol: script.Symbol = .{ .constant = n.script_number };
                 try addScopeSymbol(cx, room_scope, n.name, symbol);
             },
             .local_script => |n| {
-                const symbol: script.Symbol = .{ .script = n.script_number };
+                const symbol: script.Symbol = .{ .constant = n.script_number };
                 try addScopeSymbol(cx, room_scope, n.name, symbol);
             },
             else => {},

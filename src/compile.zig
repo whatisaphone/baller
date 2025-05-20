@@ -438,7 +438,7 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
 fn pushSymbol(cx: *const Cx, node_index: u32) !void {
     switch (try lookupSymbol(cx, node_index)) {
         .variable => |v| try pushVar(cx, v),
-        .script => |i| try pushInt(cx, i),
+        .constant => |i| try pushInt(cx, i),
     }
 }
 

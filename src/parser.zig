@@ -706,17 +706,23 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
 fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id_str = try expectString(cx);
-    const glob_number_i32 = try expectInteger(cx);
-
     const block_id = parseBlockId(block_id_str) orelse
         return reportError(cx, token, "invalid block id", .{});
+
+    const name = if (peekToken(cx).kind == .identifier) name: {
+        const name = try expectIdentifier(cx);
+        try expect(cx, .swat);
+        break :name name;
+    } else null;
+
+    const glob_number_i32 = try expectInteger(cx);
     const glob_number = std.math.cast(u16, glob_number_i32) orelse
         return reportError(cx, token, "invalid glob number", .{});
 
     const contents = consumeToken(cx);
     return switch (contents.kind) {
-        .string => parseRawGlobFile(cx, token, block_id, glob_number, contents),
-        .brace_l => parseRawGlobBlock(cx, token, block_id, glob_number),
+        .string => parseRawGlobFile(cx, token, block_id, name, glob_number, contents),
+        .brace_l => parseRawGlobBlock(cx, token, block_id, name, glob_number),
         else => reportUnexpected(cx, contents),
     };
 }
@@ -725,6 +731,7 @@ fn parseRawGlobFile(
     cx: *Cx,
     token: *const lexer.Token,
     block_id: BlockId,
+    name: ?[]const u8,
     glob_number: u16,
     path_token: *const lexer.Token,
 ) !Ast.NodeIndex {
@@ -735,12 +742,19 @@ fn parseRawGlobFile(
 
     return storeNode(cx, token, .{ .raw_glob_file = .{
         .block_id = block_id,
+        .name = name,
         .glob_number = glob_number,
         .path = path,
     } });
 }
 
-fn parseRawGlobBlock(cx: *Cx, token: *const lexer.Token, block_id: BlockId, glob_number: u16) !Ast.NodeIndex {
+fn parseRawGlobBlock(
+    cx: *Cx,
+    token: *const lexer.Token,
+    block_id: BlockId,
+    name: ?[]const u8,
+    glob_number: u16,
+) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
     };
@@ -764,6 +778,7 @@ fn parseRawGlobBlock(cx: *Cx, token: *const lexer.Token, block_id: BlockId, glob
 
     return storeNode(cx, token, .{ .raw_glob_block = .{
         .block_id = block_id,
+        .name = name,
         .glob_number = glob_number,
         .children = try storeExtra(cx, children.slice()),
     } });

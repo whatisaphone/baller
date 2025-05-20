@@ -58,11 +58,13 @@ pub const Node = union(enum) {
     },
     raw_glob_file: struct {
         block_id: BlockId,
+        name: ?[]const u8,
         glob_number: u16,
         path: []const u8,
     },
     raw_glob_block: struct {
         block_id: BlockId,
+        name: ?[]const u8,
         glob_number: u16,
         children: ExtraSlice,
     },
