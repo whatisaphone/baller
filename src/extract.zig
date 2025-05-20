@@ -1617,31 +1617,6 @@ fn extractAkos(
     try code.appendSlice(cx.cx.gpa, "}\n");
 }
 
-fn extractRawGlob(
-    cx: *const RoomContext,
-    in: anytype,
-    block: *const Block,
-    code: *std.ArrayListUnmanaged(u8),
-) !void {
-    const glob_number = findGlobNumber(cx.cx.index, block.id, cx.room_number, block.offset()) orelse
-        return error.BadData;
-
-    var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
-    const filename = try std.fmt.bufPrintZ(
-        &filename_buf,
-        "{s}_{:0>4}.bin",
-        .{ fmtBlockId(&block.id), glob_number },
-    );
-    const file = try cx.room_dir.createFileZ(filename, .{});
-    defer file.close();
-    try io.copy(std.io.limitedReader(in.reader(), block.size), file.writer());
-
-    try code.writer(cx.cx.gpa).print(
-        "raw-glob \"{s}\" {} \"{s}/{s}\"\n",
-        .{ fmtBlockId(&block.id), glob_number, cx.room_path, filename },
-    );
-}
-
 fn writeRawGlob(
     gpa: std.mem.Allocator,
     block: *const Block,
