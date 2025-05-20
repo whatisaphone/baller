@@ -1320,21 +1320,16 @@ fn findGlobNumber(
     room_number: u8,
     offset_in_disk: u32,
 ) ?u16 {
-    const dir, const dir_len = switch (block_id) {
-        // XXX: this list is duplicated in emit
-        blockId("RMIM") => .{ &index.directories.room_images, index.maxs.rooms },
-        blockId("RMDA") => .{ &index.directories.rooms, index.maxs.rooms },
-        blockId("SCRP") => .{ &index.directories.scripts, index.maxs.scripts },
-        blockId("SOUN"),
-        blockId("DIGI"),
-        blockId("TALK"),
-        blockId("WSOU"),
-        => .{ &index.directories.sounds, index.maxs.sounds },
-        blockId("AKOS") => .{ &index.directories.costumes, index.maxs.costumes },
-        blockId("CHAR") => .{ &index.directories.charsets, index.maxs.charsets },
-        blockId("AWIZ"), blockId("MULT") => .{ &index.directories.images, index.maxs.images },
-        blockId("TLKE") => .{ &index.directories.talkies, index.maxs.talkies },
-        else => return null,
+    const kind = Symbols.GlobKind.fromBlockId(block_id) orelse return null;
+    const dir, const dir_len = switch (kind) {
+        .room_image => .{ &index.directories.room_images, index.maxs.rooms },
+        .room => .{ &index.directories.rooms, index.maxs.rooms },
+        .script => .{ &index.directories.scripts, index.maxs.scripts },
+        .sound => .{ &index.directories.sounds, index.maxs.sounds },
+        .costume => .{ &index.directories.costumes, index.maxs.costumes },
+        .charset => .{ &index.directories.charsets, index.maxs.charsets },
+        .image => .{ &index.directories.images, index.maxs.images },
+        .talkie => .{ &index.directories.talkies, index.maxs.talkies },
     };
     const offset_in_room = offset_in_disk - index.lfl_offsets.get(room_number);
     for (dir.rooms.slice(dir_len), dir.offsets.slice(dir_len), 0..) |r, o, i|

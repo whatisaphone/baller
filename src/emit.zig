@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const Fixup = @import("block_writer.zig").Fixup;
@@ -238,21 +239,16 @@ fn addGlobToIndex(
     offset_in_disk: u32,
     size: u32,
 ) !void {
-    const directory = switch (block_id) {
-        // XXX: this list is duplicated in extract
-        blockId("RMIM") => &index.directories.room_images,
-        blockId("RMDA") => &index.directories.rooms,
-        blockId("SCRP") => &index.directories.scripts,
-        blockId("SOUN"),
-        blockId("DIGI"),
-        blockId("TALK"),
-        blockId("WSOU"),
-        => &index.directories.sounds,
-        blockId("AKOS") => &index.directories.costumes,
-        blockId("CHAR") => &index.directories.charsets,
-        blockId("AWIZ"), blockId("MULT") => &index.directories.images,
-        blockId("TLKE") => &index.directories.talkies,
-        else => return error.BadData,
+    const kind = Symbols.GlobKind.fromBlockId(block_id) orelse return error.BadData;
+    const directory = switch (kind) {
+        .room_image => &index.directories.room_images,
+        .room => &index.directories.rooms,
+        .script => &index.directories.scripts,
+        .sound => &index.directories.sounds,
+        .costume => &index.directories.costumes,
+        .charset => &index.directories.charsets,
+        .image => &index.directories.images,
+        .talkie => &index.directories.talkies,
     };
 
     const zero: DirectoryEntry = .{
