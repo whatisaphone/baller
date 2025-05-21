@@ -314,15 +314,11 @@ fn makeInsData(opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsDa
     };
     var param_exprs = params.len;
     var variadic = false;
-    if (params.len != 0) {
-        // Only support lists if they're in the last position
-        for (params[0 .. params.len - 1]) |param|
-            if (param == .list) return null;
-        if (params[params.len - 1] == .list) {
-            variadic = true;
-            param_exprs -= 1;
-        }
+    if (params.len != 0 and params[params.len - 1] == .variadic) {
+        variadic = true;
+        param_exprs -= 1;
     }
+
     return .{
         .opcode = opcode,
         .name = ins.name.op,
@@ -377,6 +373,7 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
         .string => try pushStr(cx, node_index),
         .identifier => try pushSymbol(cx, node_index),
         .call => try emitCall(cx, node_index),
+        .list => |list| try pushList(cx, cx.ast.getExtra(list.items)),
         .array_get => |e| {
             try pushExpr(cx, e.index);
             try emitOpcodeByName(cx, "get-array-item");

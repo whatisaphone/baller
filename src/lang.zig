@@ -245,6 +245,7 @@ pub const Op = enum {
     @"array-assign-slice",
     @"array-assign-range",
     sprintf,
+    @"array-assign",
     @"array-set-row",
     @"draw-box",
     debug,
@@ -685,7 +686,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xa4, 0x80, .@"array-assign-range", &.{.variable});
     lang.addNested(0xa4, 0x8a, "array-math", &.{ .variable, .variable });
     lang.addNested(0xa4, 0xc2, .sprintf, &.{.variable});
-    lang.addNested(0xa4, 0xd0, "array-assign", &.{.variable});
+    lang.addNested(0xa4, 0xd0, .@"array-assign", &.{.variable});
     lang.addNested(0xa4, 0xd4, .@"array-set-row", &.{.variable});
 
     lang.add(0xa6, .@"draw-box", &.{});

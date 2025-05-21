@@ -947,7 +947,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     const token2 = consumeToken(cx);
                     if (token2.kind == .brace_r) break;
                     const condition: Ast.CaseCondition = if (token2.kind == .bracket_l) blk: {
-                        const list = try parseArgs(cx);
+                        const list = try parseList(cx);
                         try expect(cx, .bracket_r);
                         break :blk .{ .in = list };
                     } else if (parseIdentifierOpt(cx, token2, enum { @"else" })) |_|
@@ -1021,7 +1021,7 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 cur = try parseBinOp(cx, cur, token2, prec, op) orelse break;
             } else if (isAtomToken(token2)) {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
-                const args = try parseArgs(cx);
+                const args = try parseList(cx);
                 cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
             } else break,
         }
@@ -1031,13 +1031,13 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
 
 fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var cur = try parseAtom(cx, token);
-    if (peekToken(cx).kind == .bracket_l) {
+    if (peekToken(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
         const token2 = consumeToken(cx);
         const index = try parseExpr(cx, consumeToken(cx), .all);
         try expect(cx, .bracket_r);
         cur = try storeNode(cx, token2, .{ .array_get = .{ .lhs = cur, .index = index } });
     }
-    if (peekToken(cx).kind == .bracket_l) {
+    if (peekToken(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
         _ = consumeToken(cx);
         const index2 = try parseExpr(cx, consumeToken(cx), .all);
         try expect(cx, .bracket_r);
@@ -1081,6 +1081,11 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             try expect(cx, .paren_r);
             return result;
         },
+        .bracket_l => {
+            const items = try parseList(cx);
+            try expect(cx, .bracket_r);
+            return storeNode(cx, token, .{ .list = .{ .items = items } });
+        },
         else => return reportUnexpected(cx, token),
     }
 }
@@ -1123,8 +1128,8 @@ fn parseBinOp(
     } });
 }
 
-fn parseArgs(cx: *Cx) !Ast.ExtraSlice {
-    var result: std.BoundedArray(Ast.NodeIndex, 16) = .{};
+fn parseList(cx: *Cx) !Ast.ExtraSlice {
+    var result: std.BoundedArray(Ast.NodeIndex, 24) = .{};
     while (true) {
         const token = peekToken(cx);
         if (!isAtomToken(token)) break;
@@ -1184,6 +1189,13 @@ fn skipWhitespace(cx: *Cx) void {
         else
             break;
     }
+}
+
+fn anyWhitespaceBetweenNextToken(cx: *const Cx) bool {
+    const prev = &cx.lex.tokens.items[cx.token_index - 1];
+    const next = &cx.lex.tokens.items[cx.token_index];
+    std.debug.assert(prev.span.end.offset <= next.span.start.offset);
+    return prev.span.end.offset != next.span.start.offset;
 }
 
 fn expectString(cx: *Cx) ![]const u8 {

@@ -11,6 +11,7 @@ pub const Param = union(enum) {
     int,
     string,
     list,
+    variadic,
 };
 
 pub const Compound = enum {

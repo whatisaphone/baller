@@ -213,7 +213,7 @@ const DecompileCx = struct {
     basic_blocks: []BasicBlock,
 
     pending_basic_blocks: std.ArrayListUnmanaged(u16),
-    stack: std.BoundedArray(ExprIndex, 16),
+    stack: std.BoundedArray(ExprIndex, 24),
     str_stack: std.BoundedArray(ExprIndex, 2),
     stmts: std.ArrayListUnmanaged(Stmt),
     exprs: std.ArrayListUnmanaged(Expr),
@@ -243,7 +243,8 @@ const Expr = union(enum) {
     string: []const u8,
     variable: lang.Variable,
     call: struct { op: lang.Op, args: ExtraSlice },
-    list: struct { items: ExtraSlice },
+    list: ExtraSlice,
+    variadic_list: ExtraSlice,
     dup: ExprIndex,
 };
 
@@ -365,7 +366,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"image-get-height" = .genCall(&.{ .int, .int }),
     .@"image-get-color-at" = .genCall(&.{ .int, .int, .int, .int }),
     .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
-    .@"start-script-order" = .gen(&.{ .int, .int, .list }),
+    .@"start-script-order" = .gen(&.{ .int, .int, .variadic }),
     .mod = .genCall(&.{ .int, .int }),
     .shl = .genCall(&.{ .int, .int }),
     .shr = .genCall(&.{ .int, .int }),
@@ -389,9 +390,9 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"dec-array-item" = .gen(&.{.int}),
     .@"jump-if" = .jump_if,
     .@"jump-unless" = .jump_unless,
-    .@"start-script" = .gen(&.{ .int, .list }),
-    .@"start-script-rec" = .gen(&.{ .int, .list }),
-    .@"start-object" = .gen(&.{ .int, .int, .list }),
+    .@"start-script" = .gen(&.{ .int, .variadic }),
+    .@"start-script-rec" = .gen(&.{ .int, .variadic }),
+    .@"start-object" = .gen(&.{ .int, .int, .variadic }),
     .@"draw-object" = .gen(&.{ .int, .int }),
     .@"print-image" = .gen(&.{.int}),
     .@"array-get-dim" = .genCall(&.{}),
@@ -459,7 +460,8 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"array-assign-list" = .gen(&.{ .int, .int, .int, .int, .list }),
     .@"array-assign-slice" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }),
     .@"array-assign-range" = .gen(&.{ .int, .int, .int, .int, .int, .int }),
-    .sprintf = .gen(&.{ .string, .int, .list }),
+    .sprintf = .gen(&.{ .string, .int, .variadic }),
+    .@"array-assign" = .gen(&.{ .list, .int }),
     .@"array-set-row" = .gen(&.{ .int, .list }),
     .@"draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
     .debug = .gen(&.{.int}),
@@ -471,13 +473,13 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"stop-sentence" = .gen(&.{}),
     .@"print-text-position" = .gen(&.{ .int, .int }),
     .@"print-text-center" = .gen(&.{}),
-    .@"print-text-printf" = .gen(&.{ .int, .list }),
+    .@"print-text-printf" = .gen(&.{ .int, .variadic }),
     .@"print-text-start" = .gen(&.{}),
     .@"print-debug-string" = .gen(&.{}),
-    .@"print-debug-printf" = .gen(&.{ .int, .list }),
+    .@"print-debug-printf" = .gen(&.{ .int, .variadic }),
     .@"print-debug-start" = .gen(&.{}),
     .@"print-system-string" = .gen(&.{}),
-    .@"print-system-printf" = .gen(&.{ .int, .list }),
+    .@"print-system-printf" = .gen(&.{ .int, .variadic }),
     .@"print-system-start" = .gen(&.{}),
     .@"say-line-position" = .gen(&.{ .int, .int }),
     .@"say-line-string" = .gen(&.{}),
@@ -490,13 +492,13 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"dim-array.int32" = .gen(&.{.int}),
     .undim = .gen(&.{}),
     .@"return" = .gen(&.{.int}),
-    .@"call-script" = .genCall(&.{ .int, .list }),
+    .@"call-script" = .genCall(&.{ .int, .variadic }),
     .@"dim-array-2d.int8" = .gen(&.{ .int, .int }),
     .@"dim-array-2d.int16" = .gen(&.{ .int, .int }),
     .@"dim-array-2d.int32" = .gen(&.{ .int, .int }),
     .abs = .genCall(&.{.int}),
-    .@"kludge-call" = .genCall(&.{.list}),
-    .kludge = .gen(&.{.list}),
+    .@"kludge-call" = .genCall(&.{.variadic}),
+    .kludge = .gen(&.{.variadic}),
     .@"break-here-multi" = .gen(&.{.int}),
     .pick = .genCall(&.{ .int, .list }),
     .@"debug-input" = .genCall(&.{.string}),
@@ -504,7 +506,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"stop-line" = .gen(&.{}),
     .@"actor-get-var" = .genCall(&.{ .int, .int }),
     .shuffle = .gen(&.{ .int, .int }),
-    .@"chain-script" = .gen(&.{ .int, .list }),
+    .@"chain-script" = .gen(&.{ .int, .variadic }),
     .band = .genCall(&.{ .int, .int }),
     .bor = .genCall(&.{ .int, .int }),
     .@"close-file" = .gen(&.{.int}),
@@ -722,6 +724,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
                     .int => try pop(cx),
                     .string => try popString(cx),
                     .list => try popList(cx),
+                    .variadic => try popVariadicList(cx),
                 };
                 args.buffer[args.len + pi] = ei;
             }
@@ -757,6 +760,16 @@ fn popString(cx: *DecompileCx) !ExprIndex {
 }
 
 fn popList(cx: *DecompileCx) !ExprIndex {
+    const items = try popListItems(cx);
+    return storeExpr(cx, .{ .list = items });
+}
+
+fn popVariadicList(cx: *DecompileCx) !ExprIndex {
+    const items = try popListItems(cx);
+    return storeExpr(cx, .{ .variadic_list = items });
+}
+
+fn popListItems(cx: *DecompileCx) !ExtraSlice {
     const len_ei = try pop(cx);
     const len_expr = &cx.exprs.items[len_ei];
     if (len_expr.* != .int) return error.BadData;
@@ -767,9 +780,7 @@ fn popList(cx: *DecompileCx) !ExprIndex {
     const items = cx.stack.slice()[cx.stack.len - len ..];
     cx.stack.len -= len;
 
-    return storeExpr(cx, .{ .list = .{
-        .items = try storeExtra(cx, items),
-    } });
+    return storeExtra(cx, items);
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
@@ -814,8 +825,8 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
     switch (cx.exprs.getPtr(ei).*) {
         .int, .string, .variable, .dup => {},
         .call => |call| recoverCall(cx, call.op, call.args),
-        .list => |list| {
-            for (getExtra3(cx.extra, list.items)) |i|
+        .list, .variadic_list => |items| {
+            for (getExtra3(cx.extra, items)) |i|
                 recoverExpr(cx, i);
         },
     }
@@ -2067,7 +2078,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             if (n.value == null_expr)
                 try cx.out.appendSlice(cx.gpa, "else")
             else if (cx.exprs.getPtr(n.value).* == .list)
-                try emitList(cx, cx.exprs.getPtr(n.value).list.items)
+                try emitList(cx, cx.exprs.getPtr(n.value).list)
             else
                 try emitExpr(cx, n.value, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
@@ -2190,7 +2201,8 @@ fn emitExpr(
                     try cx.out.append(cx.gpa, ')');
             }
         },
-        .list => unreachable, // only appears in call args, handled elsewhere
+        .list => |items| try emitList(cx, items),
+        .variadic_list => unreachable, // only appears in call args, handled elsewhere
         .dup => return error.BadData,
     }
 }
@@ -2214,8 +2226,8 @@ fn emitCall(cx: *const EmitCx, op: []const u8, args: ExtraSlice) !void {
 fn emitArgsFlat(cx: *const EmitCx, items: ExtraSlice) !void {
     for (getExtra(cx, items)) |ei| {
         const arg = cx.exprs.getPtr(ei);
-        if (arg.* == .list) {
-            try emitArgsFlat(cx, arg.list.items);
+        if (arg.* == .variadic_list) {
+            try emitArgsFlat(cx, arg.variadic_list);
             continue;
         }
         try cx.out.append(cx.gpa, ' ');
