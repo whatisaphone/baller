@@ -1096,8 +1096,8 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
         const node = &cx.nodes.items[ni];
         if (node.kind != .basic_block) continue;
         if (node.kind.basic_block.exit != .jump_unless) continue;
-        if (node.kind.basic_block.exit.jump_unless <= node.end) continue;
-        const ni_true_end = findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless);
+        if (node.kind.basic_block.exit.jump_unless < node.end) continue;
+        const ni_true_end = findNodeWithEnd(cx, ni, node.kind.basic_block.exit.jump_unless);
         if (ni_true_end != null_node) break ni_true_end;
     } else return;
 
@@ -1116,13 +1116,15 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
 }
 
 fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
-    const ni_true_start = cx.nodes.items[ni_before].next;
+    const empty = ni_true_end == ni_before;
+    const end = cx.nodes.items[ni_true_end].end;
+    const ni_true_start = if (empty) null_node else cx.nodes.items[ni_before].next;
     const ni_after = cx.nodes.items[ni_true_end].next;
 
     const condition = chopJumpCondition(cx, ni_before);
     const ni_if = try appendNode(cx, .{
         .start = cx.nodes.items[ni_before].end,
-        .end = cx.nodes.items[ni_true_end].end,
+        .end = end,
         .prev = ni_before,
         .next = ni_after,
         .kind = .{ .@"if" = .{
@@ -1135,8 +1137,10 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
     if (ni_after != null_node)
         cx.nodes.items[ni_after].prev = ni_if;
 
-    cx.nodes.items[ni_true_start].prev = null_node;
-    cx.nodes.items[ni_true_end].next = null_node;
+    if (!empty) {
+        cx.nodes.items[ni_true_start].prev = null_node;
+        cx.nodes.items[ni_true_end].next = null_node;
+    }
 
     structureCheckpoint(cx, "makeIf ni_before={} ni_true_end={}", .{ ni_before, ni_true_end });
 
@@ -1197,6 +1201,7 @@ fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         if (node.kind != .@"if") continue;
         if (node.kind.@"if".false != null_node) continue;
 
+        if (node.kind.@"if".true == null_node) continue;
         const ni_true_last = findLastNode(cx, node.kind.@"if".true);
         const true_last = &cx.nodes.items[ni_true_last];
         if (true_last.kind != .basic_block) continue;
@@ -1483,6 +1488,7 @@ fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
     const cond_lhs = cx.exprs.getPtr(cond_args[0]);
     if (cond_lhs.* != .dup) return null;
 
+    if (node.kind.@"if".true == null_node) return null;
     if (!nodeStartsWithPop(cx, node.kind.@"if".true, cond_lhs.dup)) return null;
 
     return cond_lhs.dup;
