@@ -110,23 +110,17 @@ fn scanBasicBlocks(
         if (ins.name == .op) switch (ins.name.op) {
             .@"jump-if" => {
                 const target = try jumpTarget(&ins, @intCast(bytecode.len));
-                try insertBasicBlock(gpa, &result, ins.end, .{
-                    .jump_if = .{ .target = target },
-                });
+                try insertBasicBlock(gpa, &result, ins.end, .{ .jump_if = target });
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
             .@"jump-unless" => {
                 const target = try jumpTarget(&ins, @intCast(bytecode.len));
-                try insertBasicBlock(gpa, &result, ins.end, .{
-                    .jump_unless = .{ .target = target },
-                });
+                try insertBasicBlock(gpa, &result, ins.end, .{ .jump_unless = target });
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
             .jump => {
                 const target = try jumpTarget(&ins, @intCast(bytecode.len));
-                try insertBasicBlock(gpa, &result, ins.end, .{
-                    .jump = .{ .target = target },
-                });
+                try insertBasicBlock(gpa, &result, ins.end, .{ .jump = target });
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
             else => {
@@ -197,13 +191,9 @@ const BasicBlock = struct {
 
 const BasicBlockExit = union(enum) {
     no_jump,
-    jump: JumpTarget,
-    jump_if: JumpTarget,
-    jump_unless: JumpTarget,
-};
-
-const JumpTarget = struct {
-    target: u16,
+    jump: u16,
+    jump_if: u16,
+    jump_unless: u16,
 };
 
 const DecompileCx = struct {
@@ -591,8 +581,8 @@ fn scheduleAfterInfiniteLoop(cx: *DecompileCx, bbi: u16) !void {
     const bbi_prev = bbi - 1;
     const prev = &cx.basic_blocks[bbi_prev];
     if (prev.exit != .jump) return error.BadData;
-    if (prev.exit.jump.target >= prev.end) return error.BadData;
-    const bbi_start = findBasicBlockWithStart(cx, prev.exit.jump.target);
+    if (prev.exit.jump >= prev.end) return error.BadData;
+    const bbi_start = findBasicBlockWithStart(cx, prev.exit.jump);
     const start = &cx.basic_blocks[bbi_start];
     if (start.state == .new) return error.BadData;
     try scheduleBasicBlock(cx, bbi, start.stack_on_enter.defined.slice());
@@ -625,15 +615,15 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
                 if (cx.stack.len != 0) return error.BadData;
             }
         },
-        .jump => |j| {
-            const target_bbi = findBasicBlockWithStart(cx, j.target);
+        .jump => |target| {
+            const target_bbi = findBasicBlockWithStart(cx, target);
             try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
         },
-        .jump_if, .jump_unless => |j| {
+        .jump_if, .jump_unless => |target| {
             if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
                 return error.BadData;
             try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
-            const target_bbi = findBasicBlockWithStart(cx, j.target);
+            const target_bbi = findBasicBlockWithStart(cx, target);
             try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
         },
     }
@@ -1092,8 +1082,8 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
         if (node.kind == .basic_block and
             node.kind.basic_block.exit == .jump_unless and
             node.end != pc_unknown and
-            node.kind.basic_block.exit.jump_unless.target > node.end)
-            if (findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless.target)) |n|
+            node.kind.basic_block.exit.jump_unless > node.end)
+            if (findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless)) |n|
                 break n;
         ni = node.next;
     } else return;
@@ -1103,9 +1093,9 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     if (true_end.kind == .basic_block and
         true_end.kind.basic_block.exit == .jump and
         true_end.end != pc_unknown and
-        true_end.kind.basic_block.exit.jump.target > true_end.end)
+        true_end.kind.basic_block.exit.jump > true_end.end)
     {
-        if (findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump.target)) |n|
+        if (findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump)) |n|
             ni_false_end = n;
     }
 
@@ -1201,7 +1191,7 @@ fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         const true_last = &cx.nodes.items[ni_true_last];
         if (true_last.kind != .basic_block) continue;
         if (true_last.kind.basic_block.exit != .jump) continue;
-        if (true_last.kind.basic_block.exit.jump.target != node.start) continue;
+        if (true_last.kind.basic_block.exit.jump != node.start) continue;
 
         makeWhile(cx, ni, ni_true_last);
     }
@@ -1332,7 +1322,7 @@ fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         if (node.end == pc_unknown) continue;
         if (node.kind != .basic_block) continue;
         const target = switch (node.kind.basic_block.exit) {
-            .jump, .jump_unless => |j| j.target,
+            .jump, .jump_unless => |target| target,
             else => continue,
         };
         if (target >= node.end) continue;
@@ -1405,12 +1395,12 @@ fn isBreakUntil(cx: *StructuringCx, ni: NodeIndex) bool {
 
     if (node.kind != .basic_block) return false;
     if (node.kind.basic_block.exit != .jump_if) return false;
-    if (node.kind.basic_block.exit.jump_if.target != next.end) return false;
+    if (node.kind.basic_block.exit.jump_if != next.end) return false;
     if (node.kind.basic_block.statements.len != 1) return false;
 
     if (next.kind != .basic_block) return false;
     if (next.kind.basic_block.exit != .jump) return false;
-    if (next.kind.basic_block.exit.jump.target != node.start) return false;
+    if (next.kind.basic_block.exit.jump != node.start) return false;
     const ss = next.kind.basic_block.statements;
     const stmts = cx.stmts.use()[ss.start..][0..ss.len];
     if (stmts.len != 2) return false;
@@ -1890,7 +1880,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .basic_block => |*bb| {
             const target = switch (bb.exit) {
                 .no_jump => return,
-                .jump, .jump_if, .jump_unless => |j| j.target,
+                .jump, .jump_if, .jump_unless => |target| target,
             };
             try insertSortedNoDup(cx.gpa, &cx.result, target);
         },
