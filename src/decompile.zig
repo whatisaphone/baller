@@ -123,6 +123,11 @@ fn scanBasicBlocks(
                 try insertBasicBlock(gpa, &result, ins.end, .{ .jump = target });
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
+            .override => {
+                const target = try jumpTarget(&ins, @intCast(bytecode.len));
+                try insertBasicBlock(gpa, &result, ins.end, .{ .override = target });
+                try insertBasicBlock(gpa, &result, target, .no_jump);
+            },
             else => {
                 std.debug.assert(ins.operands.len == 0 or ins.operands.get(0) != .relative_offset);
             },
@@ -194,6 +199,7 @@ const BasicBlockExit = union(enum) {
     jump: u16,
     jump_if: u16,
     jump_unless: u16,
+    override: u16,
 };
 
 const DecompileCx = struct {
@@ -215,6 +221,7 @@ const Stmt = union(enum) {
     jump_if: JumpTargetAndCondition,
     jump_unless: JumpTargetAndCondition,
     jump: struct { target: u16 },
+    override: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
     compound: struct { op: script.Compound, args: ExtraSlice },
     tombstone,
@@ -253,6 +260,7 @@ const Op = union(enum) {
     jump_if,
     jump_unless,
     jump,
+    override,
     generic: struct {
         call: bool,
         params: std.BoundedArray(script.Param, script.max_params),
@@ -416,6 +424,8 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"actor-room" = .genCall(&.{.int}),
     .@"palette-color" = .genCall(&.{ .int, .int }),
     .rgb = .genCall(&.{ .int, .int, .int }),
+    .override = .override,
+    .@"override-off" = .gen(&.{}),
     .@"sound-running" = .genCall(&.{.int}),
     .@"load-script" = .gen(&.{.int}),
     .@"nuke-sound" = .gen(&.{.int}),
@@ -619,7 +629,7 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
             const target_bbi = findBasicBlockWithStart(cx, target);
             try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
         },
-        .jump_if, .jump_unless => |target| {
+        .jump_if, .jump_unless, .override => |target| {
             if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
                 return error.BadData;
             try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
@@ -689,6 +699,11 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.addUnsignedSigned(ins.end, rel).?;
             try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
+        },
+        .override => {
+            const rel = ins.operands.get(0).relative_offset;
+            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            try cx.stmts.append(cx.gpa, .{ .override = .{ .target = target } });
         },
         .generic => |gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
@@ -804,7 +819,7 @@ fn recoverTypes(cx: *TypeCx) void {
         const stmts = cx.stmts.use()[ss.start..][0..ss.len];
         for (stmts) |*stmt| switch (stmt.*) {
             .jump_if, .jump_unless => |j| recoverExpr(cx, j.condition),
-            .jump => {},
+            .jump, .override => {},
             .call => |c| recoverCall(cx, c.op, c.args),
             .compound, .tombstone => unreachable,
         };
@@ -1880,7 +1895,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .basic_block => |*bb| {
             const target = switch (bb.exit) {
                 .no_jump => return,
-                .jump, .jump_if, .jump_unless => |target| target,
+                .jump, .jump_if, .jump_unless, .override => |target| target,
             };
             try insertSortedNoDup(cx.gpa, &cx.result, target);
         },
@@ -2099,6 +2114,11 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
         },
         .jump => |j| {
             try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.jump));
+            try cx.out.append(cx.gpa, ' ');
+            try emitLabel(cx, j.target);
+        },
+        .override => |j| {
+            try cx.out.appendSlice(cx.gpa, @tagName(lang.Op.override));
             try cx.out.append(cx.gpa, ' ');
             try emitLabel(cx, j.target);
         },

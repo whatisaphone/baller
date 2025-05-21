@@ -308,7 +308,7 @@ fn makeInsData(opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsDa
     if (ins.name != .op) return null;
     const params: []const script.Param = switch (ops.getPtrConst(ins.name.op).*) {
         .jump_if, .jump_unless => &.{.int},
-        .jump => &.{},
+        .jump, .override => &.{},
         .generic => |*g| g.params.slice(),
         else => return null,
     };

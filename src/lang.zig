@@ -12,7 +12,7 @@ pub const max_operands = 2;
 pub const Language = struct {
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 49]Opcode = @splat(.unknown),
+    opcodes: [256 * 50]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
     fn add(self: *Language, byte: u8, name: anytype, operands: []const LangOperand) void {
@@ -210,6 +210,8 @@ pub const Op = enum {
     @"actor-room",
     @"palette-color",
     rgb,
+    override,
+    @"override-off",
     @"sound-running",
     @"load-script",
     @"nuke-sound",
@@ -609,8 +611,9 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x94, 0x42, .@"palette-color", &.{});
     lang.addNested(0x94, 0xd9, .rgb, &.{});
 
-    lang.add(0x95, "override", &.{ .u8, .relative_offset });
-    lang.add(0x96, "override-off", &.{});
+    lang.addNested(0x95, 0x73, .override, &.{.relative_offset});
+
+    lang.add(0x96, .@"override-off", &.{});
     lang.add(0x98, .@"sound-running", &.{});
 
     lang.addNested(0x9b, 0x64, .@"load-script", &.{});
