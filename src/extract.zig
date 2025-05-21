@@ -1206,6 +1206,11 @@ fn extractEncdExcdDecompile(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    const id: Symbols.ScriptId = switch (edge) {
+        .encd => .{ .enter = .{ .room = cx.room_number } },
+        .excd => .{ .exit = .{ .room = cx.room_number } },
+    };
+
     var usage: UsageTracker = .init(cx.cx.game);
 
     const keyword = switch (edge) {
@@ -1213,7 +1218,7 @@ fn extractEncdExcdDecompile(
         .excd => "exit",
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1342,12 +1347,17 @@ fn extractLscrDecompile(
     bytecode: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    const id: Symbols.ScriptId = .{ .local = .{
+        .room = cx.room_number,
+        .number = script_number,
+    } };
+
     var usage: UsageTracker = .init(cx.cx.game);
 
     try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, bytecode, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, bytecode, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1596,12 +1606,14 @@ fn extractScrpDecompile(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    const id: Symbols.ScriptId = .{ .global = glob_number };
+
     var usage: UsageTracker = .init(cx.cx.game);
 
     try code.appendSlice(cx.cx.gpa, "\nscript ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, raw, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

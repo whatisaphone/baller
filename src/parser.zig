@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -826,6 +827,7 @@ fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
 
 fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
+        @"var",
         @"if",
         @"while",
         @"for",
@@ -842,6 +844,25 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         }
         // Check for keywords
         if (parseIdentifierOpt(cx, token, Keyword)) |kw| switch (kw) {
+            .@"var" => {
+                var children: std.BoundedArray(Ast.NodeIndex, UsageTracker.max_local_vars) = .{};
+                while (true) {
+                    const token2 = consumeToken(cx);
+                    const name = switch (token2.kind) {
+                        .newline => break,
+                        .underscore => null,
+                        .identifier => cx.source[token2.span.start.offset..token2.span.end.offset],
+                        else => return reportUnexpected(cx, token2),
+                    };
+                    const node_index = try storeNode(cx, token2, .{ .local_var = .{
+                        .name = name,
+                    } });
+                    try appendNode(cx, &children, node_index);
+                }
+                return storeNode(cx, token, .{ .local_vars = .{
+                    .children = try storeExtra(cx, children.slice()),
+                } });
+            },
             .@"if" => {
                 const next = consumeToken(cx);
                 const condition = try parseExpr(cx, next, .space);

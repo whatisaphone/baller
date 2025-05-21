@@ -145,6 +145,12 @@ pub const Node = union(enum) {
     exit: struct {
         statements: ExtraSlice,
     },
+    local_vars: struct {
+        children: ExtraSlice,
+    },
+    local_var: struct {
+        name: ?[]const u8,
+    },
     label: []const u8,
     integer: i32,
     string: []const u8,

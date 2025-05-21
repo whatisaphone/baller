@@ -17,6 +17,7 @@ pub fn run(
     diag: *const Diagnostic.ForBinaryFile,
     symbols: *const Symbols,
     room_number: u8,
+    id: Symbols.ScriptId,
     bytecode: []const u8,
     out: *std.ArrayListUnmanaged(u8),
     usage: *UsageTracker,
@@ -82,16 +83,18 @@ pub fn run(
         .gpa = gpa,
         .symbols = symbols,
         .room_number = room_number,
+        .id = id,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
+        .local_var_usage = &usage.local_vars,
         .types = &tcx.types,
         .jump_targets = jump_targets.items,
         .out = out,
         .indent = indent_size * 1,
     };
-    try emitNodeList(&ecx, root_node_index);
+    try emitScript(&ecx);
 }
 
 fn scanBasicBlocks(
@@ -1903,16 +1906,51 @@ const EmitCx = struct {
     gpa: std.mem.Allocator,
     symbols: *const Symbols,
     room_number: u8,
+    id: Symbols.ScriptId,
     nodes: utils.SafeManyPointer([*]const Node),
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
+    local_var_usage: *const UsageTracker.LocalVars,
     types: *const ArrayMap(Type),
     jump_targets: []const u16,
 
     out: *std.ArrayListUnmanaged(u8),
     indent: u16,
 };
+
+fn emitScript(cx: *EmitCx) !void {
+    try emitLocalVarsDecl(cx);
+    try emitNodeList(cx, root_node_index);
+}
+
+fn emitLocalVarsDecl(cx: *EmitCx) !void {
+    var i: usize = UsageTracker.max_local_vars;
+    const max_used = while (i > 0) {
+        i -= 1;
+        const used = UsageTracker.get(cx.local_var_usage, i);
+        if (used) break i;
+    } else return;
+
+    const script_symbols = cx.symbols.getScript(cx.id);
+
+    try writeIndent(cx);
+    try cx.out.appendSlice(cx.gpa, "var");
+    for (0..max_used + 1) |num| {
+        const name = name: {
+            const used = UsageTracker.get(cx.local_var_usage, num);
+            if (!used) break :name "_";
+            if (script_symbols) |ss| break :name ss.locals.get(num);
+            break :name null;
+        };
+        try cx.out.append(cx.gpa, ' ');
+        if (name) |n|
+            try cx.out.appendSlice(cx.gpa, n)
+        else
+            try cx.out.writer(cx.gpa).print("local{}", .{num});
+    }
+    try cx.out.appendSlice(cx.gpa, "\n\n");
+}
 
 fn emitNodeList(cx: *EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
     var ni = ni_start;
@@ -2186,7 +2224,11 @@ fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
             if (cx.symbols.globals.get(number)) |name|
                 return try cx.out.appendSlice(cx.gpa, name);
         },
-        .local => {}, // TODO
+        .local => {
+            if (cx.symbols.getScript(cx.id)) |ss|
+                if (ss.locals.get(number)) |name|
+                    return try cx.out.appendSlice(cx.gpa, name);
+        },
         .room => {
             if (cx.symbols.getRoom(cx.room_number)) |room|
                 if (room.vars.get(number)) |name|

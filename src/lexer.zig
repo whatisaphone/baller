@@ -55,6 +55,7 @@ pub const Token = struct {
         percent,
         amp_amp,
         pipe_pipe,
+        underscore,
         paren_l,
         paren_r,
         bracket_l,
@@ -82,13 +83,14 @@ pub const Token = struct {
                 .gt => "'>'",
                 .gt_gt => "'>>'",
                 .gt_eq => "'>='",
-                .plus => "+",
-                .minus => "-",
-                .star => "*",
-                .slash => "/",
-                .percent => "%",
-                .amp_amp => "&&",
-                .pipe_pipe => "||",
+                .plus => "'+'",
+                .minus => "'-'",
+                .star => "'*'",
+                .slash => "'/'",
+                .percent => "'%'",
+                .amp_amp => "'&&'",
+                .pipe_pipe => "'||'",
+                .underscore => "'_'",
                 .paren_l => "'('",
                 .paren_r => "')'",
                 .bracket_l => "'['",
@@ -195,6 +197,8 @@ pub fn run(
         } else if (ch == '|' and peekChar(&state) == '|') {
             _ = consumeChar(&state);
             try appendToken(&state, loc, .pipe_pipe);
+        } else if (ch == '_') {
+            try appendToken(&state, loc, .underscore);
         } else if (ch == '(') {
             try appendToken(&state, loc, .paren_l);
         } else if (ch == ')') {

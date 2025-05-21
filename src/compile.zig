@@ -3,6 +3,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const ops = @import("decompile.zig").ops;
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
@@ -30,6 +31,7 @@ pub fn compile(
         .lex = &file.lex,
         .ast = &file.ast,
         .out = out,
+        .local_vars = .{},
         .label_offsets = .empty,
         .label_fixups = .empty,
     };
@@ -46,7 +48,7 @@ pub fn compile(
 }
 
 pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlice) !void {
-    try emitBlock(cx, statements);
+    try emitBody(cx, statements);
 
     const end = switch (cx.ast.nodes.items[root_node]) {
         .script, .local_script => "end",
@@ -74,9 +76,26 @@ const Cx = struct {
     ast: *const Ast,
 
     out: *std.ArrayListUnmanaged(u8),
+    local_vars: std.BoundedArray(?[]const u8, UsageTracker.max_local_vars),
     label_offsets: std.StringHashMapUnmanaged(u16),
     label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
 };
+
+fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {
+    // Vars must come first
+    const stmts = cx.ast.getExtra(slice);
+    const first_non_var_stmt = for (stmts, 0..) |si, i| {
+        const stmt = &cx.ast.nodes.items[si];
+        if (stmt.* != .local_vars) break i;
+        for (cx.ast.getExtra(stmt.local_vars.children)) |ni| {
+            const var_node = &cx.ast.nodes.items[ni].local_var;
+            try cx.local_vars.append(var_node.name);
+        }
+    } else return;
+
+    for (stmts[first_non_var_stmt..]) |i|
+        try emitStatement(cx, i);
+}
 
 fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
     for (cx.ast.getExtra(slice)) |i|
@@ -462,26 +481,20 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     if (expr.* != .identifier) return error.BadData;
     const name = expr.identifier;
 
+    for (cx.local_vars.slice(), 0..) |local_name, num_usize| {
+        const num: u14 = @intCast(num_usize);
+        if (local_name) |n|
+            if (std.mem.eql(u8, name, n))
+                return .{ .variable = .init2(.local, num) };
+    }
     if (cx.room_scope.get(name)) |sym| return sym;
     if (cx.project_scope.get(name)) |sym| return sym;
-    // TODO: get rid of this fallback eventually
-    if (parseMagicVariableByNumber(name)) |v| return .{ .variable = v };
 
     // Not found, return an error
     const token_index = cx.ast.node_tokens.items[node_index];
     const loc = cx.lex.tokens.items[token_index].span.start;
-    cx.diag.err(loc, "symbol not found", .{});
+    cx.diag.err(loc, "name not found", .{});
     return error.AddedToDiagnostic;
-}
-
-fn parseMagicVariableByNumber(str: []const u8) ?lang.Variable {
-    const kind: lang.Variable.Kind, const num_str =
-        if (str.len >= 5 and std.mem.startsWith(u8, str, "local"))
-            .{ .local, str[5..] }
-        else
-            return null;
-    const num = std.fmt.parseInt(u14, num_str, 10) catch return null;
-    return .init2(kind, num);
 }
 
 fn emitString(cx: *const Cx, node_index: u32) !void {
