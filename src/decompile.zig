@@ -1092,27 +1092,22 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
 
 fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     var ni = ni_first;
-    const ni_true_end = while (ni != null_node) {
+    const ni_true_end = while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
         const node = &cx.nodes.items[ni];
-        if (node.kind == .basic_block and
-            node.kind.basic_block.exit == .jump_unless and
-            node.end != pc_unknown and
-            node.kind.basic_block.exit.jump_unless > node.end)
-            if (findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless)) |n|
-                break n;
-        ni = node.next;
+        if (node.kind != .basic_block) continue;
+        if (node.kind.basic_block.exit != .jump_unless) continue;
+        if (node.kind.basic_block.exit.jump_unless <= node.end) continue;
+        const ni_true_end = findNodeWithEnd(cx, node.next, node.kind.basic_block.exit.jump_unless);
+        if (ni_true_end != null_node) break ni_true_end;
     } else return;
 
-    var ni_false_end = null_node;
     const true_end = &cx.nodes.items[ni_true_end];
-    if (true_end.kind == .basic_block and
-        true_end.kind.basic_block.exit == .jump and
-        true_end.end != pc_unknown and
-        true_end.kind.basic_block.exit.jump > true_end.end)
-    {
-        if (findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump)) |n|
-            ni_false_end = n;
-    }
+    const ni_false_end = blk: {
+        if (true_end.kind != .basic_block) break :blk null_node;
+        if (true_end.kind.basic_block.exit != .jump) break :blk null_node;
+        if (true_end.kind.basic_block.exit.jump <= true_end.end) break :blk null_node;
+        break :blk findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump);
+    };
 
     if (ni_false_end == null_node)
         try makeIf(cx, ni, ni_true_end)
@@ -1652,15 +1647,14 @@ fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
     return null;
 }
 
-fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) ?NodeIndex {
+fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) NodeIndex {
     var ni = ni_first;
-    while (ni != null_node) {
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
         const node = &cx.nodes.items[ni];
         if (node.end == end) return ni;
         if (node.end != pc_unknown and node.end > end) break;
-        ni = node.next;
     }
-    return null;
+    return null_node;
 }
 
 fn findBackwardsNodeWithStart(cx: *StructuringCx, ni_initial: NodeIndex, start: u16) ?NodeIndex {
@@ -1727,6 +1721,10 @@ fn checkInvariants(cx: *StructuringCx) !void {
             if (pcOpt(node.end)) |node_end|
                 try std.testing.expect(next.start == node_end);
         }
+        if (node.kind == .basic_block) {
+            if (node.kind.basic_block.exit != .no_jump)
+                try std.testing.expect(node.end != pc_unknown);
+        }
     }
 }
 
@@ -1791,10 +1789,11 @@ fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
         std.debug.assert(stmt.* == .jump);
     }
 
-    if (node.end != pc_unknown)
-        node.end -= jump_len;
+    std.debug.assert(node.kind.basic_block.exit == .jump);
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
+    std.debug.assert(node.end != pc_unknown);
+    node.end -= jump_len;
 }
 
 fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
@@ -1807,6 +1806,8 @@ fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
         else => unreachable,
     };
 
+    std.debug.assert(node.kind.basic_block.exit == .jump_if or
+        node.kind.basic_block.exit == .jump_unless);
     node.kind.basic_block.exit = .no_jump;
     node.kind.basic_block.statements.len -= 1;
     node.end = if (node.kind.basic_block.statements.len == 0)
