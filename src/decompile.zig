@@ -323,11 +323,14 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .min = .genCall(&.{ .int, .int }),
     .max = .genCall(&.{ .int, .int }),
     .sin = .genCall(&.{.int}),
+    .cos = .genCall(&.{.int}),
     .@"angle-from-delta" = .genCall(&.{ .int, .int }),
     .@"angle-from-line" = .genCall(&.{ .int, .int, .int, .int }),
     .@"line-length-2d" = .genCall(&.{ .int, .int, .int, .int }),
     .@"line-length-3d" = .genCall(&.{ .int, .int, .int, .int, .int, .int }),
+    .@"sprite-get-object-y" = .genCall(&.{.int}),
     .@"sprite-get-state-count" = .genCall(&.{.int}),
+    .@"sprite-get-group" = .genCall(&.{.int}),
     .@"find-sprite" = .genCall(&.{ .int, .int, .int, .int, .list }),
     .@"sprite-get-state" = .genCall(&.{.int}),
     .@"sprite-get-image" = .genCall(&.{.int}),
@@ -335,6 +338,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"sprite-set-group" = .gen(&.{.int}),
     .@"sprite-set-property" = .gen(&.{ .int, .int }),
     .@"sprite-set-order" = .gen(&.{.int}),
+    .@"sprite-move" = .gen(&.{ .int, .int }),
     .@"sprite-set-state" = .gen(&.{.int}),
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
     .@"sprite-set-image" = .gen(&.{.int}),
@@ -371,6 +375,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .set = .gen(&.{.int}),
     .@"file-size" = .genCall(&.{.string}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
+    .@"string-number" = .genCall(&.{.int}),
     .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
     .@"read-ini-int" = .genCall(&.{ .int, .string, .string }),
     .@"read-ini-string" = .genCall(&.{ .int, .string, .string }),
@@ -380,6 +385,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"override-off-off" = .gen(&.{}),
     .@"inc-array-item" = .gen(&.{.int}),
     .dec = .gen(&.{}),
+    .@"sound-position" = .genCall(&.{.int}),
     .@"dec-array-item" = .gen(&.{.int}),
     .@"jump-if" = .jump_if,
     .@"jump-unless" = .jump_unless,
@@ -429,10 +435,15 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"nuke-image" = .gen(&.{.int}),
     .@"preload-image" = .gen(&.{.int}),
     .fades = .gen(&.{.int}),
+    .@"actor-set-order" = .gen(&.{.int}),
     .@"actor-set-clipped" = .gen(&.{ .int, .int, .int, .int }),
     .@"actor-set-costume" = .gen(&.{.int}),
+    .@"actor-set-talk-animation" = .gen(&.{ .int, .int }),
     .@"actor-set-elevation" = .gen(&.{.int}),
     .@"actor-set-color" = .gen(&.{ .int, .int }),
+    .@"actor-set-scale" = .gen(&.{.int}),
+    .@"actor-ignore-boxes" = .gen(&.{}),
+    .@"actor-set-animation-speed" = .gen(&.{.int}),
     .@"actor-set-shadow" = .gen(&.{.int}),
     .@"actor-select" = .gen(&.{.int}),
     .@"actor-set-var" = .gen(&.{ .int, .int }),
@@ -449,6 +460,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"array-assign-slice" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }),
     .@"array-assign-range" = .gen(&.{ .int, .int, .int, .int, .int, .int }),
     .sprintf = .gen(&.{ .string, .int, .list }),
+    .@"array-set-row" = .gen(&.{ .int, .list }),
     .@"draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
     .debug = .gen(&.{.int}),
     .@"wait-for-message" = .gen(&.{}),
@@ -512,6 +524,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"read-system-ini-string" = .genCall(&.{.string}),
     .@"write-system-ini-int" = .gen(&.{ .string, .int }),
     .@"write-system-ini-string" = .gen(&.{ .string, .string }),
+    .@"sound-size" = .genCall(&.{.int}),
     .@"title-bar" = .gen(&.{.string}),
     .@"delete-polygon" = .gen(&.{ .int, .int }),
 });
@@ -814,6 +827,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         recoverExpr(cx, ei);
     switch (op) {
         .@"start-script" => {
+            setType(cx, args[0], .script);
+        },
+        .@"start-script-rec" => {
             setType(cx, args[0], .script);
         },
         .@"script-running" => {
