@@ -1042,6 +1042,10 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
+        try huntIfElse(cx, ni);
+
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
         try huntWhile(cx, ni);
 
     try queueNode(cx, root_node_index);
@@ -1093,28 +1097,17 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
 
 fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     var ni = ni_first;
-    const ni_true_end = while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
         const node = &cx.nodes.items[ni];
         if (node.kind != .basic_block) continue;
         if (node.kind.basic_block.exit != .jump_unless) continue;
         if (node.kind.basic_block.exit.jump_unless < node.end) continue;
         const ni_true_end = findNodeWithEnd(cx, ni, node.kind.basic_block.exit.jump_unless);
         if (ni_true_end == null_node) continue;
-        break ni_true_end;
-    } else return;
 
-    const true_end = &cx.nodes.items[ni_true_end];
-    const ni_false_end = blk: {
-        if (true_end.kind != .basic_block) break :blk null_node;
-        if (true_end.kind.basic_block.exit != .jump) break :blk null_node;
-        if (true_end.kind.basic_block.exit.jump <= true_end.end) break :blk null_node;
-        break :blk findNodeWithEnd(cx, true_end.next, true_end.kind.basic_block.exit.jump);
-    };
-
-    if (ni_false_end == null_node)
-        try makeIf(cx, ni, if (ni_true_end != ni) ni_true_end else null_node)
-    else
-        try makeIfElse(cx, ni, ni_true_end, ni_false_end);
+        const ni_t_e = if (ni_true_end != ni) ni_true_end else null_node;
+        try makeIf(cx, ni, ni_t_e);
+    }
 }
 
 fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
@@ -1147,52 +1140,50 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
 
     structureCheckpoint(cx, "makeIf ni_before={} ni_true_end={}", .{ ni_before, ni_true_end });
 
-    try queueNode(cx, ni_after);
     try queueNode(cx, ni_true_start);
 }
 
-fn makeIfElse(
-    cx: *StructuringCx,
-    ni_before: NodeIndex,
-    ni_true_end: NodeIndex,
-    ni_false_end: NodeIndex,
-) !void {
-    const ni_true_start = cx.nodes.items[ni_before].next;
-    const ni_false_start = cx.nodes.items[ni_true_end].next;
+fn huntIfElse(cx: *StructuringCx, ni_first: NodeIndex) !void {
+    var ni = ni_first;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try queueChildren(cx, ni);
+
+        const node = &cx.nodes.items[ni];
+        if (node.kind != .@"if") continue;
+        if (node.kind.@"if".true == null_node) continue;
+
+        const ni_true_end = findLastNode(cx, node.kind.@"if".true);
+        const true_end = &cx.nodes.items[ni_true_end];
+        if (true_end.kind != .basic_block) continue;
+        if (true_end.kind.basic_block.exit != .jump) continue;
+        if (true_end.kind.basic_block.exit.jump <= node.end) continue;
+        const ni_false_end = findNodeWithEnd(cx, node.next, true_end.kind.basic_block.exit.jump);
+        if (ni_false_end == null_node) continue;
+
+        try makeIfElse(cx, ni, ni_false_end);
+    }
+}
+
+fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void {
+    const node = &cx.nodes.items[ni];
+    const ni_true_end = findLastNode(cx, node.kind.@"if".true);
+    const ni_false_start = node.next;
     const ni_after = cx.nodes.items[ni_false_end].next;
 
-    const condition = chopJumpCondition(cx, ni_before);
     chopJump(cx, ni_true_end);
-    const ni_if = try appendNode(cx, .{
-        .start = cx.nodes.items[ni_before].end,
-        .end = cx.nodes.items[ni_false_end].end,
-        .prev = ni_before,
-        .next = ni_after,
-        .kind = .{ .@"if" = .{
-            .condition = condition,
-            .true = ni_true_start,
-            .false = ni_false_start,
-        } },
-    });
-    cx.nodes.items[ni_before].next = ni_if;
+    node.end = cx.nodes.items[ni_false_end].end;
+    node.next = ni_after;
+    node.kind.@"if".false = ni_false_start;
     if (ni_after != null_node)
-        cx.nodes.items[ni_after].prev = ni_if;
-
-    cx.nodes.items[ni_true_start].prev = null_node;
-    cx.nodes.items[ni_true_end].next = null_node;
+        cx.nodes.items[ni_after].prev = ni;
 
     cx.nodes.items[ni_false_start].prev = null_node;
     cx.nodes.items[ni_false_end].next = null_node;
 
-    structureCheckpoint(
-        cx,
-        "makeIfElse ni_before={} ni_true_end={} ni_false_end={}",
-        .{ ni_before, ni_true_end, ni_false_end },
-    );
+    structureCheckpoint(cx, "makeIfElse ni={} ni_false_end={}", .{ ni, ni_false_end });
 
-    try queueNode(cx, ni_after);
-    try queueNode(cx, ni_true_start);
-    try queueNode(cx, ni_false_start);
+    try queueNode(cx, node.kind.@"if".true);
+    try queueNode(cx, node.kind.@"if".false);
 }
 
 fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
