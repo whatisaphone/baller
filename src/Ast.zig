@@ -204,6 +204,12 @@ pub const Node = union(enum) {
         direction: ForDirection,
         body: ExtraSlice,
     },
+    for_in: struct {
+        target: NodeIndex,
+        list: NodeIndex,
+        backing: NodeIndex,
+        body: ExtraSlice,
+    },
     case: struct {
         value: NodeIndex,
         branches: ExtraSlice,

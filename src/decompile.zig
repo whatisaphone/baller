@@ -1006,6 +1006,12 @@ const NodeKind = union(enum) {
         direction: Ast.ForDirection,
         body: NodeIndex,
     },
+    for_in: struct {
+        target: lang.Variable,
+        list: ExprIndex,
+        backing: lang.Variable,
+        body: NodeIndex,
+    },
     do: struct {
         body: NodeIndex,
         condition: ExprIndex,
@@ -1073,6 +1079,12 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
+        try huntForIn(cx, ni);
+    try endPhase(cx);
+
+    try startPhase(cx);
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
         try huntBreakUntil(cx, ni);
     try endPhase(cx);
 
@@ -1111,6 +1123,9 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
             try queueNode(cx, n.body);
         },
         .@"for" => |*n| {
+            try queueNode(cx, n.body);
+        },
+        .for_in => |*n| {
             try queueNode(cx, n.body);
         },
         .case => |*n| {
@@ -1398,6 +1413,236 @@ fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
     orphanNode(cx, ni_empty);
 
     structureCheckpoint(cx, "makeFor ni={} body_last={}", .{ ni, info.body_last });
+}
+
+fn huntForIn(cx: *StructuringCx, ni_initial: NodeIndex) !void {
+    var ni = ni_initial;
+    while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
+        try queueChildren(cx, ni);
+
+        if (isForIn(cx, ni)) |f|
+            makeForIn(cx, ni, f);
+    }
+}
+
+const ForIn = struct {
+    target: lang.Variable,
+    list: ExprIndex,
+    backing: lang.Variable,
+};
+
+fn isForIn(cx: *StructuringCx, ni: NodeIndex) ?ForIn {
+    // match this pattern:
+    //
+    // array-assign backing [a b c] 1
+    // localize backing
+    // backing[0] = 0
+    // LABEL:
+    // inc-array-item backing 0
+    // if (backing[0] <= 3) {
+    //     target = backing[backing[0]]
+    //     {body}
+    //     jump LABEL
+    // }
+    // undim backing
+    //
+    // and convert it to:
+    //
+    // for target = [a b c] {
+    //     {body}
+    // }
+
+    // if (backing[0] <= len)
+    const node = &cx.nodes.items[ni];
+    if (node.kind != .@"if") return null;
+    const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    if (cond.* != .call) return null;
+    if (cond.call.op != .le) return null;
+    std.debug.assert(cond.call.args.len == 2);
+    const cond_args = getExtra2(cx.extra, cond.call.args);
+    const cond_lhs = cx.exprs.getPtr(cond_args[0]);
+    if (cond_lhs.* != .call) return null;
+    if (cond_lhs.call.op != .@"get-array-item") return null;
+    std.debug.assert(cond_lhs.call.args.len == 2);
+    const cond_lhs_args = getExtra2(cx.extra, cond_lhs.call.args);
+    const backing_expr = cx.exprs.getPtr(cond_lhs_args[0]);
+    if (backing_expr.* != .variable) return null;
+    const backing = backing_expr.variable;
+    const cond_rhs = cx.exprs.getPtr(cond_args[1]);
+    if (cond_rhs.* != .int) return null;
+    const len = cond_rhs.int;
+
+    // inc-array-item backing 0
+    if (node.prev == null_node) return null;
+    const inc_node = &cx.nodes.items[node.prev];
+    if (inc_node.kind != .basic_block) return null;
+    if (inc_node.kind.basic_block.exit != .no_jump) return null;
+    if (inc_node.kind.basic_block.statements.len != 1) return null;
+    const inc = cx.stmts.getPtr(inc_node.kind.basic_block.statements.start);
+    if (inc.* != .call) return null;
+    if (inc.call.op != .@"inc-array-item") return null;
+    std.debug.assert(inc.call.args.len == 2);
+    const inc_args = getExtra2(cx.extra, inc.call.args);
+    const inc_array = cx.exprs.getPtr(inc_args[0]);
+    if (inc_array.* != .variable) return null;
+    if (inc_array.variable.raw != backing.raw) return null;
+    const inc_index = cx.exprs.getPtr(inc_args[1]);
+    if (inc_index.* != .int) return null;
+    if (inc_index.int != 0) return null;
+
+    // the three init statements
+    if (inc_node.prev == null_node) return null;
+    const init = &cx.nodes.items[inc_node.prev];
+    if (init.kind != .basic_block) return null;
+    if (init.kind.basic_block.exit != .no_jump) return null;
+    const init_ss = init.kind.basic_block.statements;
+    if (init_ss.len < 3) return null;
+    const init_stmts = cx.stmts.use()[init_ss.start + init_ss.len - 3 ..][0..3];
+    // array-assign backing [list] 1
+    const assign = &init_stmts[0];
+    if (assign.* != .call) return null;
+    if (assign.call.op != .@"array-assign") return null;
+    std.debug.assert(assign.call.args.len == 3);
+    const assign_args = getExtra2(cx.extra, assign.call.args);
+    const assign_var = cx.exprs.getPtr(assign_args[0]);
+    if (assign_var.* != .variable) return null;
+    if (assign_var.variable.raw != backing.raw) return null;
+    const assign_list = cx.exprs.getPtr(assign_args[1]);
+    if (assign_list.* != .list) return null;
+    if (assign_list.list.len != len) return null;
+    const assign_index = cx.exprs.getPtr(assign_args[2]);
+    if (assign_index.* != .int) return null;
+    if (assign_index.int != 1) return null;
+    // localize backing
+    const localize = &init_stmts[1];
+    if (localize.* != .call) return null;
+    if (localize.call.op != .localize) return null;
+    std.debug.assert(localize.call.args.len == 1);
+    const localize_args = getExtra2(cx.extra, localize.call.args);
+    const localize_var = cx.exprs.getPtr(localize_args[0]);
+    if (localize_var.* != .variable) return null;
+    if (localize_var.variable.raw != backing.raw) return null;
+    // backing[0] = 0
+    const zero = &init_stmts[2];
+    if (zero.* != .call) return null;
+    if (zero.call.op != .@"set-array-item") return null;
+    std.debug.assert(zero.call.args.len == 3);
+    const zero_args = getExtra2(cx.extra, zero.call.args);
+    const zero_var = cx.exprs.getPtr(zero_args[0]);
+    if (zero_var.* != .variable) return null;
+    if (zero_var.variable.raw != backing.raw) return null;
+    const zero_index = cx.exprs.getPtr(zero_args[1]);
+    if (zero_index.* != .int) return null;
+    if (zero_index.int != 0) return null;
+    const zero_value = cx.exprs.getPtr(zero_args[2]);
+    if (zero_value.* != .int) return null;
+    if (zero_value.int != 0) return null;
+
+    // undim backing
+    if (node.next == null_node) return null;
+    const node_undim = &cx.nodes.items[node.next];
+    if (node_undim.kind != .basic_block) return null;
+    if (node_undim.kind.basic_block.statements.len == 0) return null;
+    const undim = cx.stmts.getPtr(node_undim.kind.basic_block.statements.start);
+    if (undim.* != .call) return null;
+    if (undim.call.op != .undim) return null;
+    std.debug.assert(undim.call.args.len == 1);
+    const undim_args = getExtra2(cx.extra, undim.call.args);
+    const undim_var = cx.exprs.getPtr(undim_args[0]);
+    if (undim_var.* != .variable) return null;
+    if (undim_var.variable.raw != backing.raw) return null;
+
+    // target = backing[backing[0]]
+    if (node.kind.@"if".true == null_node) return null;
+    const body_start = &cx.nodes.items[node.kind.@"if".true];
+    if (body_start.kind != .basic_block) return null;
+    if (body_start.kind.basic_block.statements.len == 0) return null;
+    const pull = cx.stmts.getPtr(body_start.kind.basic_block.statements.start);
+    if (pull.* != .call) return null;
+    if (pull.call.op != .set) return null;
+    std.debug.assert(pull.call.args.len == 2);
+    const pull_args = getExtra2(cx.extra, pull.call.args);
+    const pull_var = cx.exprs.getPtr(pull_args[0]);
+    if (pull_var.* != .variable) return null;
+    const target = pull_var.variable;
+    // backing[backing[0]]
+    const pull_rhs = cx.exprs.getPtr(pull_args[1]);
+    if (pull_rhs.* != .call) return null;
+    if (pull_rhs.call.op != .@"get-array-item") return null;
+    std.debug.assert(pull_rhs.call.args.len == 2);
+    const pull_rhs_args = getExtra2(cx.extra, pull_rhs.call.args);
+    const pull_rhs_var = cx.exprs.getPtr(pull_rhs_args[0]);
+    if (pull_rhs_var.* != .variable) return null;
+    if (pull_rhs_var.variable.raw != backing.raw) return null;
+    // backing[0]
+    const pull_rhs_index = cx.exprs.getPtr(pull_rhs_args[1]);
+    if (pull_rhs_index.* != .call) return null;
+    if (pull_rhs_index.call.op != .@"get-array-item") return null;
+    std.debug.assert(pull_rhs_index.call.args.len == 2);
+    const pull_rhs_index_args = getExtra2(cx.extra, pull_rhs_index.call.args);
+    const pull_rhs_index_var = cx.exprs.getPtr(pull_rhs_index_args[0]);
+    if (pull_rhs_index_var.* != .variable) return null;
+    if (pull_rhs_index_var.variable.raw != backing.raw) return null;
+    const pull_rhs_index_int = cx.exprs.getPtr(pull_rhs_index_args[1]);
+    if (pull_rhs_index_int.* != .int) return null;
+    if (pull_rhs_index_int.int != 0) return null;
+
+    // jump LABEL
+    const ni_body_end = findLastNode(cx, node.kind.@"if".true);
+    const body_end = &cx.nodes.items[ni_body_end];
+    if (body_end.kind != .basic_block) return null;
+    if (body_end.kind.basic_block.exit != .jump) return null;
+    if (body_end.kind.basic_block.exit.jump != inc_node.start) return null;
+
+    return .{
+        .target = target,
+        .list = assign_args[1],
+        .backing = backing,
+    };
+}
+
+fn makeForIn(cx: *StructuringCx, ni: NodeIndex, info: ForIn) void {
+    const node = &cx.nodes.items[ni];
+    const ni_inc = node.prev;
+    const node_inc = &cx.nodes.items[ni_inc];
+    const ni_init = node_inc.prev;
+    const ni_body = node.kind.@"if".true;
+    const ni_body_end = findLastNode(cx, ni_body);
+    const ni_after = node.next;
+
+    cx.nodes.items[ni_init].next = ni;
+    cx.nodes.items[ni_init].kind.basic_block.statements.len -= 3;
+    cx.nodes.items[ni_init].end = pc_unknown;
+
+    orphanNode(cx, ni_inc);
+
+    cx.nodes.items[ni] = .{
+        .start = cx.nodes.items[ni_init].end,
+        .end = pc_unknown,
+        .prev = ni_init,
+        .next = ni_after,
+        .kind = .{ .for_in = .{
+            .target = info.target,
+            .list = info.list,
+            .backing = info.backing,
+            .body = ni_body,
+        } },
+    };
+
+    // chop off `undim backing`
+    cx.nodes.items[ni_after].kind.basic_block.statements.start += 1;
+    cx.nodes.items[ni_after].kind.basic_block.statements.len -= 1;
+    cx.nodes.items[ni_after].start = pc_unknown;
+
+    // chop off `target = backing[backing[0]]`
+    cx.nodes.items[ni_body].kind.basic_block.statements.start += 1;
+    cx.nodes.items[ni_body].kind.basic_block.statements.len -= 1;
+    cx.nodes.items[ni_body].start = pc_unknown;
+
+    chopJump(cx, ni_body_end);
+
+    structureCheckpoint(cx, "makeForIn ni={}", .{ni});
 }
 
 fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1735,7 +1980,6 @@ fn findLastNode(cx: *StructuringCx, ni_initial: NodeIndex) NodeIndex {
         if (node.next == null_node) return ni;
         ni = node.next;
     }
-    return null;
 }
 
 fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) NodeIndex {
@@ -1890,6 +2134,7 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
             .if_else => |*n| try out.print("true={} false={}", .{ fni(n.true), fni(n.false) }),
             .@"while" => |*n| try out.print("body={}", .{fni(n.body)}),
             .@"for" => |*n| try out.print("body={}", .{fni(n.body)}),
+            .for_in => |*n| try out.print("body={}", .{fni(n.body)}),
             .do => |*n| try out.print("body={}", .{fni(n.body)}),
             .case => |*n| try out.print("first={}", .{fni(n.first_branch)}),
             .case_branch => |*n| try out.print("body={}", .{fni(n.body)}),
@@ -2037,6 +2282,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .@"for" => |*n| {
             try findJumpTargetsInNodeList(cx, n.body);
         },
+        .for_in => |*n| {
+            try findJumpTargetsInNodeList(cx, n.body);
+        },
         .case => |*n| {
             try findJumpTargetsInNodeList(cx, n.first_branch);
         },
@@ -2180,6 +2428,21 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitExpr(cx, n.end, .space);
             try cx.out.append(cx.gpa, ' ');
             try cx.out.append(cx.gpa, if (n.direction == .up) '+' else '-');
+            try cx.out.appendSlice(cx.gpa, " {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, n.body);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .for_in => |*n| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "for ");
+            try emitVariable(cx, n.target);
+            try cx.out.appendSlice(cx.gpa, " = {");
+            try emitVariable(cx, n.backing);
+            try cx.out.append(cx.gpa, '}');
+            try emitExpr(cx, n.list, .all);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);

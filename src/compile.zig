@@ -188,19 +188,72 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             try pushExpr(cx, s.start);
             try emitOpcodeByName(cx, "set");
             try emitVariable(cx, s.accumulator);
+
             const loop_target: u32 = @intCast(cx.out.items.len);
+
             try pushExpr(cx, s.accumulator);
             try pushExpr(cx, s.end);
             try emitOpcodeByName(cx, if (s.direction == .up) "le" else "ge");
             try emitOpcodeByName(cx, "jump-unless");
             const end_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+
             try emitBlock(cx, s.body);
+
             try emitOpcodeByName(cx, if (s.direction == .up) "inc" else "dec");
             try emitVariable(cx, s.accumulator);
+
             try emitOpcodeByName(cx, "jump");
             try writeJumpTargetBackwards(cx, loop_target);
+
             try fixupJumpToHere(cx, end_fixup);
+        },
+        .for_in => |*s| {
+            try pushExpr(cx, s.list);
+            try pushInt(cx, 1);
+            try emitOpcodeByName(cx, "array-assign");
+            try emitVariable(cx, s.backing);
+
+            try pushExpr(cx, s.backing);
+            try emitOpcodeByName(cx, "localize");
+
+            try pushInt(cx, 0);
+            try pushInt(cx, 0);
+            try emitOpcodeByName(cx, "set-array-item");
+            try emitVariable(cx, s.backing);
+
+            const loop_target: u32 = @intCast(cx.out.items.len);
+
+            try pushInt(cx, 0);
+            try emitOpcodeByName(cx, "inc-array-item");
+            try emitVariable(cx, s.backing);
+
+            try pushInt(cx, 0);
+            try emitOpcodeByName(cx, "get-array-item");
+            try emitVariable(cx, s.backing);
+            try pushInt(cx, @intCast(cx.ast.nodes.items[s.list].list.items.len));
+            try emitOpcodeByName(cx, "le");
+            try emitOpcodeByName(cx, "jump-unless");
+            const end_fixup: u32 = @intCast(cx.out.items.len);
+            _ = try cx.out.addManyAsSlice(cx.gpa, 2);
+
+            try pushInt(cx, 0);
+            try emitOpcodeByName(cx, "get-array-item");
+            try emitVariable(cx, s.backing);
+            try emitOpcodeByName(cx, "get-array-item");
+            try emitVariable(cx, s.backing);
+            try emitOpcodeByName(cx, "set");
+            try emitVariable(cx, s.target);
+
+            try emitBlock(cx, s.body);
+
+            try emitOpcodeByName(cx, "jump");
+            try writeJumpTargetBackwards(cx, loop_target);
+
+            try fixupJumpToHere(cx, end_fixup);
+
+            try emitOpcodeByName(cx, "undim");
+            try emitVariable(cx, s.backing);
         },
         .case => |*s| {
             var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};

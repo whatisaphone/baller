@@ -893,30 +893,45 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .@"for" => {
-                const ac_tok = consumeToken(cx);
-                if (ac_tok.kind != .identifier)
-                    return reportUnexpected(cx, ac_tok);
-                const identifier = cx.source[ac_tok.span.start.offset..ac_tok.span.end.offset];
-                const accumulator = try storeNode(cx, ac_tok, .{ .identifier = identifier });
+                const target = try parseIdentifierNode(cx, consumeToken(cx));
                 try expect(cx, .eq);
-                const start = try parseExpr(cx, consumeToken(cx), .space);
-                _ = try parseIdentifier(cx, consumeToken(cx), enum { to });
-                const end = try parseExpr(cx, consumeToken(cx), .space);
-                const dir_tok = consumeToken(cx);
-                const dir: Ast.ForDirection = switch (dir_tok.kind) {
-                    .plus => .up,
-                    .minus => .down,
-                    else => return reportUnexpected(cx, dir_tok),
-                };
-                try expect(cx, .brace_l);
-                const body = try parseScriptBlock(cx);
-                return storeNode(cx, token, .{ .@"for" = .{
-                    .accumulator = accumulator,
-                    .start = start,
-                    .end = end,
-                    .direction = dir,
-                    .body = body,
-                } });
+                const token2 = consumeToken(cx);
+                if (token2.kind == .brace_l) {
+                    const backing = try parseIdentifierNode(cx, consumeToken(cx));
+                    try expect(cx, .brace_r);
+                    if (peekToken(cx).kind != .bracket_l)
+                        return reportUnexpected(cx, peekToken(cx));
+                    const list = try parseExpr(cx, consumeToken(cx), .space);
+                    try expect(cx, .brace_l);
+                    const body = try parseScriptBlock(cx);
+                    return storeNode(cx, token, .{ .for_in = .{
+                        .target = target,
+                        .list = list,
+                        .backing = backing,
+                        .body = body,
+                    } });
+                } else if (isAtomToken(token2)) {
+                    const start = try parseExpr(cx, token2, .space);
+                    _ = try parseIdentifier(cx, consumeToken(cx), enum { to });
+                    const end = try parseExpr(cx, consumeToken(cx), .space);
+                    const dir_tok = consumeToken(cx);
+                    const dir: Ast.ForDirection = switch (dir_tok.kind) {
+                        .plus => .up,
+                        .minus => .down,
+                        else => return reportUnexpected(cx, dir_tok),
+                    };
+                    try expect(cx, .brace_l);
+                    const body = try parseScriptBlock(cx);
+                    return storeNode(cx, token, .{ .@"for" = .{
+                        .accumulator = target,
+                        .start = start,
+                        .end = end,
+                        .direction = dir,
+                        .body = body,
+                    } });
+                } else {
+                    return reportUnexpected(cx, token2);
+                }
             },
             .do => {
                 try expect(cx, .brace_l);
@@ -1138,6 +1153,13 @@ fn parseList(cx: *Cx) !Ast.ExtraSlice {
         try appendNode(cx, &result, node);
     }
     return try storeExtra(cx, result.slice());
+}
+
+fn parseIdentifierNode(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    if (token.kind != .identifier)
+        return reportExpected(cx, token, .identifier);
+    const identifier = cx.source[token.span.start.offset..token.span.end.offset];
+    return storeNode(cx, token, .{ .identifier = identifier });
 }
 
 fn storeNode(cx: *Cx, token: *const lexer.Token, node: Ast.Node) !Ast.NodeIndex {
