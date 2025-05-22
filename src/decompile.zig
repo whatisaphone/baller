@@ -71,7 +71,9 @@ pub fn run(
         .extra = &dcx.extra,
         .queue = .empty,
         .nodes = .empty,
+        .trail = if (builtin.mode == .Debug) .{},
     };
+    defer if (builtin.mode == .Debug) scx.trail.deinit(gpa);
     defer scx.nodes.deinit(gpa);
     defer scx.queue.deinit(gpa);
     try structure(&scx, basic_blocks.items);
@@ -949,6 +951,8 @@ const StructuringCx = struct {
 
     queue: std.ArrayListUnmanaged(NodeIndex),
     nodes: std.ArrayListUnmanaged(Node),
+    /// debug only, used to assert that all nodes are scanned once per phase
+    trail: if (builtin.mode == .Debug) std.DynamicBitSetUnmanaged else void,
 };
 
 const NodeIndex = u16;
@@ -1014,6 +1018,8 @@ const NodeKind = union(enum) {
         value: ExprIndex,
         body: NodeIndex,
     },
+    /// debug only, used for invariant tracking
+    orphan,
 };
 
 const root_node_index = 0;
@@ -1040,33 +1046,47 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 
     structureCheckpoint(cx, "initial", .{});
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntIf(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntIfElse(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntWhile(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntFor(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntBreakUntil(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntDo(cx, ni);
+    try endPhase(cx);
 
+    try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntCase(cx, ni);
+    try endPhase(cx);
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
@@ -1099,12 +1119,55 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
         .case_branch => |*n| {
             try queueNode(cx, n.body);
         },
+        .orphan => unreachable,
     }
+}
+
+fn startPhase(cx: *StructuringCx) !void {
+    if (builtin.mode != .Debug) return;
+    cx.trail.unsetAll();
+}
+
+fn endPhase(cx: *StructuringCx) !void {
+    if (builtin.mode != .Debug) return;
+    try updateTrailLen(cx);
+    for (0..cx.nodes.items.len) |i| {
+        const ni: NodeIndex = @intCast(i);
+        const node = &cx.nodes.items[ni];
+        if (cx.trail.isSet(ni)) continue;
+        if (node.kind == .orphan) continue;
+        std.debug.panic("skipped node {}", .{ni});
+    }
+}
+
+fn trackStructured(cx: *StructuringCx, ni: NodeIndex) !void {
+    if (builtin.mode != .Debug) return;
+    try updateTrailLen(cx);
+    std.debug.assert(!cx.trail.isSet(ni));
+    cx.trail.set(ni);
+}
+
+fn trackMoved(cx: *StructuringCx, ni_from: NodeIndex, ni_to: NodeIndex) !void {
+    if (builtin.mode != .Debug) return;
+    try updateTrailLen(cx);
+    if (!cx.trail.isSet(ni_from)) return;
+    cx.trail.unset(ni_from);
+    cx.trail.set(ni_to);
+}
+
+fn updateTrailLen(cx: *StructuringCx) !void {
+    // all the BitSet methods require the length to be set ahead of time, so
+    // just do it once here to make things easy
+    const expected = cx.nodes.items.len;
+    if (cx.trail.bit_length > expected) @panic("oops");
+    if (cx.trail.bit_length == expected) return;
+    try cx.trail.resize(cx.gpa, expected, false);
 }
 
 fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     var ni = ni_first;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         const node = &cx.nodes.items[ni];
         if (node.kind != .basic_block) continue;
         if (node.kind.basic_block.exit != .jump_unless) continue;
@@ -1152,6 +1215,7 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
 fn huntIfElse(cx: *StructuringCx, ni_first: NodeIndex) !void {
     var ni = ni_first;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         try queueChildren(cx, ni);
 
         const node = &cx.nodes.items[ni];
@@ -1197,13 +1261,13 @@ fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void 
 
     structureCheckpoint(cx, "makeIfElse ni={} ni_false_end={}", .{ ni, ni_false_end });
 
-    try queueNode(cx, node.kind.if_else.true);
     try queueNode(cx, node.kind.if_else.false);
 }
 
 fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
     var ni = ni_initial;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         try queueChildren(cx, ni);
 
         const node = &cx.nodes.items[ni];
@@ -1232,6 +1296,7 @@ fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void
 fn huntFor(cx: *StructuringCx, ni_initial: NodeIndex) !void {
     var ni = ni_initial;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         try queueChildren(cx, ni);
 
         if (isFor(cx, ni)) |f|
@@ -1338,6 +1403,7 @@ fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
 fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
     var ni = ni_initial;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         try queueChildren(cx, ni);
 
         const node = &cx.nodes.items[ni];
@@ -1351,11 +1417,17 @@ fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
 
         const ni_body_first = findBackwardsNodeWithStart(cx, ni, target) orelse continue;
 
-        try makeDo(cx, ni_body_first, ni);
+        // makeDo replaces the node, so continue from the new node index, not
+        // the stale current node index
+        ni = try makeDo(cx, ni_body_first, ni);
     }
 }
 
-fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: NodeIndex) !void {
+fn makeDo(
+    cx: *StructuringCx,
+    ni_body_first_orig: NodeIndex,
+    ni_condition_orig: NodeIndex,
+) !NodeIndex {
     const ni_body_first = try moveNode(cx, ni_body_first_orig);
     const ni_condition = if (ni_condition_orig == ni_body_first_orig)
         ni_body_first
@@ -1398,11 +1470,15 @@ fn makeDo(cx: *StructuringCx, ni_body_first_orig: NodeIndex, ni_condition_orig: 
         "makeDo ni_body_first_orig={} ni_condition_orig={}",
         .{ ni_body_first_orig, ni_condition_orig },
     );
+
+    try trackStructured(cx, ni_do);
+    return ni_do;
 }
 
 fn huntBreakUntil(cx: *StructuringCx, ni_initial: NodeIndex) !void {
     var ni = ni_initial;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
+        try trackStructured(cx, ni);
         try queueChildren(cx, ni);
 
         if (isBreakUntil(cx, ni))
@@ -1458,10 +1534,12 @@ fn makeBreakUntil(cx: *StructuringCx, ni: NodeIndex) !void {
 fn huntCase(cx: *StructuringCx, ni_initial: NodeIndex) !void {
     var ni = ni_initial;
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
-        try queueChildren(cx, ni);
+        try trackStructured(cx, ni);
 
         if (isCase(cx, ni)) |ni_last|
             try makeCase(cx, ni, ni_last);
+
+        try queueChildren(cx, ni);
     }
 }
 
@@ -1699,6 +1777,8 @@ fn moveNode(cx: *StructuringCx, ni_orig: NodeIndex) !NodeIndex {
     if (niOpt(cx.nodes.items[ni_new].next)) |ni_next|
         cx.nodes.items[ni_next].prev = ni_new;
 
+    try trackMoved(cx, ni_orig, ni_new);
+
     return ni_new;
 }
 
@@ -1709,6 +1789,7 @@ fn orphanNode(cx: *StructuringCx, ni: NodeIndex) void {
     const node = &cx.nodes.items[ni];
     node.prev = null_node;
     node.next = null_node;
+    node.kind = .orphan;
 }
 
 fn structureCheckpoint(cx: *StructuringCx, comptime fmt: []const u8, args: anytype) void {
@@ -1812,6 +1893,7 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
             .do => |*n| try out.print("body={}", .{fni(n.body)}),
             .case => |*n| try out.print("first={}", .{fni(n.first_branch)}),
             .case_branch => |*n| try out.print("body={}", .{fni(n.body)}),
+            .orphan => {},
         }
         try out.writeByte('\n');
     }
@@ -1961,6 +2043,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         .case_branch => |*n| {
             try findJumpTargetsInNodeList(cx, n.body);
         },
+        .orphan => unreachable,
     }
 }
 
@@ -2145,6 +2228,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
+        .orphan => unreachable,
     }
 }
 

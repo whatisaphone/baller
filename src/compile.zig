@@ -106,9 +106,14 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
     const node = &cx.ast.nodes.items[node_index];
     switch (node.*) {
         .label => |name| {
+            const offset: u16 = @intCast(cx.out.items.len);
             const entry = try cx.label_offsets.getOrPut(cx.gpa, name);
-            if (entry.found_existing) return error.BadData;
-            entry.value_ptr.* = @intCast(cx.out.items.len);
+            // TODO: forbid duplicate labels, this would mean fixing the decompiler first
+            if (entry.found_existing) {
+                if (entry.value_ptr.* != offset) return error.BadData;
+            } else {
+                entry.value_ptr.* = offset;
+            }
         },
         .set => |*s| {
             const lhs = &cx.ast.nodes.items[s.lhs];
