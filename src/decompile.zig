@@ -985,6 +985,10 @@ const NodeKind = union(enum) {
     @"if": struct {
         condition: ExprIndex,
         true: NodeIndex,
+    },
+    if_else: struct {
+        condition: ExprIndex,
+        true: NodeIndex,
         false: NodeIndex,
     },
     @"while": struct {
@@ -1075,6 +1079,9 @@ fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
         .basic_block => {},
         .@"if" => |*n| {
             try queueNode(cx, n.true);
+        },
+        .if_else => |*n| {
+            try queueNode(cx, n.true);
             try queueNode(cx, n.false);
         },
         .@"while" => |*n| {
@@ -1126,7 +1133,6 @@ fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !voi
         .kind = .{ .@"if" = .{
             .condition = condition,
             .true = ni_true_start,
-            .false = null_node,
         } },
     });
     cx.nodes.items[ni_before].next = ni_if;
@@ -1173,7 +1179,11 @@ fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void 
     chopJump(cx, ni_true_end);
     node.end = cx.nodes.items[ni_false_end].end;
     node.next = ni_after;
-    node.kind.@"if".false = ni_false_start;
+    node.kind = .{ .if_else = .{
+        .condition = node.kind.@"if".condition,
+        .true = node.kind.@"if".true,
+        .false = ni_false_start,
+    } };
     if (ni_after != null_node)
         cx.nodes.items[ni_after].prev = ni;
 
@@ -1182,8 +1192,8 @@ fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void 
 
     structureCheckpoint(cx, "makeIfElse ni={} ni_false_end={}", .{ ni, ni_false_end });
 
-    try queueNode(cx, node.kind.@"if".true);
-    try queueNode(cx, node.kind.@"if".false);
+    try queueNode(cx, node.kind.if_else.true);
+    try queueNode(cx, node.kind.if_else.false);
 }
 
 fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
@@ -1193,8 +1203,6 @@ fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
 
         const node = &cx.nodes.items[ni];
         if (node.kind != .@"if") continue;
-        if (node.kind.@"if".false != null_node) continue;
-
         if (node.kind.@"if".true == null_node) continue;
         const ni_true_last = findLastNode(cx, node.kind.@"if".true);
         const true_last = &cx.nodes.items[ni_true_last];
@@ -1455,7 +1463,7 @@ fn huntCase(cx: *StructuringCx, ni_initial: NodeIndex) !void {
 fn isCase(cx: *StructuringCx, ni_start: NodeIndex) ?NodeIndex {
     var ni = ni_start;
     const value = checkCaseBranch(cx, ni) orelse return null;
-    ni = cx.nodes.items[ni].kind.@"if".false;
+    ni = cx.nodes.items[ni].kind.if_else.false;
     while (true) {
         if (checkCaseBranchAnother(cx, ni, value)) |i| {
             ni = i;
@@ -1470,10 +1478,10 @@ fn isCase(cx: *StructuringCx, ni_start: NodeIndex) ?NodeIndex {
 
 fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
     const node = &cx.nodes.items[ni];
-    if (node.kind != .@"if") return null;
-    if (node.kind.@"if".false == null_node) return null;
+    if (node.kind != .if_else) return null;
+    if (node.kind.if_else.false == null_node) return null;
 
-    const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    const cond = cx.exprs.getPtr(node.kind.if_else.condition);
     if (cond.* != .call) return null;
     if (cond.call.op != .eq and cond.call.op != .@"in-list") return null;
     // Both possible ops have args in the same place so just combine their logic
@@ -1482,8 +1490,8 @@ fn checkCaseBranch(cx: *StructuringCx, ni: NodeIndex) ?ExprIndex {
     const cond_lhs = cx.exprs.getPtr(cond_args[0]);
     if (cond_lhs.* != .dup) return null;
 
-    if (node.kind.@"if".true == null_node) return null;
-    if (!nodeStartsWithPop(cx, node.kind.@"if".true, cond_lhs.dup)) return null;
+    if (node.kind.if_else.true == null_node) return null;
+    if (!nodeStartsWithPop(cx, node.kind.if_else.true, cond_lhs.dup)) return null;
 
     return cond_lhs.dup;
 }
@@ -1506,7 +1514,7 @@ fn checkCaseBranchAnother(
     if (node.next != null_node) return null;
     const cond_lhs = checkCaseBranch(cx, ni) orelse return null;
     if (cond_lhs != expected_value) return null;
-    return node.kind.@"if".false;
+    return node.kind.if_else.false;
 }
 
 fn nodeStartsWithPop(cx: *StructuringCx, ni: NodeIndex, expected_value: ExprIndex) bool {
@@ -1565,9 +1573,9 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
     // z      z
 
     const node = &cx.nodes.items[ni];
-    const ni_first_true = node.kind.@"if".true;
-    const ni_first_false = node.kind.@"if".false;
-    const cond = cx.exprs.getPtr(node.kind.@"if".condition);
+    const ni_first_true = node.kind.if_else.true;
+    const ni_first_false = node.kind.if_else.false;
+    const cond = cx.exprs.getPtr(node.kind.if_else.condition);
     std.debug.assert(cond.call.args.len == 2);
     const cond_args = getExtra2(cx.extra, cond.call.args);
     const case_value = cx.exprs.getPtr(cond_args[0]).dup;
@@ -1599,12 +1607,12 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
         orphanNode(cx, ni_cur);
         ni_cur = ni_real_cur;
         const cur = &cx.nodes.items[ni_cur];
-        const eq = cx.exprs.getPtr(cur.kind.@"if".condition);
+        const eq = cx.exprs.getPtr(cur.kind.if_else.condition);
         std.debug.assert(eq.call.args.len == 2);
         const eq_args = getExtra2(cx.extra, eq.call.args);
         const branch_expr = eq_args[1];
-        const ni_body = cur.kind.@"if".true;
-        const ni_next = cur.kind.@"if".false;
+        const ni_body = cur.kind.if_else.true;
+        const ni_next = cur.kind.if_else.false;
         cx.nodes.items[ni_cur] = .{
             .start = cur.start,
             .end = pc_unknown,
@@ -1792,7 +1800,8 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
         );
         switch (node.kind) {
             .basic_block => |*n| try out.print("exit={s}", .{@tagName(n.exit)}),
-            .@"if" => |*n| try out.print("true={} false={}", .{ fni(n.true), fni(n.false) }),
+            .@"if" => |*n| try out.print("true={}", .{fni(n.true)}),
+            .if_else => |*n| try out.print("true={} false={}", .{ fni(n.true), fni(n.false) }),
             .@"while" => |*n| try out.print("body={}", .{fni(n.body)}),
             .@"for" => |*n| try out.print("body={}", .{fni(n.body)}),
             .do => |*n| try out.print("body={}", .{fni(n.body)}),
@@ -1927,6 +1936,9 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
         },
         .@"if" => |*n| {
             try findJumpTargetsInNodeList(cx, n.true);
+        },
+        .if_else => |*n| {
+            try findJumpTargetsInNodeList(cx, n.true);
             try findJumpTargetsInNodeList(cx, n.false);
         },
         .@"while" => |*n| {
@@ -2040,13 +2052,22 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
-            if (k.false != null_node) {
-                try writeIndent(cx);
-                try cx.out.appendSlice(cx.gpa, "} else {\n");
-                cx.indent += indent_size;
-                try emitNodeList(cx, k.false);
-                cx.indent -= indent_size;
-            }
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "}\n");
+        },
+        .if_else => |k| {
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "if ");
+            try emitExpr(cx, k.condition, .space);
+            try cx.out.appendSlice(cx.gpa, " {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, k.true);
+            cx.indent -= indent_size;
+            try writeIndent(cx);
+            try cx.out.appendSlice(cx.gpa, "} else {\n");
+            cx.indent += indent_size;
+            try emitNodeList(cx, k.false);
+            cx.indent -= indent_size;
             try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
