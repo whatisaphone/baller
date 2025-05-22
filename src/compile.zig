@@ -141,7 +141,11 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             const cond_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try emitBlock(cx, s.true);
-            if (s.false.len != 0) {
+            // Mild hack here. We can tell the difference between the parser
+            // parsing no else block at all (start=0, len=0), and parsing an
+            // empty else block (start=???, len=0). We need to know the
+            // difference for a byte-identical roundtrip.
+            if (s.false.start != 0) {
                 try emitOpcodeByName(cx, "jump");
                 const true_end_fixup: u32 = @intCast(cx.out.items.len);
                 _ = try cx.out.addManyAsSlice(cx.gpa, 2);

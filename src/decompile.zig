@@ -1162,22 +1162,25 @@ fn huntIfElse(cx: *StructuringCx, ni_first: NodeIndex) !void {
         const true_end = &cx.nodes.items[ni_true_end];
         if (true_end.kind != .basic_block) continue;
         if (true_end.kind.basic_block.exit != .jump) continue;
-        if (true_end.kind.basic_block.exit.jump <= node.end) continue;
-        const ni_false_end = findNodeWithEnd(cx, node.next, true_end.kind.basic_block.exit.jump);
+        if (true_end.kind.basic_block.exit.jump < node.end) continue;
+        const ni_false_end = findNodeWithEnd(cx, ni, true_end.kind.basic_block.exit.jump);
         if (ni_false_end == null_node) continue;
 
-        try makeIfElse(cx, ni, ni_false_end);
+        const ni_f_e = if (ni_false_end != ni) ni_false_end else null_node;
+        try makeIfElse(cx, ni, ni_f_e);
     }
 }
 
 fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void {
+    const empty = ni_false_end == null_node;
     const node = &cx.nodes.items[ni];
     const ni_true_end = findLastNode(cx, node.kind.@"if".true);
-    const ni_false_start = node.next;
-    const ni_after = cx.nodes.items[ni_false_end].next;
+    const ni_false_start = if (!empty) node.next else null_node;
+    const ni_last = niOpt(ni_false_end) orelse ni;
+    const ni_after = cx.nodes.items[ni_last].next;
 
     chopJump(cx, ni_true_end);
-    node.end = cx.nodes.items[ni_false_end].end;
+    node.end = cx.nodes.items[ni_last].end;
     node.next = ni_after;
     node.kind = .{ .if_else = .{
         .condition = node.kind.@"if".condition,
@@ -1187,8 +1190,10 @@ fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void 
     if (ni_after != null_node)
         cx.nodes.items[ni_after].prev = ni;
 
-    cx.nodes.items[ni_false_start].prev = null_node;
-    cx.nodes.items[ni_false_end].next = null_node;
+    if (!empty) {
+        cx.nodes.items[ni_false_start].prev = null_node;
+        cx.nodes.items[ni_false_end].next = null_node;
+    }
 
     structureCheckpoint(cx, "makeIfElse ni={} ni_false_end={}", .{ ni, ni_false_end });
 
