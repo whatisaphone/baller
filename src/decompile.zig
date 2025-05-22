@@ -1062,6 +1062,7 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
+    if (ni == null_node) return;
     try cx.queue.append(cx.gpa, ni);
 }
 
@@ -1098,7 +1099,8 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
         if (node.kind.basic_block.exit != .jump_unless) continue;
         if (node.kind.basic_block.exit.jump_unless < node.end) continue;
         const ni_true_end = findNodeWithEnd(cx, ni, node.kind.basic_block.exit.jump_unless);
-        if (ni_true_end != null_node) break ni_true_end;
+        if (ni_true_end == null_node) continue;
+        break ni_true_end;
     } else return;
 
     const true_end = &cx.nodes.items[ni_true_end];
@@ -1110,16 +1112,17 @@ fn huntIf(cx: *StructuringCx, ni_first: NodeIndex) !void {
     };
 
     if (ni_false_end == null_node)
-        try makeIf(cx, ni, ni_true_end)
+        try makeIf(cx, ni, if (ni_true_end != ni) ni_true_end else null_node)
     else
         try makeIfElse(cx, ni, ni_true_end, ni_false_end);
 }
 
 fn makeIf(cx: *StructuringCx, ni_before: NodeIndex, ni_true_end: NodeIndex) !void {
-    const empty = ni_true_end == ni_before;
-    const end = cx.nodes.items[ni_true_end].end;
-    const ni_true_start = if (empty) null_node else cx.nodes.items[ni_before].next;
-    const ni_after = cx.nodes.items[ni_true_end].next;
+    const empty = ni_true_end == null_node;
+    const ni_last = niOpt(ni_true_end) orelse ni_before;
+    const end = cx.nodes.items[ni_last].end;
+    const ni_after = cx.nodes.items[ni_last].next;
+    const ni_true_start = if (!empty) cx.nodes.items[ni_before].next else null_node;
 
     const condition = chopJumpCondition(cx, ni_before);
     const ni_if = try appendNode(cx, .{
