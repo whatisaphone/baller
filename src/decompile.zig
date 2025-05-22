@@ -1753,6 +1753,30 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
         }
     };
 
+    const FormatNodeIndex = struct {
+        value: NodeIndex,
+
+        pub fn format(
+            self: @This(),
+            comptime fmt: []const u8,
+            options: std.fmt.FormatOptions,
+            writer: anytype,
+        ) !void {
+            comptime std.debug.assert(fmt.len == 0);
+
+            if (self.value != null_node)
+                try std.fmt.formatIntValue(self.value, "", options, writer)
+            else
+                try std.fmt.formatText("-", "s", options, writer);
+        }
+    };
+
+    const fni = struct {
+        fn f(ni: NodeIndex) FormatNodeIndex {
+            return .{ .value = ni };
+        }
+    }.f;
+
     const items = try cx.gpa.alloc(Item, cx.nodes.items.len);
     defer cx.gpa.free(items);
     for (items, cx.nodes.items, 0..) |*item, *node, ni|
@@ -1763,18 +1787,19 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
         const ni = item.index;
         const node = item.node;
         try out.print(
-            "{}: {s:<11} {}/{} 0x{x:0>4}-0x{x:0>4}\n",
-            .{ ni, @tagName(node.kind), node.prev, node.next, node.start, node.end },
+            "{:>2}: {s:<11} {:>2}/{:>2} 0x{x:0>4}-0x{x:0>4} ",
+            .{ ni, @tagName(node.kind), fni(node.prev), fni(node.next), node.start, node.end },
         );
         switch (node.kind) {
-            .basic_block => {},
-            .@"if" => |*n| try out.print("      true={} false={}\n", .{ n.true, n.false }),
-            .@"while" => |*n| try out.print("      body={}\n", .{n.body}),
-            .@"for" => |*n| try out.print("      body={}\n", .{n.body}),
-            .do => |*n| try out.print("      body={}\n", .{n.body}),
-            .case => |*n| try out.print("      first={}\n", .{n.first_branch}),
-            .case_branch => |*n| try out.print("      body={}\n", .{n.body}),
+            .basic_block => |*n| try out.print("exit={s}", .{@tagName(n.exit)}),
+            .@"if" => |*n| try out.print("true={} false={}", .{ fni(n.true), fni(n.false) }),
+            .@"while" => |*n| try out.print("body={}", .{fni(n.body)}),
+            .@"for" => |*n| try out.print("body={}", .{fni(n.body)}),
+            .do => |*n| try out.print("body={}", .{fni(n.body)}),
+            .case => |*n| try out.print("first={}", .{fni(n.first_branch)}),
+            .case_branch => |*n| try out.print("body={}", .{fni(n.body)}),
         }
+        try out.writeByte('\n');
     }
 }
 
