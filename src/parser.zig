@@ -1144,7 +1144,7 @@ fn parseBinOp(
 }
 
 fn parseList(cx: *Cx) !Ast.ExtraSlice {
-    var result: std.BoundedArray(Ast.NodeIndex, 24) = .{};
+    var result: std.BoundedArray(Ast.NodeIndex, 32) = .{};
     while (true) {
         const token = peekToken(cx);
         if (!isAtomToken(token)) break;
