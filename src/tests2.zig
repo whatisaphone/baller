@@ -131,6 +131,9 @@ fn testRoundTrip(
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 
+    diagnostic.deinit();
+    diagnostic = .init(std.testing.allocator);
+
     try build.run(std.testing.allocator, &diagnostic, .{
         .project_path = extract_path ++ "/project.scu",
         .index_path = build_path ++ "/" ++ game.index_name,
