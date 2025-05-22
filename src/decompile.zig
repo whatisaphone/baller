@@ -1055,13 +1055,13 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
-        try huntIfElse(cx, ni);
+        try huntWhile(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
-        try huntWhile(cx, ni);
+        try huntIfElse(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
