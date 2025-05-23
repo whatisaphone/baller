@@ -19,6 +19,9 @@ pub fn run(
     room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
+    /// Bitmask of which local scripts exist in the room. Any script in the mask
+    /// is eligible to be emitted by name instead of by number.
+    lsc_mask: *const UsageTracker.LocalScripts,
     out: *std.ArrayListUnmanaged(u8),
     usage: *UsageTracker,
 ) !void {
@@ -83,6 +86,7 @@ pub fn run(
 
     var ecx: EmitCx = .{
         .gpa = gpa,
+        .diag = diag,
         .symbols = symbols,
         .room_number = room_number,
         .id = id,
@@ -90,6 +94,7 @@ pub fn run(
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
+        .lsc_mask = lsc_mask,
         .local_var_usage = &usage.local_vars,
         .types = &tcx.types,
         .jump_targets = jump_targets.items,
@@ -502,6 +507,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"say-line-color" = .gen(&.{.list}),
     .@"say-line-start" = .gen(&.{.int}),
     .@"say-line-actor" = .gen(&.{.int}),
+    .@"say-line" = .gen(&.{}),
     .@"dim-array.int8" = .gen(&.{.int}),
     .@"dim-array.int16" = .gen(&.{.int}),
     .@"dim-array.int32" = .gen(&.{.int}),
@@ -2324,6 +2330,7 @@ const indent_size = 4;
 
 const EmitCx = struct {
     gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForBinaryFile,
     symbols: *const Symbols,
     room_number: u8,
     id: Symbols.ScriptId,
@@ -2331,6 +2338,7 @@ const EmitCx = struct {
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
+    lsc_mask: *const UsageTracker.LocalScripts,
     local_var_usage: *const UsageTracker.LocalVars,
     types: *const ArrayMap(Type),
     jump_targets: []const u16,
@@ -2632,9 +2640,21 @@ fn emitExpr(
 
 fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
     const int = cx.exprs.getPtr(ei).int;
-    if (cx.types.get(ei)) |t| switch (t) {
-        .script => if (std.math.cast(u32, int)) |n| {
-            try cx.symbols.writeScriptName(cx.room_number, n, cx.out.writer(cx.gpa));
+    if (cx.types.get(ei)) |t| write_name: switch (t) {
+        .script => {
+            const num = std.math.cast(u32, int) orelse break :write_name;
+            if (num < games.firstLocalScript(cx.symbols.game)) {
+                // for now always name global scripts
+            } else {
+                const index = num - games.firstLocalScript(cx.symbols.game);
+                if (index >= UsageTracker.max_local_scripts) break :write_name;
+                const valid = std.mem.readPackedInt(u1, std.mem.asBytes(cx.lsc_mask), index, .little) != 0;
+                if (!valid) {
+                    cx.diag.info(0, "reference to missing script {}", .{num});
+                    break :write_name;
+                }
+            }
+            try cx.symbols.writeScriptName(cx.room_number, num, cx.out.writer(cx.gpa));
             return;
         },
     };

@@ -8,10 +8,12 @@ const UsageTracker = @This();
 pub const max_global_vars = 768;
 pub const max_local_vars = 32;
 pub const max_room_vars = 192;
+pub const max_local_scripts = 640;
 
 pub const GlobalVars = BitArray(max_global_vars);
 pub const LocalVars = BitArray(max_local_vars);
 pub const RoomVars = BitArray(max_room_vars);
+pub const LocalScripts = BitArray(max_local_scripts);
 
 fn BitArray(bits: comptime_int) type {
     const len = std.math.divCeil(comptime_int, bits, @bitSizeOf(usize)) catch unreachable;

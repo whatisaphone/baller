@@ -730,6 +730,10 @@ const RoomContext = struct {
     room_dir: std.fs.Dir,
     room_palette: utils.SafeUndefined([0x300]u8),
     room_var_usage: UsageTracker.RoomVars,
+    /// Bitmask of which local scripts exist in the room
+    lsc_mask: UsageTracker.LocalScripts,
+    /// Used to assert `lsc_mask` isn't modified while being read
+    lsc_mask_state: union { collecting: void, frozen: void },
     events: *sync.Channel(Event, 16),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
@@ -792,6 +796,8 @@ fn readRoomJob(
         .room_dir = undefined, // set below
         .room_palette = .undef,
         .room_var_usage = @splat(0),
+        .lsc_mask = @splat(0),
+        .lsc_mask_state = .{ .collecting = {} },
         .events = events,
         .pending_jobs = .init(0),
         .next_chunk_index = 0,
@@ -900,6 +906,17 @@ fn extractRmda(
 
     var apal_opt: ?[0x300]u8 = null;
 
+    // Buffer script blocks until the end, so we can collect a list of valid
+    // local script numbers for the decompiler. This is needed specifically for
+    // Backyard Baseball 2001 teaminfo lsc2204, which references lsc2173, which
+    // does not actually exist.
+    var buffered_blocks: std.ArrayListUnmanaged(BufferedBlock) = .empty;
+    defer {
+        for (buffered_blocks.items) |*b|
+            cx.cx.gpa.free(b.data);
+        buffered_blocks.deinit(cx.cx.gpa);
+    }
+
     var rmda_blocks = streamingBlockReader(in, diag);
 
     while (in.bytes_read < rmda.end()) {
@@ -913,7 +930,7 @@ fn extractRmda(
                 try cx.sendSync(.top, code);
             },
             blockId("EXCD"), blockId("ENCD"), blockId("LSCR"), blockId("LSC2") => {
-                try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
+                try addBlockToBuffer(cx, in, &block, &buffered_blocks);
             },
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
@@ -923,6 +940,8 @@ fn extractRmda(
             },
         }
     }
+
+    try spawnBufferedBlockJobs(cx, diag, &buffered_blocks);
 
     try rmda_blocks.finish(rmda.end());
 
@@ -960,6 +979,56 @@ fn extractPals(
     try writeRawBlock(cx.cx.gpa, block, &pals_raw, cx.room_dir, cx.room_path, code);
 
     return apal.*;
+}
+
+const BufferedBlock = struct {
+    block: Block,
+    data: []u8,
+};
+
+fn addBlockToBuffer(
+    cx: *RoomContext,
+    in: anytype,
+    block: *const Block,
+    buffered_blocks: *std.ArrayListUnmanaged(BufferedBlock),
+) !void {
+    const raw = try cx.cx.gpa.alloc(u8, block.size);
+    errdefer cx.cx.gpa.free(raw);
+    try in.reader().readNoEof(raw);
+
+    try buffered_blocks.append(cx.cx.gpa, .{ .block = block.*, .data = raw });
+    errdefer comptime unreachable;
+
+    switch (block.id) {
+        blockId("EXCD"), blockId("ENCD") => {},
+        blockId("LSCR"), blockId("LSC2") => {
+            _ = cx.lsc_mask_state.collecting;
+
+            const script_number, _ = parseLscHeader(.from(block.id), raw) catch return;
+            const script_index = std.math.sub(u16, script_number, games.firstLocalScript(cx.cx.game)) catch return;
+            if (script_index >= UsageTracker.max_local_scripts) return;
+            std.mem.writePackedInt(u1, std.mem.asBytes(&cx.lsc_mask), script_index, 1, .little);
+        },
+        else => unreachable,
+    }
+}
+
+fn spawnBufferedBlockJobs(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    buffered_blocks: *std.ArrayListUnmanaged(BufferedBlock),
+) !void {
+    _ = cx.lsc_mask_state.collecting;
+    cx.lsc_mask_state = .{ .frozen = {} };
+
+    while (buffered_blocks.items.len != 0) {
+        // TODO: fix this with VecDeque
+        const lsc = buffered_blocks.orderedRemove(0);
+        errdefer cx.cx.gpa.free(lsc.data);
+
+        const chunk_index = try cx.claimChunkIndex();
+        try spawnBlockJob(extractRmdaChildJob, cx, diag, &lsc.block, lsc.data, chunk_index);
+    }
 }
 
 const BlockJob = fn (
@@ -1218,7 +1287,8 @@ fn extractEncdExcdDecompile(
         .excd => "exit",
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, code, &usage);
+    _ = cx.lsc_mask_state.frozen;
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1361,7 +1431,8 @@ fn extractLscrDecompile(
     try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, bytecode, code, &usage);
+    _ = cx.lsc_mask_state.frozen;
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1617,7 +1688,8 @@ fn extractScrpDecompile(
     try code.appendSlice(cx.cx.gpa, "\nscript ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, code, &usage);
+    _ = cx.lsc_mask_state.frozen;
+    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

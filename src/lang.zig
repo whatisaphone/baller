@@ -286,6 +286,7 @@ pub const Op = enum {
     @"say-line-color",
     @"say-line-start",
     @"say-line-actor",
+    @"say-line",
     @"dim-array.int8",
     @"dim-array.int16",
     @"dim-array.int32",
@@ -750,7 +751,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb9, 0xfe, "say-line-actor-start", &.{});
 
     lang.add(0xba, .@"say-line-actor", &.{.string});
-    lang.add(0xbb, "say-line", &.{.string});
+    lang.add(0xbb, .@"say-line", &.{.string});
 
     lang.addNested(0xbc, 0x02, "dim-array.int1", &.{.variable});
     lang.addNested(0xbc, 0x04, .@"dim-array.int8", &.{.variable});
