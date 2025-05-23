@@ -1260,22 +1260,7 @@ fn extractLscr(
     };
     if (option == .raw) return false;
 
-    const script_number, const bytecode = (hdr: switch (block_type) {
-        .lscr => {
-            if (raw.len == 0) break :hdr error.EndOfStream;
-            const script_number = raw[0];
-            const bytecode = raw[1..];
-            break :hdr .{ script_number, bytecode };
-        },
-        .lsc2 => {
-            if (raw.len < 4) break :hdr error.EndOfStream;
-            const script_number_u32 = std.mem.readInt(u32, raw[0..4], .little);
-            const bytecode = raw[4..];
-            const script_number = std.math.cast(u16, script_number_u32) orelse
-                break :hdr error.Overflow;
-            break :hdr .{ script_number, bytecode };
-        },
-    }) catch |err|
+    const script_number, const bytecode = parseLscHeader(block_type, raw) catch |err|
         return handleDecodeResult(err, "decode", diag, code);
 
     // mild hack: patch the log context now that we know the script number
@@ -1293,6 +1278,25 @@ fn extractLscr(
         return true;
     }
     return false;
+}
+
+fn parseLscHeader(block_type: LocalScriptBlockType, raw: []const u8) !struct { u16, []const u8 } {
+    switch (block_type) {
+        .lscr => {
+            if (raw.len == 0) return error.EndOfStream;
+            const script_number = raw[0];
+            const bytecode = raw[1..];
+            return .{ script_number, bytecode };
+        },
+        .lsc2 => {
+            if (raw.len < 4) return error.EndOfStream;
+            const script_number_u32 = std.mem.readInt(u32, raw[0..4], .little);
+            const bytecode = raw[4..];
+            const script_number = std.math.cast(u16, script_number_u32) orelse
+                return error.Overflow;
+            return .{ script_number, bytecode };
+        },
+    }
 }
 
 fn extractLscrDisassemble(
