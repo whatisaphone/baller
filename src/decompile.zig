@@ -2617,24 +2617,7 @@ fn emitExpr(
                 try cx.out.appendSlice(cx.gpa, "][");
                 try emitExpr(cx, args[2], .all);
                 try cx.out.append(cx.gpa, ']');
-            } else if (@as(?Ast.BinOp, switch (call.op) {
-                .eq => .eq,
-                .ne => .ne,
-                .gt => .gt,
-                .lt => .lt,
-                .le => .le,
-                .ge => .ge,
-                .add => .add,
-                .sub => .sub,
-                .mul => .mul,
-                .div => .div,
-                .land => .land,
-                .lor => .lor,
-                .mod => .mod,
-                .shl => .shl,
-                .shr => .shr,
-                else => null,
-            })) |op| {
+            } else if (binOp(call.op)) |op| {
                 const op_prec = op.precedence();
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, '(');
@@ -2655,6 +2638,27 @@ fn emitExpr(
         .variadic_list => unreachable, // only appears in call args, handled elsewhere
         .dup => return error.BadData,
     }
+}
+
+fn binOp(op: lang.Op) ?Ast.BinOp {
+    return switch (op) {
+        .eq => .eq,
+        .ne => .ne,
+        .gt => .gt,
+        .lt => .lt,
+        .le => .le,
+        .ge => .ge,
+        .add => .add,
+        .sub => .sub,
+        .mul => .mul,
+        .div => .div,
+        .land => .land,
+        .lor => .lor,
+        .mod => .mod,
+        .shl => .shl,
+        .shr => .shr,
+        else => null,
+    };
 }
 
 fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
