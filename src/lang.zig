@@ -12,7 +12,7 @@ pub const max_operands = 2;
 pub const Language = struct {
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
     /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 50]Opcode = @splat(.unknown),
+    opcodes: [256 * 51]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
     fn add(self: *Language, byte: u8, name: anytype, operands: []const LangOperand) void {
@@ -576,7 +576,10 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x37, 0x05, .@"dim-array-range.int16", &.{.variable});
     lang.addNested(0x37, 0x06, "dim-array-range.int32", &.{.variable});
 
-    lang.add(0x38, "redim-array-range", &.{ .u8, .variable });
+    lang.addNested(0x38, 0x04, "redim-array-range.int8", &.{.variable});
+    lang.addNested(0x38, 0x05, "redim-array-range.int16", &.{.variable});
+    lang.addNested(0x38, 0x06, "redim-array-range.int32", &.{.variable});
+
     lang.add(0x39, "find-segment-intersection", &.{ .variable, .variable });
 
     lang.addNested(0x3a, 0x81, .@"array-sort", &.{.variable});
