@@ -24,8 +24,11 @@ const baseball1997: Game = .{
 test "Backyard Baseball 1997 round trip raw" {
     try testRoundTrip(baseball1997, .raw, null);
 }
-test "Backyard Baseball 1997 round trip decode" {
-    try testRoundTrip(baseball1997, .decode, &.initDefault(@as(?u16, null), .{
+test "Backyard Baseball 1997 round trip decode all" {
+    try testRoundTrip(baseball1997, .decode_all, null);
+}
+test "Backyard Baseball 1997 round trip disasm" {
+    try testRoundTrip(baseball1997, .disasm, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -38,8 +41,11 @@ const soccer: Game = .{
 test "Backyard Soccer round trip raw" {
     try testRoundTrip(soccer, .raw, null);
 }
-test "Backyard Soccer round trip decode" {
-    try testRoundTrip(soccer, .decode, &.initDefault(@as(?u16, null), .{
+test "Backyard Soccer round trip decode all" {
+    try testRoundTrip(soccer, .decode_all, null);
+}
+test "Backyard Soccer round trip disasm" {
+    try testRoundTrip(soccer, .disasm, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -52,8 +58,11 @@ const football: Game = .{
 test "Backyard Football round trip raw" {
     try testRoundTrip(football, .raw, null);
 }
-test "Backyard Football round trip decode" {
-    try testRoundTrip(football, .decode, &.initDefault(@as(?u16, null), .{
+test "Backyard Football round trip decode all" {
+    try testRoundTrip(football, .decode_all, null);
+}
+test "Backyard Football round trip disasm" {
+    try testRoundTrip(football, .disasm, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -67,8 +76,11 @@ const baseball2001: Game = .{
 test "Backyard Baseball 2001 round trip raw" {
     try testRoundTrip(baseball2001, .raw, null);
 }
-test "Backyard Baseball 2001 round trip decode" {
-    try testRoundTrip(baseball2001, .decode, &.initDefault(@as(?u16, null), .{
+test "Backyard Baseball 2001 round trip decode all" {
+    try testRoundTrip(baseball2001, .decode_all, null);
+}
+test "Backyard Baseball 2001 round trip disasm" {
+    try testRoundTrip(baseball2001, .disasm, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
@@ -81,15 +93,18 @@ const basketball: Game = .{
 test "Backyard Basketball round trip raw" {
     try testRoundTrip(basketball, .raw, null);
 }
-test "Backyard Basketball round trip decode" {
-    try testRoundTrip(basketball, .decode, &.initDefault(@as(?u16, null), .{
+test "Backyard Basketball round trip decode all" {
+    try testRoundTrip(basketball, .decode_all, null);
+}
+test "Backyard Basketball round trip disasm" {
+    try testRoundTrip(basketball, .disasm, &.initDefault(@as(?u16, null), .{
         .script_unknown_byte = 0,
     }));
 }
 
 fn testRoundTrip(
     comptime game: Game,
-    options: enum { raw, decode },
+    options: enum { raw, decode_all, disasm },
     expected_extract_stats: ?*const std.EnumArray(extract.Stat, ?u16),
 ) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
@@ -115,7 +130,7 @@ fn testRoundTrip(
                 .mult = .raw,
                 .akos = .raw,
             },
-            .decode => .{
+            .decode_all => .{
                 .script = .decompile,
                 .rmim = .decode,
                 .scrp = .decode,
@@ -126,6 +141,18 @@ fn testRoundTrip(
                 .awiz = .decode,
                 .mult = .decode,
                 .akos = .decode,
+            },
+            .disasm => .{
+                .script = .disassemble,
+                .rmim = .raw,
+                .scrp = .decode,
+                .encd = .decode,
+                .excd = .decode,
+                .lscr = .decode,
+                .lsc2 = .decode,
+                .awiz = .raw,
+                .mult = .raw,
+                .akos = .raw,
             },
         },
     });
