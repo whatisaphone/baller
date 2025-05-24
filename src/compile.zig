@@ -150,6 +150,17 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                 try emitOpcodeByName(cx, @tagName(e.op));
                 try emitOpcodeByName(cx, "set-array-item");
                 try emitVariable(cx, lhs.array_get.lhs);
+            } else if (lhs.* == .array_get2) {
+                try pushExpr(cx, lhs.array_get2.index1);
+                try pushExpr(cx, lhs.array_get2.index2);
+                try emitOpcodeByName(cx, "dup-multi");
+                try cx.out.writer(cx.gpa).writeInt(i16, 2, .little);
+                try emitOpcodeByName(cx, "get-array-item-2d");
+                try emitVariable(cx, lhs.array_get2.lhs);
+                try pushExpr(cx, e.rhs);
+                try emitOpcodeByName(cx, @tagName(e.op));
+                try emitOpcodeByName(cx, "set-array-item-2d");
+                try emitVariable(cx, lhs.array_get2.lhs);
             } else return error.BadData;
         },
         .call => try emitCall(cx, node_index),

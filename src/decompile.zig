@@ -270,6 +270,7 @@ const Op = union(enum) {
     push_var,
     push_str,
     dup,
+    dup_multi,
     jump_if,
     jump_unless,
     jump,
@@ -302,6 +303,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"push-var" = .push_var,
     .@"push-str" = .push_str,
     .@"get-array-item" = .genCall(&.{.int}),
+    .@"dup-multi" = .dup_multi,
     .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
     .dup = .dup,
     .not = .genCall(&.{.int}),
@@ -763,6 +765,13 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const top = cx.stack.get(cx.stack.len - 1);
             try push(cx, .{ .dup = top });
         },
+        .dup_multi => {
+            const count_i16 = ins.operands.get(0).i16;
+            const count = std.math.cast(u8, count_i16) orelse return error.BadData;
+            if (cx.stack.len < count) return error.BadData;
+            for (cx.stack.slice()[cx.stack.len - count ..]) |ei|
+                try push(cx, .{ .dup = ei });
+        },
         .jump_if => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.addUnsignedSigned(ins.end, rel).?;
@@ -964,6 +973,7 @@ fn peephole(cx: *DecompileCx) void {
         const stmts = cx.stmts.items[ss.start..][0..ss.len];
         for (stmts, 0..) |*stmt, i| {
             peepBinOpArrayItem(cx, stmt);
+            peepBinOpArrayItem2D(cx, stmt);
             peepSpriteSelect(cx, stmt);
             peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
@@ -996,6 +1006,35 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
 
     // re-use the binop args array for the new stmt args
     get_args[1] = set_args[1]; // in arr[dup{i}], replace dup{i} with i
+    stmt.* = .{ .binop_assign = .{ .op = op, .args = bin.call.args } };
+}
+
+/// Replace e.g. `arr[i][j] = arr[dup{i}][dup{j}] + x` with `arr[i][j] += x`
+fn peepBinOpArrayItem2D(cx: *DecompileCx, stmt: *Stmt) void {
+    const set_args = stmtCallArgs(cx, stmt, .@"set-array-item-2d", 4) orelse return;
+    const set_array = &cx.exprs.items[set_args[0]];
+    // arr[dup{i}][dup{j}] + x
+    const bin = &cx.exprs.items[set_args[3]];
+    if (bin.* != .call) return;
+    const op = binOp(bin.call.op) orelse return;
+    if (!op.hasEqAssign()) return;
+    std.debug.assert(bin.call.args.len == 2);
+    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    // arr[dup{i}][dup{j}]
+    const get = &cx.exprs.items[bin_args[0]];
+    const get_args = callArgs(cx, get, .@"get-array-item-2d", 3) orelse return;
+    const get_array = &cx.exprs.items[get_args[0]];
+    if (get_array.variable.raw != set_array.variable.raw) return;
+    const get_row = &cx.exprs.items[get_args[1]];
+    if (get_row.* != .dup) return;
+    if (get_row.dup != set_args[1]) return;
+    const get_col = &cx.exprs.items[get_args[2]];
+    if (get_col.* != .dup) return;
+    if (get_col.dup != set_args[2]) return;
+
+    // re-use the binop args array for the new stmt args
+    get_args[1] = set_args[1]; // in arr[dup{i}][dup{j}], replace dup{i} with i
+    get_args[2] = set_args[2]; // in arr[dup{i}][dup{j}], replace dup{j} with j
     stmt.* = .{ .binop_assign = .{ .op = op, .args = bin.call.args } };
 }
 

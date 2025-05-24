@@ -75,6 +75,7 @@ pub const Op = enum {
     @"push-var",
     @"push-str",
     @"get-array-item",
+    @"dup-multi",
     @"get-array-item-2d",
     dup,
     not,
@@ -444,7 +445,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x03, .@"push-var", &.{.variable});
     lang.add(0x04, .@"push-str", &.{.string});
     lang.add(0x07, .@"get-array-item", &.{.variable});
-    lang.add(0x0a, "dup-multi", &.{.i16});
+    lang.add(0x0a, .@"dup-multi", &.{.i16});
     lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
     lang.add(0x0c, .dup, &.{});
     lang.add(0x0d, .not, &.{});
