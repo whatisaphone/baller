@@ -1204,8 +1204,6 @@ fn extractEncdExcd(
     };
     if (option != .decode) return false;
 
-    if (raw.len == 0) return true;
-
     const section: Section = switch (edge) {
         .encd => .enter_script,
         .excd => .exit_script,
@@ -1275,6 +1273,13 @@ fn extractEncdExcdDecompile(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    // If there's no script block at all, the compiler emits a zero-length
+    // ENCD/EXCD. If there's an empty script block, the compiler emits ENCD/EXCD
+    // with just the `end-object` instruction. As usual we need to differentiate
+    // between those two cases in order to roundtrip successfully. This is where
+    // that happens on the decompiler side.
+    if (raw.len == 0) return;
+
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
         .excd => .{ .exit = .{ .room = cx.room_number } },
