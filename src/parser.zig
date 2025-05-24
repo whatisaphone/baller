@@ -1052,7 +1052,7 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 // handled in `parseStatement`.
                 if (peekSecondToken(cx).kind == .eq) break;
 
-                cur = try parseBinOp(cx, cur, token2, prec, op) orelse break;
+                cur = try parseBinOp(cx, cur, prec, op) orelse break;
             } else if (isAtomToken(token2)) {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
                 const args = try parseList(cx);
@@ -1145,15 +1145,10 @@ fn getBinOp(token: *const lexer.Token) ?Ast.BinOp {
     };
 }
 
-fn parseBinOp(
-    cx: *Cx,
-    lhs: Ast.NodeIndex,
-    token: *const lexer.Token,
-    prec: Precedence,
-    op: Ast.BinOp,
-) !?Ast.NodeIndex {
+fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?Ast.NodeIndex {
     if (@intFromEnum(prec) >= @intFromEnum(op.precedence())) return null;
-    _ = consumeToken(cx);
+    const token = consumeToken(cx);
+    std.debug.assert(getBinOp(token) == op);
     const rhs = try parseExpr(cx, consumeToken(cx), op.precedence());
     return try storeNode(cx, token, .{ .binop = .{
         .op = op,
