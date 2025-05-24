@@ -145,6 +145,7 @@ fn scanBasicBlocks(
         .exit = .no_jump,
         .state = .new,
         .stack_on_enter = .undef,
+        .stack_on_exit = .undef,
         .statements = .undef,
     });
     return result;
@@ -180,6 +181,7 @@ fn insertBasicBlock(
             .exit = exit,
             .state = .new,
             .stack_on_enter = .undef,
+            .stack_on_exit = .undef,
             .statements = .undef,
         });
     }
@@ -193,6 +195,8 @@ const BasicBlock = struct {
     state: enum { new, pending, decompiled },
     /// valid in {pending,decompiled}
     stack_on_enter: utils.SafeUndefined(std.BoundedArray(ExprIndex, 1)),
+    /// valid in {decompiled}
+    stack_on_exit: utils.SafeUndefined(std.BoundedArray(ExprIndex, 1)),
     /// valid in {decompiled}
     statements: utils.SafeUndefined(ExtraSlice),
 
@@ -592,7 +596,7 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     for (cx.basic_blocks, 0..) |*bb, bbi_usize| {
         const bbi: BasicBlockIndex = @intCast(bbi_usize);
         if (bb.state != .new) continue;
-        try scheduleAfterInfiniteLoop(cx, bbi);
+        try scheduleBasicBlockWithAssumedStack(cx, bbi);
         return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
     }
 
@@ -626,22 +630,17 @@ fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16, stack: []const ExprIndex) !voi
         return;
     }
     bb.state = .pending;
-    bb.stack_on_enter.setOnce(try .fromSlice(cx.stack.slice()));
+    bb.stack_on_enter.setOnce(try .fromSlice(stack));
     try cx.pending_basic_blocks.append(cx.gpa, bbi);
 }
 
-fn scheduleAfterInfiniteLoop(cx: *DecompileCx, bbi: u16) !void {
-    // Check if the previous block forms a loop (presumably infinite loop). If
-    // so, schedule the current block using the stack from the loop entry point.
+fn scheduleBasicBlockWithAssumedStack(cx: *DecompileCx, bbi: u16) !void {
+    // If a basic block was never analyzed, it must be dead code, but analyze it
+    // anyway and assume the stack is the same from the previous basic block.
     if (bbi == 0) return error.BadData;
     const bbi_prev = bbi - 1;
     const prev = &cx.basic_blocks[bbi_prev];
-    if (prev.exit != .jump) return error.BadData;
-    if (prev.exit.jump >= prev.end) return error.BadData;
-    const bbi_start = findBasicBlockWithStart(cx, prev.exit.jump);
-    const start = &cx.basic_blocks[bbi_start];
-    if (start.state == .new) return error.BadData;
-    try scheduleBasicBlock(cx, bbi, start.stack_on_enter.defined.slice());
+    try scheduleBasicBlock(cx, bbi, prev.stack_on_exit.defined.slice());
 }
 
 fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
@@ -661,11 +660,15 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
     const num_stmts = @as(u16, @intCast(cx.stmts.items.len)) - first_stmt;
     bb.statements.setOnce(.{ .start = first_stmt, .len = num_stmts });
 
+    bb.stack_on_exit.setOnce(try .fromSlice(cx.stack.slice()));
+    cx.stack.clear();
+    const remaining_stack = bb.stack_on_exit.defined.slice();
+
     switch (bb.exit) {
         .no_jump => {
             if (bbi != cx.basic_blocks.len - 1) {
                 // middle blocks fall through to the next block
-                try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
+                try scheduleBasicBlock(cx, bbi + 1, remaining_stack);
             } else {
                 // the last block should finish with an empty stack
                 if (cx.stack.len != 0) return error.BadData;
@@ -673,20 +676,18 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
         },
         .jump => |target| {
             const target_bbi = findBasicBlockWithStart(cx, target);
-            try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
+            try scheduleBasicBlock(cx, target_bbi, remaining_stack);
         },
         .jump_if, .jump_unless, .override => |target| {
             if (bbi == cx.basic_blocks.len - 1) // should never happen, given well-formed input
                 return error.BadData;
-            try scheduleBasicBlock(cx, bbi + 1, cx.stack.slice());
+            try scheduleBasicBlock(cx, bbi + 1, remaining_stack);
             const target_bbi = findBasicBlockWithStart(cx, target);
-            try scheduleBasicBlock(cx, target_bbi, cx.stack.slice());
+            try scheduleBasicBlock(cx, target_bbi, remaining_stack);
         },
     }
 
-    // Above, the stack was dealt with, so we no longer need it. Clear it for the next block.
-    cx.stack.clear();
-    // However the string stack wasn't, so make sure it ended up empty.
+    // Strings should never persist between basic blocks.
     if (cx.str_stack.len != 0) return error.BadData;
 }
 
