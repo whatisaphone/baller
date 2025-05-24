@@ -429,6 +429,15 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcodeByName(cx, "lock-script");
             try emitOpcodeByName(cx, "load-script");
         },
+        .@"palette-set-slot-rgb" => {
+            if (args.len != 4) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try pushExpr(cx, args[1]);
+            try pushExpr(cx, args[2]);
+            try pushExpr(cx, args[3]);
+            try emitOpcodeByName(cx, "palette-set-rgb");
+        },
         .@"palette-set-slot-color" => {
             if (args.len != 2) return error.BadData;
             try pushExpr(cx, args[0]);

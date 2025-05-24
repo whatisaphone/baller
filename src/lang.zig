@@ -104,6 +104,7 @@ pub const Op = enum {
     @"image-set-shadow",
     @"image-set-draw-box",
     @"image-set-render-image",
+    @"image-set-hotspot",
     @"image-new",
     @"image-commit",
     min,
@@ -133,6 +134,7 @@ pub const Op = enum {
     @"sprite-select-range",
     @"sprite-set-image",
     @"sprite-set-position",
+    @"sprite-set-step-dist",
     @"sprite-set-animation-type",
     @"sprite-set-palette",
     @"sprite-set-animation-speed",
@@ -185,6 +187,7 @@ pub const Op = enum {
     @"start-script",
     @"start-script-rec",
     @"start-object",
+    @"start-object-rec",
     @"draw-object",
     @"print-image",
     @"array-get-dim",
@@ -262,6 +265,7 @@ pub const Op = enum {
     @"actor-new",
     @"palette-select",
     @"palette-from-image",
+    @"palette-set-rgb",
     @"palette-set-color",
     @"palette-new",
     @"palette-commit",
@@ -448,7 +452,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x85, .@"image-set-draw-box", &.{});
     lang.addNested(0x1c, 0x86, "image-set-draw-line", &.{});
     lang.addNested(0x1c, 0x89, .@"image-set-render-image", &.{});
-    lang.addNested(0x1c, 0x9a, "image-set-hotspot", &.{});
+    lang.addNested(0x1c, 0x9a, .@"image-set-hotspot", &.{});
     lang.addNested(0x1c, 0xd9, .@"image-new", &.{});
     lang.addNested(0x1c, 0xf6, "image-set-polygon", &.{});
     lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
@@ -491,7 +495,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0x3f, .@"sprite-set-image", &.{});
     lang.addNested(0x26, 0x41, .@"sprite-set-position", &.{});
     lang.addNested(0x26, 0x44, "sprite-erase", &.{});
-    lang.addNested(0x26, 0x4d, "sprite-set-step-dist", &.{});
+    lang.addNested(0x26, 0x4d, .@"sprite-set-step-dist", &.{});
     lang.addNested(0x26, 0x52, .@"sprite-set-animation-type", &.{});
     lang.addNested(0x26, 0x56, .@"sprite-set-palette", &.{});
     lang.addNested(0x26, 0x61, .@"sprite-set-animation-speed", &.{});
@@ -578,7 +582,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x5e, 0xc3, .@"start-script-rec", &.{});
 
     lang.addNested(0x60, 0x01, .@"start-object", &.{});
-    lang.addNested(0x60, 0xc3, "start-object-rec", &.{});
+    lang.addNested(0x60, 0xc3, .@"start-object-rec", &.{});
 
     lang.addNested(0x61, 0x3f, .@"draw-object", &.{});
     lang.addNested(0x61, 0x41, "draw-object-at", &.{});
@@ -710,7 +714,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x9e, 0x39, .@"palette-select", &.{});
     lang.addNested(0x9e, 0x3f, .@"palette-from-image", &.{});
-    lang.addNested(0x9e, 0x42, "palette-set-rgb", &.{});
+    lang.addNested(0x9e, 0x42, .@"palette-set-rgb", &.{});
     lang.addNested(0x9e, 0x46, .@"palette-set-color", &.{});
     lang.addNested(0x9e, 0x56, "palette-from-palette", &.{});
     lang.addNested(0x9e, 0xd9, .@"palette-new", &.{});

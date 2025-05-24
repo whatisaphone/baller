@@ -331,6 +331,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"image-set-shadow" = .gen(&.{.int}),
     .@"image-set-draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
     .@"image-set-render-image" = .gen(&.{.int}),
+    .@"image-set-hotspot" = .gen(&.{ .int, .int }),
     .@"image-new" = .gen(&.{}),
     .@"image-commit" = .gen(&.{}),
     .min = .genCall(&.{ .int, .int }),
@@ -360,6 +361,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
     .@"sprite-set-image" = .gen(&.{.int}),
     .@"sprite-set-position" = .gen(&.{ .int, .int }),
+    .@"sprite-set-step-dist" = .gen(&.{ .int, .int }),
     .@"sprite-set-animation-type" = .gen(&.{.int}),
     .@"sprite-set-palette" = .gen(&.{.int}),
     .@"sprite-set-animation-speed" = .gen(&.{.int}),
@@ -412,6 +414,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"start-script" = .gen(&.{ .int, .variadic }),
     .@"start-script-rec" = .gen(&.{ .int, .variadic }),
     .@"start-object" = .gen(&.{ .int, .int, .variadic }),
+    .@"start-object-rec" = .gen(&.{ .int, .int, .variadic }),
     .@"draw-object" = .gen(&.{ .int, .int }),
     .@"print-image" = .gen(&.{.int}),
     .@"array-get-dim" = .genCall(&.{}),
@@ -489,6 +492,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"actor-new" = .gen(&.{}),
     .@"palette-select" = .gen(&.{.int}),
     .@"palette-from-image" = .gen(&.{ .int, .int }),
+    .@"palette-set-rgb" = .gen(&.{ .int, .int, .int, .int, .int }),
     .@"palette-set-color" = .gen(&.{ .int, .int, .int }),
     .@"palette-new" = .gen(&.{}),
     .@"palette-commit" = .gen(&.{}),
@@ -935,6 +939,7 @@ fn peephole(cx: *DecompileCx) void {
             peepholeSpriteSelect(cx, stmt);
             peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
+            peepPaletteSetRgb(cx, stmt);
             peepholePaletteSetColor(cx, stmt);
             peepDeleteOnePolygon(cx, stmt);
         }
@@ -1013,6 +1018,21 @@ fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) voi
         .args = load.call.args,
     } };
     stmts[stmt_index + 1] = .tombstone;
+}
+
+/// Replace `palette-set-rgb s dup{s} r g b` with `palette-set-slot-rgb s r g b`
+fn peepPaletteSetRgb(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"palette-set-rgb", 5) orelse return;
+    const second = &cx.exprs.items[args[1]];
+    if (second.* != .dup) return;
+    if (second.dup != args[0]) return;
+
+    std.mem.copyForwards(ExprIndex, args[1..][0..3], args[2..][0..3]);
+    const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 4 };
+    stmt.* = .{ .compound = .{
+        .op = .@"palette-set-slot-rgb",
+        .args = new_args,
+    } };
 }
 
 /// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
