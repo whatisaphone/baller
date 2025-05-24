@@ -994,10 +994,9 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
     if (get_index.* != .dup) return;
     if (get_index.dup != set_args[1]) return;
 
-    // re-use the set args array for the new stmt args
-    set_args[2] = bin_args[1];
-    const args = stmt.call.args;
-    stmt.* = .{ .binop_assign = .{ .op = op, .args = args } };
+    // re-use the binop args array for the new stmt args
+    get_args[1] = set_args[1]; // in arr[dup{i}], replace dup{i} with i
+    stmt.* = .{ .binop_assign = .{ .op = op, .args = bin.call.args } };
 }
 
 /// Replace `sprite-select-range x dup{x}` with `sprite-select x`
@@ -2724,12 +2723,10 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
         .binop_assign => |s| {
             const args = getExtra(cx, s.args);
             try emitExpr(cx, args[0], .field);
-            try cx.out.append(cx.gpa, '[');
-            try emitExpr(cx, args[1], .all);
-            try cx.out.appendSlice(cx.gpa, "] ");
+            try cx.out.append(cx.gpa, ' ');
             try cx.out.appendSlice(cx.gpa, s.op.str());
             try cx.out.appendSlice(cx.gpa, "= ");
-            try emitExpr(cx, args[2], .space);
+            try emitExpr(cx, args[1], .space);
         },
         .tombstone => unreachable,
     }
