@@ -957,9 +957,10 @@ fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
 
+    const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 1 };
     stmt.* = .{ .compound = .{
         .op = .@"sprite-select",
-        .args = .{ .start = stmt.call.args.start, .len = 1 },
+        .args = new_args,
     } };
 }
 
@@ -1005,9 +1006,10 @@ fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
     if (second.dup != args[0]) return;
 
     args[1] = args[2];
+    const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 2 };
     stmt.* = .{ .compound = .{
         .op = .@"palette-set-slot-color",
-        .args = .{ .start = stmt.call.args.start, .len = 2 },
+        .args = new_args,
     } };
 }
 
@@ -1335,17 +1337,20 @@ fn huntIfElse(cx: *StructuringCx, ni_first: NodeIndex) !void {
 fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void {
     const empty = ni_false_end == null_node;
     const node = &cx.nodes.items[ni];
-    const ni_true_end = findLastNode(cx, node.kind.@"if".true);
+    const condition = node.kind.@"if".condition;
+    const ni_true_start = node.kind.@"if".true;
+    const ni_true_end = findLastNode(cx, ni_true_start);
     const ni_false_start = if (!empty) node.next else null_node;
     const ni_last = niOpt(ni_false_end) orelse ni;
     const ni_after = cx.nodes.items[ni_last].next;
 
     chopJump(cx, ni_true_end);
+
     node.end = cx.nodes.items[ni_last].end;
     node.next = ni_after;
     node.kind = .{ .if_else = .{
-        .condition = node.kind.@"if".condition,
-        .true = node.kind.@"if".true,
+        .condition = condition,
+        .true = ni_true_start,
         .false = ni_false_start,
     } };
     if (ni_after != null_node)
@@ -1381,10 +1386,15 @@ fn huntWhile(cx: *StructuringCx, ni_initial: NodeIndex) !void {
 }
 
 fn makeWhile(cx: *StructuringCx, ni_if: NodeIndex, ni_true_last: NodeIndex) void {
+    const node = &cx.nodes.items[ni_if];
+    const condition = node.kind.@"if".condition;
+    const ni_body = node.kind.@"if".true;
+
     chopJump(cx, ni_true_last);
-    cx.nodes.items[ni_if].kind = .{ .@"while" = .{
-        .condition = cx.nodes.items[ni_if].kind.@"if".condition,
-        .body = cx.nodes.items[ni_if].kind.@"if".true,
+
+    node.kind = .{ .@"while" = .{
+        .condition = condition,
+        .body = ni_body,
     } };
 
     structureCheckpoint(cx, "makeWhile ni_if={} ni_true_last={}", .{ ni_if, ni_true_last });
@@ -1475,14 +1485,14 @@ fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
     const ni_empty = node.prev;
     const empty = &cx.nodes.items[ni_empty];
     const ni_init = empty.prev;
-    const ni_body = cx.nodes.items[ni].kind.@"while".body;
+    const ni_body = node.kind.@"while".body;
 
     chopLastStmt(cx, ni_init); // chop off the init
     chopLastStmt(cx, info.body_last); // chop off the increment
 
-    cx.nodes.items[ni].start = cx.nodes.items[ni_init].end;
-    cx.nodes.items[ni].prev = ni_init;
-    cx.nodes.items[ni].kind = .{ .@"for" = .{
+    node.start = cx.nodes.items[ni_init].end;
+    node.prev = ni_init;
+    node.kind = .{ .@"for" = .{
         .accumulator = info.accumulator,
         .start = info.start,
         .end = info.end,
