@@ -912,10 +912,7 @@ fn peephole(cx: *DecompileCx) void {
 
 /// Replace e.g. `arr[i] = arr[dup{i}] + x` with `arr[i] += x`
 fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
-    if (stmt.* != .call) return;
-    if (stmt.call.op != .@"set-array-item") return;
-    std.debug.assert(stmt.call.args.len == 3);
-    const set_args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const set_args = stmtCallArgs(cx, stmt, .@"set-array-item", 3) orelse return;
     const set_array = &cx.exprs.items[set_args[0]];
     // arr[dup{i}] + x
     const bin = &cx.exprs.items[set_args[2]];
@@ -926,10 +923,7 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
     const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
     // arr[dup{i}]
     const get = &cx.exprs.items[bin_args[0]];
-    if (get.* != .call) return;
-    if (get.call.op != .@"get-array-item") return;
-    std.debug.assert(get.call.args.len == 2);
-    const get_args = cx.extra.items[get.call.args.start..][0..get.call.args.len];
+    const get_args = callArgs(cx, get, .@"get-array-item", 2) orelse return;
     const get_array = &cx.exprs.items[get_args[0]];
     if (get_array.variable.raw != set_array.variable.raw) return;
     const get_index = &cx.exprs.items[get_args[1]];
@@ -944,13 +938,11 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
 
 /// Replace `sprite-select-range x dup{x}` with `sprite-select x`
 fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
-    if (stmt.* != .call) return;
-    if (stmt.call.op != .@"sprite-select-range") return;
-    std.debug.assert(stmt.call.args.len == 2);
-    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const args = stmtCallArgs(cx, stmt, .@"sprite-select-range", 2) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
+
     stmt.* = .{ .compound = .{
         .op = .@"sprite-select",
         .args = .{ .start = stmt.call.args.start, .len = 1 },
@@ -959,10 +951,7 @@ fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
 
 /// Handle dups in `array-sort`
 fn peepArraySortRow(cx: *DecompileCx, stmt: *Stmt) void {
-    if (stmt.* != .call) return;
-    if (stmt.call.op != .@"array-sort") return;
-    std.debug.assert(stmt.call.args.len == 6);
-    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const args = stmtCallArgs(cx, stmt, .@"array-sort", 6) orelse return;
     // args are [array, down_from, down_to, across_from, across_to, order]
     const across_to = &cx.exprs.items[args[4]];
     if (across_to.* != .dup) return;
@@ -979,18 +968,12 @@ fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) voi
     const lock = &stmts[stmt_index];
     const load = &stmts[stmt_index + 1];
 
-    if (lock.* != .call) return;
-    if (lock.call.op != .@"lock-script") return;
-    std.debug.assert(lock.call.args.len == 1);
-    const lock_args = getExtra2(&cx.extra, lock.call.args);
+    const lock_args = stmtCallArgs(cx, lock, .@"lock-script", 1) orelse return;
     const lock_arg = &cx.exprs.items[lock_args[0]];
     if (lock_arg.* != .dup) return;
     const resource = lock_arg.dup;
 
-    if (load.* != .call) return;
-    if (load.call.op != .@"load-script") return;
-    std.debug.assert(load.call.args.len == 1);
-    const load_args = getExtra2(&cx.extra, load.call.args);
+    const load_args = stmtCallArgs(cx, load, .@"load-script", 1) orelse return;
     if (load_args[0] != resource) return;
 
     stmts[stmt_index] = .{ .compound = .{
@@ -1002,18 +985,30 @@ fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) voi
 
 /// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
 fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
-    if (stmt.* != .call) return;
-    if (stmt.call.op != .@"palette-set-color") return;
-    std.debug.assert(stmt.call.args.len == 3);
-    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const args = stmtCallArgs(cx, stmt, .@"palette-set-color", 3) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
+
     args[1] = args[2];
     stmt.* = .{ .compound = .{
         .op = .@"palette-set-slot-color",
         .args = .{ .start = stmt.call.args.start, .len = 2 },
     } };
+}
+
+fn stmtCallArgs(cx: *const DecompileCx, stmt: *const Stmt, op: lang.Op, len: usize) ?[]ExprIndex {
+    if (stmt.* != .call) return null;
+    if (stmt.call.op != op) return null;
+    std.debug.assert(stmt.call.args.len == len);
+    return cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+}
+
+fn callArgs(cx: *const DecompileCx, expr: *const Expr, op: lang.Op, len: usize) ?[]ExprIndex {
+    if (expr.* != .call) return null;
+    if (expr.call.op != op) return null;
+    std.debug.assert(expr.call.args.len == len);
+    return cx.extra.items[expr.call.args.start..][0..expr.call.args.len];
 }
 
 const StructuringCx = struct {
