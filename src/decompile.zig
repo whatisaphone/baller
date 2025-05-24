@@ -936,11 +936,11 @@ fn peephole(cx: *DecompileCx) void {
         const stmts = cx.stmts.items[ss.start..][0..ss.len];
         for (stmts, 0..) |*stmt, i| {
             peepBinOpArrayItem(cx, stmt);
-            peepholeSpriteSelect(cx, stmt);
+            peepSpriteSelect(cx, stmt);
             peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
             peepPaletteSetRgb(cx, stmt);
-            peepholePaletteSetColor(cx, stmt);
+            peepPaletteSetColor(cx, stmt);
             peepDeleteOnePolygon(cx, stmt);
         }
     }
@@ -973,7 +973,7 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
 }
 
 /// Replace `sprite-select-range x dup{x}` with `sprite-select x`
-fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
+fn peepSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
     const args = stmtCallArgs(cx, stmt, .@"sprite-select-range", 2) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
@@ -1036,7 +1036,7 @@ fn peepPaletteSetRgb(cx: *DecompileCx, stmt: *Stmt) void {
 }
 
 /// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
-fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
+fn peepPaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
     const args = stmtCallArgs(cx, stmt, .@"palette-set-color", 3) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
