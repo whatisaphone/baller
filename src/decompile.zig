@@ -192,6 +192,7 @@ const BasicBlockIndex = u16;
 const BasicBlock = struct {
     end: u16,
     exit: BasicBlockExit,
+    /// (`decompiled` is only used in asserts in debug builds)
     state: enum { new, pending, decompiled },
     /// valid in {pending,decompiled}
     stack_on_enter: utils.SafeUndefined(std.BoundedArray(ExprIndex, 1)),
@@ -595,6 +596,7 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     // handle the case where it's an infinite loop, otherwise fail.
     for (cx.basic_blocks, 0..) |*bb, bbi_usize| {
         const bbi: BasicBlockIndex = @intCast(bbi_usize);
+        std.debug.assert(bb.state == .new or bb.state == .decompiled);
         if (bb.state != .new) continue;
         try scheduleBasicBlockWithAssumedStack(cx, bbi);
         return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
@@ -647,6 +649,8 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
     const bb = &cx.basic_blocks[bbi];
     const bb_start = if (bbi == 0) 0 else cx.basic_blocks[bbi - 1].end;
 
+    std.debug.assert(bb.state == .pending);
+
     std.debug.assert(cx.stack.len == 0);
     cx.stack.appendSlice(bb.stack_on_enter.defined.slice()) catch unreachable;
 
@@ -689,6 +693,9 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
 
     // Strings should never persist between basic blocks.
     if (cx.str_stack.len != 0) return error.BadData;
+
+    if (builtin.mode == .Debug)
+        bb.state = .decompiled;
 }
 
 fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
