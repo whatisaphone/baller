@@ -246,6 +246,7 @@ pub const Op = enum {
     @"override-off",
     @"sound-running",
     @"load-script",
+    @"load-sound",
     @"load-costume",
     @"nuke-sound",
     @"nuke-costume",
@@ -281,6 +282,7 @@ pub const Op = enum {
     @"actor-select",
     @"actor-set-var",
     @"actor-new",
+    @"actor-bak-on",
     @"palette-select",
     @"palette-from-image",
     @"palette-set-rgb",
@@ -688,7 +690,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x98, .@"sound-running", &.{});
 
     lang.addNested(0x9b, 0x64, .@"load-script", &.{});
-    lang.addNested(0x9b, 0x65, "load-sound", &.{});
+    lang.addNested(0x9b, 0x65, .@"load-sound", &.{});
     lang.addNested(0x9b, 0x66, .@"load-costume", &.{});
     lang.addNested(0x9b, 0x67, "load-room", &.{});
     lang.addNested(0x9b, 0x69, .@"nuke-sound", &.{});
@@ -739,7 +741,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9d, 0xc5, .@"actor-select", &.{});
     lang.addNested(0x9d, 0xc6, .@"actor-set-var", &.{});
     lang.addNested(0x9d, 0xd9, .@"actor-new", &.{});
-    lang.addNested(0x9d, 0xda, "actor-bak-on", &.{});
+    lang.addNested(0x9d, 0xda, .@"actor-bak-on", &.{});
 
     lang.addNested(0x9e, 0x39, .@"palette-select", &.{});
     lang.addNested(0x9e, 0x3f, .@"palette-from-image", &.{});
