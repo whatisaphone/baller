@@ -814,7 +814,7 @@ fn parseLocalScript(
 }
 
 fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
-    var statements: std.BoundedArray(Ast.NodeIndex, 512) = .{};
+    var statements: std.BoundedArray(Ast.NodeIndex, 4096) = .{};
     while (true) {
         skipWhitespace(cx);
         const token = consumeToken(cx);

@@ -95,9 +95,11 @@ pub const Op = enum {
     @"image-set-width",
     @"image-set-height",
     @"image-draw",
+    @"image-load-external",
     @"image-capture",
     @"image-set-state",
     @"image-set-flags",
+    @"draw-image-at",
     @"image-select",
     @"image-set-pos",
     @"image-set-palette",
@@ -125,6 +127,7 @@ pub const Op = enum {
     @"sprite-get-state",
     @"sprite-get-image",
     @"sprite-get-update-type",
+    @"sprite-class",
     @"sprite-get-variable",
     @"sprite-set-group",
     @"sprite-set-property",
@@ -157,12 +160,14 @@ pub const Op = enum {
     @"image-get-object-y",
     @"image-get-width",
     @"image-get-height",
+    @"image-get-state-count",
     @"image-get-color-at",
     @"actor-get-property",
     @"start-script-order",
     mod,
     shl,
     shr,
+    @"find-all-objects",
     iif,
     @"dim-array-range.int8",
     @"dim-array-range.int16",
@@ -180,6 +185,7 @@ pub const Op = enum {
     @"override-off-off",
     @"inc-array-item",
     dec,
+    @"get-timer",
     @"sound-position",
     @"dec-array-item",
     @"jump-if",
@@ -193,11 +199,14 @@ pub const Op = enum {
     @"array-get-dim",
     @"array-get-height",
     @"array-get-width",
+    @"free-arrays",
     end2,
     end,
     @"window-select",
+    @"window-set-script",
     @"window-set-image",
     @"window-new",
+    @"window-set-title-bar",
     @"window-commit",
     @"freeze-scripts",
     @"cursor-bw",
@@ -210,6 +219,8 @@ pub const Op = enum {
     @"break-here",
     @"class-of",
     @"object-set-class",
+    @"object-get-state",
+    @"object-set-state",
     jump,
     @"sound-soft",
     @"sound-channel",
@@ -227,6 +238,7 @@ pub const Op = enum {
     @"actor-room",
     @"actor-x",
     @"actor-y",
+    @"actor-get-costume",
     @"palette-color",
     rgb,
     override,
@@ -247,19 +259,24 @@ pub const Op = enum {
     @"lock-image",
     @"preload-image",
     fades,
+    palette,
     @"saveload-game",
     @"actor-set-condition",
     @"actor-set-order",
     @"actor-set-clipped",
     @"actor-set-position",
+    @"actor-set-clip",
     @"actor-set-costume",
+    @"actor-set-sounds",
     @"actor-set-talk-animation",
     @"actor-set-elevation",
     @"actor-set-color",
+    @"actor-set-talk-color",
     @"actor-set-scale",
     @"actor-ignore-boxes",
     @"actor-set-animation-speed",
     @"actor-set-shadow",
+    @"actor-set-text-offset",
     @"actor-select",
     @"actor-set-var",
     @"actor-new",
@@ -267,8 +284,10 @@ pub const Op = enum {
     @"palette-from-image",
     @"palette-set-rgb",
     @"palette-set-color",
+    @"palette-from-palette",
     @"palette-new",
     @"palette-commit",
+    @"find-actor",
     @"find-object",
     @"actor-get-elevation",
     @"valid-verb",
@@ -284,6 +303,7 @@ pub const Op = enum {
     @"wait-for-message",
     @"actor-get-scale",
     in,
+    @"update-screen",
     quit,
     @"quit-quit",
     @"sleep-for",
@@ -296,6 +316,7 @@ pub const Op = enum {
     @"print-debug-string",
     @"print-debug-printf",
     @"print-debug-start",
+    @"print-debug-empty",
     @"print-system-string",
     @"print-system-printf",
     @"print-system-start",
@@ -309,6 +330,7 @@ pub const Op = enum {
     @"dim-array.int8",
     @"dim-array.int16",
     @"dim-array.int32",
+    @"dim-array.string",
     undim,
     @"return",
     @"call-script",
@@ -327,6 +349,7 @@ pub const Op = enum {
     @"actor-get-var",
     shuffle,
     @"chain-script",
+    @"chain-script-rec",
     band,
     bor,
     @"close-file",
@@ -344,6 +367,8 @@ pub const Op = enum {
     @"redim-array.int16",
     @"redim-array.int32",
     @"tell-file",
+    @"string-copy",
+    @"string-width",
     @"string-length",
     @"string-substr",
     @"string-compare",
@@ -352,7 +377,10 @@ pub const Op = enum {
     @"read-system-ini-string",
     @"write-system-ini-int",
     @"write-system-ini-string",
+    @"string-margin",
+    @"string-search",
     @"sound-size",
+    @"create-directory",
     @"title-bar",
     @"delete-polygon",
     @"set-polygon",
@@ -438,11 +466,11 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x1c, 0x20, .@"image-set-width", &.{});
     lang.addNested(0x1c, 0x21, .@"image-set-height", &.{});
     lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
-    lang.addNested(0x1c, 0x31, "image-load-external", &.{});
+    lang.addNested(0x1c, 0x31, .@"image-load-external", &.{});
     lang.addNested(0x1c, 0x33, .@"image-capture", &.{});
     lang.addNested(0x1c, 0x34, .@"image-set-state", &.{});
     lang.addNested(0x1c, 0x36, .@"image-set-flags", &.{});
-    lang.addNested(0x1c, 0x38, "draw-image-at", &.{});
+    lang.addNested(0x1c, 0x38, .@"draw-image-at", &.{});
     lang.addNested(0x1c, 0x39, .@"image-select", &.{});
     lang.addNested(0x1c, 0x41, .@"image-set-pos", &.{});
     lang.addNested(0x1c, 0x42, "image-set-color", &.{});
@@ -483,7 +511,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x25, 0x52, "sprite-get-animation", &.{});
     lang.addNested(0x25, 0x56, "sprite-get-palette", &.{});
     lang.addNested(0x25, 0x7c, .@"sprite-get-update-type", &.{});
-    lang.addNested(0x25, 0x7d, "sprite-class", &.{});
+    lang.addNested(0x25, 0x7d, .@"sprite-class", &.{});
     lang.addNested(0x25, 0xc6, .@"sprite-get-variable", &.{});
 
     lang.addNested(0x26, 0x25, .@"sprite-set-group", &.{});
@@ -525,7 +553,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x29, 0x1f, .@"image-get-object-y", &.{});
     lang.addNested(0x29, 0x20, .@"image-get-width", &.{});
     lang.addNested(0x29, 0x21, .@"image-get-height", &.{});
-    lang.addNested(0x29, 0x24, "image-get-state-count", &.{});
+    lang.addNested(0x29, 0x24, .@"image-get-state-count", &.{});
     lang.addNested(0x29, 0x42, .@"image-get-color-at", &.{});
 
     lang.add(0x2a, .@"actor-get-property", &.{});
@@ -538,7 +566,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x30, .mod, &.{});
     lang.add(0x31, .shl, &.{});
     lang.add(0x32, .shr, &.{});
-    lang.add(0x34, "find-all-objects", &.{});
+    lang.add(0x34, .@"find-all-objects", &.{});
     lang.add(0x36, .iif, &.{});
 
     lang.addNested(0x37, 0x04, .@"dim-array-range.int8", &.{.variable});
@@ -569,7 +597,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x55, "get-object-image-y", &.{});
     lang.add(0x57, .dec, &.{.variable});
 
-    lang.addNested(0x58, 0x0a, "get-timer", &.{});
+    lang.addNested(0x58, 0x0a, .@"get-timer", &.{});
 
     lang.addNested(0x59, 0x9e, "set-timer", &.{});
 
@@ -597,15 +625,15 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x63, 0x06, "array-get-y-start", &.{.variable});
     lang.addNested(0x63, 0x07, "array-get-y-end", &.{.variable});
 
-    lang.add(0x64, "free-arrays", &.{});
+    lang.add(0x64, .@"free-arrays", &.{});
     lang.add(0x65, .end2, &.{});
     lang.add(0x66, .end, &.{});
 
     lang.addNested(0x69, 0x39, .@"window-select", &.{});
-    lang.addNested(0x69, 0x3a, "window-set-script", &.{});
+    lang.addNested(0x69, 0x3a, .@"window-set-script", &.{});
     lang.addNested(0x69, 0x3f, .@"window-set-image", &.{});
     lang.addNested(0x69, 0xd9, .@"window-new", &.{});
-    lang.addNested(0x69, 0xf3, "window-set-title-bar", &.{});
+    lang.addNested(0x69, 0xf3, .@"window-set-title-bar", &.{});
     lang.addNested(0x69, 0xff, .@"window-commit", &.{});
 
     lang.add(0x6a, .@"freeze-scripts", &.{});
@@ -624,8 +652,8 @@ fn buildNormalLanguage() Language {
     lang.add(0x6c, .@"break-here", &.{});
     lang.add(0x6d, .@"class-of", &.{});
     lang.add(0x6e, .@"object-set-class", &.{});
-    lang.add(0x6f, "object-get-state", &.{});
-    lang.add(0x70, "object-set-state", &.{});
+    lang.add(0x6f, .@"object-get-state", &.{});
+    lang.add(0x70, .@"object-set-state", &.{});
     lang.add(0x73, .jump, &.{.relative_offset});
 
     lang.addNested(0x74, 0x09, .@"sound-soft", &.{});
@@ -648,7 +676,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x8d, .@"actor-x", &.{});
     lang.add(0x8e, .@"actor-y", &.{});
     lang.add(0x8f, "actor-facing", &.{});
-    lang.add(0x91, "actor-get-costume", &.{});
+    lang.add(0x91, .@"actor-get-costume", &.{});
 
     lang.addNested(0x94, 0x42, .@"palette-color", &.{});
     lang.addNested(0x94, 0xd9, .rgb, &.{});
@@ -683,7 +711,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9c, 0xb3, "intensity", &.{});
     lang.addNested(0x9c, 0xb5, .fades, &.{});
     lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
-    lang.addNested(0x9c, 0xd5, "palette", &.{});
+    lang.addNested(0x9c, 0xd5, .palette, &.{});
     lang.addNested(0x9c, 0xdc, "copy-palette", &.{});
     lang.addNested(0x9c, 0xdd, .@"saveload-game", &.{});
     lang.addNested(0x9c, 0xea, "object-order", &.{});
@@ -693,20 +721,20 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9d, 0x40, .@"actor-set-clipped", &.{});
     lang.addNested(0x9d, 0x41, .@"actor-set-position", &.{});
     lang.addNested(0x9d, 0x44, "actor-erase", &.{});
-    lang.addNested(0x9d, 0x43, "actor-set-clip", &.{});
+    lang.addNested(0x9d, 0x43, .@"actor-set-clip", &.{});
     lang.addNested(0x9d, 0x4c, .@"actor-set-costume", &.{});
-    lang.addNested(0x9d, 0x4e, "actor-set-sounds", &.{});
+    lang.addNested(0x9d, 0x4e, .@"actor-set-sounds", &.{});
     lang.addNested(0x9d, 0x50, .@"actor-set-talk-animation", &.{});
     lang.addNested(0x9d, 0x54, .@"actor-set-elevation", &.{});
     lang.addNested(0x9d, 0x56, .@"actor-set-color", &.{});
-    lang.addNested(0x9d, 0x57, "actor-set-talk-color", &.{});
+    lang.addNested(0x9d, 0x57, .@"actor-set-talk-color", &.{});
     lang.addNested(0x9d, 0x5c, .@"actor-set-scale", &.{});
     lang.addNested(0x9d, 0x5d, "actor-never-zclip", &.{});
     lang.addNested(0x9d, 0x5e, "actor-always-zclip", &.{});
     lang.addNested(0x9d, 0x5f, .@"actor-ignore-boxes", &.{});
     lang.addNested(0x9d, 0x61, .@"actor-set-animation-speed", &.{});
     lang.addNested(0x9d, 0x62, .@"actor-set-shadow", &.{});
-    lang.addNested(0x9d, 0x63, "actor-set-text-offset", &.{});
+    lang.addNested(0x9d, 0x63, .@"actor-set-text-offset", &.{});
     lang.addNested(0x9d, 0xc5, .@"actor-select", &.{});
     lang.addNested(0x9d, 0xc6, .@"actor-set-var", &.{});
     lang.addNested(0x9d, 0xd9, .@"actor-new", &.{});
@@ -716,11 +744,11 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9e, 0x3f, .@"palette-from-image", &.{});
     lang.addNested(0x9e, 0x42, .@"palette-set-rgb", &.{});
     lang.addNested(0x9e, 0x46, .@"palette-set-color", &.{});
-    lang.addNested(0x9e, 0x56, "palette-from-palette", &.{});
+    lang.addNested(0x9e, 0x56, .@"palette-from-palette", &.{});
     lang.addNested(0x9e, 0xd9, .@"palette-new", &.{});
     lang.addNested(0x9e, 0xff, .@"palette-commit", &.{});
 
-    lang.add(0x9f, "find-actor", &.{});
+    lang.add(0x9f, .@"find-actor", &.{});
     lang.add(0xa0, .@"find-object", &.{});
     lang.add(0xa2, .@"actor-get-elevation", &.{});
     lang.add(0xa3, .@"valid-verb", &.{});
@@ -743,7 +771,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xad, .in, &.{});
 
     lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
-    lang.addNested(0xae, 0x1a, "update-screen", &.{});
+    lang.addNested(0xae, 0x1a, .@"update-screen", &.{});
     lang.addNested(0xae, 0xa0, .quit, &.{});
     lang.addNested(0xae, 0xf4, .@"quit-quit", &.{});
 
@@ -762,7 +790,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xb6, 0x4b, .@"print-debug-string", &.{.string});
     lang.addNested(0xb6, 0xc2, .@"print-debug-printf", &.{.string});
     lang.addNested(0xb6, 0xfe, .@"print-debug-start", &.{});
-    lang.addNested(0xb6, 0xff, "print-debug-empty", &.{});
+    lang.addNested(0xb6, 0xff, .@"print-debug-empty", &.{});
 
     lang.addNested(0xb7, 0x4b, .@"print-system-string", &.{.string});
     lang.addNested(0xb7, 0xc2, .@"print-system-printf", &.{.string});
@@ -784,7 +812,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xbc, 0x04, .@"dim-array.int8", &.{.variable});
     lang.addNested(0xbc, 0x05, .@"dim-array.int16", &.{.variable});
     lang.addNested(0xbc, 0x06, .@"dim-array.int32", &.{.variable});
-    lang.addNested(0xbc, 0x07, "dim-array.string", &.{.variable});
+    lang.addNested(0xbc, 0x07, .@"dim-array.string", &.{.variable});
     lang.addNested(0xbc, 0xcc, .undim, &.{.variable});
 
     lang.add(0xbd, .@"return", &.{});
@@ -808,7 +836,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xd4, .shuffle, &.{.variable});
 
     lang.addNested(0xd5, 0x01, .@"chain-script", &.{});
-    lang.addNested(0xd5, 0xc3, "chain-script-rec", &.{});
+    lang.addNested(0xd5, 0xc3, .@"chain-script-rec", &.{});
 
     lang.add(0xd6, .band, &.{});
     lang.add(0xd7, .bor, &.{});
@@ -836,8 +864,8 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xea, 0x06, .@"redim-array.int32", &.{.variable});
 
     lang.add(0xeb, .@"tell-file", &.{});
-    lang.add(0xec, "string-copy", &.{});
-    lang.add(0xed, "string-width", &.{});
+    lang.add(0xec, .@"string-copy", &.{});
+    lang.add(0xed, .@"string-width", &.{});
     lang.add(0xee, .@"string-length", &.{});
     lang.add(0xef, .@"string-substr", &.{});
     lang.add(0xf0, "string-concat", &.{});
@@ -852,12 +880,12 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xf4, 0x06, .@"write-system-ini-int", &.{});
     lang.addNested(0xf4, 0x07, .@"write-system-ini-string", &.{});
 
-    lang.add(0xf5, "string-margin", &.{});
-    lang.add(0xf6, "string-search", &.{});
+    lang.add(0xf5, .@"string-margin", &.{});
+    lang.add(0xf6, .@"string-search", &.{});
 
     lang.addNested(0xf8, 0x0d, .@"sound-size", &.{});
 
-    lang.add(0xf9, "create-directory", &.{});
+    lang.add(0xf9, .@"create-directory", &.{});
 
     lang.addNested(0xfa, 0xf3, .@"title-bar", &.{});
 
