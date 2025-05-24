@@ -384,6 +384,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .iif = .genCall(&.{ .int, .int, .int }),
     .@"dim-array-range.int8" = .gen(&.{ .int, .int, .int, .int, .int }),
     .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
+    .@"array-sort" = .gen(&.{ .int, .int, .int, .int, .int }),
     .set = .gen(&.{.int}),
     .@"file-size" = .genCall(&.{.string}),
     .@"set-array-item" = .gen(&.{ .int, .int }),
@@ -900,6 +901,7 @@ fn peephole(cx: *DecompileCx) void {
         const stmts = cx.stmts.items[ss.start..][0..ss.len];
         for (stmts, 0..) |*stmt, i| {
             peepholeSpriteSelect(cx, stmt);
+            peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
             peepholePaletteSetColor(cx, stmt);
         }
@@ -919,6 +921,23 @@ fn peepholeSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
         .op = .@"sprite-select",
         .args = .{ .start = stmt.call.args.start, .len = 1 },
     } };
+}
+
+/// Handle dups in `array-sort`
+fn peepArraySortRow(cx: *DecompileCx, stmt: *Stmt) void {
+    if (stmt.* != .call) return;
+    if (stmt.call.op != .@"array-sort") return;
+    std.debug.assert(stmt.call.args.len == 6);
+    const args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    // args are [array, down_from, down_to, across_from, across_to, order]
+    const across_to = &cx.exprs.items[args[4]];
+    if (across_to.* != .dup) return;
+    if (across_to.dup != args[3]) return;
+
+    var new_args = stmt.call.args;
+    new_args.len -= 1;
+    args[4] = args[5];
+    stmt.* = .{ .compound = .{ .op = .@"array-sort-row", .args = new_args } };
 }
 
 fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {

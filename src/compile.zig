@@ -399,6 +399,16 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcodeByName(cx, "dup");
             try emitOpcodeByName(cx, "sprite-select-range");
         },
+        .@"array-sort-row" => {
+            if (args.len != 5) return error.BadData;
+            try pushExpr(cx, args[1]);
+            try pushExpr(cx, args[2]);
+            try pushExpr(cx, args[3]);
+            try emitOpcodeByName(cx, "dup");
+            try pushExpr(cx, args[4]);
+            try emitOpcodeByName(cx, "array-sort");
+            try emitVariable(cx, args[0]);
+        },
         .@"lock-and-load-script" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);

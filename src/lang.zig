@@ -163,6 +163,7 @@ pub const Op = enum {
     iif,
     @"dim-array-range.int8",
     @"dim-array-range.int16",
+    @"array-sort",
     set,
     @"file-size",
     @"set-array-item",
@@ -521,7 +522,7 @@ fn buildNormalLanguage() Language {
     lang.add(0x38, "redim-array-range", &.{ .u8, .variable });
     lang.add(0x39, "find-segment-intersection", &.{ .variable, .variable });
 
-    lang.addNested(0x3a, 0x81, "array-sort", &.{.variable});
+    lang.addNested(0x3a, 0x81, .@"array-sort", &.{.variable});
 
     lang.add(0x43, .set, &.{.variable});
     lang.add(0x46, .@"file-size", &.{});

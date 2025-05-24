@@ -16,6 +16,7 @@ pub const Param = union(enum) {
 
 pub const Compound = enum {
     @"sprite-select",
+    @"array-sort-row",
     @"lock-and-load-script",
     @"palette-set-slot-color",
     @"break-until",
