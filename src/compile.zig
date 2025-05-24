@@ -436,6 +436,12 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try pushExpr(cx, args[1]);
             try emitOpcodeByName(cx, "palette-set-color");
         },
+        .@"delete-one-polygon" => {
+            if (args.len != 1) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try emitOpcodeByName(cx, "delete-polygon");
+        },
         .@"break-until" => {
             if (args.len != 1) return error.BadData;
             const start: u32 = @intCast(cx.out.items.len);

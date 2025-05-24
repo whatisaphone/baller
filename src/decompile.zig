@@ -419,15 +419,20 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"window-new" = .gen(&.{}),
     .@"window-commit" = .gen(&.{}),
     .@"freeze-scripts" = .gen(&.{.int}),
+    .@"cursor-bw" = .gen(&.{.int}),
+    .@"cursor-color" = .gen(&.{.int}),
     .@"cursor-on" = .gen(&.{}),
     .@"cursor-off" = .gen(&.{}),
     .@"userput-on" = .gen(&.{}),
     .@"userput-off" = .gen(&.{}),
     .charset = .gen(&.{.int}),
     .@"break-here" = .gen(&.{}),
+    .@"class-of" = .genCall(&.{ .int, .list }),
     .@"object-set-class" = .gen(&.{ .int, .list }),
     .jump = .jump,
+    .@"sound-soft" = .gen(&.{}),
     .@"sound-channel" = .gen(&.{.int}),
+    .@"sound-at" = .gen(&.{.int}),
     .@"sound-select" = .gen(&.{.int}),
     .@"sound-start" = .gen(&.{}),
     .@"stop-sound" = .gen(&.{.int}),
@@ -449,6 +454,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"load-script" = .gen(&.{.int}),
     .@"load-costume" = .gen(&.{.int}),
     .@"nuke-sound" = .gen(&.{.int}),
+    .@"nuke-costume" = .gen(&.{.int}),
     .@"lock-script" = .gen(&.{.int}),
     .@"lock-costume" = .gen(&.{.int}),
     .@"unlock-costume" = .gen(&.{.int}),
@@ -496,6 +502,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"wait-for-message" = .gen(&.{}),
     .@"actor-get-scale" = .genCall(&.{.int}),
     .in = .genCall(&.{ .int, .list }),
+    .quit = .gen(&.{}),
     .@"quit-quit" = .gen(&.{}),
     .@"sleep-for" = .gen(&.{.int}),
     .@"sleep-for-seconds" = .gen(&.{.int}),
@@ -566,6 +573,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"sound-size" = .genCall(&.{.int}),
     .@"title-bar" = .gen(&.{.string}),
     .@"delete-polygon" = .gen(&.{ .int, .int }),
+    .@"set-polygon" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }),
     .@"find-polygon" = .genCall(&.{ .int, .int }),
 });
 
@@ -920,6 +928,7 @@ fn peephole(cx: *DecompileCx) void {
             peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
             peepholePaletteSetColor(cx, stmt);
+            peepDeleteOnePolygon(cx, stmt);
         }
     }
 }
@@ -1009,6 +1018,20 @@ fn peepholePaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
     const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 2 };
     stmt.* = .{ .compound = .{
         .op = .@"palette-set-slot-color",
+        .args = new_args,
+    } };
+}
+
+/// Replace `delete-polygon a dup{a}` with `delete-one-polygon a`
+fn peepDeleteOnePolygon(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"delete-polygon", 2) orelse return;
+    const second = &cx.exprs.items[args[1]];
+    if (second.* != .dup) return;
+    if (second.dup != args[0]) return;
+
+    const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 1 };
+    stmt.* = .{ .compound = .{
+        .op = .@"delete-one-polygon",
         .args = new_args,
     } };
 }

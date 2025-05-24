@@ -5,7 +5,7 @@ pub const Symbol = union(enum) {
     constant: u16,
 };
 
-pub const max_params = 8;
+pub const max_params = 9;
 
 pub const Param = union(enum) {
     int,
@@ -19,5 +19,6 @@ pub const Compound = enum {
     @"array-sort-row",
     @"lock-and-load-script",
     @"palette-set-slot-color",
+    @"delete-one-polygon",
     @"break-until",
 };

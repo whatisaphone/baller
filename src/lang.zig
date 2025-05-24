@@ -197,15 +197,20 @@ pub const Op = enum {
     @"window-new",
     @"window-commit",
     @"freeze-scripts",
+    @"cursor-bw",
+    @"cursor-color",
     @"cursor-on",
     @"cursor-off",
     @"userput-on",
     @"userput-off",
     charset,
     @"break-here",
+    @"class-of",
     @"object-set-class",
     jump,
+    @"sound-soft",
     @"sound-channel",
+    @"sound-at",
     @"sound-select",
     @"sound-start",
     @"stop-sound",
@@ -227,6 +232,7 @@ pub const Op = enum {
     @"load-script",
     @"load-costume",
     @"nuke-sound",
+    @"nuke-costume",
     @"lock-script",
     @"lock-costume",
     @"unlock-costume",
@@ -274,6 +280,7 @@ pub const Op = enum {
     @"wait-for-message",
     @"actor-get-scale",
     in,
+    quit,
     @"quit-quit",
     @"sleep-for",
     @"sleep-for-seconds",
@@ -344,6 +351,7 @@ pub const Op = enum {
     @"sound-size",
     @"title-bar",
     @"delete-polygon",
+    @"set-polygon",
     @"find-polygon",
 };
 
@@ -598,8 +606,8 @@ fn buildNormalLanguage() Language {
 
     lang.add(0x6a, .@"freeze-scripts", &.{});
 
-    lang.addNested(0x6b, 0x13, "cursor-bw", &.{});
-    lang.addNested(0x6b, 0x14, "cursor-color", &.{});
+    lang.addNested(0x6b, 0x13, .@"cursor-bw", &.{});
+    lang.addNested(0x6b, 0x14, .@"cursor-color", &.{});
     lang.addNested(0x6b, 0x90, .@"cursor-on", &.{});
     lang.addNested(0x6b, 0x91, .@"cursor-off", &.{});
     lang.addNested(0x6b, 0x92, .@"userput-on", &.{});
@@ -610,15 +618,15 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x6b, 0x9d, "charset-color", &.{});
 
     lang.add(0x6c, .@"break-here", &.{});
-    lang.add(0x6d, "class-of", &.{});
+    lang.add(0x6d, .@"class-of", &.{});
     lang.add(0x6e, .@"object-set-class", &.{});
     lang.add(0x6f, "object-get-state", &.{});
     lang.add(0x70, "object-set-state", &.{});
     lang.add(0x73, .jump, &.{.relative_offset});
 
-    lang.addNested(0x74, 0x09, "sound-soft", &.{});
+    lang.addNested(0x74, 0x09, .@"sound-soft", &.{});
     lang.addNested(0x74, 0xe6, .@"sound-channel", &.{});
-    lang.addNested(0x74, 0xe7, "sound-at", &.{});
+    lang.addNested(0x74, 0xe7, .@"sound-at", &.{});
     lang.addNested(0x74, 0xe8, .@"sound-select", &.{});
     lang.addNested(0x74, 0xf5, "sound-looping", &.{});
     lang.addNested(0x74, 0xff, .@"sound-start", &.{});
@@ -651,7 +659,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9b, 0x66, .@"load-costume", &.{});
     lang.addNested(0x9b, 0x67, "load-room", &.{});
     lang.addNested(0x9b, 0x69, .@"nuke-sound", &.{});
-    lang.addNested(0x9b, 0x6a, "nuke-costume", &.{});
+    lang.addNested(0x9b, 0x6a, .@"nuke-costume", &.{});
     lang.addNested(0x9b, 0x6c, .@"lock-script", &.{});
     lang.addNested(0x9b, 0x6e, .@"lock-costume", &.{});
     lang.addNested(0x9b, 0x72, .@"unlock-costume", &.{});
@@ -732,7 +740,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
     lang.addNested(0xae, 0x1a, "update-screen", &.{});
-    lang.addNested(0xae, 0xa0, "quit", &.{});
+    lang.addNested(0xae, 0xa0, .quit, &.{});
     lang.addNested(0xae, 0xf4, .@"quit-quit", &.{});
 
     lang.add(0xb0, .@"sleep-for", &.{});
@@ -851,7 +859,7 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0xfb, 0xf6, "set-polygon-2", &.{});
     lang.addNested(0xfb, 0xf7, .@"delete-polygon", &.{});
-    lang.addNested(0xfb, 0xf8, "set-polygon", &.{});
+    lang.addNested(0xfb, 0xf8, .@"set-polygon", &.{});
 
     lang.add(0xfc, .@"find-polygon", &.{});
 
