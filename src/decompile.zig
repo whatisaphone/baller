@@ -231,6 +231,7 @@ const Stmt = union(enum) {
     override: struct { target: u16 },
     call: struct { op: lang.Op, args: ExtraSlice },
     compound: struct { op: script.Compound, args: ExtraSlice },
+    binop_assign: struct { op: Ast.BinOp, args: ExtraSlice },
     tombstone,
 };
 
@@ -844,7 +845,7 @@ fn recoverTypes(cx: *TypeCx) void {
             .jump_if, .jump_unless => |j| recoverExpr(cx, j.condition),
             .jump, .override => {},
             .call => |c| recoverCall(cx, c.op, c.args),
-            .compound, .tombstone => unreachable,
+            .compound, .binop_assign, .tombstone => unreachable,
         };
     }
 }
@@ -900,12 +901,45 @@ fn peephole(cx: *DecompileCx) void {
         const ss = bb.statements.defined;
         const stmts = cx.stmts.items[ss.start..][0..ss.len];
         for (stmts, 0..) |*stmt, i| {
+            peepBinOpArrayItem(cx, stmt);
             peepholeSpriteSelect(cx, stmt);
             peepArraySortRow(cx, stmt);
             peepLockAndLoadScript(cx, stmts, i);
             peepholePaletteSetColor(cx, stmt);
         }
     }
+}
+
+/// Replace e.g. `arr[i] = arr[dup{i}] + x` with `arr[i] += x`
+fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
+    if (stmt.* != .call) return;
+    if (stmt.call.op != .@"set-array-item") return;
+    std.debug.assert(stmt.call.args.len == 3);
+    const set_args = cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    const set_array = &cx.exprs.items[set_args[0]];
+    // arr[dup{i}] + x
+    const bin = &cx.exprs.items[set_args[2]];
+    if (bin.* != .call) return;
+    const op = binOp(bin.call.op) orelse return;
+    if (!op.hasEqAssign()) return;
+    std.debug.assert(bin.call.args.len == 2);
+    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    // arr[dup{i}]
+    const get = &cx.exprs.items[bin_args[0]];
+    if (get.* != .call) return;
+    if (get.call.op != .@"get-array-item") return;
+    std.debug.assert(get.call.args.len == 2);
+    const get_args = cx.extra.items[get.call.args.start..][0..get.call.args.len];
+    const get_array = &cx.exprs.items[get_args[0]];
+    if (get_array.variable.raw != set_array.variable.raw) return;
+    const get_index = &cx.exprs.items[get_args[1]];
+    if (get_index.* != .dup) return;
+    if (get_index.dup != set_args[1]) return;
+
+    // re-use the set args array for the new stmt args
+    set_args[2] = bin_args[1];
+    const args = stmt.call.args;
+    stmt.* = .{ .binop_assign = .{ .op = op, .args = args } };
 }
 
 /// Replace `sprite-select-range x dup{x}` with `sprite-select x`
@@ -2588,6 +2622,16 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
         },
         .compound => |c| {
             try emitCall(cx, @tagName(c.op), c.args);
+        },
+        .binop_assign => |s| {
+            const args = getExtra(cx, s.args);
+            try emitExpr(cx, args[0], .field);
+            try cx.out.append(cx.gpa, '[');
+            try emitExpr(cx, args[1], .all);
+            try cx.out.appendSlice(cx.gpa, "] ");
+            try cx.out.appendSlice(cx.gpa, s.op.str());
+            try cx.out.appendSlice(cx.gpa, "= ");
+            try emitExpr(cx, args[2], .space);
         },
         .tombstone => unreachable,
     }

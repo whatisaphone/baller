@@ -173,6 +173,11 @@ pub const Node = union(enum) {
         lhs: NodeIndex,
         rhs: NodeIndex,
     },
+    binop_assign: struct {
+        op: BinOp,
+        lhs: NodeIndex,
+        rhs: NodeIndex,
+    },
     call: struct {
         callee: NodeIndex,
         args: ExtraSlice,
@@ -292,6 +297,14 @@ pub const BinOp = enum {
             .shr => .bit,
             .land => .logical,
             .lor => .logical,
+        };
+    }
+
+    pub fn hasEqAssign(self: BinOp) bool {
+        return switch (self) {
+            .eq, .ne, .lt, .le, .gt, .ge => false,
+            .add, .sub, .mul, .div, .mod, .shl, .shr => true,
+            .land, .lor => false,
         };
     }
 };

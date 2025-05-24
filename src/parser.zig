@@ -986,11 +986,26 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     }
 
     const ei = try parseExpr(cx, token, .all);
+
     if (peekToken(cx).kind == .eq) {
         const eq_token = consumeToken(cx);
         const rhs = try parseExpr(cx, consumeToken(cx), .all);
+        try expect(cx, .newline);
         return try storeNode(cx, eq_token, .{ .set = .{ .lhs = ei, .rhs = rhs } });
     }
+
+    if (getBinOp(peekToken(cx))) |op| {
+        const op_token = consumeToken(cx);
+        try expect(cx, .eq);
+        const rhs = try parseExpr(cx, consumeToken(cx), .all);
+        try expect(cx, .newline);
+        return try storeNode(cx, op_token, .{ .binop_assign = .{
+            .op = op,
+            .lhs = ei,
+            .rhs = rhs,
+        } });
+    }
+
     try expect(cx, .newline);
     return try makeExprTopLevel(cx, ei);
 }
@@ -1033,6 +1048,10 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
                 cur = try storeNode(cx, token2, .{ .field = .{ .lhs = cur, .field = field } });
             },
             else => if (getBinOp(token2)) |op| {
+                // If it's a binop assign like `+=`, fall back to where it's
+                // handled in `parseStatement`.
+                if (peekSecondToken(cx).kind == .eq) break;
+
                 cur = try parseBinOp(cx, cur, token2, prec, op) orelse break;
             } else if (isAtomToken(token2)) {
                 if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
@@ -1195,6 +1214,10 @@ fn storeExtra(cx: *Cx, items: []const u32) !Ast.ExtraSlice {
 
 fn peekToken(cx: *const Cx) *const lexer.Token {
     return &cx.lex.tokens.items[cx.token_index];
+}
+
+fn peekSecondToken(cx: *const Cx) *const lexer.Token {
+    return &cx.lex.tokens.items[cx.token_index + 1];
 }
 
 fn consumeToken(cx: *Cx) *const lexer.Token {
