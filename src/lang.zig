@@ -145,6 +145,7 @@ pub const Op = enum {
     @"sprite-new",
     @"sprite-group-get",
     @"sprite-group-get-object-x",
+    @"sprite-group-get-object-y",
     @"sprite-group-move",
     @"sprite-group-select",
     @"sprite-group-set-position",
@@ -224,15 +225,21 @@ pub const Op = enum {
     @"override-off",
     @"sound-running",
     @"load-script",
+    @"load-costume",
     @"nuke-sound",
     @"lock-script",
+    @"lock-costume",
     @"unlock-costume",
     @"load-charset",
     @"preload-sound",
+    @"preload-costume",
+    @"preload-room",
     @"nuke-image",
     @"lock-image",
     @"preload-image",
     fades,
+    @"saveload-game",
+    @"actor-set-condition",
     @"actor-set-order",
     @"actor-set-clipped",
     @"actor-set-position",
@@ -313,17 +320,23 @@ pub const Op = enum {
     bor,
     @"close-file",
     @"open-file",
+    @"read-file-int16",
     @"read-file-int8",
+    @"write-file-int16",
     @"write-file-int8",
     @"delete-file",
     @"array-line-draw",
     localize,
     @"pick-random",
+    @"seek-file",
     @"redim-array.int8",
     @"redim-array.int16",
+    @"redim-array.int32",
+    @"tell-file",
     @"string-length",
     @"string-substr",
     @"string-compare",
+    @"costume-loaded",
     @"read-system-ini-int",
     @"read-system-ini-string",
     @"write-system-ini-int",
@@ -331,6 +344,7 @@ pub const Op = enum {
     @"sound-size",
     @"title-bar",
     @"delete-polygon",
+    @"find-polygon",
 };
 
 // stopgap while migrating from string to enum
@@ -484,7 +498,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x27, 0x02, "sprite-group-unknown-27-02", &.{});
     lang.addNested(0x27, 0x08, .@"sprite-group-get", &.{});
     lang.addNested(0x27, 0x1e, .@"sprite-group-get-object-x", &.{});
-    lang.addNested(0x27, 0x1f, "sprite-group-get-object-y", &.{});
+    lang.addNested(0x27, 0x1f, .@"sprite-group-get-object-y", &.{});
     lang.addNested(0x27, 0x2b, "sprite-group-get-order", &.{});
 
     lang.addNested(0x28, 0x25, "sprite-group-set-group", &.{});
@@ -634,18 +648,18 @@ fn buildNormalLanguage() Language {
 
     lang.addNested(0x9b, 0x64, .@"load-script", &.{});
     lang.addNested(0x9b, 0x65, "load-sound", &.{});
-    lang.addNested(0x9b, 0x66, "load-costume", &.{});
+    lang.addNested(0x9b, 0x66, .@"load-costume", &.{});
     lang.addNested(0x9b, 0x67, "load-room", &.{});
     lang.addNested(0x9b, 0x69, .@"nuke-sound", &.{});
     lang.addNested(0x9b, 0x6a, "nuke-costume", &.{});
     lang.addNested(0x9b, 0x6c, .@"lock-script", &.{});
-    lang.addNested(0x9b, 0x6e, "lock-costume", &.{});
+    lang.addNested(0x9b, 0x6e, .@"lock-costume", &.{});
     lang.addNested(0x9b, 0x72, .@"unlock-costume", &.{});
     lang.addNested(0x9b, 0x75, .@"load-charset", &.{});
     lang.addNested(0x9b, 0x78, "preload-script", &.{});
     lang.addNested(0x9b, 0x79, .@"preload-sound", &.{});
-    lang.addNested(0x9b, 0x7a, "preload-costume", &.{});
-    lang.addNested(0x9b, 0x7b, "preload-room", &.{});
+    lang.addNested(0x9b, 0x7a, .@"preload-costume", &.{});
+    lang.addNested(0x9b, 0x7b, .@"preload-room", &.{});
     lang.addNested(0x9b, 0x9f, "unlock-image", &.{});
     lang.addNested(0x9b, 0xc0, .@"nuke-image", &.{});
     lang.addNested(0x9b, 0xc9, "load-image", &.{});
@@ -659,10 +673,10 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
     lang.addNested(0x9c, 0xd5, "palette", &.{});
     lang.addNested(0x9c, 0xdc, "copy-palette", &.{});
-    lang.addNested(0x9c, 0xdd, "saveload-game", &.{});
+    lang.addNested(0x9c, 0xdd, .@"saveload-game", &.{});
     lang.addNested(0x9c, 0xea, "object-order", &.{});
 
-    lang.addNested(0x9d, 0x15, "actor-set-condition", &.{});
+    lang.addNested(0x9d, 0x15, .@"actor-set-condition", &.{});
     lang.addNested(0x9d, 0x2b, .@"actor-set-order", &.{});
     lang.addNested(0x9d, 0x40, .@"actor-set-clipped", &.{});
     lang.addNested(0x9d, 0x41, .@"actor-set-position", &.{});
@@ -789,10 +803,10 @@ fn buildNormalLanguage() Language {
     lang.add(0xd9, .@"close-file", &.{});
     lang.add(0xda, .@"open-file", &.{});
 
-    lang.addNested(0xdb, 0x05, "read-file-int16", &.{});
+    lang.addNested(0xdb, 0x05, .@"read-file-int16", &.{});
     lang.addNested(0xdb, 0x08, .@"read-file-int8", &.{.u8});
 
-    lang.addNested(0xdc, 0x05, "write-file-int16", &.{});
+    lang.addNested(0xdc, 0x05, .@"write-file-int16", &.{});
     lang.addNested(0xdc, 0x08, .@"write-file-int8", &.{.u8});
 
     lang.add(0xdd, "find-all-objects2", &.{});
@@ -803,13 +817,13 @@ fn buildNormalLanguage() Language {
 
     lang.add(0xe2, .localize, &.{});
     lang.add(0xe3, .@"pick-random", &.{.variable});
-    lang.add(0xe9, "seek-file", &.{});
+    lang.add(0xe9, .@"seek-file", &.{});
 
     lang.addNested(0xea, 0x04, .@"redim-array.int8", &.{.variable});
     lang.addNested(0xea, 0x05, .@"redim-array.int16", &.{.variable});
-    lang.addNested(0xea, 0x06, "redim-array.int32", &.{.variable});
+    lang.addNested(0xea, 0x06, .@"redim-array.int32", &.{.variable});
 
-    lang.add(0xeb, "tell-file", &.{});
+    lang.add(0xeb, .@"tell-file", &.{});
     lang.add(0xec, "string-copy", &.{});
     lang.add(0xed, "string-width", &.{});
     lang.add(0xee, .@"string-length", &.{});
@@ -817,7 +831,7 @@ fn buildNormalLanguage() Language {
     lang.add(0xf0, "string-concat", &.{});
     lang.add(0xf1, .@"string-compare", &.{});
 
-    lang.addNested(0xf2, 0xe3, "costume-loaded", &.{});
+    lang.addNested(0xf2, 0xe3, .@"costume-loaded", &.{});
     lang.addNested(0xf2, 0xe4, "sound-loaded", &.{});
 
     lang.addNested(0xf3, 0x06, .@"read-system-ini-int", &.{});
@@ -839,7 +853,7 @@ fn buildNormalLanguage() Language {
     lang.addNested(0xfb, 0xf7, .@"delete-polygon", &.{});
     lang.addNested(0xfb, 0xf8, "set-polygon", &.{});
 
-    lang.add(0xfc, "find-polygon", &.{});
+    lang.add(0xfc, .@"find-polygon", &.{});
 
     return lang;
 }
