@@ -2816,7 +2816,7 @@ fn emitExpr(
                 const op_prec = op.precedence();
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, '(');
-                try emitExpr(cx, args[0], op_prec);
+                try emitExpr(cx, args[0], op_prec.oneLower());
                 try cx.out.writer(cx.gpa).print(" {s} ", .{op.str()});
                 try emitExpr(cx, args[1], op_prec);
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))

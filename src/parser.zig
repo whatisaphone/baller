@@ -1034,6 +1034,10 @@ pub const Precedence = enum {
     bit,
     space,
     field,
+
+    pub fn oneLower(self: Precedence) Precedence {
+        return @enumFromInt(@intFromEnum(self) - 1);
+    }
 };
 
 fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
