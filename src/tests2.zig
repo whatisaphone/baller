@@ -77,7 +77,16 @@ test "Backyard Baseball 2001 round trip raw" {
     try testRoundTrip(baseball2001, .raw, null);
 }
 test "Backyard Baseball 2001 round trip decode all" {
-    try testRoundTrip(baseball2001, .decode_all, null);
+    try testRoundTrip(baseball2001, .decode_all, &.initDefault(@as(?u16, null), .{
+        .scrp_total = 417,
+        .scrp_decompile = 417,
+        .excd_total = 37,
+        .excd_decompile = 34, // the other 3 are zero-length
+        .encd_total = 37,
+        .encd_decompile = 34, // the other 3 are zero-length
+        .lsc2_total = 1529,
+        .lsc2_decompile = 1529,
+    }));
 }
 test "Backyard Baseball 2001 round trip disasm" {
     try testRoundTrip(baseball2001, .disasm, &.initDefault(@as(?u16, null), .{
