@@ -22,15 +22,17 @@ const baseball1997: Game = .{
     .fixture_names = &.{"BASEBALL.HE1"},
 };
 test "Backyard Baseball 1997 round trip raw" {
-    try testRoundTrip(baseball1997, .raw, null);
+    _ = try testRoundTrip(baseball1997, .raw);
 }
 test "Backyard Baseball 1997 round trip decode all" {
-    try testRoundTrip(baseball1997, .decode_all, null);
+    _ = try testRoundTrip(baseball1997, .decode_all);
 }
 test "Backyard Baseball 1997 round trip disasm" {
-    try testRoundTrip(baseball1997, .disasm, &.initDefault(@as(?u16, null), .{
-        .script_unknown_byte = 0,
-    }));
+    const stats = try testRoundTrip(baseball1997, .disasm);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
 }
 
 const soccer: Game = .{
@@ -39,15 +41,17 @@ const soccer: Game = .{
     .fixture_names = &.{"SOCCER.(A)"},
 };
 test "Backyard Soccer round trip raw" {
-    try testRoundTrip(soccer, .raw, null);
+    _ = try testRoundTrip(soccer, .raw);
 }
 test "Backyard Soccer round trip decode all" {
-    try testRoundTrip(soccer, .decode_all, null);
+    _ = try testRoundTrip(soccer, .decode_all);
 }
 test "Backyard Soccer round trip disasm" {
-    try testRoundTrip(soccer, .disasm, &.initDefault(@as(?u16, null), .{
-        .script_unknown_byte = 0,
-    }));
+    const stats = try testRoundTrip(soccer, .disasm);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
 }
 
 const football: Game = .{
@@ -56,15 +60,17 @@ const football: Game = .{
     .fixture_names = &.{ "FOOTBALL.(A)", "FOOTBALL.(B)" },
 };
 test "Backyard Football round trip raw" {
-    try testRoundTrip(football, .raw, null);
+    _ = try testRoundTrip(football, .raw);
 }
 test "Backyard Football round trip decode all" {
-    try testRoundTrip(football, .decode_all, null);
+    _ = try testRoundTrip(football, .decode_all);
 }
 test "Backyard Football round trip disasm" {
-    try testRoundTrip(football, .disasm, &.initDefault(@as(?u16, null), .{
-        .script_unknown_byte = 0,
-    }));
+    const stats = try testRoundTrip(football, .disasm);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
 }
 
 const baseball2001: Game = .{
@@ -74,24 +80,28 @@ const baseball2001: Game = .{
     .symbols_path = "src/fixtures/baseball2001-symbols.ini",
 };
 test "Backyard Baseball 2001 round trip raw" {
-    try testRoundTrip(baseball2001, .raw, null);
+    _ = try testRoundTrip(baseball2001, .raw);
 }
 test "Backyard Baseball 2001 round trip decode all" {
-    try testRoundTrip(baseball2001, .decode_all, &.initDefault(@as(?u16, null), .{
-        .scrp_total = 417,
-        .scrp_decompile = 417,
-        .excd_total = 37,
-        .excd_decompile = 34, // the other 3 are zero-length
-        .encd_total = 37,
-        .encd_decompile = 34, // the other 3 are zero-length
-        .lsc2_total = 1529,
-        .lsc2_decompile = 1529,
-    }));
+    const stats = try testRoundTrip(baseball2001, .decode_all);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.scrp_total), 417);
+        try std.testing.expectEqual(stats.get(.scrp_decompile), 417);
+        try std.testing.expectEqual(stats.get(.excd_total), 37);
+        try std.testing.expectEqual(stats.get(.excd_decompile), 34); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.encd_total), 37);
+        try std.testing.expectEqual(stats.get(.encd_decompile), 34); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.lsc2_total), 1529);
+        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1529);
+    }
 }
 test "Backyard Baseball 2001 round trip disasm" {
-    try testRoundTrip(baseball2001, .disasm, &.initDefault(@as(?u16, null), .{
-        .script_unknown_byte = 0,
-    }));
+    const stats = try testRoundTrip(baseball2001, .disasm);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
 }
 
 const basketball: Game = .{
@@ -100,22 +110,23 @@ const basketball: Game = .{
     .fixture_names = &.{ "Basketball.(a)", "Basketball.(b)" },
 };
 test "Backyard Basketball round trip raw" {
-    try testRoundTrip(basketball, .raw, null);
+    _ = try testRoundTrip(basketball, .raw);
 }
 test "Backyard Basketball round trip decode all" {
-    try testRoundTrip(basketball, .decode_all, null);
+    _ = try testRoundTrip(basketball, .decode_all);
 }
 test "Backyard Basketball round trip disasm" {
-    try testRoundTrip(basketball, .disasm, &.initDefault(@as(?u16, null), .{
-        .script_unknown_byte = 0,
-    }));
+    const stats = try testRoundTrip(basketball, .disasm);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
 }
 
 fn testRoundTrip(
     comptime game: Game,
     options: enum { raw, decode_all, disasm },
-    expected_extract_stats: ?*const std.EnumArray(extract.Stat, ?u16),
-) !void {
+) !std.EnumArray(extract.Stat, u16) {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
 
@@ -188,12 +199,7 @@ fn testRoundTrip(
         try expectFileHashEquals(output_dir, name, expected_hex);
     }
 
-    if (expected_extract_stats) |exp_ex_st|
-        for (std.meta.tags(extract.Stat)) |stat| {
-            errdefer dumpExtractStats(&extract_stats);
-            if (exp_ex_st.get(stat)) |expected|
-                try std.testing.expectEqual(extract_stats.get(stat), expected);
-        };
+    return extract_stats;
 }
 
 fn expectFileHashEquals(
