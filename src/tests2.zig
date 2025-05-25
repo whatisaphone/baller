@@ -202,11 +202,7 @@ fn testRoundTrip(
     return extract_stats;
 }
 
-fn expectFileHashEquals(
-    dir: std.fs.Dir,
-    path: [*:0]const u8,
-    comptime expected_hex: *const [64]u8,
-) !void {
+fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *const [64]u8) !void {
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
 
