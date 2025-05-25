@@ -120,8 +120,12 @@ const Context = struct {
     next_event_index: u16,
     pending_jobs: std.atomic.Value(u32),
 
+    fn sendEvent(self: *const Context, index: u16, payload: Payload) void {
+        self.events.send(.{ .index = index, .payload = payload });
+    }
+
     fn sendSyncEvent(self: *Context, payload: Payload) void {
-        self.events.send(.{ .index = self.next_event_index, .payload = payload });
+        self.sendEvent(self.next_event_index, payload);
         self.next_event_index += 1;
     }
 };
@@ -474,7 +478,7 @@ fn runJob(job: Job, cx: *Context, room_number: u8, node_index: u32, event_index:
     job(cx, room_number, node_index, event_index) catch |err| {
         if (err != error.AddedToDiagnostic)
             cx.diagnostic.zigErr("unexpected error: {s}", .{}, err);
-        cx.events.send(.{ .index = event_index, .payload = .err });
+        cx.sendEvent(event_index, .err);
     };
 
     const prev_pending = cx.pending_jobs.fetchSub(1, .monotonic);
@@ -498,14 +502,11 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     try rmim_encode.encode(rmim.compression, bmp, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("RMIM"),
-            .glob_number = room_number,
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("RMIM"),
+        .glob_number = room_number,
+        .data = out,
+    } });
 }
 
 fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -517,14 +518,11 @@ fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
     const id: Symbols.ScriptId = .{ .global = scr.glob_number };
     const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("SCRP"),
-            .glob_number = scr.glob_number,
-            .data = result,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("SCRP"),
+        .glob_number = scr.glob_number,
+        .data = result,
+    } });
 }
 
 fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -549,13 +547,10 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
         .encd => blockId("ENCD"),
         .excd => blockId("EXCD"),
     };
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .raw_block = .{
-            .block_id = block_id,
-            .data = result,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = block_id,
+        .data = result,
+    } });
 }
 
 fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -588,13 +583,10 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
         .lscr => blockId("LSCR"),
         .lsc2 => blockId("LSC2"),
     };
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .raw_block = .{
-            .block_id = block_id,
-            .data = .fromOwnedSlice(result),
-        } },
-    });
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = block_id,
+        .data = .fromOwnedSlice(result),
+    } });
 }
 
 fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -610,14 +602,11 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     try planAwizInner(cx, room_number, awiz_node.children, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("AWIZ"),
-            .glob_number = awiz_node.glob_number,
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("AWIZ"),
+        .glob_number = awiz_node.glob_number,
+        .data = out,
+    } });
 }
 
 fn planAwizInner(
@@ -674,14 +663,11 @@ fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     try planMultInner(cx, room_number, mult, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("MULT"),
-            .glob_number = mult.glob_number,
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("MULT"),
+        .glob_number = mult.glob_number,
+        .data = out,
+    } });
 }
 
 fn planMultInner(
@@ -750,14 +736,11 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &stream, &fixups);
     applyFixups(out.items, fixups.items);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("AKOS"),
-            .glob_number = node.glob_number,
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("AKOS"),
+        .glob_number = node.glob_number,
+        .data = out,
+    } });
 }
 
 fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -774,14 +757,11 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
 
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .glob = .{
-            .block_id = blockId("SCRP"),
-            .glob_number = node.glob_number,
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = blockId("SCRP"),
+        .glob_number = node.glob_number,
+        .data = out,
+    } });
 }
 
 fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -804,13 +784,10 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .raw_block = .{
-            .block_id = @intFromEnum(block_id),
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = @intFromEnum(block_id),
+        .data = out,
+    } });
 }
 
 fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -827,13 +804,10 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
 
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .raw_block = .{
-            .block_id = blockId("ENCD"),
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = blockId("ENCD"),
+        .data = out,
+    } });
 }
 
 fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -850,13 +824,10 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
 
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
-    cx.events.send(.{
-        .index = event_index,
-        .payload = .{ .raw_block = .{
-            .block_id = blockId("EXCD"),
-            .data = out,
-        } },
-    });
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = blockId("EXCD"),
+        .data = out,
+    } });
 }
 
 fn planIndex(cx: *Context) !void {
