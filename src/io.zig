@@ -56,7 +56,7 @@ pub fn XorReader(Stream: type) type {
         stream: Stream,
         key: u8,
 
-        const Reader = std.io.GenericReader(*const @This(), Stream.Error, read);
+        pub const Reader = std.io.GenericReader(*const @This(), Stream.Error, read);
 
         pub fn reader(self: *const @This()) Reader {
             return .{ .context = self };

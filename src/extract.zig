@@ -373,7 +373,8 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_raw = try blocks.expect("MAXS").bytes();
+    const maxs_block = try blocks.expect("MAXS").block();
+    const maxs_raw = try io.readInPlace(&in, maxs_block.size);
     if (maxs_raw.len != games.maxsLen(game))
         return error.BadData;
 
@@ -383,7 +384,7 @@ fn extractIndex(
     @memcpy(maxs_present_bytes, maxs_raw);
     @memset(maxs_missing_bytes, 0);
 
-    try writeRawIndexBlock(gpa, output_dir, code, blockId("MAXS"), maxs_present_bytes);
+    try writeRawBlock(gpa, &maxs_block, .{ .bytes = maxs_present_bytes }, output_dir, null, .index_block, code);
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
         diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
@@ -580,29 +581,9 @@ fn extractRawIndexBlock(
     code: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
 ) !void {
-    const data = try blocks.expect(block_id).bytes();
-    try writeRawIndexBlock(gpa, output_dir, code, block_id, data);
-}
-
-fn writeRawIndexBlock(
-    gpa: std.mem.Allocator,
-    output_dir: anytype,
-    code: *std.ArrayListUnmanaged(u8),
-    block_id: BlockId,
-    data: []const u8,
-) !void {
-    var filename_buf: ["index_XXXX.bin".len + 1]u8 = undefined;
-    const filename = try std.fmt.bufPrintZ(
-        &filename_buf,
-        "index_{s}.bin",
-        .{fmtBlockId(&block_id)},
-    );
-    try fs.writeFileZ(output_dir, filename, data);
-
-    try code.writer(gpa).print(
-        "    raw-block \"{s}\" \"{s}\"\n",
-        .{ fmtBlockId(&block_id), filename },
-    );
+    const block = try blocks.expect(block_id).block();
+    const bytes = try io.readInPlace(blocks.stream, block.size);
+    try writeRawBlock(gpa, &block, .{ .bytes = bytes }, output_dir, null, .index_block, code);
 }
 
 const Context = struct {
@@ -627,6 +608,8 @@ const Context = struct {
     }
 };
 
+const DiskReader = std.io.CountingReader(std.io.BufferedReader(4096, io.XorReader(std.fs.File.Reader).Reader).Reader);
+
 fn extractDisk(
     cx: *Context,
     diagnostic: *Diagnostic,
@@ -647,7 +630,7 @@ fn extractDisk(
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), xor_key);
     var in_buf = std.io.bufferedReader(in_xor.reader());
-    var in = std.io.countingReader(in_buf.reader());
+    var in: DiskReader = std.io.countingReader(in_buf.reader());
 
     var file_blocks = streamingBlockReader(&in, &diag);
 
@@ -935,7 +918,7 @@ fn extractRmda(
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
-                try extractRawBlock(cx.cx.gpa, in, &block, cx.room_dir, cx.room_path, &code);
+                try writeRawBlock(cx.cx.gpa, &block, .{ .reader = in }, cx.room_dir, cx.room_path, .block_offset, &code);
                 try cx.sendSync(.top, code);
             },
         }
@@ -976,7 +959,7 @@ fn extractPals(
     try wrap_blocks.finish(pals.end());
     try pals_blocks.finishEof();
 
-    try writeRawBlock(cx.cx.gpa, block, &pals_raw, cx.room_dir, cx.room_path, code);
+    try writeRawBlock(cx.cx.gpa, block, .{ .bytes = &pals_raw }, cx.room_dir, cx.room_path, .block_offset, code);
 
     return apal.*;
 }
@@ -1163,7 +1146,7 @@ fn extractRmdaChildJob(
     }
 
     // If decoding failed or was skipped, extract as raw
-    try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
+    try writeRawBlock(cx.cx.gpa, block, .{ .bytes = raw }, cx.room_dir, cx.room_path, .block_offset, &code);
     cx.sendChunk(chunk_index, .top, code);
 
     cx.cx.incStat(switch (block.id) {
@@ -1494,7 +1477,7 @@ fn extractGlobJob(
         // This should normally be impossible, but there's a glitched CHAR block
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
-        try writeRawBlock(cx.cx.gpa, block, raw, cx.room_dir, cx.room_path, &code);
+        try writeRawBlock(cx.cx.gpa, block, .{ .bytes = raw }, cx.room_dir, cx.room_path, .block_offset, &code);
         cx.sendChunk(chunk_index, .bottom, code);
         return;
     };
@@ -1823,50 +1806,40 @@ fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?uni
     return .{ .prefixed = prefix };
 }
 
-fn extractRawBlock(
-    gpa: std.mem.Allocator,
-    in: anytype,
-    block: *const Block,
-    output_dir: std.fs.Dir,
-    output_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
-) !void {
-    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
-    const filename = try std.fmt.bufPrintZ(
-        &filename_buf,
-        "{s}_{x:0>8}.bin",
-        .{ fmtBlockId(&block.id), block.offset() },
-    );
-    const file = try output_dir.createFileZ(filename, .{});
-    defer file.close();
-    try io.copy(std.io.limitedReader(in.reader(), block.size), file.writer());
-
-    try code.writer(gpa).print(
-        "    raw-block \"{s}\" \"{s}/{s}\"\n",
-        .{ fmtBlockId(&block.id), output_path, filename },
-    );
-}
-
 fn writeRawBlock(
     gpa: std.mem.Allocator,
     block: *const Block,
-    data: []const u8,
+    data_source: union(enum) { bytes: []const u8, reader: *DiskReader },
     output_dir: std.fs.Dir,
-    output_path: []const u8,
+    output_path: ?[]const u8,
+    filename_pattern: union(enum) { index_block, block_offset },
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
-    const filename = try std.fmt.bufPrintZ(
-        &filename_buf,
-        "{s}_{x:0>8}.bin",
-        .{ fmtBlockId(&block.id), block.offset() },
-    );
-    try fs.writeFileZ(output_dir, filename, data);
+    const filename = switch (filename_pattern) {
+        .index_block => try std.fmt.bufPrintZ(
+            &filename_buf,
+            "index_{s}.bin",
+            .{fmtBlockId(&block.id)},
+        ),
+        .block_offset => try std.fmt.bufPrintZ(
+            &filename_buf,
+            "{s}_{x:0>8}.bin",
+            .{ fmtBlockId(&block.id), block.offset() },
+        ),
+    };
 
-    try code.writer(gpa).print(
-        "    raw-block \"{s}\" \"{s}/{s}\"\n",
-        .{ fmtBlockId(&block.id), output_path, filename },
-    );
+    const file = try output_dir.createFileZ(filename, .{});
+    defer file.close();
+    switch (data_source) {
+        .bytes => |bytes| try file.writeAll(bytes),
+        .reader => |in| try io.copy(std.io.limitedReader(in.reader(), block.size), file),
+    }
+
+    try code.writer(gpa).print("    raw-block \"{s}\" \"", .{fmtBlockId(&block.id)});
+    if (output_path) |path|
+        try code.writer(gpa).print("{s}/", .{path});
+    try code.writer(gpa).print("{s}\"\n", .{filename});
 }
 
 fn emitRoom(
