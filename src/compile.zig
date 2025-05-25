@@ -141,7 +141,13 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         },
         .binop_assign => |e| {
             const lhs = &cx.ast.nodes.items[e.lhs];
-            if (lhs.* == .array_get) {
+            if (lhs.* == .identifier) {
+                try pushExpr(cx, e.lhs);
+                try pushExpr(cx, e.rhs);
+                try emitOpcodeByName(cx, @tagName(e.op));
+                try emitOpcodeByName(cx, "set");
+                try emitVariable(cx, e.lhs);
+            } else if (lhs.* == .array_get) {
                 try pushExpr(cx, lhs.array_get.index);
                 try emitOpcodeByName(cx, "dup");
                 try emitOpcodeByName(cx, "get-array-item");

@@ -989,6 +989,7 @@ fn peephole(cx: *DecompileCx) void {
         const ss = bb.statements.defined;
         const stmts = cx.stmts.items[ss.start..][0..ss.len];
         for (stmts, 0..) |*stmt, i| {
+            peepBinOpEq(cx, stmt);
             peepBinOpArrayItem(cx, stmt);
             peepBinOpArrayItem2D(cx, stmt);
             peepSpriteSelect(cx, stmt);
@@ -999,6 +1000,23 @@ fn peephole(cx: *DecompileCx) void {
             peepDeleteOnePolygon(cx, stmt);
         }
     }
+}
+
+/// Replace e.g. `x = x + y` with `x += y`
+fn peepBinOpEq(cx: *DecompileCx, stmt: *Stmt) void {
+    const set_args = stmtCallArgs(cx, stmt, .set, 2) orelse return;
+    const set_var = &cx.exprs.items[set_args[0]];
+    const bin = &cx.exprs.items[set_args[1]];
+    if (bin.* != .call) return;
+    const op = binOp(bin.call.op) orelse return;
+    if (!op.hasEqAssign()) return;
+    std.debug.assert(bin.call.args.len == 2);
+    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    const lhs = &cx.exprs.items[bin_args[0]];
+    if (lhs.* != .variable) return;
+    if (lhs.variable.raw != set_var.variable.raw) return;
+
+    stmt.* = .{ .binop_assign = .{ .op = op, .args = bin.call.args } };
 }
 
 /// Replace e.g. `arr[i] = arr[dup{i}] + x` with `arr[i] += x`
@@ -2782,7 +2800,7 @@ fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
             try cx.out.append(cx.gpa, ' ');
             try cx.out.appendSlice(cx.gpa, s.op.str());
             try cx.out.appendSlice(cx.gpa, "= ");
-            try emitExpr(cx, args[1], .space);
+            try emitExpr(cx, args[1], .all);
         },
         .tombstone => unreachable,
     }
