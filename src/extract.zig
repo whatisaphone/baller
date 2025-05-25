@@ -1156,7 +1156,7 @@ fn extractRmdaChildJob(
                 return;
         },
         blockId("LSCR"), blockId("LSC2") => {
-            if (extractLscr(cx, &diag, block.id, raw, &code, chunk_index))
+            if (extractLsc(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
         else => unreachable, // This is only called for the above block ids
@@ -1320,7 +1320,7 @@ const LocalScriptBlockType = enum {
     }
 };
 
-fn extractLscr(
+fn extractLsc(
     cx: *RoomContext,
     diag: *Diagnostic.ForBinaryFile,
     block_id: BlockId,
@@ -1343,12 +1343,12 @@ fn extractLscr(
     diag.trace(0, "found script number", .{});
 
     if (cx.cx.options.script == .decompile and
-        tryDecode("decompile", extractLscrDecompile, cx, diag, .{ block_type, script_number, bytecode }, code))
+        tryDecode("decompile", extractLscDecompile, cx, diag, .{ block_type, script_number, bytecode }, code))
     {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
-    if (tryDecode("disassemble", extractLscrDisassemble, cx, diag, .{ block_type, script_number, bytecode }, code)) {
+    if (tryDecode("disassemble", extractLscDisassemble, cx, diag, .{ block_type, script_number, bytecode }, code)) {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
@@ -1374,7 +1374,7 @@ fn parseLscHeader(block_type: LocalScriptBlockType, raw: []const u8) !struct { u
     }
 }
 
-fn extractLscrDisassemble(
+fn extractLscDisassemble(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_type: LocalScriptBlockType,
@@ -1398,11 +1398,11 @@ fn extractLscrDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: ["lscr0000.s".len + 1]u8 = undefined;
-    const path = std.fmt.bufPrintZ(&path_buf, "lscr{:0>4}.s", .{script_number}) catch unreachable;
+    var path_buf: ["lsc0000.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "lsc{:0>4}.s", .{script_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "\nlscr ");
+    try code.appendSlice(cx.cx.gpa, "\nlsc ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ script_number, cx.room_path, path });
 
@@ -1418,7 +1418,7 @@ fn extractLscrDisassemble(
     diagnostic.flushStats(cx.cx, diag);
 }
 
-fn extractLscrDecompile(
+fn extractLscDecompile(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block_type: LocalScriptBlockType,
@@ -1640,11 +1640,11 @@ fn extractScrpDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: ["scrp0000.s".len + 1]u8 = undefined;
-    const path = std.fmt.bufPrintZ(&path_buf, "scrp{:0>4}.s", .{glob_number}) catch unreachable;
+    var path_buf: ["scr0000.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "scr{:0>4}.s", .{glob_number}) catch unreachable;
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "\nscrp ");
+    try code.appendSlice(cx.cx.gpa, "\nscr ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
 

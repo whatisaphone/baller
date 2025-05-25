@@ -75,7 +75,7 @@ pub const Node = union(enum) {
     rmda: struct {
         children: ExtraSlice,
     },
-    scrp: struct {
+    scr: struct {
         name: []const u8,
         glob_number: u16,
         path: []const u8,
@@ -86,7 +86,7 @@ pub const Node = union(enum) {
     excd: struct {
         path: []const u8,
     },
-    lscr: struct {
+    lsc: struct {
         name: []const u8,
         script_number: u16,
         path: []const u8,

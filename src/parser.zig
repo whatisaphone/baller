@@ -238,10 +238,10 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         @"raw-glob",
         rmim,
         rmda,
-        scrp,
+        scr,
         encd,
         excd,
-        lscr,
+        lsc,
         awiz,
         mult,
         akos,
@@ -286,7 +286,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const node_index = try parseRmda(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
-                .scrp => {
+                .scr => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
                     const glob_number_i32 = try expectInteger(cx);
@@ -296,7 +296,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const glob_number = std.math.cast(u16, glob_number_i32) orelse
                         return reportError(cx, token, "invalid glob number", .{});
 
-                    const node_index = try storeNode(cx, token, .{ .scrp = .{
+                    const node_index = try storeNode(cx, token, .{ .scr = .{
                         .name = name,
                         .glob_number = glob_number,
                         .path = path,
@@ -317,7 +317,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const node_index = try storeNode(cx, token, .{ .excd = .{ .path = path } });
                     try appendNode(cx, &children, node_index);
                 },
-                .lscr => {
+                .lsc => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
                     const script_number_i32 = try expectInteger(cx);
@@ -327,7 +327,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const script_number = std.math.cast(u16, script_number_i32) orelse
                         return reportError(cx, token, "invalid script number", .{});
 
-                    const node_index = try storeNode(cx, token, .{ .lscr = .{
+                    const node_index = try storeNode(cx, token, .{ .lsc = .{
                         .name = name,
                         .script_number = script_number,
                         .path = path,

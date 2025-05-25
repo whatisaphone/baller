@@ -179,7 +179,7 @@ fn buildProjectScope(cx: *Context) !void {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
                         try addScopeSymbol(cx, &cx.project_scope, name, symbol);
                     },
-                    .scrp => |n| {
+                    .scr => |n| {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
                         try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
                     },
@@ -214,14 +214,14 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
     var start: [160]RoomWork = undefined;
     var rmda_excd: [1]RoomWork = undefined;
     var rmda_encd: [1]RoomWork = undefined;
-    var rmda_lscr: [640]RoomWork = undefined;
+    var rmda_lsc: [640]RoomWork = undefined;
     var end: [5120]RoomWork = undefined;
     var state: RoomPlan = .{
         .work = .init(.{
             .start = .initBuffer(&start),
             .rmda_excd = .initBuffer(&rmda_excd),
             .rmda_encd = .initBuffer(&rmda_encd),
-            .rmda_lscr = .initBuffer(&rmda_lscr),
+            .rmda_lsc = .initBuffer(&rmda_lsc),
             .end = .initBuffer(&end),
         }),
         .cur_section = .start,
@@ -246,7 +246,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
 
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.items[node_index]) {
-            .lscr => |n| {
+            .lsc => |n| {
                 const symbol: script.Symbol = .{ .constant = n.script_number };
                 try addScopeSymbol(cx, room_scope, n.name, symbol);
             },
@@ -277,7 +277,7 @@ const RoomSection = enum {
     start,
     rmda_excd,
     rmda_encd,
-    rmda_lscr,
+    rmda_lsc,
     end,
 };
 
@@ -295,13 +295,13 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
                 try plan.add(plan.cur_section, .{ .node = child_node });
             },
             .rmda => |*rmda| try scanRmda(cx, plan, room_number, rmda),
-            .scrp => try plan.add(.end, .{ .node = child_node }),
+            .scr => try plan.add(.end, .{ .node = child_node }),
             .excd => try plan.add(.rmda_excd, .{ .node = child_node }),
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
-            .lscr => try plan.add(.rmda_lscr, .{ .node = child_node }),
+            .lsc => try plan.add(.rmda_lsc, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
-            .local_script => try plan.add(.rmda_lscr, .{ .node = child_node }),
+            .local_script => try plan.add(.rmda_lsc, .{ .node = child_node }),
             .enter => try plan.add(.rmda_encd, .{ .node = child_node }),
             .exit => try plan.add(.rmda_excd, .{ .node = child_node }),
             else => unreachable,
@@ -324,10 +324,10 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
     // Any rooms where every script number < 256, all local scripts are LSCR.
     // Otherwise all are LSC2.
     var max_lsc_number: u16 = 0;
-    for (plan.work.getPtrConst(.rmda_lscr).items) |*work| {
+    for (plan.work.getPtrConst(.rmda_lsc).items) |*work| {
         if (work.* == .node) {
             const number: ?u16 = switch (room_file.ast.nodes.items[work.node]) {
-                inline .lscr, .local_script => |n| n.script_number,
+                inline .lsc, .local_script => |n| n.script_number,
                 else => null,
             };
             if (number) |num|
@@ -363,9 +363,9 @@ fn sectionForBlockId(block_id: BlockId) ?RoomSection {
     return switch (block_id) {
         blockId("EXCD") => .rmda_excd,
         blockId("ENCD") => .rmda_encd,
-        blockId("NLSC") => .rmda_lscr,
-        blockId("LSCR") => .rmda_lscr,
-        blockId("LSC2") => .rmda_lscr,
+        blockId("NLSC") => .rmda_lsc,
+        blockId("LSCR") => .rmda_lsc,
+        blockId("LSC2") => .rmda_lsc,
         else => null,
     };
 }
@@ -381,9 +381,9 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .raw_glob_block => |*n| try planRawGlobBlock(cx, room_number, n),
                     .raw_block => |*n| try planRawBlock(cx, n),
                     .rmim => try spawnJob(planRmim, cx, room_number, child_node),
-                    .scrp => try spawnJob(planScrp, cx, room_number, child_node),
+                    .scr => try spawnJob(planScr, cx, room_number, child_node),
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
-                    .lscr => try spawnJob(planLscr, cx, room_number, child_node),
+                    .lsc => try spawnJob(planLsc, cx, room_number, child_node),
                     .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
@@ -452,7 +452,7 @@ fn planRmda(cx: *Context, room_number: u8, node_index: u32) !void {
         switch (child.*) {
             .raw_block => |*n| try planRawBlock(cx, n),
             .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, node),
-            .lscr => try spawnJob(planLscr, cx, room_number, node),
+            .lsc => try spawnJob(planLsc, cx, room_number, node),
             else => unreachable,
         }
     }
@@ -508,20 +508,20 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     });
 }
 
-fn planScrp(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const scrp = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].scrp;
+fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const scr = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].scr;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, scrp.path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, scr.path);
     defer cx.gpa.free(in);
 
-    const id: Symbols.ScriptId = .{ .global = scrp.glob_number };
+    const id: Symbols.ScriptId = .{ .global = scr.glob_number };
     const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.events.send(.{
         .index = event_index,
         .payload = .{ .glob = .{
             .block_id = blockId("SCRP"),
-            .glob_number = scrp.glob_number,
+            .glob_number = scr.glob_number,
             .data = result,
         } },
     });
@@ -558,15 +558,15 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
     });
 }
 
-fn planLscr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const lscr = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].lscr;
+fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const lsc = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].lsc;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, lscr.path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, lsc.path);
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .local = .{
         .room = room_number,
-        .number = lscr.script_number,
+        .number = lsc.script_number,
     } };
     var bytecode = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     defer bytecode.deinit(cx.gpa);
@@ -579,8 +579,8 @@ fn planLscr(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     const result = try cx.gpa.alloc(u8, script_number_size + bytecode.items.len);
     errdefer cx.gpa.free(result);
     switch (block_type) {
-        .lscr => result[0] = @intCast(lscr.script_number),
-        .lsc2 => std.mem.writeInt(i32, result[0..4], lscr.script_number, .little),
+        .lscr => result[0] = @intCast(lsc.script_number),
+        .lsc2 => std.mem.writeInt(i32, result[0..4], lsc.script_number, .little),
     }
     @memcpy(result[script_number_size..], bytecode.items); // TODO: avoid this memcpy
 

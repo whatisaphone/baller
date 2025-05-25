@@ -259,7 +259,7 @@ const FormatScriptId = struct {
         _ = options;
 
         switch (self.id) {
-            .global => |num| try writer.print("scrp{}", .{num}),
+            .global => |num| try writer.print("scr{}", .{num}),
             .enter => |s| try writer.print("room{}/enter", .{s.room}),
             .exit => |s| try writer.print("room{}/enter", .{s.room}),
             .local => |lsc| try writer.print("room{}/lsc{}", .{ lsc.room, lsc.number }),
