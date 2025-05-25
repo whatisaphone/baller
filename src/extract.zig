@@ -373,8 +373,7 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_block = try blocks.expect("MAXS").block();
-    const maxs_raw = try io.readInPlace(&in, maxs_block.size);
+    const maxs_raw = try blocks.expect("MAXS").bytes();
     if (maxs_raw.len != games.maxsLen(game))
         return error.BadData;
 
@@ -384,7 +383,7 @@ fn extractIndex(
     @memcpy(maxs_present_bytes, maxs_raw);
     @memset(maxs_missing_bytes, 0);
 
-    try writeRawBlock(gpa, &maxs_block, .{ .bytes = maxs_present_bytes }, output_dir, null, .index_block, code);
+    try writeRawBlock(gpa, blockId("MAXS"), .{ .bytes = maxs_present_bytes }, output_dir, null, 4, .index_block, code);
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
         diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
@@ -583,7 +582,7 @@ fn extractRawIndexBlock(
 ) !void {
     const block = try blocks.expect(block_id).block();
     const bytes = try io.readInPlace(blocks.stream, block.size);
-    try writeRawBlock(gpa, &block, .{ .bytes = bytes }, output_dir, null, .index_block, code);
+    try writeRawBlock(gpa, block.id, .{ .bytes = bytes }, output_dir, null, 4, .index_block, code);
 }
 
 const Context = struct {
@@ -918,7 +917,7 @@ fn extractRmda(
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
-                try writeRawBlock(cx.cx.gpa, &block, .{ .reader = in }, cx.room_dir, cx.room_path, .block_offset, &code);
+                try writeRawBlock(cx.cx.gpa, block.id, .{ .reader = .{ .in = in, .size = block.size } }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
             },
         }
@@ -959,7 +958,7 @@ fn extractPals(
     try wrap_blocks.finish(pals.end());
     try pals_blocks.finishEof();
 
-    try writeRawBlock(cx.cx.gpa, block, .{ .bytes = &pals_raw }, cx.room_dir, cx.room_path, .block_offset, code);
+    try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = &pals_raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, code);
 
     return apal.*;
 }
@@ -1146,7 +1145,7 @@ fn extractRmdaChildJob(
     }
 
     // If decoding failed or was skipped, extract as raw
-    try writeRawBlock(cx.cx.gpa, block, .{ .bytes = raw }, cx.room_dir, cx.room_path, .block_offset, &code);
+    try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
     cx.sendChunk(chunk_index, .top, code);
 
     cx.cx.incStat(switch (block.id) {
@@ -1477,7 +1476,7 @@ fn extractGlobJob(
         // This should normally be impossible, but there's a glitched CHAR block
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
-        try writeRawBlock(cx.cx.gpa, block, .{ .bytes = raw }, cx.room_dir, cx.room_path, .block_offset, &code);
+        try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 0, .{ .block_offset = block.offset() }, &code);
         cx.sendChunk(chunk_index, .bottom, code);
         return;
     };
@@ -1806,26 +1805,35 @@ fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?uni
     return .{ .prefixed = prefix };
 }
 
-fn writeRawBlock(
+pub fn writeRawBlock(
     gpa: std.mem.Allocator,
-    block: *const Block,
-    data_source: union(enum) { bytes: []const u8, reader: *DiskReader },
+    block_id: BlockId,
+    data_source: union(enum) {
+        bytes: []const u8,
+        reader: struct { in: *DiskReader, size: u32 },
+    },
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,
-    filename_pattern: union(enum) { index_block, block_offset },
+    indent: u8,
+    filename_pattern: union(enum) { block, index_block, block_offset: u32 },
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
     const filename = switch (filename_pattern) {
+        .block => try std.fmt.bufPrintZ(
+            &filename_buf,
+            "{s}.bin",
+            .{fmtBlockId(&block_id)},
+        ),
         .index_block => try std.fmt.bufPrintZ(
             &filename_buf,
             "index_{s}.bin",
-            .{fmtBlockId(&block.id)},
+            .{fmtBlockId(&block_id)},
         ),
-        .block_offset => try std.fmt.bufPrintZ(
+        .block_offset => |offset| try std.fmt.bufPrintZ(
             &filename_buf,
             "{s}_{x:0>8}.bin",
-            .{ fmtBlockId(&block.id), block.offset() },
+            .{ fmtBlockId(&block_id), offset },
         ),
     };
 
@@ -1833,10 +1841,12 @@ fn writeRawBlock(
     defer file.close();
     switch (data_source) {
         .bytes => |bytes| try file.writeAll(bytes),
-        .reader => |in| try io.copy(std.io.limitedReader(in.reader(), block.size), file),
+        .reader => |r| try io.copy(std.io.limitedReader(r.in.reader(), r.size), file),
     }
 
-    try code.writer(gpa).print("    raw-block \"{s}\" \"", .{fmtBlockId(&block.id)});
+    for (0..indent) |_|
+        try code.append(gpa, ' ');
+    try code.writer(gpa).print("raw-block \"{s}\" \"", .{fmtBlockId(&block_id)});
     if (output_path) |path|
         try code.writer(gpa).print("{s}/", .{path});
     try code.writer(gpa).print("{s}\"\n", .{filename});

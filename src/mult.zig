@@ -6,6 +6,7 @@ const awiz = @import("awiz.zig");
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
+const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 
@@ -132,14 +133,7 @@ fn extractDefa(
         const block = try blocks.next().block();
         const bytes = try io.readInPlace(&stream, block.size);
 
-        var path_buf: ["DEFA_RGBS.bin".len + 1]u8 = undefined;
-        const path = std.fmt.bufPrintZ(&path_buf, "DEFA_{s}.bin", .{fmtBlockId(&block.id)}) catch unreachable;
-        try fs.writeFileZ(out_dir, path, bytes);
-
-        try code.writer(gpa).print(
-            "        raw-block \"{s}\" \"{s}/{s}\"\n",
-            .{ fmtBlockId(&block.id), out_path, path },
-        );
+        try writeRawBlock(gpa, block.id, .{ .bytes = bytes }, out_dir, out_path, 8, .block, code);
 
         if (block.id == blockId("RGBS")) {
             if (rgbs != null) return error.BadData;

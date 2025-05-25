@@ -11,6 +11,7 @@ const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const Fixup = @import("block_writer.zig").Fixup;
 const bmp = @import("bmp.zig");
+const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
@@ -51,18 +52,18 @@ pub fn decode(
     var blocks = fixedBlockReader(&stream);
 
     const akhd = try blocks.expectBlockAsValue("AKHD", Akhd);
-    try decodeAsRawBlock(allocator, blockId("AKHD"), std.mem.asBytes(akhd), out_path, out_dir, manifest);
+    try writeRawBlock(allocator, blockId("AKHD"), .{ .bytes = std.mem.asBytes(akhd) }, out_dir, out_path, 4, .block, manifest);
 
     const akpl = try blocks.expectBlockAsSlice("AKPL");
     try fs.writeFileZ(out_dir, "AKPL.bin", akpl);
     try manifest.writer(allocator).print("    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
 
     const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
-    try decodeAsRawBlock(allocator, blockId("RGBS"), rgbs, out_path, out_dir, manifest);
+    try writeRawBlock(allocator, blockId("RGBS"), .{ .bytes = rgbs }, out_dir, out_path, 4, .block, manifest);
 
     while (try blocks.peek() != blockId("AKOF")) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try decodeAsRawBlock(allocator, block_id, block_raw, out_path, out_dir, manifest);
+        try writeRawBlock(allocator, block_id, .{ .bytes = block_raw }, out_dir, out_path, 4, .block, manifest);
     }
 
     const akof_len = try blocks.assumeBlock("AKOF");
@@ -101,7 +102,7 @@ pub fn decode(
 
     while (stream.pos < akos_raw.len) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try decodeAsRawBlock(allocator, block_id, block_raw, out_path, out_dir, manifest);
+        try writeRawBlock(allocator, block_id, .{ .bytes = block_raw }, out_dir, out_path, 4, .block, manifest);
     }
 
     try blocks.finishEof();
@@ -208,25 +209,6 @@ fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
     // ensure buffer is fully initialized
     if (pixels_buf.items.len != pixels_buf.capacity)
         return error.CelDecode;
-}
-
-fn decodeAsRawBlock(
-    allocator: std.mem.Allocator,
-    block_id: BlockId,
-    block_raw: []const u8,
-    out_path: []const u8,
-    out_dir: std.fs.Dir,
-    manifest: *std.ArrayListUnmanaged(u8),
-) !void {
-    var path_buf: ["AKHD.bin".len + 1]u8 = undefined;
-    const path = try std.fmt.bufPrintZ(&path_buf, "{s}.bin", .{blockIdToStr(&block_id)});
-
-    try fs.writeFileZ(out_dir, path, block_raw);
-
-    try manifest.writer(allocator).print(
-        "    raw-block \"{s}\" \"{s}/{s}\"\n",
-        .{ blockIdToStr(&block_id), out_path, path },
-    );
 }
 
 const EncodeState = struct {
