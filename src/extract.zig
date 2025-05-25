@@ -326,7 +326,7 @@ const Directory = struct {
     offsets: utils.SafeManyPointer([*]u32),
     sizes: utils.SafeManyPointer([*]u32),
 
-    pub const empty: Directory = .{
+    const empty: Directory = .{
         .rooms = .empty,
         .offsets = .empty,
         .sizes = .empty,
