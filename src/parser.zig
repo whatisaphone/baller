@@ -872,8 +872,13 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 var false_stmts = Ast.ExtraSlice.empty;
                 if (parseIdentifierOpt(cx, peekToken(cx), enum { @"else" })) |_| {
                     _ = consumeToken(cx);
-                    try expect(cx, .brace_l);
-                    false_stmts = try parseScriptBlock(cx);
+                    if (parseIdentifierOpt(cx, peekToken(cx), enum { @"if" })) |_| {
+                        const else_if = try parseStatement(cx, consumeToken(cx));
+                        false_stmts = try storeExtra(cx, (&else_if)[0..1]);
+                    } else {
+                        try expect(cx, .brace_l);
+                        false_stmts = try parseScriptBlock(cx);
+                    }
                 }
 
                 return storeNode(cx, token, .{ .@"if" = .{

@@ -2607,13 +2607,17 @@ fn emitLocalVarsDecl(cx: *EmitCx) !void {
 fn emitNodeList(cx: *EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
     var ni = ni_start;
     while (ni != null_node) {
-        try emitSingleNode(cx, ni);
+        try emitSingleNode(cx, ni, false);
         ni = cx.nodes.getPtr(ni).next;
     }
 }
 
-fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
+fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
     const node = cx.nodes.getPtr(ni);
+
+    // skip_first_indent is only ever used for those two
+    std.debug.assert(!skip_first_indent or node.kind == .@"if" or node.kind == .if_else);
+
     switch (node.kind) {
         .basic_block => |bb| {
             // TODO: keep track of list position instead of searching every time
@@ -2627,7 +2631,8 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
                 try emitStmt(cx, stmt);
         },
         .@"if" => |k| {
-            try writeIndent(cx);
+            if (!skip_first_indent)
+                try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "if ");
             try emitExpr(cx, k.condition, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
@@ -2638,7 +2643,8 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .if_else => |k| {
-            try writeIndent(cx);
+            if (!skip_first_indent)
+                try writeIndent(cx);
             try cx.out.appendSlice(cx.gpa, "if ");
             try emitExpr(cx, k.condition, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
@@ -2646,7 +2652,13 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
             try writeIndent(cx);
-            try cx.out.appendSlice(cx.gpa, "} else {\n");
+            try cx.out.appendSlice(cx.gpa, "} else ");
+
+            if (shouldEmitElseIf(cx, k.false)) |child| {
+                return @call(.always_tail, emitSingleNode, .{ cx, child, true });
+            }
+
+            try cx.out.appendSlice(cx.gpa, "{\n");
             cx.indent += indent_size;
             try emitNodeList(cx, k.false);
             cx.indent -= indent_size;
@@ -2739,6 +2751,26 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex) !void {
         },
         .orphan => unreachable,
     }
+}
+
+fn shouldEmitElseIf(cx: *EmitCx, ni: NodeIndex) ?NodeIndex {
+    if (ni == null_node) return null;
+    const node = cx.nodes.getPtr(ni);
+
+    // Due to a quirk of how if nodes are structured, in this case there will be
+    // an empty basic block before the one we want to check.
+    if (node.start != node.end) return null;
+    if (node.kind != .basic_block) return null;
+    // Don't skip this basic block if it needs a label (e.g. Backyard Baseball 2001 scr201)
+    if (std.sort.binarySearch(u16, cx.jump_targets, node.start, orderU16) != null) return null;
+
+    // Check for exactly one node which must be if or if-else
+    if (node.next == null_node) return null;
+    const real = cx.nodes.getPtr(node.next);
+    if (real.next != null_node) return null;
+    if (real.kind != .@"if" and real.kind != .if_else) return null;
+
+    return node.next;
 }
 
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
