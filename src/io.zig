@@ -51,6 +51,11 @@ pub fn peekInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
     return result[0..len];
 }
 
+pub fn peekInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
+    const data = try peekInPlace(stream, @sizeOf(T));
+    return std.mem.bytesAsValue(T, data);
+}
+
 pub fn XorReader(Stream: type) type {
     return struct {
         stream: Stream,

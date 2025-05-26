@@ -271,12 +271,18 @@ fn parseTalkFixed(
     const path = try pathf.print(state.cur_path, "TALK_{:0>4}_", .{talk_seq});
     defer path.restore();
 
-    while (try talk_blocks.peek() != blockId("SDAT")) {
-        const block_id, const block_len = try talk_blocks.next();
+    while (true) {
+        const peeked = try io.peekInPlaceAsValue(&talk_stream, [2]u32);
+        const peeked_id, const peeked_size = peeked.*;
+
         // Soccer has one TALK block with some weird corrupt(?) data
-        if (block_len > 0x00ff_ffff)
+        if (peeked_size > 0x00ff_ffff)
             return error.BlockFallbackToRaw;
 
+        // Scan until we find the one with the data we want
+        if (peeked_id == blockId("SDAT")) break;
+
+        const block_id, const block_len = try talk_blocks.next();
         const block_raw = try io.readInPlace(&talk_stream, block_len);
         try parseFixedRaw(allocator, block_id, block_raw, state);
     }
