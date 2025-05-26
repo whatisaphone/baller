@@ -5,7 +5,7 @@ const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
@@ -49,7 +49,7 @@ pub fn decode(
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
     var stream = std.io.fixedBufferStream(akos_raw);
-    var blocks = fixedBlockReader(&stream);
+    var blocks = oldFixedBlockReader(&stream);
 
     const akhd = try blocks.expectBlockAsValue("AKHD", Akhd);
     try writeRawBlock(allocator, blockId("AKHD"), .{ .bytes = std.mem.asBytes(akhd) }, out_dir, out_path, 4, .block, manifest);

@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
@@ -28,14 +28,14 @@ pub fn decode(
     const height = 480;
 
     var rmim_reader = std.io.fixedBufferStream(rmim_raw);
-    var rmim_blocks = fixedBlockReader(&rmim_reader);
+    var rmim_blocks = oldFixedBlockReader(&rmim_reader);
 
     const rmih_len = try rmim_blocks.expectBlock("RMIH");
     _ = try io.readInPlace(&rmim_reader, rmih_len);
 
     const im00_len = try rmim_blocks.expectBlock("IM00");
     const im00_end: u32 = @intCast(rmim_reader.pos + im00_len);
-    var im00_blocks = fixedBlockReader(&rmim_reader);
+    var im00_blocks = oldFixedBlockReader(&rmim_reader);
 
     const bmap_len = try im00_blocks.expectBlock("BMAP");
     const bmap_end: u32 = @intCast(rmim_reader.pos + bmap_len);
@@ -67,15 +67,15 @@ pub fn decode(
 
 pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
     var rmda_reader = std.io.fixedBufferStream(rmda_raw);
-    var rmda_blocks = fixedBlockReader(&rmda_reader);
+    var rmda_blocks = oldFixedBlockReader(&rmda_reader);
 
     const pals_len = try rmda_blocks.skipUntilBlock("PALS");
     const pals_end: u32 = @intCast(rmda_reader.pos + pals_len);
-    var pals_blocks = fixedBlockReader(&rmda_reader);
+    var pals_blocks = oldFixedBlockReader(&rmda_reader);
 
     const wrap_len = try pals_blocks.expectBlock("WRAP");
     const wrap_end: u32 = @intCast(rmda_reader.pos + wrap_len);
-    var wrap_blocks = fixedBlockReader(&rmda_reader);
+    var wrap_blocks = oldFixedBlockReader(&rmda_reader);
 
     const offs_len = try wrap_blocks.expectBlock("OFFS");
     _ = try io.readInPlace(&rmda_reader, offs_len);

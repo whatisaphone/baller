@@ -3,8 +3,8 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const blockReader = @import("block_reader.zig").blockReader;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const oldBlockReader = @import("block_reader.zig").oldBlockReader;
+const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const pathf = @import("pathf.zig");
@@ -55,7 +55,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     defer state.block_buf.deinit(allocator);
     defer state.manifest.deinit(allocator);
 
-    var file_blocks = blockReader(&reader);
+    var file_blocks = oldBlockReader(&reader);
 
     const tlkb_len = try file_blocks.expectBlock("TLKB");
     try parseTlkb(allocator, tlkb_len, &state);
@@ -168,7 +168,7 @@ fn parseChildBlocks(
 ) !void {
     const parent_end = state.readerPos() + parent_len;
 
-    var blocks = blockReader(state.reader);
+    var blocks = oldBlockReader(state.reader);
 
     while (state.readerPos() < parent_end) {
         const block_id, const block_len = try blocks.next();
@@ -257,7 +257,7 @@ fn parseTalkFixed(
     state: *State,
 ) !void {
     var talk_stream = std.io.fixedBufferStream(talk_raw);
-    var talk_blocks = fixedBlockReader(&talk_stream);
+    var talk_blocks = oldFixedBlockReader(&talk_stream);
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print("talk ; T{},{}\n", .{

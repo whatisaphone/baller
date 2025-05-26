@@ -8,11 +8,11 @@ const io = @import("io.zig");
 
 pub const block_header_size = 8;
 
-pub fn blockReader(stream: anytype) BlockReader(@TypeOf(stream)) {
+pub fn oldBlockReader(stream: anytype) OldBlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
 }
 
-fn BlockReader(Stream: type) type {
+fn OldBlockReader(Stream: type) type {
     comptime std.debug.assert(std.mem.startsWith(
         u8,
         @typeName(Stream),
@@ -95,11 +95,11 @@ fn BlockReader(Stream: type) type {
 
 // This is identical to blockReader, but uses FixedBufferStream instead of
 // CountingReader. Prefer this over blockReader where possible.
-pub fn fixedBlockReader(stream: anytype) FixedBlockReader(@TypeOf(stream)) {
+pub fn oldFixedBlockReader(stream: anytype) OldFixedBlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
 }
 
-fn FixedBlockReader(Stream: type) type {
+fn OldFixedBlockReader(Stream: type) type {
     comptime std.debug.assert(std.mem.startsWith(
         u8,
         @typeName(Stream),

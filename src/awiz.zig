@@ -5,7 +5,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
@@ -74,7 +74,7 @@ fn decodeInner(
         height: u31,
     } = null;
 
-    var awiz_blocks = fixedBlockReader(reader);
+    var awiz_blocks = oldFixedBlockReader(reader);
 
     while (try awiz_blocks.peek() != blockId("WIZD")) {
         const id, const len = try awiz_blocks.next();
