@@ -631,7 +631,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
     var result: std.BoundedArray(u32, 256) = .{};
     while (true) {
-        var token = consumeToken(cx);
+        const token = consumeToken(cx);
         switch (token.kind) {
             .integer => {
                 const source = cx.source[token.span.start.offset..token.span.end.offset];
@@ -639,13 +639,6 @@ fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
                     return reportError(cx, token, "invalid integer", .{});
                 try appendNode(cx, &result, int);
             },
-            .bracket_r => break,
-            else => return reportUnexpected(cx, token),
-        }
-
-        token = consumeToken(cx);
-        switch (token.kind) {
-            .comma => {},
             .bracket_r => break,
             else => return reportUnexpected(cx, token),
         }

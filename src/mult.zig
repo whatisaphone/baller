@@ -98,7 +98,7 @@ fn extractMultInner(
     try code.appendSlice(gpa, "    indices [");
     for (off_indices.slice(), 0..) |index, i| {
         if (i != 0)
-            try code.appendSlice(gpa, ", ");
+            try code.append(gpa, ' ');
         try code.writer(gpa).print("{}", .{index});
     }
 
