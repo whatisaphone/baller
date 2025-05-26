@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const utils = @import("utils.zig");
+
 pub fn requireEof(s: anytype) !void {
     _ = s.readByte() catch |err| switch (err) {
         error.EndOfStream => return,
@@ -35,6 +37,8 @@ pub fn readInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
 }
 
 pub fn readInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
+    std.debug.assert(utils.hasGuaranteedLayout(T));
+
     const data = try readInPlace(stream, @sizeOf(T));
     return std.mem.bytesAsValue(T, data);
 }
@@ -52,6 +56,8 @@ pub fn peekInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
 }
 
 pub fn peekInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
+    std.debug.assert(utils.hasGuaranteedLayout(T));
+
     const data = try peekInPlace(stream, @sizeOf(T));
     return std.mem.bytesAsValue(T, data);
 }

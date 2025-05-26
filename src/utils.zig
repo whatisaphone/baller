@@ -32,6 +32,15 @@ pub const null_allocator: std.mem.Allocator = .{
     },
 };
 
+pub fn hasGuaranteedLayout(T: type) bool {
+    return comptime switch (@typeInfo(T)) {
+        .int => |i| i.bits >= 8 and std.math.isPowerOfTwo(i.bits),
+        .array => |a| hasGuaranteedLayout(a.child),
+        .@"struct" => |s| s.layout == .@"extern",
+        else => @compileError("TODO"),
+    };
+}
+
 pub fn addUnsignedSigned(
     x: anytype,
     y: anytype,
