@@ -200,8 +200,10 @@ pub fn fixedBlockReader(
     stream: anytype,
     diag: *const Diagnostic.ForBinaryFile,
 ) FixedBlockReader(@TypeOf(stream)) {
+    std.debug.assert(stream.pos == 0);
     return .{
         .stream = stream,
+        .end = @intCast(stream.buffer.len),
         .diag = diag,
         .current = null,
     };
@@ -218,6 +220,7 @@ fn FixedBlockReader(Stream: type) type {
         const Self = @This();
 
         stream: Stream,
+        end: u32,
         diag: *const Diagnostic.ForBinaryFile,
         current: ?Block,
 
@@ -297,30 +300,24 @@ fn FixedBlockReader(Stream: type) type {
             return self.next().expect(id);
         }
 
-        pub fn finish(self: *Self, expected_pos: u32) !void {
+        pub fn atEnd(self: *const Self) bool {
+            const pos: u32 = @intCast(self.stream.pos);
+            return pos == self.end;
+        }
+
+        pub fn finish(self: *Self) !void {
             if (!self.checkEndBlock()) return error.AddedToDiagnostic;
 
             const pos: u32 = @intCast(self.stream.pos);
-            if (pos != expected_pos) {
+            if (pos != self.end) {
                 self.diag.err(
                     pos,
                     "expected container to end at 0x{x:0>8}",
-                    .{expected_pos},
+                    .{self.end},
                 );
                 return error.AddedToDiagnostic;
             }
             self.diag.trace(pos, "end of container", .{});
-        }
-
-        pub fn finishEof(self: *Self) !void {
-            if (!self.checkEndBlock()) return error.AddedToDiagnostic;
-
-            const offset: u32 = @intCast(self.stream.pos);
-            io.requireEof(self.stream.reader()) catch {
-                self.diag.err(offset, "expected eof", .{});
-                return error.AddedToDiagnostic;
-            };
-            self.diag.trace(offset, "eof", .{});
         }
     };
 }
@@ -380,7 +377,13 @@ fn BlockResult(Stream: type) type {
 
         pub fn nested(self: *const Self) !FixedBlockReader(Stream) {
             if (self.* != .ok) return error.AddedToDiagnostic;
-            return fixedBlockReader(self.ok.reader.stream, self.ok.reader.diag);
+            const pos: u32 = @intCast(self.ok.reader.stream.pos);
+            return .{
+                .stream = self.ok.reader.stream,
+                .end = pos + self.ok.block.size,
+                .diag = self.ok.reader.diag,
+                .current = null,
+            };
         }
     };
 }

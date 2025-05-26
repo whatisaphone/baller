@@ -450,7 +450,7 @@ fn extractIndex(
     if (games.hasIndexInib(game))
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, .INIB);
 
-    try blocks.finishEof();
+    try blocks.finish();
 
     try code.appendSlice(gpa, "}\n");
 
@@ -945,16 +945,15 @@ fn extractPals(
     var pals_stream = std.io.fixedBufferStream(&pals_raw);
     var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 
-    const pals = try pals_blocks.expect(.WRAP).block();
-    var wrap_blocks = fixedBlockReader(&pals_stream, &diag);
+    var wrap_blocks = try pals_blocks.expect(.WRAP).nested();
 
     const off = try wrap_blocks.expect(.OFFS).value(u32);
     if (off.* != 12) return error.BadData;
 
     const apal = try wrap_blocks.expect(.APAL).value([0x300]u8);
 
-    try wrap_blocks.finish(pals.end());
-    try pals_blocks.finishEof();
+    try wrap_blocks.finish();
+    try pals_blocks.finish();
 
     try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = &pals_raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, code);
 

@@ -68,7 +68,7 @@ fn extractMultInner(
 
     var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
 
-    while (wrap_blocks.stream.pos < wrap_blocks.stream.buffer.len) {
+    while (!wrap_blocks.atEnd()) {
         const awiz_block = try wrap_blocks.expect(.AWIZ).block();
         const awiz_offset = awiz_block.offset() - offs_block.offset();
         try awiz_offsets.append(awiz_offset);
@@ -104,8 +104,8 @@ fn extractMultInner(
 
     try code.appendSlice(gpa, "]\n}\n");
 
-    try wrap_blocks.finishEof();
-    try mult_blocks.finishEof();
+    try wrap_blocks.finish();
+    try mult_blocks.finish();
 }
 
 fn orderU32(a: u32, b: u32) std.math.Order {
@@ -127,7 +127,7 @@ fn extractDefa(
 
     try code.writer(gpa).print("    raw-block {s} {{\n", .{"DEFA"});
 
-    while (stream.pos < defa_raw.len) {
+    while (!blocks.atEnd()) {
         const block = try blocks.next().block();
         const bytes = try io.readInPlace(&stream, block.size);
 
@@ -140,7 +140,7 @@ fn extractDefa(
         }
     }
 
-    try blocks.finishEof();
+    try blocks.finish();
 
     try code.appendSlice(gpa, "    }\n");
 
