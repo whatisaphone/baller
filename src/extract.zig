@@ -10,7 +10,7 @@ const BlockId = @import("block_id.zig").BlockId;
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const Block = @import("block_reader.zig").Block;
-const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
@@ -363,7 +363,7 @@ fn extractIndex(
         b.* ^= xor_key;
 
     var in = std.io.fixedBufferStream(raw);
-    var blocks = fixedBlockReader2(&in, &diag);
+    var blocks = fixedBlockReader(&in, &diag);
 
     const result_buf = try gpa.alloc(u8, raw.len);
     errdefer gpa.free(result_buf);
@@ -945,10 +945,10 @@ fn extractPals(
     if (block.size != expected_len) return error.BadData;
     const pals_raw = try in.reader().readBytesNoEof(expected_len);
     var pals_stream = std.io.fixedBufferStream(&pals_raw);
-    var pals_blocks = fixedBlockReader2(&pals_stream, &diag);
+    var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 
     const pals = try pals_blocks.expect("WRAP").block();
-    var wrap_blocks = fixedBlockReader2(&pals_stream, &diag);
+    var wrap_blocks = fixedBlockReader(&pals_stream, &diag);
 
     const off = try wrap_blocks.expect("OFFS").value(u32);
     if (off.* != 12) return error.BadData;

@@ -5,7 +5,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
 const blockId = @import("block_id.zig").blockId;
 const fmtBlockId = @import("block_id.zig").fmtBlockId;
-const fixedBlockReader2 = @import("block_reader.zig").fixedBlockReader2;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -54,7 +54,7 @@ fn extractMultInner(
 
     try code.writer(gpa).print("mult {} {{\n", .{glob_number});
 
-    var mult_blocks = fixedBlockReader2(in, diag);
+    var mult_blocks = fixedBlockReader(in, diag);
 
     var mult_palette: ?*const [0x300]u8 = null;
     if (try mult_blocks.nextIf("DEFA")) |defa| {
@@ -125,7 +125,7 @@ fn extractDefa(
     var rgbs: ?*const [0x300]u8 = null;
 
     var stream = std.io.fixedBufferStream(defa_raw);
-    var blocks = fixedBlockReader2(&stream, diag);
+    var blocks = fixedBlockReader(&stream, diag);
 
     try code.writer(gpa).print("    raw-block \"{s}\" {{\n", .{"DEFA"});
 

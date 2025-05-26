@@ -224,10 +224,10 @@ fn OldFixedBlockReader(Stream: type) type {
     };
 }
 
-pub fn fixedBlockReader2(
+pub fn fixedBlockReader(
     stream: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-) FixedBlockReader2(@TypeOf(stream)) {
+) FixedBlockReader(@TypeOf(stream)) {
     return .{
         .stream = stream,
         .diag = diag,
@@ -235,7 +235,7 @@ pub fn fixedBlockReader2(
     };
 }
 
-fn FixedBlockReader2(Stream: type) type {
+fn FixedBlockReader(Stream: type) type {
     comptime std.debug.assert(std.mem.startsWith(
         u8,
         @typeName(Stream),
@@ -354,7 +354,7 @@ fn BlockResult(Stream: type) type {
 
         ok: struct {
             block: Block,
-            reader: *const FixedBlockReader2(Stream),
+            reader: *const FixedBlockReader(Stream),
         },
         err,
 
@@ -412,9 +412,9 @@ fn BlockResult(Stream: type) type {
             return std.mem.bytesAsValue(T, data);
         }
 
-        pub fn nested(self: *const Self) !FixedBlockReader2(Stream) {
+        pub fn nested(self: *const Self) !FixedBlockReader(Stream) {
             if (self.* != .ok) return error.AddedToDiagnostic;
-            return fixedBlockReader2(self.ok.reader.stream, self.ok.reader.diag);
+            return fixedBlockReader(self.ok.reader.stream, self.ok.reader.diag);
         }
     };
 }
