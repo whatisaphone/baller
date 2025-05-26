@@ -3,11 +3,8 @@ const std = @import("std");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
-const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const Fixup = @import("block_writer.zig").Fixup;
 const bmp = @import("bmp.zig");
@@ -51,32 +48,32 @@ pub fn decode(
     var stream = std.io.fixedBufferStream(akos_raw);
     var blocks = oldFixedBlockReader(&stream);
 
-    const akhd = try blocks.expectBlockAsValue("AKHD", Akhd);
-    try writeRawBlock(allocator, blockId("AKHD"), .{ .bytes = std.mem.asBytes(akhd) }, out_dir, out_path, 4, .block, manifest);
+    const akhd = try blocks.expectAsValue(.AKHD, Akhd);
+    try writeRawBlock(allocator, .AKHD, .{ .bytes = std.mem.asBytes(akhd) }, out_dir, out_path, 4, .block, manifest);
 
-    const akpl = try blocks.expectBlockAsSlice("AKPL");
+    const akpl = try blocks.expectAsSlice(.AKPL);
     try fs.writeFileZ(out_dir, "AKPL.bin", akpl);
     try manifest.writer(allocator).print("    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
 
-    const rgbs = try blocks.expectBlockAsValue("RGBS", [0x300]u8);
-    try writeRawBlock(allocator, blockId("RGBS"), .{ .bytes = rgbs }, out_dir, out_path, 4, .block, manifest);
+    const rgbs = try blocks.expectAsValue(.RGBS, [0x300]u8);
+    try writeRawBlock(allocator, .RGBS, .{ .bytes = rgbs }, out_dir, out_path, 4, .block, manifest);
 
-    while (try blocks.peek() != blockId("AKOF")) {
+    while (try blocks.peek() != .AKOF) {
         const block_id, const block_raw = try blocks.nextAsSlice();
         try writeRawBlock(allocator, block_id, .{ .bytes = block_raw }, out_dir, out_path, 4, .block, manifest);
     }
 
-    const akof_len = try blocks.assumeBlock("AKOF");
+    const akof_len = try blocks.assume(.AKOF);
     if (akof_len != akhd.cels_count * @sizeOf(Akof))
         return error.BadData;
     const akof_raw = try io.readInPlace(&stream, akof_len);
     const akof = std.mem.bytesAsSlice(Akof, akof_raw);
 
-    const akci_raw = try blocks.expectBlockAsSlice("AKCI");
+    const akci_raw = try blocks.expectAsSlice(.AKCI);
     if (akci_raw.len != akhd.cels_count * @sizeOf(Akci))
         return error.BadData;
 
-    const akcd_raw = try blocks.expectBlockAsSlice("AKCD");
+    const akcd_raw = try blocks.expectAsSlice(.AKCD);
 
     for (0..akhd.cels_count) |cel_index| {
         const off = &akof[cel_index];
@@ -269,7 +266,7 @@ pub fn encode(
                 akpl = .{};
                 try fs.readFileInto(project_dir, n.path, akpl.?.writer());
 
-                const start = try beginBlock(out, "AKPL");
+                const start = try beginBlock(out, .AKPL);
                 try out.writer().writeAll(akpl.?.slice());
                 try endBlock(out, fixups, start);
             },
@@ -427,7 +424,7 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
     if (state.akci.items.len == 0)
         return;
 
-    const akof_start = try beginBlock(out, "AKOF");
+    const akof_start = try beginBlock(out, .AKOF);
     for (0.., state.cd_offsets.items) |i, cd_off| {
         const off: Akof = .{
             .akci = @intCast(i * @sizeOf(Akci)),
@@ -437,11 +434,11 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
     }
     try endBlock(out, fixups, akof_start);
 
-    const akci_start = try beginBlock(out, "AKCI");
+    const akci_start = try beginBlock(out, .AKCI);
     try out.writer().writeAll(std.mem.sliceAsBytes(state.akci.items));
     try endBlock(out, fixups, akci_start);
 
-    const akcd_start = try beginBlock(out, "AKCD");
+    const akcd_start = try beginBlock(out, .AKCD);
     try out.writer().writeAll(std.mem.sliceAsBytes(state.akcd.items));
     try endBlock(out, fixups, akcd_start);
 
@@ -458,7 +455,7 @@ fn encodeRawBlock(
     writer: anytype,
     fixups: *std.ArrayList(Fixup),
 ) !void {
-    const start = try beginBlockImpl(writer, block_id);
+    const start = try beginBlock(writer, block_id);
     try fs.readFileInto(dir, path, writer.writer());
     try endBlock(writer, fixups, start);
 }

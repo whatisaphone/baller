@@ -3,8 +3,6 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const awiz = @import("awiz.zig");
-const blockId = @import("block_id.zig").blockId;
-const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
@@ -57,21 +55,21 @@ fn extractMultInner(
     var mult_blocks = fixedBlockReader(in, diag);
 
     var mult_palette: ?*const [0x300]u8 = null;
-    if (try mult_blocks.nextIf("DEFA")) |defa| {
+    if (try mult_blocks.nextIf(.DEFA)) |defa| {
         const defa_raw = try defa.bytes();
         mult_palette = try extractDefa(gpa, diag, defa_raw, mult_dir, mult_path, code);
     }
 
-    var wrap_blocks = try mult_blocks.expect("WRAP").nested();
+    var wrap_blocks = try mult_blocks.expect(.WRAP).nested();
 
-    const offs_block = try wrap_blocks.expect("OFFS").block();
+    const offs_block = try wrap_blocks.expect(.OFFS).block();
     const offs_raw = try io.readInPlace(in, offs_block.size);
     const offs = std.mem.bytesAsSlice(u32, offs_raw);
 
     var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
 
     while (wrap_blocks.stream.pos < wrap_blocks.stream.buffer.len) {
-        const awiz_block = try wrap_blocks.expect("AWIZ").block();
+        const awiz_block = try wrap_blocks.expect(.AWIZ).block();
         const awiz_offset = awiz_block.offset() - offs_block.offset();
         try awiz_offsets.append(awiz_offset);
 
@@ -135,7 +133,7 @@ fn extractDefa(
 
         try writeRawBlock(gpa, block.id, .{ .bytes = bytes }, out_dir, out_path, 8, .block, code);
 
-        if (block.id == blockId("RGBS")) {
+        if (block.id == .RGBS) {
             if (rgbs != null) return error.BadData;
             if (bytes.len != 0x300) return error.BadData;
             rgbs = bytes[0..0x300];

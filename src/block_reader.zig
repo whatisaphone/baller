@@ -2,8 +2,6 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
-const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const io = @import("io.zig");
 
 pub const block_header_size = 8;
@@ -28,7 +26,8 @@ fn OldBlockReader(Stream: type) type {
         pub fn next(self: *Self) !struct { BlockId, u32 } {
             try self.checkSync();
 
-            const id = try self.stream.reader().readInt(BlockId, .little);
+            const id_raw = try self.stream.reader().readInt(BlockId.Raw, .little);
+            const id = BlockId.init(id_raw) orelse return error.BadData;
 
             const full_len = try self.stream.reader().readInt(u32, .big);
             // The original value includes the id and length, but the caller
@@ -45,19 +44,14 @@ fn OldBlockReader(Stream: type) type {
             const id, const len = try self.next();
             if (id != expected_id) {
                 std.debug.print(
-                    \\expected block "{s}" but found "{s}"
+                    \\expected block {} but found {}
                     \\
                 ,
-                    .{ fmtBlockId(&expected_id), fmtBlockId(&id) },
+                    .{ expected_id, id },
                 );
                 return error.BadData;
             }
             return len;
-        }
-
-        pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = blockId(expected_id);
-            return self.expect(id);
         }
 
         pub fn skipUntil(self: *Self, block_id: BlockId) !u32 {
@@ -69,11 +63,6 @@ fn OldBlockReader(Stream: type) type {
                 }
                 return len;
             }
-        }
-
-        pub fn skipUntilBlock(self: *Self, comptime block_id: []const u8) !u32 {
-            const id = blockId(block_id);
-            return self.skipUntil(id);
         }
 
         pub fn checkSync(self: *const Self) !void {
@@ -115,7 +104,8 @@ fn OldFixedBlockReader(Stream: type) type {
         pub fn next(self: *Self) !struct { BlockId, u32 } {
             try self.checkSync();
 
-            const id = try self.stream.reader().readInt(BlockId, .little);
+            const id_raw = try self.stream.reader().readInt(BlockId.Raw, .little);
+            const id = BlockId.init(id_raw) orelse return error.BadData;
 
             const full_len = try self.stream.reader().readInt(u32, .big);
             // The original value includes the id and length, but the caller
@@ -141,40 +131,32 @@ fn OldFixedBlockReader(Stream: type) type {
                 return null;
 
             const id_buf = try io.peekInPlaceBytes(self.stream, 4);
-            return std.mem.readInt(BlockId, id_buf, .little);
+            const raw = std.mem.readInt(BlockId.Raw, id_buf, .little);
+            return BlockId.init(raw) orelse return error.BadData;
         }
 
         pub fn expect(self: *Self, expected_id: BlockId) !u32 {
             const id, const len = try self.next();
             if (id != expected_id) {
                 std.debug.print(
-                    \\expected block "{s}" but found "{s}"
+                    \\expected block {} but found {}
                     \\
                 ,
-                    .{ fmtBlockId(&expected_id), fmtBlockId(&id) },
+                    .{ expected_id, id },
                 );
                 return error.BadData;
             }
             return len;
         }
 
-        pub fn expectBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = blockId(expected_id);
-            return self.expect(id);
-        }
-
-        pub fn expectBlockAsSlice(self: *Self, comptime expected_id: []const u8) ![]const u8 {
-            const len = try self.expectBlock(expected_id);
+        pub fn expectAsSlice(self: *Self, expected_id: BlockId) ![]const u8 {
+            const len = try self.expect(expected_id);
             return try io.readInPlace(self.stream, len);
         }
 
-        pub fn expectBlockAsValue(
-            self: *Self,
-            comptime expected_id: []const u8,
-            T: type,
-        ) !*align(1) const T {
+        pub fn expectAsValue(self: *Self, expected_id: BlockId, T: type) !*align(1) const T {
             const expected_len = @sizeOf(T);
-            const len = try self.expectBlock(expected_id);
+            const len = try self.expect(expected_id);
             if (len != expected_len)
                 return error.BadData;
             return try io.readInPlaceAsValue(self.stream, T);
@@ -186,11 +168,6 @@ fn OldFixedBlockReader(Stream: type) type {
             return len;
         }
 
-        pub fn assumeBlock(self: *Self, comptime expected_id: []const u8) !u32 {
-            const id = blockId(expected_id);
-            return self.assume(id);
-        }
-
         pub fn skipUntil(self: *Self, block_id: BlockId) !u32 {
             while (true) {
                 const id, const len = try self.next();
@@ -200,11 +177,6 @@ fn OldFixedBlockReader(Stream: type) type {
                 }
                 return len;
             }
-        }
-
-        pub fn skipUntilBlock(self: *Self, comptime block_id: []const u8) !u32 {
-            const id = blockId(block_id);
-            return self.skipUntil(id);
         }
 
         pub fn checkSync(self: *const Self) !void {
@@ -257,7 +229,8 @@ fn FixedBlockReader(Stream: type) type {
                 self.diag.err(offset, "eof during block header", .{});
                 return .err;
             };
-            const id = std.mem.readInt(u32, header[0..4], .little);
+            const id_raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
+            const id = self.validateId(id_raw, offset) catch return .err;
             const full_size = std.mem.readInt(u32, header[4..8], .big);
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
@@ -268,7 +241,7 @@ fn FixedBlockReader(Stream: type) type {
                 .size = size,
             };
 
-            self.diag.trace(offset, "start block {s}", .{fmtBlockId(&id)});
+            self.diag.trace(offset, "start block {}", .{id});
 
             return .{ .ok = .{
                 .block = self.current.?,
@@ -276,21 +249,25 @@ fn FixedBlockReader(Stream: type) type {
             } };
         }
 
-        fn peek(self: *Self) !BlockId {
+        fn peek(self: *const Self) !BlockId {
             const offset: u32 = @intCast(self.stream.pos);
             if (offset + block_header_size > self.stream.buffer.len) {
                 self.diag.err(offset, "eof during block header", .{});
                 return error.AddedToDiagnostic;
             }
             const header = self.stream.buffer[offset..][0..block_header_size];
-            return std.mem.readInt(u32, header[0..4], .little);
+            const raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
+            return self.validateId(raw, offset);
         }
 
-        pub fn nextIf(self: *Self, comptime expected_id: *const [4]u8) !?BlockResult(Stream) {
-            return self.nextIf2(blockId(expected_id));
+        fn validateId(self: *const Self, raw: BlockId.Raw, offset: u32) !BlockId {
+            return BlockId.init(raw) orelse {
+                self.diag.err(offset, "invalid block id: {}", .{BlockId.fmtInvalid(raw)});
+                return error.AddedToDiagnostic;
+            };
         }
 
-        fn nextIf2(self: *Self, comptime expected_id: BlockId) !?BlockResult(Stream) {
+        pub fn nextIf(self: *Self, expected_id: BlockId) !?BlockResult(Stream) {
             const result = try self.peek();
             if (result != expected_id) return null;
             return self.next();
@@ -302,7 +279,7 @@ fn FixedBlockReader(Stream: type) type {
             const pos: u32 = @intCast(self.stream.pos);
             const expected_end = current.end();
             if (pos == expected_end) { // happy path
-                self.diag.trace(pos, "end block {s}", .{fmtBlockId(&current.id)});
+                self.diag.trace(pos, "end block {}", .{current.id});
                 self.current = null;
                 return true;
             }
@@ -310,13 +287,13 @@ fn FixedBlockReader(Stream: type) type {
             // otherwise report an error
             self.diag.err(
                 pos,
-                "desync during block {s}; expected end 0x{x:0>8}",
-                .{ fmtBlockId(&current.id), expected_end },
+                "desync during block {}; expected end 0x{x:0>8}",
+                .{ current.id, expected_end },
             );
             return false;
         }
 
-        pub inline fn expect(self: *Self, id: anytype) BlockResult(Stream) {
+        pub fn expect(self: *Self, id: BlockId) BlockResult(Stream) {
             return self.next().expect(id);
         }
 
@@ -358,24 +335,13 @@ fn BlockResult(Stream: type) type {
         },
         err,
 
-        pub inline fn expect(self: Self, id: anytype) Self {
-            return if (@typeInfo(@TypeOf(id)) == .pointer)
-                self.expectBlockIdComptime(id)
-            else
-                self.expectBlockId(id);
-        }
-
-        fn expectBlockIdComptime(self: Self, comptime id: *const [4]u8) Self {
-            return self.expectBlockId(blockId(id));
-        }
-
-        fn expectBlockId(self: Self, id: BlockId) Self {
+        pub fn expect(self: Self, id: BlockId) Self {
             if (self != .ok) return .err;
             if (id == self.ok.block.id) return self;
             self.ok.reader.diag.err(
                 self.ok.block.start - block_header_size,
-                "expected block \"{s}\" but found \"{s}\"",
-                .{ fmtBlockId(&id), fmtBlockId(&self.ok.block.id) },
+                "expected block {} but found {}",
+                .{ id, self.ok.block.id },
             );
             return .err;
         }
@@ -452,7 +418,11 @@ fn StreamingBlockReader(Stream: type) type {
                 self.diag.err(offset, "failed to read block header: {}", .{err});
                 return .err;
             };
-            const id = std.mem.readInt(u32, header[0..4], .little);
+            const id_raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
+            const id = BlockId.init(id_raw) orelse {
+                self.diag.err(offset, "invalid block id: {}", .{BlockId.fmtInvalid(id_raw)});
+                return .err;
+            };
             const full_size = std.mem.readInt(u32, header[4..8], .big);
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
@@ -463,7 +433,7 @@ fn StreamingBlockReader(Stream: type) type {
                 .size = size,
             };
 
-            self.diag.trace(offset, "start block {s}", .{fmtBlockId(&id)});
+            self.diag.trace(offset, "start block {}", .{id});
 
             return .{ .ok = .{
                 .block = self.current.?,
@@ -477,7 +447,7 @@ fn StreamingBlockReader(Stream: type) type {
             const pos: u32 = @intCast(self.stream.bytes_read);
             const expected_end = current.end();
             if (pos == expected_end) { // happy path
-                self.diag.trace(pos, "end block {s}", .{fmtBlockId(&current.id)});
+                self.diag.trace(pos, "end block {}", .{current.id});
                 self.current = null;
                 return true;
             }
@@ -485,13 +455,13 @@ fn StreamingBlockReader(Stream: type) type {
             // otherwise report an error
             self.diag.err(
                 pos,
-                "desync during block {s}; expected end 0x{x:0>8}",
-                .{ fmtBlockId(&current.id), expected_end },
+                "desync during block {}; expected end 0x{x:0>8}",
+                .{ current.id, expected_end },
             );
             return false;
         }
 
-        pub inline fn expect(self: *Self, id: anytype) StreamingBlockResult(Stream) {
+        pub fn expect(self: *Self, id: BlockId) StreamingBlockResult(Stream) {
             return self.next().expect(id);
         }
 
@@ -533,24 +503,13 @@ fn StreamingBlockResult(Stream: type) type {
         },
         err,
 
-        pub inline fn expect(self: Self, id: anytype) Self {
-            return if (@typeInfo(@TypeOf(id)) == .pointer)
-                self.expectBlockIdComptime(id)
-            else
-                self.expectBlockId(id);
-        }
-
-        fn expectBlockIdComptime(self: Self, comptime id: *const [4]u8) Self {
-            return self.expectBlockId(blockId(id));
-        }
-
-        fn expectBlockId(self: Self, id: BlockId) Self {
+        pub fn expect(self: Self, id: BlockId) Self {
             if (self != .ok) return .err;
             if (id == self.ok.block.id) return self;
             self.ok.reader.diag.err(
                 self.ok.block.start - block_header_size,
-                "expected block \"{s}\" but found \"{s}\"",
-                .{ fmtBlockId(&id), fmtBlockId(&self.ok.block.id) },
+                "expected block {} but found {}",
+                .{ id, self.ok.block.id },
             );
             return .err;
         }

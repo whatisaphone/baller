@@ -1,4 +1,4 @@
-const blockId = @import("block_id.zig").blockId;
+const std = @import("std");
 
 const WAVE_FORMAT_PCM = 1;
 
@@ -58,7 +58,7 @@ pub fn findData(in: anytype) !u32 {
         const chunk_id = try in.readInt(u32, .little);
         const chunk_len = try in.readInt(u32, .little);
         // We're looking for the data chunk
-        if (chunk_id == blockId("data"))
+        if (chunk_id == std.mem.bytesToValue(u32, "data"))
             return chunk_len;
         // If that wasn't it, skip over it and try the next one
         try in.skipBytes(chunk_len, .{});

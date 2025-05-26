@@ -8,12 +8,10 @@ const akos = @import("akos.zig");
 const assemble = @import("assemble.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
 const block_header_size = @import("block_reader.zig").block_header_size;
 const Fixup = @import("block_writer.zig").Fixup;
 const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const compile = @import("compile.zig");
 const fs = @import("fs.zig");
@@ -272,9 +270,13 @@ const RoomPlan = struct {
     }
 };
 
-const LocalScriptBlockType = enum(BlockId) {
-    lscr = blockId("LSCR"),
-    lsc2 = blockId("LSC2"),
+const LocalScriptBlockType = enum(BlockId.Raw) {
+    lscr = BlockId.LSCR.raw(),
+    lsc2 = BlockId.LSC2.raw(),
+
+    fn blockId(self: LocalScriptBlockType) BlockId {
+        return BlockId.init(@intFromEnum(self)).?;
+    }
 };
 
 const RoomSection = enum {
@@ -316,12 +318,12 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
     // outputs an empty block.
     if (plan.work.getPtr(.rmda_excd).items.len == 0)
         plan.work.getPtr(.rmda_excd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
-            .block_id = blockId("EXCD"),
+            .block_id = .EXCD,
             .data = .empty,
         } } });
     if (plan.work.getPtr(.rmda_encd).items.len == 0)
         plan.work.getPtr(.rmda_encd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
-            .block_id = blockId("ENCD"),
+            .block_id = .ENCD,
             .data = .empty,
         } } });
 
@@ -348,13 +350,13 @@ fn scanRmda(
     rmda: *const @FieldType(Ast.Node, "rmda"),
 ) !void {
     try plan.add(plan.cur_section, .{ .event = .{ .glob_start = .{
-        .block_id = blockId("RMDA"),
+        .block_id = .RMDA,
         .glob_number = room_number,
     } } });
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(rmda.children)) |node_index| {
         const raw_block = &room_file.ast.nodes.items[node_index].raw_block;
-        if (raw_block.block_id == blockId("POLD"))
+        if (raw_block.block_id == .POLD)
             plan.cur_section = .end;
         const section = sectionForBlockId(raw_block.block_id) orelse plan.cur_section;
         try plan.add(section, .{ .node = node_index });
@@ -365,11 +367,11 @@ fn scanRmda(
 
 fn sectionForBlockId(block_id: BlockId) ?RoomSection {
     return switch (block_id) {
-        blockId("EXCD") => .rmda_excd,
-        blockId("ENCD") => .rmda_encd,
-        blockId("NLSC") => .rmda_lsc,
-        blockId("LSCR") => .rmda_lsc,
-        blockId("LSC2") => .rmda_lsc,
+        .EXCD => .rmda_excd,
+        .ENCD => .rmda_encd,
+        .NLSC => .rmda_lsc,
+        .LSCR => .rmda_lsc,
+        .LSC2 => .rmda_lsc,
         else => null,
     };
 }
@@ -446,7 +448,7 @@ fn planRmda(cx: *Context, room_number: u8, node_index: u32) !void {
     const rmda = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].rmda;
 
     cx.sendSyncEvent(.{ .glob_start = .{
-        .block_id = blockId("RMDA"),
+        .block_id = .RMDA,
         .glob_number = room_number,
     } });
 
@@ -503,7 +505,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     applyFixups(out.items, fixups.items);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("RMIM"),
+        .block_id = .RMIM,
         .glob_number = room_number,
         .data = out,
     } });
@@ -519,7 +521,7 @@ fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
     const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("SCRP"),
+        .block_id = .SCRP,
         .glob_number = scr.glob_number,
         .data = result,
     } });
@@ -543,9 +545,9 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
     var result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     errdefer result.deinit(cx.gpa);
 
-    const block_id = switch (edge) {
-        .encd => blockId("ENCD"),
-        .excd => blockId("EXCD"),
+    const block_id: BlockId = switch (edge) {
+        .encd => .ENCD,
+        .excd => .EXCD,
     };
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = block_id,
@@ -579,9 +581,9 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
     }
     @memcpy(result[script_number_size..], bytecode.items); // TODO: avoid this memcpy
 
-    const block_id = switch (block_type) {
-        .lscr => blockId("LSCR"),
-        .lsc2 => blockId("LSC2"),
+    const block_id: BlockId = switch (block_type) {
+        .lscr => .LSCR,
+        .lsc2 => .LSC2,
     };
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = block_id,
@@ -603,7 +605,7 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     applyFixups(out.items, fixups.items);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("AWIZ"),
+        .block_id = .AWIZ,
         .glob_number = awiz_node.glob_number,
         .data = out,
     } });
@@ -664,7 +666,7 @@ fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     applyFixups(out.items, fixups.items);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("MULT"),
+        .block_id = .MULT,
         .glob_number = mult.glob_number,
         .data = out,
     } });
@@ -681,23 +683,23 @@ fn planMultInner(
 
     if (mult_node.raw_block != Ast.null_node) {
         const defa = &room_file.ast.nodes.items[mult_node.raw_block].raw_block_nested;
-        const defa_start = try beginBlock(out, "DEFA");
+        const defa_start = try beginBlock(out, .DEFA);
         for (room_file.ast.getExtra(defa.children)) |child_node| {
             const child = &room_file.ast.nodes.items[child_node].raw_block;
 
             const file = try cx.project_dir.openFile(child.path, .{});
             defer file.close();
 
-            const child_start = try beginBlockImpl(out, child.block_id);
+            const child_start = try beginBlock(out, child.block_id);
             try io.copy(file, out.writer());
             try endBlock(out, fixups, child_start);
         }
         try endBlock(out, fixups, defa_start);
     }
 
-    const wrap_start = try beginBlock(out, "WRAP");
+    const wrap_start = try beginBlock(out, .WRAP);
 
-    const offs_start = try beginBlock(out, "OFFS");
+    const offs_start = try beginBlock(out, .OFFS);
     // just write garbage bytes for now, they'll be replaced at the end
     try out.writer().writeAll(std.mem.sliceAsBytes(room_file.ast.getExtra(mult_node.indices)));
     try endBlock(out, fixups, offs_start);
@@ -706,7 +708,7 @@ fn planMultInner(
     for (room_file.ast.getExtra(mult_node.children)) |node| {
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
-        const awiz_start = try beginBlock(out, "AWIZ");
+        const awiz_start = try beginBlock(out, .AWIZ);
         try planAwizInner(cx, room_number, wiz.children, out, fixups);
         try endBlock(out, fixups, awiz_start);
     }
@@ -737,7 +739,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     applyFixups(out.items, fixups.items);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("AKOS"),
+        .block_id = .AKOS,
         .glob_number = node.glob_number,
         .data = out,
     } });
@@ -758,7 +760,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = blockId("SCRP"),
+        .block_id = .SCRP,
         .glob_number = node.glob_number,
         .data = out,
     } });
@@ -776,8 +778,8 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    const block_id = cx.room_lsc_types[room_number].defined;
-    switch (block_id) {
+    const lsc_type = cx.room_lsc_types[room_number].defined;
+    switch (lsc_type) {
         .lscr => try out.append(cx.gpa, @intCast(node.script_number)),
         .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
@@ -785,7 +787,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
-        .block_id = @intFromEnum(block_id),
+        .block_id = lsc_type.blockId(),
         .data = out,
     } });
 }
@@ -805,7 +807,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
-        .block_id = blockId("ENCD"),
+        .block_id = .ENCD,
         .data = out,
     } });
 }
@@ -825,7 +827,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
-        .block_id = blockId("EXCD"),
+        .block_id = .EXCD,
         .data = out,
     } });
 }
@@ -880,7 +882,7 @@ fn planRoomNames(cx: *Context) !void {
     try result.appendSlice(cx.gpa, &.{ 0, 0 });
 
     cx.sendSyncEvent(.{ .raw_block = .{
-        .block_id = blockId("RNAM"),
+        .block_id = .RNAM,
         .data = result,
     } });
 }

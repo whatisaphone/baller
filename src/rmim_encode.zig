@@ -18,13 +18,13 @@ pub fn encode(
 ) !void {
     const header = try bmp.readHeader(bmp_raw, .{ .skip_bounds_check = true });
 
-    const rmih_fixup = try beginBlock(out, "RMIH");
+    const rmih_fixup = try beginBlock(out, .RMIH);
     try out.writer().writeInt(u16, 0, .little);
     try endBlock(out, fixups, rmih_fixup);
 
-    const im00_fixup = try beginBlock(out, "IM00");
+    const im00_fixup = try beginBlock(out, .IM00);
 
-    const bmap_fixup = try beginBlock(out, "BMAP");
+    const bmap_fixup = try beginBlock(out, .BMAP);
 
     try out.writer().writeByte(compression);
     try compressBmap(header, compression, out.writer());

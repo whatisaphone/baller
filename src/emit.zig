@@ -3,10 +3,8 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const xor_key = @import("extract.zig").xor_key;
@@ -125,7 +123,7 @@ fn emitDisk(
     var fixups: std.ArrayList(Fixup) = .init(gpa);
     defer fixups.deinit();
 
-    const lecf_start = try beginBlock(&out, "LECF");
+    const lecf_start = try beginBlock(&out, .LECF);
 
     while (true) switch (try receiver.next(gpa)) {
         .room_start => |room_number| try emitRoom(gpa, game, receiver, disk_number, &out, &fixups, room_number, index),
@@ -151,7 +149,7 @@ fn emitRoom(
     room_number: u8,
     index: *Index,
 ) !void {
-    const lflf_start = try beginBlock(out, "LFLF");
+    const lflf_start = try beginBlock(out, .LFLF);
 
     try utils.growMultiArrayList(Room, &index.rooms, gpa, room_number + 1, .zero);
     index.rooms.set(room_number, .{
@@ -213,7 +211,7 @@ fn emitGlobBlock(
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob_start"),
 ) !void {
-    const start = try beginBlockImpl(out, glob.block_id);
+    const start = try beginBlock(out, glob.block_id);
 
     while (true) switch (try receiver.next(gpa)) {
         .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
@@ -262,7 +260,7 @@ fn addGlobToIndex(
         @panic("TODO");
 
     const offset_in_room = offset_in_disk - index.rooms.items(.offset)[room_number];
-    const write_size = if (block_id == blockId("MULT") and !games.writeMultLen(game))
+    const write_size = if (block_id == .MULT and !games.writeMultLen(game))
         std.math.maxInt(u32)
     else
         size;
@@ -279,7 +277,7 @@ fn writeBlock(
     block_id: BlockId,
     data: []const u8,
 ) !void {
-    const start = try beginBlockImpl(out, block_id);
+    const start = try beginBlock(out, block_id);
     try out.writer().writeAll(data);
     try endBlock(out, fixups, start);
 }
@@ -375,22 +373,22 @@ fn emitIndex(
 
     while (true) switch (try receiver.next(gpa)) {
         .index_block => |id| switch (id) {
-            .DIRI => try writeDirectory(&out, &fixups, blockId("DIRI"), &index.directories.room_images),
-            .DIRR => try writeDirectory(&out, &fixups, blockId("DIRR"), &index.directories.rooms),
-            .DIRS => try writeDirectory(&out, &fixups, blockId("DIRS"), &index.directories.scripts),
-            .DIRN => try writeDirectory(&out, &fixups, blockId("DIRN"), &index.directories.sounds),
-            .DIRC => try writeDirectory(&out, &fixups, blockId("DIRC"), &index.directories.costumes),
-            .DIRF => try writeDirectory(&out, &fixups, blockId("DIRF"), &index.directories.charsets),
-            .DIRM => try writeDirectory(&out, &fixups, blockId("DIRM"), &index.directories.images),
-            .DIRT => try writeDirectory(&out, &fixups, blockId("DIRT"), &index.directories.talkies),
+            .DIRI => try writeDirectory(&out, &fixups, .DIRI, &index.directories.room_images),
+            .DIRR => try writeDirectory(&out, &fixups, .DIRR, &index.directories.rooms),
+            .DIRS => try writeDirectory(&out, &fixups, .DIRS, &index.directories.scripts),
+            .DIRN => try writeDirectory(&out, &fixups, .DIRN, &index.directories.sounds),
+            .DIRC => try writeDirectory(&out, &fixups, .DIRC, &index.directories.costumes),
+            .DIRF => try writeDirectory(&out, &fixups, .DIRF, &index.directories.charsets),
+            .DIRM => try writeDirectory(&out, &fixups, .DIRM, &index.directories.images),
+            .DIRT => try writeDirectory(&out, &fixups, .DIRT, &index.directories.talkies),
             .DLFL => {
-                const start = try beginBlock(&out, "DLFL");
+                const start = try beginBlock(&out, .DLFL);
                 try out.writer().writeInt(u16, @intCast(index.rooms.len), .little);
                 try out.writer().writeAll(std.mem.sliceAsBytes(index.rooms.items(.offset)));
                 try endBlock(&out, &fixups, start);
             },
             .DISK => {
-                const start = try beginBlock(&out, "DISK");
+                const start = try beginBlock(&out, .DISK);
                 try out.writer().writeInt(u16, @intCast(index.rooms.len), .little);
                 try out.writer().writeAll(index.rooms.items(.disk));
                 try endBlock(&out, &fixups, start);
@@ -414,7 +412,7 @@ fn writeDirectory(
     block_id: BlockId,
     directory: *const std.MultiArrayList(DirectoryEntry),
 ) !void {
-    const start = try beginBlockImpl(out, block_id);
+    const start = try beginBlock(out, block_id);
     try out.writer().writeInt(u16, @intCast(directory.len), .little);
     const slice = directory.slice();
     try out.writer().writeAll(slice.items(.room));

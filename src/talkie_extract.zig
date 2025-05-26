@@ -1,8 +1,6 @@
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
-const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const oldBlockReader = @import("block_reader.zig").oldBlockReader;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const fs = @import("fs.zig");
@@ -57,7 +55,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     var file_blocks = oldBlockReader(&reader);
 
-    const tlkb_len = try file_blocks.expectBlock("TLKB");
+    const tlkb_len = try file_blocks.expect(.TLKB);
     try parseTlkb(allocator, tlkb_len, &state);
 
     try file_blocks.finishEof();
@@ -201,8 +199,8 @@ fn parseStreamingRaw(
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(
-        "raw-block {s} {s}\n",
-        .{ blockIdToStr(&block_id), state.curPathRelative() },
+        "raw-block {} {s}\n",
+        .{ block_id, state.curPathRelative() },
     );
 }
 
@@ -221,8 +219,8 @@ fn parseFixedRaw(
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(
-        "raw-block {s} {s}\n",
-        .{ blockIdToStr(&block_id), state.curPathRelative() },
+        "raw-block {} {s}\n",
+        .{ block_id, state.curPathRelative() },
     );
 }
 
@@ -231,7 +229,7 @@ fn parseTlkb(allocator: std.mem.Allocator, tlkb_len: u32, state: *State) !void {
 }
 
 const tlkb_children: []const StreamingBlockParserForId = &.{
-    .{ .block_id = blockId("TALK"), .parser = parseTalk },
+    .{ .block_id = .TALK, .parser = parseTalk },
 };
 
 fn parseTalk(
@@ -266,7 +264,7 @@ fn parseTalkFixed(
     });
     state.indent += 1;
 
-    const talk_seq = try state.nextSeq(allocator, blockId("TALK"));
+    const talk_seq = try state.nextSeq(allocator, .TALK);
 
     const path = try pathf.print(state.cur_path, "TALK_{:0>4}_", .{talk_seq});
     defer path.restore();
@@ -280,14 +278,14 @@ fn parseTalkFixed(
             return error.BlockFallbackToRaw;
 
         // Scan until we find the one with the data we want
-        if (peeked_id == blockId("SDAT")) break;
+        if (peeked_id == std.mem.bytesToValue(u32, "SDAT")) break;
 
         const block_id, const block_len = try talk_blocks.next();
         const block_raw = try io.readInPlace(&talk_stream, block_len);
         try parseFixedRaw(allocator, block_id, block_raw, state);
     }
 
-    const sdat_len = try talk_blocks.assumeBlock("SDAT");
+    const sdat_len = try talk_blocks.assume(.SDAT);
     const sdat_raw = try io.readInPlace(&talk_stream, sdat_len);
 
     const path2 = try pathf.append(state.cur_path, "SDAT.wav");

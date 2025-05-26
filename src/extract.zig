@@ -7,8 +7,6 @@ const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
-const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const Block = @import("block_reader.zig").Block;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
@@ -373,7 +371,7 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_raw = try blocks.expect("MAXS").bytes();
+    const maxs_raw = try blocks.expect(.MAXS).bytes();
     if (maxs_raw.len != games.maxsLen(game))
         return error.BadData;
 
@@ -383,28 +381,28 @@ fn extractIndex(
     @memcpy(maxs_present_bytes, maxs_raw);
     @memset(maxs_missing_bytes, 0);
 
-    try writeRawBlock(gpa, blockId("MAXS"), .{ .bytes = maxs_present_bytes }, output_dir, null, 4, .index_block, code);
+    try writeRawBlock(gpa, .MAXS, .{ .bytes = maxs_present_bytes }, output_dir, null, 4, .index_block, code);
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
         diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
 
     // DIR*
 
-    const diri = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRI"), maxs.rooms);
-    const dirr = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRR"), maxs.rooms);
-    const dirs = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRS"), maxs.scripts);
-    const dirn = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRN"), maxs.sounds);
-    const dirc = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRC"), maxs.costumes);
-    const dirf = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRF"), maxs.charsets);
-    const dirm = try readDirectory(gpa, &fba, &blocks, code, blockId("DIRM"), maxs.images);
+    const diri = try readDirectory(gpa, &fba, &blocks, code, .DIRI, maxs.rooms);
+    const dirr = try readDirectory(gpa, &fba, &blocks, code, .DIRR, maxs.rooms);
+    const dirs = try readDirectory(gpa, &fba, &blocks, code, .DIRS, maxs.scripts);
+    const dirn = try readDirectory(gpa, &fba, &blocks, code, .DIRN, maxs.sounds);
+    const dirc = try readDirectory(gpa, &fba, &blocks, code, .DIRC, maxs.costumes);
+    const dirf = try readDirectory(gpa, &fba, &blocks, code, .DIRF, maxs.charsets);
+    const dirm = try readDirectory(gpa, &fba, &blocks, code, .DIRM, maxs.images);
     const dirt: Directory = if (games.hasTalkies(game))
-        try readDirectory(gpa, &fba, &blocks, code, blockId("DIRT"), maxs.talkies)
+        try readDirectory(gpa, &fba, &blocks, code, .DIRT, maxs.talkies)
     else
         .empty;
 
     // DLFL
 
-    const dlfl_raw = try blocks.expect("DLFL").bytes();
+    const dlfl_raw = try blocks.expect(.DLFL).bytes();
     if (dlfl_raw.len != 2 + 4 * maxs.rooms)
         return error.BadData;
     if (std.mem.readInt(u16, dlfl_raw[0..2], .little) != maxs.rooms)
@@ -421,7 +419,7 @@ fn extractIndex(
 
     var lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)) = .undef;
     if (games.hasDisk(game)) {
-        const disk_raw = try blocks.expect("DISK").bytes();
+        const disk_raw = try blocks.expect(.DISK).bytes();
         if (disk_raw.len != 2 + maxs.rooms)
             return error.BadData;
         if (std.mem.readInt(u16, disk_raw[0..2], .little) != maxs.rooms)
@@ -438,7 +436,7 @@ fn extractIndex(
     // SVER
 
     if (games.hasIndexSver(game))
-        try extractRawIndexBlock(gpa, &blocks, output_dir, code, blockId("SVER"));
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code, .SVER);
 
     // RNAM
 
@@ -447,10 +445,10 @@ fn extractIndex(
 
     // remaining blocks
 
-    for ([_]BlockId{ blockId("DOBJ"), blockId("AARY") }) |id|
+    for ([_]BlockId{ .DOBJ, .AARY }) |id|
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
     if (games.hasIndexInib(game))
-        try extractRawIndexBlock(gpa, &blocks, output_dir, code, blockId("INIB"));
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code, .INIB);
 
     try blocks.finishEof();
 
@@ -512,7 +510,7 @@ fn readDirectory(
 ) !Directory {
     const block_raw = try blocks.expect(block_id).bytes();
 
-    try code.writer(gpa).print("    index-block \"{s}\"\n", .{fmtBlockId(&block_id)});
+    try code.writer(gpa).print("    index-block \"{}\"\n", .{block_id});
 
     var in = std.io.fixedBufferStream(block_raw);
 
@@ -544,7 +542,7 @@ fn readRoomNames(
     num_rooms: u16,
     fba: *std.heap.FixedBufferAllocator,
 ) !RoomNames {
-    const rnam = try blocks.expect("RNAM").block();
+    const rnam = try blocks.expect(.RNAM).block();
     if (rnam.size > 0xffff) return error.BadData; // so we can index with u16
 
     const starts = try fba.allocator().alloc(u16, num_rooms);
@@ -633,11 +631,11 @@ fn extractDisk(
 
     var file_blocks = streamingBlockReader(&in, &diag);
 
-    const lecf = try file_blocks.expect("LECF").block();
+    const lecf = try file_blocks.expect(.LECF).block();
     var lecf_blocks = streamingBlockReader(&in, &diag);
 
     while (in.bytes_read < lecf.end()) {
-        const lflf = try lecf_blocks.expect("LFLF").block();
+        const lflf = try lecf_blocks.expect(.LFLF).block();
         try extractRoom(cx, disk_number, &in, &diag, lflf.end(), code);
     }
 
@@ -680,7 +678,7 @@ fn extractRoom(
     const room_number = findRoomNumber(cx.game, cx.index, disk_number, @intCast(in.bytes_read)) orelse
         return error.BadData;
 
-    const diag = disk_diag.child(0, .{ .glob = .{ blockId("LFLF"), room_number } });
+    const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
 
     var events: sync.Channel(Event, 16) = .init;
 
@@ -855,13 +853,13 @@ fn readRoomInner(
     var lflf_blocks = streamingBlockReader(in, diag);
 
     const rmim_chunk_index = try cx.claimChunkIndex();
-    const rmim_block = try lflf_blocks.expect("RMIM").block();
+    const rmim_block = try lflf_blocks.expect(.RMIM).block();
     var rmim_raw = try cx.cx.gpa.alloc(u8, rmim_block.size);
     defer cx.cx.gpa.free(rmim_raw);
     try in.reader().readNoEof(rmim_raw);
 
     {
-        const rmda = try lflf_blocks.expect("RMDA").block();
+        const rmda = try lflf_blocks.expect(.RMDA).block();
         const room_palette = try extractRmda(cx, in, diag, &rmda);
         cx.room_palette = .{ .defined = room_palette };
     }
@@ -904,14 +902,14 @@ fn extractRmda(
     while (in.bytes_read < rmda.end()) {
         const block = try rmda_blocks.next().block();
         switch (block.id) {
-            blockId("PALS") => {
+            .PALS => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
                 if (apal_opt != null) return error.BadData;
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
                 try cx.sendSync(.top, code);
             },
-            blockId("EXCD"), blockId("ENCD"), blockId("LSCR"), blockId("LSC2") => {
+            .EXCD, .ENCD, .LSCR, .LSC2 => {
                 try addBlockToBuffer(cx, in, &block, &buffered_blocks);
             },
             else => {
@@ -939,7 +937,7 @@ fn extractPals(
     block: *const Block,
     code: *std.ArrayListUnmanaged(u8),
 ) ![0x300]u8 {
-    const diag = disk_diag.child(block.start, .{ .block_id = blockId("PALS") });
+    const diag = disk_diag.child(block.start, .{ .block_id = .PALS });
 
     const expected_len = 796;
     if (block.size != expected_len) return error.BadData;
@@ -947,13 +945,13 @@ fn extractPals(
     var pals_stream = std.io.fixedBufferStream(&pals_raw);
     var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 
-    const pals = try pals_blocks.expect("WRAP").block();
+    const pals = try pals_blocks.expect(.WRAP).block();
     var wrap_blocks = fixedBlockReader(&pals_stream, &diag);
 
-    const off = try wrap_blocks.expect("OFFS").value(u32);
+    const off = try wrap_blocks.expect(.OFFS).value(u32);
     if (off.* != 12) return error.BadData;
 
-    const apal = try wrap_blocks.expect("APAL").value([0x300]u8);
+    const apal = try wrap_blocks.expect(.APAL).value([0x300]u8);
 
     try wrap_blocks.finish(pals.end());
     try pals_blocks.finishEof();
@@ -982,8 +980,8 @@ fn addBlockToBuffer(
     errdefer comptime unreachable;
 
     switch (block.id) {
-        blockId("EXCD"), blockId("ENCD") => {},
-        blockId("LSCR"), blockId("LSC2") => {
+        .EXCD, .ENCD => {},
+        .LSCR, .LSC2 => {
             _ = cx.lsc_mask_state.collecting;
 
             const script_number, _ = parseLscHeader(.from(block.id), raw) catch return;
@@ -1078,7 +1076,7 @@ fn extractRmimJob(
     chunk_index: u16,
 ) !void {
     std.debug.assert(disk_diag.offset == 0);
-    var diag = disk_diag.child(block.start, .{ .block_id = blockId("RMIM") });
+    var diag = disk_diag.child(block.start, .{ .block_id = .RMIM });
     diag.cap_level = true;
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
@@ -1117,10 +1115,10 @@ fn extractRmdaChildJob(
     chunk_index: u16,
 ) !void {
     cx.cx.incStat(switch (block.id) {
-        blockId("EXCD") => .excd_total,
-        blockId("ENCD") => .encd_total,
-        blockId("LSCR") => .lscr_total,
-        blockId("LSC2") => .lsc2_total,
+        .EXCD => .excd_total,
+        .ENCD => .encd_total,
+        .LSCR => .lscr_total,
+        .LSC2 => .lsc2_total,
         else => unreachable,
     });
 
@@ -1133,11 +1131,11 @@ fn extractRmdaChildJob(
 
     // First try to decode
     switch (block.id) {
-        blockId("EXCD"), blockId("ENCD") => {
+        .EXCD, .ENCD => {
             if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
-        blockId("LSCR"), blockId("LSC2") => {
+        .LSCR, .LSC2 => {
             if (extractLsc(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
@@ -1149,10 +1147,10 @@ fn extractRmdaChildJob(
     cx.sendChunk(chunk_index, .top, code);
 
     cx.cx.incStat(switch (block.id) {
-        blockId("EXCD") => .excd_raw,
-        blockId("ENCD") => .encd_raw,
-        blockId("LSCR") => .lscr_raw,
-        blockId("LSC2") => .lsc2_raw,
+        .EXCD => .excd_raw,
+        .ENCD => .encd_raw,
+        .LSCR => .lscr_raw,
+        .LSC2 => .lsc2_raw,
         else => unreachable,
     });
 }
@@ -1163,8 +1161,8 @@ const EncdExcd = enum {
 
     fn from(block_id: BlockId) EncdExcd {
         return switch (block_id) {
-            blockId("ENCD") => .encd,
-            blockId("EXCD") => .excd,
+            .ENCD => .encd,
+            .EXCD => .excd,
             else => unreachable,
         };
     }
@@ -1295,8 +1293,8 @@ const LocalScriptBlockType = enum {
 
     fn from(block_id: BlockId) LocalScriptBlockType {
         return switch (block_id) {
-            blockId("LSCR") => .lscr,
-            blockId("LSC2") => .lsc2,
+            .LSCR => .lscr,
+            .LSC2 => .lsc2,
             else => unreachable,
         };
     }
@@ -1465,7 +1463,7 @@ fn extractGlobJob(
     chunk_index: u16,
 ) !void {
     cx.cx.incStatOpt(switch (block.id) {
-        blockId("SCRP") => .scrp_total,
+        .SCRP => .scrp_total,
         else => null,
     });
 
@@ -1489,17 +1487,17 @@ fn extractGlobJob(
 
     // First try to decode
     switch (block.id) {
-        blockId("SCRP") => {
+        .SCRP => {
             if (extractScrp(cx, &diag, glob_number, raw, &code, chunk_index))
                 return;
         },
-        blockId("AWIZ") => if (cx.cx.options.awiz == .decode)
+        .AWIZ => if (cx.cx.options.awiz == .decode)
             if (tryDecodeAndSend(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
-        blockId("MULT") => if (cx.cx.options.mult == .decode)
+        .MULT => if (cx.cx.options.mult == .decode)
             if (tryDecodeAndSend(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
-        blockId("AKOS") => if (cx.cx.options.akos == .decode)
+        .AKOS => if (cx.cx.options.akos == .decode)
             if (tryDecodeAndSend(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         else => {},
@@ -1511,7 +1509,7 @@ fn extractGlobJob(
     cx.sendChunk(chunk_index, .bottom, code);
 
     cx.cx.incStatOpt(switch (block.id) {
-        blockId("SCRP") => .scrp_raw,
+        .SCRP => .scrp_raw,
         else => null,
     });
 }
@@ -1763,12 +1761,12 @@ fn writeRawGlob(
     var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
     const filename = try std.fmt.bufPrintZ(
         &filename_buf,
-        "{s}_{:0>4}.bin",
-        .{ fmtBlockId(&block.id), glob_number },
+        "{}_{:0>4}.bin",
+        .{ block.id, glob_number },
     );
     try fs.writeFileZ(cx.room_dir, filename, data);
 
-    try code.writer(cx.cx.gpa).print("raw-glob \"{s}\" ", .{fmtBlockId(&block.id)});
+    try code.writer(cx.cx.gpa).print("raw-glob \"{}\" ", .{block.id});
     if (getGlobName(cx, block.id, glob_number)) |name| {
         switch (name) {
             .string => |s| try code.appendSlice(cx.cx.gpa, s),
@@ -1822,18 +1820,18 @@ pub fn writeRawBlock(
     const filename = switch (filename_pattern) {
         .block => try std.fmt.bufPrintZ(
             &filename_buf,
-            "{s}.bin",
-            .{fmtBlockId(&block_id)},
+            "{}.bin",
+            .{block_id},
         ),
         .index_block => try std.fmt.bufPrintZ(
             &filename_buf,
-            "index_{s}.bin",
-            .{fmtBlockId(&block_id)},
+            "index_{}.bin",
+            .{block_id},
         ),
         .block_offset => |offset| try std.fmt.bufPrintZ(
             &filename_buf,
-            "{s}_{x:0>8}.bin",
-            .{ fmtBlockId(&block_id), offset },
+            "{}_{x:0>8}.bin",
+            .{ block_id, offset },
         ),
     };
 
@@ -1846,7 +1844,7 @@ pub fn writeRawBlock(
 
     for (0..indent) |_|
         try code.append(gpa, ' ');
-    try code.writer(gpa).print("raw-block \"{s}\" \"", .{fmtBlockId(&block_id)});
+    try code.writer(gpa).print("raw-block \"{}\" \"", .{block_id});
     if (output_path) |path|
         try code.writer(gpa).print("{s}/", .{path});
     try code.writer(gpa).print("{s}\"\n", .{filename});

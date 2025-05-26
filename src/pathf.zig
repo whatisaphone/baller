@@ -1,6 +1,5 @@
 const std = @import("std");
 
-const blockIdToStr = @import("block_id.zig").blockIdToStr;
 const BlockId = @import("block_id.zig").BlockId;
 
 pub const Path = std.BoundedArray(u8, 4095);
@@ -38,7 +37,7 @@ pub fn appendBlockPath(
 ) !PrintedPath {
     std.debug.assert(ext.len >= 1 and ext.len <= 3 and ext[0] != '.');
 
-    return print(buf, "{s}_{:0>4}.{s}", .{ blockIdToStr(&block_id), number, ext });
+    return print(buf, "{}_{:0>4}.{s}", .{ block_id, number, ext });
 }
 
 pub fn popFile(buf: *Path) !void {

@@ -6,7 +6,6 @@ const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const parseBlockId = @import("block_id.zig").parseBlockId;
 const lexer = @import("lexer.zig");
 
 const Cx = struct {
@@ -469,7 +468,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                     const ints = .{ try expectInteger(cx), try expectInteger(cx) };
                     try expect(cx, .newline);
 
-                    const block_id = parseBlockId(block_id_str) orelse
+                    const block_id = BlockId.parse(block_id_str) orelse
                         return reportError(cx, token, "invalid block id", .{});
 
                     const node_index = try storeNode(cx, token, .{ .awiz_two_ints = .{
@@ -662,7 +661,7 @@ fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const path = try expectString(cx);
     try expect(cx, .newline);
 
-    const block_id = parseBlockId(block_id_str) orelse
+    const block_id = BlockId.parse(block_id_str) orelse
         return reportError(cx, token, "invalid block id", .{});
 
     return storeNode(cx, token, .{ .raw_block = .{
@@ -679,7 +678,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id_str = try expectString(cx);
     try expect(cx, .brace_l);
 
-    const block_id = parseBlockId(block_id_str) orelse
+    const block_id = BlockId.parse(block_id_str) orelse
         return reportError(cx, token, "invalid block id", .{});
 
     var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
@@ -707,7 +706,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
 fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id_str = try expectString(cx);
-    const block_id = parseBlockId(block_id_str) orelse
+    const block_id = BlockId.parse(block_id_str) orelse
         return reportError(cx, token, "invalid block id", .{});
 
     const name = if (peekToken(cx).kind == .identifier) name: {

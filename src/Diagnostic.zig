@@ -2,8 +2,6 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
-const blockIdToStr = @import("block_id.zig").blockIdToStr;
-const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const Loc = @import("lexer.zig").Loc;
 
 const Diagnostic = @This();
@@ -257,8 +255,8 @@ pub const ForBinaryFile = struct {
         }
         switch (self.section) {
             .string => |s| try writer.writeAll(s),
-            .block_id => |id| try writer.writeAll(blockIdToStr(&id)),
-            .glob => |g| try writer.print("{s}_{:0>4}", .{ fmtBlockId(&g[0]), g[1] }),
+            .block_id => |id| try writer.writeAll(id.str()),
+            .glob => |id_and_num| try writer.print("{}_{:0>4}", id_and_num),
         }
     }
 };

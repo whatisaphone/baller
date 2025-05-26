@@ -2,7 +2,6 @@ const std = @import("std");
 
 const ArrayMap = @import("array_map.zig").ArrayMap;
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
 const games = @import("games.zig");
 const utils = @import("utils.zig");
 
@@ -314,14 +313,14 @@ pub const GlobKind = enum {
 
     pub fn fromBlockId(block_id: BlockId) ?GlobKind {
         return switch (block_id) {
-            blockId("RMIM") => .room_image,
-            blockId("RMDA") => .room,
-            blockId("SCRP") => .script,
-            blockId("SOUN"), blockId("DIGI"), blockId("TALK"), blockId("WSOU") => .sound,
-            blockId("AKOS") => .costume,
-            blockId("CHAR") => .charset,
-            blockId("AWIZ"), blockId("MULT") => .image,
-            blockId("TLKE") => .talkie,
+            .RMIM => .room_image,
+            .RMDA => .room,
+            .SCRP => .script,
+            .SOUN, .DIGI, .TALK, .WSOU => .sound,
+            .AKOS => .costume,
+            .CHAR => .charset,
+            .AWIZ, .MULT => .image,
+            .TLKE => .talkie,
             else => null,
         };
     }

@@ -2,10 +2,8 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
-const parseBlockId = @import("block_id.zig").parseBlockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const fs = @import("fs.zig");
@@ -56,7 +54,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     };
     defer state.fixups.deinit();
 
-    const tlkb_start = try beginBlock(state.output_writer, "TLKB");
+    const tlkb_start = try beginBlock(state.output_writer, .TLKB);
 
     while (true) {
         const line = manifest_reader.reader()
@@ -95,7 +93,7 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
     var tokens = std.mem.tokenizeScalar(u8, line, ' ');
 
     const block_id_str = tokens.next() orelse return error.BadData;
-    const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+    const block_id = BlockId.parse(block_id_str) orelse return error.BadData;
 
     const relative_path = tokens.next() orelse return error.BadData;
 
@@ -103,7 +101,7 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 
     // Write block
 
-    const start = try beginBlockImpl(state.output_writer, block_id);
+    const start = try beginBlock(state.output_writer, block_id);
 
     const path = try pathf.append(state.cur_path, relative_path);
     defer path.restore();
@@ -136,7 +134,7 @@ fn buildTalk(state: *State) !void {
         const token = tokens.next() orelse return error.BadData;
         if (std.mem.eql(u8, token, "raw-block")) {
             const block_id_str = tokens.next() orelse return error.BadData;
-            const block_id = parseBlockId(block_id_str) orelse return error.BadData;
+            const block_id = BlockId.parse(block_id_str) orelse return error.BadData;
 
             const path = tokens.next() orelse return error.BadData;
 
@@ -169,10 +167,10 @@ fn buildTalk(state: *State) !void {
 
     // Write block
 
-    const talk_start = try beginBlock(state.output_writer, "TALK");
+    const talk_start = try beginBlock(state.output_writer, .TALK);
 
     for (raw_blocks.slice()) |raw_block| {
-        const block_start = try beginBlockImpl(state.output_writer, raw_block.id);
+        const block_start = try beginBlock(state.output_writer, raw_block.id);
 
         const raw_path = try pathf.append(state.cur_path, raw_block.path.slice());
         defer raw_path.restore();
@@ -207,7 +205,7 @@ fn buildTalk(state: *State) !void {
             return error.BadData;
         }
 
-        const sdat_start = try beginBlock(state.output_writer, "SDAT");
+        const sdat_start = try beginBlock(state.output_writer, .SDAT);
         try io.copy(
             std.io.limitedReader(wav_reader, data_size),
             state.output_writer.writer(),

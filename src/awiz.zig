@@ -3,12 +3,9 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const blockId = @import("block_id.zig").blockId;
-const fmtBlockId = @import("block_id.zig").fmtBlockId;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockImpl = @import("block_writer.zig").beginBlockImpl;
 const endBlock = @import("block_writer.zig").endBlock;
 const bmp = @import("bmp.zig");
 const fs = @import("fs.zig");
@@ -76,10 +73,10 @@ fn decodeInner(
 
     var awiz_blocks = oldFixedBlockReader(reader);
 
-    while (try awiz_blocks.peek() != blockId("WIZD")) {
+    while (try awiz_blocks.peek() != .WIZD) {
         const id, const len = try awiz_blocks.next();
         switch (id) {
-            blockId("RGBS") => {
+            .RGBS => {
                 const expected_rgbs_len = 0x300;
                 if (len != expected_rgbs_len)
                     return error.BadData;
@@ -87,7 +84,7 @@ fn decodeInner(
 
                 try result.blocks.append(.rgbs);
             },
-            blockId("CNVS"), blockId("SPOT"), blockId("RELO") => {
+            .CNVS, .SPOT, .RELO => {
                 if (len != 8)
                     return error.BadData;
                 const int1 = try reader.reader().readInt(i32, .little);
@@ -100,7 +97,7 @@ fn decodeInner(
                     },
                 });
             },
-            blockId("WIZH") => {
+            .WIZH => {
                 if (len != 12)
                     return error.BadData;
                 const compression_int = try reader.reader().readInt(i32, .little);
@@ -118,7 +115,7 @@ fn decodeInner(
 
                 try result.blocks.append(.wizh);
             },
-            blockId("TRNS") => {
+            .TRNS => {
                 if (len != 4)
                     return error.BadData;
                 const trns = try reader.reader().readInt(i32, .little);
@@ -128,7 +125,7 @@ fn decodeInner(
         }
     }
 
-    const wizd_len = try awiz_blocks.assumeBlock("WIZD");
+    const wizd_len = try awiz_blocks.assume(.WIZD);
     const wizd_end = reader.pos + wizd_len;
 
     const wizh = wizh_opt orelse return error.BadData;
@@ -234,8 +231,8 @@ pub fn extractChildren(
             .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
             .two_ints => |ti| {
                 try code.writer(gpa).print(
-                    "two-ints \"{s}\" {} {}\n",
-                    .{ fmtBlockId(&ti.id), ti.ints[0], ti.ints[1] },
+                    "two-ints \"{}\" {} {}\n",
+                    .{ ti.id, ti.ints[0], ti.ints[1] },
                 );
             },
             .wizh => try code.appendSlice(gpa, "wizh\n"),
@@ -272,30 +269,30 @@ pub fn encode(
 
     for (wiz.blocks.slice()) |block| switch (block) {
         .rgbs => {
-            const fixup = try beginBlock(out, "RGBS");
+            const fixup = try beginBlock(out, .RGBS);
             try writeRgbs(header, out);
             try endBlock(out, fixups, fixup);
         },
         .two_ints => |b| {
-            const fixup = try beginBlockImpl(out, b.id);
+            const fixup = try beginBlock(out, b.id);
             try out.writer().writeInt(i32, b.ints[0], .little);
             try out.writer().writeInt(i32, b.ints[1], .little);
             try endBlock(out, fixups, fixup);
         },
         .wizh => {
-            const fixup = try beginBlock(out, "WIZH");
+            const fixup = try beginBlock(out, .WIZH);
             try out.writer().writeInt(i32, @intFromEnum(wizd.compression), .little);
             try out.writer().writeInt(i32, header.width(), .little);
             try out.writer().writeInt(i32, header.height(), .little);
             try endBlock(out, fixups, fixup);
         },
         .trns => |trns| {
-            const fixup = try beginBlock(out, "TRNS");
+            const fixup = try beginBlock(out, .TRNS);
             try out.writer().writeInt(i32, trns, .little);
             try endBlock(out, fixups, fixup);
         },
         .wizd => |_| {
-            const fixup = try beginBlock(out, "WIZD");
+            const fixup = try beginBlock(out, .WIZD);
             switch (wizd.compression) {
                 .none => try encodeUncompressed(header, out.writer()),
                 .rle => try encodeRle(header, strategy, out.writer()),
