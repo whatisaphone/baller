@@ -114,7 +114,7 @@ fn parseIndex(cx: *Cx) !std.BoundedArray(Ast.NodeIndex, 16) {
                     try appendNode(cx, &children, node_index);
                 },
                 .@"index-block" => {
-                    const block_id_str = try expectString(cx);
+                    const block_id_str = try expectIdentifier(cx);
                     try expect(cx, .newline);
                     const IndexBlock = @FieldType(Ast.Node, "index_block");
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
@@ -464,12 +464,9 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                     try appendNode(cx, &children, node_index);
                 },
                 .@"two-ints" => {
-                    const block_id_str = try expectString(cx);
+                    const block_id = try expectBlockId(cx);
                     const ints = .{ try expectInteger(cx), try expectInteger(cx) };
                     try expect(cx, .newline);
-
-                    const block_id = BlockId.parse(block_id_str) orelse
-                        return reportError(cx, token, "invalid block id", .{});
 
                     const node_index = try storeNode(cx, token, .{ .awiz_two_ints = .{
                         .block_id = block_id,
@@ -657,12 +654,9 @@ fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
 }
 
 fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
-    const block_id_str = try expectString(cx);
+    const block_id = try expectBlockId(cx);
     const path = try expectString(cx);
     try expect(cx, .newline);
-
-    const block_id = BlockId.parse(block_id_str) orelse
-        return reportError(cx, token, "invalid block id", .{});
 
     return storeNode(cx, token, .{ .raw_block = .{
         .block_id = block_id,
@@ -675,11 +669,8 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         @"raw-block",
     };
 
-    const block_id_str = try expectString(cx);
+    const block_id = try expectBlockId(cx);
     try expect(cx, .brace_l);
-
-    const block_id = BlockId.parse(block_id_str) orelse
-        return reportError(cx, token, "invalid block id", .{});
 
     var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
 
@@ -705,9 +696,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
-    const block_id_str = try expectString(cx);
-    const block_id = BlockId.parse(block_id_str) orelse
-        return reportError(cx, token, "invalid block id", .{});
+    const block_id = try expectBlockId(cx);
 
     const name = if (peekToken(cx).kind == .identifier) name: {
         const name = try expectIdentifier(cx);
@@ -1282,6 +1271,13 @@ fn parseIdentifierOpt(cx: *Cx, token: *const lexer.Token, T: type) ?T {
 fn parseIdentifier(cx: *Cx, token: *const lexer.Token, T: type) !T {
     return parseIdentifierOpt(cx, token, T) orelse
         return reportUnexpected(cx, token);
+}
+
+fn expectBlockId(cx: *Cx) !BlockId {
+    const token = peekToken(cx);
+    const ident = try expectIdentifier(cx);
+    return BlockId.parse(ident) orelse
+        reportError(cx, token, "invalid block id", .{});
 }
 
 fn expect(cx: *Cx, kind: lexer.Token.Kind) !void {

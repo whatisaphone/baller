@@ -125,7 +125,7 @@ fn extractDefa(
     var stream = std.io.fixedBufferStream(defa_raw);
     var blocks = fixedBlockReader(&stream, diag);
 
-    try code.writer(gpa).print("    raw-block \"{s}\" {{\n", .{"DEFA"});
+    try code.writer(gpa).print("    raw-block {s} {{\n", .{"DEFA"});
 
     while (stream.pos < defa_raw.len) {
         const block = try blocks.next().block();

@@ -231,7 +231,7 @@ pub fn extractChildren(
             .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
             .two_ints => |ti| {
                 try code.writer(gpa).print(
-                    "two-ints \"{}\" {} {}\n",
+                    "two-ints {} {} {}\n",
                     .{ ti.id, ti.ints[0], ti.ints[1] },
                 );
             },

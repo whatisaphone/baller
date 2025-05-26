@@ -410,7 +410,7 @@ fn extractIndex(
     const lfl_offsets = try fba.allocator().alloc(u32, maxs.rooms);
     @memcpy(lfl_offsets, std.mem.bytesAsSlice(u32, dlfl_raw[2..]));
 
-    try code.appendSlice(gpa, "    index-block \"DLFL\"\n");
+    try code.appendSlice(gpa, "    index-block DLFL\n");
 
     for (lfl_offsets, 0..) |off, i|
         diag.trace(@intCast(in.pos), "  {:>3}: 0x{x:0>8}", .{ i, off });
@@ -427,7 +427,7 @@ fn extractIndex(
         const lfl_disks_slice = try fba.allocator().dupe(u8, disk_raw[2..]);
         lfl_disks = .{ .defined = .init(lfl_disks_slice) };
 
-        try code.appendSlice(gpa, "    index-block \"DISK\"\n");
+        try code.appendSlice(gpa, "    index-block DISK\n");
 
         for (lfl_disks.defined.slice(maxs.rooms), 0..) |disk, i|
             diag.trace(@intCast(in.pos), "  {:>3}: {:>3}", .{ i, disk });
@@ -441,7 +441,7 @@ fn extractIndex(
     // RNAM
 
     const room_names = try readRoomNames(&in, &blocks, &diag, maxs.rooms, &fba);
-    try code.appendSlice(gpa, "    index-block \"RNAM\"\n");
+    try code.appendSlice(gpa, "    index-block RNAM\n");
 
     // remaining blocks
 
@@ -510,7 +510,7 @@ fn readDirectory(
 ) !Directory {
     const block_raw = try blocks.expect(block_id).bytes();
 
-    try code.writer(gpa).print("    index-block \"{}\"\n", .{block_id});
+    try code.writer(gpa).print("    index-block {}\n", .{block_id});
 
     var in = std.io.fixedBufferStream(block_raw);
 
@@ -1766,7 +1766,7 @@ fn writeRawGlob(
     );
     try fs.writeFileZ(cx.room_dir, filename, data);
 
-    try code.writer(cx.cx.gpa).print("raw-glob \"{}\" ", .{block.id});
+    try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
     if (getGlobName(cx, block.id, glob_number)) |name| {
         switch (name) {
             .string => |s| try code.appendSlice(cx.cx.gpa, s),
@@ -1844,7 +1844,7 @@ pub fn writeRawBlock(
 
     for (0..indent) |_|
         try code.append(gpa, ' ');
-    try code.writer(gpa).print("raw-block \"{}\" \"", .{block_id});
+    try code.writer(gpa).print("raw-block {} \"", .{block_id});
     if (output_path) |path|
         try code.writer(gpa).print("{s}/", .{path});
     try code.writer(gpa).print("{s}\"\n", .{filename});
