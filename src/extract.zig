@@ -360,7 +360,7 @@ fn extractIndex(
     for (raw) |*b|
         b.* ^= xor_key;
 
-    var in = std.io.fixedBufferStream(raw);
+    var in = std.io.fixedBufferStream(@as([]const u8, raw));
     var blocks = fixedBlockReader(&in, &diag);
 
     const result_buf = try gpa.alloc(u8, raw.len);

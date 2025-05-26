@@ -197,9 +197,9 @@ fn OldFixedBlockReader(Stream: type) type {
 }
 
 pub fn fixedBlockReader(
-    stream: anytype,
+    stream: *std.io.FixedBufferStream([]const u8),
     diag: *const Diagnostic.ForBinaryFile,
-) FixedBlockReader(@TypeOf(stream)) {
+) FixedBlockReader {
     std.debug.assert(stream.pos == 0);
     return .{
         .stream = stream,
@@ -209,184 +209,174 @@ pub fn fixedBlockReader(
     };
 }
 
-fn FixedBlockReader(Stream: type) type {
-    comptime std.debug.assert(std.mem.startsWith(
-        u8,
-        @typeName(Stream),
-        "*io.fixed_buffer_stream.FixedBufferStream(",
-    ));
+const FixedBlockReader = struct {
+    const Self = @This();
 
-    return struct {
-        const Self = @This();
+    stream: *std.io.FixedBufferStream([]const u8),
+    end: u32,
+    diag: *const Diagnostic.ForBinaryFile,
+    current: ?Block,
 
-        stream: Stream,
-        end: u32,
-        diag: *const Diagnostic.ForBinaryFile,
-        current: ?Block,
+    pub fn next(self: *Self) BlockResult {
+        if (!self.checkEndBlock()) return .err;
 
-        pub fn next(self: *Self) BlockResult(Stream) {
-            if (!self.checkEndBlock()) return .err;
+        const offset: u32 = @intCast(self.stream.pos);
+        const header = self.stream.reader().readBytesNoEof(8) catch {
+            self.diag.err(offset, "eof during block header", .{});
+            return .err;
+        };
+        const id_raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
+        const id = self.validateId(id_raw, offset) catch return .err;
+        const full_size = std.mem.readInt(u32, header[4..8], .big);
+        // The original value includes the id and length, but the caller
+        // doesn't care about those, so subtract them out.
+        const size = full_size - block_header_size;
+        self.current = .{
+            .id = id,
+            .start = @intCast(self.stream.pos),
+            .size = size,
+        };
 
-            const offset: u32 = @intCast(self.stream.pos);
-            const header = self.stream.reader().readBytesNoEof(8) catch {
-                self.diag.err(offset, "eof during block header", .{});
-                return .err;
-            };
-            const id_raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
-            const id = self.validateId(id_raw, offset) catch return .err;
-            const full_size = std.mem.readInt(u32, header[4..8], .big);
-            // The original value includes the id and length, but the caller
-            // doesn't care about those, so subtract them out.
-            const size = full_size - block_header_size;
-            self.current = .{
-                .id = id,
-                .start = @intCast(self.stream.pos),
-                .size = size,
-            };
+        self.diag.trace(offset, "start block {}", .{id});
 
-            self.diag.trace(offset, "start block {}", .{id});
+        return .{ .ok = .{
+            .block = self.current.?,
+            .reader = self,
+        } };
+    }
 
-            return .{ .ok = .{
-                .block = self.current.?,
-                .reader = self,
-            } };
+    fn peek(self: *const Self) !BlockId {
+        const offset: u32 = @intCast(self.stream.pos);
+        if (offset + block_header_size > self.stream.buffer.len) {
+            self.diag.err(offset, "eof during block header", .{});
+            return error.AddedToDiagnostic;
+        }
+        const header = self.stream.buffer[offset..][0..block_header_size];
+        const raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
+        return self.validateId(raw, offset);
+    }
+
+    fn validateId(self: *const Self, raw: BlockId.Raw, offset: u32) !BlockId {
+        return BlockId.init(raw) orelse {
+            self.diag.err(offset, "invalid block id: {}", .{BlockId.fmtInvalid(raw)});
+            return error.AddedToDiagnostic;
+        };
+    }
+
+    pub fn nextIf(self: *Self, expected_id: BlockId) !?BlockResult {
+        const result = try self.peek();
+        if (result != expected_id) return null;
+        return self.next();
+    }
+
+    fn checkEndBlock(self: *Self) bool {
+        const current = self.current orelse return true;
+
+        const pos: u32 = @intCast(self.stream.pos);
+        const expected_end = current.end();
+        if (pos == expected_end) { // happy path
+            self.diag.trace(pos, "end block {}", .{current.id});
+            self.current = null;
+            return true;
         }
 
-        fn peek(self: *const Self) !BlockId {
-            const offset: u32 = @intCast(self.stream.pos);
-            if (offset + block_header_size > self.stream.buffer.len) {
-                self.diag.err(offset, "eof during block header", .{});
-                return error.AddedToDiagnostic;
-            }
-            const header = self.stream.buffer[offset..][0..block_header_size];
-            const raw = std.mem.readInt(BlockId.Raw, header[0..4], .little);
-            return self.validateId(raw, offset);
-        }
+        // otherwise report an error
+        self.diag.err(
+            pos,
+            "desync during block {}; expected end 0x{x:0>8}",
+            .{ current.id, expected_end },
+        );
+        return false;
+    }
 
-        fn validateId(self: *const Self, raw: BlockId.Raw, offset: u32) !BlockId {
-            return BlockId.init(raw) orelse {
-                self.diag.err(offset, "invalid block id: {}", .{BlockId.fmtInvalid(raw)});
-                return error.AddedToDiagnostic;
-            };
-        }
+    pub fn expect(self: *Self, id: BlockId) BlockResult {
+        return self.next().expect(id);
+    }
 
-        pub fn nextIf(self: *Self, expected_id: BlockId) !?BlockResult(Stream) {
-            const result = try self.peek();
-            if (result != expected_id) return null;
-            return self.next();
-        }
+    pub fn atEnd(self: *const Self) bool {
+        const pos: u32 = @intCast(self.stream.pos);
+        return pos == self.end;
+    }
 
-        fn checkEndBlock(self: *Self) bool {
-            const current = self.current orelse return true;
+    pub fn finish(self: *Self) !void {
+        if (!self.checkEndBlock()) return error.AddedToDiagnostic;
 
-            const pos: u32 = @intCast(self.stream.pos);
-            const expected_end = current.end();
-            if (pos == expected_end) { // happy path
-                self.diag.trace(pos, "end block {}", .{current.id});
-                self.current = null;
-                return true;
-            }
-
-            // otherwise report an error
+        const pos: u32 = @intCast(self.stream.pos);
+        if (pos != self.end) {
             self.diag.err(
                 pos,
-                "desync during block {}; expected end 0x{x:0>8}",
-                .{ current.id, expected_end },
+                "expected container to end at 0x{x:0>8}",
+                .{self.end},
             );
-            return false;
+            return error.AddedToDiagnostic;
         }
+        self.diag.trace(pos, "end of container", .{});
+    }
+};
 
-        pub fn expect(self: *Self, id: BlockId) BlockResult(Stream) {
-            return self.next().expect(id);
-        }
+const BlockResult = union(enum) {
+    const Self = @This();
 
-        pub fn atEnd(self: *const Self) bool {
-            const pos: u32 = @intCast(self.stream.pos);
-            return pos == self.end;
-        }
+    ok: struct {
+        block: Block,
+        reader: *const FixedBlockReader,
+    },
+    err,
 
-        pub fn finish(self: *Self) !void {
-            if (!self.checkEndBlock()) return error.AddedToDiagnostic;
+    pub fn expect(self: Self, id: BlockId) Self {
+        if (self != .ok) return .err;
+        if (id == self.ok.block.id) return self;
+        self.ok.reader.diag.err(
+            self.ok.block.start - block_header_size,
+            "expected block {} but found {}",
+            .{ id, self.ok.block.id },
+        );
+        return .err;
+    }
 
-            const pos: u32 = @intCast(self.stream.pos);
-            if (pos != self.end) {
-                self.diag.err(
-                    pos,
-                    "expected container to end at 0x{x:0>8}",
-                    .{self.end},
-                );
-                return error.AddedToDiagnostic;
-            }
-            self.diag.trace(pos, "end of container", .{});
-        }
-    };
-}
+    pub fn block(self: *const Self) !Block {
+        if (self.* != .ok) return error.AddedToDiagnostic;
+        return self.ok.block;
+    }
 
-fn BlockResult(Stream: type) type {
-    return union(enum) {
-        const Self = @This();
-
-        ok: struct {
-            block: Block,
-            reader: *const FixedBlockReader(Stream),
-        },
-        err,
-
-        pub fn expect(self: Self, id: BlockId) Self {
-            if (self != .ok) return .err;
-            if (id == self.ok.block.id) return self;
+    pub fn bytes(self: *const Self) ![]const u8 {
+        if (self.* != .ok) return error.AddedToDiagnostic;
+        return io.readInPlace(self.ok.reader.stream, self.ok.block.size) catch |err| {
             self.ok.reader.diag.err(
-                self.ok.block.start - block_header_size,
-                "expected block {} but found {}",
-                .{ id, self.ok.block.id },
+                self.ok.block.start,
+                "error reading block data: {}",
+                .{err},
             );
-            return .err;
-        }
+            return error.AddedToDiagnostic;
+        };
+    }
 
-        pub fn block(self: *const Self) !Block {
-            if (self.* != .ok) return error.AddedToDiagnostic;
-            return self.ok.block;
+    pub fn value(self: *const Self, T: type) !*align(1) const T {
+        if (self.* != .ok) return error.AddedToDiagnostic;
+        const expected_size = @sizeOf(T);
+        if (self.ok.block.size != expected_size) {
+            self.ok.reader.diag.err(
+                self.ok.block.start - 4,
+                "block size mismatch: expected {}, found {}",
+                .{ expected_size, self.ok.block.size },
+            );
+            return error.AddedToDiagnostic;
         }
+        const data = try self.bytes();
+        return std.mem.bytesAsValue(T, data);
+    }
 
-        pub fn bytes(self: *const Self) ![]const u8 {
-            if (self.* != .ok) return error.AddedToDiagnostic;
-            return io.readInPlace(self.ok.reader.stream, self.ok.block.size) catch |err| {
-                self.ok.reader.diag.err(
-                    self.ok.block.start,
-                    "error reading block data: {}",
-                    .{err},
-                );
-                return error.AddedToDiagnostic;
-            };
-        }
-
-        pub fn value(self: *const Self, T: type) !*align(1) const T {
-            if (self.* != .ok) return error.AddedToDiagnostic;
-            const expected_size = @sizeOf(T);
-            if (self.ok.block.size != expected_size) {
-                self.ok.reader.diag.err(
-                    self.ok.block.start - 4,
-                    "block size mismatch: expected {}, found {}",
-                    .{ expected_size, self.ok.block.size },
-                );
-                return error.AddedToDiagnostic;
-            }
-            const data = try self.bytes();
-            return std.mem.bytesAsValue(T, data);
-        }
-
-        pub fn nested(self: *const Self) !FixedBlockReader(Stream) {
-            if (self.* != .ok) return error.AddedToDiagnostic;
-            const pos: u32 = @intCast(self.ok.reader.stream.pos);
-            return .{
-                .stream = self.ok.reader.stream,
-                .end = pos + self.ok.block.size,
-                .diag = self.ok.reader.diag,
-                .current = null,
-            };
-        }
-    };
-}
+    pub fn nested(self: *const Self) !FixedBlockReader {
+        if (self.* != .ok) return error.AddedToDiagnostic;
+        const pos: u32 = @intCast(self.ok.reader.stream.pos);
+        return .{
+            .stream = self.ok.reader.stream,
+            .end = pos + self.ok.block.size,
+            .diag = self.ok.reader.diag,
+            .current = null,
+        };
+    }
+};
 
 pub fn streamingBlockReader(
     stream: anytype,
