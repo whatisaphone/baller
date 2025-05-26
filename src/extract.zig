@@ -1847,8 +1847,8 @@ pub fn writeRawBlock(
     indent: u8,
     filename_pattern: union(enum) {
         block,
-        index_block,
         block_offset: u32,
+        index_block,
         object: u16,
         object_block: struct { u16, BlockId },
     },
@@ -1861,15 +1861,15 @@ pub fn writeRawBlock(
             "{}.bin",
             .{block_id},
         ),
-        .index_block => try std.fmt.bufPrintZ(
-            &filename_buf,
-            "index_{}.bin",
-            .{block_id},
-        ),
         .block_offset => |offset| try std.fmt.bufPrintZ(
             &filename_buf,
             "{}_{x:0>8}.bin",
             .{ block_id, offset },
+        ),
+        .index_block => try std.fmt.bufPrintZ(
+            &filename_buf,
+            "index_{}.bin",
+            .{block_id},
         ),
         .object => |number| try std.fmt.bufPrintZ(
             &filename_buf,
