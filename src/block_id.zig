@@ -37,6 +37,7 @@ pub const BlockId = enum(u32) {
         writer: anytype,
     ) !void {
         comptime std.debug.assert(fmt.len == 0);
+        std.debug.assert(isValid(self.raw()));
         try std.fmt.formatText(self.str(), "s", options, writer);
     }
 
@@ -87,6 +88,7 @@ pub const BlockId = enum(u32) {
     ENCD = make("ENCD"),
     EXCD = make("EXCD"),
     IM00 = make("IM00"),
+    IMHD = make("IMHD"),
     INIB = make("INIB"),
     LECF = make("LECF"),
     LFLF = make("LFLF"),
@@ -95,6 +97,8 @@ pub const BlockId = enum(u32) {
     MAXS = make("MAXS"),
     MULT = make("MULT"),
     NLSC = make("NLSC"),
+    OBCD = make("OBCD"),
+    OBIM = make("OBIM"),
     OFFS = make("OFFS"),
     PALS = make("PALS"),
     POLD = make("POLD"),
@@ -106,6 +110,7 @@ pub const BlockId = enum(u32) {
     RNAM = make("RNAM"),
     SCRP = make("SCRP"),
     SDAT = make("SDAT"),
+    SMAP = make("SMAP"),
     SOUN = make("SOUN"),
     SPOT = make("SPOT"),
     SVER = make("SVER"),
@@ -117,6 +122,7 @@ pub const BlockId = enum(u32) {
     WIZH = make("WIZH"),
     WRAP = make("WRAP"),
     WSOU = make("WSOU"),
+    ZP01 = make("ZP01"),
     _,
 
     fn make(s: []const u8) Raw {

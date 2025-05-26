@@ -129,6 +129,7 @@ fn testRoundTrip(
 ) !std.EnumArray(extract.Stat, u16) {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
 
     const extract_path = "/tmp/" ++ game.fixture_dir;
     const build_path = extract_path ++ "build";
@@ -146,6 +147,7 @@ fn testRoundTrip(
                 .excd = .raw,
                 .lscr = .raw,
                 .lsc2 = .raw,
+                .obim = .raw,
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,
@@ -158,6 +160,7 @@ fn testRoundTrip(
                 .excd = .decode,
                 .lscr = .decode,
                 .lsc2 = .decode,
+                .obim = .decode,
                 .awiz = .decode,
                 .mult = .decode,
                 .akos = .decode,
@@ -170,6 +173,7 @@ fn testRoundTrip(
                 .excd = .decode,
                 .lscr = .decode,
                 .lsc2 = .decode,
+                .obim = .raw,
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,

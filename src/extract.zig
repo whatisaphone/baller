@@ -18,6 +18,7 @@ const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
+const obim = @import("obim.zig");
 const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
 const sync = @import("sync.zig");
@@ -36,6 +37,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var excd_option: ?RawOrDecode = null;
     var lscr_option: ?RawOrDecode = null;
     var lsc2_option: ?RawOrDecode = null;
+    var obim_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
     var akos_option: ?RawOrDecode = null;
@@ -82,6 +84,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (lsc2_option != null) return arg.reportDuplicate();
                 lsc2_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "obim")) {
+                if (obim_option != null) return arg.reportDuplicate();
+                obim_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
@@ -119,6 +125,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .excd = excd_option orelse .decode,
             .lscr = lscr_option orelse .decode,
             .lsc2 = lsc2_option orelse .decode,
+            .obim = obim_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
             .akos = akos_option orelse .decode,
@@ -145,6 +152,7 @@ const Options = struct {
     excd: RawOrDecode,
     lscr: RawOrDecode,
     lsc2: RawOrDecode,
+    obim: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
@@ -909,6 +917,9 @@ fn extractRmda(
                 apal_opt = try extractPals(cx, in, diag, &block, &code);
                 try cx.sendSync(.top, code);
             },
+            .OBIM => {
+                try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
+            },
             .EXCD, .ENCD, .LSCR, .LSC2 => {
                 try addBlockToBuffer(cx, in, &block, &buffered_blocks);
             },
@@ -1113,7 +1124,8 @@ fn extractRmdaChildJob(
     raw: []const u8,
     chunk_index: u16,
 ) !void {
-    cx.cx.incStat(switch (block.id) {
+    cx.cx.incStatOpt(switch (block.id) {
+        .OBIM => null,
         .EXCD => .excd_total,
         .ENCD => .encd_total,
         .LSCR => .lscr_total,
@@ -1130,6 +1142,10 @@ fn extractRmdaChildJob(
 
     // First try to decode
     switch (block.id) {
+        .OBIM => if (cx.cx.options.obim == .decode) {
+            if (tryDecodeAndSend(extractObim, cx, &diag, .{raw}, &code, chunk_index, .bottom))
+                return;
+        },
         .EXCD, .ENCD => {
             if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
@@ -1143,15 +1159,32 @@ fn extractRmdaChildJob(
 
     // If decoding failed or was skipped, extract as raw
     try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
-    cx.sendChunk(chunk_index, .top, code);
+    const section: Section = switch (block.id) {
+        .OBIM => .bottom,
+        .EXCD => .exit_script,
+        .ENCD => .enter_script,
+        .LSCR, .LSC2 => .local_scripts,
+        else => unreachable,
+    };
+    cx.sendChunk(chunk_index, section, code);
 
-    cx.cx.incStat(switch (block.id) {
+    cx.cx.incStatOpt(switch (block.id) {
+        .OBIM => null,
         .EXCD => .excd_raw,
         .ENCD => .encd_raw,
         .LSCR => .lscr_raw,
         .LSC2 => .lsc2_raw,
         else => unreachable,
     });
+}
+
+fn extractObim(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try obim.extract(cx.cx.gpa, diag, raw, code, cx.room_dir, cx.room_path);
 }
 
 const EncdExcd = enum {
@@ -1812,10 +1845,16 @@ pub fn writeRawBlock(
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,
     indent: u8,
-    filename_pattern: union(enum) { block, index_block, block_offset: u32 },
+    filename_pattern: union(enum) {
+        block,
+        index_block,
+        block_offset: u32,
+        object: u16,
+        object_block: struct { u16, BlockId },
+    },
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["XXXX_00000000.bin".len + 1]u8 = undefined;
+    var filename_buf: ["object0000_XXXX_XXXX.bin".len + 1]u8 = undefined;
     const filename = switch (filename_pattern) {
         .block => try std.fmt.bufPrintZ(
             &filename_buf,
@@ -1831,6 +1870,16 @@ pub fn writeRawBlock(
             &filename_buf,
             "{}_{x:0>8}.bin",
             .{ block_id, offset },
+        ),
+        .object => |number| try std.fmt.bufPrintZ(
+            &filename_buf,
+            "object{:0>4}_{}.bin",
+            .{ number, block_id },
+        ),
+        .object_block => |o| try std.fmt.bufPrintZ(
+            &filename_buf,
+            "object{:0>4}_{}_{}.bin",
+            o ++ .{block_id},
         ),
     };
 

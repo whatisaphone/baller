@@ -12,12 +12,15 @@ const block_header_size = @import("block_reader.zig").block_header_size;
 const Fixup = @import("block_writer.zig").Fixup;
 const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockAL = @import("block_writer.zig").beginBlockAL;
 const endBlock = @import("block_writer.zig").endBlock;
+const endBlockAL = @import("block_writer.zig").endBlockAL;
 const compile = @import("compile.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
+const obim = @import("obim.zig");
 const rmim_encode = @import("rmim_encode.zig");
 const script = @import("script.zig");
 const sync = @import("sync.zig");
@@ -213,7 +216,9 @@ fn addScopeSymbol(
 fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void {
     try buildRoomScope(cx, room.room_number);
 
-    var start: [160]RoomWork = undefined;
+    var start: [6]RoomWork = undefined;
+    var rmda_obim: [64]RoomWork = undefined;
+    var rmda_obcd: [64]RoomWork = undefined;
     var rmda_excd: [1]RoomWork = undefined;
     var rmda_encd: [1]RoomWork = undefined;
     var rmda_lsc: [640]RoomWork = undefined;
@@ -221,6 +226,8 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
     var state: RoomPlan = .{
         .work = .init(.{
             .start = .initBuffer(&start),
+            .rmda_obim = .initBuffer(&rmda_obim),
+            .rmda_obcd = .initBuffer(&rmda_obcd),
             .rmda_excd = .initBuffer(&rmda_excd),
             .rmda_encd = .initBuffer(&rmda_encd),
             .rmda_lsc = .initBuffer(&rmda_lsc),
@@ -281,6 +288,8 @@ const LocalScriptBlockType = enum(BlockId.Raw) {
 
 const RoomSection = enum {
     start,
+    rmda_obim,
+    rmda_obcd,
     rmda_excd,
     rmda_encd,
     rmda_lsc,
@@ -297,14 +306,17 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
     for (room_file.ast.getExtra(root.children)) |child_node| {
         switch (room_file.ast.nodes.items[child_node]) {
-            .raw_glob_file, .raw_glob_block, .raw_block, .rmim => {
-                try plan.add(plan.cur_section, .{ .node = child_node });
+            inline .raw_glob_file, .raw_glob_block, .raw_block => |n| {
+                const section = sectionForBlockId(n.block_id) orelse plan.cur_section;
+                try plan.add(section, .{ .node = child_node });
             },
+            .rmim => try plan.add(plan.cur_section, .{ .node = child_node }),
             .rmda => |*rmda| try scanRmda(cx, plan, room_number, rmda),
             .scr => try plan.add(.end, .{ .node = child_node }),
             .excd => try plan.add(.rmda_excd, .{ .node = child_node }),
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
             .lsc => try plan.add(.rmda_lsc, .{ .node = child_node }),
+            .obim => try plan.add(.rmda_obim, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
             .local_script => try plan.add(.rmda_lsc, .{ .node = child_node }),
@@ -356,6 +368,8 @@ fn scanRmda(
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(rmda.children)) |node_index| {
         const raw_block = &room_file.ast.nodes.items[node_index].raw_block;
+        if (raw_block.block_id == .OBCD)
+            plan.cur_section = .rmda_obcd;
         if (raw_block.block_id == .POLD)
             plan.cur_section = .end;
         const section = sectionForBlockId(raw_block.block_id) orelse plan.cur_section;
@@ -367,6 +381,7 @@ fn scanRmda(
 
 fn sectionForBlockId(block_id: BlockId) ?RoomSection {
     return switch (block_id) {
+        .OBIM => .rmda_obim,
         .EXCD => .rmda_excd,
         .ENCD => .rmda_encd,
         .NLSC => .rmda_lsc,
@@ -390,6 +405,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .scr => try spawnJob(planScr, cx, room_number, child_node),
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
                     .lsc => try spawnJob(planLsc, cx, room_number, child_node),
+                    .obim => try spawnJob(planObim, cx, room_number, child_node),
                     .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
@@ -589,6 +605,78 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
         .block_id = block_id,
         .data = .fromOwnedSlice(result),
     } });
+}
+
+fn planObim(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try compileObim(cx, room_number, node_index, &out);
+
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = .OBIM,
+        .data = out,
+    } });
+}
+
+fn compileObim(
+    cx: *const Context,
+    room_number: u8,
+    node_index: u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const obim_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].obim;
+
+    var im_index: usize = 0;
+
+    const room_file = &cx.project.files.items[room_number].?;
+    for (room_file.ast.getExtra(obim_node.children)) |child_index| {
+        switch (room_file.ast.nodes.items[child_index]) {
+            .raw_block => |n| {
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+            },
+            .obim_im => {
+                const block_id = obim.makeImBlockId(im_index) orelse return error.BadData;
+                const im_start = try beginBlockAL(cx.gpa, out, block_id);
+                try compileIm(cx, room_number, child_index, out);
+                try endBlockAL(out, im_start);
+                im_index += 1;
+            },
+            else => unreachable,
+        }
+    }
+}
+
+fn compileIm(
+    cx: *const Context,
+    room_number: u8,
+    node_index: u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const im_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].obim_im;
+
+    const room_file = &cx.project.files.items[room_number].?;
+    for (room_file.ast.getExtra(im_node.children)) |child_index| {
+        switch (room_file.ast.nodes.items[child_index]) {
+            .raw_block => |n| {
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+            },
+            else => unreachable,
+        }
+    }
+}
+
+// TODO: this is duplicated
+fn encodeRawBlock(
+    gpa: std.mem.Allocator,
+    out: *std.ArrayListUnmanaged(u8),
+    block_id: BlockId,
+    dir: std.fs.Dir,
+    path: []const u8,
+) !void {
+    const start = try beginBlockAL(gpa, out, block_id);
+    try fs.readFileInto(dir, path, out.writer(gpa));
+    try endBlockAL(out, start);
 }
 
 fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {

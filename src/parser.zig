@@ -241,6 +241,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         encd,
         excd,
         lsc,
+        obim,
         awiz,
         mult,
         akos,
@@ -333,6 +334,10 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     } });
                     try appendNode(cx, &children, node_index);
                 },
+                .obim => {
+                    const node_index = try parseObim(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
                 .awiz => {
                     const node_index = try parseAwiz(cx, token);
                     try appendNode(cx, &children, node_index);
@@ -423,6 +428,69 @@ fn parseRmda(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     }
 
     return storeNode(cx, token, .{ .rmda = .{
+        .children = try storeExtra(cx, children.slice()),
+    } });
+}
+
+fn parseObim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        im,
+    };
+
+    try expect(cx, .brace_l);
+
+    var children: std.BoundedArray(Ast.NodeIndex, 12) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        switch (token2.kind) {
+            .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+                .im => {
+                    const node_index = try parseIm(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token2),
+        }
+    }
+
+    return storeNode(cx, token, .{ .obim = .{
+        .children = try storeExtra(cx, children.slice()),
+    } });
+}
+
+fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+    };
+
+    try expect(cx, .brace_l);
+
+    var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        switch (token2.kind) {
+            .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token2),
+        }
+    }
+
+    return storeNode(cx, token, .{ .obim_im = .{
         .children = try storeExtra(cx, children.slice()),
     } });
 }

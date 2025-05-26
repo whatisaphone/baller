@@ -91,6 +91,12 @@ pub const Node = union(enum) {
         script_number: u16,
         path: []const u8,
     },
+    obim: struct {
+        children: ExtraSlice,
+    },
+    obim_im: struct {
+        children: ExtraSlice,
+    },
     awiz: struct {
         glob_number: u16,
         children: ExtraSlice,
