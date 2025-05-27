@@ -64,37 +64,6 @@ pub fn decode(
     };
 }
 
-pub fn findApalInRmda(rmda_raw: []const u8) !*const [0x300]u8 {
-    var rmda_reader = std.io.fixedBufferStream(rmda_raw);
-    var rmda_blocks = oldFixedBlockReader(&rmda_reader);
-
-    const pals_len = try rmda_blocks.skipUntilBlock("PALS");
-    const pals_end: u32 = @intCast(rmda_reader.pos + pals_len);
-    var pals_blocks = oldFixedBlockReader(&rmda_reader);
-
-    const wrap_len = try pals_blocks.expect(.WRAP);
-    const wrap_end: u32 = @intCast(rmda_reader.pos + wrap_len);
-    var wrap_blocks = oldFixedBlockReader(&rmda_reader);
-
-    const offs_len = try wrap_blocks.expect(.OFFS);
-    _ = try io.readInPlace(&rmda_reader, offs_len);
-
-    const apal_len = try wrap_blocks.expect(.APAL);
-    const expected_apal_len = 0x300;
-    if (apal_len != expected_apal_len)
-        return error.BadData;
-    const result = try io.readInPlaceBytes(&rmda_reader, expected_apal_len);
-
-    try wrap_blocks.finish(wrap_end);
-
-    try pals_blocks.finish(pals_end);
-
-    // Don't check EOF since we only care about PALS
-    try rmda_blocks.checkSync();
-
-    return result;
-}
-
 fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
