@@ -2,8 +2,10 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const build = @import("build.zig");
+const dump = @import("dump.zig");
 const extract = @import("extract.zig");
 const fs = @import("fs.zig");
+const io = @import("io.zig");
 const fixture_hashes = @import("tests.zig").fixture_hashes;
 
 // Extract and rebuild every supported game, and verify the output is identical
@@ -121,6 +123,24 @@ test "Backyard Basketball round trip disasm" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
     }
+}
+
+test "dump smoke test" {
+    const in_path = "src/fixtures/baseball2001/baseball 2001.(b)";
+    const in_file = try std.fs.cwd().openFileZ(in_path, .{});
+    defer in_file.close();
+    var in_xor = io.xorReader(in_file.reader(), extract.xor_key);
+    var in_buf = std.io.bufferedReader(in_xor.reader());
+    var in_count = std.io.countingReader(in_buf.reader());
+    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
+
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+    const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
+
+    try dump.run(&in, &diag, "/tmp/dump");
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 
 fn testRoundTrip(

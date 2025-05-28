@@ -514,7 +514,112 @@ fn StreamingBlockResult(Stream: type) type {
     };
 }
 
+pub const FxbclReader = std.io.LimitedReader(std.io.CountingReader(std.io.BufferedReader(4096, io.XorReader(std.fs.File.Reader).Reader).Reader).Reader);
+
+pub const StreamingBlockReader2 = struct {
+    in: *FxbclReader,
+    diag: *const Diagnostic.ForBinaryFile,
+    state: union {
+        baseline: void,
+        inside_block: struct { next_limit: u32 },
+    },
+
+    pub fn init(in: *FxbclReader, diag: *const Diagnostic.ForBinaryFile) StreamingBlockReader2 {
+        return .{
+            .in = in,
+            .diag = diag,
+            .state = .{ .baseline = {} },
+        };
+    }
+
+    pub fn next(self: *StreamingBlockReader2) !?Block {
+        const offset, const header = try self.readHeader() orelse return null;
+        const block = self.validate(offset, header) orelse return error.BadData;
+        self.commit(&block);
+        return block;
+    }
+
+    pub fn readHeader(self: *const StreamingBlockReader2) !?struct { u32, RawBlockHeader } {
+        _ = self.state.baseline;
+        const offset: u32 = @intCast(self.in.inner_reader.context.bytes_read);
+        var header: RawBlockHeader = undefined;
+        const len = try self.in.reader().readAll(std.mem.asBytes(&header));
+        if (len == 0) return null;
+        if (len == Block.header_size) return .{ offset, header };
+        return error.EndOfStream;
+    }
+
+    pub fn validate(
+        self: *const StreamingBlockReader2,
+        offset: u32,
+        header: RawBlockHeader,
+    ) ?Block {
+        const raw_id = header.raw_id();
+        const id = BlockId.init(raw_id) orelse return null;
+
+        const raw_size = header.raw_size();
+        if (raw_size < Block.header_size) return null;
+        const size = raw_size - Block.header_size;
+        if (size > self.in.bytes_left) return null;
+
+        const start = offset + Block.header_size;
+        return .{ .start = start, .id = id, .size = size };
+    }
+
+    pub fn commit(self: *StreamingBlockReader2, block: *const Block) void {
+        _ = self.state.baseline;
+
+        self.diag.trace(block.offset(), "start block {}", .{block.id});
+
+        const pos: u32 = @intCast(self.in.inner_reader.context.bytes_read);
+        std.debug.assert(pos == block.start);
+
+        const prev_limit: u32 = @intCast(self.in.bytes_left);
+        const next_limit = prev_limit - block.size;
+        self.state = .{ .inside_block = .{ .next_limit = next_limit } };
+
+        self.in.bytes_left = block.size;
+    }
+
+    pub fn finish(self: *StreamingBlockReader2, block: *const Block) !void {
+        _ = self.state.inside_block;
+
+        const pos: u32 = @intCast(self.in.inner_reader.context.bytes_read);
+        self.diag.trace(pos, "end block {}", .{block.id});
+
+        if (self.in.bytes_left != 0) return error.BadData;
+        std.debug.assert(pos == block.end());
+
+        self.in.bytes_left = self.state.inside_block.next_limit;
+        self.state = .{ .baseline = {} };
+    }
+
+    pub fn end(self: *const StreamingBlockReader2) !void {
+        _ = self.state.baseline;
+        if (self.in.bytes_left != 0) return error.BadData;
+    }
+
+    pub fn expectMismatchedEnd(self: *const StreamingBlockReader2) void {
+        _ = self.state.baseline;
+    }
+};
+
+const RawBlockHeader = extern struct {
+    raw: [2]u32,
+
+    fn raw_id(self: *const RawBlockHeader) BlockId.Raw {
+        return self.raw[0];
+    }
+
+    fn raw_size(self: *const RawBlockHeader) u32 {
+        // big endian
+        return @byteSwap(self.raw[1]);
+    }
+};
+
 pub const Block = struct {
+    pub const header_size = block_header_size;
+
     id: BlockId,
     start: u32,
     size: u32,
