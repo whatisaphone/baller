@@ -6,6 +6,7 @@ const build_options = @import("build_options");
 const build = @import("build.zig");
 const dump = @import("dump.zig");
 const extract = @import("extract.zig");
+const saveload_dump = @import("saveload_dump.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
@@ -56,6 +57,15 @@ fn runCli() !void {
         try dump.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "extract")) {
         try extract.runCli(allocator, args[2..]);
+    } else if (std.mem.eql(u8, command, "saveload")) {
+        if (args.len < 1 + 2)
+            return error.CommandLine;
+        const subcommand = args[2];
+        if (std.mem.eql(u8, subcommand, "dump")) {
+            try saveload_dump.runCli(allocator, args[3..]);
+        } else {
+            return error.CommandLine;
+        }
     } else if (std.mem.eql(u8, command, "talkie")) {
         if (args.len < 1 + 2)
             return error.CommandLine;
@@ -121,6 +131,11 @@ const usage =
     \\                  (reads from stdin)
     \\    <output>      Path to output directory
     \\    -x=|--xor=    XOR key
+    \\
+    \\baller saveload dump
+    \\
+    \\                  (reads from stdin)
+    \\                  (writes to stdout)
     \\
 ;
 
