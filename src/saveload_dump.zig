@@ -5,6 +5,7 @@ const Block = @import("block_reader.zig").Block;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const cliargs = @import("cliargs.zig");
 const io = @import("io.zig");
+const utils = @import("utils.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var it: cliargs.Iterator = .init(args);
@@ -98,6 +99,8 @@ fn run(cx: *const Cx) !void {
         if (value != 0)
             try dumpVar(cx, "room", i, value);
 
+    try cx.out.writeByte('\n');
+
     while (!save_blocks.atEnd()) {
         const dbgl = try save_blocks.nextIf(.DBGL) orelse break;
         _ = try dbgl.bytes();
@@ -105,7 +108,8 @@ fn run(cx: *const Cx) !void {
 
     while (!save_blocks.atEnd()) {
         const hbgl = try save_blocks.nextIf(.HBGL) orelse break;
-        _ = try hbgl.bytes();
+        const raw = try hbgl.bytes();
+        try dumpHbgl(cx, raw);
     }
 
     try save_blocks.finish();
@@ -167,6 +171,127 @@ fn getArrayNumber(value: i32) ?u8 {
     if (@as(u32, @bitCast(value)) & 0xffffff00 != 0x33539000) return null;
     return @intCast(value & 0xff);
 }
+
+fn dumpHbgl(cx: *const Cx, raw: []const u8) !void {
+    if (raw.len < @sizeOf(HbglHeader)) return error.BadData;
+    const header = std.mem.bytesAsValue(HbglHeader, raw[0..@sizeOf(HbglHeader)]);
+    const payload = raw[@sizeOf(HbglHeader)..];
+    if (header.size != payload.len) return error.BadData;
+    try cx.out.print("glob {} {} = ", .{ header.type, header.number });
+    switch (header.type) {
+        .array => try dumpArray(cx, payload),
+        else => try cx.out.print("{}", .{std.fmt.fmtSliceHexLower(payload)}),
+    }
+    try cx.out.writeByte('\n');
+}
+
+fn dumpArray(cx: *const Cx, raw: []const u8) !void {
+    if (raw.len < @sizeOf(ArrayHeader)) return error.BadData;
+    // verify we can safely cast
+    _ = std.meta.intToEnum(ArrayHeader.Type, std.mem.readInt(u32, raw[0..4], .little)) catch
+        return error.BadData;
+    const header = std.mem.bytesAsValue(ArrayHeader, raw[0..@sizeOf(ArrayHeader)]);
+    const payload = raw[@sizeOf(ArrayHeader)..];
+
+    if (header.down_min > header.down_max) return error.BadData;
+    const down_len: u32 = @intCast(header.down_max - header.down_min + 1);
+    if (header.across_min > header.across_max) return error.BadData;
+    const across_len: u32 = @intCast(header.across_max - header.across_min + 1);
+    const expected_size = down_len * across_len * header.type.bytes();
+    if (payload.len < expected_size) return error.BadData;
+    const excess = payload.len - expected_size;
+    if (excess > 3) return error.BadData;
+
+    try cx.out.print("array {s} [{} to {}][{} to {}]\n", .{
+        header.type.str(),
+        header.down_min,
+        header.down_max,
+        header.across_min,
+        header.across_max,
+    });
+
+    var cur: utils.SafeManyPointer([*]const u8) = .init(payload);
+    for (0..down_len) |y_from_0| {
+        try cx.out.print("    [{}] =", .{utils.add(i32, header.down_min, y_from_0).?});
+        switch (header.type) {
+            .string => {
+                const str = cur.use()[0..across_len];
+                try cx.out.print(" \"{}\"", .{std.fmt.fmtSliceEscapeLower(str)});
+            },
+            else => {
+                for (0..across_len) |_| {
+                    const value = switch (header.type) {
+                        .int8 => cur.get(0),
+                        .string => unreachable,
+                        .int16 => std.mem.readInt(i16, cur.use()[0..2], .little),
+                        .int32 => std.mem.readInt(i32, cur.use()[0..4], .little),
+                    };
+                    try cx.out.print(" {}", .{value});
+                    cur = cur.plus(header.type.bytes());
+                }
+            },
+        }
+        try cx.out.writeByte('\n');
+    }
+}
+
+const HbglHeader = extern struct {
+    size: u32 align(1),
+    type: Type align(1),
+    number: u16 align(1),
+    modified: BoolU8 align(1),
+
+    const Type = enum(u16) {
+        array = 7,
+        _,
+
+        pub fn format(
+            self: Type,
+            comptime fmt: []const u8,
+            options: std.fmt.FormatOptions,
+            writer: anytype,
+        ) !void {
+            return fmtTagNameNonExhaustive(self).format(fmt, options, writer);
+        }
+    };
+};
+
+const ArrayHeader = extern struct {
+    type: Type,
+    across_min: i32,
+    across_max: i32,
+    down_min: i32,
+    down_max: i32,
+    unk_14: i32,
+    unk_18: i32,
+
+    const Type = enum(u32) {
+        int8 = 3,
+        string = 4,
+        int16 = 5,
+        int32 = 6,
+
+        fn bytes(self: Type) u8 {
+            return switch (self) {
+                .int8, .string => 1,
+                .int16 => 2,
+                .int32 => 4,
+            };
+        }
+
+        fn str(self: Type) []const u8 {
+            return switch (self) {
+                .int8 => "int8",
+                .string => "string",
+                .int16 => "int16",
+                .int32 => "int32",
+            };
+        }
+    };
+};
+
+/// avoid UB if we read a byte other than 0 or 1
+const BoolU8 = enum(u8) { false, true, _ };
 
 const first_lsc = 200;
 
@@ -272,3 +397,26 @@ const ActorTalkie = [144]u8;
 const Sentence = [11]u8;
 const Cutscene = [12]u8;
 const RecursiveStack = [12]u8;
+
+fn fmtTagNameNonExhaustive(value: anytype) FmtTagNameNonExhaustive(@TypeOf(value)) {
+    return .{ .value = value };
+}
+
+fn FmtTagNameNonExhaustive(E: type) type {
+    return struct {
+        value: E,
+
+        pub fn format(
+            self: @This(),
+            comptime fmt: []const u8,
+            options: std.fmt.FormatOptions,
+            writer: anytype,
+        ) !void {
+            comptime std.debug.assert(fmt.len == 0);
+            if (std.enums.tagName(E, self.value)) |name|
+                return std.fmt.formatText(name, "s", options, writer);
+            // XXX: this should not ignore `options`
+            return writer.print("0x{x}", .{@intFromEnum(self.value)});
+        }
+    };
+}

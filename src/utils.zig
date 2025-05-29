@@ -41,6 +41,14 @@ pub fn hasGuaranteedLayout(T: type) bool {
     };
 }
 
+pub fn add(T: type, a: anytype, b: anytype) ?T {
+    const Wide = std.math.IntFittingRange(
+        std.math.minInt(@TypeOf(a)) + std.math.minInt(@TypeOf(b)),
+        std.math.maxInt(@TypeOf(a)) + std.math.maxInt(@TypeOf(b)),
+    );
+    return std.math.cast(T, @as(Wide, a) + @as(Wide, b));
+}
+
 pub fn addUnsignedSigned(
     x: anytype,
     y: anytype,
@@ -130,6 +138,12 @@ pub fn SafeManyPointer(ManyPtr: type) type {
 
         pub fn getPtr(self: Self, index: usize) SinglePtr {
             return &self.use()[index];
+        }
+
+        pub fn plus(self: Self, count: usize) Self {
+            const ptr = self.ptr + count;
+            const len = if (store_len) self.len - count;
+            return .{ .ptr = ptr, .len = len };
         }
     };
 }
