@@ -136,7 +136,8 @@ fn scanBasicBlocks(
                 try insertBasicBlock(gpa, &result, target, .no_jump);
             },
             else => {
-                std.debug.assert(ins.operands.len == 0 or ins.operands.get(0) != .relative_offset);
+                for (ins.operands.slice()) |*o|
+                    std.debug.assert(o.* != .relative_offset);
             },
         };
     }
