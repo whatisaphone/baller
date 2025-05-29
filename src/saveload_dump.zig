@@ -91,12 +91,12 @@ fn run(cx: *const Cx) !void {
     try cx.out.writeAll("\nglobal vars:\n");
     for (result.global_vars, 0..) |value, i|
         if (value != 0)
-            try cx.out.print("    global{} = {}\n", .{ i, value });
+            try dumpVar(cx, "global", i, value);
 
     try cx.out.writeAll("\nroom vars:\n");
     for (result.room_vars, 0..) |value, i|
         if (value != 0)
-            try cx.out.print("    room{} = {}\n", .{ i, value });
+            try dumpVar(cx, "room", i, value);
 
     while (!save_blocks.atEnd()) {
         const dbgl = try save_blocks.nextIf(.DBGL) orelse break;
@@ -153,7 +153,19 @@ fn dumpScript(cx: *const Cx, save: *const Save, slot: usize) !void {
     const locals = &save.local_vars[slot];
     for (locals, 0..) |value, i|
         if (value != 0)
-            try cx.out.print("    local{} = {}\n", .{ i, value });
+            try dumpVar(cx, "local", i, value);
+}
+
+fn dumpVar(cx: *const Cx, prefix: []const u8, number: usize, value: i32) !void {
+    try cx.out.print("    {s}{} = {}", .{ prefix, number, value });
+    if (getArrayNumber(value)) |array_number|
+        try cx.out.print(" <array {}>", .{array_number});
+    try cx.out.writeByte('\n');
+}
+
+fn getArrayNumber(value: i32) ?u8 {
+    if (@as(u32, @bitCast(value)) & 0xffffff00 != 0x33539000) return null;
+    return @intCast(value & 0xff);
 }
 
 const first_lsc = 200;
