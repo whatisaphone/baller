@@ -153,7 +153,7 @@ fn scanBasicBlocks(
 
 fn jumpTarget(ins: *const lang.Ins, bytecode_len: u16) !u16 {
     const rel = ins.operands.get(0).relative_offset;
-    const target = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+    const target = utils.add(u16, ins.end, rel) orelse return error.BadData;
     if (target >= bytecode_len) return error.BadData;
     return target;
 }
@@ -791,7 +791,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         },
         .jump_if => {
             const rel = ins.operands.get(0).relative_offset;
-            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
             try cx.stmts.append(cx.gpa, .{ .jump_if = .{
                 .target = target,
@@ -800,7 +800,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         },
         .jump_unless => {
             const rel = ins.operands.get(0).relative_offset;
-            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
             try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
                 .target = target,
@@ -809,12 +809,12 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         },
         .jump => {
             const rel = ins.operands.get(0).relative_offset;
-            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const target = utils.add(u16, ins.end, rel).?;
             try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
         },
         .override => {
             const rel = ins.operands.get(0).relative_offset;
-            const target = utils.addUnsignedSigned(ins.end, rel).?;
+            const target = utils.add(u16, ins.end, rel).?;
             try cx.stmts.append(cx.gpa, .{ .override = .{ .target = target } });
         },
         .generic => |gen| {

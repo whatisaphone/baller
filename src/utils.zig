@@ -49,32 +49,6 @@ pub fn add(T: type, a: anytype, b: anytype) ?T {
     return std.math.cast(T, @as(Wide, a) + @as(Wide, b));
 }
 
-pub fn addUnsignedSigned(
-    x: anytype,
-    y: anytype,
-) ?AddUnsignedSigned(@TypeOf(x), @TypeOf(y)) {
-    const Result = AddUnsignedSigned(@TypeOf(x), @TypeOf(y));
-
-    const wide_bits = @typeInfo(Result).int.bits + 2;
-    const Wide = @Type(.{ .int = .{ .bits = wide_bits, .signedness = .signed } });
-
-    // TODO: is there a better way to do this? this is mildly insane
-    const result = @as(Wide, x) + @as(Wide, y);
-    return std.math.cast(Result, result);
-}
-
-fn AddUnsignedSigned(X: type, Y: type) type {
-    const xi = @typeInfo(X).int;
-    const yi = @typeInfo(Y).int;
-    std.debug.assert(xi.signedness == .unsigned);
-    std.debug.assert(yi.signedness == .signed);
-    const bits = @max(xi.bits, yi.bits);
-    return @Type(.{ .int = .{
-        .signedness = .unsigned,
-        .bits = bits,
-    } });
-}
-
 pub fn SafeUndefined(T: type) type {
     return union {
         undefined: void,

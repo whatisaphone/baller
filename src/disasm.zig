@@ -128,7 +128,7 @@ fn findJumpTargets(
         const rel = op.relative_offset;
 
         // Calc and store the absolute jump target
-        const abs = utils.addUnsignedSigned(ins.end, rel) orelse return error.BadData;
+        const abs = utils.add(u16, ins.end, rel) orelse return error.BadData;
         try insertSortedNoDup(allocator, &targets, abs);
     }
     std.debug.assert(std.sort.isSorted(u16, targets.items, {}, std.sort.asc(u16)));
@@ -170,7 +170,7 @@ fn emitOperand(
         },
         .relative_offset => |rel| {
             // This was already verified not to overflow in findJumpTargets
-            const abs = utils.addUnsignedSigned(pc, rel).?;
+            const abs = utils.add(u16, pc, rel).?;
             std.debug.assert(std.mem.indexOfScalar(u16, jump_targets, abs) != null);
             try emitLabel(abs, out);
         },
