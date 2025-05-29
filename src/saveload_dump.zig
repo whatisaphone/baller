@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const Block = @import("block_reader.zig").Block;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const cliargs = @import("cliargs.zig");
 const io = @import("io.zig");
@@ -80,41 +81,22 @@ fn run(cx: *const Cx) !void {
     try fill(cx, &result.recursive_stack_ptr);
     try fill(cx, &result.skipped_blob_2);
 
-    try dumpBytes(cx, "room", &result.room);
-    try dumpArray(cx, "objects", &result.objects);
-    try dumpArray(cx, "scripts", &result.scripts);
-    try dumpArray(cx, "polygons", &result.polygons);
-    try dumpArray(cx, "default_actor_clipping", &result.default_actor_clipping);
-    try dumpArray(cx, "actors", &result.actors);
-    try dumpArray(cx, "array_local_script_number", &result.array_local_script_number);
-    try dumpArray(cx, "local_scripts_offset", &result.local_scripts_offset);
-    try dumpArray(cx, "local_scripts_data_offset", &result.local_scripts_data_offset);
-    try dumpArray(cx, "object_states", &result.object_states);
-    try dumpArray(cx, "object_owners", &result.object_owners);
-    try dumpArray(cx, "object_rooms", &result.object_rooms);
-    try dumpArray(cx, "object_classes", &result.object_classes);
-    try dumpArray(cx, "global_vars", &result.global_vars);
-    try dumpArray(cx, "room_vars", &result.room_vars);
-    try dumpArray(cx, "local_vars", &result.local_vars);
-    try dumpArray(cx, "new_object_names", &result.new_object_names);
-    try dumpArray(cx, "room_pseudo_table", &result.room_pseudo_table);
-    try dumpArray(cx, "stack", &result.stack);
-    try dumpBytes(cx, "stack_ptr", &result.stack_ptr);
-    try dumpArray(cx, "text_colors", &result.text_colors);
-    try dumpArray(cx, "charset_colors", &result.charset_colors);
-    try dumpArray(cx, "actor_talkies", &result.actor_talkies);
-    try dumpBytes(cx, "next_script", &result.next_script);
-    try dumpBytes(cx, "cur_script_slot", &result.cur_script_slot);
-    try dumpBytes(cx, "skipped_blob_1", &result.skipped_blob_1);
-    try dumpBytes(cx, "msgs_buffer", &result.msgs_buffer);
-    try dumpBytes(cx, "msgs_ptr", &result.msgs_ptr);
-    try dumpBytes(cx, "sentence_queue_ptr", &result.sentence_queue_ptr);
-    try dumpArray(cx, "sentence_queue", &result.sentence_queue);
-    try dumpBytes(cx, "cutscene_stack_ptr", &result.cutscene_stack_ptr);
-    try dumpArray(cx, "cutscene", &result.cutscene);
-    try dumpArray(cx, "recursive_stacks", &result.recursive_stacks);
-    try dumpBytes(cx, "recursive_stack_ptr", &result.recursive_stack_ptr);
-    // try dumpBytes(cx, "skipped_blob_2", &result.skipped_blob_2);
+    try cx.out.print("room: {}\n", .{result.room.number});
+    try cx.out.print("cur_script_slot: {}\n", .{result.cur_script_slot});
+    try cx.out.print("next_script: {}\n", .{result.next_script});
+    try cx.out.print("stack_ptr: {}\n", .{result.stack_ptr});
+    for (0..result.scripts.len) |i|
+        try dumpScript(cx, &result, i);
+
+    try cx.out.writeAll("\nglobal vars:\n");
+    for (result.global_vars, 0..) |value, i|
+        if (value != 0)
+            try cx.out.print("    global{} = {}\n", .{ i, value });
+
+    try cx.out.writeAll("\nroom vars:\n");
+    for (result.room_vars, 0..) |value, i|
+        if (value != 0)
+            try cx.out.print("    room{} = {}\n", .{ i, value });
 
     while (!save_blocks.atEnd()) {
         const dbgl = try save_blocks.nextIf(.DBGL) orelse break;
@@ -135,6 +117,47 @@ fn fill(cx: *const Cx, ptr: anytype) !void {
     ptr.* = value.*;
 }
 
+fn dumpScript(cx: *const Cx, save: *const Save, slot: usize) !void {
+    const script = &save.scripts[slot];
+    if (script.state == .dead) return;
+
+    try cx.out.print("\nscript slot {}: [{c}] ", .{ slot, script.state.char() });
+    const type_str = switch (script.type) {
+        .inventory => "inv",
+        .object => "obj",
+        .script => "scr",
+        .local_script => "lsc",
+        .flobject => "flo",
+        _ => "err",
+    };
+    try cx.out.print("{s}{}, pc=", .{ type_str, script.script });
+
+    const real_pc = pc: switch (script.type) {
+        .script => script.pc - Block.header_size,
+        .local_script => {
+            if (script.script < first_lsc) break :pc null;
+            const number: u32 = @intCast(script.script - first_lsc);
+            if (number >= maxs_local_scripts) break :pc null;
+            break :pc script.pc -
+                save.local_scripts_offset[number] -
+                save.local_scripts_data_offset[number];
+        },
+        else => null,
+    };
+    if (real_pc) |pc|
+        try cx.out.print("0x{x}", .{pc})
+    else
+        try cx.out.print("(raw)0x{x}", .{script.pc});
+    try cx.out.writeByte('\n');
+
+    const locals = &save.local_vars[slot];
+    for (locals, 0..) |value, i|
+        if (value != 0)
+            try cx.out.print("    local{} = {}\n", .{ i, value });
+}
+
+const first_lsc = 200;
+
 const maxs_variables = 500;
 const maxs_room_variables = 64;
 const maxs_objects_in_room = 200;
@@ -151,8 +174,8 @@ const Save = struct {
     default_actor_clipping: [4]i32,
     actors: [62]Actor,
     array_local_script_number: [maxs_arrays]i32,
-    local_scripts_offset: [maxs_local_scripts]i32,
-    local_scripts_data_offset: [maxs_local_scripts]i32,
+    local_scripts_offset: [maxs_local_scripts]u32,
+    local_scripts_data_offset: [maxs_local_scripts]u32,
     object_states: [maxs_objects]u8,
     object_owners: [maxs_objects]u8,
     object_rooms: [maxs_objects]u8,
@@ -181,28 +204,59 @@ const Save = struct {
     skipped_blob_2: [26043]u8,
 };
 
-const Room = [44]u8;
+const Room = extern struct {
+    number: i32,
+    skipped_blob: [40]u8,
+};
+
 const Object = [56]u8;
-const Script = [52]u8;
+
+const Script = extern struct {
+    pc: u32,
+    sleep: i32,
+    script: i32,
+    break_count: i32,
+    state: State,
+    type: Type,
+    bak: i32,
+    rec: i32,
+    freeze: i32,
+    once: i32,
+    cutscene: i32,
+    priority: i32,
+    flags: i32,
+
+    const State = enum(i32) {
+        dead,
+        sleeping,
+        running,
+        halted = 128,
+        _,
+
+        fn char(self: State) u8 {
+            return switch (self) {
+                .dead => 'D',
+                .sleeping => 'S',
+                .running => 'R',
+                .halted => 'H',
+                else => '?',
+            };
+        }
+    };
+
+    const Type = enum(i32) {
+        inventory,
+        object,
+        script,
+        local_script,
+        flobject,
+        _,
+    };
+};
+
 const Polygon = [68]u8;
 const Actor = [1923]u8;
 const ActorTalkie = [144]u8;
 const Sentence = [11]u8;
 const Cutscene = [12]u8;
 const RecursiveStack = [12]u8;
-
-fn dumpBytes(cx: *const Cx, name: []const u8, ptr: anytype) !void {
-    try cx.out.print(
-        "{s}: {}\n",
-        .{ name, std.fmt.fmtSliceHexLower(std.mem.asBytes(ptr)) },
-    );
-}
-
-fn dumpArray(cx: *const Cx, name: []const u8, slice: anytype) !void {
-    for (slice, 0..) |*item, index| {
-        try cx.out.print(
-            "{s}[{}]: {}\n",
-            .{ name, index, std.fmt.fmtSliceHexLower(std.mem.asBytes(item)) },
-        );
-    }
-}
