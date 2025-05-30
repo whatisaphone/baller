@@ -139,6 +139,7 @@ pub const Op = enum {
     @"sprite-set-order",
     @"sprite-move",
     @"sprite-set-state",
+    @"sprite-select-one",
     @"sprite-select-range",
     @"sprite-set-image",
     @"sprite-set-position",
@@ -448,12 +449,12 @@ pub const LangOperand = enum {
 
 pub fn buildLanguage(game: Game) Language {
     return if (game != .basketball)
-        buildNormalLanguage()
+        buildNormalLanguage(game)
     else
         builtBasketballLanguage();
 }
 
-fn buildNormalLanguage() Language {
+fn buildNormalLanguage(game: Game) Language {
     var lang: Language = .{};
 
     lang.add(0x00, .@"push-u8", &.{.u8});
@@ -537,7 +538,10 @@ fn buildNormalLanguage() Language {
     lang.addNested(0x26, 0x2b, .@"sprite-set-order", &.{});
     lang.addNested(0x26, 0x2c, .@"sprite-move", &.{});
     lang.addNested(0x26, 0x34, .@"sprite-set-state", &.{});
-    lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
+    if (game.le(.baseball_1997))
+        lang.addNested(0x26, 0x39, .@"sprite-select-one", &.{})
+    else
+        lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
     lang.addNested(0x26, 0x3f, .@"sprite-set-image", &.{});
     lang.addNested(0x26, 0x41, .@"sprite-set-position", &.{});
     lang.addNested(0x26, 0x44, "sprite-erase", &.{});

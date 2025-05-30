@@ -368,6 +368,7 @@ pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
     .@"sprite-set-order" = .gen(&.{.int}),
     .@"sprite-move" = .gen(&.{ .int, .int }),
     .@"sprite-set-state" = .gen(&.{.int}),
+    .@"sprite-select-one" = .gen(&.{.int}),
     .@"sprite-select-range" = .gen(&.{ .int, .int }),
     .@"sprite-set-image" = .gen(&.{.int}),
     .@"sprite-set-position" = .gen(&.{ .int, .int }),
