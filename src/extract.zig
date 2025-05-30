@@ -242,7 +242,7 @@ pub fn run(
     if (args.options.anyScriptDecode()) {
         language = lang.buildLanguage(game);
         language_ptr = .{ .defined = &language };
-        op_map = decompile.buildOpMap();
+        op_map = decompile.buildOpMap(game);
         op_map_ptr = .{ .defined = &op_map };
     }
 

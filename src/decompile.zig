@@ -299,7 +299,7 @@ pub const Op = union(enum) {
     }
 };
 
-pub fn buildOpMap() std.EnumArray(lang.Op, Op) {
+pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     // undefined entries will not be reachable as long as this is kept in sync
     // with `buildLanguage`.
     var result: std.EnumArray(lang.Op, Op) = undefined;
@@ -374,8 +374,10 @@ pub fn buildOpMap() std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-set-order", .gen(&.{.int}));
     result.set(.@"sprite-move", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-state", .gen(&.{.int}));
-    result.set(.@"sprite-select-one", .gen(&.{.int}));
-    result.set(.@"sprite-select-range", .gen(&.{ .int, .int }));
+    if (game.le(.baseball_1997))
+        result.set(.@"sprite-select-one", .gen(&.{.int}))
+    else
+        result.set(.@"sprite-select-range", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-image", .gen(&.{.int}));
     result.set(.@"sprite-set-position", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-step-dist", .gen(&.{ .int, .int }));

@@ -69,7 +69,7 @@ pub fn run(
     (blk: {
         const language = lang.buildLanguage(game);
         const ins_map = lang.buildInsMap(gpa, &language) catch |err| break :blk err;
-        const op_map = decompile.buildOpMap();
+        const op_map = decompile.buildOpMap(game);
         cx = .{
             .gpa = gpa,
             .diagnostic = diagnostic,
