@@ -237,9 +237,13 @@ pub fn run(
 
     var language: lang.Language = undefined;
     var language_ptr: utils.SafeUndefined(*const lang.Language) = .undef;
+    var op_map: std.EnumArray(lang.Op, decompile.Op) = undefined;
+    var op_map_ptr: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)) = .undef;
     if (args.options.anyScriptDecode()) {
         language = lang.buildLanguage(game);
         language_ptr = .{ .defined = &language };
+        op_map = decompile.buildOpMap();
+        op_map_ptr = .{ .defined = &op_map };
     }
 
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
@@ -253,6 +257,7 @@ pub fn run(
         .options = args.options,
         .game = game,
         .language = language_ptr,
+        .op_map = op_map_ptr,
         .symbols = &symbols,
         .index = &index,
         .global_var_usage = @splat(0),
@@ -597,6 +602,7 @@ const Context = struct {
     options: Options,
     game: games.Game,
     language: utils.SafeUndefined(*const lang.Language),
+    op_map: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)),
     symbols: *const Symbols,
     index: *const Index,
     global_var_usage: UsageTracker.GlobalVars,
@@ -1305,7 +1311,7 @@ fn extractEncdExcdDecompile(
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1449,7 +1455,7 @@ fn extractLscDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1706,7 +1712,7 @@ fn extractScrpDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

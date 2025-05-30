@@ -15,6 +15,8 @@ const utils = @import("utils.zig");
 pub fn run(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
+    language: *const lang.Language,
+    op_map: *const std.EnumArray(lang.Op, Op),
     symbols: *const Symbols,
     room_number: u8,
     id: Symbols.ScriptId,
@@ -29,15 +31,14 @@ pub fn run(
     // Leave an extra byte so the end of a slice is representable as 0xffff.
     if (bytecode.len > 0xfffe) return error.BadData;
 
-    const language = lang.buildLanguage(symbols.game);
-
-    var basic_blocks = try scanBasicBlocks(gpa, &language, bytecode);
+    var basic_blocks = try scanBasicBlocks(gpa, language, bytecode);
     defer basic_blocks.deinit(gpa);
 
     var dcx: DecompileCx = .{
         .gpa = gpa,
         .diag = diag,
-        .language = &language,
+        .language = language,
+        .op_map = op_map,
         .basic_blocks = basic_blocks.items,
 
         .pending_basic_blocks = .empty,
@@ -219,6 +220,7 @@ const DecompileCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     language: *const lang.Language,
+    op_map: *const std.EnumArray(lang.Op, Op),
     basic_blocks: []BasicBlock,
 
     pending_basic_blocks: std.ArrayListUnmanaged(u16),
@@ -264,7 +266,7 @@ const ExtraSlice = struct {
     len: u16,
 };
 
-const Op = union(enum) {
+pub const Op = union(enum) {
     push8,
     push16,
     push32,
@@ -297,348 +299,354 @@ const Op = union(enum) {
     }
 };
 
-pub const ops: std.EnumArray(lang.Op, Op) = initEnumArrayFixed(lang.Op, Op, .{
-    .@"push-u8" = .push8,
-    .@"push-i16" = .push16,
-    .@"push-i32" = .push32,
-    .@"push-var" = .push_var,
-    .@"push-str" = .push_str,
-    .@"get-array-item" = .genCall(&.{.int}),
-    .@"dup-multi" = .dup_multi,
-    .@"get-array-item-2d" = .genCall(&.{ .int, .int }),
-    .dup = .dup,
-    .not = .genCall(&.{.int}),
-    .eq = .genCall(&.{ .int, .int }),
-    .ne = .genCall(&.{ .int, .int }),
-    .gt = .genCall(&.{ .int, .int }),
-    .lt = .genCall(&.{ .int, .int }),
-    .le = .genCall(&.{ .int, .int }),
-    .ge = .genCall(&.{ .int, .int }),
-    .add = .genCall(&.{ .int, .int }),
-    .sub = .genCall(&.{ .int, .int }),
-    .mul = .genCall(&.{ .int, .int }),
-    .div = .genCall(&.{ .int, .int }),
-    .land = .genCall(&.{ .int, .int }),
-    .lor = .genCall(&.{ .int, .int }),
-    .pop = .gen(&.{.int}),
-    .@"in-list" = .genCall(&.{ .int, .list }),
-    .@"image-set-width" = .gen(&.{.int}),
-    .@"image-set-height" = .gen(&.{.int}),
-    .@"image-draw" = .gen(&.{}),
-    .@"image-load-external" = .gen(&.{.string}),
-    .@"image-capture" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"image-set-state" = .gen(&.{.int}),
-    .@"image-set-flags" = .gen(&.{.int}),
-    .@"draw-image-at" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"image-select" = .gen(&.{.int}),
-    .@"image-set-pos" = .gen(&.{ .int, .int }),
-    .@"image-set-palette" = .gen(&.{.int}),
-    .@"image-set-shadow" = .gen(&.{.int}),
-    .@"image-set-draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"image-set-render-image" = .gen(&.{.int}),
-    .@"image-set-hotspot" = .gen(&.{ .int, .int }),
-    .@"image-new" = .gen(&.{}),
-    .@"image-set-polygon" = .gen(&.{.int}),
-    .@"image-commit" = .gen(&.{}),
-    .min = .genCall(&.{ .int, .int }),
-    .max = .genCall(&.{ .int, .int }),
-    .sin = .genCall(&.{.int}),
-    .cos = .genCall(&.{.int}),
-    .sqrt = .genCall(&.{.int}),
-    .@"angle-from-delta" = .genCall(&.{ .int, .int }),
-    .@"angle-from-line" = .genCall(&.{ .int, .int, .int, .int }),
-    .@"line-length-2d" = .genCall(&.{ .int, .int, .int, .int }),
-    .@"line-length-3d" = .genCall(&.{ .int, .int, .int, .int, .int, .int }),
-    .@"sprite-get-object-x" = .genCall(&.{.int}),
-    .@"sprite-get-object-y" = .genCall(&.{.int}),
-    .@"sprite-get-state-count" = .genCall(&.{.int}),
-    .@"sprite-get-group" = .genCall(&.{.int}),
-    .@"sprite-get-object-draw-x" = .genCall(&.{.int}),
-    .@"sprite-get-object-draw-y" = .genCall(&.{.int}),
-    .@"sprite-get-order" = .genCall(&.{.int}),
-    .@"find-sprite" = .genCall(&.{ .int, .int, .int, .int, .list }),
-    .@"sprite-get-state" = .genCall(&.{.int}),
-    .@"sprite-get-image" = .genCall(&.{.int}),
-    .@"sprite-get-palette" = .genCall(&.{.int}),
-    .@"sprite-get-update-type" = .genCall(&.{.int}),
-    .@"sprite-class" = .genCall(&.{ .int, .list }),
-    .@"sprite-get-variable" = .genCall(&.{ .int, .int }),
-    .@"sprite-set-group" = .gen(&.{.int}),
-    .@"sprite-set-property" = .gen(&.{ .int, .int }),
-    .@"sprite-set-order" = .gen(&.{.int}),
-    .@"sprite-move" = .gen(&.{ .int, .int }),
-    .@"sprite-set-state" = .gen(&.{.int}),
-    .@"sprite-select-one" = .gen(&.{.int}),
-    .@"sprite-select-range" = .gen(&.{ .int, .int }),
-    .@"sprite-set-image" = .gen(&.{.int}),
-    .@"sprite-set-position" = .gen(&.{ .int, .int }),
-    .@"sprite-set-step-dist" = .gen(&.{ .int, .int }),
-    .@"sprite-set-animation-type" = .gen(&.{.int}),
-    .@"sprite-set-palette" = .gen(&.{.int}),
-    .@"sprite-set-animation-speed" = .gen(&.{.int}),
-    .@"sprite-set-shadow" = .gen(&.{.int}),
-    .@"sprite-set-update-type" = .gen(&.{.int}),
-    .@"sprite-set-class" = .gen(&.{.list}),
-    .@"sprite-mask-image" = .gen(&.{.int}),
-    .@"sprite-restart" = .gen(&.{}),
-    .@"sprite-variable-range" = .gen(&.{ .int, .int }),
-    .@"sprite-new" = .gen(&.{}),
-    .@"sprite-group-get" = .genCall(&.{.int}),
-    .@"sprite-group-get-object-x" = .genCall(&.{.int}),
-    .@"sprite-group-get-object-y" = .genCall(&.{.int}),
-    .@"sprite-group-move" = .gen(&.{ .int, .int }),
-    .@"sprite-group-select" = .gen(&.{.int}),
-    .@"sprite-group-set-position" = .gen(&.{ .int, .int }),
-    .@"sprite-group-set-clip" = .gen(&.{ .int, .int, .int, .int }),
-    .@"sprite-group-new" = .gen(&.{}),
-    .@"image-get-object-x" = .genCall(&.{ .int, .int }),
-    .@"image-get-object-y" = .genCall(&.{ .int, .int }),
-    .@"image-get-width" = .genCall(&.{ .int, .int }),
-    .@"image-get-height" = .genCall(&.{ .int, .int }),
-    .@"image-get-state-count" = .genCall(&.{.int}),
-    .@"image-get-color-at" = .genCall(&.{ .int, .int, .int, .int }),
-    .@"actor-get-property" = .genCall(&.{ .int, .int, .int }),
-    .@"start-script-order" = .gen(&.{ .int, .int, .variadic }),
-    .@"chain-script-order" = .gen(&.{ .int, .int, .variadic }),
-    .mod = .genCall(&.{ .int, .int }),
-    .shl = .genCall(&.{ .int, .int }),
-    .shr = .genCall(&.{ .int, .int }),
-    .@"find-all-objects" = .genCall(&.{ .int, .list }),
-    .iif = .genCall(&.{ .int, .int, .int }),
-    .@"dim-array-range.int8" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"dim-array-range.int16" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"redim-array-range.int16" = .gen(&.{ .int, .int, .int, .int }),
-    .@"array-sort" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .set = .gen(&.{.int}),
-    .@"file-size" = .genCall(&.{.string}),
-    .@"set-array-item" = .gen(&.{ .int, .int }),
-    .@"string-number" = .genCall(&.{.int}),
-    .@"set-array-item-2d" = .gen(&.{ .int, .int, .int }),
-    .@"read-ini-int" = .genCall(&.{ .int, .string, .string }),
-    .@"read-ini-string" = .genCall(&.{ .int, .string, .string }),
-    .@"write-ini-int" = .gen(&.{ .string, .string, .string, .int }),
-    .@"write-ini-string" = .gen(&.{ .string, .string, .string, .string }),
-    .inc = .gen(&.{}),
-    .@"override-off-off" = .gen(&.{}),
-    .@"inc-array-item" = .gen(&.{.int}),
-    .@"get-object-image-x" = .genCall(&.{.int}),
-    .@"get-object-image-y" = .genCall(&.{.int}),
-    .dec = .gen(&.{}),
-    .@"get-timer" = .genCall(&.{.int}),
-    .@"sound-position" = .genCall(&.{.int}),
-    .@"dec-array-item" = .gen(&.{.int}),
-    .@"jump-if" = .jump_if,
-    .@"jump-unless" = .jump_unless,
-    .@"start-script" = .gen(&.{ .int, .variadic }),
-    .@"start-script-rec" = .gen(&.{ .int, .variadic }),
-    .@"start-object" = .gen(&.{ .int, .int, .variadic }),
-    .@"start-object-rec" = .gen(&.{ .int, .int, .variadic }),
-    .@"draw-object" = .gen(&.{ .int, .int }),
-    .@"print-image" = .gen(&.{.int}),
-    .@"array-get-dim" = .genCall(&.{}),
-    .@"array-get-height" = .genCall(&.{}),
-    .@"array-get-width" = .genCall(&.{}),
-    .@"free-arrays" = .genCall(&.{}),
-    .end2 = .gen(&.{}),
-    .end = .gen(&.{}),
-    .@"window-select" = .gen(&.{.int}),
-    .@"window-set-image" = .gen(&.{.int}),
-    .@"window-new" = .gen(&.{}),
-    .@"window-set-script" = .gen(&.{.int}),
-    .@"window-set-title-bar" = .gen(&.{.string}),
-    .@"window-commit" = .gen(&.{}),
-    .@"freeze-scripts" = .gen(&.{.int}),
-    .@"cursor-bw" = .gen(&.{.int}),
-    .@"cursor-color" = .gen(&.{.int}),
-    .@"cursor-on" = .gen(&.{}),
-    .@"cursor-off" = .gen(&.{}),
-    .@"userput-on" = .gen(&.{}),
-    .@"userput-off" = .gen(&.{}),
-    .@"cursor-soft-on" = .gen(&.{}),
-    .@"cursor-soft-off" = .gen(&.{}),
-    .charset = .gen(&.{.int}),
-    .@"charset-color" = .gen(&.{.list}),
-    .@"break-here" = .gen(&.{}),
-    .@"class-of" = .genCall(&.{ .int, .list }),
-    .@"object-set-class" = .gen(&.{ .int, .list }),
-    .@"object-get-state" = .genCall(&.{.int}),
-    .@"object-set-state" = .gen(&.{ .int, .int }),
-    .jump = .jump,
-    .@"sound-soft" = .gen(&.{}),
-    .@"sound-channel" = .gen(&.{.int}),
-    .@"sound-at" = .gen(&.{.int}),
-    .@"sound-select" = .gen(&.{.int}),
-    .@"sound-looping" = .gen(&.{}),
-    .@"sound-start" = .gen(&.{}),
-    .@"stop-sound" = .gen(&.{.int}),
-    .@"current-room" = .gen(&.{.int}),
-    .@"stop-script" = .gen(&.{.int}),
-    .@"put-actor" = .gen(&.{ .int, .int, .int, .int }),
-    .@"do-animation" = .gen(&.{ .int, .int }),
-    .random = .genCall(&.{.int}),
-    .@"random-between" = .genCall(&.{ .int, .int }),
-    .@"script-running" = .genCall(&.{.int}),
-    .@"actor-room" = .genCall(&.{.int}),
-    .@"actor-x" = .genCall(&.{.int}),
-    .@"actor-y" = .genCall(&.{.int}),
-    .@"actor-get-costume" = .genCall(&.{.int}),
-    .@"palette-color" = .genCall(&.{ .int, .int }),
-    .rgb = .genCall(&.{ .int, .int, .int }),
-    .override = .override,
-    .@"override-off" = .gen(&.{}),
-    .@"sound-running" = .genCall(&.{.int}),
-    .@"load-script" = .gen(&.{.int}),
-    .@"load-sound" = .gen(&.{.int}),
-    .@"load-costume" = .gen(&.{.int}),
-    .@"nuke-sound" = .gen(&.{.int}),
-    .@"nuke-costume" = .gen(&.{.int}),
-    .@"lock-script" = .gen(&.{.int}),
-    .@"lock-costume" = .gen(&.{.int}),
-    .@"unlock-costume" = .gen(&.{.int}),
-    .@"load-charset" = .gen(&.{.int}),
-    .@"preload-sound" = .gen(&.{.int}),
-    .@"preload-costume" = .gen(&.{.int}),
-    .@"preload-room" = .gen(&.{.int}),
-    .@"unlock-image" = .gen(&.{.int}),
-    .@"nuke-image" = .gen(&.{.int}),
-    .@"load-image" = .gen(&.{.int}),
-    .@"lock-image" = .gen(&.{.int}),
-    .@"preload-image" = .gen(&.{.int}),
-    .intensity = .gen(&.{ .int, .int, .int }),
-    .fades = .gen(&.{.int}),
-    .palette = .gen(&.{.int}),
-    .@"saveload-game" = .gen(&.{ .int, .string }),
-    .@"actor-set-condition" = .gen(&.{ .int, .int }),
-    .@"actor-set-order" = .gen(&.{.int}),
-    .@"actor-set-clipped" = .gen(&.{ .int, .int, .int, .int }),
-    .@"actor-set-position" = .gen(&.{ .int, .int }),
-    .@"actor-set-clip" = .gen(&.{ .int, .int, .int, .int }),
-    .@"actor-set-costume" = .gen(&.{.int}),
-    .@"actor-set-sounds" = .gen(&.{.list}),
-    .@"actor-set-talk-animation" = .gen(&.{ .int, .int }),
-    .@"actor-set-elevation" = .gen(&.{.int}),
-    .@"actor-set-color" = .gen(&.{ .int, .int }),
-    .@"actor-set-talk-color" = .gen(&.{.int}),
-    .@"actor-set-scale" = .gen(&.{.int}),
-    .@"actor-never-zclip" = .gen(&.{}),
-    .@"actor-always-zclip" = .gen(&.{.int}),
-    .@"actor-ignore-boxes" = .gen(&.{}),
-    .@"actor-set-animation-speed" = .gen(&.{.int}),
-    .@"actor-set-shadow" = .gen(&.{.int}),
-    .@"actor-set-text-offset" = .gen(&.{ .int, .int }),
-    .@"actor-select" = .gen(&.{.int}),
-    .@"actor-set-var" = .gen(&.{ .int, .int }),
-    .@"actor-new" = .gen(&.{}),
-    .@"actor-bak-on" = .gen(&.{}),
-    .@"palette-select" = .gen(&.{.int}),
-    .@"palette-from-image" = .gen(&.{ .int, .int }),
-    .@"palette-set-rgb" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .@"palette-set-color" = .gen(&.{ .int, .int, .int }),
-    .@"palette-from-palette" = .gen(&.{.int}),
-    .@"palette-new" = .gen(&.{}),
-    .@"palette-commit" = .gen(&.{}),
-    .@"find-actor" = .genCall(&.{ .int, .int }),
-    .@"assign-string" = .gen(&.{.string}),
-    .@"find-object" = .genCall(&.{ .int, .int }),
-    .@"valid-verb" = .genCall(&.{ .int, .int }),
-    .@"actor-get-elevation" = .genCall(&.{.int}),
-    .@"array-assign-list" = .gen(&.{ .int, .int, .int, .int, .list }),
-    .@"array-assign-slice" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }),
-    .@"array-assign-range" = .gen(&.{ .int, .int, .int, .int, .int, .int }),
-    .sprintf = .gen(&.{ .string, .int, .variadic }),
-    .@"array-assign" = .gen(&.{ .list, .int }),
-    .@"array-set-row" = .gen(&.{ .int, .list }),
-    .@"draw-box" = .gen(&.{ .int, .int, .int, .int, .int }),
-    .debug = .gen(&.{.int}),
-    .@"wait-for-message" = .gen(&.{}),
-    .@"actor-get-scale" = .genCall(&.{.int}),
-    .in = .genCall(&.{ .int, .list }),
-    .@"update-screen" = .gen(&.{}),
-    .quit = .gen(&.{}),
-    .@"quit-quit" = .gen(&.{}),
-    .@"sleep-for" = .gen(&.{.int}),
-    .@"sleep-for-seconds" = .gen(&.{.int}),
-    .@"stop-sentence" = .gen(&.{}),
-    .@"print-text-position" = .gen(&.{ .int, .int }),
-    .@"print-text-center" = .gen(&.{}),
-    .@"print-text-printf" = .gen(&.{ .int, .variadic }),
-    .@"print-text-color" = .gen(&.{.list}),
-    .@"print-text-start" = .gen(&.{}),
-    .@"print-debug-string" = .gen(&.{}),
-    .@"print-debug-printf" = .gen(&.{ .int, .variadic }),
-    .@"print-debug-start" = .gen(&.{}),
-    .@"print-debug-empty" = .gen(&.{}),
-    .@"print-system-string" = .gen(&.{}),
-    .@"print-system-printf" = .gen(&.{ .int, .variadic }),
-    .@"print-system-start" = .gen(&.{}),
-    .@"say-line-position" = .gen(&.{ .int, .int }),
-    .@"say-line-string" = .gen(&.{}),
-    .@"say-line-talkie" = .gen(&.{.int}),
-    .@"say-line-color" = .gen(&.{.list}),
-    .@"say-line-start" = .gen(&.{.int}),
-    .@"say-line-actor-start" = .gen(&.{}),
-    .@"say-line-actor" = .gen(&.{.int}),
-    .@"say-line" = .gen(&.{}),
-    .@"dim-array.int1" = .gen(&.{.int}),
-    .@"dim-array.int8" = .gen(&.{.int}),
-    .@"dim-array.int16" = .gen(&.{.int}),
-    .@"dim-array.int32" = .gen(&.{.int}),
-    .@"dim-array.string" = .gen(&.{.int}),
-    .undim = .gen(&.{}),
-    .@"return" = .gen(&.{.int}),
-    .@"call-script" = .genCall(&.{ .int, .variadic }),
-    .@"dim-array-2d.int8" = .gen(&.{ .int, .int }),
-    .@"dim-array-2d.int16" = .gen(&.{ .int, .int }),
-    .@"dim-array-2d.int32" = .gen(&.{ .int, .int }),
-    .@"debug-string" = .gen(&.{ .int, .string }),
-    .abs = .genCall(&.{.int}),
-    .@"kludge-call" = .genCall(&.{.variadic}),
-    .kludge = .gen(&.{.variadic}),
-    .@"break-here-multi" = .gen(&.{.int}),
-    .pick = .genCall(&.{ .int, .list }),
-    .@"debug-input" = .genCall(&.{.string}),
-    .@"get-time-date" = .gen(&.{}),
-    .@"stop-line" = .gen(&.{}),
-    .@"actor-get-var" = .genCall(&.{ .int, .int }),
-    .shuffle = .gen(&.{ .int, .int }),
-    .@"chain-script" = .gen(&.{ .int, .variadic }),
-    .@"chain-script-rec" = .gen(&.{ .int, .variadic }),
-    .band = .genCall(&.{ .int, .int }),
-    .bor = .genCall(&.{ .int, .int }),
-    .@"close-file" = .gen(&.{.int}),
-    .@"open-file" = .genCall(&.{ .string, .int }),
-    .@"read-file-int16" = .genCall(&.{.int}),
-    .@"read-file-int8" = .genCall(&.{ .int, .int }),
-    .@"write-file-int16" = .gen(&.{ .int, .int }),
-    .@"write-file-int8" = .gen(&.{ .int, .int }),
-    .@"delete-file" = .gen(&.{.string}),
-    .@"array-line-draw" = .gen(&.{ .int, .int, .int, .int, .int, .int }),
-    .localize = .gen(&.{.int}),
-    .@"pick-random" = .genCall(&.{.list}),
-    .@"seek-file" = .gen(&.{ .int, .int, .int }),
-    .@"redim-array.int8" = .gen(&.{ .int, .int }),
-    .@"redim-array.int16" = .gen(&.{ .int, .int }),
-    .@"redim-array.int32" = .gen(&.{ .int, .int }),
-    .@"tell-file" = .genCall(&.{.int}),
-    .@"string-copy" = .genCall(&.{.int}),
-    .@"string-width" = .genCall(&.{ .int, .int, .int }),
-    .@"string-length" = .genCall(&.{.int}),
-    .@"string-substr" = .genCall(&.{ .int, .int, .int }),
-    .@"string-compare" = .genCall(&.{ .int, .int }),
-    .@"costume-loaded" = .genCall(&.{.int}),
-    .@"read-system-ini-int" = .genCall(&.{.string}),
-    .@"read-system-ini-string" = .genCall(&.{.string}),
-    .@"write-system-ini-int" = .gen(&.{ .string, .int }),
-    .@"write-system-ini-string" = .gen(&.{ .string, .string }),
-    .@"string-margin" = .genCall(&.{ .int, .int, .int }),
-    .@"string-search" = .genCall(&.{ .int, .int, .int, .int }),
-    .@"sound-size" = .genCall(&.{.int}),
-    .@"create-directory" = .gen(&.{.string}),
-    .@"title-bar" = .gen(&.{.string}),
-    .@"delete-polygon" = .gen(&.{ .int, .int }),
-    .@"set-polygon" = .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }),
-    .@"find-polygon" = .genCall(&.{ .int, .int }),
-});
+pub fn buildOpMap() std.EnumArray(lang.Op, Op) {
+    // undefined entries will not be reachable as long as this is kept in sync
+    // with `buildLanguage`.
+    var result: std.EnumArray(lang.Op, Op) = undefined;
+
+    result.set(.@"push-u8", .push8);
+    result.set(.@"push-i16", .push16);
+    result.set(.@"push-i32", .push32);
+    result.set(.@"push-var", .push_var);
+    result.set(.@"push-str", .push_str);
+    result.set(.@"get-array-item", .genCall(&.{.int}));
+    result.set(.@"dup-multi", .dup_multi);
+    result.set(.@"get-array-item-2d", .genCall(&.{ .int, .int }));
+    result.set(.dup, .dup);
+    result.set(.not, .genCall(&.{.int}));
+    result.set(.eq, .genCall(&.{ .int, .int }));
+    result.set(.ne, .genCall(&.{ .int, .int }));
+    result.set(.gt, .genCall(&.{ .int, .int }));
+    result.set(.lt, .genCall(&.{ .int, .int }));
+    result.set(.le, .genCall(&.{ .int, .int }));
+    result.set(.ge, .genCall(&.{ .int, .int }));
+    result.set(.add, .genCall(&.{ .int, .int }));
+    result.set(.sub, .genCall(&.{ .int, .int }));
+    result.set(.mul, .genCall(&.{ .int, .int }));
+    result.set(.div, .genCall(&.{ .int, .int }));
+    result.set(.land, .genCall(&.{ .int, .int }));
+    result.set(.lor, .genCall(&.{ .int, .int }));
+    result.set(.pop, .gen(&.{.int}));
+    result.set(.@"in-list", .genCall(&.{ .int, .list }));
+    result.set(.@"image-set-width", .gen(&.{.int}));
+    result.set(.@"image-set-height", .gen(&.{.int}));
+    result.set(.@"image-draw", .gen(&.{}));
+    result.set(.@"image-load-external", .gen(&.{.string}));
+    result.set(.@"image-capture", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-set-state", .gen(&.{.int}));
+    result.set(.@"image-set-flags", .gen(&.{.int}));
+    result.set(.@"draw-image-at", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-select", .gen(&.{.int}));
+    result.set(.@"image-set-pos", .gen(&.{ .int, .int }));
+    result.set(.@"image-set-palette", .gen(&.{.int}));
+    result.set(.@"image-set-shadow", .gen(&.{.int}));
+    result.set(.@"image-set-draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-set-render-image", .gen(&.{.int}));
+    result.set(.@"image-set-hotspot", .gen(&.{ .int, .int }));
+    result.set(.@"image-new", .gen(&.{}));
+    result.set(.@"image-set-polygon", .gen(&.{.int}));
+    result.set(.@"image-commit", .gen(&.{}));
+    result.set(.min, .genCall(&.{ .int, .int }));
+    result.set(.max, .genCall(&.{ .int, .int }));
+    result.set(.sin, .genCall(&.{.int}));
+    result.set(.cos, .genCall(&.{.int}));
+    result.set(.sqrt, .genCall(&.{.int}));
+    result.set(.@"angle-from-delta", .genCall(&.{ .int, .int }));
+    result.set(.@"angle-from-line", .genCall(&.{ .int, .int, .int, .int }));
+    result.set(.@"line-length-2d", .genCall(&.{ .int, .int, .int, .int }));
+    result.set(.@"line-length-3d", .genCall(&.{ .int, .int, .int, .int, .int, .int }));
+    result.set(.@"sprite-get-object-x", .genCall(&.{.int}));
+    result.set(.@"sprite-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-get-state-count", .genCall(&.{.int}));
+    result.set(.@"sprite-get-group", .genCall(&.{.int}));
+    result.set(.@"sprite-get-object-draw-x", .genCall(&.{.int}));
+    result.set(.@"sprite-get-object-draw-y", .genCall(&.{.int}));
+    result.set(.@"sprite-get-order", .genCall(&.{.int}));
+    result.set(.@"find-sprite", .genCall(&.{ .int, .int, .int, .int, .list }));
+    result.set(.@"sprite-get-state", .genCall(&.{.int}));
+    result.set(.@"sprite-get-image", .genCall(&.{.int}));
+    result.set(.@"sprite-get-palette", .genCall(&.{.int}));
+    result.set(.@"sprite-get-update-type", .genCall(&.{.int}));
+    result.set(.@"sprite-class", .genCall(&.{ .int, .list }));
+    result.set(.@"sprite-get-variable", .genCall(&.{ .int, .int }));
+    result.set(.@"sprite-set-group", .gen(&.{.int}));
+    result.set(.@"sprite-set-property", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-order", .gen(&.{.int}));
+    result.set(.@"sprite-move", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-state", .gen(&.{.int}));
+    result.set(.@"sprite-select-one", .gen(&.{.int}));
+    result.set(.@"sprite-select-range", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-image", .gen(&.{.int}));
+    result.set(.@"sprite-set-position", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-step-dist", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-animation-type", .gen(&.{.int}));
+    result.set(.@"sprite-set-palette", .gen(&.{.int}));
+    result.set(.@"sprite-set-animation-speed", .gen(&.{.int}));
+    result.set(.@"sprite-set-shadow", .gen(&.{.int}));
+    result.set(.@"sprite-set-update-type", .gen(&.{.int}));
+    result.set(.@"sprite-set-class", .gen(&.{.list}));
+    result.set(.@"sprite-mask-image", .gen(&.{.int}));
+    result.set(.@"sprite-restart", .gen(&.{}));
+    result.set(.@"sprite-variable-range", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-new", .gen(&.{}));
+    result.set(.@"sprite-group-get", .genCall(&.{.int}));
+    result.set(.@"sprite-group-get-object-x", .genCall(&.{.int}));
+    result.set(.@"sprite-group-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-group-move", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-group-select", .gen(&.{.int}));
+    result.set(.@"sprite-group-set-position", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-group-set-clip", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"sprite-group-new", .gen(&.{}));
+    result.set(.@"image-get-object-x", .genCall(&.{ .int, .int }));
+    result.set(.@"image-get-object-y", .genCall(&.{ .int, .int }));
+    result.set(.@"image-get-width", .genCall(&.{ .int, .int }));
+    result.set(.@"image-get-height", .genCall(&.{ .int, .int }));
+    result.set(.@"image-get-state-count", .genCall(&.{.int}));
+    result.set(.@"image-get-color-at", .genCall(&.{ .int, .int, .int, .int }));
+    result.set(.@"actor-get-property", .genCall(&.{ .int, .int, .int }));
+    result.set(.@"start-script-order", .gen(&.{ .int, .int, .variadic }));
+    result.set(.@"chain-script-order", .gen(&.{ .int, .int, .variadic }));
+    result.set(.mod, .genCall(&.{ .int, .int }));
+    result.set(.shl, .genCall(&.{ .int, .int }));
+    result.set(.shr, .genCall(&.{ .int, .int }));
+    result.set(.@"find-all-objects", .genCall(&.{ .int, .list }));
+    result.set(.iif, .genCall(&.{ .int, .int, .int }));
+    result.set(.@"dim-array-range.int8", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"dim-array-range.int16", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"redim-array-range.int16", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"array-sort", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.set, .gen(&.{.int}));
+    result.set(.@"file-size", .genCall(&.{.string}));
+    result.set(.@"set-array-item", .gen(&.{ .int, .int }));
+    result.set(.@"string-number", .genCall(&.{.int}));
+    result.set(.@"set-array-item-2d", .gen(&.{ .int, .int, .int }));
+    result.set(.@"read-ini-int", .genCall(&.{ .int, .string, .string }));
+    result.set(.@"read-ini-string", .genCall(&.{ .int, .string, .string }));
+    result.set(.@"write-ini-int", .gen(&.{ .string, .string, .string, .int }));
+    result.set(.@"write-ini-string", .gen(&.{ .string, .string, .string, .string }));
+    result.set(.inc, .gen(&.{}));
+    result.set(.@"override-off-off", .gen(&.{}));
+    result.set(.@"inc-array-item", .gen(&.{.int}));
+    result.set(.@"get-object-image-x", .genCall(&.{.int}));
+    result.set(.@"get-object-image-y", .genCall(&.{.int}));
+    result.set(.dec, .gen(&.{}));
+    result.set(.@"get-timer", .genCall(&.{.int}));
+    result.set(.@"sound-position", .genCall(&.{.int}));
+    result.set(.@"dec-array-item", .gen(&.{.int}));
+    result.set(.@"jump-if", .jump_if);
+    result.set(.@"jump-unless", .jump_unless);
+    result.set(.@"start-script", .gen(&.{ .int, .variadic }));
+    result.set(.@"start-script-rec", .gen(&.{ .int, .variadic }));
+    result.set(.@"start-object", .gen(&.{ .int, .int, .variadic }));
+    result.set(.@"start-object-rec", .gen(&.{ .int, .int, .variadic }));
+    result.set(.@"draw-object", .gen(&.{ .int, .int }));
+    result.set(.@"print-image", .gen(&.{.int}));
+    result.set(.@"array-get-dim", .genCall(&.{}));
+    result.set(.@"array-get-height", .genCall(&.{}));
+    result.set(.@"array-get-width", .genCall(&.{}));
+    result.set(.@"free-arrays", .genCall(&.{}));
+    result.set(.end2, .gen(&.{}));
+    result.set(.end, .gen(&.{}));
+    result.set(.@"window-select", .gen(&.{.int}));
+    result.set(.@"window-set-image", .gen(&.{.int}));
+    result.set(.@"window-new", .gen(&.{}));
+    result.set(.@"window-set-script", .gen(&.{.int}));
+    result.set(.@"window-set-title-bar", .gen(&.{.string}));
+    result.set(.@"window-commit", .gen(&.{}));
+    result.set(.@"freeze-scripts", .gen(&.{.int}));
+    result.set(.@"cursor-bw", .gen(&.{.int}));
+    result.set(.@"cursor-color", .gen(&.{.int}));
+    result.set(.@"cursor-on", .gen(&.{}));
+    result.set(.@"cursor-off", .gen(&.{}));
+    result.set(.@"userput-on", .gen(&.{}));
+    result.set(.@"userput-off", .gen(&.{}));
+    result.set(.@"cursor-soft-on", .gen(&.{}));
+    result.set(.@"cursor-soft-off", .gen(&.{}));
+    result.set(.charset, .gen(&.{.int}));
+    result.set(.@"charset-color", .gen(&.{.list}));
+    result.set(.@"break-here", .gen(&.{}));
+    result.set(.@"class-of", .genCall(&.{ .int, .list }));
+    result.set(.@"object-set-class", .gen(&.{ .int, .list }));
+    result.set(.@"object-get-state", .genCall(&.{.int}));
+    result.set(.@"object-set-state", .gen(&.{ .int, .int }));
+    result.set(.jump, .jump);
+    result.set(.@"sound-soft", .gen(&.{}));
+    result.set(.@"sound-channel", .gen(&.{.int}));
+    result.set(.@"sound-at", .gen(&.{.int}));
+    result.set(.@"sound-select", .gen(&.{.int}));
+    result.set(.@"sound-looping", .gen(&.{}));
+    result.set(.@"sound-start", .gen(&.{}));
+    result.set(.@"stop-sound", .gen(&.{.int}));
+    result.set(.@"current-room", .gen(&.{.int}));
+    result.set(.@"stop-script", .gen(&.{.int}));
+    result.set(.@"put-actor", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"do-animation", .gen(&.{ .int, .int }));
+    result.set(.random, .genCall(&.{.int}));
+    result.set(.@"random-between", .genCall(&.{ .int, .int }));
+    result.set(.@"script-running", .genCall(&.{.int}));
+    result.set(.@"actor-room", .genCall(&.{.int}));
+    result.set(.@"actor-x", .genCall(&.{.int}));
+    result.set(.@"actor-y", .genCall(&.{.int}));
+    result.set(.@"actor-get-costume", .genCall(&.{.int}));
+    result.set(.@"palette-color", .genCall(&.{ .int, .int }));
+    result.set(.rgb, .genCall(&.{ .int, .int, .int }));
+    result.set(.override, .override);
+    result.set(.@"override-off", .gen(&.{}));
+    result.set(.@"sound-running", .genCall(&.{.int}));
+    result.set(.@"load-script", .gen(&.{.int}));
+    result.set(.@"load-sound", .gen(&.{.int}));
+    result.set(.@"load-costume", .gen(&.{.int}));
+    result.set(.@"nuke-sound", .gen(&.{.int}));
+    result.set(.@"nuke-costume", .gen(&.{.int}));
+    result.set(.@"lock-script", .gen(&.{.int}));
+    result.set(.@"lock-costume", .gen(&.{.int}));
+    result.set(.@"unlock-costume", .gen(&.{.int}));
+    result.set(.@"load-charset", .gen(&.{.int}));
+    result.set(.@"preload-sound", .gen(&.{.int}));
+    result.set(.@"preload-costume", .gen(&.{.int}));
+    result.set(.@"preload-room", .gen(&.{.int}));
+    result.set(.@"unlock-image", .gen(&.{.int}));
+    result.set(.@"nuke-image", .gen(&.{.int}));
+    result.set(.@"load-image", .gen(&.{.int}));
+    result.set(.@"lock-image", .gen(&.{.int}));
+    result.set(.@"preload-image", .gen(&.{.int}));
+    result.set(.intensity, .gen(&.{ .int, .int, .int }));
+    result.set(.fades, .gen(&.{.int}));
+    result.set(.palette, .gen(&.{.int}));
+    result.set(.@"saveload-game", .gen(&.{ .int, .string }));
+    result.set(.@"actor-set-condition", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-order", .gen(&.{.int}));
+    result.set(.@"actor-set-clipped", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"actor-set-position", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-clip", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"actor-set-costume", .gen(&.{.int}));
+    result.set(.@"actor-set-sounds", .gen(&.{.list}));
+    result.set(.@"actor-set-talk-animation", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-elevation", .gen(&.{.int}));
+    result.set(.@"actor-set-color", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-talk-color", .gen(&.{.int}));
+    result.set(.@"actor-set-scale", .gen(&.{.int}));
+    result.set(.@"actor-never-zclip", .gen(&.{}));
+    result.set(.@"actor-always-zclip", .gen(&.{.int}));
+    result.set(.@"actor-ignore-boxes", .gen(&.{}));
+    result.set(.@"actor-set-animation-speed", .gen(&.{.int}));
+    result.set(.@"actor-set-shadow", .gen(&.{.int}));
+    result.set(.@"actor-set-text-offset", .gen(&.{ .int, .int }));
+    result.set(.@"actor-select", .gen(&.{.int}));
+    result.set(.@"actor-set-var", .gen(&.{ .int, .int }));
+    result.set(.@"actor-new", .gen(&.{}));
+    result.set(.@"actor-bak-on", .gen(&.{}));
+    result.set(.@"palette-select", .gen(&.{.int}));
+    result.set(.@"palette-from-image", .gen(&.{ .int, .int }));
+    result.set(.@"palette-set-rgb", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"palette-set-color", .gen(&.{ .int, .int, .int }));
+    result.set(.@"palette-from-palette", .gen(&.{.int}));
+    result.set(.@"palette-new", .gen(&.{}));
+    result.set(.@"palette-commit", .gen(&.{}));
+    result.set(.@"find-actor", .genCall(&.{ .int, .int }));
+    result.set(.@"assign-string", .gen(&.{.string}));
+    result.set(.@"find-object", .genCall(&.{ .int, .int }));
+    result.set(.@"valid-verb", .genCall(&.{ .int, .int }));
+    result.set(.@"actor-get-elevation", .genCall(&.{.int}));
+    result.set(.@"array-assign-list", .gen(&.{ .int, .int, .int, .int, .list }));
+    result.set(.@"array-assign-slice", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }));
+    result.set(.@"array-assign-range", .gen(&.{ .int, .int, .int, .int, .int, .int }));
+    result.set(.sprintf, .gen(&.{ .string, .int, .variadic }));
+    result.set(.@"array-assign", .gen(&.{ .list, .int }));
+    result.set(.@"array-set-row", .gen(&.{ .int, .list }));
+    result.set(.@"draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.debug, .gen(&.{.int}));
+    result.set(.@"wait-for-message", .gen(&.{}));
+    result.set(.@"actor-get-scale", .genCall(&.{.int}));
+    result.set(.in, .genCall(&.{ .int, .list }));
+    result.set(.@"update-screen", .gen(&.{}));
+    result.set(.quit, .gen(&.{}));
+    result.set(.@"quit-quit", .gen(&.{}));
+    result.set(.@"sleep-for", .gen(&.{.int}));
+    result.set(.@"sleep-for-seconds", .gen(&.{.int}));
+    result.set(.@"stop-sentence", .gen(&.{}));
+    result.set(.@"print-text-position", .gen(&.{ .int, .int }));
+    result.set(.@"print-text-center", .gen(&.{}));
+    result.set(.@"print-text-printf", .gen(&.{ .int, .variadic }));
+    result.set(.@"print-text-color", .gen(&.{.list}));
+    result.set(.@"print-text-start", .gen(&.{}));
+    result.set(.@"print-debug-string", .gen(&.{}));
+    result.set(.@"print-debug-printf", .gen(&.{ .int, .variadic }));
+    result.set(.@"print-debug-start", .gen(&.{}));
+    result.set(.@"print-debug-empty", .gen(&.{}));
+    result.set(.@"print-system-string", .gen(&.{}));
+    result.set(.@"print-system-printf", .gen(&.{ .int, .variadic }));
+    result.set(.@"print-system-start", .gen(&.{}));
+    result.set(.@"say-line-position", .gen(&.{ .int, .int }));
+    result.set(.@"say-line-string", .gen(&.{}));
+    result.set(.@"say-line-talkie", .gen(&.{.int}));
+    result.set(.@"say-line-color", .gen(&.{.list}));
+    result.set(.@"say-line-start", .gen(&.{.int}));
+    result.set(.@"say-line-actor-start", .gen(&.{}));
+    result.set(.@"say-line-actor", .gen(&.{.int}));
+    result.set(.@"say-line", .gen(&.{}));
+    result.set(.@"dim-array.int1", .gen(&.{.int}));
+    result.set(.@"dim-array.int8", .gen(&.{.int}));
+    result.set(.@"dim-array.int16", .gen(&.{.int}));
+    result.set(.@"dim-array.int32", .gen(&.{.int}));
+    result.set(.@"dim-array.string", .gen(&.{.int}));
+    result.set(.undim, .gen(&.{}));
+    result.set(.@"return", .gen(&.{.int}));
+    result.set(.@"call-script", .genCall(&.{ .int, .variadic }));
+    result.set(.@"dim-array-2d.int8", .gen(&.{ .int, .int }));
+    result.set(.@"dim-array-2d.int16", .gen(&.{ .int, .int }));
+    result.set(.@"dim-array-2d.int32", .gen(&.{ .int, .int }));
+    result.set(.@"debug-string", .gen(&.{ .int, .string }));
+    result.set(.abs, .genCall(&.{.int}));
+    result.set(.@"kludge-call", .genCall(&.{.variadic}));
+    result.set(.kludge, .gen(&.{.variadic}));
+    result.set(.@"break-here-multi", .gen(&.{.int}));
+    result.set(.pick, .genCall(&.{ .int, .list }));
+    result.set(.@"debug-input", .genCall(&.{.string}));
+    result.set(.@"get-time-date", .gen(&.{}));
+    result.set(.@"stop-line", .gen(&.{}));
+    result.set(.@"actor-get-var", .genCall(&.{ .int, .int }));
+    result.set(.shuffle, .gen(&.{ .int, .int }));
+    result.set(.@"chain-script", .gen(&.{ .int, .variadic }));
+    result.set(.@"chain-script-rec", .gen(&.{ .int, .variadic }));
+    result.set(.band, .genCall(&.{ .int, .int }));
+    result.set(.bor, .genCall(&.{ .int, .int }));
+    result.set(.@"close-file", .gen(&.{.int}));
+    result.set(.@"open-file", .genCall(&.{ .string, .int }));
+    result.set(.@"read-file-int16", .genCall(&.{.int}));
+    result.set(.@"read-file-int8", .genCall(&.{ .int, .int }));
+    result.set(.@"write-file-int16", .gen(&.{ .int, .int }));
+    result.set(.@"write-file-int8", .gen(&.{ .int, .int }));
+    result.set(.@"delete-file", .gen(&.{.string}));
+    result.set(.@"array-line-draw", .gen(&.{ .int, .int, .int, .int, .int, .int }));
+    result.set(.localize, .gen(&.{.int}));
+    result.set(.@"pick-random", .genCall(&.{.list}));
+    result.set(.@"seek-file", .gen(&.{ .int, .int, .int }));
+    result.set(.@"redim-array.int8", .gen(&.{ .int, .int }));
+    result.set(.@"redim-array.int16", .gen(&.{ .int, .int }));
+    result.set(.@"redim-array.int32", .gen(&.{ .int, .int }));
+    result.set(.@"tell-file", .genCall(&.{.int}));
+    result.set(.@"string-copy", .genCall(&.{.int}));
+    result.set(.@"string-width", .genCall(&.{ .int, .int, .int }));
+    result.set(.@"string-length", .genCall(&.{.int}));
+    result.set(.@"string-substr", .genCall(&.{ .int, .int, .int }));
+    result.set(.@"string-compare", .genCall(&.{ .int, .int }));
+    result.set(.@"costume-loaded", .genCall(&.{.int}));
+    result.set(.@"read-system-ini-int", .genCall(&.{.string}));
+    result.set(.@"read-system-ini-string", .genCall(&.{.string}));
+    result.set(.@"write-system-ini-int", .gen(&.{ .string, .int }));
+    result.set(.@"write-system-ini-string", .gen(&.{ .string, .string }));
+    result.set(.@"string-margin", .genCall(&.{ .int, .int, .int }));
+    result.set(.@"string-search", .genCall(&.{ .int, .int, .int, .int }));
+    result.set(.@"sound-size", .genCall(&.{.int}));
+    result.set(.@"create-directory", .gen(&.{.string}));
+    result.set(.@"title-bar", .gen(&.{.string}));
+    result.set(.@"delete-polygon", .gen(&.{ .int, .int }));
+    result.set(.@"set-polygon", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }));
+    result.set(.@"find-polygon", .genCall(&.{ .int, .int }));
+
+    return result;
+}
 
 fn initEnumArrayFixed(E: type, V: type, values: std.enums.EnumFieldStruct(E, V, null)) std.EnumArray(E, V) {
     @setEvalBranchQuota(4000);
@@ -767,7 +775,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
     for (ins.operands.slice()) |o|
         if (o == .variable)
             try cx.usage.track(o.variable);
-    switch (ops.get(op)) {
+    switch (cx.op_map.get(op)) {
         .push8 => {
             try push(cx, .{ .int = ins.operands.get(0).u8 });
         },

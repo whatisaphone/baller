@@ -4,7 +4,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const UsageTracker = @import("UsageTracker.zig");
-const ops = @import("decompile.zig").ops;
+const decompile = @import("decompile.zig");
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
 const script = @import("script.zig");
@@ -14,6 +14,7 @@ pub fn compile(
     diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     file: *const Project.SourceFile,
@@ -26,6 +27,7 @@ pub fn compile(
         .diag = diag,
         .language = language,
         .ins_map = ins_map,
+        .op_map = op_map,
         .project_scope = project_scope,
         .room_scope = room_scope,
         .lex = &file.lex,
@@ -70,6 +72,7 @@ const Cx = struct {
     diag: *const Diagnostic.ForTextFile,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     lex: *const lexer.Lex,
@@ -389,16 +392,16 @@ fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
         else => return null,
     };
     return if (lang.lookup(cx.language, cx.ins_map, name)) |i|
-        .{ .ins = makeInsData(i[0], i[1]) orelse return null }
+        .{ .ins = makeInsData(cx, i[0], i[1]) orelse return null }
     else if (std.meta.stringToEnum(script.Compound, name)) |c|
         .{ .compound = c }
     else
         null;
 }
 
-fn makeInsData(opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsData {
+fn makeInsData(cx: *const Cx, opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsData {
     if (ins.name != .op) return null;
-    const params: []const script.Param = switch (ops.getPtrConst(ins.name.op).*) {
+    const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.name.op).*) {
         .jump_if, .jump_unless => &.{.int},
         .jump, .override => &.{},
         .generic => |*g| g.params.slice(),

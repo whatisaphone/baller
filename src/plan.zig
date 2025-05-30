@@ -16,6 +16,7 @@ const beginBlockAL = @import("block_writer.zig").beginBlockAL;
 const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAL = @import("block_writer.zig").endBlockAL;
 const compile = @import("compile.zig");
+const decompile = @import("decompile.zig");
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
@@ -68,6 +69,7 @@ pub fn run(
     (blk: {
         const language = lang.buildLanguage(game);
         const ins_map = lang.buildInsMap(gpa, &language) catch |err| break :blk err;
+        const op_map = decompile.buildOpMap();
         cx = .{
             .gpa = gpa,
             .diagnostic = diagnostic,
@@ -77,6 +79,7 @@ pub fn run(
             .awiz_strategy = awiz_strategy,
             .language = &language,
             .ins_map = &ins_map,
+            .op_map = &op_map,
             .project_scope = .empty,
             .room_scopes = &room_scopes,
             .room_lsc_types = @splat(.undef),
@@ -113,6 +116,7 @@ const Context = struct {
     awiz_strategy: awiz.EncodingStrategy,
     language: *const lang.Language,
     ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
     room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
@@ -845,7 +849,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .SCRP,
@@ -872,7 +876,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
         .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = lsc_type.blockId(),
@@ -892,7 +896,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .ENCD,
@@ -912,7 +916,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .EXCD,
