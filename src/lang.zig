@@ -192,6 +192,8 @@ pub const Op = enum {
     inc,
     @"override-off-off",
     @"inc-array-item",
+    @"get-object-image-x",
+    @"get-object-image-y",
     dec,
     @"get-timer",
     @"sound-position",
@@ -226,6 +228,7 @@ pub const Op = enum {
     @"cursor-soft-on",
     @"cursor-soft-off",
     charset,
+    @"charset-color",
     @"break-here",
     @"class-of",
     @"object-set-class",
@@ -272,6 +275,7 @@ pub const Op = enum {
     @"load-image",
     @"lock-image",
     @"preload-image",
+    intensity,
     fades,
     palette,
     @"saveload-game",
@@ -329,6 +333,7 @@ pub const Op = enum {
     @"print-text-position",
     @"print-text-center",
     @"print-text-printf",
+    @"print-text-color",
     @"print-text-start",
     @"print-debug-string",
     @"print-debug-printf",
@@ -618,8 +623,8 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0x4f, .inc, &.{.variable});
     lang.add(0x50, .@"override-off-off", &.{});
     lang.add(0x53, .@"inc-array-item", &.{.variable});
-    lang.add(0x54, "get-object-image-x", &.{});
-    lang.add(0x55, "get-object-image-y", &.{});
+    lang.add(0x54, .@"get-object-image-x", &.{});
+    lang.add(0x55, .@"get-object-image-y", &.{});
     lang.add(0x57, .dec, &.{.variable});
 
     lang.addNested(0x58, 0x0a, .@"get-timer", &.{});
@@ -672,7 +677,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x6b, 0x94, .@"cursor-soft-on", &.{});
     lang.addNested(0x6b, 0x95, .@"cursor-soft-off", &.{});
     lang.addNested(0x6b, 0x9c, .charset, &.{});
-    lang.addNested(0x6b, 0x9d, "charset-color", &.{});
+    lang.addNested(0x6b, 0x9d, .@"charset-color", &.{});
 
     lang.add(0x6c, .@"break-here", &.{});
     lang.add(0x6d, .@"class-of", &.{});
@@ -733,7 +738,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x9b, 0xef, "preload-flush", &.{});
 
     lang.addNested(0x9c, 0xaf, "palette-set", &.{});
-    lang.addNested(0x9c, 0xb3, "intensity", &.{});
+    lang.addNested(0x9c, 0xb3, .intensity, &.{});
     lang.addNested(0x9c, 0xb5, .fades, &.{});
     lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
     lang.addNested(0x9c, 0xd5, .palette, &.{});
@@ -809,7 +814,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0xb5, 0x45, .@"print-text-center", &.{});
     lang.addNested(0xb5, 0x4b, "print-text-string", &.{.string});
     lang.addNested(0xb5, 0xc2, .@"print-text-printf", &.{.string});
-    lang.addNested(0xb5, 0xf9, "print-text-color", &.{});
+    lang.addNested(0xb5, 0xf9, .@"print-text-color", &.{});
     lang.addNested(0xb5, 0xfe, .@"print-text-start", &.{});
 
     lang.addNested(0xb6, 0x4b, .@"print-debug-string", &.{.string});
