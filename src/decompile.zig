@@ -830,7 +830,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
-            try cx.stmts.append(cx.gpa, .{ .jump_if = .{
+            try storeStmt(cx, .{ .jump_if = .{
                 .target = target,
                 .condition = condition,
             } });
@@ -839,7 +839,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
-            try cx.stmts.append(cx.gpa, .{ .jump_unless = .{
+            try storeStmt(cx, .{ .jump_unless = .{
                 .target = target,
                 .condition = condition,
             } });
@@ -847,12 +847,12 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         .jump => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
-            try cx.stmts.append(cx.gpa, .{ .jump = .{ .target = target } });
+            try storeStmt(cx, .{ .jump = .{ .target = target } });
         },
         .override => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
-            try cx.stmts.append(cx.gpa, .{ .override = .{ .target = target } });
+            try storeStmt(cx, .{ .override = .{ .target = target } });
         },
         .generic => |gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
@@ -888,7 +888,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             if (gen.call) {
                 try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
             } else {
-                try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
+                try storeStmt(cx, .{ .call = .{ .op = op, .args = args_extra } });
             }
         },
         .illegal => {
@@ -939,6 +939,10 @@ fn popListItems(cx: *DecompileCx) !ExtraSlice {
     cx.stack.len -= len;
 
     return storeExtra(cx, items);
+}
+
+fn storeStmt(cx: *DecompileCx, stmt: Stmt) !void {
+    try cx.stmts.append(cx.gpa, stmt);
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
