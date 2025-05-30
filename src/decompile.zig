@@ -18,6 +18,7 @@ pub fn run(
     language: *const lang.Language,
     op_map: *const std.EnumArray(lang.Op, Op),
     symbols: *const Symbols,
+    annotate: bool,
     room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
@@ -89,6 +90,7 @@ pub fn run(
         .gpa = gpa,
         .diag = diag,
         .symbols = symbols,
+        .annotate = annotate,
         .room_number = room_number,
         .id = id,
         .nodes = .init(scx.nodes.items),
@@ -2595,6 +2597,7 @@ const EmitCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     symbols: *const Symbols,
+    annotate: bool,
     room_number: u8,
     id: Symbols.ScriptId,
     nodes: utils.SafeManyPointer([*]const Node),
@@ -2625,7 +2628,7 @@ fn emitLocalVarsDecl(cx: *EmitCx) !void {
 
     const script_symbols = cx.symbols.getScript(cx.id);
 
-    try writeIndent(cx);
+    try writeIndent(cx, pc_unknown);
     try cx.out.appendSlice(cx.gpa, "var");
     for (0..max_used + 1) |num| {
         const name = name: {
@@ -2661,7 +2664,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
         .basic_block => |bb| {
             // TODO: keep track of list position instead of searching every time
             if (std.sort.binarySearch(u16, cx.jump_targets, node.start, orderU16) != null) {
-                try writeIndent(cx);
+                try writeIndent(cx, pc_unknown);
                 try emitLabel(cx, node.start);
                 try cx.out.appendSlice(cx.gpa, ":\n");
             }
@@ -2671,26 +2674,26 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
         },
         .@"if" => |k| {
             if (!skip_first_indent)
-                try writeIndent(cx);
+                try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "if ");
             try emitExpr(cx, k.condition, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .if_else => |k| {
             if (!skip_first_indent)
-                try writeIndent(cx);
+                try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "if ");
             try emitExpr(cx, k.condition, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, k.true);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, cx.nodes.getPtr(k.true).end);
             try cx.out.appendSlice(cx.gpa, "} else ");
 
             if (shouldEmitElseIf(cx, k.false)) |child| {
@@ -2701,22 +2704,22 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, k.false);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .@"while" => |n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "while ");
             try emitExpr(cx, n.condition, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .@"for" => |*n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "for ");
             try emitVariable(cx, n.accumulator);
             try cx.out.appendSlice(cx.gpa, " = ");
@@ -2729,11 +2732,11 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .for_in => |*n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "for ");
             try emitVariable(cx, n.target);
             try cx.out.appendSlice(cx.gpa, " = {");
@@ -2744,16 +2747,16 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .do => |n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "do {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             if (n.condition == null_expr) {
                 try cx.out.appendSlice(cx.gpa, "}\n");
             } else {
@@ -2763,18 +2766,18 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             }
         },
         .case => |*n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             try cx.out.appendSlice(cx.gpa, "case ");
             try emitExpr(cx, n.value, .space);
             try cx.out.appendSlice(cx.gpa, " {\n");
             cx.indent += indent_size;
             try emitNodeList(cx, n.first_branch);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .case_branch => |*n| {
-            try writeIndent(cx);
+            try writeIndent(cx, node.start);
             if (n.value == null_expr)
                 try cx.out.appendSlice(cx.gpa, "else")
             else if (cx.exprs.getPtr(n.value).* == .list)
@@ -2785,7 +2788,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             cx.indent += indent_size;
             try emitNodeList(cx, n.body);
             cx.indent -= indent_size;
-            try writeIndent(cx);
+            try writeIndent(cx, node.end);
             try cx.out.appendSlice(cx.gpa, "}\n");
         },
         .orphan => unreachable,
@@ -2814,7 +2817,7 @@ fn shouldEmitElseIf(cx: *EmitCx, ni: NodeIndex) ?NodeIndex {
 
 fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
     if (stmt.* == .tombstone) return;
-    try writeIndent(cx);
+    try writeIndent(cx, pc_unknown);
     switch (stmt.*) {
         .jump_if, .jump_unless => |j| {
             const op = switch (stmt.*) {
@@ -3020,7 +3023,16 @@ fn emitLabel(cx: *const EmitCx, pc: u16) !void {
     try cx.out.writer(cx.gpa).print("L{x:0>4}", .{pc});
 }
 
-fn writeIndent(cx: *const EmitCx) !void {
+fn writeIndent(cx: *const EmitCx, annotation: u16) !void {
+    if (cx.annotate) {
+        if (pcOpt(annotation)) |ann| {
+            try cx.out.writer(cx.gpa).print("0x{x:0>4}  ", .{ann});
+        } else {
+            const bytes = try cx.out.addManyAsSlice(cx.gpa, 8);
+            @memset(bytes, ' ');
+        }
+    }
+
     const bytes = try cx.out.addManyAsSlice(cx.gpa, cx.indent);
     @memset(bytes, ' ');
 }

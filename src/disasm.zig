@@ -12,6 +12,7 @@ pub fn disassemble(
     id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
+    annotate: bool,
     out: anytype,
     usage: *UsageTracker,
     diagnostic: anytype,
@@ -23,6 +24,7 @@ pub fn disassemble(
         id,
         bytecode,
         symbols,
+        annotate,
         out,
         usage,
         diagnostic,
@@ -39,6 +41,7 @@ fn disassembleInner(
     id: Symbols.ScriptId,
     bytecode: []const u8,
     symbols: *const Symbols,
+    annotate: bool,
     out: anytype,
     usage: *UsageTracker,
     diagnostic: anytype,
@@ -62,6 +65,8 @@ fn disassembleInner(
         if (next_jump_index < jump_targets.items.len) {
             const next_jump_target = jump_targets.items[next_jump_index];
             if (ins.start == next_jump_target) {
+                if (annotate)
+                    try out.writeAll("        ");
                 try emitLabel(ins.start, out);
                 try out.writeAll(":\n");
 
@@ -78,6 +83,8 @@ fn disassembleInner(
         }
 
         // Emit the instruction
+        if (annotate)
+            try out.print("0x{x:0>4}  ", .{ins.start});
         try out.writeAll("    ");
         try out.writeAll(ins.name.asStr());
         for (ins.operands.slice()) |op| {

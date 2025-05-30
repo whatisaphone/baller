@@ -31,6 +31,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[:0]const u8 = null;
     var symbols_path: ?[:0]const u8 = null;
     var script: ?ScriptMode = null;
+    var annotate: ?bool = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
@@ -51,6 +52,14 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 output_path_opt = str
             else
                 return arg.reportUnexpected();
+        },
+        .long_flag => |flag| {
+            if (std.mem.eql(u8, flag, "annotate")) {
+                if (annotate != null) return arg.reportDuplicate();
+                annotate = true;
+            } else {
+                return arg.reportUnexpected();
+            }
         },
         .long_option => |opt| {
             if (std.mem.eql(u8, opt.flag, "symbols")) {
@@ -119,6 +128,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .symbols_path = symbols_path,
         .options = .{
             .script = script orelse .decompile,
+            .annotate = annotate orelse false,
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
@@ -146,6 +156,7 @@ const Extract = struct {
 
 const Options = struct {
     script: ScriptMode,
+    annotate: bool,
     rmim: RawOrDecode,
     scrp: RawOrDecode,
     encd: RawOrDecode,
@@ -245,6 +256,9 @@ pub fn run(
         op_map = decompile.buildOpMap(game);
         op_map_ptr = .{ .defined = &op_map };
     }
+
+    if (args.options.annotate)
+        try code.appendSlice(gpa, "#error cannot build after extracting with --annotate\n\n");
 
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
@@ -1258,7 +1272,7 @@ fn extractEncdExcdDisassemble(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1311,7 +1325,7 @@ fn extractEncdExcdDecompile(
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1411,7 +1425,7 @@ fn extractLscDisassemble(
         .room = cx.room_number,
         .number = script_number,
     } };
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1455,7 +1469,7 @@ fn extractLscDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1653,7 +1667,7 @@ fn extractScrpDisassemble(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1712,7 +1726,7 @@ fn extractScrpDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

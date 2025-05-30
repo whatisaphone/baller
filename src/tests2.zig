@@ -174,6 +174,7 @@ fn testRoundTrip(
         .options = switch (options) {
             .raw => .{
                 .script = .decompile, // (ignored since everything is .raw)
+                .annotate = false,
                 .rmim = .raw,
                 .scrp = .raw,
                 .encd = .raw,
@@ -187,6 +188,7 @@ fn testRoundTrip(
             },
             .decode_all => .{
                 .script = .decompile,
+                .annotate = false,
                 .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,
@@ -200,6 +202,7 @@ fn testRoundTrip(
             },
             .disasm => .{
                 .script = .disassemble,
+                .annotate = false,
                 .rmim = .raw,
                 .scrp = .decode,
                 .encd = .decode,
