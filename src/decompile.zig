@@ -46,12 +46,14 @@ pub fn run(
         .stack = .{},
         .str_stack = .{},
         .stmts = .empty,
+        .stmt_ends = if (annotate) .empty else null,
         .exprs = .empty,
         .extra = .empty,
         .usage = usage,
     };
     defer dcx.extra.deinit(gpa);
     defer dcx.exprs.deinit(gpa);
+    defer if (dcx.stmt_ends) |*e| e.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
     defer dcx.pending_basic_blocks.deinit(gpa);
 
@@ -90,11 +92,11 @@ pub fn run(
         .gpa = gpa,
         .diag = diag,
         .symbols = symbols,
-        .annotate = annotate,
         .room_number = room_number,
         .id = id,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
+        .stmt_ends = if (dcx.stmt_ends) |*e| .init(e.items) else null,
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
         .lsc_mask = lsc_mask,
@@ -229,6 +231,7 @@ const DecompileCx = struct {
     stack: std.BoundedArray(ExprIndex, 80),
     str_stack: std.BoundedArray(ExprIndex, 3),
     stmts: std.ArrayListUnmanaged(Stmt),
+    stmt_ends: ?std.ArrayListUnmanaged(u16),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
     usage: *UsageTracker,
@@ -830,7 +833,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
-            try storeStmt(cx, .{ .jump_if = .{
+            try storeStmt(cx, ins.end, .{ .jump_if = .{
                 .target = target,
                 .condition = condition,
             } });
@@ -839,7 +842,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
             const condition = try pop(cx);
-            try storeStmt(cx, .{ .jump_unless = .{
+            try storeStmt(cx, ins.end, .{ .jump_unless = .{
                 .target = target,
                 .condition = condition,
             } });
@@ -847,12 +850,12 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
         .jump => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
-            try storeStmt(cx, .{ .jump = .{ .target = target } });
+            try storeStmt(cx, ins.end, .{ .jump = .{ .target = target } });
         },
         .override => {
             const rel = ins.operands.get(0).relative_offset;
             const target = utils.add(u16, ins.end, rel).?;
-            try storeStmt(cx, .{ .override = .{ .target = target } });
+            try storeStmt(cx, ins.end, .{ .override = .{ .target = target } });
         },
         .generic => |gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
@@ -888,7 +891,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             if (gen.call) {
                 try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
             } else {
-                try storeStmt(cx, .{ .call = .{ .op = op, .args = args_extra } });
+                try storeStmt(cx, ins.end, .{ .call = .{ .op = op, .args = args_extra } });
             }
         },
         .illegal => {
@@ -941,8 +944,10 @@ fn popListItems(cx: *DecompileCx) !ExtraSlice {
     return storeExtra(cx, items);
 }
 
-fn storeStmt(cx: *DecompileCx, stmt: Stmt) !void {
+fn storeStmt(cx: *DecompileCx, end: u16, stmt: Stmt) !void {
     try cx.stmts.append(cx.gpa, stmt);
+    if (cx.stmt_ends) |*stmt_ends|
+        try stmt_ends.append(cx.gpa, end);
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
@@ -2601,11 +2606,11 @@ const EmitCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     symbols: *const Symbols,
-    annotate: bool,
     room_number: u8,
     id: Symbols.ScriptId,
     nodes: utils.SafeManyPointer([*]const Node),
     stmts: utils.SafeManyPointer([*]const Stmt),
+    stmt_ends: ?utils.SafeManyPointer([*]const u16),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
     lsc_mask: *const UsageTracker.LocalScripts,
@@ -2673,8 +2678,14 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
                 try cx.out.appendSlice(cx.gpa, ":\n");
             }
 
-            for (cx.stmts.use()[bb.statements.start..][0..bb.statements.len]) |*stmt|
-                try emitStmt(cx, stmt);
+            const stmts = cx.stmts.use()[bb.statements.start..][0..bb.statements.len];
+            for (stmts, bb.statements.start..) |*stmt, i| {
+                const start = if (cx.stmt_ends) |*stmt_ends|
+                    if (i == bb.statements.start) node.start else stmt_ends.get(i - 1)
+                else
+                    pc_unknown;
+                try emitStmt(cx, start, stmt);
+            }
         },
         .@"if" => |k| {
             if (!skip_first_indent)
@@ -2819,9 +2830,9 @@ fn shouldEmitElseIf(cx: *EmitCx, ni: NodeIndex) ?NodeIndex {
     return node.next;
 }
 
-fn emitStmt(cx: *const EmitCx, stmt: *const Stmt) !void {
+fn emitStmt(cx: *const EmitCx, start: u16, stmt: *const Stmt) !void {
     if (stmt.* == .tombstone) return;
-    try writeIndent(cx, pc_unknown);
+    try writeIndent(cx, start);
     switch (stmt.*) {
         .jump_if, .jump_unless => |j| {
             const op = switch (stmt.*) {
@@ -3028,7 +3039,7 @@ fn emitLabel(cx: *const EmitCx, pc: u16) !void {
 }
 
 fn writeIndent(cx: *const EmitCx, annotation: u16) !void {
-    if (cx.annotate) {
+    if (cx.stmt_ends != null) {
         if (pcOpt(annotation)) |ann| {
             try cx.out.writer(cx.gpa).print("0x{x:0>4}  ", .{ann});
         } else {
