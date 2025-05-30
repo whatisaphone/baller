@@ -242,6 +242,64 @@ fn testRoundTrip(
     return extract_stats;
 }
 
+test "decompile annotate smoke test" {
+    const game = &baseball2001;
+
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+
+    _ = try extract.run(std.testing.allocator, &diagnostic, .{
+        .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
+        .output_path = "/tmp/" ++ game.fixture_dir,
+        .symbols_path = game.symbols_path,
+        .options = .{
+            .script = .decompile,
+            .annotate = true,
+            .rmim = .raw,
+            .scrp = .decode,
+            .encd = .decode,
+            .excd = .decode,
+            .lscr = .decode,
+            .lsc2 = .decode,
+            .obim = .raw,
+            .awiz = .raw,
+            .mult = .raw,
+            .akos = .raw,
+        },
+    });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
+}
+
+test "disasm annotate smoke test" {
+    const game = &baseball2001;
+
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+
+    _ = try extract.run(std.testing.allocator, &diagnostic, .{
+        .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
+        .output_path = "/tmp/" ++ game.fixture_dir,
+        .symbols_path = game.symbols_path,
+        .options = .{
+            .script = .disassemble,
+            .annotate = true,
+            .rmim = .raw,
+            .scrp = .decode,
+            .encd = .decode,
+            .excd = .decode,
+            .lscr = .decode,
+            .lsc2 = .decode,
+            .obim = .raw,
+            .awiz = .raw,
+            .mult = .raw,
+            .akos = .raw,
+        },
+    });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
+}
+
 fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *const [64]u8) !void {
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
