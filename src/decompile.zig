@@ -693,9 +693,13 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
         return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
     }
 
-    // The last basic block should end with `end` or `end2`. This is
-    // emitted implicitly by the compiler, so don't output it explicitly here.
+    // Do some checks on the last basic block.
     const bb_last = &cx.basic_blocks[cx.basic_blocks.len - 1];
+    // The stack should be empty by the end, otherwise some opcode params are
+    // probably wrong.
+    if (bb_last.stack_on_exit.defined.len != 0) return error.BadData;
+    // It should end with `end` or `end2`. This is emitted implicitly by the
+    // compiler, so don't output it explicitly here.
     const ss = bb_last.statements.defined;
     if (ss.len == 0) return error.BadData;
     const stmt = &cx.stmts.items[ss.start + ss.len - 1];
