@@ -27,7 +27,20 @@ test "Backyard Baseball 1997 round trip raw" {
     _ = try testRoundTrip(baseball1997, .raw);
 }
 test "Backyard Baseball 1997 round trip decode all" {
-    _ = try testRoundTrip(baseball1997, .decode_all);
+    const stats = try testRoundTrip(baseball1997, .decode_all);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.scrp_total), 193);
+        try std.testing.expectEqual(stats.get(.scrp_decompile), 193);
+        try std.testing.expectEqual(stats.get(.excd_total), 30);
+        try std.testing.expectEqual(stats.get(.excd_decompile), 30);
+        try std.testing.expectEqual(stats.get(.encd_total), 30);
+        try std.testing.expectEqual(stats.get(.encd_decompile), 30);
+        try std.testing.expectEqual(stats.get(.lscr_total), 375);
+        try std.testing.expectEqual(stats.get(.lscr_decompile), 375);
+        try std.testing.expectEqual(stats.get(.lsc2_total), 202);
+        try std.testing.expectEqual(stats.get(.lsc2_decompile), 202);
+    }
 }
 test "Backyard Baseball 1997 round trip disasm" {
     const stats = try testRoundTrip(baseball1997, .disasm);

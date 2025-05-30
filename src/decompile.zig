@@ -282,6 +282,7 @@ pub const Op = union(enum) {
         call: bool,
         params: std.BoundedArray(script.Param, script.max_params),
     },
+    illegal,
 
     fn gen(params: []const script.Param) Op {
         return .{ .generic = .{
@@ -338,6 +339,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"draw-image-at", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"image-select", .gen(&.{.int}));
     result.set(.@"image-set-pos", .gen(&.{ .int, .int }));
+    result.set(.@"image-set-color", .gen(&.{ .int, .int }));
     result.set(.@"image-set-palette", .gen(&.{.int}));
     result.set(.@"image-set-shadow", .gen(&.{.int}));
     result.set(.@"image-set-draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
@@ -362,7 +364,12 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-get-object-draw-x", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-draw-y", .genCall(&.{.int}));
     result.set(.@"sprite-get-order", .genCall(&.{.int}));
-    result.set(.@"find-sprite", .genCall(&.{ .int, .int, .int, .int, .list }));
+    result.set(.@"find-sprite", if (game.le(.baseball_1997))
+        .genCall(&.{ .int, .int, .int }) // TODO: is the last one int or list?
+    else if (game.lt(.baseball_2001))
+        .illegal
+    else
+        .genCall(&.{ .int, .int, .int, .int, .list }));
     result.set(.@"sprite-get-state", .genCall(&.{.int}));
     result.set(.@"sprite-get-image", .genCall(&.{.int}));
     result.set(.@"sprite-get-palette", .genCall(&.{.int}));
@@ -422,8 +429,8 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"set-array-item", .gen(&.{ .int, .int }));
     result.set(.@"string-number", .genCall(&.{.int}));
     result.set(.@"set-array-item-2d", .gen(&.{ .int, .int, .int }));
-    result.set(.@"read-ini-int", .genCall(&.{ .int, .string, .string }));
-    result.set(.@"read-ini-string", .genCall(&.{ .int, .string, .string }));
+    result.set(.@"read-ini-int", .genCall(&.{ .string, .string, .string }));
+    result.set(.@"read-ini-string", .genCall(&.{ .string, .string, .string }));
     result.set(.@"write-ini-int", .gen(&.{ .string, .string, .string, .int }));
     result.set(.@"write-ini-string", .gen(&.{ .string, .string, .string, .string }));
     result.set(.inc, .gen(&.{}));
@@ -433,6 +440,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"get-object-image-y", .genCall(&.{.int}));
     result.set(.dec, .gen(&.{}));
     result.set(.@"get-timer", .genCall(&.{.int}));
+    result.set(.@"set-timer", .gen(&.{.int}));
     result.set(.@"sound-position", .genCall(&.{.int}));
     result.set(.@"dec-array-item", .gen(&.{.int}));
     result.set(.@"jump-if", .jump_if);
@@ -442,6 +450,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"start-object", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"start-object-rec", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"draw-object", .gen(&.{ .int, .int }));
+    result.set(.@"draw-object-at", .gen(&.{ .int, .int, .int }));
     result.set(.@"print-image", .gen(&.{.int}));
     result.set(.@"array-get-dim", .genCall(&.{}));
     result.set(.@"array-get-height", .genCall(&.{}));
@@ -489,6 +498,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"actor-room", .genCall(&.{.int}));
     result.set(.@"actor-x", .genCall(&.{.int}));
     result.set(.@"actor-y", .genCall(&.{.int}));
+    result.set(.@"actor-facing", .genCall(&.{.int}));
     result.set(.@"actor-get-costume", .genCall(&.{.int}));
     result.set(.@"palette-color", .genCall(&.{ .int, .int }));
     result.set(.rgb, .genCall(&.{ .int, .int, .int }));
@@ -498,6 +508,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"load-script", .gen(&.{.int}));
     result.set(.@"load-sound", .gen(&.{.int}));
     result.set(.@"load-costume", .gen(&.{.int}));
+    result.set(.@"load-room", .gen(&.{.int}));
     result.set(.@"nuke-sound", .gen(&.{.int}));
     result.set(.@"nuke-costume", .gen(&.{.int}));
     result.set(.@"lock-script", .gen(&.{.int}));
@@ -512,8 +523,10 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"load-image", .gen(&.{.int}));
     result.set(.@"lock-image", .gen(&.{.int}));
     result.set(.@"preload-image", .gen(&.{.int}));
+    result.set(.@"palette-set", .gen(&.{ .int, .int, .int, .int }));
     result.set(.intensity, .gen(&.{ .int, .int, .int }));
     result.set(.fades, .gen(&.{.int}));
+    result.set(.@"intensity-rgb", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.palette, .gen(&.{.int}));
     result.set(.@"saveload-game", .gen(&.{ .int, .string }));
     result.set(.@"actor-set-condition", .gen(&.{ .int, .int }));
@@ -568,7 +581,9 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sleep-for-seconds", .gen(&.{.int}));
     result.set(.@"stop-sentence", .gen(&.{}));
     result.set(.@"print-text-position", .gen(&.{ .int, .int }));
+    result.set(.@"print-text-clipped", .gen(&.{.int}));
     result.set(.@"print-text-center", .gen(&.{}));
+    result.set(.@"print-text-string", .gen(&.{}));
     result.set(.@"print-text-printf", .gen(&.{ .int, .variadic }));
     result.set(.@"print-text-color", .gen(&.{.list}));
     result.set(.@"print-text-start", .gen(&.{}));
@@ -604,6 +619,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.kludge, .gen(&.{.variadic}));
     result.set(.@"break-here-multi", .gen(&.{.int}));
     result.set(.pick, .genCall(&.{ .int, .list }));
+    result.set(.@"stamp-object", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"debug-input", .genCall(&.{.string}));
     result.set(.@"get-time-date", .gen(&.{}));
     result.set(.@"stop-line", .gen(&.{}));
@@ -619,7 +635,9 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"read-file-int8", .genCall(&.{ .int, .int }));
     result.set(.@"write-file-int16", .gen(&.{ .int, .int }));
     result.set(.@"write-file-int8", .gen(&.{ .int, .int }));
+    result.set(.@"find-all-objects2", .genCall(&.{.int}));
     result.set(.@"delete-file", .gen(&.{.string}));
+    result.set(.@"rename-file", .gen(&.{ .string, .string }));
     result.set(.@"array-line-draw", .gen(&.{ .int, .int, .int, .int, .int, .int }));
     result.set(.localize, .gen(&.{.int}));
     result.set(.@"pick-random", .genCall(&.{.list}));
@@ -870,6 +888,10 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             } else {
                 try cx.stmts.append(cx.gpa, .{ .call = .{ .op = op, .args = args_extra } });
             }
+        },
+        .illegal => {
+            cx.diag.err(ins.start, "unhandled opcode {s}", .{@tagName(op)});
+            return error.AddedToDiagnostic;
         },
     }
 }

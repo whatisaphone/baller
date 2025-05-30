@@ -103,6 +103,7 @@ pub const Op = enum {
     @"draw-image-at",
     @"image-select",
     @"image-set-pos",
+    @"image-set-color",
     @"image-set-palette",
     @"image-set-shadow",
     @"image-set-draw-box",
@@ -196,6 +197,7 @@ pub const Op = enum {
     @"get-object-image-y",
     dec,
     @"get-timer",
+    @"set-timer",
     @"sound-position",
     @"dec-array-item",
     @"jump-if",
@@ -205,6 +207,7 @@ pub const Op = enum {
     @"start-object",
     @"start-object-rec",
     @"draw-object",
+    @"draw-object-at",
     @"print-image",
     @"array-get-dim",
     @"array-get-height",
@@ -252,6 +255,7 @@ pub const Op = enum {
     @"actor-room",
     @"actor-x",
     @"actor-y",
+    @"actor-facing",
     @"actor-get-costume",
     @"palette-color",
     rgb,
@@ -261,6 +265,7 @@ pub const Op = enum {
     @"load-script",
     @"load-sound",
     @"load-costume",
+    @"load-room",
     @"nuke-sound",
     @"nuke-costume",
     @"lock-script",
@@ -275,8 +280,10 @@ pub const Op = enum {
     @"load-image",
     @"lock-image",
     @"preload-image",
+    @"palette-set",
     intensity,
     fades,
+    @"intensity-rgb",
     palette,
     @"saveload-game",
     @"actor-set-condition",
@@ -331,7 +338,9 @@ pub const Op = enum {
     @"sleep-for-seconds",
     @"stop-sentence",
     @"print-text-position",
+    @"print-text-clipped",
     @"print-text-center",
+    @"print-text-string",
     @"print-text-printf",
     @"print-text-color",
     @"print-text-start",
@@ -367,6 +376,7 @@ pub const Op = enum {
     kludge,
     @"break-here-multi",
     pick,
+    @"stamp-object",
     @"debug-input",
     @"get-time-date",
     @"stop-line",
@@ -382,7 +392,9 @@ pub const Op = enum {
     @"read-file-int8",
     @"write-file-int16",
     @"write-file-int8",
+    @"find-all-objects2",
     @"delete-file",
+    @"rename-file",
     @"array-line-draw",
     localize,
     @"pick-random",
@@ -497,7 +509,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x1c, 0x38, .@"draw-image-at", &.{});
     lang.addNested(0x1c, 0x39, .@"image-select", &.{});
     lang.addNested(0x1c, 0x41, .@"image-set-pos", &.{});
-    lang.addNested(0x1c, 0x42, "image-set-color", &.{});
+    lang.addNested(0x1c, 0x42, .@"image-set-color", &.{});
     lang.addNested(0x1c, 0x43, "image-set-clip", &.{});
     lang.addNested(0x1c, 0x56, .@"image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, .@"image-set-shadow", &.{});
@@ -629,7 +641,7 @@ fn buildNormalLanguage(game: Game) Language {
 
     lang.addNested(0x58, 0x0a, .@"get-timer", &.{});
 
-    lang.addNested(0x59, 0x9e, "set-timer", &.{});
+    lang.addNested(0x59, 0x9e, .@"set-timer", &.{});
 
     lang.add(0x5a, .@"sound-position", &.{});
     lang.add(0x5b, .@"dec-array-item", &.{.variable});
@@ -643,7 +655,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x60, 0xc3, .@"start-object-rec", &.{});
 
     lang.addNested(0x61, 0x3f, .@"draw-object", &.{});
-    lang.addNested(0x61, 0x41, "draw-object-at", &.{});
+    lang.addNested(0x61, 0x41, .@"draw-object-at", &.{});
 
     lang.add(0x62, .@"print-image", &.{});
 
@@ -705,7 +717,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0x8c, .@"actor-room", &.{});
     lang.add(0x8d, .@"actor-x", &.{});
     lang.add(0x8e, .@"actor-y", &.{});
-    lang.add(0x8f, "actor-facing", &.{});
+    lang.add(0x8f, .@"actor-facing", &.{});
     lang.add(0x91, .@"actor-get-costume", &.{});
 
     lang.addNested(0x94, 0x42, .@"palette-color", &.{});
@@ -719,7 +731,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x9b, 0x64, .@"load-script", &.{});
     lang.addNested(0x9b, 0x65, .@"load-sound", &.{});
     lang.addNested(0x9b, 0x66, .@"load-costume", &.{});
-    lang.addNested(0x9b, 0x67, "load-room", &.{});
+    lang.addNested(0x9b, 0x67, .@"load-room", &.{});
     lang.addNested(0x9b, 0x69, .@"nuke-sound", &.{});
     lang.addNested(0x9b, 0x6a, .@"nuke-costume", &.{});
     lang.addNested(0x9b, 0x6c, .@"lock-script", &.{});
@@ -737,10 +749,10 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x9b, 0xcb, .@"preload-image", &.{});
     lang.addNested(0x9b, 0xef, "preload-flush", &.{});
 
-    lang.addNested(0x9c, 0xaf, "palette-set", &.{});
+    lang.addNested(0x9c, 0xaf, .@"palette-set", &.{});
     lang.addNested(0x9c, 0xb3, .intensity, &.{});
     lang.addNested(0x9c, 0xb5, .fades, &.{});
-    lang.addNested(0x9c, 0xb6, "intensity-rgb", &.{});
+    lang.addNested(0x9c, 0xb6, .@"intensity-rgb", &.{});
     lang.addNested(0x9c, 0xd5, .palette, &.{});
     lang.addNested(0x9c, 0xdc, "copy-palette", &.{});
     lang.addNested(0x9c, 0xdd, .@"saveload-game", &.{});
@@ -810,9 +822,9 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0xb3, .@"stop-sentence", &.{});
 
     lang.addNested(0xb5, 0x41, .@"print-text-position", &.{});
-    lang.addNested(0xb5, 0x43, "print-text-clipped", &.{});
+    lang.addNested(0xb5, 0x43, .@"print-text-clipped", &.{});
     lang.addNested(0xb5, 0x45, .@"print-text-center", &.{});
-    lang.addNested(0xb5, 0x4b, "print-text-string", &.{.string});
+    lang.addNested(0xb5, 0x4b, .@"print-text-string", &.{.string});
     lang.addNested(0xb5, 0xc2, .@"print-text-printf", &.{.string});
     lang.addNested(0xb5, 0xf9, .@"print-text-color", &.{});
     lang.addNested(0xb5, 0xfe, .@"print-text-start", &.{});
@@ -858,7 +870,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0xc9, .kludge, &.{});
     lang.add(0xca, .@"break-here-multi", &.{});
     lang.add(0xcb, .pick, &.{});
-    lang.add(0xcd, "stamp-object", &.{});
+    lang.add(0xcd, .@"stamp-object", &.{});
     lang.add(0xcf, .@"debug-input", &.{});
     lang.add(0xd0, .@"get-time-date", &.{});
     lang.add(0xd1, .@"stop-line", &.{});
@@ -879,9 +891,9 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0xdc, 0x05, .@"write-file-int16", &.{});
     lang.addNested(0xdc, 0x08, .@"write-file-int8", &.{.u8});
 
-    lang.add(0xdd, "find-all-objects2", &.{});
+    lang.add(0xdd, .@"find-all-objects2", &.{});
     lang.add(0xde, .@"delete-file", &.{});
-    lang.add(0xdf, "rename-file", &.{});
+    lang.add(0xdf, .@"rename-file", &.{});
 
     lang.addNested(0xe0, 0x42, .@"array-line-draw", &.{});
 

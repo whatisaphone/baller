@@ -9,6 +9,10 @@ pub const Game = enum {
     baseball_2001,
     basketball,
 
+    pub fn lt(a: Game, b: Game) bool {
+        return @intFromEnum(a) < @intFromEnum(b);
+    }
+
     pub fn le(a: Game, b: Game) bool {
         return @intFromEnum(a) <= @intFromEnum(b);
     }
