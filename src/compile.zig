@@ -449,6 +449,20 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcodeByName(cx, "lock-script");
             try emitOpcodeByName(cx, "load-script");
         },
+        .@"lock-and-load-costume" => {
+            if (args.len != 1) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try emitOpcodeByName(cx, "lock-costume");
+            try emitOpcodeByName(cx, "load-costume");
+        },
+        .@"lock-and-load-image" => {
+            if (args.len != 1) return error.BadData;
+            try pushExpr(cx, args[0]);
+            try emitOpcodeByName(cx, "dup");
+            try emitOpcodeByName(cx, "lock-image");
+            try emitOpcodeByName(cx, "load-image");
+        },
         .@"palette-set-slot-rgb" => {
             if (args.len != 4) return error.BadData;
             try pushExpr(cx, args[0]);

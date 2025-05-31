@@ -1076,7 +1076,7 @@ fn peephole(cx: *DecompileCx) void {
             peepBinOpArrayItem2D(cx, stmt);
             peepSpriteSelect(cx, stmt);
             peepArraySortRow(cx, stmt);
-            peepLockAndLoadScript(cx, stmts, i);
+            peepLockAndLoad(cx, stmts, i);
             peepPaletteSetRgb(cx, stmt);
             peepPaletteSetColor(cx, stmt);
             peepDeleteOnePolygon(cx, stmt);
@@ -1183,21 +1183,39 @@ fn peepArraySortRow(cx: *DecompileCx, stmt: *Stmt) void {
     stmt.* = .{ .compound = .{ .op = .@"array-sort-row", .args = new_args } };
 }
 
-fn peepLockAndLoadScript(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
+fn peepLockAndLoad(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
+    const Group = struct {
+        load_op: lang.Op,
+        combined_op: script.Compound,
+
+        fn init(load_op: lang.Op, combined_op: script.Compound) @This() {
+            return .{ .load_op = load_op, .combined_op = combined_op };
+        }
+    };
+
+    const groups: std.EnumMap(lang.Op, Group) = .init(.{
+        .@"lock-script" = .init(.@"load-script", .@"lock-and-load-script"),
+        .@"lock-costume" = .init(.@"load-costume", .@"lock-and-load-costume"),
+        .@"lock-image" = .init(.@"load-image", .@"lock-and-load-image"),
+    });
+
     if (stmt_index + 1 >= stmts.len) return;
     const lock = &stmts[stmt_index];
     const load = &stmts[stmt_index + 1];
 
-    const lock_args = stmtCallArgs(cx, lock, .@"lock-script", 1) orelse return;
+    if (lock.* != .call) return;
+    const group = groups.get(lock.call.op) orelse return;
+    std.debug.assert(lock.call.args.len == 1);
+    const lock_args = getExtra2(&cx.extra, lock.call.args);
     const lock_arg = &cx.exprs.items[lock_args[0]];
     if (lock_arg.* != .dup) return;
     const resource = lock_arg.dup;
 
-    const load_args = stmtCallArgs(cx, load, .@"load-script", 1) orelse return;
+    const load_args = stmtCallArgs(cx, load, group.load_op, 1) orelse return;
     if (load_args[0] != resource) return;
 
     stmts[stmt_index] = .{ .compound = .{
-        .op = .@"lock-and-load-script",
+        .op = group.combined_op,
         .args = load.call.args,
     } };
     stmts[stmt_index + 1] = .tombstone;

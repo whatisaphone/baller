@@ -18,6 +18,8 @@ pub const Compound = enum {
     @"sprite-select",
     @"array-sort-row",
     @"lock-and-load-script",
+    @"lock-and-load-costume",
+    @"lock-and-load-image",
     @"palette-set-slot-rgb",
     @"palette-set-slot-color",
     @"delete-one-polygon",
