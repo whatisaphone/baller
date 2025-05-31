@@ -1275,16 +1275,10 @@ fn niOpt(ni: NodeIndex) ?NodeIndex {
     return if (ni == null_node) null else ni;
 }
 
-const pc_unknown = 0xffff;
-
-fn pcOpt(pc: u16) ?u16 {
-    return if (pc == pc_unknown) null else pc;
-}
-
 const Node = struct {
     /// start pc
     start: u16,
-    /// end pc, or `pc_unknown` if we didn't bother to keep track exactly
+    /// end pc
     end: u16,
 
     // doubly linked list of sibling nodes
@@ -1717,8 +1711,8 @@ fn makeFor(cx: *StructuringCx, ni: NodeIndex, info: For) void {
     const ni_init = empty.prev;
     const ni_body = node.kind.@"while".body;
 
-    chopLastStmt(cx, ni_init); // chop off the init
-    chopLastStmt(cx, info.body_last); // chop off the increment
+    chopEndStmts(cx, ni_init, 1); // chop off the init
+    chopEndStmts(cx, info.body_last, 1); // chop off the increment
 
     node.start = cx.nodes.items[ni_init].end;
     node.prev = ni_init;
@@ -1934,14 +1928,18 @@ fn makeForIn(cx: *StructuringCx, ni: NodeIndex, info: ForIn) void {
     const ni_after = node.next;
 
     cx.nodes.items[ni_init].next = ni;
-    cx.nodes.items[ni_init].kind.basic_block.statements.len -= 3;
-    cx.nodes.items[ni_init].end = pc_unknown;
+    chopEndStmts(cx, ni_init, 3);
+
+    chopStartStmts(cx, ni_body, 1); // chop off `target = backing[backing[0]]`
+    chopJump(cx, ni_body_end);
 
     orphanNode(cx, ni_inc);
 
+    chopStartStmts(cx, ni_after, 1); // chop off `undim backing`
+
     cx.nodes.items[ni] = .{
         .start = cx.nodes.items[ni_init].end,
-        .end = pc_unknown,
+        .end = cx.nodes.items[ni_after].start,
         .prev = ni_init,
         .next = ni_after,
         .kind = .{ .for_in = .{
@@ -1951,18 +1949,6 @@ fn makeForIn(cx: *StructuringCx, ni: NodeIndex, info: ForIn) void {
             .body = ni_body,
         } },
     };
-
-    // chop off `undim backing`
-    cx.nodes.items[ni_after].kind.basic_block.statements.start += 1;
-    cx.nodes.items[ni_after].kind.basic_block.statements.len -= 1;
-    cx.nodes.items[ni_after].start = pc_unknown;
-
-    // chop off `target = backing[backing[0]]`
-    cx.nodes.items[ni_body].kind.basic_block.statements.start += 1;
-    cx.nodes.items[ni_body].kind.basic_block.statements.len -= 1;
-    cx.nodes.items[ni_body].start = pc_unknown;
-
-    chopJump(cx, ni_body_end);
 
     structureCheckpoint(cx, "makeForIn ni={}", .{ni});
 }
@@ -1974,7 +1960,6 @@ fn huntDo(cx: *StructuringCx, ni_initial: NodeIndex) !void {
         try queueChildren(cx, ni);
 
         const node = &cx.nodes.items[ni];
-        if (node.end == pc_unknown) continue;
         if (node.kind != .basic_block) continue;
         const target = switch (node.kind.basic_block.exit) {
             .jump, .jump_unless => |target| target,
@@ -2254,7 +2239,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
     const ni_first_branch = try appendNode(cx, .{
         .start = cx.nodes.items[ni].start,
-        .end = pc_unknown,
+        .end = cx.nodes.items[ni_first_body_end].end,
         .prev = null_node,
         .next = undefined, // set below
         .kind = .{ .case_branch = .{
@@ -2266,7 +2251,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
     cx.nodes.items[ni_first_body_start].prev = null_node;
     cx.nodes.items[ni_first_body_end].next = null_node;
-    chopFirstPop(cx, ni_first_body_start);
+    chopStartStmts(cx, ni_first_body_start, 1); // chop `pop`
     chopJump(cx, ni_first_body_end);
 
     var ni_prev_branch = ni_first_branch;
@@ -2285,7 +2270,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
         cx.nodes.items[ni_cur] = .{
             .start = cur.start,
-            .end = pc_unknown,
+            .end = cx.nodes.items[ni_body_end].end,
             .prev = ni_prev_branch,
             .next = undefined, // set either in the next loop iteration or at the end
             .kind = .{ .case_branch = .{
@@ -2297,7 +2282,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
         cx.nodes.items[ni_body_start].prev = null_node;
         cx.nodes.items[ni_body_end].next = null_node;
-        chopFirstPop(cx, cur.kind.case_branch.body);
+        chopStartStmts(cx, cur.kind.case_branch.body, 1); // chop `pop`
         chopJump(cx, ni_body_end);
 
         ni_prev_branch = ni_cur;
@@ -2310,7 +2295,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
     const ni_else_branch = try appendNode(cx, .{
         .start = cx.nodes.items[ni_cur].start,
-        .end = pc_unknown,
+        .end = cx.nodes.items[ni_body_end].end,
         .prev = ni_prev_branch,
         .next = null_node,
         .kind = .{ .case_branch = .{
@@ -2322,7 +2307,7 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
 
     cx.nodes.items[ni_body_start].prev = null_node;
     cx.nodes.items[ni_body_end].next = null_node;
-    chopFirstPop(cx, ni_cur);
+    chopStartStmts(cx, ni_cur, 1); // chop `pop`
 
     cx.nodes.items[ni_case].next = ni_after;
     if (ni_after != null_node)
@@ -2345,7 +2330,7 @@ fn findNodeWithEnd(cx: *StructuringCx, ni_first: NodeIndex, end: u16) NodeIndex 
     while (ni != null_node) : (ni = cx.nodes.items[ni].next) {
         const node = &cx.nodes.items[ni];
         if (node.end == end) return ni;
-        if (node.end != pc_unknown and node.end > end) break;
+        if (node.end > end) break;
     }
     return null_node;
 }
@@ -2408,20 +2393,16 @@ fn checkInvariants(cx: *StructuringCx) !void {
         if (node.prev != null_node) {
             const prev = &cx.nodes.items[node.prev];
             try std.testing.expect(prev.next == ni);
-            if (pcOpt(prev.end)) |prev_end|
-                try std.testing.expect(prev_end == node.start);
+            try std.testing.expect(prev.end == node.start);
         }
         if (node.next != null_node) {
             const next = &cx.nodes.items[node.next];
             try std.testing.expect(next.prev == ni);
-            if (pcOpt(node.end)) |node_end|
-                try std.testing.expect(next.start == node_end);
+            try std.testing.expect(next.start == node.end);
         }
         if (node.kind == .basic_block) {
-            if (node.kind.basic_block.exit != .no_jump)
-                try std.testing.expect(node.end != pc_unknown);
             const ss = node.kind.basic_block.statements;
-            if (ss.len != 0 and node.end != pc_unknown)
+            if (ss.len != 0)
                 try std.testing.expect(node.end == cx.stmt_ends.get(ss.start + ss.len - 1));
         }
     }
@@ -2537,10 +2518,9 @@ fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
     }
 
     std.debug.assert(node.kind.basic_block.exit == .jump);
+
     node.kind.basic_block.exit = .no_jump;
-    node.kind.basic_block.statements.len -= 1;
-    std.debug.assert(node.end != pc_unknown);
-    node.end -= jump_len;
+    chopEndStmts(cx, ni, 1);
 }
 
 fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
@@ -2555,38 +2535,35 @@ fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
 
     std.debug.assert(node.kind.basic_block.exit == .jump_if or
         node.kind.basic_block.exit == .jump_unless);
+
     node.kind.basic_block.exit = .no_jump;
-    node.kind.basic_block.statements.len -= 1;
-    node.end = if (node.kind.basic_block.statements.len == 0)
-        node.start
-    else
-        pc_unknown;
+    chopEndStmts(cx, ni, 1);
     return condition;
 }
 
-fn chopLastStmt(cx: *StructuringCx, ni: NodeIndex) void {
+fn chopStartStmts(cx: *StructuringCx, ni: NodeIndex, len: u16) void {
     const node = &cx.nodes.items[ni];
+    const ss = &node.kind.basic_block.statements;
 
-    std.debug.assert(node.kind.basic_block.exit == .no_jump);
-    node.kind.basic_block.statements.len -= 1;
-    node.end = if (node.kind.basic_block.statements.len == 0)
-        node.start
-    else
-        pc_unknown;
+    std.debug.assert(len >= 1);
+
+    node.start = cx.stmt_ends.get(ss.start + len - 1);
+    ss.start += len;
+    ss.len -= len;
 }
 
-fn chopFirstPop(cx: *StructuringCx, ni: NodeIndex) void {
+fn chopEndStmts(cx: *StructuringCx, ni: NodeIndex, len: u16) void {
     const node = &cx.nodes.items[ni];
+    const ss = &node.kind.basic_block.statements;
 
-    if (builtin.mode == .Debug) {
-        const ss = node.kind.basic_block.statements;
-        const stmt = cx.stmts.getPtr(ss.start);
-        std.debug.assert(stmt.call.op == .pop);
-    }
+    std.debug.assert(len >= 1);
+    std.debug.assert(node.kind.basic_block.exit == .no_jump);
 
-    node.start += 1;
-    node.kind.basic_block.statements.start += 1;
-    node.kind.basic_block.statements.len -= 1;
+    ss.len -= len;
+    node.end = if (ss.len == 0)
+        node.start
+    else
+        cx.stmt_ends.get(ss.last());
 }
 
 fn getExtra2(
@@ -2724,7 +2701,7 @@ fn emitLocalVarsDecl(cx: *EmitCx) !void {
 
     const script_symbols = cx.symbols.getScript(cx.id);
 
-    try writeIndent(cx, pc_unknown);
+    try writeIndent(cx, null);
     try cx.out.appendSlice(cx.gpa, "var");
     for (0..max_used + 1) |num| {
         const name = name: {
@@ -2760,7 +2737,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
         .basic_block => |bb| {
             // TODO: keep track of list position instead of searching every time
             if (std.sort.binarySearch(u16, cx.jump_targets, node.start, orderU16) != null) {
-                try writeIndent(cx, pc_unknown);
+                try writeIndent(cx, null);
                 try emitLabel(cx, node.start);
                 try cx.out.appendSlice(cx.gpa, ":\n");
             }
@@ -2770,7 +2747,7 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
                 const start = if (cx.stmt_ends) |*stmt_ends|
                     if (i == bb.statements.start) node.start else stmt_ends.get(i - 1)
                 else
-                    pc_unknown;
+                    null;
                 try emitStmt(cx, start, stmt);
             }
         },
@@ -2917,7 +2894,7 @@ fn shouldEmitElseIf(cx: *EmitCx, ni: NodeIndex) ?NodeIndex {
     return node.next;
 }
 
-fn emitStmt(cx: *const EmitCx, start: u16, stmt: *const Stmt) !void {
+fn emitStmt(cx: *const EmitCx, start: ?u16, stmt: *const Stmt) !void {
     if (stmt.* == .tombstone) return;
     try writeIndent(cx, start);
     switch (stmt.*) {
@@ -3125,9 +3102,9 @@ fn emitLabel(cx: *const EmitCx, pc: u16) !void {
     try cx.out.writer(cx.gpa).print("L{x:0>4}", .{pc});
 }
 
-fn writeIndent(cx: *const EmitCx, annotation: u16) !void {
+fn writeIndent(cx: *const EmitCx, annotation: ?u16) !void {
     if (cx.stmt_ends != null) {
-        if (pcOpt(annotation)) |ann| {
+        if (annotation) |ann| {
             try cx.out.writer(cx.gpa).print("0x{x:0>4}  ", .{ann});
         } else {
             const bytes = try cx.out.addManyAsSlice(cx.gpa, 8);
