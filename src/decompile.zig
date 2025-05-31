@@ -345,6 +345,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-select", .gen(&.{.int}));
     result.set(.@"image-set-pos", .gen(&.{ .int, .int }));
     result.set(.@"image-set-color", .gen(&.{ .int, .int }));
+    result.set(.@"image-set-clip", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"image-set-palette", .gen(&.{.int}));
     result.set(.@"image-set-shadow", .gen(&.{.int}));
     result.set(.@"image-set-draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
@@ -364,13 +365,17 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"line-length-3d", .genCall(&.{ .int, .int, .int, .int, .int, .int }));
     result.set(.@"sprite-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-group-set-group", .gen(&.{.int}));
     result.set(.@"sprite-get-state-count", .genCall(&.{.int}));
     result.set(.@"sprite-get-group", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-draw-x", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-draw-y", .genCall(&.{.int}));
+    result.set(.@"sprite-get-property", .genCall(&.{ .int, .int }));
     result.set(.@"sprite-get-order", .genCall(&.{.int}));
-    result.set(.@"find-sprite", if (game.le(.baseball_1997))
+    result.set(.@"find-sprite", if (game == .baseball_1997)
         .genCall(&.{ .int, .int, .int }) // TODO: is the last one int or list?
+    else if (game == .soccer_1998)
+        .genCall(&.{ .int, .int, .int, .int }) // TODO: is the last one int or list?
     else if (game.lt(.baseball_2001))
         .illegal
     else
@@ -386,12 +391,13 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-set-order", .gen(&.{.int}));
     result.set(.@"sprite-move", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-state", .gen(&.{.int}));
-    if (game.le(.baseball_1997))
+    if (game.le(.soccer_1998))
         result.set(.@"sprite-select-one", .gen(&.{.int}))
     else
         result.set(.@"sprite-select-range", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-image", .gen(&.{.int}));
     result.set(.@"sprite-set-position", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-erase", .gen(&.{.int}));
     result.set(.@"sprite-set-step-dist", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-animation-type", .gen(&.{.int}));
     result.set(.@"sprite-set-palette", .gen(&.{.int}));
@@ -419,6 +425,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-get-color-at", .genCall(&.{ .int, .int, .int, .int }));
     result.set(.@"actor-get-property", .genCall(&.{ .int, .int, .int }));
     result.set(.@"start-script-order", .gen(&.{ .int, .int, .variadic }));
+    result.set(.@"start-script-rec-order", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"chain-script-order", .gen(&.{ .int, .int, .variadic }));
     result.set(.mod, .genCall(&.{ .int, .int }));
     result.set(.shl, .genCall(&.{ .int, .int }));
@@ -427,7 +434,11 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.iif, .genCall(&.{ .int, .int, .int }));
     result.set(.@"dim-array-range.int8", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"dim-array-range.int16", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"dim-array-range.int32", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"redim-array-range.int8", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"redim-array-range.int16", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"redim-array-range.int32", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"find-segment-intersection", .genCall(&.{ .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.@"array-sort", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.set, .gen(&.{.int}));
     result.set(.@"file-size", .genCall(&.{.string}));
@@ -520,6 +531,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"lock-costume", .gen(&.{.int}));
     result.set(.@"unlock-costume", .gen(&.{.int}));
     result.set(.@"load-charset", .gen(&.{.int}));
+    result.set(.@"preload-script", .gen(&.{.int}));
     result.set(.@"preload-sound", .gen(&.{.int}));
     result.set(.@"preload-costume", .gen(&.{.int}));
     result.set(.@"preload-room", .gen(&.{.int}));
@@ -528,17 +540,20 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"load-image", .gen(&.{.int}));
     result.set(.@"lock-image", .gen(&.{.int}));
     result.set(.@"preload-image", .gen(&.{.int}));
+    result.set(.@"preload-flush", .gen(&.{}));
     result.set(.@"palette-set", .gen(&.{ .int, .int, .int, .int }));
     result.set(.intensity, .gen(&.{ .int, .int, .int }));
     result.set(.fades, .gen(&.{.int}));
     result.set(.@"intensity-rgb", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.palette, .gen(&.{.int}));
+    result.set(.@"copy-palette", .gen(&.{ .int, .int }));
     result.set(.@"saveload-game", .gen(&.{ .int, .string }));
     result.set(.@"actor-set-condition", .gen(&.{ .int, .int }));
     result.set(.@"actor-set-order", .gen(&.{.int}));
     result.set(.@"actor-set-clipped", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"actor-set-position", .gen(&.{ .int, .int }));
     result.set(.@"actor-set-clip", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"actor-erase", .gen(&.{.int}));
     result.set(.@"actor-set-costume", .gen(&.{.int}));
     result.set(.@"actor-set-sounds", .gen(&.{.list}));
     result.set(.@"actor-set-talk-animation", .gen(&.{ .int, .int }));
@@ -657,6 +672,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"string-substr", .genCall(&.{ .int, .int, .int }));
     result.set(.@"string-compare", .genCall(&.{ .int, .int }));
     result.set(.@"costume-loaded", .genCall(&.{.int}));
+    result.set(.@"sound-loaded", .genCall(&.{.int}));
     result.set(.@"read-system-ini-int", .genCall(&.{.string}));
     result.set(.@"read-system-ini-string", .genCall(&.{.string}));
     result.set(.@"write-system-ini-int", .gen(&.{ .string, .int }));
@@ -666,6 +682,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sound-size", .genCall(&.{.int}));
     result.set(.@"create-directory", .gen(&.{.string}));
     result.set(.@"title-bar", .gen(&.{.string}));
+    result.set(.@"set-polygon-2", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.@"delete-polygon", .gen(&.{ .int, .int }));
     result.set(.@"set-polygon", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.@"find-polygon", .genCall(&.{ .int, .int }));

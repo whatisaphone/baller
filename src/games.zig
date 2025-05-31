@@ -16,6 +16,10 @@ pub const Game = enum {
     pub fn le(a: Game, b: Game) bool {
         return @intFromEnum(a) <= @intFromEnum(b);
     }
+
+    pub fn ge(a: Game, b: Game) bool {
+        return @intFromEnum(a) >= @intFromEnum(b);
+    }
 };
 
 pub fn detectGameOrFatal(index_path: []const u8) !Game {
