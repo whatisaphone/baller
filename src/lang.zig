@@ -112,6 +112,7 @@ pub const Op = enum {
     @"image-set-hotspot",
     @"image-new",
     @"image-set-polygon",
+    @"image-unknown-1c-f9",
     @"image-commit",
     min,
     max,
@@ -221,6 +222,10 @@ pub const Op = enum {
     @"array-get-dim",
     @"array-get-height",
     @"array-get-width",
+    @"array-get-x-start",
+    @"array-get-x-end",
+    @"array-get-y-start",
+    @"array-get-y-end",
     @"free-arrays",
     end2,
     end,
@@ -344,6 +349,7 @@ pub const Op = enum {
     @"wait-for-message",
     @"actor-get-scale",
     in,
+    @"flush-object-draw-que",
     @"update-screen",
     quit,
     @"quit-quit",
@@ -365,6 +371,7 @@ pub const Op = enum {
     @"print-system-printf",
     @"print-system-start",
     @"say-line-position",
+    @"say-line-center",
     @"say-line-string",
     @"say-line-talkie",
     @"say-line-color",
@@ -534,7 +541,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x1c, 0x9a, .@"image-set-hotspot", &.{});
     lang.addNested(0x1c, 0xd9, .@"image-new", &.{});
     lang.addNested(0x1c, 0xf6, .@"image-set-polygon", &.{});
-    lang.addNested(0x1c, 0xf9, "image-unknown-1c-f9", &.{});
+    lang.addNested(0x1c, 0xf9, .@"image-unknown-1c-f9", &.{});
     lang.addNested(0x1c, 0xff, .@"image-commit", &.{});
 
     lang.add(0x1d, .min, &.{});
@@ -677,10 +684,10 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x63, 0x01, .@"array-get-dim", &.{.variable});
     lang.addNested(0x63, 0x02, .@"array-get-height", &.{.variable});
     lang.addNested(0x63, 0x03, .@"array-get-width", &.{.variable});
-    lang.addNested(0x63, 0x04, "array-get-x-start", &.{.variable});
-    lang.addNested(0x63, 0x05, "array-get-x-end", &.{.variable});
-    lang.addNested(0x63, 0x06, "array-get-y-start", &.{.variable});
-    lang.addNested(0x63, 0x07, "array-get-y-end", &.{.variable});
+    lang.addNested(0x63, 0x04, .@"array-get-x-start", &.{.variable});
+    lang.addNested(0x63, 0x05, .@"array-get-x-end", &.{.variable});
+    lang.addNested(0x63, 0x06, .@"array-get-y-start", &.{.variable});
+    lang.addNested(0x63, 0x07, .@"array-get-y-end", &.{.variable});
 
     lang.add(0x64, .@"free-arrays", &.{});
     lang.add(0x65, .end2, &.{});
@@ -827,7 +834,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0xaa, .@"actor-get-scale", &.{});
     lang.add(0xad, .in, &.{});
 
-    lang.addNested(0xae, 0x16, "flush-object-draw-que", &.{});
+    lang.addNested(0xae, 0x16, .@"flush-object-draw-que", &.{});
     lang.addNested(0xae, 0x1a, .@"update-screen", &.{});
     lang.addNested(0xae, 0xa0, .quit, &.{});
     lang.addNested(0xae, 0xf4, .@"quit-quit", &.{});
@@ -854,7 +861,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0xb7, 0xfe, .@"print-system-start", &.{});
 
     lang.addNested(0xb8, 0x41, .@"say-line-position", &.{});
-    lang.addNested(0xb8, 0x45, "say-line-center", &.{});
+    lang.addNested(0xb8, 0x45, .@"say-line-center", &.{});
     lang.addNested(0xb8, 0x4b, .@"say-line-string", &.{.string});
     lang.addNested(0xb8, 0xe1, .@"say-line-talkie", &.{});
     lang.addNested(0xb8, 0xf9, .@"say-line-color", &.{});

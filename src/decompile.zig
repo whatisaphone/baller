@@ -359,6 +359,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-set-hotspot", .gen(&.{ .int, .int }));
     result.set(.@"image-new", .gen(&.{}));
     result.set(.@"image-set-polygon", .gen(&.{.int}));
+    result.set(.@"image-unknown-1c-f9", .gen(&.{ .int, .int }));
     result.set(.@"image-commit", .gen(&.{}));
     result.set(.min, .genCall(&.{ .int, .int }));
     result.set(.max, .genCall(&.{ .int, .int }));
@@ -382,8 +383,6 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
         .genCall(&.{ .int, .int, .int }) // TODO: is the last one int or list?
     else if (game == .soccer_1998)
         .genCall(&.{ .int, .int, .int, .int }) // TODO: is the last one int or list?
-    else if (game.lt(.baseball_2001))
-        .illegal
     else
         .genCall(&.{ .int, .int, .int, .int, .list }));
     result.set(.@"sprite-get-state", .genCall(&.{.int}));
@@ -477,6 +476,10 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"array-get-dim", .genCall(&.{}));
     result.set(.@"array-get-height", .genCall(&.{}));
     result.set(.@"array-get-width", .genCall(&.{}));
+    result.set(.@"array-get-x-start", .genCall(&.{}));
+    result.set(.@"array-get-x-end", .genCall(&.{}));
+    result.set(.@"array-get-y-start", .genCall(&.{}));
+    result.set(.@"array-get-y-end", .genCall(&.{}));
     result.set(.@"free-arrays", .genCall(&.{}));
     result.set(.end2, .gen(&.{}));
     result.set(.end, .gen(&.{}));
@@ -600,6 +603,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"wait-for-message", .gen(&.{}));
     result.set(.@"actor-get-scale", .genCall(&.{.int}));
     result.set(.in, .genCall(&.{ .int, .list }));
+    result.set(.@"flush-object-draw-que", .gen(&.{}));
     result.set(.@"update-screen", .gen(&.{}));
     result.set(.quit, .gen(&.{}));
     result.set(.@"quit-quit", .gen(&.{}));
@@ -621,6 +625,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"print-system-printf", .gen(&.{ .int, .variadic }));
     result.set(.@"print-system-start", .gen(&.{}));
     result.set(.@"say-line-position", .gen(&.{ .int, .int }));
+    result.set(.@"say-line-center", .gen(&.{}));
     result.set(.@"say-line-string", .gen(&.{}));
     result.set(.@"say-line-talkie", .gen(&.{.int}));
     result.set(.@"say-line-color", .gen(&.{.list}));
