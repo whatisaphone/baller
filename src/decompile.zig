@@ -372,7 +372,6 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"line-length-3d", .genCall(&.{ .int, .int, .int, .int, .int, .int }));
     result.set(.@"sprite-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-y", .genCall(&.{.int}));
-    result.set(.@"sprite-group-set-group", .gen(&.{.int}));
     result.set(.@"sprite-get-state-count", .genCall(&.{.int}));
     result.set(.@"sprite-get-group", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-draw-x", .genCall(&.{.int}));
@@ -417,6 +416,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-group-get", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-group-set-group", .gen(&.{.int}));
     result.set(.@"sprite-group-move", .gen(&.{ .int, .int }));
     result.set(.@"sprite-group-select", .gen(&.{.int}));
     result.set(.@"sprite-group-set-position", .gen(&.{ .int, .int }));
