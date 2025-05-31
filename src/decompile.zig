@@ -1380,6 +1380,18 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     try startPhase(cx);
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
+        try huntBreakUntil(cx, ni);
+    try endPhase(cx);
+
+    try startPhase(cx);
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
+        try huntDo(cx, ni);
+    try endPhase(cx);
+
+    try startPhase(cx);
+    try queueNode(cx, root_node_index);
+    while (cx.queue.pop()) |ni|
         try huntIfElse(cx, ni);
     try endPhase(cx);
 
@@ -1393,18 +1405,6 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
     try queueNode(cx, root_node_index);
     while (cx.queue.pop()) |ni|
         try huntForIn(cx, ni);
-    try endPhase(cx);
-
-    try startPhase(cx);
-    try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
-        try huntBreakUntil(cx, ni);
-    try endPhase(cx);
-
-    try startPhase(cx);
-    try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
-        try huntDo(cx, ni);
     try endPhase(cx);
 }
 
@@ -2107,6 +2107,8 @@ fn isCase(cx: *StructuringCx, ni_start: NodeIndex) ?NodeIndex {
         // If it's not a continue, it must be the else branch. Check if it's
         // well-formed and if so return success.
         if (!nodeStartsWithPop(cx, ni, value)) return null;
+        // Check that the end is within this sequence of basic blocks.
+        if (findNodeWithEnd(cx, ni, end) == null_node) return null;
         return ni;
     }
 }
