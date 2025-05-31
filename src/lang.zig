@@ -134,6 +134,7 @@ pub const Op = enum {
     @"find-sprite",
     @"sprite-get-state",
     @"sprite-get-image",
+    @"sprite-get-animation",
     @"sprite-get-palette",
     @"sprite-get-update-type",
     @"sprite-class",
@@ -163,6 +164,7 @@ pub const Op = enum {
     @"sprite-group-get-object-x",
     @"sprite-group-get-object-y",
     @"sprite-group-set-group",
+    @"sprite-group-set-order",
     @"sprite-group-move",
     @"sprite-group-select",
     @"sprite-group-set-position",
@@ -428,6 +430,7 @@ pub const Op = enum {
     @"string-width",
     @"string-length",
     @"string-substr",
+    @"string-concat",
     @"string-compare",
     @"costume-loaded",
     @"sound-loaded",
@@ -567,7 +570,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x25, 0x2d, .@"find-sprite", &.{});
     lang.addNested(0x25, 0x34, .@"sprite-get-state", &.{});
     lang.addNested(0x25, 0x3f, .@"sprite-get-image", &.{});
-    lang.addNested(0x25, 0x52, "sprite-get-animation", &.{});
+    lang.addNested(0x25, 0x52, .@"sprite-get-animation", &.{});
     lang.addNested(0x25, 0x56, .@"sprite-get-palette", &.{});
     lang.addNested(0x25, 0x7c, .@"sprite-get-update-type", &.{});
     lang.addNested(0x25, 0x7d, .@"sprite-class", &.{});
@@ -604,7 +607,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x27, 0x2b, "sprite-group-get-order", &.{});
 
     lang.addNested(0x28, 0x25, .@"sprite-group-set-group", &.{});
-    lang.addNested(0x28, 0x2b, "sprite-group-set-order", &.{});
+    lang.addNested(0x28, 0x2b, .@"sprite-group-set-order", &.{});
     lang.addNested(0x28, 0x2c, .@"sprite-group-move", &.{});
     lang.addNested(0x28, 0x39, .@"sprite-group-select", &.{});
     lang.addNested(0x28, 0x41, .@"sprite-group-set-position", &.{});
@@ -933,7 +936,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.add(0xed, .@"string-width", &.{});
     lang.add(0xee, .@"string-length", &.{});
     lang.add(0xef, .@"string-substr", &.{});
-    lang.add(0xf0, "string-concat", &.{});
+    lang.add(0xf0, .@"string-concat", &.{});
     lang.add(0xf1, .@"string-compare", &.{});
 
     lang.addNested(0xf2, 0xe3, .@"costume-loaded", &.{});
