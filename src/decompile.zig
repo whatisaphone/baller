@@ -725,7 +725,7 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     // compiler, so don't output it explicitly here.
     const ss = bb_last.statements.defined;
     if (ss.len == 0) return error.BadData;
-    const stmt = &cx.stmts.items[ss.start + ss.len - 1];
+    const stmt = &cx.stmts.items[ss.last()];
     if (stmt.* != .call) return error.BadData;
     if (stmt.call.op != .end and stmt.call.op != .end2) return error.BadData;
     bb_last.end -= 1;
@@ -1671,7 +1671,7 @@ fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
     if (prev.kind != .basic_block) return null;
     const init_ss = prev.kind.basic_block.statements;
     if (init_ss.len == 0) return null;
-    const init = cx.stmts.getPtr(init_ss.start + init_ss.len - 1);
+    const init = cx.stmts.getPtr(init_ss.last());
     if (init.* != .call) return null;
     if (init.call.op != .set) return null;
     std.debug.assert(init.call.args.len == 2);
@@ -1685,7 +1685,7 @@ fn isFor(cx: *StructuringCx, ni: NodeIndex) ?For {
     if (last.kind != .basic_block) return null;
     const inc_ss = last.kind.basic_block.statements;
     if (inc_ss.len == 0) return null;
-    const inc = cx.stmts.getPtr(inc_ss.start + inc_ss.len - 1);
+    const inc = cx.stmts.getPtr(inc_ss.last());
     if (inc.* != .call) return null;
     const expected_op: lang.Op = if (dir == .up) .inc else .dec;
     if (inc.call.op != expected_op) return null;
@@ -2403,7 +2403,7 @@ fn checkInvariants(cx: *StructuringCx) !void {
         if (node.kind == .basic_block) {
             const ss = node.kind.basic_block.statements;
             if (ss.len != 0)
-                try std.testing.expect(node.end == cx.stmt_ends.get(ss.start + ss.len - 1));
+                try std.testing.expect(node.end == cx.stmt_ends.get(ss.last()));
         }
     }
 }
@@ -2513,7 +2513,7 @@ fn chopJump(cx: *StructuringCx, ni: NodeIndex) void {
 
     if (builtin.mode == .Debug) {
         const ss = node.kind.basic_block.statements;
-        const stmt = cx.stmts.getPtr(ss.start + ss.len - 1);
+        const stmt = cx.stmts.getPtr(ss.last());
         std.debug.assert(stmt.* == .jump);
     }
 
@@ -2527,7 +2527,7 @@ fn chopJumpCondition(cx: *StructuringCx, ni: NodeIndex) ExprIndex {
     const node = &cx.nodes.items[ni];
 
     const ss = node.kind.basic_block.statements;
-    const stmt = cx.stmts.getPtr(ss.start + ss.len - 1);
+    const stmt = cx.stmts.getPtr(ss.last());
     const condition = switch (stmt.*) {
         .jump_if, .jump_unless => |j| j.condition,
         else => unreachable,
