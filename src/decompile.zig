@@ -46,14 +46,14 @@ pub fn run(
         .stack = .{},
         .str_stack = .{},
         .stmts = .empty,
-        .stmt_ends = if (annotate) .empty else null,
+        .stmt_ends = .empty,
         .exprs = .empty,
         .extra = .empty,
         .usage = usage,
     };
     defer dcx.extra.deinit(gpa);
     defer dcx.exprs.deinit(gpa);
-    defer if (dcx.stmt_ends) |*e| e.deinit(gpa);
+    defer dcx.stmt_ends.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
     defer dcx.pending_basic_blocks.deinit(gpa);
 
@@ -74,6 +74,7 @@ pub fn run(
     var scx: StructuringCx = .{
         .gpa = gpa,
         .stmts = .init(dcx.stmts.items),
+        .stmt_ends = .init(dcx.stmt_ends.items),
         .exprs = .init(dcx.exprs.items),
         .extra = &dcx.extra,
         .queue = .empty,
@@ -96,7 +97,7 @@ pub fn run(
         .id = id,
         .nodes = .init(scx.nodes.items),
         .stmts = .init(dcx.stmts.items),
-        .stmt_ends = if (dcx.stmt_ends) |*e| .init(e.items) else null,
+        .stmt_ends = if (annotate) .init(dcx.stmt_ends.items) else null,
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
         .lsc_mask = lsc_mask,
@@ -231,7 +232,7 @@ const DecompileCx = struct {
     stack: std.BoundedArray(ExprIndex, 80),
     str_stack: std.BoundedArray(ExprIndex, 3),
     stmts: std.ArrayListUnmanaged(Stmt),
-    stmt_ends: ?std.ArrayListUnmanaged(u16),
+    stmt_ends: std.ArrayListUnmanaged(u16),
     exprs: std.ArrayListUnmanaged(Expr),
     extra: std.ArrayListUnmanaged(ExprIndex),
     usage: *UsageTracker,
@@ -967,8 +968,7 @@ fn popListItems(cx: *DecompileCx) !ExtraSlice {
 
 fn storeStmt(cx: *DecompileCx, end: u16, stmt: Stmt) !void {
     try cx.stmts.append(cx.gpa, stmt);
-    if (cx.stmt_ends) |*stmt_ends|
-        try stmt_ends.append(cx.gpa, end);
+    try cx.stmt_ends.append(cx.gpa, end);
 }
 
 fn storeExpr(cx: *DecompileCx, expr: Expr) !ExprIndex {
@@ -1253,6 +1253,7 @@ fn callArgs(cx: *const DecompileCx, expr: *const Expr, op: lang.Op, len: usize) 
 const StructuringCx = struct {
     gpa: std.mem.Allocator,
     stmts: utils.SafeManyPointer([*]Stmt),
+    stmt_ends: utils.SafeManyPointer([*]u16),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: *std.ArrayListUnmanaged(ExprIndex),
 
@@ -2072,13 +2073,15 @@ fn makeBreakUntil(cx: *StructuringCx, ni: NodeIndex) !void {
     const node = &cx.nodes.items[ni];
     const ni_loop = cx.nodes.items[ni].next;
     const ni_after = cx.nodes.items[ni_loop].next;
+    const stmt_index = node.kind.basic_block.statements.start;
 
-    const stmt = cx.stmts.getPtr(node.kind.basic_block.statements.start);
+    const stmt = cx.stmts.getPtr(stmt_index);
     const condition = stmt.jump_if.condition;
     stmt.* = .{ .compound = .{
         .op = .@"break-until",
         .args = try storeExtra2(cx.gpa, cx.extra, &.{condition}),
     } };
+    cx.stmt_ends.set(stmt_index, cx.nodes.items[ni_loop].end);
 
     node.end = cx.nodes.items[ni_loop].end;
     node.next = ni_after;
@@ -2377,6 +2380,9 @@ fn checkInvariants(cx: *StructuringCx) !void {
         if (node.kind == .basic_block) {
             if (node.kind.basic_block.exit != .no_jump)
                 try std.testing.expect(node.end != pc_unknown);
+            const ss = node.kind.basic_block.statements;
+            if (ss.len != 0 and node.end != pc_unknown)
+                try std.testing.expect(node.end == cx.stmt_ends.get(ss.start + ss.len - 1));
         }
     }
 }

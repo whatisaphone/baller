@@ -114,6 +114,10 @@ pub fn SafeManyPointer(ManyPtr: type) type {
             return &self.use()[index];
         }
 
+        pub fn set(self: Self, index: usize, value: Element) void {
+            self.use()[index] = value;
+        }
+
         pub fn plus(self: Self, count: usize) Self {
             const ptr = self.ptr + count;
             const len = if (store_len) self.len - count;
