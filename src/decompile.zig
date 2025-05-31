@@ -595,6 +595,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"array-assign-list", .gen(&.{ .int, .int, .int, .int, .list }));
     result.set(.@"array-assign-slice", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.@"array-assign-range", .gen(&.{ .int, .int, .int, .int, .int, .int }));
+    result.set(.@"array-math", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.sprintf, .gen(&.{ .string, .int, .variadic }));
     result.set(.@"array-assign", .gen(&.{ .list, .int }));
     result.set(.@"array-set-row", .gen(&.{ .int, .list }));

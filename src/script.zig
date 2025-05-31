@@ -5,7 +5,7 @@ pub const Symbol = union(enum) {
     constant: u16,
 };
 
-pub const max_params = 9;
+pub const max_params = 13;
 
 pub const Param = union(enum) {
     int,

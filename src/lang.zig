@@ -7,7 +7,7 @@ pub const unknown_byte_ins = ".db";
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
 
-pub const max_operands = 2;
+pub const max_operands = 3;
 
 pub const Language = struct {
     /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
@@ -341,6 +341,7 @@ pub const Op = enum {
     @"array-assign-list",
     @"array-assign-slice",
     @"array-assign-range",
+    @"array-math",
     sprintf,
     @"array-assign",
     @"array-set-row",
@@ -821,7 +822,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0xa4, 0x7e, .@"array-assign-list", &.{.variable});
     lang.addNested(0xa4, 0x7f, .@"array-assign-slice", &.{ .variable, .variable });
     lang.addNested(0xa4, 0x80, .@"array-assign-range", &.{.variable});
-    lang.addNested(0xa4, 0x8a, "array-math", &.{ .variable, .variable });
+    lang.addNested(0xa4, 0x8a, .@"array-math", &.{ .variable, .variable, .variable });
     lang.addNested(0xa4, 0xc2, .sprintf, &.{.variable});
     lang.addNested(0xa4, 0xd0, .@"array-assign", &.{.variable});
     lang.addNested(0xa4, 0xd4, .@"array-set-row", &.{.variable});
