@@ -91,7 +91,18 @@ test "Backyard Football round trip raw" {
     _ = try testRoundTrip(football, .raw);
 }
 test "Backyard Football round trip decode all" {
-    _ = try testRoundTrip(football, .decode_all);
+    const stats = try testRoundTrip(football, .decode_all);
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.scrp_total), 388);
+        try std.testing.expectEqual(stats.get(.scrp_decompile), 388);
+        try std.testing.expectEqual(stats.get(.excd_total), 56);
+        try std.testing.expectEqual(stats.get(.excd_decompile), 50); // the other 6 are zero-length
+        try std.testing.expectEqual(stats.get(.encd_total), 56);
+        try std.testing.expectEqual(stats.get(.encd_decompile), 50); // the other 6 are zero-length
+        try std.testing.expectEqual(stats.get(.lsc2_total), 890);
+        try std.testing.expectEqual(stats.get(.lsc2_decompile), 890);
+    }
 }
 test "Backyard Football round trip disasm" {
     const stats = try testRoundTrip(football, .disasm);

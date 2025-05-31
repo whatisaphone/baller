@@ -108,6 +108,7 @@ pub const Op = enum {
     @"image-set-palette",
     @"image-set-shadow",
     @"image-set-draw-box",
+    @"image-set-draw-line",
     @"image-set-render-image",
     @"image-set-hotspot",
     @"image-new",
@@ -163,6 +164,7 @@ pub const Op = enum {
     @"sprite-group-get",
     @"sprite-group-get-object-x",
     @"sprite-group-get-object-y",
+    @"sprite-group-get-order",
     @"sprite-group-set-group",
     @"sprite-group-set-order",
     @"sprite-group-move",
@@ -261,6 +263,7 @@ pub const Op = enum {
     @"sound-looping",
     @"sound-start",
     @"stop-sound",
+    @"stop-object",
     @"current-room",
     @"stop-script",
     @"put-actor",
@@ -305,6 +308,7 @@ pub const Op = enum {
     palette,
     @"copy-palette",
     @"saveload-game",
+    @"object-order",
     @"actor-set-condition",
     @"actor-set-order",
     @"actor-set-clipped",
@@ -540,7 +544,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x1c, 0x56, .@"image-set-palette", &.{});
     lang.addNested(0x1c, 0x62, .@"image-set-shadow", &.{});
     lang.addNested(0x1c, 0x85, .@"image-set-draw-box", &.{});
-    lang.addNested(0x1c, 0x86, "image-set-draw-line", &.{});
+    lang.addNested(0x1c, 0x86, .@"image-set-draw-line", &.{});
     lang.addNested(0x1c, 0x89, .@"image-set-render-image", &.{});
     lang.addNested(0x1c, 0x9a, .@"image-set-hotspot", &.{});
     lang.addNested(0x1c, 0xd9, .@"image-new", &.{});
@@ -604,7 +608,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x27, 0x08, .@"sprite-group-get", &.{});
     lang.addNested(0x27, 0x1e, .@"sprite-group-get-object-x", &.{});
     lang.addNested(0x27, 0x1f, .@"sprite-group-get-object-y", &.{});
-    lang.addNested(0x27, 0x2b, "sprite-group-get-order", &.{});
+    lang.addNested(0x27, 0x2b, .@"sprite-group-get-order", &.{});
 
     lang.addNested(0x28, 0x25, .@"sprite-group-set-group", &.{});
     lang.addNested(0x28, 0x2b, .@"sprite-group-set-order", &.{});
@@ -732,7 +736,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x74, 0xff, .@"sound-start", &.{});
 
     lang.add(0x75, .@"stop-sound", &.{});
-    lang.add(0x77, "stop-object", &.{});
+    lang.add(0x77, .@"stop-object", &.{});
     lang.add(0x7b, .@"current-room", &.{});
     lang.add(0x7c, .@"stop-script", &.{});
     lang.add(0x7f, .@"put-actor", &.{});
@@ -782,7 +786,7 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x9c, 0xd5, .palette, &.{});
     lang.addNested(0x9c, 0xdc, .@"copy-palette", &.{});
     lang.addNested(0x9c, 0xdd, .@"saveload-game", &.{});
-    lang.addNested(0x9c, 0xea, "object-order", &.{});
+    lang.addNested(0x9c, 0xea, .@"object-order", &.{});
 
     lang.addNested(0x9d, 0x15, .@"actor-set-condition", &.{});
     lang.addNested(0x9d, 0x2b, .@"actor-set-order", &.{});

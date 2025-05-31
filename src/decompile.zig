@@ -355,6 +355,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-set-palette", .gen(&.{.int}));
     result.set(.@"image-set-shadow", .gen(&.{.int}));
     result.set(.@"image-set-draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-set-draw-line", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"image-set-render-image", .gen(&.{.int}));
     result.set(.@"image-set-hotspot", .gen(&.{ .int, .int }));
     result.set(.@"image-new", .gen(&.{}));
@@ -417,6 +418,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-group-get", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-group-get-order", .genCall(&.{.int}));
     result.set(.@"sprite-group-set-group", .gen(&.{.int}));
     result.set(.@"sprite-group-set-order", .gen(&.{.int}));
     result.set(.@"sprite-group-move", .gen(&.{ .int, .int }));
@@ -515,6 +517,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sound-looping", .gen(&.{}));
     result.set(.@"sound-start", .gen(&.{}));
     result.set(.@"stop-sound", .gen(&.{.int}));
+    result.set(.@"stop-object", .gen(&.{.int}));
     result.set(.@"current-room", .gen(&.{.int}));
     result.set(.@"stop-script", .gen(&.{.int}));
     result.set(.@"put-actor", .gen(&.{ .int, .int, .int, .int }));
@@ -559,7 +562,8 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.palette, .gen(&.{.int}));
     result.set(.@"copy-palette", .gen(&.{ .int, .int }));
     result.set(.@"saveload-game", .gen(&.{ .int, .string }));
-    result.set(.@"actor-set-condition", .gen(&.{ .int, .int }));
+    result.set(.@"object-order", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-condition", .gen(&.{.list}));
     result.set(.@"actor-set-order", .gen(&.{.int}));
     result.set(.@"actor-set-clipped", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"actor-set-position", .gen(&.{ .int, .int }));
