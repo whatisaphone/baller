@@ -604,7 +604,6 @@ fn buildNormalLanguage(game: Game) Language {
     lang.addNested(0x26, 0xc6, .@"sprite-variable-range", &.{});
     lang.addNested(0x26, 0xd9, .@"sprite-new", &.{});
 
-    lang.addNested(0x27, 0x02, "sprite-group-unknown-27-02", &.{});
     lang.addNested(0x27, 0x08, .@"sprite-group-get", &.{});
     lang.addNested(0x27, 0x1e, .@"sprite-group-get-object-x", &.{});
     lang.addNested(0x27, 0x1f, .@"sprite-group-get-object-y", &.{});
