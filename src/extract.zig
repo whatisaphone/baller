@@ -1367,20 +1367,22 @@ fn extractLsc(
     };
     if (option == .raw) return false;
 
+    var tx: Transaction = .init(code);
+
     const script_number, const bytecode = parseLscHeader(block_type, raw) catch |err|
-        return handleDecodeResult(err, "decode", diag, code);
+        return handleDecodeResult(err, &tx, "decode", diag, code);
 
     // mild hack: patch the log context now that we know the script number
     diag.section = .{ .glob = .{ block_id, script_number } };
     diag.trace(0, "found script number", .{});
 
     if (cx.cx.options.script == .decompile and
-        tryDecode("decompile", extractLscDecompile, cx, diag, .{ block_type, script_number, bytecode }, code))
+        tryDecodeTx("decompile", extractLscDecompile, cx, &tx, diag, .{ block_type, script_number, bytecode }, code))
     {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
-    if (tryDecode("disassemble", extractLscDisassemble, cx, diag, .{ block_type, script_number, bytecode }, code)) {
+    if (tryDecodeTx("disassemble", extractLscDisassemble, cx, &tx, diag, .{ block_type, script_number, bytecode }, code)) {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
@@ -1566,6 +1568,21 @@ fn extractGlobJob(
     });
 }
 
+const Transaction = struct {
+    code_initial_len: u32,
+
+    fn init(code: *std.ArrayListUnmanaged(u8)) Transaction {
+        return .{
+            .code_initial_len = @intCast(code.items.len),
+        };
+    }
+
+    fn rollback(self: *Transaction, code: *std.ArrayListUnmanaged(u8)) void {
+        code.shrinkRetainingCapacity(self.code_initial_len);
+        self.* = undefined;
+    }
+};
+
 fn tryDecode(
     decoder_name: []const u8,
     decodeFn: anytype,
@@ -1574,13 +1591,27 @@ fn tryDecode(
     decode_args: anytype,
     code: *std.ArrayListUnmanaged(u8),
 ) bool {
+    var tx: Transaction = .init(code);
+    return tryDecodeTx(decoder_name, decodeFn, cx, &tx, diag, decode_args, code);
+}
+
+fn tryDecodeTx(
+    decoder_name: []const u8,
+    decodeFn: anytype,
+    cx: *RoomContext,
+    tx: *Transaction,
+    diag: *const Diagnostic.ForBinaryFile,
+    decode_args: anytype,
+    code: *std.ArrayListUnmanaged(u8),
+) bool {
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
-    return handleDecodeResult(result, decoder_name, diag, code);
+    return handleDecodeResult(result, tx, decoder_name, diag, code);
 }
 
 // break out the non-generic code for better codegen
 fn handleDecodeResult(
     result: anyerror!void,
+    tx: *Transaction,
     decoder_name: []const u8,
     diag: *const Diagnostic.ForBinaryFile,
     code: *std.ArrayListUnmanaged(u8),
@@ -1591,8 +1622,7 @@ fn handleDecodeResult(
         if (err != error.AddedToDiagnostic)
             diag.zigErr(0, "unexpected error: {s}", .{}, err);
 
-        // Clear any partial results from a failure
-        code.clearRetainingCapacity();
+        tx.rollback(code);
 
         diag.info(0, "{s} failed", .{decoder_name});
         return false;
@@ -1608,20 +1638,22 @@ fn tryDecodeAndSend(
     chunk_index: u16,
     section: Section,
 ) bool {
+    var tx: Transaction = .init(code);
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
-    return handleDecodeAndSendResult(result, cx, diag, code, chunk_index, section);
+    return handleDecodeAndSendResult(result, cx, &tx, diag, code, chunk_index, section);
 }
 
 // break out the non-generic code for better codegen
 fn handleDecodeAndSendResult(
     result: anyerror!void,
     cx: *const RoomContext,
+    tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
     section: Section,
 ) bool {
-    if (handleDecodeResult(result, "decode", diag, code)) {
+    if (handleDecodeResult(result, tx, "decode", diag, code)) {
         cx.sendChunk(chunk_index, section, code.*);
         return true;
     }
