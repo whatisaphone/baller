@@ -191,6 +191,11 @@ pub const Op = enum {
     @"start-script-order",
     @"start-script-rec-order",
     @"chain-script-order",
+    @"video-load",
+    @"video-set-flags",
+    @"video-select",
+    @"video-close",
+    @"video-commit",
     mod,
     shl,
     shr,
@@ -433,6 +438,7 @@ pub const Op = enum {
     @"read-file-int16",
     @"read-file-int8",
     @"write-file-int16",
+    @"write-file-int32",
     @"write-file-int8",
     @"find-all-objects2",
     @"delete-file",
@@ -475,6 +481,8 @@ pub const Op = enum {
     @"image-font-start",
     @"sound-select-modify",
     @"sound-pan",
+    @"font-enumerate-start",
+    @"font-enumerate-property",
 };
 
 // stopgap while migrating from string to enum
@@ -1286,16 +1294,16 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x8b, 0x8b, .@"userput-on", &.{});
     lang.addNested(0x8b, 0x8c, .@"userput-off", &.{});
 
-    lang.addNested(0x8c, 0x00, "video-select", &.{});
-    lang.addNested(0x8c, 0x13, "video-close", &.{});
-    lang.addNested(0x8c, 0x2f, "video-load", &.{});
-    lang.addNested(0x8c, 0x43, "video-set-flags", &.{});
-    lang.addNested(0x8c, 0x5c, "video-commit", &.{});
+    lang.addNested(0x8c, 0x00, .@"video-select", &.{});
+    lang.addNested(0x8c, 0x13, .@"video-close", &.{});
+    lang.addNested(0x8c, 0x2f, .@"video-load", &.{});
+    lang.addNested(0x8c, 0x43, .@"video-set-flags", &.{});
+    lang.addNested(0x8c, 0x5c, .@"video-commit", &.{});
 
     lang.addNested(0x8d, 0x82, .@"wait-for-message", &.{});
 
     lang.addNested(0x90, 0x05, .@"write-file-int8", &.{.u8});
-    lang.addNested(0x90, 0x2b, "write-file-int32", &.{});
+    lang.addNested(0x90, 0x2b, .@"write-file-int32", &.{});
 
     lang.addNested(0x91, 0x2b, .@"write-system-ini-int", &.{});
     lang.addNested(0x91, 0x4d, .@"write-system-ini-string", &.{});
@@ -1308,7 +1316,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x99, .@"actor-get-property", &.{});
     lang.add(0x9a, .@"actor-room", &.{});
     lang.add(0x9b, .@"actor-get-scale", &.{});
-    lang.add(0x9c, "actor-moving", &.{});
+    lang.add(0x9c, .@"actor-get-var", &.{});
     lang.add(0x9e, .@"actor-x", &.{});
     lang.add(0x9f, .@"actor-y", &.{});
     lang.add(0xa0, .@"angle-from-delta", &.{});
@@ -1326,8 +1334,8 @@ fn builtBasketballLanguage() Language {
     lang.add(0xac, .@"find-all-objects", &.{});
     lang.add(0xaf, .@"find-object", &.{});
 
-    lang.addNested(0xb3, 0x00, "font-enumerate-start", &.{});
-    lang.addNested(0xb3, 0x3c, "font-enumerate-property", &.{});
+    lang.addNested(0xb3, 0x00, .@"font-enumerate-start", &.{});
+    lang.addNested(0xb3, 0x3c, .@"font-enumerate-property", &.{});
 
     lang.add(0xb4, .@"free-arrays", &.{});
 

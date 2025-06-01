@@ -446,6 +446,11 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"start-script-order", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"start-script-rec-order", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"chain-script-order", .gen(&.{ .int, .int, .variadic }));
+    result.set(.@"video-load", .gen(&.{.int}));
+    result.set(.@"video-set-flags", .gen(&.{.int}));
+    result.set(.@"video-select", .gen(&.{.int}));
+    result.set(.@"video-close", .gen(&.{}));
+    result.set(.@"video-commit", .gen(&.{}));
     result.set(.mod, .genCall(&.{ .int, .int }));
     result.set(.shl, .genCall(&.{ .int, .int }));
     result.set(.shr, .genCall(&.{ .int, .int }));
@@ -688,6 +693,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"read-file-int16", .genCall(&.{.int}));
     result.set(.@"read-file-int8", .genCall(&.{ .int, .int }));
     result.set(.@"write-file-int16", .gen(&.{ .int, .int }));
+    result.set(.@"write-file-int32", .gen(&.{ .int, .int }));
     result.set(.@"write-file-int8", .gen(&.{ .int, .int }));
     result.set(.@"find-all-objects2", .genCall(&.{.int}));
     result.set(.@"delete-file", .gen(&.{.string}));
@@ -730,6 +736,8 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-font-start", .gen(&.{}));
     result.set(.@"sound-select-modify", .gen(&.{.int}));
     result.set(.@"sound-pan", .gen(&.{.int}));
+    result.set(.@"font-enumerate-start", .genCall(&.{}));
+    result.set(.@"font-enumerate-property", .genCall(&.{ .int, .int }));
 
     return result;
 }
@@ -3055,10 +3063,13 @@ fn emitExpr(
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, ')');
             } else {
-                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                const parens =
+                    @intFromEnum(prec) >= @intFromEnum(Precedence.space) or
+                    call.args.len == 0;
+                if (parens)
                     try cx.out.append(cx.gpa, '(');
                 try emitCall(cx, @tagName(call.op), call.args);
-                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space))
+                if (parens)
                     try cx.out.append(cx.gpa, ')');
             }
         },
