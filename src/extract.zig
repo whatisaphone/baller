@@ -39,6 +39,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var lscr_option: ?RawOrDecode = null;
     var lsc2_option: ?RawOrDecode = null;
     var obim_option: ?RawOrDecode = null;
+    var obcd_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
     var akos_option: ?RawOrDecode = null;
@@ -97,6 +98,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (obim_option != null) return arg.reportDuplicate();
                 obim_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "obcd")) {
+                if (obcd_option != null) return arg.reportDuplicate();
+                obcd_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
@@ -136,6 +141,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .lscr = lscr_option orelse .decode,
             .lsc2 = lsc2_option orelse .decode,
             .obim = obim_option orelse .decode,
+            .obcd = obcd_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
             .akos = akos_option orelse .decode,
@@ -164,6 +170,7 @@ const Options = struct {
     lscr: RawOrDecode,
     lsc2: RawOrDecode,
     obim: RawOrDecode,
+    obcd: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
@@ -173,7 +180,8 @@ const Options = struct {
             self.encd == .decode or
             self.excd == .decode or
             self.lscr == .decode or
-            self.lsc2 == .decode;
+            self.lsc2 == .decode or
+            self.obcd == .decode;
     }
 };
 
@@ -192,6 +200,9 @@ pub const Stat = enum {
     scrp_disassemble,
     scrp_decompile,
     scrp_raw,
+    verb_total,
+    verb_disassemble,
+    verb_decompile,
     excd_total,
     excd_disassemble,
     excd_decompile,
@@ -940,7 +951,7 @@ fn extractRmda(
             .OBIM => {
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
-            .EXCD, .ENCD, .LSCR, .LSC2 => {
+            .OBCD, .EXCD, .ENCD, .LSCR, .LSC2 => {
                 try addBlockToBuffer(cx, in, &block, &buffered_blocks);
             },
             else => {
@@ -1010,7 +1021,7 @@ fn addBlockToBuffer(
     errdefer comptime unreachable;
 
     switch (block.id) {
-        .EXCD, .ENCD => {},
+        .OBCD, .EXCD, .ENCD => {},
         .LSCR, .LSC2 => {
             _ = cx.lsc_mask_state.collecting;
 
@@ -1099,7 +1110,7 @@ fn runBlockJob(
 }
 
 fn extractRmimJob(
-    cx: *const RoomContext,
+    cx: *RoomContext,
     disk_diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
     raw: []const u8,
@@ -1145,7 +1156,7 @@ fn extractRmdaChildJob(
     chunk_index: u16,
 ) !void {
     cx.cx.incStatOpt(switch (block.id) {
-        .OBIM => null,
+        .OBIM, .OBCD => null,
         .EXCD => .excd_total,
         .ENCD => .encd_total,
         .LSCR => .lscr_total,
@@ -1166,6 +1177,10 @@ fn extractRmdaChildJob(
             if (tryDecodeAndSend(extractObim, cx, &diag, .{raw}, &code, chunk_index, .bottom))
                 return;
         },
+        .OBCD => if (cx.cx.options.obcd == .decode) {
+            if (tryDecodeAndSend(decodeObcd, cx, &diag, .{raw}, &code, chunk_index, .bottom))
+                return;
+        },
         .EXCD, .ENCD => {
             if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
                 return;
@@ -1181,6 +1196,7 @@ fn extractRmdaChildJob(
     try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
     const section: Section = switch (block.id) {
         .OBIM => .bottom,
+        .OBCD => .bottom,
         .EXCD => .exit_script,
         .ENCD => .enter_script,
         .LSCR, .LSC2 => .local_scripts,
@@ -1189,7 +1205,7 @@ fn extractRmdaChildJob(
     cx.sendChunk(chunk_index, section, code);
 
     cx.cx.incStatOpt(switch (block.id) {
-        .OBIM => null,
+        .OBIM, .OBCD => null,
         .EXCD => .excd_raw,
         .ENCD => .encd_raw,
         .LSCR => .lscr_raw,
@@ -1205,6 +1221,143 @@ fn extractObim(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try obim.extract(cx.cx.gpa, diag, raw, code, cx.room_dir, cx.room_path);
+}
+
+const Cdhd = extern struct {
+    object_id: u16 align(1),
+    unk_02: [15]u8,
+};
+
+pub const VerbEntry = struct {
+    number: u8,
+    offset: u16 align(1),
+};
+
+fn decodeObcd(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var stream = std.io.fixedBufferStream(raw);
+    var obcd_blocks = fixedBlockReader(&stream, diag);
+
+    const cdhd = try obcd_blocks.expect(.CDHD).value(Cdhd);
+
+    const verb_raw = try obcd_blocks.expect(.VERB).bytes();
+    var verb_in = std.io.fixedBufferStream(verb_raw);
+    while (try verb_in.reader().readByte() != 0)
+        _ = try verb_in.reader().readBytesNoEof(2);
+    const verbs = std.mem.bytesAsSlice(VerbEntry, verb_raw[0 .. verb_in.pos - 1]);
+    const min_code_offset = Block.header_size + @as(u32, @intCast(verb_in.pos));
+
+    const obna = try obcd_blocks.expect(.OBNA).bytes();
+    if (obna.len == 0 or obna[obna.len - 1] != 0) return error.BadData;
+    const name = obna[0 .. obna.len - 1];
+
+    try obcd_blocks.finish();
+
+    try code.writer(cx.cx.gpa).print(
+        "object object{0}@{0} \"{1s}\" {{\n",
+        .{ cdhd.object_id, name },
+    );
+
+    try writeRawBlock(cx.cx.gpa, .CDHD, .{ .bytes = std.mem.asBytes(cdhd) }, cx.room_dir, cx.room_path, 4, .{ .object = cdhd.object_id }, code);
+
+    for (verbs, 0..) |v, vi| {
+        if (v.offset < min_code_offset) return error.BadData;
+        const start = v.offset - Block.header_size;
+        const end = if (vi == verbs.len - 1)
+            verb_raw.len
+        else
+            verbs[vi + 1].offset - Block.header_size;
+        if (end < start) return error.BadData;
+        if (end > verb_raw.len) return error.BadData;
+        const bytecode = verb_raw[start..end];
+
+        var tx: Transaction = .init(code);
+
+        cx.cx.incStat(.verb_total);
+
+        if (cx.cx.options.script == .decompile and
+            tryDecodeTx("decompile", decompileVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
+            continue;
+        if (tryDecodeTx("disassemble", disassembleVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
+            continue;
+        return error.AddedToDiagnostic;
+    }
+
+    try code.appendSlice(cx.cx.gpa, "}\n");
+}
+
+fn disassembleVerb(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    object: u16,
+    verb: u8,
+    bytecode: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var diagnostic: DisasmDiagnostic = .init;
+
+    const id: Symbols.ScriptId = .{ .object = .{
+        .room = cx.room_number,
+        .number = object,
+        .verb = verb,
+    } };
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    defer out.deinit(cx.cx.gpa);
+
+    var usage: UsageTracker = .init(cx.cx.game);
+
+    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+        diag.zigErr(0, "unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
+    };
+
+    var path_buf: ["object0000_00.s".len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "object{:0>4}_{:0>2}.s", .{ object, verb }) catch unreachable;
+    try fs.writeFileZ(cx.room_dir, path, out.items);
+
+    try code.writer(cx.cx.gpa).print("\n    verb {} \"{s}/{s}\"\n", .{ verb, cx.room_path, path });
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
+
+    cx.cx.incStat(.verb_disassemble);
+    diagnostic.flushStats(cx.cx, diag);
+}
+
+fn decompileVerb(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    object: u16,
+    verb: u8,
+    bytecode: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const id: Symbols.ScriptId = .{ .object = .{
+        .room = cx.room_number,
+        .number = object,
+        .verb = verb,
+    } };
+
+    var usage: UsageTracker = .init(cx.cx.game);
+
+    try code.writer(cx.cx.gpa).print("\n    verb {} {{\n", .{verb});
+    _ = cx.lsc_mask_state.frozen;
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 2, &usage);
+    try code.appendSlice(cx.cx.gpa, "    }\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
+    UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
+
+    cx.cx.incStat(.verb_decompile);
 }
 
 const EncdExcd = enum {
@@ -1325,7 +1478,7 @@ fn extractEncdExcdDecompile(
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1471,7 +1624,7 @@ fn extractLscDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1631,7 +1784,7 @@ fn handleDecodeResult(
 
 fn tryDecodeAndSend(
     decodeFn: anytype,
-    cx: *const RoomContext,
+    cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     decode_args: anytype,
     code: *std.ArrayListUnmanaged(u8),
@@ -1758,7 +1911,7 @@ fn extractScrpDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

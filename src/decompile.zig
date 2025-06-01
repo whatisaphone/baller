@@ -26,6 +26,7 @@ pub fn run(
     /// is eligible to be emitted by name instead of by number.
     lsc_mask: *const UsageTracker.LocalScripts,
     out: *std.ArrayListUnmanaged(u8),
+    indent: u16,
     usage: *UsageTracker,
 ) !void {
     // This code uses u16 all over the place. Make sure everything will fit.
@@ -105,7 +106,7 @@ pub fn run(
         .types = &tcx.types,
         .jump_targets = jump_targets.items,
         .out = out,
-        .indent = indent_size * 1,
+        .indent = indent_size * indent,
     };
     try emitScript(&ecx);
 }

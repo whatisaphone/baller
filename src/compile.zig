@@ -54,7 +54,7 @@ pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlic
 
     const end = switch (cx.ast.nodes.items[root_node]) {
         .script, .local_script => "end",
-        .enter, .exit => "end2",
+        .enter, .exit, .object => "end2",
         else => unreachable,
     };
     try emitOpcodeByName(cx, end);

@@ -250,6 +250,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         @"local-script",
         enter,
         exit,
+        object,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
@@ -388,6 +389,10 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const node_index = try storeNode(cx, token, .{ .exit = .{
                         .statements = statements,
                     } });
+                    try appendNode(cx, &children, node_index);
+                },
+                .object => {
+                    const node_index = try parseObject(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
             },
@@ -860,6 +865,74 @@ fn parseLocalScript(
         .script_number = script_number,
         .statements = statements,
     } });
+}
+
+fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        verb,
+    };
+
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
+    const number_i32 = try expectInteger(cx);
+    const number = std.math.cast(u16, number_i32) orelse
+        return reportError(cx, token, "out of range", .{});
+    const obna = try expectString(cx);
+    try expect(cx, .brace_l);
+
+    var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        switch (token2.kind) {
+            .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+                .verb => {
+                    const node_index = try parseVerb(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token2),
+        }
+    }
+
+    return storeNode(cx, token, .{ .object = .{
+        .name = name,
+        .number = number,
+        .obna = obna,
+        .children = try storeExtra(cx, children.slice()),
+    } });
+}
+
+fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const number_i32 = try expectInteger(cx);
+    const number = std.math.cast(u8, number_i32) orelse
+        return reportError(cx, token, "out of range", .{});
+
+    const contents = consumeToken(cx);
+    const body: Ast.VerbBody = body: switch (contents.kind) {
+        .string => {
+            try expect(cx, .newline);
+
+            const path_source = cx.source[contents.span.start.offset..contents.span.end.offset];
+            const path = path_source[1 .. path_source.len - 1];
+
+            break :body .{ .assembly = path };
+        },
+        .brace_l => {
+            const statements = try parseScriptBlock(cx);
+            break :body .{ .script = statements };
+        },
+        else => return reportUnexpected(cx, contents),
+    };
+
+    return storeNode(cx, token, .{ .verb = .{ .number = number, .body = body } });
 }
 
 fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {

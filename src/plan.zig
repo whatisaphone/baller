@@ -17,6 +17,7 @@ const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAL = @import("block_writer.zig").endBlockAL;
 const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
+const VerbEntry = @import("extract.zig").VerbEntry;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
@@ -326,6 +327,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .local_script => try plan.add(.rmda_lsc, .{ .node = child_node }),
             .enter => try plan.add(.rmda_encd, .{ .node = child_node }),
             .exit => try plan.add(.rmda_excd, .{ .node = child_node }),
+            .object => try plan.add(.rmda_obcd, .{ .node = child_node }),
             else => unreachable,
         }
     }
@@ -386,6 +388,7 @@ fn scanRmda(
 fn sectionForBlockId(block_id: BlockId) ?RoomSection {
     return switch (block_id) {
         .OBIM => .rmda_obim,
+        .OBCD => .rmda_obcd,
         .EXCD => .rmda_excd,
         .ENCD => .rmda_encd,
         .NLSC => .rmda_lsc,
@@ -417,6 +420,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .local_script => try spawnJob(planLocalScript, cx, room_number, child_node),
                     .enter => try spawnJob(planEnterScript, cx, room_number, child_node),
                     .exit => try spawnJob(planExitScript, cx, room_number, child_node),
+                    .object => try spawnJob(planObject, cx, room_number, child_node),
                     else => unreachable,
                 },
             }
@@ -922,6 +926,99 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
         .block_id = .EXCD,
         .data = out,
     } });
+}
+
+fn planObject(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try planObjectInner(cx, room_number, node_index, &out);
+
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = .OBCD,
+        .data = out,
+    } });
+}
+
+fn planObjectInner(
+    cx: *const Context,
+    room_number: u8,
+    node_index: u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const object = &room_file.ast.nodes.items[node_index].object;
+
+    var verb_count: u32 = 0;
+    for (room_file.ast.getExtra(object.children)) |child_index| {
+        const child = &room_file.ast.nodes.items[child_index];
+        if (child.* == .verb) verb_count += 1;
+    }
+
+    var verb_fixup: ?u32 = null;
+    var cur_verb_index: u8 = 0;
+
+    for (room_file.ast.getExtra(object.children)) |child_index| {
+        const child = &room_file.ast.nodes.items[child_index];
+        switch (child.*) {
+            .raw_block => |n| {
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+            },
+            .verb => |verb| {
+                if (verb_fixup == null) {
+                    verb_fixup = try beginBlockAL(cx.gpa, out, .VERB);
+                    _ = try out.addManyAsSlice(cx.gpa, verb_count * @sizeOf(VerbEntry));
+                    try out.append(cx.gpa, 0);
+                }
+
+                const entries_bytes = out.items[verb_fixup.? + block_header_size ..][0 .. verb_count * @sizeOf(VerbEntry)];
+                const entries = std.mem.bytesAsSlice(VerbEntry, entries_bytes);
+                entries[cur_verb_index] = .{
+                    .number = verb.number,
+                    .offset = std.math.cast(u16, out.items.len - verb_fixup.?) orelse
+                        return error.BadData,
+                };
+
+                switch (verb.body) {
+                    .assembly => |path| {
+                        const in = try fs.readFile(cx.gpa, cx.project_dir, path);
+                        defer cx.gpa.free(in);
+
+                        const id: Symbols.ScriptId = .{ .object = .{
+                            .room = room_number,
+                            .number = object.number,
+                            .verb = verb.number,
+                        } };
+                        var result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+                        defer result.deinit(cx.gpa);
+
+                        try out.appendSlice(cx.gpa, result.items); // TODO: avoid this memcpy
+                    },
+                    .script => |statements| {
+                        const diag: Diagnostic.ForTextFile = .{
+                            .diagnostic = cx.diagnostic,
+                            .path = room_file.path,
+                        };
+                        try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
+                    },
+                }
+
+                cur_verb_index += 1;
+            },
+            else => unreachable,
+        }
+    }
+
+    if (verb_fixup == null) {
+        verb_fixup = try beginBlockAL(cx.gpa, out, .VERB);
+        try out.append(cx.gpa, 0);
+    }
+    try endBlockAL(out, verb_fixup.?);
+
+    const obna_fixup = try beginBlockAL(cx.gpa, out, .OBNA);
+    try out.appendSlice(cx.gpa, object.obna);
+    try out.append(cx.gpa, 0);
+    try endBlockAL(out, obna_fixup);
 }
 
 fn planIndex(cx: *Context) !void {

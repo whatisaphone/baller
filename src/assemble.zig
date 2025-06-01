@@ -263,6 +263,7 @@ const FormatScriptId = struct {
             .enter => |s| try writer.print("room{}/enter", .{s.room}),
             .exit => |s| try writer.print("room{}/enter", .{s.room}),
             .local => |lsc| try writer.print("room{}/lsc{}", .{ lsc.room, lsc.number }),
+            .object => |o| try writer.print("obj{}/verb{}", .{ o.number, o.verb }),
         }
     }
 };

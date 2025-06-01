@@ -151,6 +151,16 @@ pub const Node = union(enum) {
     exit: struct {
         statements: ExtraSlice,
     },
+    object: struct {
+        name: []const u8,
+        number: u16,
+        obna: []const u8,
+        children: ExtraSlice,
+    },
+    verb: struct {
+        number: u8,
+        body: VerbBody,
+    },
     local_vars: struct {
         children: ExtraSlice,
     },
@@ -240,6 +250,11 @@ pub const CaseCondition = union(enum) {
 pub const ForDirection = enum {
     up,
     down,
+};
+
+pub const VerbBody = union(enum) {
+    assembly: []const u8,
+    script: ExtraSlice,
 };
 
 pub const ExtraSlice = struct {

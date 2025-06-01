@@ -14,13 +14,7 @@ pub const ScriptId = union(enum) {
     enter: struct { room: u8 },
     exit: struct { room: u8 },
     local: struct { room: u8, number: u32 },
-
-    pub fn room(self: ScriptId) ?u8 {
-        return switch (self) {
-            .global => null,
-            inline .enter, .exit, .local => |id| id.room,
-        };
-    }
+    object: struct { room: u8, number: u16, verb: u8 },
 };
 
 pub const Script = struct {
@@ -270,6 +264,7 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
             const index = s.number - games.firstLocalScript(self.game);
             return room.scripts.getPtr(index);
         },
+        .object => null,
     };
 }
 

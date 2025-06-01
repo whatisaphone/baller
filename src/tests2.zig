@@ -32,6 +32,8 @@ test "Backyard Baseball 1997 round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.scrp_total), 193);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 193);
+        try std.testing.expectEqual(stats.get(.verb_total), 200);
+        try std.testing.expectEqual(stats.get(.verb_decompile), 200);
         try std.testing.expectEqual(stats.get(.excd_total), 30);
         try std.testing.expectEqual(stats.get(.excd_decompile), 30);
         try std.testing.expectEqual(stats.get(.encd_total), 30);
@@ -64,6 +66,8 @@ test "Backyard Soccer round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.scrp_total), 135);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 135);
+        try std.testing.expectEqual(stats.get(.verb_total), 191);
+        try std.testing.expectEqual(stats.get(.verb_decompile), 191);
         try std.testing.expectEqual(stats.get(.excd_total), 29);
         try std.testing.expectEqual(stats.get(.excd_decompile), 29);
         try std.testing.expectEqual(stats.get(.encd_total), 29);
@@ -96,6 +100,8 @@ test "Backyard Football round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.scrp_total), 388);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 388);
+        try std.testing.expectEqual(stats.get(.verb_total), 294);
+        try std.testing.expectEqual(stats.get(.verb_decompile), 294);
         try std.testing.expectEqual(stats.get(.excd_total), 56);
         try std.testing.expectEqual(stats.get(.excd_decompile), 50); // the other 6 are zero-length
         try std.testing.expectEqual(stats.get(.encd_total), 56);
@@ -127,6 +133,8 @@ test "Backyard Baseball 2001 round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.scrp_total), 417);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 417);
+        try std.testing.expectEqual(stats.get(.verb_total), 43);
+        try std.testing.expectEqual(stats.get(.verb_decompile), 43);
         try std.testing.expectEqual(stats.get(.excd_total), 37);
         try std.testing.expectEqual(stats.get(.excd_decompile), 34); // the other 3 are zero-length
         try std.testing.expectEqual(stats.get(.encd_total), 37);
@@ -206,6 +214,7 @@ fn testRoundTrip(
                 .lscr = .raw,
                 .lsc2 = .raw,
                 .obim = .raw,
+                .obcd = .raw,
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,
@@ -220,6 +229,7 @@ fn testRoundTrip(
                 .lscr = .decode,
                 .lsc2 = .decode,
                 .obim = .decode,
+                .obcd = .decode,
                 .awiz = .decode,
                 .mult = .decode,
                 .akos = .decode,
@@ -234,6 +244,7 @@ fn testRoundTrip(
                 .lscr = .decode,
                 .lsc2 = .decode,
                 .obim = .raw,
+                .obcd = .decode,
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,
@@ -287,6 +298,7 @@ test "decompile annotate smoke test" {
             .lscr = .decode,
             .lsc2 = .decode,
             .obim = .raw,
+            .obcd = .decode,
             .awiz = .raw,
             .mult = .raw,
             .akos = .raw,
@@ -316,6 +328,7 @@ test "disasm annotate smoke test" {
             .lscr = .decode,
             .lsc2 = .decode,
             .obim = .raw,
+            .obcd = .decode,
             .awiz = .raw,
             .mult = .raw,
             .akos = .raw,
