@@ -246,6 +246,7 @@ pub const Op = enum {
     @"window-select",
     @"window-set-script",
     @"window-set-image",
+    @"window-set-position",
     @"window-new",
     @"window-set-title-bar",
     @"window-commit",
@@ -1267,7 +1268,12 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x88, 0x85, .@"quit-quit", &.{});
     lang.addNested(0x88, 0x88, .@"update-screen", &.{});
 
-    lang.add(0x89, "unknown-89", &.{.u8});
+    lang.addNested(0x89, 0x00, .@"window-select", &.{});
+    lang.addNested(0x89, 0x06, .@"window-set-position", &.{});
+    lang.addNested(0x89, 0x28, .@"window-set-image", &.{});
+    lang.addNested(0x89, 0x35, .@"window-new", &.{});
+    lang.addNested(0x89, 0x50, .@"window-set-title-bar", &.{});
+    lang.addNested(0x89, 0x5c, .@"window-commit", &.{});
 
     lang.addNested(0x8a, 0x3d, .@"set-timer", &.{});
 

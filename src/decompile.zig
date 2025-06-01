@@ -500,6 +500,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.end, .gen(&.{}));
     result.set(.@"window-select", .gen(&.{.int}));
     result.set(.@"window-set-image", .gen(&.{.int}));
+    result.set(.@"window-set-position", .gen(&.{ .int, .int }));
     result.set(.@"window-new", .gen(&.{}));
     result.set(.@"window-set-script", .gen(&.{.int}));
     result.set(.@"window-set-title-bar", .gen(&.{.string}));
