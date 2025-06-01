@@ -425,6 +425,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-group-select", .gen(&.{.int}));
     result.set(.@"sprite-group-set-position", .gen(&.{ .int, .int }));
     result.set(.@"sprite-group-set-clip", .gen(&.{ .int, .int, .int, .int }));
+    result.set(.@"sprite-group-never-zclip", .gen(&.{}));
     result.set(.@"sprite-group-new", .gen(&.{}));
     result.set(.@"image-get-object-x", .genCall(&.{ .int, .int }));
     result.set(.@"image-get-object-y", .genCall(&.{ .int, .int }));
@@ -439,6 +440,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.mod, .genCall(&.{ .int, .int }));
     result.set(.shl, .genCall(&.{ .int, .int }));
     result.set(.shr, .genCall(&.{ .int, .int }));
+    result.set(.xor, .genCall(&.{ .int, .int }));
     result.set(.@"find-all-objects", .genCall(&.{ .int, .list }));
     result.set(.iif, .genCall(&.{ .int, .int, .int }));
     result.set(.@"dim-array-range.int8", .gen(&.{ .int, .int, .int, .int, .int }));
@@ -564,6 +566,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"saveload-game", .gen(&.{ .int, .string }));
     result.set(.@"object-order", .gen(&.{ .int, .int }));
     result.set(.@"actor-set-condition", .gen(&.{.list}));
+    result.set(.@"actor-set-talk-condition", .gen(&.{.int}));
     result.set(.@"actor-set-order", .gen(&.{.int}));
     result.set(.@"actor-set-clipped", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"actor-set-position", .gen(&.{ .int, .int }));
@@ -582,6 +585,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"actor-set-animation-speed", .gen(&.{.int}));
     result.set(.@"actor-set-shadow", .gen(&.{.int}));
     result.set(.@"actor-set-text-offset", .gen(&.{ .int, .int }));
+    result.set(.@"actor-set-palette", .gen(&.{.int}));
     result.set(.@"actor-select", .gen(&.{.int}));
     result.set(.@"actor-set-var", .gen(&.{ .int, .int }));
     result.set(.@"actor-new", .gen(&.{}));

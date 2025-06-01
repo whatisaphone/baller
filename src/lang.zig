@@ -171,6 +171,7 @@ pub const Op = enum {
     @"sprite-group-select",
     @"sprite-group-set-position",
     @"sprite-group-set-clip",
+    @"sprite-group-never-zclip",
     @"sprite-group-new",
     @"image-get-object-x",
     @"image-get-object-y",
@@ -185,6 +186,7 @@ pub const Op = enum {
     mod,
     shl,
     shr,
+    xor,
     @"find-all-objects",
     iif,
     @"dim-array-range.int8",
@@ -310,6 +312,7 @@ pub const Op = enum {
     @"saveload-game",
     @"object-order",
     @"actor-set-condition",
+    @"actor-set-talk-condition",
     @"actor-set-order",
     @"actor-set-clipped",
     @"actor-set-position",
@@ -328,6 +331,7 @@ pub const Op = enum {
     @"actor-set-animation-speed",
     @"actor-set-shadow",
     @"actor-set-text-offset",
+    @"actor-set-palette",
     @"actor-select",
     @"actor-set-var",
     @"actor-new",
@@ -975,20 +979,20 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x00, 0x04, .@"actor-set-animation-speed", &.{});
     lang.addNested(0x00, 0x06, .@"actor-set-position", &.{});
     lang.addNested(0x00, 0x09, .@"actor-bak-on", &.{});
-    lang.addNested(0x00, 0x16, "actor-set-class", &.{});
+    lang.addNested(0x00, 0x16, .@"actor-set-condition", &.{});
     lang.addNested(0x00, 0x19, .@"actor-set-costume", &.{});
     lang.addNested(0x00, 0x35, .@"actor-new", &.{});
     lang.addNested(0x00, 0x3b, .@"actor-set-order", &.{});
-    lang.addNested(0x00, 0x3f, "actor-set-room-palette", &.{});
+    lang.addNested(0x00, 0x3f, .@"actor-set-palette", &.{});
     lang.addNested(0x00, 0x41, .@"actor-set-scale", &.{});
     lang.addNested(0x00, 0x46, .@"actor-set-shadow", &.{});
-    lang.addNested(0x00, 0x53, "actor-set-variable", &.{});
+    lang.addNested(0x00, 0x53, .@"actor-set-var", &.{});
     lang.addNested(0x00, 0x59, .@"actor-never-zclip", &.{});
     lang.addNested(0x00, 0x80, .@"actor-set-clipped", &.{});
     lang.addNested(0x00, 0x81, .@"actor-select", &.{});
     lang.addNested(0x00, 0x82, .@"actor-set-sounds", &.{});
     lang.addNested(0x00, 0x87, .@"actor-ignore-boxes", &.{});
-    lang.addNested(0x00, 0x8e, "actor-set-talk-condition", &.{});
+    lang.addNested(0x00, 0x8e, .@"actor-set-talk-condition", &.{});
 
     lang.add(0x01, .add, &.{});
 
@@ -1007,7 +1011,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0x08, .@"break-here-multi", &.{});
     lang.add(0x09, .shl, &.{});
     lang.add(0x0a, .shr, &.{});
-    lang.add(0x0b, "xor", &.{});
+    lang.add(0x0b, .xor, &.{});
     lang.add(0x0e, .@"current-room", &.{});
 
     lang.addNested(0x11, 0x5a, .@"chain-script", &.{});
@@ -1055,7 +1059,7 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x32, 0x31, .@"sprite-group-move", &.{});
     lang.addNested(0x32, 0x35, .@"sprite-group-new", &.{});
     lang.addNested(0x32, 0x3b, .@"sprite-group-set-order", &.{});
-    lang.addNested(0x32, 0x59, "sprite-group-never-zclip", &.{});
+    lang.addNested(0x32, 0x59, .@"sprite-group-never-zclip", &.{});
 
     lang.add(0x33, .gt, &.{});
 
