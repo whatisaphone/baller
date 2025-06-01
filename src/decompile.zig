@@ -378,6 +378,8 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"line-length-3d", .genCall(&.{ .int, .int, .int, .int, .int, .int }));
     result.set(.@"sprite-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-y", .genCall(&.{.int}));
+    result.set(.@"sprite-get-width", .genCall(&.{.int}));
+    result.set(.@"sprite-get-height", .genCall(&.{.int}));
     result.set(.@"sprite-get-state-count", .genCall(&.{.int}));
     result.set(.@"sprite-get-group", .genCall(&.{.int}));
     result.set(.@"sprite-get-object-draw-x", .genCall(&.{.int}));
@@ -391,6 +393,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     else
         .genCall(&.{ .int, .int, .int, .int, .list }));
     result.set(.@"sprite-get-state", .genCall(&.{.int}));
+    result.set(.@"sprite-get-image-at", .genCall(&.{.int}));
     result.set(.@"sprite-get-image", .genCall(&.{.int}));
     result.set(.@"sprite-get-animation", .genCall(&.{.int}));
     result.set(.@"sprite-get-palette", .genCall(&.{.int}));
@@ -442,6 +445,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-get-height", .genCall(&.{ .int, .int }));
     result.set(.@"image-get-state-count", .genCall(&.{.int}));
     result.set(.@"image-get-color-at", .genCall(&.{ .int, .int, .int, .int }));
+    result.set(.@"image-get-property2", .genCall(&.{ .int, .int, .int }));
     result.set(.@"actor-get-property", .genCall(&.{ .int, .int, .int }));
     result.set(.@"start-script-order", .gen(&.{ .int, .int, .variadic }));
     result.set(.@"start-script-rec-order", .gen(&.{ .int, .int, .variadic }));
@@ -451,11 +455,13 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"video-select", .gen(&.{.int}));
     result.set(.@"video-close", .gen(&.{}));
     result.set(.@"video-commit", .gen(&.{}));
+    result.set(.@"video-get-cur-frame", .genCall(&.{.int}));
     result.set(.mod, .genCall(&.{ .int, .int }));
     result.set(.shl, .genCall(&.{ .int, .int }));
     result.set(.shr, .genCall(&.{ .int, .int }));
     result.set(.xor, .genCall(&.{ .int, .int }));
     result.set(.@"find-all-objects", .genCall(&.{ .int, .list }));
+    result.set(.overlap, .genCall(&.{ .int, .list, .list }));
     result.set(.iif, .genCall(&.{ .int, .int, .int }));
     result.set(.@"dim-array-range.int8", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"dim-array-range.int16", .gen(&.{ .int, .int, .int, .int, .int }));
@@ -548,6 +554,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"actor-y", .genCall(&.{.int}));
     result.set(.@"actor-facing", .genCall(&.{.int}));
     result.set(.@"actor-get-costume", .genCall(&.{.int}));
+    result.set(.@"palette-get-channel", .genCall(&.{ .int, .int, .int }));
     result.set(.@"palette-color", .genCall(&.{ .int, .int }));
     result.set(.rgb, .genCall(&.{ .int, .int, .int }));
     result.set(.override, .override);
@@ -691,6 +698,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"close-file", .gen(&.{.int}));
     result.set(.@"open-file", .genCall(&.{ .string, .int }));
     result.set(.@"read-file-int16", .genCall(&.{.int}));
+    result.set(.@"read-file-int32", .genCall(&.{.int}));
     result.set(.@"read-file-int8", .genCall(&.{ .int, .int }));
     result.set(.@"write-file-int16", .gen(&.{ .int, .int }));
     result.set(.@"write-file-int32", .gen(&.{ .int, .int }));
@@ -738,6 +746,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sound-pan", .gen(&.{.int}));
     result.set(.@"font-enumerate-start", .genCall(&.{}));
     result.set(.@"font-enumerate-property", .genCall(&.{ .int, .int }));
+    result.set(.@"image-get-font-start", .genCall(&.{ .int, .int, .int }));
 
     return result;
 }

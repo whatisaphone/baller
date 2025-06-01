@@ -130,6 +130,8 @@ pub const Op = enum {
     @"line-length-3d",
     @"sprite-get-object-x",
     @"sprite-get-object-y",
+    @"sprite-get-width",
+    @"sprite-get-height",
     @"sprite-get-state-count",
     @"sprite-get-group",
     @"sprite-get-object-draw-x",
@@ -138,6 +140,7 @@ pub const Op = enum {
     @"sprite-get-order",
     @"find-sprite",
     @"sprite-get-state",
+    @"sprite-get-image-at",
     @"sprite-get-image",
     @"sprite-get-animation",
     @"sprite-get-palette",
@@ -187,6 +190,7 @@ pub const Op = enum {
     @"image-get-height",
     @"image-get-state-count",
     @"image-get-color-at",
+    @"image-get-property2",
     @"actor-get-property",
     @"start-script-order",
     @"start-script-rec-order",
@@ -196,11 +200,13 @@ pub const Op = enum {
     @"video-select",
     @"video-close",
     @"video-commit",
+    @"video-get-cur-frame",
     mod,
     shl,
     shr,
     xor,
     @"find-all-objects",
+    overlap,
     iif,
     @"dim-array-range.int8",
     @"dim-array-range.int16",
@@ -293,6 +299,7 @@ pub const Op = enum {
     @"actor-y",
     @"actor-facing",
     @"actor-get-costume",
+    @"palette-get-channel",
     @"palette-color",
     rgb,
     override,
@@ -436,6 +443,7 @@ pub const Op = enum {
     @"close-file",
     @"open-file",
     @"read-file-int16",
+    @"read-file-int32",
     @"read-file-int8",
     @"write-file-int16",
     @"write-file-int32",
@@ -483,6 +491,7 @@ pub const Op = enum {
     @"sound-pan",
     @"font-enumerate-start",
     @"font-enumerate-property",
+    @"image-get-font-start",
 };
 
 // stopgap while migrating from string to enum
@@ -1357,11 +1366,11 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0xba, 0x14, .@"image-get-color-at", &.{});
     lang.addNested(0xba, 0x1a, .@"image-get-state-count", &.{});
     lang.addNested(0xba, 0x27, .@"image-get-height", &.{});
-    lang.addNested(0xba, 0x36, "image-get-property2", &.{});
+    lang.addNested(0xba, 0x36, .@"image-get-property2", &.{});
     lang.addNested(0xba, 0x54, .@"image-get-width", &.{});
     lang.addNested(0xba, 0x55, .@"image-get-object-x", &.{});
     lang.addNested(0xba, 0x56, .@"image-get-object-y", &.{});
-    lang.addNested(0xba, 0x83, "image-get-font-start", &.{});
+    lang.addNested(0xba, 0x83, .@"image-get-font-start", &.{});
 
     lang.add(0xbc, .in, &.{});
     lang.add(0xbe, .@"kludge-call", &.{});
@@ -1370,11 +1379,11 @@ fn builtBasketballLanguage() Language {
     lang.add(0xc1, .@"get-object-image-x", &.{});
     lang.add(0xc2, .@"get-object-image-y", &.{});
     lang.add(0xc5, .@"open-file", &.{});
-    lang.add(0xc6, "overlap", &.{});
+    lang.add(0xc6, .overlap, &.{});
 
     lang.addNested(0xc8, 0x14, .@"palette-color", &.{});
     lang.addNested(0xc8, 0x35, .rgb, &.{});
-    lang.addNested(0xc8, 0x49, "palette-get-channel", &.{});
+    lang.addNested(0xc8, 0x49, .@"palette-get-channel", &.{});
 
     lang.add(0xc9, .pick, &.{});
     lang.add(0xcb, .@"pick-random", &.{.variable});
@@ -1382,7 +1391,7 @@ fn builtBasketballLanguage() Language {
     lang.add(0xd1, .@"random-between", &.{});
 
     lang.addNested(0xd3, 0x05, .@"read-file-int8", &.{.u8});
-    lang.addNested(0xd3, 0x2b, "read-file-int32", &.{});
+    lang.addNested(0xd3, 0x2b, .@"read-file-int32", &.{});
 
     lang.addNested(0xd4, 0x2b, .@"read-system-ini-int", &.{});
     lang.addNested(0xd4, 0x4d, .@"read-system-ini-string", &.{});
@@ -1396,19 +1405,19 @@ fn builtBasketballLanguage() Language {
     lang.add(0xd9, .@"sound-running", &.{});
     lang.add(0xdc, .sqrt, &.{});
 
-    lang.addNested(0xdb, 0x07, "sprite-get-image-at", &.{});
+    lang.addNested(0xdb, 0x07, .@"sprite-get-image-at", &.{});
     lang.addNested(0xdb, 0x10, .@"sprite-class", &.{});
     lang.addNested(0xdb, 0x1a, .@"sprite-get-state-count", &.{});
     lang.addNested(0xdb, 0x1e, .@"sprite-get-object-draw-x", &.{});
     lang.addNested(0xdb, 0x1f, .@"sprite-get-object-draw-y", &.{});
     lang.addNested(0xdb, 0x21, .@"find-sprite", &.{});
-    lang.addNested(0xdb, 0x27, "sprite-get-height", &.{});
+    lang.addNested(0xdb, 0x27, .@"sprite-get-height", &.{});
     lang.addNested(0xdb, 0x28, .@"sprite-get-image", &.{});
     lang.addNested(0xdb, 0x39, .@"sprite-get-palette", &.{});
     lang.addNested(0xdb, 0x3b, .@"sprite-get-order", &.{});
     lang.addNested(0xdb, 0x49, .@"sprite-get-state", &.{});
     lang.addNested(0xdb, 0x53, .@"sprite-get-variable", &.{});
-    lang.addNested(0xdb, 0x54, "sprite-get-width", &.{});
+    lang.addNested(0xdb, 0x54, .@"sprite-get-width", &.{});
     lang.addNested(0xdb, 0x55, .@"sprite-get-object-x", &.{});
     lang.addNested(0xdb, 0x56, .@"sprite-get-object-y", &.{});
 
@@ -1427,7 +1436,7 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0xeb, .@"valid-verb", &.{});
 
-    lang.addNested(0xec, 0x49, "video-get-cur-frame", &.{});
+    lang.addNested(0xec, 0x49, .@"video-get-cur-frame", &.{});
 
     return lang;
 }
