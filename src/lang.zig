@@ -973,54 +973,54 @@ fn buildNormalLanguage(game: Game) Language {
 fn builtBasketballLanguage() Language {
     var lang: Language = .{};
 
-    lang.addNested(0x00, 0x04, "actor-set-animation-speed", &.{});
-    lang.addNested(0x00, 0x06, "actor-set-position", &.{});
-    lang.addNested(0x00, 0x09, "actor-bak-on", &.{});
+    lang.addNested(0x00, 0x04, .@"actor-set-animation-speed", &.{});
+    lang.addNested(0x00, 0x06, .@"actor-set-position", &.{});
+    lang.addNested(0x00, 0x09, .@"actor-bak-on", &.{});
     lang.addNested(0x00, 0x16, "actor-set-class", &.{});
-    lang.addNested(0x00, 0x19, "actor-set-costume", &.{});
-    lang.addNested(0x00, 0x35, "actor-new", &.{});
-    lang.addNested(0x00, 0x3b, "actor-set-order", &.{});
+    lang.addNested(0x00, 0x19, .@"actor-set-costume", &.{});
+    lang.addNested(0x00, 0x35, .@"actor-new", &.{});
+    lang.addNested(0x00, 0x3b, .@"actor-set-order", &.{});
     lang.addNested(0x00, 0x3f, "actor-set-room-palette", &.{});
-    lang.addNested(0x00, 0x41, "actor-set-scale", &.{});
-    lang.addNested(0x00, 0x46, "actor-set-shadow", &.{});
+    lang.addNested(0x00, 0x41, .@"actor-set-scale", &.{});
+    lang.addNested(0x00, 0x46, .@"actor-set-shadow", &.{});
     lang.addNested(0x00, 0x53, "actor-set-variable", &.{});
-    lang.addNested(0x00, 0x59, "actor-never-zclip", &.{});
-    lang.addNested(0x00, 0x80, "actor-set-clipped", &.{});
-    lang.addNested(0x00, 0x81, "actor-select", &.{});
-    lang.addNested(0x00, 0x82, "actor-set-sounds", &.{});
-    lang.addNested(0x00, 0x87, "actor-ignore-boxes", &.{});
+    lang.addNested(0x00, 0x59, .@"actor-never-zclip", &.{});
+    lang.addNested(0x00, 0x80, .@"actor-set-clipped", &.{});
+    lang.addNested(0x00, 0x81, .@"actor-select", &.{});
+    lang.addNested(0x00, 0x82, .@"actor-set-sounds", &.{});
+    lang.addNested(0x00, 0x87, .@"actor-ignore-boxes", &.{});
     lang.addNested(0x00, 0x8e, "actor-set-talk-condition", &.{});
 
-    lang.add(0x01, "add", &.{});
+    lang.add(0x01, .add, &.{});
 
-    lang.addNested(0x03, 0x86, "array-sort", &.{.variable});
+    lang.addNested(0x03, 0x86, .@"array-sort", &.{.variable});
 
-    lang.addNested(0x04, 0x23, "sprintf", &.{.variable});
-    lang.addNested(0x04, 0x4d, "assign-string", &.{.variable});
-    lang.addNested(0x04, 0x81, "array-assign", &.{.variable});
-    lang.addNested(0x04, 0x82, "array-assign-list", &.{.variable});
-    lang.addNested(0x04, 0x83, "array-assign-slice", &.{ .variable, .variable });
-    lang.addNested(0x04, 0x85, "array-assign-range", &.{.variable});
+    lang.addNested(0x04, 0x23, .sprintf, &.{.variable});
+    lang.addNested(0x04, 0x4d, .@"assign-string", &.{.variable});
+    lang.addNested(0x04, 0x81, .@"array-assign", &.{.variable});
+    lang.addNested(0x04, 0x82, .@"array-assign-list", &.{.variable});
+    lang.addNested(0x04, 0x83, .@"array-assign-slice", &.{ .variable, .variable });
+    lang.addNested(0x04, 0x85, .@"array-assign-range", &.{.variable});
 
-    lang.add(0x05, "band", &.{});
-    lang.add(0x06, "bor", &.{});
-    lang.add(0x07, "break-here", &.{});
-    lang.add(0x08, "break-here-multi", &.{});
-    lang.add(0x09, "shl", &.{});
-    lang.add(0x0a, "shr", &.{});
+    lang.add(0x05, .band, &.{});
+    lang.add(0x06, .bor, &.{});
+    lang.add(0x07, .@"break-here", &.{});
+    lang.add(0x08, .@"break-here-multi", &.{});
+    lang.add(0x09, .shl, &.{});
+    lang.add(0x0a, .shr, &.{});
     lang.add(0x0b, "xor", &.{});
-    lang.add(0x0e, "current-room", &.{});
+    lang.add(0x0e, .@"current-room", &.{});
 
-    lang.addNested(0x11, 0x5a, "chain-script", &.{});
-    lang.addNested(0x11, 0x82, "chain-script-rec", &.{});
+    lang.addNested(0x11, 0x5a, .@"chain-script", &.{});
+    lang.addNested(0x11, 0x82, .@"chain-script-rec", &.{});
 
-    lang.add(0x12, "object-set-class", &.{});
-    lang.add(0x13, "close-file", &.{});
-    lang.add(0x16, "create-directory", &.{});
-    lang.add(0x19, "debug", &.{});
-    lang.add(0x1b, "dec", &.{.variable});
-    lang.add(0x1c, "dec-array-item", &.{.variable});
-    lang.add(0x1d, "delete-file", &.{});
+    lang.add(0x12, .@"object-set-class", &.{});
+    lang.add(0x13, .@"close-file", &.{});
+    lang.add(0x16, .@"create-directory", &.{});
+    lang.add(0x19, .debug, &.{});
+    lang.add(0x1b, .dec, &.{.variable});
+    lang.add(0x1c, .@"dec-array-item", &.{.variable});
+    lang.add(0x1d, .@"delete-file", &.{});
 
     lang.addNested(0x1e, 0x2a, .@"dim-array-2d.int16", &.{.variable});
     lang.addNested(0x1e, 0x2b, .@"dim-array-2d.int32", &.{.variable});
@@ -1033,32 +1033,32 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x1f, 0x4d, .@"dim-array.string", &.{.variable});
     lang.addNested(0x1f, 0x87, .undim, &.{.variable});
 
-    lang.add(0x20, "div", &.{});
-    lang.add(0x21, "do-animation", &.{});
-    lang.add(0x23, "draw-box", &.{});
+    lang.add(0x20, .div, &.{});
+    lang.add(0x21, .@"do-animation", &.{});
+    lang.add(0x23, .@"draw-box", &.{});
 
-    lang.addNested(0x26, 0x14, "array-line-draw", &.{});
+    lang.addNested(0x26, 0x14, .@"array-line-draw", &.{});
 
-    lang.addNested(0x27, 0x28, "draw-object", &.{});
+    lang.addNested(0x27, 0x28, .@"draw-object", &.{});
 
-    lang.add(0x28, "dup", &.{});
-    lang.add(0x29, "dup-multi", &.{.i16});
-    lang.add(0x2b, "end2", &.{});
-    lang.add(0x2c, "end", &.{});
-    lang.add(0x2d, "eq", &.{});
-    lang.add(0x30, "ge", &.{});
-    lang.add(0x31, "get-time-date", &.{});
+    lang.add(0x28, .dup, &.{});
+    lang.add(0x29, .@"dup-multi", &.{.i16});
+    lang.add(0x2b, .end2, &.{});
+    lang.add(0x2c, .end, &.{});
+    lang.add(0x2d, .eq, &.{});
+    lang.add(0x30, .ge, &.{});
+    lang.add(0x31, .@"get-time-date", &.{});
 
-    lang.addNested(0x32, 0x00, "sprite-group-select", &.{});
-    lang.addNested(0x32, 0x06, "sprite-group-set-position", &.{});
-    lang.addNested(0x32, 0x12, "sprite-group-set-clip", &.{});
-    lang.addNested(0x32, 0x26, "sprite-group-set-group", &.{});
-    lang.addNested(0x32, 0x31, "sprite-group-move", &.{});
-    lang.addNested(0x32, 0x35, "sprite-group-new", &.{});
-    lang.addNested(0x32, 0x3b, "sprite-group-set-order", &.{});
+    lang.addNested(0x32, 0x00, .@"sprite-group-select", &.{});
+    lang.addNested(0x32, 0x06, .@"sprite-group-set-position", &.{});
+    lang.addNested(0x32, 0x12, .@"sprite-group-set-clip", &.{});
+    lang.addNested(0x32, 0x26, .@"sprite-group-set-group", &.{});
+    lang.addNested(0x32, 0x31, .@"sprite-group-move", &.{});
+    lang.addNested(0x32, 0x35, .@"sprite-group-new", &.{});
+    lang.addNested(0x32, 0x3b, .@"sprite-group-set-order", &.{});
     lang.addNested(0x32, 0x59, "sprite-group-never-zclip", &.{});
 
-    lang.add(0x33, "gt", &.{});
+    lang.add(0x33, .gt, &.{});
 
     lang.addNested(0x34, 0x0e, "resource-charset", &.{});
     lang.addNested(0x34, 0x19, "resource-costume", &.{});
@@ -1073,48 +1073,48 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x34, 0x87, "resource-on-heap", &.{});
     lang.addNested(0x34, 0x88, "resource-preload", &.{});
 
-    lang.add(0x35, "jump-if", &.{.relative_offset});
-    lang.add(0x36, "jump-unless", &.{.relative_offset});
+    lang.add(0x35, .@"jump-if", &.{.relative_offset});
+    lang.add(0x36, .@"jump-unless", &.{.relative_offset});
 
-    lang.addNested(0x37, 0x00, "image-select", &.{});
-    lang.addNested(0x37, 0x06, "image-set-pos", &.{});
+    lang.addNested(0x37, 0x00, .@"image-select", &.{});
+    lang.addNested(0x37, 0x06, .@"image-set-pos", &.{});
     lang.addNested(0x37, 0x07, "image-set-source-image", &.{});
-    lang.addNested(0x37, 0x0b, "image-capture", &.{});
-    lang.addNested(0x37, 0x12, "image-set-clip", &.{});
-    lang.addNested(0x37, 0x1d, "image-draw", &.{});
-    lang.addNested(0x37, 0x27, "image-set-height", &.{});
-    lang.addNested(0x37, 0x2f, "image-load-external", &.{});
-    lang.addNested(0x37, 0x35, "image-new", &.{});
-    lang.addNested(0x37, 0x39, "image-set-palette", &.{});
+    lang.addNested(0x37, 0x0b, .@"image-capture", &.{});
+    lang.addNested(0x37, 0x12, .@"image-set-clip", &.{});
+    lang.addNested(0x37, 0x1d, .@"image-draw", &.{});
+    lang.addNested(0x37, 0x27, .@"image-set-height", &.{});
+    lang.addNested(0x37, 0x2f, .@"image-load-external", &.{});
+    lang.addNested(0x37, 0x35, .@"image-new", &.{});
+    lang.addNested(0x37, 0x39, .@"image-set-palette", &.{});
     lang.addNested(0x37, 0x3a, "image-polygon-capture", &.{});
-    lang.addNested(0x37, 0x43, "image-set-flags", &.{});
-    lang.addNested(0x37, 0x49, "image-set-state", &.{});
-    lang.addNested(0x37, 0x54, "image-set-width", &.{});
-    lang.addNested(0x37, 0x5c, "image-commit", &.{});
+    lang.addNested(0x37, 0x43, .@"image-set-flags", &.{});
+    lang.addNested(0x37, 0x49, .@"image-set-state", &.{});
+    lang.addNested(0x37, 0x54, .@"image-set-width", &.{});
+    lang.addNested(0x37, 0x5c, .@"image-commit", &.{});
     lang.addNested(0x37, 0x80, "image-font-create", &.{});
     lang.addNested(0x37, 0x81, "image-font-end", &.{});
     lang.addNested(0x37, 0x82, "image-font-render", &.{});
     lang.addNested(0x37, 0x83, "image-font-start", &.{});
     lang.addNested(0x37, 0x84, "image-set-histogram", &.{});
     lang.addNested(0x37, 0x86, "image-flood-fill", &.{});
-    lang.addNested(0x37, 0x87, "image-set-render-image", &.{});
-    lang.addNested(0x37, 0x8a, "image-set-draw-box", &.{});
+    lang.addNested(0x37, 0x87, .@"image-set-render-image", &.{});
+    lang.addNested(0x37, 0x8a, .@"image-set-draw-box", &.{});
 
-    lang.add(0x38, "in-list", &.{});
-    lang.add(0x39, "inc", &.{.variable});
-    lang.add(0x3a, "inc-array-item", &.{.variable});
-    lang.add(0x3b, "jump", &.{.relative_offset});
-    lang.add(0x3c, "kludge", &.{});
-    lang.add(0x3d, "land", &.{});
-    lang.add(0x3e, "le", &.{});
-    lang.add(0x3f, "localize", &.{});
-    lang.add(0x40, "get-array-item", &.{.variable});
-    lang.add(0x41, "get-array-item-2d", &.{.variable});
-    lang.add(0x42, "lor", &.{});
-    lang.add(0x43, "lt", &.{});
-    lang.add(0x44, "mod", &.{});
-    lang.add(0x45, "mul", &.{});
-    lang.add(0x46, "ne", &.{});
+    lang.add(0x38, .@"in-list", &.{});
+    lang.add(0x39, .inc, &.{.variable});
+    lang.add(0x3a, .@"inc-array-item", &.{.variable});
+    lang.add(0x3b, .jump, &.{.relative_offset});
+    lang.add(0x3c, .kludge, &.{});
+    lang.add(0x3d, .land, &.{});
+    lang.add(0x3e, .le, &.{});
+    lang.add(0x3f, .localize, &.{});
+    lang.add(0x40, .@"get-array-item", &.{.variable});
+    lang.add(0x41, .@"get-array-item-2d", &.{.variable});
+    lang.add(0x42, .lor, &.{});
+    lang.add(0x43, .lt, &.{});
+    lang.add(0x44, .mod, &.{});
+    lang.add(0x45, .mul, &.{});
+    lang.add(0x46, .ne, &.{});
 
     lang.addNested(0x47, 0x2a, .@"dim-array-range.int16", &.{.variable});
     lang.addNested(0x47, 0x2b, .@"dim-array-range.int32", &.{.variable});
@@ -1124,137 +1124,139 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x49, 0x2b, .@"redim-array-range.int32", &.{.variable});
     lang.addNested(0x49, 0x2d, .@"redim-array-range.int8", &.{.variable});
 
-    lang.add(0x4a, "not", &.{});
-    lang.add(0x4c, "override", &.{ .u8, .relative_offset });
-    lang.add(0x4d, "override-off", &.{});
-    lang.add(0x4e, "override-off-off", &.{});
+    lang.add(0x4a, .not, &.{});
 
-    lang.addNested(0x50, 0x00, "palette-select", &.{});
-    lang.addNested(0x50, 0x14, "palette-set-rgb", &.{});
+    lang.addNested(0x4c, 0x3b, .override, &.{.relative_offset});
+
+    lang.add(0x4d, .@"override-off", &.{});
+    lang.add(0x4e, .@"override-off-off", &.{});
+
+    lang.addNested(0x50, 0x00, .@"palette-select", &.{});
+    lang.addNested(0x50, 0x14, .@"palette-set-rgb", &.{});
     lang.addNested(0x50, 0x19, "palette-from-costume", &.{});
-    lang.addNested(0x50, 0x28, "palette-from-image", &.{});
-    lang.addNested(0x50, 0x35, "palette-new", &.{});
-    lang.addNested(0x50, 0x51, "palette-set-color", &.{});
-    lang.addNested(0x50, 0x5c, "palette-commit", &.{});
+    lang.addNested(0x50, 0x28, .@"palette-from-image", &.{});
+    lang.addNested(0x50, 0x35, .@"palette-new", &.{});
+    lang.addNested(0x50, 0x51, .@"palette-set-color", &.{});
+    lang.addNested(0x50, 0x5c, .@"palette-commit", &.{});
 
-    lang.addNested(0x52, 0x1c, "delete-polygon", &.{});
-    lang.addNested(0x52, 0x44, "set-polygon-2", &.{});
-    lang.addNested(0x52, 0x45, "set-polygon", &.{});
+    lang.addNested(0x52, 0x1c, .@"delete-polygon", &.{});
+    lang.addNested(0x52, 0x44, .@"set-polygon-2", &.{});
+    lang.addNested(0x52, 0x45, .@"set-polygon", &.{});
 
-    lang.add(0x53, "pop", &.{});
+    lang.add(0x53, .pop, &.{});
 
-    lang.addNested(0x54, 0x23, "print-debug-printf", &.{.string});
-    lang.addNested(0x54, 0x4f, "print-debug-string", &.{.string});
-    lang.addNested(0x54, 0x5b, "print-debug-start", &.{});
+    lang.addNested(0x54, 0x23, .@"print-debug-printf", &.{.string});
+    lang.addNested(0x54, 0x4f, .@"print-debug-string", &.{.string});
+    lang.addNested(0x54, 0x5b, .@"print-debug-start", &.{});
 
-    lang.add(0x55, "print-image", &.{});
+    lang.add(0x55, .@"print-image", &.{});
 
-    lang.addNested(0x57, 0x23, "print-system-printf", &.{.string});
-    lang.addNested(0x57, 0x4f, "print-system-string", &.{.string});
-    lang.addNested(0x57, 0x5b, "print-system-start", &.{});
+    lang.addNested(0x57, 0x23, .@"print-system-printf", &.{.string});
+    lang.addNested(0x57, 0x4f, .@"print-system-string", &.{.string});
+    lang.addNested(0x57, 0x5b, .@"print-system-start", &.{});
 
-    lang.addNested(0x58, 0x06, "print-text-position", &.{});
-    lang.addNested(0x58, 0x0c, "print-text-center", &.{});
-    lang.addNested(0x58, 0x15, "print-text-color", &.{});
-    lang.addNested(0x58, 0x23, "print-text-printf", &.{.string});
-    lang.addNested(0x58, 0x5b, "print-text-start", &.{});
+    lang.addNested(0x58, 0x06, .@"print-text-position", &.{});
+    lang.addNested(0x58, 0x0c, .@"print-text-center", &.{});
+    lang.addNested(0x58, 0x15, .@"print-text-color", &.{});
+    lang.addNested(0x58, 0x23, .@"print-text-printf", &.{.string});
+    lang.addNested(0x58, 0x5b, .@"print-text-start", &.{});
 
-    lang.addNested(0x5a, 0x82, "start-script-rec-order", &.{});
+    lang.addNested(0x5a, 0x82, .@"start-script-rec-order", &.{});
 
-    lang.add(0x5c, "push-u8", &.{.u8});
-    lang.add(0x5d, "push-i32", &.{.i32});
-    lang.add(0x5e, "push-str", &.{.string});
-    lang.add(0x5f, "push-i16", &.{.i16});
-    lang.add(0x60, "push-var", &.{.variable});
-    lang.add(0x62, "put-actor", &.{});
+    lang.add(0x5c, .@"push-u8", &.{.u8});
+    lang.add(0x5d, .@"push-i32", &.{.i32});
+    lang.add(0x5e, .@"push-str", &.{.string});
+    lang.add(0x5f, .@"push-i16", &.{.i16});
+    lang.add(0x60, .@"push-var", &.{.variable});
+    lang.add(0x62, .@"put-actor", &.{});
 
     lang.addNested(0x64, 0x2b, .@"redim-array.int32", &.{.variable});
     lang.addNested(0x64, 0x2d, .@"redim-array.int8", &.{.variable});
 
-    lang.add(0x66, "return", &.{});
+    lang.add(0x66, .@"return", &.{});
 
-    lang.addNested(0x68, 0x3f, "palette-set", &.{});
-    lang.addNested(0x68, 0x83, "fades", &.{});
+    lang.addNested(0x68, 0x3f, .@"palette-set", &.{});
+    lang.addNested(0x68, 0x83, .fades, &.{});
 
-    lang.addNested(0x69, 0x06, "say-line-position", &.{});
-    lang.addNested(0x69, 0x4e, "say-line-talkie", &.{});
-    lang.addNested(0x69, 0x5b, "say-line-start", &.{});
+    lang.addNested(0x69, 0x06, .@"say-line-position", &.{});
+    lang.addNested(0x69, 0x4e, .@"say-line-talkie", &.{});
+    lang.addNested(0x69, 0x5b, .@"say-line-start", &.{});
 
-    lang.add(0x6b, "say-line-actor", &.{.string});
-    lang.add(0x6e, "seek-file", &.{});
+    lang.add(0x6b, .@"say-line-actor", &.{.string});
+    lang.add(0x6e, .@"seek-file", &.{});
 
-    lang.addNested(0x72, 0x50, "title-bar", &.{});
+    lang.addNested(0x72, 0x50, .@"title-bar", &.{});
 
-    lang.add(0x73, "shuffle", &.{.variable});
-    lang.add(0x74, "sleep-for", &.{});
-    lang.add(0x76, "sleep-for-seconds", &.{});
+    lang.add(0x73, .shuffle, &.{.variable});
+    lang.add(0x74, .@"sleep-for", &.{});
+    lang.add(0x76, .@"sleep-for-seconds", &.{});
 
-    lang.addNested(0x77, 0x06, "sound-at", &.{});
-    lang.addNested(0x77, 0x5c, "sound-start", &.{});
-    lang.addNested(0x77, 0x81, "sound-channel", &.{});
-    lang.addNested(0x77, 0x83, "sound-looping", &.{});
+    lang.addNested(0x77, 0x06, .@"sound-at", &.{});
+    lang.addNested(0x77, 0x5c, .@"sound-start", &.{});
+    lang.addNested(0x77, 0x81, .@"sound-channel", &.{});
+    lang.addNested(0x77, 0x83, .@"sound-looping", &.{});
     lang.addNested(0x77, 0x84, "sound-select-modify", &.{});
     lang.addNested(0x77, 0x85, "sound-pan", &.{});
-    lang.addNested(0x77, 0x86, "sound-select", &.{});
-    lang.addNested(0x77, 0x87, "sound-soft", &.{});
+    lang.addNested(0x77, 0x86, .@"sound-select", &.{});
+    lang.addNested(0x77, 0x87, .@"sound-soft", &.{});
     lang.addNested(0x77, 0x88, "sound-volume", &.{});
 
     lang.addNested(0x79, 0x00, "sprite-select", &.{});
     lang.addNested(0x79, 0x02, "sprite-set-angle", &.{});
-    lang.addNested(0x79, 0x03, "sprite-set-animation-type", &.{});
-    lang.addNested(0x79, 0x04, "sprite-set-animation-speed", &.{});
-    lang.addNested(0x79, 0x06, "sprite-set-position", &.{});
+    lang.addNested(0x79, 0x03, .@"sprite-set-animation-type", &.{});
+    lang.addNested(0x79, 0x04, .@"sprite-set-animation-speed", &.{});
+    lang.addNested(0x79, 0x06, .@"sprite-set-position", &.{});
     lang.addNested(0x79, 0x07, "sprite-set-source-image", &.{});
-    lang.addNested(0x79, 0x10, "sprite-set-class", &.{});
-    lang.addNested(0x79, 0x20, "sprite-erase", &.{});
-    lang.addNested(0x79, 0x26, "sprite-set-group", &.{});
+    lang.addNested(0x79, 0x10, .@"sprite-set-class", &.{});
+    lang.addNested(0x79, 0x20, .@"sprite-erase", &.{});
+    lang.addNested(0x79, 0x26, .@"sprite-set-group", &.{});
     lang.addNested(0x79, 0x28, "sprite-image", &.{});
-    lang.addNested(0x79, 0x30, "sprite-mask-image", &.{});
-    lang.addNested(0x79, 0x31, "sprite-move", &.{});
-    lang.addNested(0x79, 0x35, "sprite-new", &.{});
+    lang.addNested(0x79, 0x30, .@"sprite-mask-image", &.{});
+    lang.addNested(0x79, 0x31, .@"sprite-move", &.{});
+    lang.addNested(0x79, 0x35, .@"sprite-new", &.{});
     lang.addNested(0x79, 0x36, "sprite-set-property2", &.{});
-    lang.addNested(0x79, 0x39, "sprite-set-palette", &.{});
-    lang.addNested(0x79, 0x3b, "sprite-set-order", &.{});
-    lang.addNested(0x79, 0x3c, "sprite-set-property", &.{});
+    lang.addNested(0x79, 0x39, .@"sprite-set-palette", &.{});
+    lang.addNested(0x79, 0x3b, .@"sprite-set-order", &.{});
+    lang.addNested(0x79, 0x3c, .@"sprite-set-property", &.{});
     lang.addNested(0x79, 0x41, "sprite-set-scale", &.{});
-    lang.addNested(0x79, 0x46, "sprite-set-shadow", &.{});
-    lang.addNested(0x79, 0x49, "sprite-set-state", &.{});
-    lang.addNested(0x79, 0x4a, "sprite-set-step-dist", &.{});
-    lang.addNested(0x79, 0x52, "sprite-set-update-type", &.{});
+    lang.addNested(0x79, 0x46, .@"sprite-set-shadow", &.{});
+    lang.addNested(0x79, 0x49, .@"sprite-set-state", &.{});
+    lang.addNested(0x79, 0x4a, .@"sprite-set-step-dist", &.{});
+    lang.addNested(0x79, 0x52, .@"sprite-set-update-type", &.{});
     lang.addNested(0x79, 0x53, "sprite-set-variable", &.{});
 
-    lang.addNested(0x7b, 0x5a, "start-object", &.{});
-    lang.addNested(0x7b, 0x82, "start-object-rec", &.{});
+    lang.addNested(0x7b, 0x5a, .@"start-object", &.{});
+    lang.addNested(0x7b, 0x82, .@"start-object-rec", &.{});
 
-    lang.addNested(0x7c, 0x5a, "start-script", &.{});
-    lang.addNested(0x7c, 0x82, "start-script-rec", &.{});
+    lang.addNested(0x7c, 0x5a, .@"start-script", &.{});
+    lang.addNested(0x7c, 0x82, .@"start-script-rec", &.{});
 
-    lang.add(0x7e, "object-set-state", &.{});
-    lang.add(0x80, "stop-script", &.{});
-    lang.add(0x81, "stop-sentence", &.{});
-    lang.add(0x82, "stop-sound", &.{});
-    lang.add(0x83, "stop-line", &.{});
-    lang.add(0x84, "set", &.{.variable});
-    lang.add(0x85, "set-array-item", &.{.variable});
-    lang.add(0x86, "set-array-item-2d", &.{.variable});
-    lang.add(0x87, "sub", &.{});
+    lang.add(0x7e, .@"object-set-state", &.{});
+    lang.add(0x80, .@"stop-script", &.{});
+    lang.add(0x81, .@"stop-sentence", &.{});
+    lang.add(0x82, .@"stop-sound", &.{});
+    lang.add(0x83, .@"stop-line", &.{});
+    lang.add(0x84, .set, &.{.variable});
+    lang.add(0x85, .@"set-array-item", &.{.variable});
+    lang.add(0x86, .@"set-array-item-2d", &.{.variable});
+    lang.add(0x87, .sub, &.{});
 
-    lang.addNested(0x88, 0x84, "quit", &.{});
-    lang.addNested(0x88, 0x85, "quit-quit", &.{});
-    lang.addNested(0x88, 0x88, "update-screen", &.{});
+    lang.addNested(0x88, 0x84, .quit, &.{});
+    lang.addNested(0x88, 0x85, .@"quit-quit", &.{});
+    lang.addNested(0x88, 0x88, .@"update-screen", &.{});
 
     lang.add(0x89, "unknown-89", &.{.u8});
 
-    lang.addNested(0x8a, 0x3d, "set-timer", &.{});
+    lang.addNested(0x8a, 0x3d, .@"set-timer", &.{});
 
-    lang.addNested(0x8b, 0x0e, "charset", &.{});
-    lang.addNested(0x8b, 0x0f, "charset-color", &.{});
-    lang.addNested(0x8b, 0x80, "cursor-bw", &.{});
-    lang.addNested(0x8b, 0x81, "cursor-color", &.{});
-    lang.addNested(0x8b, 0x86, "cursor-on", &.{});
-    lang.addNested(0x8b, 0x87, "cursor-off", &.{});
-    lang.addNested(0x8b, 0x8b, "userput-on", &.{});
-    lang.addNested(0x8b, 0x8c, "userput-off", &.{});
+    lang.addNested(0x8b, 0x0e, .charset, &.{});
+    lang.addNested(0x8b, 0x0f, .@"charset-color", &.{});
+    lang.addNested(0x8b, 0x80, .@"cursor-bw", &.{});
+    lang.addNested(0x8b, 0x81, .@"cursor-color", &.{});
+    lang.addNested(0x8b, 0x86, .@"cursor-on", &.{});
+    lang.addNested(0x8b, 0x87, .@"cursor-off", &.{});
+    lang.addNested(0x8b, 0x8b, .@"userput-on", &.{});
+    lang.addNested(0x8b, 0x8c, .@"userput-off", &.{});
 
     lang.addNested(0x8c, 0x00, "video-select", &.{});
     lang.addNested(0x8c, 0x13, "video-close", &.{});
@@ -1262,132 +1264,132 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x8c, 0x43, "video-set-flags", &.{});
     lang.addNested(0x8c, 0x5c, "video-commit", &.{});
 
-    lang.addNested(0x8d, 0x82, "wait-for-message", &.{});
+    lang.addNested(0x8d, 0x82, .@"wait-for-message", &.{});
 
-    lang.addNested(0x90, 0x05, "write-file-int8", &.{.u8});
+    lang.addNested(0x90, 0x05, .@"write-file-int8", &.{.u8});
     lang.addNested(0x90, 0x2b, "write-file-int32", &.{});
 
-    lang.addNested(0x91, 0x2b, "write-system-ini-int", &.{});
-    lang.addNested(0x91, 0x4d, "write-system-ini-string", &.{});
+    lang.addNested(0x91, 0x2b, .@"write-system-ini-int", &.{});
+    lang.addNested(0x91, 0x4d, .@"write-system-ini-string", &.{});
 
-    lang.addNested(0x92, 0x4d, "write-ini-string", &.{});
-    lang.addNested(0x92, 0x2b, "write-ini-int", &.{});
+    lang.addNested(0x92, 0x4d, .@"write-ini-string", &.{});
+    lang.addNested(0x92, 0x2b, .@"write-ini-int", &.{});
 
-    lang.add(0x93, "abs", &.{});
-    lang.add(0x95, "actor-get-costume", &.{});
-    lang.add(0x99, "actor-get-property", &.{});
-    lang.add(0x9a, "actor-room", &.{});
-    lang.add(0x9b, "actor-get-scale", &.{});
+    lang.add(0x93, .abs, &.{});
+    lang.add(0x95, .@"actor-get-costume", &.{});
+    lang.add(0x99, .@"actor-get-property", &.{});
+    lang.add(0x9a, .@"actor-room", &.{});
+    lang.add(0x9b, .@"actor-get-scale", &.{});
     lang.add(0x9c, "actor-moving", &.{});
-    lang.add(0x9e, "actor-x", &.{});
-    lang.add(0x9f, "actor-y", &.{});
-    lang.add(0xa0, "angle-from-delta", &.{});
-    lang.add(0xa1, "angle-from-line", &.{});
+    lang.add(0x9e, .@"actor-x", &.{});
+    lang.add(0x9f, .@"actor-y", &.{});
+    lang.add(0xa0, .@"angle-from-delta", &.{});
+    lang.add(0xa1, .@"angle-from-line", &.{});
 
-    lang.addNested(0xa3, 0x17, "line-length-2d", &.{});
-    lang.addNested(0xa3, 0x18, "line-length-3d", &.{});
+    lang.addNested(0xa3, 0x17, .@"line-length-2d", &.{});
+    lang.addNested(0xa3, 0x18, .@"line-length-3d", &.{});
 
-    lang.add(0xa4, "class-of", &.{});
-    lang.add(0xa6, "iif", &.{});
-    lang.add(0xa7, "cos", &.{});
-    lang.add(0xa8, "debug-input", &.{});
-    lang.add(0xa9, "file-size", &.{});
-    lang.add(0xaa, "find-actor", &.{});
-    lang.add(0xac, "find-all-objects", &.{});
-    lang.add(0xaf, "find-object", &.{});
+    lang.add(0xa4, .@"class-of", &.{});
+    lang.add(0xa6, .iif, &.{});
+    lang.add(0xa7, .cos, &.{});
+    lang.add(0xa8, .@"debug-input", &.{});
+    lang.add(0xa9, .@"file-size", &.{});
+    lang.add(0xaa, .@"find-actor", &.{});
+    lang.add(0xac, .@"find-all-objects", &.{});
+    lang.add(0xaf, .@"find-object", &.{});
 
     lang.addNested(0xb3, 0x00, "font-enumerate-start", &.{});
     lang.addNested(0xb3, 0x3c, "font-enumerate-property", &.{});
 
-    lang.add(0xb4, "free-arrays", &.{});
+    lang.add(0xb4, .@"free-arrays", &.{});
 
-    lang.addNested(0xb5, 0x01, "array-get-dim", &.{.variable});
-    lang.addNested(0xb5, 0x02, "array-get-height", &.{.variable});
-    lang.addNested(0xb5, 0x03, "array-get-width", &.{.variable});
-    lang.addNested(0xb5, 0x04, "array-get-x-start", &.{.variable});
-    lang.addNested(0xb5, 0x05, "array-get-x-end", &.{.variable});
-    lang.addNested(0xb5, 0x06, "array-get-y-start", &.{.variable});
-    lang.addNested(0xb5, 0x07, "array-get-y-end", &.{.variable});
+    lang.addNested(0xb5, 0x01, .@"array-get-dim", &.{.variable});
+    lang.addNested(0xb5, 0x02, .@"array-get-height", &.{.variable});
+    lang.addNested(0xb5, 0x03, .@"array-get-width", &.{.variable});
+    lang.addNested(0xb5, 0x04, .@"array-get-x-start", &.{.variable});
+    lang.addNested(0xb5, 0x05, .@"array-get-x-end", &.{.variable});
+    lang.addNested(0xb5, 0x06, .@"array-get-y-start", &.{.variable});
+    lang.addNested(0xb5, 0x07, .@"array-get-y-end", &.{.variable});
 
-    lang.addNested(0xb7, 0x48, "sound-size", &.{});
+    lang.addNested(0xb7, 0x48, .@"sound-size", &.{});
 
-    lang.addNested(0xb8, 0x05, "sprite-group-get", &.{});
-    lang.addNested(0xb8, 0x3b, "sprite-group-get-order", &.{});
-    lang.addNested(0xb8, 0x55, "sprite-group-get-object-x", &.{});
-    lang.addNested(0xb8, 0x56, "sprite-group-get-object-y", &.{});
+    lang.addNested(0xb8, 0x05, .@"sprite-group-get", &.{});
+    lang.addNested(0xb8, 0x3b, .@"sprite-group-get-order", &.{});
+    lang.addNested(0xb8, 0x55, .@"sprite-group-get-object-x", &.{});
+    lang.addNested(0xb8, 0x56, .@"sprite-group-get-object-y", &.{});
 
-    lang.addNested(0xba, 0x14, "image-get-color-at", &.{});
-    lang.addNested(0xba, 0x1a, "image-get-state-count", &.{});
-    lang.addNested(0xba, 0x27, "image-get-height", &.{});
+    lang.addNested(0xba, 0x14, .@"image-get-color-at", &.{});
+    lang.addNested(0xba, 0x1a, .@"image-get-state-count", &.{});
+    lang.addNested(0xba, 0x27, .@"image-get-height", &.{});
     lang.addNested(0xba, 0x36, "image-get-property2", &.{});
-    lang.addNested(0xba, 0x54, "image-get-width", &.{});
-    lang.addNested(0xba, 0x55, "image-get-object-x", &.{});
-    lang.addNested(0xba, 0x56, "image-get-object-y", &.{});
+    lang.addNested(0xba, 0x54, .@"image-get-width", &.{});
+    lang.addNested(0xba, 0x55, .@"image-get-object-x", &.{});
+    lang.addNested(0xba, 0x56, .@"image-get-object-y", &.{});
     lang.addNested(0xba, 0x83, "image-get-font-start", &.{});
 
-    lang.add(0xbc, "in", &.{});
-    lang.add(0xbe, "kludge-call", &.{});
-    lang.add(0xbf, "max", &.{});
-    lang.add(0xc0, "min", &.{});
-    lang.add(0xc1, "get-object-image-x", &.{});
-    lang.add(0xc2, "get-object-image-y", &.{});
-    lang.add(0xc5, "open-file", &.{});
+    lang.add(0xbc, .in, &.{});
+    lang.add(0xbe, .@"kludge-call", &.{});
+    lang.add(0xbf, .max, &.{});
+    lang.add(0xc0, .min, &.{});
+    lang.add(0xc1, .@"get-object-image-x", &.{});
+    lang.add(0xc2, .@"get-object-image-y", &.{});
+    lang.add(0xc5, .@"open-file", &.{});
     lang.add(0xc6, "overlap", &.{});
 
-    lang.addNested(0xc8, 0x14, "palette-color", &.{});
-    lang.addNested(0xc8, 0x35, "rgb", &.{});
+    lang.addNested(0xc8, 0x14, .@"palette-color", &.{});
+    lang.addNested(0xc8, 0x35, .rgb, &.{});
     lang.addNested(0xc8, 0x49, "palette-get-channel", &.{});
 
-    lang.add(0xc9, "pick", &.{});
-    lang.add(0xcb, "pick-random", &.{.variable});
-    lang.add(0xd0, "random", &.{});
-    lang.add(0xd1, "random-between", &.{});
+    lang.add(0xc9, .pick, &.{});
+    lang.add(0xcb, .@"pick-random", &.{.variable});
+    lang.add(0xd0, .random, &.{});
+    lang.add(0xd1, .@"random-between", &.{});
 
-    lang.addNested(0xd3, 0x05, "read-file-int8", &.{.u8});
+    lang.addNested(0xd3, 0x05, .@"read-file-int8", &.{.u8});
     lang.addNested(0xd3, 0x2b, "read-file-int32", &.{});
 
-    lang.addNested(0xd4, 0x2b, "read-system-ini-int", &.{});
-    lang.addNested(0xd4, 0x4d, "read-system-ini-string", &.{});
+    lang.addNested(0xd4, 0x2b, .@"read-system-ini-int", &.{});
+    lang.addNested(0xd4, 0x4d, .@"read-system-ini-string", &.{});
 
-    lang.addNested(0xd5, 0x2b, "read-ini-int", &.{});
-    lang.addNested(0xd5, 0x4d, "read-ini-string", &.{});
+    lang.addNested(0xd5, 0x2b, .@"read-ini-int", &.{});
+    lang.addNested(0xd5, 0x4d, .@"read-ini-string", &.{});
 
-    lang.add(0xd6, "script-running", &.{});
-    lang.add(0xd7, "sin", &.{});
-    lang.add(0xd8, "sound-position", &.{});
-    lang.add(0xd9, "sound-running", &.{});
-    lang.add(0xdc, "sqrt", &.{});
+    lang.add(0xd6, .@"script-running", &.{});
+    lang.add(0xd7, .sin, &.{});
+    lang.add(0xd8, .@"sound-position", &.{});
+    lang.add(0xd9, .@"sound-running", &.{});
+    lang.add(0xdc, .sqrt, &.{});
 
     lang.addNested(0xdb, 0x07, "sprite-get-image-at", &.{});
-    lang.addNested(0xdb, 0x10, "sprite-class", &.{});
-    lang.addNested(0xdb, 0x1a, "sprite-get-state-count", &.{});
-    lang.addNested(0xdb, 0x1e, "sprite-get-object-draw-x", &.{});
-    lang.addNested(0xdb, 0x1f, "sprite-get-object-draw-y", &.{});
-    lang.addNested(0xdb, 0x21, "find-sprite", &.{});
+    lang.addNested(0xdb, 0x10, .@"sprite-class", &.{});
+    lang.addNested(0xdb, 0x1a, .@"sprite-get-state-count", &.{});
+    lang.addNested(0xdb, 0x1e, .@"sprite-get-object-draw-x", &.{});
+    lang.addNested(0xdb, 0x1f, .@"sprite-get-object-draw-y", &.{});
+    lang.addNested(0xdb, 0x21, .@"find-sprite", &.{});
     lang.addNested(0xdb, 0x27, "sprite-get-height", &.{});
-    lang.addNested(0xdb, 0x28, "sprite-get-image", &.{});
-    lang.addNested(0xdb, 0x39, "sprite-get-palette", &.{});
-    lang.addNested(0xdb, 0x3b, "sprite-get-order", &.{});
-    lang.addNested(0xdb, 0x49, "sprite-get-state", &.{});
-    lang.addNested(0xdb, 0x53, "sprite-get-variable", &.{});
+    lang.addNested(0xdb, 0x28, .@"sprite-get-image", &.{});
+    lang.addNested(0xdb, 0x39, .@"sprite-get-palette", &.{});
+    lang.addNested(0xdb, 0x3b, .@"sprite-get-order", &.{});
+    lang.addNested(0xdb, 0x49, .@"sprite-get-state", &.{});
+    lang.addNested(0xdb, 0x53, .@"sprite-get-variable", &.{});
     lang.addNested(0xdb, 0x54, "sprite-get-width", &.{});
-    lang.addNested(0xdb, 0x55, "sprite-get-object-x", &.{});
-    lang.addNested(0xdb, 0x56, "sprite-get-object-y", &.{});
+    lang.addNested(0xdb, 0x55, .@"sprite-get-object-x", &.{});
+    lang.addNested(0xdb, 0x56, .@"sprite-get-object-y", &.{});
 
-    lang.add(0xde, "call-script", &.{});
-    lang.add(0xe0, "string-compare", &.{});
-    lang.add(0xe1, "string-copy", &.{});
-    lang.add(0xe2, "string-substr", &.{});
-    lang.add(0xe4, "string-length", &.{});
-    lang.add(0xe5, "string-margin", &.{});
-    lang.add(0xe6, "string-number", &.{});
-    lang.add(0xe7, "string-search", &.{});
-    lang.add(0xe8, "string-width", &.{});
-    lang.add(0xe9, "tell-file", &.{});
+    lang.add(0xde, .@"call-script", &.{});
+    lang.add(0xe0, .@"string-compare", &.{});
+    lang.add(0xe1, .@"string-copy", &.{});
+    lang.add(0xe2, .@"string-substr", &.{});
+    lang.add(0xe4, .@"string-length", &.{});
+    lang.add(0xe5, .@"string-margin", &.{});
+    lang.add(0xe6, .@"string-number", &.{});
+    lang.add(0xe7, .@"string-search", &.{});
+    lang.add(0xe8, .@"string-width", &.{});
+    lang.add(0xe9, .@"tell-file", &.{});
 
-    lang.addNested(0xea, 0x32, "get-timer", &.{});
+    lang.addNested(0xea, 0x32, .@"get-timer", &.{});
 
-    lang.add(0xeb, "valid-verb", &.{});
+    lang.add(0xeb, .@"valid-verb", &.{});
 
     lang.addNested(0xec, 0x49, "video-get-cur-frame", &.{});
 
