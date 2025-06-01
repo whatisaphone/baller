@@ -1021,9 +1021,18 @@ fn builtBasketballLanguage() Language {
     lang.add(0x1b, "dec", &.{.variable});
     lang.add(0x1c, "dec-array-item", &.{.variable});
     lang.add(0x1d, "delete-file", &.{});
-    lang.add(0x1e, "dim-array-2d", &.{ .u8, .variable });
-    // TODO: first operand is item size; 0x87 means undim
-    lang.add(0x1f, "dim-array", &.{ .u8, .variable });
+
+    lang.addNested(0x1e, 0x2a, .@"dim-array-2d.int16", &.{.variable});
+    lang.addNested(0x1e, 0x2b, .@"dim-array-2d.int32", &.{.variable});
+    lang.addNested(0x1e, 0x2d, .@"dim-array-2d.int8", &.{.variable});
+
+    lang.addNested(0x1f, 0x29, .@"dim-array.int1", &.{.variable});
+    lang.addNested(0x1f, 0x2a, .@"dim-array.int16", &.{.variable});
+    lang.addNested(0x1f, 0x2b, .@"dim-array.int32", &.{.variable});
+    lang.addNested(0x1f, 0x2d, .@"dim-array.int8", &.{.variable});
+    lang.addNested(0x1f, 0x4d, .@"dim-array.string", &.{.variable});
+    lang.addNested(0x1f, 0x87, .undim, &.{.variable});
+
     lang.add(0x20, "div", &.{});
     lang.add(0x21, "do-animation", &.{});
     lang.add(0x23, "draw-box", &.{});
@@ -1106,8 +1115,15 @@ fn builtBasketballLanguage() Language {
     lang.add(0x44, "mod", &.{});
     lang.add(0x45, "mul", &.{});
     lang.add(0x46, "ne", &.{});
-    lang.add(0x47, "dim-array-2d-range", &.{ .u8, .variable });
-    lang.add(0x49, "redim-array-range", &.{ .u8, .variable });
+
+    lang.addNested(0x47, 0x2a, .@"dim-array-range.int16", &.{.variable});
+    lang.addNested(0x47, 0x2b, .@"dim-array-range.int32", &.{.variable});
+    lang.addNested(0x47, 0x2d, .@"dim-array-range.int8", &.{.variable});
+
+    lang.addNested(0x49, 0x2a, .@"redim-array-range.int16", &.{.variable});
+    lang.addNested(0x49, 0x2b, .@"redim-array-range.int32", &.{.variable});
+    lang.addNested(0x49, 0x2d, .@"redim-array-range.int8", &.{.variable});
+
     lang.add(0x4a, "not", &.{});
     lang.add(0x4c, "override", &.{ .u8, .relative_offset });
     lang.add(0x4d, "override-off", &.{});
@@ -1151,7 +1167,10 @@ fn builtBasketballLanguage() Language {
     lang.add(0x5f, "push-i16", &.{.i16});
     lang.add(0x60, "push-var", &.{.variable});
     lang.add(0x62, "put-actor", &.{});
-    lang.add(0x64, "redim-array", &.{ .u8, .variable });
+
+    lang.addNested(0x64, 0x2b, .@"redim-array.int32", &.{.variable});
+    lang.addNested(0x64, 0x2d, .@"redim-array.int8", &.{.variable});
+
     lang.add(0x66, "return", &.{});
 
     lang.addNested(0x68, 0x3f, "palette-set", &.{});
