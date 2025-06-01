@@ -149,18 +149,22 @@ pub const Op = enum {
     @"sprite-set-order",
     @"sprite-move",
     @"sprite-set-state",
+    @"sprite-set-angle",
     @"sprite-select-one",
     @"sprite-select-range",
+    @"sprite-set-source-image",
     @"sprite-set-image",
     @"sprite-set-position",
     @"sprite-erase",
     @"sprite-set-step-dist",
     @"sprite-set-animation-type",
     @"sprite-set-palette",
+    @"sprite-set-scale",
     @"sprite-set-animation-speed",
     @"sprite-set-shadow",
     @"sprite-set-update-type",
     @"sprite-set-class",
+    @"sprite-set-property2",
     @"sprite-mask-image",
     @"sprite-restart",
     @"sprite-variable-range",
@@ -1220,28 +1224,28 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x77, 0x88, .@"sound-volume", &.{});
 
     lang.addNested(0x79, 0x00, .@"sprite-select-range", &.{});
-    lang.addNested(0x79, 0x02, "sprite-set-angle", &.{});
+    lang.addNested(0x79, 0x02, .@"sprite-set-angle", &.{});
     lang.addNested(0x79, 0x03, .@"sprite-set-animation-type", &.{});
     lang.addNested(0x79, 0x04, .@"sprite-set-animation-speed", &.{});
     lang.addNested(0x79, 0x06, .@"sprite-set-position", &.{});
-    lang.addNested(0x79, 0x07, "sprite-set-source-image", &.{});
+    lang.addNested(0x79, 0x07, .@"sprite-set-source-image", &.{});
     lang.addNested(0x79, 0x10, .@"sprite-set-class", &.{});
     lang.addNested(0x79, 0x20, .@"sprite-erase", &.{});
     lang.addNested(0x79, 0x26, .@"sprite-set-group", &.{});
-    lang.addNested(0x79, 0x28, "sprite-image", &.{});
+    lang.addNested(0x79, 0x28, .@"sprite-set-image", &.{});
     lang.addNested(0x79, 0x30, .@"sprite-mask-image", &.{});
     lang.addNested(0x79, 0x31, .@"sprite-move", &.{});
     lang.addNested(0x79, 0x35, .@"sprite-new", &.{});
-    lang.addNested(0x79, 0x36, "sprite-set-property2", &.{});
+    lang.addNested(0x79, 0x36, .@"sprite-set-property2", &.{});
     lang.addNested(0x79, 0x39, .@"sprite-set-palette", &.{});
     lang.addNested(0x79, 0x3b, .@"sprite-set-order", &.{});
     lang.addNested(0x79, 0x3c, .@"sprite-set-property", &.{});
-    lang.addNested(0x79, 0x41, "sprite-set-scale", &.{});
+    lang.addNested(0x79, 0x41, .@"sprite-set-scale", &.{});
     lang.addNested(0x79, 0x46, .@"sprite-set-shadow", &.{});
     lang.addNested(0x79, 0x49, .@"sprite-set-state", &.{});
     lang.addNested(0x79, 0x4a, .@"sprite-set-step-dist", &.{});
     lang.addNested(0x79, 0x52, .@"sprite-set-update-type", &.{});
-    lang.addNested(0x79, 0x53, "sprite-set-variable", &.{});
+    lang.addNested(0x79, 0x53, .@"sprite-variable-range", &.{});
 
     lang.addNested(0x7b, 0x5a, .@"start-object", &.{});
     lang.addNested(0x7b, 0x82, .@"start-object-rec", &.{});

@@ -402,20 +402,24 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-set-order", .gen(&.{.int}));
     result.set(.@"sprite-move", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-state", .gen(&.{.int}));
+    result.set(.@"sprite-set-angle", .gen(&.{.int}));
     if (game.le(.soccer_1998))
         result.set(.@"sprite-select-one", .gen(&.{.int}))
     else
         result.set(.@"sprite-select-range", .gen(&.{ .int, .int }));
+    result.set(.@"sprite-set-source-image", .gen(&.{.int}));
     result.set(.@"sprite-set-image", .gen(&.{.int}));
     result.set(.@"sprite-set-position", .gen(&.{ .int, .int }));
     result.set(.@"sprite-erase", .gen(&.{.int}));
     result.set(.@"sprite-set-step-dist", .gen(&.{ .int, .int }));
     result.set(.@"sprite-set-animation-type", .gen(&.{.int}));
     result.set(.@"sprite-set-palette", .gen(&.{.int}));
+    result.set(.@"sprite-set-scale", .gen(&.{.int}));
     result.set(.@"sprite-set-animation-speed", .gen(&.{.int}));
     result.set(.@"sprite-set-shadow", .gen(&.{.int}));
     result.set(.@"sprite-set-update-type", .gen(&.{.int}));
     result.set(.@"sprite-set-class", .gen(&.{.list}));
+    result.set(.@"sprite-set-property2", .gen(&.{ .int, .int }));
     result.set(.@"sprite-mask-image", .gen(&.{.int}));
     result.set(.@"sprite-restart", .gen(&.{}));
     result.set(.@"sprite-variable-range", .gen(&.{ .int, .int }));
