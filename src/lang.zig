@@ -102,13 +102,17 @@ pub const Op = enum {
     @"image-set-flags",
     @"draw-image-at",
     @"image-select",
+    @"image-set-source-image",
     @"image-set-pos",
     @"image-set-color",
     @"image-set-clip",
     @"image-set-palette",
     @"image-set-shadow",
+    @"image-set-histogram",
+    @"image-polygon-capture",
     @"image-set-draw-box",
     @"image-set-draw-line",
+    @"image-flood-fill",
     @"image-set-render-image",
     @"image-set-hotspot",
     @"image-new",
@@ -259,6 +263,7 @@ pub const Op = enum {
     @"object-set-state",
     jump,
     @"sound-soft",
+    @"sound-volume",
     @"sound-channel",
     @"sound-at",
     @"sound-select",
@@ -340,6 +345,7 @@ pub const Op = enum {
     @"palette-from-image",
     @"palette-set-rgb",
     @"palette-set-color",
+    @"palette-from-costume",
     @"palette-from-palette",
     @"palette-new",
     @"palette-commit",
@@ -455,6 +461,15 @@ pub const Op = enum {
     @"delete-polygon",
     @"set-polygon",
     @"find-polygon",
+
+    // New in Basketball:
+
+    @"image-font-create",
+    @"image-font-end",
+    @"image-font-render",
+    @"image-font-start",
+    @"sound-select-modify",
+    @"sound-pan",
 };
 
 // stopgap while migrating from string to enum
@@ -1081,7 +1096,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x37, 0x00, .@"image-select", &.{});
     lang.addNested(0x37, 0x06, .@"image-set-pos", &.{});
-    lang.addNested(0x37, 0x07, "image-set-source-image", &.{});
+    lang.addNested(0x37, 0x07, .@"image-set-source-image", &.{});
     lang.addNested(0x37, 0x0b, .@"image-capture", &.{});
     lang.addNested(0x37, 0x12, .@"image-set-clip", &.{});
     lang.addNested(0x37, 0x1d, .@"image-draw", &.{});
@@ -1089,17 +1104,17 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x37, 0x2f, .@"image-load-external", &.{});
     lang.addNested(0x37, 0x35, .@"image-new", &.{});
     lang.addNested(0x37, 0x39, .@"image-set-palette", &.{});
-    lang.addNested(0x37, 0x3a, "image-polygon-capture", &.{});
+    lang.addNested(0x37, 0x3a, .@"image-polygon-capture", &.{});
     lang.addNested(0x37, 0x43, .@"image-set-flags", &.{});
     lang.addNested(0x37, 0x49, .@"image-set-state", &.{});
     lang.addNested(0x37, 0x54, .@"image-set-width", &.{});
     lang.addNested(0x37, 0x5c, .@"image-commit", &.{});
-    lang.addNested(0x37, 0x80, "image-font-create", &.{});
-    lang.addNested(0x37, 0x81, "image-font-end", &.{});
-    lang.addNested(0x37, 0x82, "image-font-render", &.{});
-    lang.addNested(0x37, 0x83, "image-font-start", &.{});
-    lang.addNested(0x37, 0x84, "image-set-histogram", &.{});
-    lang.addNested(0x37, 0x86, "image-flood-fill", &.{});
+    lang.addNested(0x37, 0x80, .@"image-font-create", &.{});
+    lang.addNested(0x37, 0x81, .@"image-font-end", &.{});
+    lang.addNested(0x37, 0x82, .@"image-font-render", &.{});
+    lang.addNested(0x37, 0x83, .@"image-font-start", &.{});
+    lang.addNested(0x37, 0x84, .@"image-set-histogram", &.{});
+    lang.addNested(0x37, 0x86, .@"image-flood-fill", &.{});
     lang.addNested(0x37, 0x87, .@"image-set-render-image", &.{});
     lang.addNested(0x37, 0x8a, .@"image-set-draw-box", &.{});
 
@@ -1136,7 +1151,7 @@ fn builtBasketballLanguage() Language {
 
     lang.addNested(0x50, 0x00, .@"palette-select", &.{});
     lang.addNested(0x50, 0x14, .@"palette-set-rgb", &.{});
-    lang.addNested(0x50, 0x19, "palette-from-costume", &.{});
+    lang.addNested(0x50, 0x19, .@"palette-from-costume", &.{});
     lang.addNested(0x50, 0x28, .@"palette-from-image", &.{});
     lang.addNested(0x50, 0x35, .@"palette-new", &.{});
     lang.addNested(0x50, 0x51, .@"palette-set-color", &.{});
@@ -1198,13 +1213,13 @@ fn builtBasketballLanguage() Language {
     lang.addNested(0x77, 0x5c, .@"sound-start", &.{});
     lang.addNested(0x77, 0x81, .@"sound-channel", &.{});
     lang.addNested(0x77, 0x83, .@"sound-looping", &.{});
-    lang.addNested(0x77, 0x84, "sound-select-modify", &.{});
-    lang.addNested(0x77, 0x85, "sound-pan", &.{});
+    lang.addNested(0x77, 0x84, .@"sound-select-modify", &.{});
+    lang.addNested(0x77, 0x85, .@"sound-pan", &.{});
     lang.addNested(0x77, 0x86, .@"sound-select", &.{});
     lang.addNested(0x77, 0x87, .@"sound-soft", &.{});
-    lang.addNested(0x77, 0x88, "sound-volume", &.{});
+    lang.addNested(0x77, 0x88, .@"sound-volume", &.{});
 
-    lang.addNested(0x79, 0x00, "sprite-select", &.{});
+    lang.addNested(0x79, 0x00, .@"sprite-select-range", &.{});
     lang.addNested(0x79, 0x02, "sprite-set-angle", &.{});
     lang.addNested(0x79, 0x03, .@"sprite-set-animation-type", &.{});
     lang.addNested(0x79, 0x04, .@"sprite-set-animation-speed", &.{});

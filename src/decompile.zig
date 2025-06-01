@@ -350,13 +350,17 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"image-set-flags", .gen(&.{.int}));
     result.set(.@"draw-image-at", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"image-select", .gen(&.{.int}));
+    result.set(.@"image-set-source-image", .gen(&.{.int}));
     result.set(.@"image-set-pos", .gen(&.{ .int, .int }));
     result.set(.@"image-set-color", .gen(&.{ .int, .int }));
     result.set(.@"image-set-clip", .gen(&.{ .int, .int, .int, .int }));
     result.set(.@"image-set-palette", .gen(&.{.int}));
     result.set(.@"image-set-shadow", .gen(&.{.int}));
+    result.set(.@"image-set-histogram", .gen(&.{ .int, .int }));
+    result.set(.@"image-polygon-capture", .gen(&.{ .int, .int, .int }));
     result.set(.@"image-set-draw-box", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"image-set-draw-line", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-flood-fill", .gen(&.{ .int, .int, .int }));
     result.set(.@"image-set-render-image", .gen(&.{.int}));
     result.set(.@"image-set-hotspot", .gen(&.{ .int, .int }));
     result.set(.@"image-new", .gen(&.{}));
@@ -514,6 +518,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"object-set-state", .gen(&.{ .int, .int }));
     result.set(.jump, .jump);
     result.set(.@"sound-soft", .gen(&.{}));
+    result.set(.@"sound-volume", .gen(&.{.int}));
     result.set(.@"sound-channel", .gen(&.{.int}));
     result.set(.@"sound-at", .gen(&.{.int}));
     result.set(.@"sound-select", .gen(&.{.int}));
@@ -595,6 +600,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"palette-from-image", .gen(&.{ .int, .int }));
     result.set(.@"palette-set-rgb", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"palette-set-color", .gen(&.{ .int, .int, .int }));
+    result.set(.@"palette-from-costume", .gen(&.{.int}));
     result.set(.@"palette-from-palette", .gen(&.{.int}));
     result.set(.@"palette-new", .gen(&.{}));
     result.set(.@"palette-commit", .gen(&.{}));
@@ -710,6 +716,15 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"delete-polygon", .gen(&.{ .int, .int }));
     result.set(.@"set-polygon", .gen(&.{ .int, .int, .int, .int, .int, .int, .int, .int, .int }));
     result.set(.@"find-polygon", .genCall(&.{ .int, .int }));
+
+    // New in Basketball:
+
+    result.set(.@"image-font-create", .gen(&.{ .int, .int, .int, .int, .int }));
+    result.set(.@"image-font-end", .gen(&.{}));
+    result.set(.@"image-font-render", .gen(&.{ .int, .int, .int }));
+    result.set(.@"image-font-start", .gen(&.{}));
+    result.set(.@"sound-select-modify", .gen(&.{.int}));
+    result.set(.@"sound-pan", .gen(&.{.int}));
 
     return result;
 }
