@@ -1104,7 +1104,7 @@ fn peepBinOpEq(cx: *DecompileCx, stmt: *Stmt) void {
     const op = binOp(bin.call.op) orelse return;
     if (!op.hasEqAssign()) return;
     std.debug.assert(bin.call.args.len == 2);
-    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    const bin_args = getExtra4(cx, bin.call.args);
     const lhs = &cx.exprs.items[bin_args[0]];
     if (lhs.* != .variable) return;
     if (lhs.variable.raw != set_var.variable.raw) return;
@@ -1122,7 +1122,7 @@ fn peepBinOpArrayItem(cx: *DecompileCx, stmt: *Stmt) void {
     const op = binOp(bin.call.op) orelse return;
     if (!op.hasEqAssign()) return;
     std.debug.assert(bin.call.args.len == 2);
-    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    const bin_args = getExtra4(cx, bin.call.args);
     // arr[dup{i}]
     const get = &cx.exprs.items[bin_args[0]];
     const get_args = callArgs(cx, get, .@"get-array-item", 2) orelse return;
@@ -1147,7 +1147,7 @@ fn peepBinOpArrayItem2D(cx: *DecompileCx, stmt: *Stmt) void {
     const op = binOp(bin.call.op) orelse return;
     if (!op.hasEqAssign()) return;
     std.debug.assert(bin.call.args.len == 2);
-    const bin_args = cx.extra.items[bin.call.args.start..][0..bin.call.args.len];
+    const bin_args = getExtra4(cx, bin.call.args);
     // arr[dup{i}][dup{j}]
     const get = &cx.exprs.items[bin_args[0]];
     const get_args = callArgs(cx, get, .@"get-array-item-2d", 3) orelse return;
@@ -1217,7 +1217,7 @@ fn peepLockAndLoad(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
     if (lock.* != .call) return;
     const group = groups.get(lock.call.op) orelse return;
     std.debug.assert(lock.call.args.len == 1);
-    const lock_args = getExtra2(&cx.extra, lock.call.args);
+    const lock_args = getExtra4(cx, lock.call.args);
     const lock_arg = &cx.exprs.items[lock_args[0]];
     if (lock_arg.* != .dup) return;
     const resource = lock_arg.dup;
@@ -1280,14 +1280,18 @@ fn stmtCallArgs(cx: *const DecompileCx, stmt: *const Stmt, op: lang.Op, len: usi
     if (stmt.* != .call) return null;
     if (stmt.call.op != op) return null;
     std.debug.assert(stmt.call.args.len == len);
-    return cx.extra.items[stmt.call.args.start..][0..stmt.call.args.len];
+    return getExtra4(cx, stmt.call.args);
 }
 
 fn callArgs(cx: *const DecompileCx, expr: *const Expr, op: lang.Op, len: usize) ?[]ExprIndex {
     if (expr.* != .call) return null;
     if (expr.call.op != op) return null;
     std.debug.assert(expr.call.args.len == len);
-    return cx.extra.items[expr.call.args.start..][0..expr.call.args.len];
+    return getExtra4(cx, expr.call.args);
+}
+
+fn getExtra4(cx: *const DecompileCx, slice: ExtraSlice) []ExprIndex {
+    return cx.extra.items[slice.start..][0..slice.len];
 }
 
 const StructuringCx = struct {
@@ -2604,7 +2608,7 @@ fn chopEndStmts(cx: *StructuringCx, ni: NodeIndex, len: u16) void {
 }
 
 fn getExtra2(
-    extra: *std.ArrayListUnmanaged(ExprIndex),
+    extra: *const std.ArrayListUnmanaged(ExprIndex),
     slice: ExtraSlice,
 ) []const ExprIndex {
     return extra.items[slice.start..][0..slice.len];
