@@ -483,6 +483,18 @@ pub const Op = enum {
 
     // New in Basketball:
 
+    @"resource-charset",
+    @"resource-costume",
+    @"resource-image",
+    @"resource-load",
+    @"resource-room",
+    @"resource-script",
+    @"resource-sound",
+    @"resource-lock",
+    @"resource-nuke",
+    @"resource-off-heap",
+    @"resource-on-heap",
+    @"resource-preload",
     @"image-font-create",
     @"image-font-end",
     @"image-font-render",
@@ -1100,18 +1112,18 @@ fn builtBasketballLanguage() Language {
 
     lang.add(0x33, .gt, &.{});
 
-    lang.addNested(0x34, 0x0e, "resource-charset", &.{});
-    lang.addNested(0x34, 0x19, "resource-costume", &.{});
-    lang.addNested(0x34, 0x28, "resource-image", &.{});
-    lang.addNested(0x34, 0x2f, "resource-load", &.{});
-    lang.addNested(0x34, 0x3e, "resource-room", &.{});
-    lang.addNested(0x34, 0x42, "resource-script", &.{});
-    lang.addNested(0x34, 0x48, "resource-sound", &.{});
-    lang.addNested(0x34, 0x84, "resource-lock", &.{});
-    lang.addNested(0x34, 0x85, "resource-nuke", &.{});
-    lang.addNested(0x34, 0x86, "resource-off-heap", &.{});
-    lang.addNested(0x34, 0x87, "resource-on-heap", &.{});
-    lang.addNested(0x34, 0x88, "resource-preload", &.{});
+    lang.addNested(0x34, 0x0e, .@"resource-charset", &.{});
+    lang.addNested(0x34, 0x19, .@"resource-costume", &.{});
+    lang.addNested(0x34, 0x28, .@"resource-image", &.{});
+    lang.addNested(0x34, 0x2f, .@"resource-load", &.{});
+    lang.addNested(0x34, 0x3e, .@"resource-room", &.{});
+    lang.addNested(0x34, 0x42, .@"resource-script", &.{});
+    lang.addNested(0x34, 0x48, .@"resource-sound", &.{});
+    lang.addNested(0x34, 0x84, .@"resource-lock", &.{});
+    lang.addNested(0x34, 0x85, .@"resource-nuke", &.{});
+    lang.addNested(0x34, 0x86, .@"resource-off-heap", &.{});
+    lang.addNested(0x34, 0x87, .@"resource-on-heap", &.{});
+    lang.addNested(0x34, 0x88, .@"resource-preload", &.{});
 
     lang.add(0x35, .@"jump-if", &.{.relative_offset});
     lang.add(0x36, .@"jump-unless", &.{.relative_offset});

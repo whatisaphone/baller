@@ -738,6 +738,18 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
 
     // New in Basketball:
 
+    result.set(.@"resource-charset", .gen(&.{.int}));
+    result.set(.@"resource-costume", .gen(&.{.int}));
+    result.set(.@"resource-image", .gen(&.{.int}));
+    result.set(.@"resource-load", .gen(&.{}));
+    result.set(.@"resource-room", .gen(&.{.int}));
+    result.set(.@"resource-script", .gen(&.{.int}));
+    result.set(.@"resource-sound", .gen(&.{.int}));
+    result.set(.@"resource-lock", .gen(&.{}));
+    result.set(.@"resource-nuke", .gen(&.{}));
+    result.set(.@"resource-off-heap", .gen(&.{}));
+    result.set(.@"resource-on-heap", .gen(&.{}));
+    result.set(.@"resource-preload", .gen(&.{}));
     result.set(.@"image-font-create", .gen(&.{ .int, .int, .int, .int, .int }));
     result.set(.@"image-font-end", .gen(&.{}));
     result.set(.@"image-font-render", .gen(&.{ .int, .int, .int }));
