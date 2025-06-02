@@ -1013,9 +1013,11 @@ fn buildNormalVm(game: Game) Vm {
     b.add1(0xda, .@"open-file", .empty);
 
     b.add2(0xdb, 0x05, .@"read-file-int16", .empty);
+    b.add2(0xdb, 0x06, .@"read-file-int32", .empty);
     b.add2(0xdb, 0x08, .@"read-file-int8", .mk1(.u8));
 
     b.add2(0xdc, 0x05, .@"write-file-int16", .empty);
+    b.add2(0xdc, 0x06, .@"write-file-int32", .empty);
     b.add2(0xdc, 0x08, .@"write-file-int8", .mk1(.u8));
 
     b.add1(0xdd, .@"find-all-objects2", .empty);
