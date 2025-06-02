@@ -86,7 +86,10 @@ fn disassembleInner(
         if (annotate)
             try out.print("0x{x:0>4}  ", .{ins.start});
         try out.writeAll("    ");
-        try out.writeAll(@tagName(ins.op.op));
+        try out.writeAll(switch (ins.op) {
+            .op => |op| @tagName(op),
+            .unknown_byte => ".db",
+        });
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
             try emitOperand(op, ins.end, jump_targets.items, out, usage, symbols, room_number, id);

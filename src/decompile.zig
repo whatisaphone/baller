@@ -267,6 +267,7 @@ const Expr = union(enum) {
     list: ExtraSlice,
     variadic_list: ExtraSlice,
     dup: ExprIndex,
+    stack_fault,
 };
 
 const ExtraSlice = struct {
@@ -1000,7 +1001,7 @@ fn push(cx: *DecompileCx, expr: Expr) !void {
 }
 
 fn pop(cx: *DecompileCx) !ExprIndex {
-    return cx.stack.pop() orelse return error.BadData;
+    return cx.stack.pop() orelse try storeExpr(cx, .stack_fault);
 }
 
 fn popString(cx: *DecompileCx) !ExprIndex {
@@ -1086,6 +1087,7 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
             for (getExtra3(cx.extra, items)) |i|
                 recoverExpr(cx, i);
         },
+        .stack_fault => {},
     }
 }
 
@@ -3108,7 +3110,18 @@ fn emitExpr(
         },
         .list => |items| try emitList(cx, items),
         .variadic_list => unreachable, // only appears in call args, handled elsewhere
-        .dup => return error.BadData,
+        .dup => |child| {
+            if (cx.stmt_ends == null) return error.BadData;
+            // With --annotate, dump the target expr for help debugging
+            try cx.out.appendSlice(cx.gpa, "#dup{");
+            try emitExpr(cx, child, .all);
+            try cx.out.append(cx.gpa, '}');
+        },
+        .stack_fault => {
+            if (cx.stmt_ends == null) return error.BadData;
+            // With --annotate, dump the target expr for help debugging
+            try cx.out.appendSlice(cx.gpa, "#stackfault");
+        },
     }
 }
 
