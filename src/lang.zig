@@ -71,16 +71,6 @@ const VmBuilder = struct {
         self.add(&.{ b1, b2, b3 }, op, operands);
     }
 
-    fn makeNested(self: *VmBuilder, index: u16) void {
-        const pos = self.opcode_lookup_pos;
-
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
-        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .nested = pos });
-        @memset(self.vm.opcode_lookup[pos..][0..256], OpcodeEntry.encode(.unset));
-
-        self.opcode_lookup_pos += 256;
-    }
-
     fn add(self: *VmBuilder, bytes: []const u8, op: Op, operands: LangOperands) void {
         std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
         self.vm.opcodes[@intFromEnum(op)] = .init(bytes);
@@ -99,6 +89,16 @@ const VmBuilder = struct {
         const index = start + bytes[bytes.len - 1];
         std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
         self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .op = op });
+    }
+
+    fn makeNested(self: *VmBuilder, index: u16) void {
+        const pos = self.opcode_lookup_pos;
+
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
+        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .nested = pos });
+        @memset(self.vm.opcode_lookup[pos..][0..256], OpcodeEntry.encode(.unset));
+
+        self.opcode_lookup_pos += 256;
     }
 };
 
