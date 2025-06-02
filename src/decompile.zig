@@ -432,7 +432,12 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.@"sprite-group-get-object-x", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-object-y", .genCall(&.{.int}));
     result.set(.@"sprite-group-get-order", .genCall(&.{.int}));
-    result.set(.@"sprite-group-set-group", .gen(&.{.int}));
+    result.set(.@"sprite-group-set-group", if (game.le(.soccer_1998))
+        .gen(&.{.int})
+    else if (game.le(.baseball_2001))
+        .illegal
+    else
+        .gen(&.{ .int, .int }));
     result.set(.@"sprite-group-set-order", .gen(&.{.int}));
     result.set(.@"sprite-group-move", .gen(&.{ .int, .int }));
     result.set(.@"sprite-group-select", .gen(&.{.int}));
@@ -1128,7 +1133,8 @@ fn peephole(cx: *DecompileCx) void {
             peepBinOpArrayItem(cx, stmt);
             peepBinOpArrayItem2D(cx, stmt);
             peepSpriteSelect(cx, stmt);
-            peepArraySortRow(cx, stmt);
+            peepArraySortRows(cx, stmt);
+            peepArraySortCols(cx, stmt);
             peepLockAndLoad(cx, stmts, i);
             peepPaletteSetRgb(cx, stmt);
             peepPaletteSetColor(cx, stmt);
@@ -1222,8 +1228,8 @@ fn peepSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
     } };
 }
 
-/// Handle dups in `array-sort`
-fn peepArraySortRow(cx: *DecompileCx, stmt: *Stmt) void {
+/// Handle dup across in `array-sort`
+fn peepArraySortRows(cx: *DecompileCx, stmt: *Stmt) void {
     const args = stmtCallArgs(cx, stmt, .@"array-sort", 6) orelse return;
     // args are [array, down_from, down_to, across_from, across_to, order]
     const across_to = &cx.exprs.items[args[4]];
@@ -1233,7 +1239,21 @@ fn peepArraySortRow(cx: *DecompileCx, stmt: *Stmt) void {
     var new_args = stmt.call.args;
     new_args.len -= 1;
     args[4] = args[5];
-    stmt.* = .{ .compound = .{ .op = .@"array-sort-row", .args = new_args } };
+    stmt.* = .{ .compound = .{ .op = .@"array-sort-rows", .args = new_args } };
+}
+
+/// Handle dup down in `array-sort`
+fn peepArraySortCols(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"array-sort", 6) orelse return;
+    // args are [array, down_from, down_to, across_from, across_to, order]
+    const down_to = &cx.exprs.items[args[2]];
+    if (down_to.* != .dup) return;
+    if (down_to.dup != args[1]) return;
+
+    var new_args = stmt.call.args;
+    new_args.len -= 1;
+    std.mem.copyForwards(ExprIndex, args[2..][0..3], args[3..][0..3]);
+    stmt.* = .{ .compound = .{ .op = .@"array-sort-cols", .args = new_args } };
 }
 
 fn peepLockAndLoad(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
