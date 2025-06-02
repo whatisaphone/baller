@@ -2,8 +2,6 @@ const std = @import("std");
 
 const Game = @import("games.zig").Game;
 
-pub const unknown_byte_ins = ".db";
-
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
 
@@ -15,21 +13,12 @@ pub const Language = struct {
     opcodes: [256 * 51]Opcode = @splat(.unknown),
     num_nested: u8 = 0,
 
-    fn add(self: *Language, byte: u8, name: anytype, operands: []const LangOperand) void {
-        self.addInner(byte, .from(name), operands);
-    }
-
-    fn addInner(
-        self: *Language,
-        byte: u8,
-        name: OpcodeName,
-        operands: []const LangOperand,
-    ) void {
+    fn add(self: *Language, byte: u8, op: Op, operands: []const LangOperand) void {
         if (self.opcodes[byte] != .unknown)
             unreachable;
 
         self.opcodes[byte] = .{ .ins = .{
-            .name = name,
+            .op = op,
             .operands = LangOperandArray.fromSlice(operands) catch unreachable,
         } };
     }
@@ -38,17 +27,7 @@ pub const Language = struct {
         self: *Language,
         byte1: u8,
         byte2: u8,
-        name: anytype,
-        operands: []const LangOperand,
-    ) void {
-        self.addNestedInner(byte1, byte2, .from(name), operands);
-    }
-
-    fn addNestedInner(
-        self: *Language,
-        byte1: u8,
-        byte2: u8,
-        name: OpcodeName,
+        op: Op,
         operands: []const LangOperand,
     ) void {
         const n = switch (self.opcodes[byte1]) {
@@ -62,7 +41,7 @@ pub const Language = struct {
         };
 
         self.opcodes[n << 8 | byte2] = .{ .ins = .{
-            .name = name,
+            .op = op,
             .operands = LangOperandArray.fromSlice(operands) catch unreachable,
         } };
     }
@@ -506,27 +485,6 @@ pub const Op = enum {
     @"image-get-font-start",
 };
 
-// stopgap while migrating from string to enum
-const OpcodeName = union(enum) {
-    op: Op,
-    str: []const u8,
-
-    fn from(name: anytype) OpcodeName {
-        return switch (@typeInfo(@TypeOf(name))) {
-            .enum_literal => .{ .op = name },
-            .pointer => .{ .str = name },
-            else => unreachable,
-        };
-    }
-
-    pub fn asStr(self: OpcodeName) []const u8 {
-        return switch (self) {
-            .op => |op| @tagName(op),
-            .str => |str| str,
-        };
-    }
-};
-
 const Opcode = union(enum) {
     unknown,
     ins: LangIns,
@@ -534,7 +492,7 @@ const Opcode = union(enum) {
 };
 
 pub const LangIns = struct {
-    name: OpcodeName,
+    op: Op,
     operands: LangOperandArray,
 };
 
@@ -1467,7 +1425,7 @@ pub fn buildInsMap(
             .unknown => {},
             .ins => |ins| {
                 const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
-                try inss.putNoClobber(allocator, ins.name.asStr(), bytes);
+                try inss.putNoClobber(allocator, @tagName(ins.op), bytes);
             },
             .nested => |n| {
                 for (0..256) |b2_usize| {
@@ -1476,7 +1434,7 @@ pub fn buildInsMap(
                         .unknown => {},
                         .ins => |ins| {
                             const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;
-                            try inss.putNoClobber(allocator, ins.name.asStr(), bytes);
+                            try inss.putNoClobber(allocator, @tagName(ins.op), bytes);
                         },
                         .nested => unreachable,
                     }
@@ -1508,7 +1466,7 @@ pub fn lookup(
 pub const Ins = struct {
     start: u16,
     end: u16,
-    name: OpcodeName,
+    op: union(enum) { op: Op, unknown_byte },
     operands: OperandArray,
 };
 
@@ -1632,7 +1590,7 @@ fn unknownByte(reader: anytype) !?Ins {
     return .{
         .start = start,
         .end = end,
-        .name = .{ .str = unknown_byte_ins },
+        .op = .unknown_byte,
         .operands = operands,
     };
 }
@@ -1647,7 +1605,7 @@ fn disasmIns(reader: anytype, start: u16, ins: *const LangIns) !Ins {
     return .{
         .start = start,
         .end = end,
-        .name = ins.name,
+        .op = .{ .op = ins.op },
         .operands = operands,
     };
 }

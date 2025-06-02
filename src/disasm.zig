@@ -77,7 +77,7 @@ fn disassembleInner(
             }
         }
 
-        if (std.mem.eql(u8, ins.name.asStr(), lang.unknown_byte_ins) and !warned_for_unknown_byte) {
+        if (ins.op == .unknown_byte and !warned_for_unknown_byte) {
             warned_for_unknown_byte = true;
             diagnostic.warnScriptUnknownByte();
         }
@@ -86,7 +86,7 @@ fn disassembleInner(
         if (annotate)
             try out.print("0x{x:0>4}  ", .{ins.start});
         try out.writeAll("    ");
-        try out.writeAll(ins.name.asStr());
+        try out.writeAll(@tagName(ins.op.op));
         for (ins.operands.slice()) |op| {
             try out.writeByte(' ');
             try emitOperand(op, ins.end, jump_targets.items, out, usage, symbols, room_number, id);

@@ -368,7 +368,7 @@ fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
 
 const InsData = struct {
     opcode: std.BoundedArray(u8, 2),
-    name: lang.Op,
+    op: lang.Op,
     operands: std.BoundedArray(lang.LangOperand, lang.max_operands),
     normal_params: usize,
     variadic: bool,
@@ -400,8 +400,7 @@ fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
 }
 
 fn makeInsData(cx: *const Cx, opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsData {
-    if (ins.name != .op) return null;
-    const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.name.op).*) {
+    const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.op).*) {
         .jump_if, .jump_unless => &.{.int},
         .jump, .override => &.{},
         .generic => |*g| g.params.slice(),
@@ -416,7 +415,7 @@ fn makeInsData(cx: *const Cx, opcode: std.BoundedArray(u8, 2), ins: *const lang.
 
     return .{
         .opcode = opcode,
-        .name = ins.name.op,
+        .op = ins.op,
         .operands = ins.operands,
         .normal_params = param_exprs,
         .variadic = variadic,

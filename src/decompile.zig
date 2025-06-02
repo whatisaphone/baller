@@ -121,7 +121,8 @@ fn scanBasicBlocks(
 
     var disasm: lang.Disasm = .init(language, bytecode);
     while (try disasm.next()) |ins| {
-        if (ins.name == .op) switch (ins.name.op) {
+        if (ins.op != .op) return error.BadData;
+        switch (ins.op.op) {
             .@"jump-if" => {
                 const target = try jumpTarget(&ins, @intCast(bytecode.len));
                 try insertBasicBlock(gpa, &result, ins.end, .{ .jump_if = target });
@@ -146,7 +147,7 @@ fn scanBasicBlocks(
                 for (ins.operands.slice()) |*o|
                     std.debug.assert(o.* != .relative_offset);
             },
-        };
+        }
     }
     try result.append(gpa, .{
         .end = @intCast(bytecode.len),
@@ -884,17 +885,10 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
 }
 
 fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
-    const op = switch (ins.name) {
-        .op => |op| op,
-        .str => |s| {
-            cx.diag.err(ins.start, "unhandled opcode {s}", .{s});
-            return error.AddedToDiagnostic;
-        },
-    };
     for (ins.operands.slice()) |o|
         if (o == .variable)
             try cx.usage.track(o.variable);
-    switch (cx.op_map.get(op)) {
+    switch (cx.op_map.get(ins.op.op)) {
         .push8 => {
             try push(cx, .{ .int = ins.operands.get(0).u8 });
         },
@@ -983,13 +977,13 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
 
             const args_extra = try storeExtra(cx, args.slice());
             if (gen.call) {
-                try push(cx, .{ .call = .{ .op = op, .args = args_extra } });
+                try push(cx, .{ .call = .{ .op = ins.op.op, .args = args_extra } });
             } else {
-                try storeStmt(cx, ins.end, .{ .call = .{ .op = op, .args = args_extra } });
+                try storeStmt(cx, ins.end, .{ .call = .{ .op = ins.op.op, .args = args_extra } });
             }
         },
         .illegal => {
-            cx.diag.err(ins.start, "unhandled opcode {s}", .{@tagName(op)});
+            cx.diag.err(ins.start, "unhandled opcode {s}", .{@tagName(ins.op.op)});
             return error.AddedToDiagnostic;
         },
     }
