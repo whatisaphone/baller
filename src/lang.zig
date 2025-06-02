@@ -1629,27 +1629,17 @@ pub const Disasm = struct {
         if (self.poison)
             return unknownByte(&self.reader);
 
-        const start: u16 = @intCast(self.reader.pos);
-        const b1 = self.reader.reader().readByte() catch unreachable;
-        return switch (OpcodeEntry.decode(self.vm.opcode_lookup[b1])) {
-            .op => |op| try disasmIns(self.vm, &self.reader, start, op),
-            .unset => try self.becomePoison(1),
-            .nested => |s2| {
-                const b2 = try self.reader.reader().readByte();
-                return switch (OpcodeEntry.decode(self.vm.opcode_lookup[s2 + b2])) {
-                    .op => |op| try disasmIns(self.vm, &self.reader, start, op),
-                    .unset => try self.becomePoison(2),
-                    .nested => |s3| {
-                        const b3 = try self.reader.reader().readByte();
-                        return switch (OpcodeEntry.decode(self.vm.opcode_lookup[s3 + b3])) {
-                            .op => |op| try disasmIns(self.vm, &self.reader, start, op),
-                            .unset => try self.becomePoison(3),
-                            .nested => unreachable,
-                        };
-                    },
-                };
-            },
-        };
+        const ins_start: u16 = @intCast(self.reader.pos);
+        // Follow the nested entries until we find the op
+        var group_pos: u16 = 0;
+        while (true) {
+            const byte = self.reader.reader().readByte() catch unreachable;
+            switch (OpcodeEntry.decode(self.vm.opcode_lookup[group_pos + byte])) {
+                .op => |op| return try disasmIns(self.vm, &self.reader, ins_start, op),
+                .unset => return self.becomePoison(1),
+                .nested => |next_start| group_pos = next_start,
+            }
+        }
     }
 
     // The stream is not self-synchronizing, so if we fail to decode any byte,
