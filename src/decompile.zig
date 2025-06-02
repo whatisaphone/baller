@@ -15,7 +15,7 @@ const utils = @import("utils.zig");
 pub fn run(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     op_map: *const std.EnumArray(lang.Op, Op),
     symbols: *const Symbols,
     annotate: bool,
@@ -33,13 +33,13 @@ pub fn run(
     // Leave an extra byte so the end of a slice is representable as 0xffff.
     if (bytecode.len > 0xfffe) return error.BadData;
 
-    var basic_blocks = try scanBasicBlocks(gpa, language, bytecode);
+    var basic_blocks = try scanBasicBlocks(gpa, vm, bytecode);
     defer basic_blocks.deinit(gpa);
 
     var dcx: DecompileCx = .{
         .gpa = gpa,
         .diag = diag,
-        .language = language,
+        .vm = vm,
         .op_map = op_map,
         .basic_blocks = basic_blocks.items,
 
@@ -113,13 +113,13 @@ pub fn run(
 
 fn scanBasicBlocks(
     gpa: std.mem.Allocator,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     bytecode: []const u8,
 ) !std.ArrayListUnmanaged(BasicBlock) {
     var result: std.ArrayListUnmanaged(BasicBlock) = .empty;
     errdefer result.deinit(gpa);
 
-    var disasm: lang.Disasm = .init(language, bytecode);
+    var disasm: lang.Disasm = .init(vm, bytecode);
     while (try disasm.next()) |ins| {
         if (ins.op != .op) return error.BadData;
         switch (ins.op.op) {
@@ -226,7 +226,7 @@ const BasicBlockExit = union(enum) {
 const DecompileCx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     op_map: *const std.EnumArray(lang.Op, Op),
     basic_blocks: []BasicBlock,
 
@@ -847,7 +847,7 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
 
     const first_stmt: u16 = @intCast(cx.stmts.items.len);
 
-    var disasm: lang.Disasm = .init(cx.language, bytecode[0..bb.end]);
+    var disasm: lang.Disasm = .init(cx.vm, bytecode[0..bb.end]);
     disasm.reader.pos = bb_start;
     while (try disasm.next()) |ins|
         try decompileIns(cx, ins);

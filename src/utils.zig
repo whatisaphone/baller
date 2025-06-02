@@ -167,3 +167,26 @@ pub fn growBoundedArray(
     @memset(xs.buffer[xs.len..minimum_len], fill);
     xs.len = minimum_len;
 }
+
+pub fn TinyArray(T: type, capacity: usize) type {
+    return struct {
+        const Self = @This();
+
+        buffer: [capacity]T,
+        len: std.math.IntFittingRange(0, capacity),
+
+        pub const empty: Self = .{ .buffer = undefined, .len = 0 };
+
+        pub fn init(xs: []const T) Self {
+            var result: Self = .empty;
+            result.len = @intCast(xs.len);
+            for (result.buffer[0..xs.len], xs) |*p, x|
+                p.* = x;
+            return result;
+        }
+
+        pub fn slice(self: *const Self) []const T {
+            return self.buffer[0..self.len];
+        }
+    };
+}

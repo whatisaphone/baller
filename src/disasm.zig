@@ -7,7 +7,7 @@ const utils = @import("utils.zig");
 
 pub fn disassemble(
     allocator: std.mem.Allocator,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
@@ -19,7 +19,7 @@ pub fn disassemble(
 ) !void {
     disassembleInner(
         allocator,
-        language,
+        vm,
         room_number,
         id,
         bytecode,
@@ -36,7 +36,7 @@ pub fn disassemble(
 
 fn disassembleInner(
     allocator: std.mem.Allocator,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
@@ -54,9 +54,9 @@ fn disassembleInner(
 
     try writePreamble(room_number, id, symbols, out);
 
-    var dasm: lang.Disasm = .init(language, bytecode);
+    var dasm: lang.Disasm = .init(vm, bytecode);
 
-    var jump_targets = try findJumpTargets(allocator, language, bytecode);
+    var jump_targets = try findJumpTargets(allocator, vm, bytecode);
     defer jump_targets.deinit(allocator);
 
     var next_jump_index: u16 = 0;
@@ -119,14 +119,14 @@ fn writePreamble(room_number: u8, id: Symbols.ScriptId, symbols: *const Symbols,
 
 fn findJumpTargets(
     allocator: std.mem.Allocator,
-    language: *const lang.Language,
+    vm: *const lang.Vm,
     bytecode: []const u8,
 ) !std.ArrayListUnmanaged(u16) {
     const initial_capacity = bytecode.len / 10;
     var targets: std.ArrayListUnmanaged(u16) = try .initCapacity(allocator, initial_capacity);
     errdefer targets.deinit(allocator);
 
-    var dasm: lang.Disasm = .init(language, bytecode);
+    var dasm: lang.Disasm = .init(vm, bytecode);
     while (try dasm.next()) |ins| {
         // Check if it's a jump
         if (ins.operands.len == 0) continue;

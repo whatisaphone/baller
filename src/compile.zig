@@ -8,12 +8,12 @@ const decompile = @import("decompile.zig");
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
 const script = @import("script.zig");
+const utils = @import("utils.zig");
 
 pub fn compile(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForTextFile,
-    language: *const lang.Language,
-    ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    vm: *const lang.Vm,
     op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
@@ -25,8 +25,7 @@ pub fn compile(
     var cx: Cx = .{
         .gpa = gpa,
         .diag = diag,
-        .language = language,
-        .ins_map = ins_map,
+        .vm = vm,
         .op_map = op_map,
         .project_scope = project_scope,
         .room_scope = room_scope,
@@ -70,8 +69,7 @@ pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlic
 const Cx = struct {
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForTextFile,
-    language: *const lang.Language,
-    ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    vm: *const lang.Vm,
     op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
@@ -362,14 +360,14 @@ fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
 
     try cx.out.appendSlice(cx.gpa, ins.opcode.slice());
 
-    for (ins.operands.slice(), args_operands) |op, ei|
+    for (ins.operands.items().slice(), args_operands) |op, ei|
         try emitOperand(cx, op, ei);
 }
 
 const InsData = struct {
-    opcode: std.BoundedArray(u8, 2),
+    opcode: utils.TinyArray(u8, 2),
     op: lang.Op,
-    operands: std.BoundedArray(lang.LangOperand, lang.max_operands),
+    operands: lang.LangOperands,
     normal_params: usize,
     variadic: bool,
 };
@@ -391,15 +389,15 @@ fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
         },
         else => return null,
     };
-    return if (lang.lookup(cx.language, cx.ins_map, name)) |i|
-        .{ .ins = makeInsData(cx, i[0], i[1]) orelse return null }
+    return if (lang.lookup(cx.vm, name)) |ins|
+        .{ .ins = makeInsData(cx, ins) orelse return null }
     else if (std.meta.stringToEnum(script.Compound, name)) |c|
         .{ .compound = c }
     else
         null;
 }
 
-fn makeInsData(cx: *const Cx, opcode: std.BoundedArray(u8, 2), ins: *const lang.LangIns) ?InsData {
+fn makeInsData(cx: *const Cx, ins: lang.LangIns) ?InsData {
     const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.op).*) {
         .jump_if, .jump_unless => &.{.int},
         .jump, .override => &.{},
@@ -414,7 +412,7 @@ fn makeInsData(cx: *const Cx, opcode: std.BoundedArray(u8, 2), ins: *const lang.
     }
 
     return .{
-        .opcode = opcode,
+        .opcode = ins.opcode,
         .op = ins.op,
         .operands = ins.operands,
         .normal_params = param_exprs,
@@ -564,7 +562,9 @@ fn pushList(cx: *Cx, items: []const Ast.NodeIndex) !void {
 
 // TODO: this is why this is slow! don't use strings!
 fn emitOpcodeByName(cx: *const Cx, name: []const u8) !void {
-    const opcode = cx.ins_map.get(name) orelse return error.BadData;
+    const op = std.meta.stringToEnum(lang.Op, name).?;
+    const opcode = cx.vm.opcodes[@intFromEnum(op)];
+    std.debug.assert(opcode.len != 0);
     try cx.out.appendSlice(cx.gpa, opcode.slice());
 }
 

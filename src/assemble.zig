@@ -14,8 +14,7 @@ const Scopes = struct {
 
 pub fn assemble(
     allocator: std.mem.Allocator,
-    language: *const lang.Language,
-    inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    vm: *const lang.Vm,
     asm_str: []const u8,
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
@@ -41,8 +40,7 @@ pub fn assemble(
 
         assembleLine(
             allocator,
-            language,
-            inss,
+            vm,
             .{ .project = project_scope, .room = room_scope },
             id,
             &label_offsets,
@@ -78,8 +76,7 @@ pub fn assemble(
 
 fn assembleLine(
     allocator: std.mem.Allocator,
-    language: *const lang.Language,
-    inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    vm: *const lang.Vm,
     scopes: Scopes,
     id: Symbols.ScriptId,
     label_offsets: *std.StringHashMapUnmanaged(u16),
@@ -127,7 +124,7 @@ fn assembleLine(
         return;
     }
 
-    const opcode, const ins = lang.lookup(language, inss, ins_name) orelse {
+    const ins = lang.lookup(vm, ins_name) orelse {
         report.fatal("{}: unknown instruction: \"{s}\"", .{
             FormatLoc{ .id = id, .line_number = line_number },
             ins_name,
@@ -135,9 +132,9 @@ fn assembleLine(
         return error.Reported;
     };
 
-    try bytecode.appendSlice(allocator, opcode.slice());
+    try bytecode.appendSlice(allocator, ins.opcode.slice());
 
-    for (ins.operands.slice()) |op| {
+    for (ins.operands.items().slice()) |op| {
         switch (op) {
             .u8 => {
                 const int, rest = try tokenizeInt(u8, rest);

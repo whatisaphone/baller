@@ -257,13 +257,13 @@ pub fn run(
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
 
-    var language: lang.Language = undefined;
-    var language_ptr: utils.SafeUndefined(*const lang.Language) = .undef;
+    var vm: lang.Vm = undefined;
+    var vm_ptr: utils.SafeUndefined(*const lang.Vm) = .undef;
     var op_map: std.EnumArray(lang.Op, decompile.Op) = undefined;
     var op_map_ptr: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)) = .undef;
     if (args.options.anyScriptDecode()) {
-        language = lang.buildLanguage(game);
-        language_ptr = .{ .defined = &language };
+        vm = lang.buildVm(game);
+        vm_ptr = .{ .defined = &vm };
         op_map = decompile.buildOpMap(game);
         op_map_ptr = .{ .defined = &op_map };
     }
@@ -281,7 +281,7 @@ pub fn run(
         .pool = &pool,
         .options = args.options,
         .game = game,
-        .language = language_ptr,
+        .vm = vm_ptr,
         .op_map = op_map_ptr,
         .symbols = &symbols,
         .index = &index,
@@ -626,7 +626,7 @@ const Context = struct {
     pool: *std.Thread.Pool,
     options: Options,
     game: games.Game,
-    language: utils.SafeUndefined(*const lang.Language),
+    vm: utils.SafeUndefined(*const lang.Vm),
     op_map: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)),
     symbols: *const Symbols,
     index: *const Index,
@@ -1311,7 +1311,7 @@ fn disassembleVerb(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1349,7 +1349,7 @@ fn decompileVerb(
 
     try code.writer(cx.cx.gpa).print("\n    verb {} {{\n", .{verb});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 2, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 2, &usage);
     try code.appendSlice(cx.cx.gpa, "    }\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1425,7 +1425,7 @@ fn extractEncdExcdDisassemble(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1478,7 +1478,7 @@ fn extractEncdExcdDecompile(
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1580,7 +1580,7 @@ fn extractLscDisassemble(
         .room = cx.room_number,
         .number = script_number,
     } };
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1624,7 +1624,7 @@ fn extractLscDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1852,7 +1852,7 @@ fn extractScrpDisassemble(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.language.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1911,7 +1911,7 @@ fn extractScrpDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.language.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit

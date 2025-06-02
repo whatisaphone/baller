@@ -1,49 +1,147 @@
 const std = @import("std");
 
 const Game = @import("games.zig").Game;
+const utils = @import("utils.zig");
 
 const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
 const OperandArray = std.BoundedArray(Operand, max_operands);
 
 pub const max_operands = 3;
 
-pub const Language = struct {
-    /// 0 to 255 are normal opcodes. The rest are dynamically-assigned
-    /// 256-element chunks for two-byte opcodes.
-    opcodes: [256 * 51]Opcode = @splat(.unknown),
-    num_nested: u8 = 0,
+pub const Vm = struct {
+    const op_count = @typeInfo(Op).@"enum".fields.len;
 
-    fn add(self: *Language, byte: u8, op: Op, operands: []const LangOperand) void {
-        if (self.opcodes[byte] != .unknown)
-            unreachable;
+    opcodes: [op_count]utils.TinyArray(u8, 2),
+    operands: [op_count]LangOperands,
+    /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
+    /// of `Entry`s.
+    opcode_lookup: [256 * 51]u16,
+};
 
-        self.opcodes[byte] = .{ .ins = .{
-            .op = op,
-            .operands = LangOperandArray.fromSlice(operands) catch unreachable,
-        } };
+const OpcodeEntry = union(enum) {
+    op: Op,
+    /// Points to the starting offset of 256 subentries.
+    nested: u16,
+    unset,
+
+    fn encode(self: OpcodeEntry) u16 {
+        return switch (self) {
+            .op => |op| @intFromEnum(op),
+            .nested => |i| 0x8000 | i,
+            .unset => 0xffff,
+        };
     }
 
-    fn addNested(
-        self: *Language,
-        byte1: u8,
-        byte2: u8,
-        op: Op,
-        operands: []const LangOperand,
-    ) void {
-        const n = switch (self.opcodes[byte1]) {
-            .unknown => n: {
-                self.num_nested += 1;
-                self.opcodes[byte1] = .{ .nested = self.num_nested };
-                break :n self.num_nested;
-            },
-            .nested => |n| n,
-            else => unreachable,
-        };
+    fn decode(raw: u16) OpcodeEntry {
+        if (raw & 0x8000 == 0)
+            return .{ .op = @enumFromInt(raw & 0x7fff) };
+        if (raw == 0xffff)
+            return .unset;
+        return .{ .nested = raw & 0x7fff };
+    }
+};
 
-        self.opcodes[n << 8 | byte2] = .{ .ins = .{
-            .op = op,
-            .operands = LangOperandArray.fromSlice(operands) catch unreachable,
-        } };
+const VmBuilder = struct {
+    vm: Vm,
+    opcode_lookup_pos: u16,
+
+    fn init() VmBuilder {
+        var result: VmBuilder = .{
+            .vm = .{
+                .opcodes = @splat(.empty),
+                .operands = undefined,
+                .opcode_lookup = undefined,
+            },
+            .opcode_lookup_pos = 256,
+        };
+        // Fill in the first 256 (each possible first byte of an opcode)
+        @memset(result.vm.opcode_lookup[0..256], @as(OpcodeEntry, .unset).encode());
+        return result;
+    }
+
+    fn add1(self: *VmBuilder, byte: u8, op: Op, operands: LangOperands) void {
+        std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
+        self.vm.opcodes[@intFromEnum(op)] = .init(&.{byte});
+        self.vm.operands[@intFromEnum(op)] = operands;
+
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[byte]) == .unset);
+        self.vm.opcode_lookup[byte] = OpcodeEntry.encode(.{ .op = op });
+    }
+
+    fn makeNested(self: *VmBuilder, byte1: u8) void {
+        const pos = self.opcode_lookup_pos;
+
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[byte1]) == .unset);
+        self.vm.opcode_lookup[byte1] = OpcodeEntry.encode(.{ .nested = pos });
+        @memset(self.vm.opcode_lookup[pos..][0..256], OpcodeEntry.encode(.unset));
+
+        self.opcode_lookup_pos += 256;
+    }
+
+    fn add2(self: *VmBuilder, byte1: u8, byte2: u8, op: Op, operands: LangOperands) void {
+        std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
+        self.vm.opcodes[@intFromEnum(op)] = .init(&.{ byte1, byte2 });
+        self.vm.operands[@intFromEnum(op)] = operands;
+
+        switch (OpcodeEntry.decode(self.vm.opcode_lookup[byte1])) {
+            .op => unreachable,
+            .nested => {},
+            .unset => self.makeNested(byte1),
+        }
+        const start = OpcodeEntry.decode(self.vm.opcode_lookup[byte1]).nested;
+        const offset = start + byte2;
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[offset]) == .unset);
+        self.vm.opcode_lookup[offset] = OpcodeEntry.encode(.{ .op = op });
+    }
+};
+
+/// Packs up to 3 `LangOperand`s into 11 bits
+pub const LangOperands = packed struct {
+    len: u2,
+    @"0": u3,
+    @"1": u3,
+    @"2": u3,
+
+    const empty: LangOperands = .{
+        .len = 0,
+        .@"0" = undefined,
+        .@"1" = undefined,
+        .@"2" = undefined,
+    };
+
+    fn mk1(a: LangOperand) LangOperands {
+        return .{
+            .len = 1,
+            .@"0" = @intFromEnum(a),
+            .@"1" = undefined,
+            .@"2" = undefined,
+        };
+    }
+
+    fn mk2(a: LangOperand, b: LangOperand) LangOperands {
+        return .{
+            .len = 2,
+            .@"0" = @intFromEnum(a),
+            .@"1" = @intFromEnum(b),
+            .@"2" = undefined,
+        };
+    }
+
+    fn mk3(a: LangOperand, b: LangOperand, c: LangOperand) LangOperands {
+        return .{
+            .len = 3,
+            .@"0" = @intFromEnum(a),
+            .@"1" = @intFromEnum(b),
+            .@"2" = @intFromEnum(c),
+        };
+    }
+
+    pub fn items(self: LangOperands) std.BoundedArray(LangOperand, 3) {
+        var result: std.BoundedArray(LangOperand, 3) = .{};
+        if (self.len > 0) result.appendAssumeCapacity(@enumFromInt(self.@"0"));
+        if (self.len > 1) result.appendAssumeCapacity(@enumFromInt(self.@"1"));
+        if (self.len > 2) result.appendAssumeCapacity(@enumFromInt(self.@"2"));
+        return result;
     }
 };
 
@@ -485,17 +583,6 @@ pub const Op = enum {
     @"image-get-font-start",
 };
 
-const Opcode = union(enum) {
-    unknown,
-    ins: LangIns,
-    nested: u16,
-};
-
-pub const LangIns = struct {
-    op: Op,
-    operands: LangOperandArray,
-};
-
 pub const LangOperand = enum {
     u8,
     i16,
@@ -505,962 +592,924 @@ pub const LangOperand = enum {
     string,
 };
 
-pub fn buildLanguage(game: Game) Language {
+pub fn buildVm(game: Game) Vm {
     return if (game != .basketball)
-        buildNormalLanguage(game)
+        buildNormalVm(game)
     else
-        builtBasketballLanguage();
+        builtBasketballVm();
 }
 
-fn buildNormalLanguage(game: Game) Language {
-    var lang: Language = .{};
+fn buildNormalVm(game: Game) Vm {
+    var b: VmBuilder = .init();
 
-    lang.add(0x00, .@"push-u8", &.{.u8});
-    lang.add(0x01, .@"push-i16", &.{.i16});
-    lang.add(0x02, .@"push-i32", &.{.i32});
-    lang.add(0x03, .@"push-var", &.{.variable});
-    lang.add(0x04, .@"push-str", &.{.string});
-    lang.add(0x07, .@"get-array-item", &.{.variable});
-    lang.add(0x0a, .@"dup-multi", &.{.i16});
-    lang.add(0x0b, .@"get-array-item-2d", &.{.variable});
-    lang.add(0x0c, .dup, &.{});
-    lang.add(0x0d, .not, &.{});
-    lang.add(0x0e, .eq, &.{});
-    lang.add(0x0f, .ne, &.{});
-    lang.add(0x10, .gt, &.{});
-    lang.add(0x11, .lt, &.{});
-    lang.add(0x12, .le, &.{});
-    lang.add(0x13, .ge, &.{});
-    lang.add(0x14, .add, &.{});
-    lang.add(0x15, .sub, &.{});
-    lang.add(0x16, .mul, &.{});
-    lang.add(0x17, .div, &.{});
-    lang.add(0x18, .land, &.{});
-    lang.add(0x19, .lor, &.{});
-    lang.add(0x1a, .pop, &.{});
-    lang.add(0x1b, .@"in-list", &.{});
+    b.add1(0x00, .@"push-u8", .mk1(.u8));
+    b.add1(0x01, .@"push-i16", .mk1(.i16));
+    b.add1(0x02, .@"push-i32", .mk1(.i32));
+    b.add1(0x03, .@"push-var", .mk1(.variable));
+    b.add1(0x04, .@"push-str", .mk1(.string));
+    b.add1(0x07, .@"get-array-item", .mk1(.variable));
+    b.add1(0x0a, .@"dup-multi", .mk1(.i16));
+    b.add1(0x0b, .@"get-array-item-2d", .mk1(.variable));
+    b.add1(0x0c, .dup, .empty);
+    b.add1(0x0d, .not, .empty);
+    b.add1(0x0e, .eq, .empty);
+    b.add1(0x0f, .ne, .empty);
+    b.add1(0x10, .gt, .empty);
+    b.add1(0x11, .lt, .empty);
+    b.add1(0x12, .le, .empty);
+    b.add1(0x13, .ge, .empty);
+    b.add1(0x14, .add, .empty);
+    b.add1(0x15, .sub, .empty);
+    b.add1(0x16, .mul, .empty);
+    b.add1(0x17, .div, .empty);
+    b.add1(0x18, .land, .empty);
+    b.add1(0x19, .lor, .empty);
+    b.add1(0x1a, .pop, .empty);
+    b.add1(0x1b, .@"in-list", .empty);
 
-    lang.addNested(0x1c, 0x20, .@"image-set-width", &.{});
-    lang.addNested(0x1c, 0x21, .@"image-set-height", &.{});
-    lang.addNested(0x1c, 0x30, .@"image-draw", &.{});
-    lang.addNested(0x1c, 0x31, .@"image-load-external", &.{});
-    lang.addNested(0x1c, 0x33, .@"image-capture", &.{});
-    lang.addNested(0x1c, 0x34, .@"image-set-state", &.{});
-    lang.addNested(0x1c, 0x36, .@"image-set-flags", &.{});
-    lang.addNested(0x1c, 0x38, .@"draw-image-at", &.{});
-    lang.addNested(0x1c, 0x39, .@"image-select", &.{});
-    lang.addNested(0x1c, 0x41, .@"image-set-pos", &.{});
-    lang.addNested(0x1c, 0x42, .@"image-set-color", &.{});
-    lang.addNested(0x1c, 0x43, .@"image-set-clip", &.{});
-    lang.addNested(0x1c, 0x56, .@"image-set-palette", &.{});
-    lang.addNested(0x1c, 0x62, .@"image-set-shadow", &.{});
-    lang.addNested(0x1c, 0x85, .@"image-set-draw-box", &.{});
-    lang.addNested(0x1c, 0x86, .@"image-set-draw-line", &.{});
-    lang.addNested(0x1c, 0x89, .@"image-set-render-image", &.{});
-    lang.addNested(0x1c, 0x9a, .@"image-set-hotspot", &.{});
-    lang.addNested(0x1c, 0xd9, .@"image-new", &.{});
-    lang.addNested(0x1c, 0xf6, .@"image-set-polygon", &.{});
-    lang.addNested(0x1c, 0xf9, .@"image-unknown-1c-f9", &.{});
-    lang.addNested(0x1c, 0xff, .@"image-commit", &.{});
+    b.add2(0x1c, 0x20, .@"image-set-width", .empty);
+    b.add2(0x1c, 0x21, .@"image-set-height", .empty);
+    b.add2(0x1c, 0x30, .@"image-draw", .empty);
+    b.add2(0x1c, 0x31, .@"image-load-external", .empty);
+    b.add2(0x1c, 0x33, .@"image-capture", .empty);
+    b.add2(0x1c, 0x34, .@"image-set-state", .empty);
+    b.add2(0x1c, 0x36, .@"image-set-flags", .empty);
+    b.add2(0x1c, 0x38, .@"draw-image-at", .empty);
+    b.add2(0x1c, 0x39, .@"image-select", .empty);
+    b.add2(0x1c, 0x41, .@"image-set-pos", .empty);
+    b.add2(0x1c, 0x42, .@"image-set-color", .empty);
+    b.add2(0x1c, 0x43, .@"image-set-clip", .empty);
+    b.add2(0x1c, 0x56, .@"image-set-palette", .empty);
+    b.add2(0x1c, 0x62, .@"image-set-shadow", .empty);
+    b.add2(0x1c, 0x85, .@"image-set-draw-box", .empty);
+    b.add2(0x1c, 0x86, .@"image-set-draw-line", .empty);
+    b.add2(0x1c, 0x89, .@"image-set-render-image", .empty);
+    b.add2(0x1c, 0x9a, .@"image-set-hotspot", .empty);
+    b.add2(0x1c, 0xd9, .@"image-new", .empty);
+    b.add2(0x1c, 0xf6, .@"image-set-polygon", .empty);
+    b.add2(0x1c, 0xf9, .@"image-unknown-1c-f9", .empty);
+    b.add2(0x1c, 0xff, .@"image-commit", .empty);
 
-    lang.add(0x1d, .min, &.{});
-    lang.add(0x1e, .max, &.{});
-    lang.add(0x1f, .sin, &.{});
-    lang.add(0x20, .cos, &.{});
-    lang.add(0x21, .sqrt, &.{});
-    lang.add(0x22, .@"angle-from-delta", &.{});
-    lang.add(0x23, .@"angle-from-line", &.{});
+    b.add1(0x1d, .min, .empty);
+    b.add1(0x1e, .max, .empty);
+    b.add1(0x1f, .sin, .empty);
+    b.add1(0x20, .cos, .empty);
+    b.add1(0x21, .sqrt, .empty);
+    b.add1(0x22, .@"angle-from-delta", .empty);
+    b.add1(0x23, .@"angle-from-line", .empty);
 
-    lang.addNested(0x24, 0x1c, .@"line-length-2d", &.{});
-    lang.addNested(0x24, 0x1d, .@"line-length-3d", &.{});
+    b.add2(0x24, 0x1c, .@"line-length-2d", .empty);
+    b.add2(0x24, 0x1d, .@"line-length-3d", .empty);
 
-    lang.addNested(0x25, 0x1e, .@"sprite-get-object-x", &.{});
-    lang.addNested(0x25, 0x1f, .@"sprite-get-object-y", &.{});
-    lang.addNested(0x25, 0x24, .@"sprite-get-state-count", &.{});
-    lang.addNested(0x25, 0x25, .@"sprite-get-group", &.{});
-    lang.addNested(0x25, 0x26, .@"sprite-get-object-draw-x", &.{});
-    lang.addNested(0x25, 0x27, .@"sprite-get-object-draw-y", &.{});
-    lang.addNested(0x25, 0x2a, .@"sprite-get-property", &.{});
-    lang.addNested(0x25, 0x2b, .@"sprite-get-order", &.{});
-    lang.addNested(0x25, 0x2d, .@"find-sprite", &.{});
-    lang.addNested(0x25, 0x34, .@"sprite-get-state", &.{});
-    lang.addNested(0x25, 0x3f, .@"sprite-get-image", &.{});
-    lang.addNested(0x25, 0x52, .@"sprite-get-animation", &.{});
-    lang.addNested(0x25, 0x56, .@"sprite-get-palette", &.{});
-    lang.addNested(0x25, 0x7c, .@"sprite-get-update-type", &.{});
-    lang.addNested(0x25, 0x7d, .@"sprite-class", &.{});
-    lang.addNested(0x25, 0xc6, .@"sprite-get-variable", &.{});
+    b.add2(0x25, 0x1e, .@"sprite-get-object-x", .empty);
+    b.add2(0x25, 0x1f, .@"sprite-get-object-y", .empty);
+    b.add2(0x25, 0x24, .@"sprite-get-state-count", .empty);
+    b.add2(0x25, 0x25, .@"sprite-get-group", .empty);
+    b.add2(0x25, 0x26, .@"sprite-get-object-draw-x", .empty);
+    b.add2(0x25, 0x27, .@"sprite-get-object-draw-y", .empty);
+    b.add2(0x25, 0x2a, .@"sprite-get-property", .empty);
+    b.add2(0x25, 0x2b, .@"sprite-get-order", .empty);
+    b.add2(0x25, 0x2d, .@"find-sprite", .empty);
+    b.add2(0x25, 0x34, .@"sprite-get-state", .empty);
+    b.add2(0x25, 0x3f, .@"sprite-get-image", .empty);
+    b.add2(0x25, 0x52, .@"sprite-get-animation", .empty);
+    b.add2(0x25, 0x56, .@"sprite-get-palette", .empty);
+    b.add2(0x25, 0x7c, .@"sprite-get-update-type", .empty);
+    b.add2(0x25, 0x7d, .@"sprite-class", .empty);
+    b.add2(0x25, 0xc6, .@"sprite-get-variable", .empty);
 
-    lang.addNested(0x26, 0x25, .@"sprite-set-group", &.{});
-    lang.addNested(0x26, 0x2a, .@"sprite-set-property", &.{});
-    lang.addNested(0x26, 0x2b, .@"sprite-set-order", &.{});
-    lang.addNested(0x26, 0x2c, .@"sprite-move", &.{});
-    lang.addNested(0x26, 0x34, .@"sprite-set-state", &.{});
+    b.add2(0x26, 0x25, .@"sprite-set-group", .empty);
+    b.add2(0x26, 0x2a, .@"sprite-set-property", .empty);
+    b.add2(0x26, 0x2b, .@"sprite-set-order", .empty);
+    b.add2(0x26, 0x2c, .@"sprite-move", .empty);
+    b.add2(0x26, 0x34, .@"sprite-set-state", .empty);
     if (game.le(.soccer_1998))
-        lang.addNested(0x26, 0x39, .@"sprite-select-one", &.{})
+        b.add2(0x26, 0x39, .@"sprite-select-one", .empty)
     else
-        lang.addNested(0x26, 0x39, .@"sprite-select-range", &.{});
-    lang.addNested(0x26, 0x3f, .@"sprite-set-image", &.{});
-    lang.addNested(0x26, 0x41, .@"sprite-set-position", &.{});
-    lang.addNested(0x26, 0x44, .@"sprite-erase", &.{});
-    lang.addNested(0x26, 0x4d, .@"sprite-set-step-dist", &.{});
-    lang.addNested(0x26, 0x52, .@"sprite-set-animation-type", &.{});
-    lang.addNested(0x26, 0x56, .@"sprite-set-palette", &.{});
-    lang.addNested(0x26, 0x61, .@"sprite-set-animation-speed", &.{});
-    lang.addNested(0x26, 0x62, .@"sprite-set-shadow", &.{});
-    lang.addNested(0x26, 0x7c, .@"sprite-set-update-type", &.{});
-    lang.addNested(0x26, 0x7d, .@"sprite-set-class", &.{});
-    lang.addNested(0x26, 0x8c, .@"sprite-mask-image", &.{});
-    lang.addNested(0x26, 0x9e, .@"sprite-restart", &.{});
-    lang.addNested(0x26, 0xc6, .@"sprite-variable-range", &.{});
-    lang.addNested(0x26, 0xd9, .@"sprite-new", &.{});
-
-    lang.addNested(0x27, 0x08, .@"sprite-group-get", &.{});
-    lang.addNested(0x27, 0x1e, .@"sprite-group-get-object-x", &.{});
-    lang.addNested(0x27, 0x1f, .@"sprite-group-get-object-y", &.{});
-    lang.addNested(0x27, 0x2b, .@"sprite-group-get-order", &.{});
-
-    lang.addNested(0x28, 0x25, .@"sprite-group-set-group", &.{});
-    lang.addNested(0x28, 0x2b, .@"sprite-group-set-order", &.{});
-    lang.addNested(0x28, 0x2c, .@"sprite-group-move", &.{});
-    lang.addNested(0x28, 0x39, .@"sprite-group-select", &.{});
-    lang.addNested(0x28, 0x41, .@"sprite-group-set-position", &.{});
-    lang.addNested(0x28, 0x43, .@"sprite-group-set-clip", &.{});
-    lang.addNested(0x28, 0xd9, .@"sprite-group-new", &.{});
-
-    lang.addNested(0x29, 0x1e, .@"image-get-object-x", &.{});
-    lang.addNested(0x29, 0x1f, .@"image-get-object-y", &.{});
-    lang.addNested(0x29, 0x20, .@"image-get-width", &.{});
-    lang.addNested(0x29, 0x21, .@"image-get-height", &.{});
-    lang.addNested(0x29, 0x24, .@"image-get-state-count", &.{});
-    lang.addNested(0x29, 0x42, .@"image-get-color-at", &.{});
-
-    lang.add(0x2a, .@"actor-get-property", &.{});
-
-    lang.addNested(0x2b, 0x01, .@"start-script-order", &.{});
-    lang.addNested(0x2b, 0xc3, .@"start-script-rec-order", &.{});
-
-    lang.addNested(0x2c, 0x01, .@"chain-script-order", &.{});
-
-    lang.add(0x30, .mod, &.{});
-    lang.add(0x31, .shl, &.{});
-    lang.add(0x32, .shr, &.{});
-    lang.add(0x34, .@"find-all-objects", &.{});
-    lang.add(0x36, .iif, &.{});
-
-    lang.addNested(0x37, 0x04, .@"dim-array-range.int8", &.{.variable});
-    lang.addNested(0x37, 0x05, .@"dim-array-range.int16", &.{.variable});
-    lang.addNested(0x37, 0x06, .@"dim-array-range.int32", &.{.variable});
-
-    lang.addNested(0x38, 0x04, .@"redim-array-range.int8", &.{.variable});
-    lang.addNested(0x38, 0x05, .@"redim-array-range.int16", &.{.variable});
-    lang.addNested(0x38, 0x06, .@"redim-array-range.int32", &.{.variable});
-
-    lang.add(0x39, .@"find-segment-intersection", &.{ .variable, .variable });
-
-    lang.addNested(0x3a, 0x81, .@"array-sort", &.{.variable});
-
-    lang.add(0x43, .set, &.{.variable});
-    lang.add(0x46, .@"file-size", &.{});
-    lang.add(0x47, .@"set-array-item", &.{.variable});
-    lang.add(0x48, .@"string-number", &.{});
-    lang.add(0x4b, .@"set-array-item-2d", &.{.variable});
-
-    lang.addNested(0x4d, 0x06, .@"read-ini-int", &.{});
-    lang.addNested(0x4d, 0x07, .@"read-ini-string", &.{});
-
-    lang.addNested(0x4e, 0x06, .@"write-ini-int", &.{});
-    lang.addNested(0x4e, 0x07, .@"write-ini-string", &.{});
-
-    lang.add(0x4f, .inc, &.{.variable});
-    lang.add(0x50, .@"override-off-off", &.{});
-    lang.add(0x53, .@"inc-array-item", &.{.variable});
-    lang.add(0x54, .@"get-object-image-x", &.{});
-    lang.add(0x55, .@"get-object-image-y", &.{});
-    lang.add(0x57, .dec, &.{.variable});
-
-    lang.addNested(0x58, 0x0a, .@"get-timer", &.{});
-
-    lang.addNested(0x59, 0x9e, .@"set-timer", &.{});
-
-    lang.add(0x5a, .@"sound-position", &.{});
-    lang.add(0x5b, .@"dec-array-item", &.{.variable});
-    lang.add(0x5c, .@"jump-if", &.{.relative_offset});
-    lang.add(0x5d, .@"jump-unless", &.{.relative_offset});
-
-    lang.addNested(0x5e, 0x01, .@"start-script", &.{});
-    lang.addNested(0x5e, 0xc3, .@"start-script-rec", &.{});
-
-    lang.addNested(0x60, 0x01, .@"start-object", &.{});
-    lang.addNested(0x60, 0xc3, .@"start-object-rec", &.{});
-
-    lang.addNested(0x61, 0x3f, .@"draw-object", &.{});
-    lang.addNested(0x61, 0x41, .@"draw-object-at", &.{});
-
-    lang.add(0x62, .@"print-image", &.{});
-
-    lang.addNested(0x63, 0x01, .@"array-get-dim", &.{.variable});
-    lang.addNested(0x63, 0x02, .@"array-get-height", &.{.variable});
-    lang.addNested(0x63, 0x03, .@"array-get-width", &.{.variable});
-    lang.addNested(0x63, 0x04, .@"array-get-x-start", &.{.variable});
-    lang.addNested(0x63, 0x05, .@"array-get-x-end", &.{.variable});
-    lang.addNested(0x63, 0x06, .@"array-get-y-start", &.{.variable});
-    lang.addNested(0x63, 0x07, .@"array-get-y-end", &.{.variable});
-
-    lang.add(0x64, .@"free-arrays", &.{});
-    lang.add(0x65, .end2, &.{});
-    lang.add(0x66, .end, &.{});
-
-    lang.addNested(0x69, 0x39, .@"window-select", &.{});
-    lang.addNested(0x69, 0x3a, .@"window-set-script", &.{});
-    lang.addNested(0x69, 0x3f, .@"window-set-image", &.{});
-    lang.addNested(0x69, 0xd9, .@"window-new", &.{});
-    lang.addNested(0x69, 0xf3, .@"window-set-title-bar", &.{});
-    lang.addNested(0x69, 0xff, .@"window-commit", &.{});
-
-    lang.add(0x6a, .@"freeze-scripts", &.{});
-
-    lang.addNested(0x6b, 0x13, .@"cursor-bw", &.{});
-    lang.addNested(0x6b, 0x14, .@"cursor-color", &.{});
-    lang.addNested(0x6b, 0x90, .@"cursor-on", &.{});
-    lang.addNested(0x6b, 0x91, .@"cursor-off", &.{});
-    lang.addNested(0x6b, 0x92, .@"userput-on", &.{});
-    lang.addNested(0x6b, 0x93, .@"userput-off", &.{});
-    lang.addNested(0x6b, 0x94, .@"cursor-soft-on", &.{});
-    lang.addNested(0x6b, 0x95, .@"cursor-soft-off", &.{});
-    lang.addNested(0x6b, 0x9c, .charset, &.{});
-    lang.addNested(0x6b, 0x9d, .@"charset-color", &.{});
-
-    lang.add(0x6c, .@"break-here", &.{});
-    lang.add(0x6d, .@"class-of", &.{});
-    lang.add(0x6e, .@"object-set-class", &.{});
-    lang.add(0x6f, .@"object-get-state", &.{});
-    lang.add(0x70, .@"object-set-state", &.{});
-    lang.add(0x73, .jump, &.{.relative_offset});
-
-    lang.addNested(0x74, 0x09, .@"sound-soft", &.{});
-    lang.addNested(0x74, 0xe6, .@"sound-channel", &.{});
-    lang.addNested(0x74, 0xe7, .@"sound-at", &.{});
-    lang.addNested(0x74, 0xe8, .@"sound-select", &.{});
-    lang.addNested(0x74, 0xf5, .@"sound-looping", &.{});
-    lang.addNested(0x74, 0xff, .@"sound-start", &.{});
-
-    lang.add(0x75, .@"stop-sound", &.{});
-    lang.add(0x77, .@"stop-object", &.{});
-    lang.add(0x7b, .@"current-room", &.{});
-    lang.add(0x7c, .@"stop-script", &.{});
-    lang.add(0x7f, .@"put-actor", &.{});
-    lang.add(0x82, .@"do-animation", &.{});
-    lang.add(0x87, .random, &.{});
-    lang.add(0x88, .@"random-between", &.{});
-    lang.add(0x8b, .@"script-running", &.{});
-    lang.add(0x8c, .@"actor-room", &.{});
-    lang.add(0x8d, .@"actor-x", &.{});
-    lang.add(0x8e, .@"actor-y", &.{});
-    lang.add(0x8f, .@"actor-facing", &.{});
-    lang.add(0x91, .@"actor-get-costume", &.{});
-
-    lang.addNested(0x94, 0x42, .@"palette-color", &.{});
-    lang.addNested(0x94, 0xd9, .rgb, &.{});
-
-    lang.addNested(0x95, 0x73, .override, &.{.relative_offset});
-
-    lang.add(0x96, .@"override-off", &.{});
-    lang.add(0x98, .@"sound-running", &.{});
-
-    lang.addNested(0x9b, 0x64, .@"load-script", &.{});
-    lang.addNested(0x9b, 0x65, .@"load-sound", &.{});
-    lang.addNested(0x9b, 0x66, .@"load-costume", &.{});
-    lang.addNested(0x9b, 0x67, .@"load-room", &.{});
-    lang.addNested(0x9b, 0x69, .@"nuke-sound", &.{});
-    lang.addNested(0x9b, 0x6a, .@"nuke-costume", &.{});
-    lang.addNested(0x9b, 0x6c, .@"lock-script", &.{});
-    lang.addNested(0x9b, 0x6e, .@"lock-costume", &.{});
-    lang.addNested(0x9b, 0x72, .@"unlock-costume", &.{});
-    lang.addNested(0x9b, 0x75, .@"load-charset", &.{});
-    lang.addNested(0x9b, 0x78, .@"preload-script", &.{});
-    lang.addNested(0x9b, 0x79, .@"preload-sound", &.{});
-    lang.addNested(0x9b, 0x7a, .@"preload-costume", &.{});
-    lang.addNested(0x9b, 0x7b, .@"preload-room", &.{});
-    lang.addNested(0x9b, 0x9f, .@"unlock-image", &.{});
-    lang.addNested(0x9b, 0xc0, .@"nuke-image", &.{});
-    lang.addNested(0x9b, 0xc9, .@"load-image", &.{});
-    lang.addNested(0x9b, 0xca, .@"lock-image", &.{});
-    lang.addNested(0x9b, 0xcb, .@"preload-image", &.{});
-    lang.addNested(0x9b, 0xef, .@"preload-flush", &.{});
-
-    lang.addNested(0x9c, 0xaf, .@"palette-set", &.{});
-    lang.addNested(0x9c, 0xb3, .intensity, &.{});
-    lang.addNested(0x9c, 0xb5, .fades, &.{});
-    lang.addNested(0x9c, 0xb6, .@"intensity-rgb", &.{});
-    lang.addNested(0x9c, 0xd5, .palette, &.{});
-    lang.addNested(0x9c, 0xdc, .@"copy-palette", &.{});
-    lang.addNested(0x9c, 0xdd, .@"saveload-game", &.{});
-    lang.addNested(0x9c, 0xea, .@"object-order", &.{});
-
-    lang.addNested(0x9d, 0x15, .@"actor-set-condition", &.{});
-    lang.addNested(0x9d, 0x2b, .@"actor-set-order", &.{});
-    lang.addNested(0x9d, 0x40, .@"actor-set-clipped", &.{});
-    lang.addNested(0x9d, 0x41, .@"actor-set-position", &.{});
-    lang.addNested(0x9d, 0x43, .@"actor-set-clip", &.{});
-    lang.addNested(0x9d, 0x44, .@"actor-erase", &.{});
-    lang.addNested(0x9d, 0x4c, .@"actor-set-costume", &.{});
-    lang.addNested(0x9d, 0x4e, .@"actor-set-sounds", &.{});
-    lang.addNested(0x9d, 0x50, .@"actor-set-talk-animation", &.{});
-    lang.addNested(0x9d, 0x54, .@"actor-set-elevation", &.{});
-    lang.addNested(0x9d, 0x56, .@"actor-set-color", &.{});
-    lang.addNested(0x9d, 0x57, .@"actor-set-talk-color", &.{});
-    lang.addNested(0x9d, 0x5c, .@"actor-set-scale", &.{});
-    lang.addNested(0x9d, 0x5d, .@"actor-never-zclip", &.{});
-    lang.addNested(0x9d, 0x5e, .@"actor-always-zclip", &.{});
-    lang.addNested(0x9d, 0x5f, .@"actor-ignore-boxes", &.{});
-    lang.addNested(0x9d, 0x61, .@"actor-set-animation-speed", &.{});
-    lang.addNested(0x9d, 0x62, .@"actor-set-shadow", &.{});
-    lang.addNested(0x9d, 0x63, .@"actor-set-text-offset", &.{});
-    lang.addNested(0x9d, 0xc5, .@"actor-select", &.{});
-    lang.addNested(0x9d, 0xc6, .@"actor-set-var", &.{});
-    lang.addNested(0x9d, 0xd9, .@"actor-new", &.{});
-    lang.addNested(0x9d, 0xda, .@"actor-bak-on", &.{});
-
-    lang.addNested(0x9e, 0x39, .@"palette-select", &.{});
-    lang.addNested(0x9e, 0x3f, .@"palette-from-image", &.{});
-    lang.addNested(0x9e, 0x42, .@"palette-set-rgb", &.{});
-    lang.addNested(0x9e, 0x46, .@"palette-set-color", &.{});
-    lang.addNested(0x9e, 0x56, .@"palette-from-palette", &.{});
-    lang.addNested(0x9e, 0xd9, .@"palette-new", &.{});
-    lang.addNested(0x9e, 0xff, .@"palette-commit", &.{});
-
-    lang.add(0x9f, .@"find-actor", &.{});
-    lang.add(0xa0, .@"find-object", &.{});
-    lang.add(0xa2, .@"actor-get-elevation", &.{});
-    lang.add(0xa3, .@"valid-verb", &.{});
-
-    lang.addNested(0xa4, 0x07, .@"assign-string", &.{.variable});
-    lang.addNested(0xa4, 0x7e, .@"array-assign-list", &.{.variable});
-    lang.addNested(0xa4, 0x7f, .@"array-assign-slice", &.{ .variable, .variable });
-    lang.addNested(0xa4, 0x80, .@"array-assign-range", &.{.variable});
-    lang.addNested(0xa4, 0x8a, .@"array-math", &.{ .variable, .variable, .variable });
-    lang.addNested(0xa4, 0xc2, .sprintf, &.{.variable});
-    lang.addNested(0xa4, 0xd0, .@"array-assign", &.{.variable});
-    lang.addNested(0xa4, 0xd4, .@"array-set-row", &.{.variable});
-
-    lang.add(0xa6, .@"draw-box", &.{});
-    lang.add(0xa7, .debug, &.{});
-
-    lang.addNested(0xa9, 0xa9, .@"wait-for-message", &.{});
-
-    lang.add(0xaa, .@"actor-get-scale", &.{});
-    lang.add(0xad, .in, &.{});
-
-    lang.addNested(0xae, 0x16, .@"flush-object-draw-que", &.{});
-    lang.addNested(0xae, 0x1a, .@"update-screen", &.{});
-    lang.addNested(0xae, 0xa0, .quit, &.{});
-    lang.addNested(0xae, 0xf4, .@"quit-quit", &.{});
-
-    lang.add(0xb0, .@"sleep-for", &.{});
-    lang.add(0xb1, .@"sleep-for-seconds", &.{});
-    lang.add(0xb3, .@"stop-sentence", &.{});
-
-    lang.addNested(0xb5, 0x41, .@"print-text-position", &.{});
-    lang.addNested(0xb5, 0x43, .@"print-text-clipped", &.{});
-    lang.addNested(0xb5, 0x45, .@"print-text-center", &.{});
-    lang.addNested(0xb5, 0x4b, .@"print-text-string", &.{.string});
-    lang.addNested(0xb5, 0xc2, .@"print-text-printf", &.{.string});
-    lang.addNested(0xb5, 0xf9, .@"print-text-color", &.{});
-    lang.addNested(0xb5, 0xfe, .@"print-text-start", &.{});
-
-    lang.addNested(0xb6, 0x4b, .@"print-debug-string", &.{.string});
-    lang.addNested(0xb6, 0xc2, .@"print-debug-printf", &.{.string});
-    lang.addNested(0xb6, 0xfe, .@"print-debug-start", &.{});
-    lang.addNested(0xb6, 0xff, .@"print-debug-empty", &.{});
-
-    lang.addNested(0xb7, 0x4b, .@"print-system-string", &.{.string});
-    lang.addNested(0xb7, 0xc2, .@"print-system-printf", &.{.string});
-    lang.addNested(0xb7, 0xfe, .@"print-system-start", &.{});
-
-    lang.addNested(0xb8, 0x41, .@"say-line-position", &.{});
-    lang.addNested(0xb8, 0x45, .@"say-line-center", &.{});
-    lang.addNested(0xb8, 0x4b, .@"say-line-string", &.{.string});
-    lang.addNested(0xb8, 0xe1, .@"say-line-talkie", &.{});
-    lang.addNested(0xb8, 0xf9, .@"say-line-color", &.{});
-    lang.addNested(0xb8, 0xfe, .@"say-line-start", &.{});
-
-    lang.addNested(0xb9, 0xfe, .@"say-line-actor-start", &.{});
-
-    lang.add(0xba, .@"say-line-actor", &.{.string});
-    lang.add(0xbb, .@"say-line", &.{.string});
-
-    lang.addNested(0xbc, 0x02, .@"dim-array.int1", &.{.variable});
-    lang.addNested(0xbc, 0x04, .@"dim-array.int8", &.{.variable});
-    lang.addNested(0xbc, 0x05, .@"dim-array.int16", &.{.variable});
-    lang.addNested(0xbc, 0x06, .@"dim-array.int32", &.{.variable});
-    lang.addNested(0xbc, 0x07, .@"dim-array.string", &.{.variable});
-    lang.addNested(0xbc, 0xcc, .undim, &.{.variable});
-
-    lang.add(0xbd, .@"return", &.{});
-    lang.add(0xbf, .@"call-script", &.{});
-
-    lang.addNested(0xc0, 0x04, .@"dim-array-2d.int8", &.{.variable});
-    lang.addNested(0xc0, 0x05, .@"dim-array-2d.int16", &.{.variable});
-    lang.addNested(0xc0, 0x06, .@"dim-array-2d.int32", &.{.variable});
-
-    lang.add(0xc1, .@"debug-string", &.{});
-    lang.add(0xc4, .abs, &.{});
-    lang.add(0xc8, .@"kludge-call", &.{});
-    lang.add(0xc9, .kludge, &.{});
-    lang.add(0xca, .@"break-here-multi", &.{});
-    lang.add(0xcb, .pick, &.{});
-    lang.add(0xcd, .@"stamp-object", &.{});
-    lang.add(0xcf, .@"debug-input", &.{});
-    lang.add(0xd0, .@"get-time-date", &.{});
-    lang.add(0xd1, .@"stop-line", &.{});
-    lang.add(0xd2, .@"actor-get-var", &.{});
-    lang.add(0xd4, .shuffle, &.{.variable});
-
-    lang.addNested(0xd5, 0x01, .@"chain-script", &.{});
-    lang.addNested(0xd5, 0xc3, .@"chain-script-rec", &.{});
-
-    lang.add(0xd6, .band, &.{});
-    lang.add(0xd7, .bor, &.{});
-    lang.add(0xd9, .@"close-file", &.{});
-    lang.add(0xda, .@"open-file", &.{});
-
-    lang.addNested(0xdb, 0x05, .@"read-file-int16", &.{});
-    lang.addNested(0xdb, 0x08, .@"read-file-int8", &.{.u8});
-
-    lang.addNested(0xdc, 0x05, .@"write-file-int16", &.{});
-    lang.addNested(0xdc, 0x08, .@"write-file-int8", &.{.u8});
-
-    lang.add(0xdd, .@"find-all-objects2", &.{});
-    lang.add(0xde, .@"delete-file", &.{});
-    lang.add(0xdf, .@"rename-file", &.{});
-
-    lang.addNested(0xe0, 0x42, .@"array-line-draw", &.{});
-
-    lang.add(0xe2, .localize, &.{});
-    lang.add(0xe3, .@"pick-random", &.{.variable});
-    lang.add(0xe9, .@"seek-file", &.{});
-
-    lang.addNested(0xea, 0x04, .@"redim-array.int8", &.{.variable});
-    lang.addNested(0xea, 0x05, .@"redim-array.int16", &.{.variable});
-    lang.addNested(0xea, 0x06, .@"redim-array.int32", &.{.variable});
-
-    lang.add(0xeb, .@"tell-file", &.{});
-    lang.add(0xec, .@"string-copy", &.{});
-    lang.add(0xed, .@"string-width", &.{});
-    lang.add(0xee, .@"string-length", &.{});
-    lang.add(0xef, .@"string-substr", &.{});
-    lang.add(0xf0, .@"string-concat", &.{});
-    lang.add(0xf1, .@"string-compare", &.{});
-
-    lang.addNested(0xf2, 0xe3, .@"costume-loaded", &.{});
-    lang.addNested(0xf2, 0xe4, .@"sound-loaded", &.{});
-
-    lang.addNested(0xf3, 0x06, .@"read-system-ini-int", &.{});
-    lang.addNested(0xf3, 0x07, .@"read-system-ini-string", &.{});
-
-    lang.addNested(0xf4, 0x06, .@"write-system-ini-int", &.{});
-    lang.addNested(0xf4, 0x07, .@"write-system-ini-string", &.{});
-
-    lang.add(0xf5, .@"string-margin", &.{});
-    lang.add(0xf6, .@"string-search", &.{});
-
-    lang.addNested(0xf8, 0x0d, .@"sound-size", &.{});
-
-    lang.add(0xf9, .@"create-directory", &.{});
-
-    lang.addNested(0xfa, 0xf3, .@"title-bar", &.{});
-
-    lang.addNested(0xfb, 0xf6, .@"set-polygon-2", &.{});
-    lang.addNested(0xfb, 0xf7, .@"delete-polygon", &.{});
-    lang.addNested(0xfb, 0xf8, .@"set-polygon", &.{});
-
-    lang.add(0xfc, .@"find-polygon", &.{});
-
-    return lang;
+        b.add2(0x26, 0x39, .@"sprite-select-range", .empty);
+    b.add2(0x26, 0x3f, .@"sprite-set-image", .empty);
+    b.add2(0x26, 0x41, .@"sprite-set-position", .empty);
+    b.add2(0x26, 0x44, .@"sprite-erase", .empty);
+    b.add2(0x26, 0x4d, .@"sprite-set-step-dist", .empty);
+    b.add2(0x26, 0x52, .@"sprite-set-animation-type", .empty);
+    b.add2(0x26, 0x56, .@"sprite-set-palette", .empty);
+    b.add2(0x26, 0x61, .@"sprite-set-animation-speed", .empty);
+    b.add2(0x26, 0x62, .@"sprite-set-shadow", .empty);
+    b.add2(0x26, 0x7c, .@"sprite-set-update-type", .empty);
+    b.add2(0x26, 0x7d, .@"sprite-set-class", .empty);
+    b.add2(0x26, 0x8c, .@"sprite-mask-image", .empty);
+    b.add2(0x26, 0x9e, .@"sprite-restart", .empty);
+    b.add2(0x26, 0xc6, .@"sprite-variable-range", .empty);
+    b.add2(0x26, 0xd9, .@"sprite-new", .empty);
+
+    b.add2(0x27, 0x08, .@"sprite-group-get", .empty);
+    b.add2(0x27, 0x1e, .@"sprite-group-get-object-x", .empty);
+    b.add2(0x27, 0x1f, .@"sprite-group-get-object-y", .empty);
+    b.add2(0x27, 0x2b, .@"sprite-group-get-order", .empty);
+
+    b.add2(0x28, 0x25, .@"sprite-group-set-group", .empty);
+    b.add2(0x28, 0x2b, .@"sprite-group-set-order", .empty);
+    b.add2(0x28, 0x2c, .@"sprite-group-move", .empty);
+    b.add2(0x28, 0x39, .@"sprite-group-select", .empty);
+    b.add2(0x28, 0x41, .@"sprite-group-set-position", .empty);
+    b.add2(0x28, 0x43, .@"sprite-group-set-clip", .empty);
+    b.add2(0x28, 0xd9, .@"sprite-group-new", .empty);
+
+    b.add2(0x29, 0x1e, .@"image-get-object-x", .empty);
+    b.add2(0x29, 0x1f, .@"image-get-object-y", .empty);
+    b.add2(0x29, 0x20, .@"image-get-width", .empty);
+    b.add2(0x29, 0x21, .@"image-get-height", .empty);
+    b.add2(0x29, 0x24, .@"image-get-state-count", .empty);
+    b.add2(0x29, 0x42, .@"image-get-color-at", .empty);
+
+    b.add1(0x2a, .@"actor-get-property", .empty);
+
+    b.add2(0x2b, 0x01, .@"start-script-order", .empty);
+    b.add2(0x2b, 0xc3, .@"start-script-rec-order", .empty);
+
+    b.add2(0x2c, 0x01, .@"chain-script-order", .empty);
+
+    b.add1(0x30, .mod, .empty);
+    b.add1(0x31, .shl, .empty);
+    b.add1(0x32, .shr, .empty);
+    b.add1(0x34, .@"find-all-objects", .empty);
+    b.add1(0x36, .iif, .empty);
+
+    b.add2(0x37, 0x04, .@"dim-array-range.int8", .mk1(.variable));
+    b.add2(0x37, 0x05, .@"dim-array-range.int16", .mk1(.variable));
+    b.add2(0x37, 0x06, .@"dim-array-range.int32", .mk1(.variable));
+
+    b.add2(0x38, 0x04, .@"redim-array-range.int8", .mk1(.variable));
+    b.add2(0x38, 0x05, .@"redim-array-range.int16", .mk1(.variable));
+    b.add2(0x38, 0x06, .@"redim-array-range.int32", .mk1(.variable));
+
+    b.add1(0x39, .@"find-segment-intersection", .mk2(.variable, .variable));
+
+    b.add2(0x3a, 0x81, .@"array-sort", .mk1(.variable));
+
+    b.add1(0x43, .set, .mk1(.variable));
+    b.add1(0x46, .@"file-size", .empty);
+    b.add1(0x47, .@"set-array-item", .mk1(.variable));
+    b.add1(0x48, .@"string-number", .empty);
+    b.add1(0x4b, .@"set-array-item-2d", .mk1(.variable));
+
+    b.add2(0x4d, 0x06, .@"read-ini-int", .empty);
+    b.add2(0x4d, 0x07, .@"read-ini-string", .empty);
+
+    b.add2(0x4e, 0x06, .@"write-ini-int", .empty);
+    b.add2(0x4e, 0x07, .@"write-ini-string", .empty);
+
+    b.add1(0x4f, .inc, .mk1(.variable));
+    b.add1(0x50, .@"override-off-off", .empty);
+    b.add1(0x53, .@"inc-array-item", .mk1(.variable));
+    b.add1(0x54, .@"get-object-image-x", .empty);
+    b.add1(0x55, .@"get-object-image-y", .empty);
+    b.add1(0x57, .dec, .mk1(.variable));
+
+    b.add2(0x58, 0x0a, .@"get-timer", .empty);
+
+    b.add2(0x59, 0x9e, .@"set-timer", .empty);
+
+    b.add1(0x5a, .@"sound-position", .empty);
+    b.add1(0x5b, .@"dec-array-item", .mk1(.variable));
+    b.add1(0x5c, .@"jump-if", .mk1(.relative_offset));
+    b.add1(0x5d, .@"jump-unless", .mk1(.relative_offset));
+
+    b.add2(0x5e, 0x01, .@"start-script", .empty);
+    b.add2(0x5e, 0xc3, .@"start-script-rec", .empty);
+
+    b.add2(0x60, 0x01, .@"start-object", .empty);
+    b.add2(0x60, 0xc3, .@"start-object-rec", .empty);
+
+    b.add2(0x61, 0x3f, .@"draw-object", .empty);
+    b.add2(0x61, 0x41, .@"draw-object-at", .empty);
+
+    b.add1(0x62, .@"print-image", .empty);
+
+    b.add2(0x63, 0x01, .@"array-get-dim", .mk1(.variable));
+    b.add2(0x63, 0x02, .@"array-get-height", .mk1(.variable));
+    b.add2(0x63, 0x03, .@"array-get-width", .mk1(.variable));
+    b.add2(0x63, 0x04, .@"array-get-x-start", .mk1(.variable));
+    b.add2(0x63, 0x05, .@"array-get-x-end", .mk1(.variable));
+    b.add2(0x63, 0x06, .@"array-get-y-start", .mk1(.variable));
+    b.add2(0x63, 0x07, .@"array-get-y-end", .mk1(.variable));
+
+    b.add1(0x64, .@"free-arrays", .empty);
+    b.add1(0x65, .end2, .empty);
+    b.add1(0x66, .end, .empty);
+
+    b.add2(0x69, 0x39, .@"window-select", .empty);
+    b.add2(0x69, 0x3a, .@"window-set-script", .empty);
+    b.add2(0x69, 0x3f, .@"window-set-image", .empty);
+    b.add2(0x69, 0xd9, .@"window-new", .empty);
+    b.add2(0x69, 0xf3, .@"window-set-title-bar", .empty);
+    b.add2(0x69, 0xff, .@"window-commit", .empty);
+
+    b.add1(0x6a, .@"freeze-scripts", .empty);
+
+    b.add2(0x6b, 0x13, .@"cursor-bw", .empty);
+    b.add2(0x6b, 0x14, .@"cursor-color", .empty);
+    b.add2(0x6b, 0x90, .@"cursor-on", .empty);
+    b.add2(0x6b, 0x91, .@"cursor-off", .empty);
+    b.add2(0x6b, 0x92, .@"userput-on", .empty);
+    b.add2(0x6b, 0x93, .@"userput-off", .empty);
+    b.add2(0x6b, 0x94, .@"cursor-soft-on", .empty);
+    b.add2(0x6b, 0x95, .@"cursor-soft-off", .empty);
+    b.add2(0x6b, 0x9c, .charset, .empty);
+    b.add2(0x6b, 0x9d, .@"charset-color", .empty);
+
+    b.add1(0x6c, .@"break-here", .empty);
+    b.add1(0x6d, .@"class-of", .empty);
+    b.add1(0x6e, .@"object-set-class", .empty);
+    b.add1(0x6f, .@"object-get-state", .empty);
+    b.add1(0x70, .@"object-set-state", .empty);
+    b.add1(0x73, .jump, .mk1(.relative_offset));
+
+    b.add2(0x74, 0x09, .@"sound-soft", .empty);
+    b.add2(0x74, 0xe6, .@"sound-channel", .empty);
+    b.add2(0x74, 0xe7, .@"sound-at", .empty);
+    b.add2(0x74, 0xe8, .@"sound-select", .empty);
+    b.add2(0x74, 0xf5, .@"sound-looping", .empty);
+    b.add2(0x74, 0xff, .@"sound-start", .empty);
+
+    b.add1(0x75, .@"stop-sound", .empty);
+    b.add1(0x77, .@"stop-object", .empty);
+    b.add1(0x7b, .@"current-room", .empty);
+    b.add1(0x7c, .@"stop-script", .empty);
+    b.add1(0x7f, .@"put-actor", .empty);
+    b.add1(0x82, .@"do-animation", .empty);
+    b.add1(0x87, .random, .empty);
+    b.add1(0x88, .@"random-between", .empty);
+    b.add1(0x8b, .@"script-running", .empty);
+    b.add1(0x8c, .@"actor-room", .empty);
+    b.add1(0x8d, .@"actor-x", .empty);
+    b.add1(0x8e, .@"actor-y", .empty);
+    b.add1(0x8f, .@"actor-facing", .empty);
+    b.add1(0x91, .@"actor-get-costume", .empty);
+
+    b.add2(0x94, 0x42, .@"palette-color", .empty);
+    b.add2(0x94, 0xd9, .rgb, .empty);
+
+    b.add2(0x95, 0x73, .override, .mk1(.relative_offset));
+
+    b.add1(0x96, .@"override-off", .empty);
+    b.add1(0x98, .@"sound-running", .empty);
+
+    b.add2(0x9b, 0x64, .@"load-script", .empty);
+    b.add2(0x9b, 0x65, .@"load-sound", .empty);
+    b.add2(0x9b, 0x66, .@"load-costume", .empty);
+    b.add2(0x9b, 0x67, .@"load-room", .empty);
+    b.add2(0x9b, 0x69, .@"nuke-sound", .empty);
+    b.add2(0x9b, 0x6a, .@"nuke-costume", .empty);
+    b.add2(0x9b, 0x6c, .@"lock-script", .empty);
+    b.add2(0x9b, 0x6e, .@"lock-costume", .empty);
+    b.add2(0x9b, 0x72, .@"unlock-costume", .empty);
+    b.add2(0x9b, 0x75, .@"load-charset", .empty);
+    b.add2(0x9b, 0x78, .@"preload-script", .empty);
+    b.add2(0x9b, 0x79, .@"preload-sound", .empty);
+    b.add2(0x9b, 0x7a, .@"preload-costume", .empty);
+    b.add2(0x9b, 0x7b, .@"preload-room", .empty);
+    b.add2(0x9b, 0x9f, .@"unlock-image", .empty);
+    b.add2(0x9b, 0xc0, .@"nuke-image", .empty);
+    b.add2(0x9b, 0xc9, .@"load-image", .empty);
+    b.add2(0x9b, 0xca, .@"lock-image", .empty);
+    b.add2(0x9b, 0xcb, .@"preload-image", .empty);
+    b.add2(0x9b, 0xef, .@"preload-flush", .empty);
+
+    b.add2(0x9c, 0xaf, .@"palette-set", .empty);
+    b.add2(0x9c, 0xb3, .intensity, .empty);
+    b.add2(0x9c, 0xb5, .fades, .empty);
+    b.add2(0x9c, 0xb6, .@"intensity-rgb", .empty);
+    b.add2(0x9c, 0xd5, .palette, .empty);
+    b.add2(0x9c, 0xdc, .@"copy-palette", .empty);
+    b.add2(0x9c, 0xdd, .@"saveload-game", .empty);
+    b.add2(0x9c, 0xea, .@"object-order", .empty);
+
+    b.add2(0x9d, 0x15, .@"actor-set-condition", .empty);
+    b.add2(0x9d, 0x2b, .@"actor-set-order", .empty);
+    b.add2(0x9d, 0x40, .@"actor-set-clipped", .empty);
+    b.add2(0x9d, 0x41, .@"actor-set-position", .empty);
+    b.add2(0x9d, 0x43, .@"actor-set-clip", .empty);
+    b.add2(0x9d, 0x44, .@"actor-erase", .empty);
+    b.add2(0x9d, 0x4c, .@"actor-set-costume", .empty);
+    b.add2(0x9d, 0x4e, .@"actor-set-sounds", .empty);
+    b.add2(0x9d, 0x50, .@"actor-set-talk-animation", .empty);
+    b.add2(0x9d, 0x54, .@"actor-set-elevation", .empty);
+    b.add2(0x9d, 0x56, .@"actor-set-color", .empty);
+    b.add2(0x9d, 0x57, .@"actor-set-talk-color", .empty);
+    b.add2(0x9d, 0x5c, .@"actor-set-scale", .empty);
+    b.add2(0x9d, 0x5d, .@"actor-never-zclip", .empty);
+    b.add2(0x9d, 0x5e, .@"actor-always-zclip", .empty);
+    b.add2(0x9d, 0x5f, .@"actor-ignore-boxes", .empty);
+    b.add2(0x9d, 0x61, .@"actor-set-animation-speed", .empty);
+    b.add2(0x9d, 0x62, .@"actor-set-shadow", .empty);
+    b.add2(0x9d, 0x63, .@"actor-set-text-offset", .empty);
+    b.add2(0x9d, 0xc5, .@"actor-select", .empty);
+    b.add2(0x9d, 0xc6, .@"actor-set-var", .empty);
+    b.add2(0x9d, 0xd9, .@"actor-new", .empty);
+    b.add2(0x9d, 0xda, .@"actor-bak-on", .empty);
+
+    b.add2(0x9e, 0x39, .@"palette-select", .empty);
+    b.add2(0x9e, 0x3f, .@"palette-from-image", .empty);
+    b.add2(0x9e, 0x42, .@"palette-set-rgb", .empty);
+    b.add2(0x9e, 0x46, .@"palette-set-color", .empty);
+    b.add2(0x9e, 0x56, .@"palette-from-palette", .empty);
+    b.add2(0x9e, 0xd9, .@"palette-new", .empty);
+    b.add2(0x9e, 0xff, .@"palette-commit", .empty);
+
+    b.add1(0x9f, .@"find-actor", .empty);
+    b.add1(0xa0, .@"find-object", .empty);
+    b.add1(0xa2, .@"actor-get-elevation", .empty);
+    b.add1(0xa3, .@"valid-verb", .empty);
+
+    b.add2(0xa4, 0x07, .@"assign-string", .mk1(.variable));
+    b.add2(0xa4, 0x7e, .@"array-assign-list", .mk1(.variable));
+    b.add2(0xa4, 0x7f, .@"array-assign-slice", .mk2(.variable, .variable));
+    b.add2(0xa4, 0x80, .@"array-assign-range", .mk1(.variable));
+    b.add2(0xa4, 0x8a, .@"array-math", .mk3(.variable, .variable, .variable));
+    b.add2(0xa4, 0xc2, .sprintf, .mk1(.variable));
+    b.add2(0xa4, 0xd0, .@"array-assign", .mk1(.variable));
+    b.add2(0xa4, 0xd4, .@"array-set-row", .mk1(.variable));
+
+    b.add1(0xa6, .@"draw-box", .empty);
+    b.add1(0xa7, .debug, .empty);
+
+    b.add2(0xa9, 0xa9, .@"wait-for-message", .empty);
+
+    b.add1(0xaa, .@"actor-get-scale", .empty);
+    b.add1(0xad, .in, .empty);
+
+    b.add2(0xae, 0x16, .@"flush-object-draw-que", .empty);
+    b.add2(0xae, 0x1a, .@"update-screen", .empty);
+    b.add2(0xae, 0xa0, .quit, .empty);
+    b.add2(0xae, 0xf4, .@"quit-quit", .empty);
+
+    b.add1(0xb0, .@"sleep-for", .empty);
+    b.add1(0xb1, .@"sleep-for-seconds", .empty);
+    b.add1(0xb3, .@"stop-sentence", .empty);
+
+    b.add2(0xb5, 0x41, .@"print-text-position", .empty);
+    b.add2(0xb5, 0x43, .@"print-text-clipped", .empty);
+    b.add2(0xb5, 0x45, .@"print-text-center", .empty);
+    b.add2(0xb5, 0x4b, .@"print-text-string", .mk1(.string));
+    b.add2(0xb5, 0xc2, .@"print-text-printf", .mk1(.string));
+    b.add2(0xb5, 0xf9, .@"print-text-color", .empty);
+    b.add2(0xb5, 0xfe, .@"print-text-start", .empty);
+
+    b.add2(0xb6, 0x4b, .@"print-debug-string", .mk1(.string));
+    b.add2(0xb6, 0xc2, .@"print-debug-printf", .mk1(.string));
+    b.add2(0xb6, 0xfe, .@"print-debug-start", .empty);
+    b.add2(0xb6, 0xff, .@"print-debug-empty", .empty);
+
+    b.add2(0xb7, 0x4b, .@"print-system-string", .mk1(.string));
+    b.add2(0xb7, 0xc2, .@"print-system-printf", .mk1(.string));
+    b.add2(0xb7, 0xfe, .@"print-system-start", .empty);
+
+    b.add2(0xb8, 0x41, .@"say-line-position", .empty);
+    b.add2(0xb8, 0x45, .@"say-line-center", .empty);
+    b.add2(0xb8, 0x4b, .@"say-line-string", .mk1(.string));
+    b.add2(0xb8, 0xe1, .@"say-line-talkie", .empty);
+    b.add2(0xb8, 0xf9, .@"say-line-color", .empty);
+    b.add2(0xb8, 0xfe, .@"say-line-start", .empty);
+
+    b.add2(0xb9, 0xfe, .@"say-line-actor-start", .empty);
+
+    b.add1(0xba, .@"say-line-actor", .mk1(.string));
+    b.add1(0xbb, .@"say-line", .mk1(.string));
+
+    b.add2(0xbc, 0x02, .@"dim-array.int1", .mk1(.variable));
+    b.add2(0xbc, 0x04, .@"dim-array.int8", .mk1(.variable));
+    b.add2(0xbc, 0x05, .@"dim-array.int16", .mk1(.variable));
+    b.add2(0xbc, 0x06, .@"dim-array.int32", .mk1(.variable));
+    b.add2(0xbc, 0x07, .@"dim-array.string", .mk1(.variable));
+    b.add2(0xbc, 0xcc, .undim, .mk1(.variable));
+
+    b.add1(0xbd, .@"return", .empty);
+    b.add1(0xbf, .@"call-script", .empty);
+
+    b.add2(0xc0, 0x04, .@"dim-array-2d.int8", .mk1(.variable));
+    b.add2(0xc0, 0x05, .@"dim-array-2d.int16", .mk1(.variable));
+    b.add2(0xc0, 0x06, .@"dim-array-2d.int32", .mk1(.variable));
+
+    b.add1(0xc1, .@"debug-string", .empty);
+    b.add1(0xc4, .abs, .empty);
+    b.add1(0xc8, .@"kludge-call", .empty);
+    b.add1(0xc9, .kludge, .empty);
+    b.add1(0xca, .@"break-here-multi", .empty);
+    b.add1(0xcb, .pick, .empty);
+    b.add1(0xcd, .@"stamp-object", .empty);
+    b.add1(0xcf, .@"debug-input", .empty);
+    b.add1(0xd0, .@"get-time-date", .empty);
+    b.add1(0xd1, .@"stop-line", .empty);
+    b.add1(0xd2, .@"actor-get-var", .empty);
+    b.add1(0xd4, .shuffle, .mk1(.variable));
+
+    b.add2(0xd5, 0x01, .@"chain-script", .empty);
+    b.add2(0xd5, 0xc3, .@"chain-script-rec", .empty);
+
+    b.add1(0xd6, .band, .empty);
+    b.add1(0xd7, .bor, .empty);
+    b.add1(0xd9, .@"close-file", .empty);
+    b.add1(0xda, .@"open-file", .empty);
+
+    b.add2(0xdb, 0x05, .@"read-file-int16", .empty);
+    b.add2(0xdb, 0x08, .@"read-file-int8", .mk1(.u8));
+
+    b.add2(0xdc, 0x05, .@"write-file-int16", .empty);
+    b.add2(0xdc, 0x08, .@"write-file-int8", .mk1(.u8));
+
+    b.add1(0xdd, .@"find-all-objects2", .empty);
+    b.add1(0xde, .@"delete-file", .empty);
+    b.add1(0xdf, .@"rename-file", .empty);
+
+    b.add2(0xe0, 0x42, .@"array-line-draw", .empty);
+
+    b.add1(0xe2, .localize, .empty);
+    b.add1(0xe3, .@"pick-random", .mk1(.variable));
+    b.add1(0xe9, .@"seek-file", .empty);
+
+    b.add2(0xea, 0x04, .@"redim-array.int8", .mk1(.variable));
+    b.add2(0xea, 0x05, .@"redim-array.int16", .mk1(.variable));
+    b.add2(0xea, 0x06, .@"redim-array.int32", .mk1(.variable));
+
+    b.add1(0xeb, .@"tell-file", .empty);
+    b.add1(0xec, .@"string-copy", .empty);
+    b.add1(0xed, .@"string-width", .empty);
+    b.add1(0xee, .@"string-length", .empty);
+    b.add1(0xef, .@"string-substr", .empty);
+    b.add1(0xf0, .@"string-concat", .empty);
+    b.add1(0xf1, .@"string-compare", .empty);
+
+    b.add2(0xf2, 0xe3, .@"costume-loaded", .empty);
+    b.add2(0xf2, 0xe4, .@"sound-loaded", .empty);
+
+    b.add2(0xf3, 0x06, .@"read-system-ini-int", .empty);
+    b.add2(0xf3, 0x07, .@"read-system-ini-string", .empty);
+
+    b.add2(0xf4, 0x06, .@"write-system-ini-int", .empty);
+    b.add2(0xf4, 0x07, .@"write-system-ini-string", .empty);
+
+    b.add1(0xf5, .@"string-margin", .empty);
+    b.add1(0xf6, .@"string-search", .empty);
+
+    b.add2(0xf8, 0x0d, .@"sound-size", .empty);
+
+    b.add1(0xf9, .@"create-directory", .empty);
+
+    b.add2(0xfa, 0xf3, .@"title-bar", .empty);
+
+    b.add2(0xfb, 0xf6, .@"set-polygon-2", .empty);
+    b.add2(0xfb, 0xf7, .@"delete-polygon", .empty);
+    b.add2(0xfb, 0xf8, .@"set-polygon", .empty);
+
+    b.add1(0xfc, .@"find-polygon", .empty);
+
+    return b.vm;
 }
 
-fn builtBasketballLanguage() Language {
-    var lang: Language = .{};
-
-    lang.addNested(0x00, 0x04, .@"actor-set-animation-speed", &.{});
-    lang.addNested(0x00, 0x06, .@"actor-set-position", &.{});
-    lang.addNested(0x00, 0x09, .@"actor-bak-on", &.{});
-    lang.addNested(0x00, 0x16, .@"actor-set-condition", &.{});
-    lang.addNested(0x00, 0x19, .@"actor-set-costume", &.{});
-    lang.addNested(0x00, 0x35, .@"actor-new", &.{});
-    lang.addNested(0x00, 0x3b, .@"actor-set-order", &.{});
-    lang.addNested(0x00, 0x3f, .@"actor-set-palette", &.{});
-    lang.addNested(0x00, 0x41, .@"actor-set-scale", &.{});
-    lang.addNested(0x00, 0x46, .@"actor-set-shadow", &.{});
-    lang.addNested(0x00, 0x53, .@"actor-set-var", &.{});
-    lang.addNested(0x00, 0x59, .@"actor-never-zclip", &.{});
-    lang.addNested(0x00, 0x80, .@"actor-set-clipped", &.{});
-    lang.addNested(0x00, 0x81, .@"actor-select", &.{});
-    lang.addNested(0x00, 0x82, .@"actor-set-sounds", &.{});
-    lang.addNested(0x00, 0x87, .@"actor-ignore-boxes", &.{});
-    lang.addNested(0x00, 0x8e, .@"actor-set-talk-condition", &.{});
-
-    lang.add(0x01, .add, &.{});
-
-    lang.addNested(0x03, 0x86, .@"array-sort", &.{.variable});
-
-    lang.addNested(0x04, 0x23, .sprintf, &.{.variable});
-    lang.addNested(0x04, 0x4d, .@"assign-string", &.{.variable});
-    lang.addNested(0x04, 0x81, .@"array-assign", &.{.variable});
-    lang.addNested(0x04, 0x82, .@"array-assign-list", &.{.variable});
-    lang.addNested(0x04, 0x83, .@"array-assign-slice", &.{ .variable, .variable });
-    lang.addNested(0x04, 0x85, .@"array-assign-range", &.{.variable});
-
-    lang.add(0x05, .band, &.{});
-    lang.add(0x06, .bor, &.{});
-    lang.add(0x07, .@"break-here", &.{});
-    lang.add(0x08, .@"break-here-multi", &.{});
-    lang.add(0x09, .shl, &.{});
-    lang.add(0x0a, .shr, &.{});
-    lang.add(0x0b, .xor, &.{});
-    lang.add(0x0e, .@"current-room", &.{});
-
-    lang.addNested(0x11, 0x5a, .@"chain-script", &.{});
-    lang.addNested(0x11, 0x82, .@"chain-script-rec", &.{});
-
-    lang.add(0x12, .@"object-set-class", &.{});
-    lang.add(0x13, .@"close-file", &.{});
-    lang.add(0x16, .@"create-directory", &.{});
-    lang.add(0x19, .debug, &.{});
-    lang.add(0x1b, .dec, &.{.variable});
-    lang.add(0x1c, .@"dec-array-item", &.{.variable});
-    lang.add(0x1d, .@"delete-file", &.{});
-
-    lang.addNested(0x1e, 0x2a, .@"dim-array-2d.int16", &.{.variable});
-    lang.addNested(0x1e, 0x2b, .@"dim-array-2d.int32", &.{.variable});
-    lang.addNested(0x1e, 0x2d, .@"dim-array-2d.int8", &.{.variable});
-
-    lang.addNested(0x1f, 0x29, .@"dim-array.int1", &.{.variable});
-    lang.addNested(0x1f, 0x2a, .@"dim-array.int16", &.{.variable});
-    lang.addNested(0x1f, 0x2b, .@"dim-array.int32", &.{.variable});
-    lang.addNested(0x1f, 0x2d, .@"dim-array.int8", &.{.variable});
-    lang.addNested(0x1f, 0x4d, .@"dim-array.string", &.{.variable});
-    lang.addNested(0x1f, 0x87, .undim, &.{.variable});
-
-    lang.add(0x20, .div, &.{});
-    lang.add(0x21, .@"do-animation", &.{});
-    lang.add(0x23, .@"draw-box", &.{});
-
-    lang.addNested(0x26, 0x14, .@"array-line-draw", &.{});
-
-    lang.addNested(0x27, 0x28, .@"draw-object", &.{});
-
-    lang.add(0x28, .dup, &.{});
-    lang.add(0x29, .@"dup-multi", &.{.i16});
-    lang.add(0x2b, .end2, &.{});
-    lang.add(0x2c, .end, &.{});
-    lang.add(0x2d, .eq, &.{});
-    lang.add(0x30, .ge, &.{});
-    lang.add(0x31, .@"get-time-date", &.{});
-
-    lang.addNested(0x32, 0x00, .@"sprite-group-select", &.{});
-    lang.addNested(0x32, 0x06, .@"sprite-group-set-position", &.{});
-    lang.addNested(0x32, 0x12, .@"sprite-group-set-clip", &.{});
-    lang.addNested(0x32, 0x26, .@"sprite-group-set-group", &.{});
-    lang.addNested(0x32, 0x31, .@"sprite-group-move", &.{});
-    lang.addNested(0x32, 0x35, .@"sprite-group-new", &.{});
-    lang.addNested(0x32, 0x3b, .@"sprite-group-set-order", &.{});
-    lang.addNested(0x32, 0x59, .@"sprite-group-never-zclip", &.{});
-
-    lang.add(0x33, .gt, &.{});
-
-    lang.addNested(0x34, 0x0e, .@"resource-charset", &.{});
-    lang.addNested(0x34, 0x19, .@"resource-costume", &.{});
-    lang.addNested(0x34, 0x28, .@"resource-image", &.{});
-    lang.addNested(0x34, 0x2f, .@"resource-load", &.{});
-    lang.addNested(0x34, 0x3e, .@"resource-room", &.{});
-    lang.addNested(0x34, 0x42, .@"resource-script", &.{});
-    lang.addNested(0x34, 0x48, .@"resource-sound", &.{});
-    lang.addNested(0x34, 0x84, .@"resource-lock", &.{});
-    lang.addNested(0x34, 0x85, .@"resource-nuke", &.{});
-    lang.addNested(0x34, 0x86, .@"resource-off-heap", &.{});
-    lang.addNested(0x34, 0x87, .@"resource-on-heap", &.{});
-    lang.addNested(0x34, 0x88, .@"resource-preload", &.{});
-
-    lang.add(0x35, .@"jump-if", &.{.relative_offset});
-    lang.add(0x36, .@"jump-unless", &.{.relative_offset});
-
-    lang.addNested(0x37, 0x00, .@"image-select", &.{});
-    lang.addNested(0x37, 0x06, .@"image-set-pos", &.{});
-    lang.addNested(0x37, 0x07, .@"image-set-source-image", &.{});
-    lang.addNested(0x37, 0x0b, .@"image-capture", &.{});
-    lang.addNested(0x37, 0x12, .@"image-set-clip", &.{});
-    lang.addNested(0x37, 0x1d, .@"image-draw", &.{});
-    lang.addNested(0x37, 0x27, .@"image-set-height", &.{});
-    lang.addNested(0x37, 0x2f, .@"image-load-external", &.{});
-    lang.addNested(0x37, 0x35, .@"image-new", &.{});
-    lang.addNested(0x37, 0x39, .@"image-set-palette", &.{});
-    lang.addNested(0x37, 0x3a, .@"image-polygon-capture", &.{});
-    lang.addNested(0x37, 0x43, .@"image-set-flags", &.{});
-    lang.addNested(0x37, 0x49, .@"image-set-state", &.{});
-    lang.addNested(0x37, 0x54, .@"image-set-width", &.{});
-    lang.addNested(0x37, 0x5c, .@"image-commit", &.{});
-    lang.addNested(0x37, 0x80, .@"image-font-create", &.{});
-    lang.addNested(0x37, 0x81, .@"image-font-end", &.{});
-    lang.addNested(0x37, 0x82, .@"image-font-render", &.{});
-    lang.addNested(0x37, 0x83, .@"image-font-start", &.{});
-    lang.addNested(0x37, 0x84, .@"image-set-histogram", &.{});
-    lang.addNested(0x37, 0x86, .@"image-flood-fill", &.{});
-    lang.addNested(0x37, 0x87, .@"image-set-render-image", &.{});
-    lang.addNested(0x37, 0x8a, .@"image-set-draw-box", &.{});
-
-    lang.add(0x38, .@"in-list", &.{});
-    lang.add(0x39, .inc, &.{.variable});
-    lang.add(0x3a, .@"inc-array-item", &.{.variable});
-    lang.add(0x3b, .jump, &.{.relative_offset});
-    lang.add(0x3c, .kludge, &.{});
-    lang.add(0x3d, .land, &.{});
-    lang.add(0x3e, .le, &.{});
-    lang.add(0x3f, .localize, &.{});
-    lang.add(0x40, .@"get-array-item", &.{.variable});
-    lang.add(0x41, .@"get-array-item-2d", &.{.variable});
-    lang.add(0x42, .lor, &.{});
-    lang.add(0x43, .lt, &.{});
-    lang.add(0x44, .mod, &.{});
-    lang.add(0x45, .mul, &.{});
-    lang.add(0x46, .ne, &.{});
-
-    lang.addNested(0x47, 0x2a, .@"dim-array-range.int16", &.{.variable});
-    lang.addNested(0x47, 0x2b, .@"dim-array-range.int32", &.{.variable});
-    lang.addNested(0x47, 0x2d, .@"dim-array-range.int8", &.{.variable});
-
-    lang.addNested(0x49, 0x2a, .@"redim-array-range.int16", &.{.variable});
-    lang.addNested(0x49, 0x2b, .@"redim-array-range.int32", &.{.variable});
-    lang.addNested(0x49, 0x2d, .@"redim-array-range.int8", &.{.variable});
-
-    lang.add(0x4a, .not, &.{});
-
-    lang.addNested(0x4c, 0x3b, .override, &.{.relative_offset});
-
-    lang.add(0x4d, .@"override-off", &.{});
-    lang.add(0x4e, .@"override-off-off", &.{});
-
-    lang.addNested(0x50, 0x00, .@"palette-select", &.{});
-    lang.addNested(0x50, 0x14, .@"palette-set-rgb", &.{});
-    lang.addNested(0x50, 0x19, .@"palette-from-costume", &.{});
-    lang.addNested(0x50, 0x28, .@"palette-from-image", &.{});
-    lang.addNested(0x50, 0x35, .@"palette-new", &.{});
-    lang.addNested(0x50, 0x51, .@"palette-set-color", &.{});
-    lang.addNested(0x50, 0x5c, .@"palette-commit", &.{});
-
-    lang.addNested(0x52, 0x1c, .@"delete-polygon", &.{});
-    lang.addNested(0x52, 0x44, .@"set-polygon-2", &.{});
-    lang.addNested(0x52, 0x45, .@"set-polygon", &.{});
-
-    lang.add(0x53, .pop, &.{});
-
-    lang.addNested(0x54, 0x23, .@"print-debug-printf", &.{.string});
-    lang.addNested(0x54, 0x4f, .@"print-debug-string", &.{.string});
-    lang.addNested(0x54, 0x5b, .@"print-debug-start", &.{});
-
-    lang.add(0x55, .@"print-image", &.{});
-
-    lang.addNested(0x57, 0x23, .@"print-system-printf", &.{.string});
-    lang.addNested(0x57, 0x4f, .@"print-system-string", &.{.string});
-    lang.addNested(0x57, 0x5b, .@"print-system-start", &.{});
-
-    lang.addNested(0x58, 0x06, .@"print-text-position", &.{});
-    lang.addNested(0x58, 0x0c, .@"print-text-center", &.{});
-    lang.addNested(0x58, 0x15, .@"print-text-color", &.{});
-    lang.addNested(0x58, 0x23, .@"print-text-printf", &.{.string});
-    lang.addNested(0x58, 0x5b, .@"print-text-start", &.{});
-
-    lang.addNested(0x5a, 0x82, .@"start-script-rec-order", &.{});
-
-    lang.add(0x5c, .@"push-u8", &.{.u8});
-    lang.add(0x5d, .@"push-i32", &.{.i32});
-    lang.add(0x5e, .@"push-str", &.{.string});
-    lang.add(0x5f, .@"push-i16", &.{.i16});
-    lang.add(0x60, .@"push-var", &.{.variable});
-    lang.add(0x62, .@"put-actor", &.{});
-
-    lang.addNested(0x64, 0x2b, .@"redim-array.int32", &.{.variable});
-    lang.addNested(0x64, 0x2d, .@"redim-array.int8", &.{.variable});
-
-    lang.add(0x66, .@"return", &.{});
-
-    lang.addNested(0x68, 0x3f, .@"palette-set", &.{});
-    lang.addNested(0x68, 0x83, .fades, &.{});
-
-    lang.addNested(0x69, 0x06, .@"say-line-position", &.{});
-    lang.addNested(0x69, 0x4e, .@"say-line-talkie", &.{});
-    lang.addNested(0x69, 0x5b, .@"say-line-start", &.{});
-
-    lang.add(0x6b, .@"say-line-actor", &.{.string});
-    lang.add(0x6e, .@"seek-file", &.{});
-
-    lang.addNested(0x72, 0x50, .@"title-bar", &.{});
-
-    lang.add(0x73, .shuffle, &.{.variable});
-    lang.add(0x74, .@"sleep-for", &.{});
-    lang.add(0x76, .@"sleep-for-seconds", &.{});
-
-    lang.addNested(0x77, 0x06, .@"sound-at", &.{});
-    lang.addNested(0x77, 0x5c, .@"sound-start", &.{});
-    lang.addNested(0x77, 0x81, .@"sound-channel", &.{});
-    lang.addNested(0x77, 0x83, .@"sound-looping", &.{});
-    lang.addNested(0x77, 0x84, .@"sound-select-modify", &.{});
-    lang.addNested(0x77, 0x85, .@"sound-pan", &.{});
-    lang.addNested(0x77, 0x86, .@"sound-select", &.{});
-    lang.addNested(0x77, 0x87, .@"sound-soft", &.{});
-    lang.addNested(0x77, 0x88, .@"sound-volume", &.{});
-
-    lang.addNested(0x79, 0x00, .@"sprite-select-range", &.{});
-    lang.addNested(0x79, 0x02, .@"sprite-set-angle", &.{});
-    lang.addNested(0x79, 0x03, .@"sprite-set-animation-type", &.{});
-    lang.addNested(0x79, 0x04, .@"sprite-set-animation-speed", &.{});
-    lang.addNested(0x79, 0x06, .@"sprite-set-position", &.{});
-    lang.addNested(0x79, 0x07, .@"sprite-set-source-image", &.{});
-    lang.addNested(0x79, 0x10, .@"sprite-set-class", &.{});
-    lang.addNested(0x79, 0x20, .@"sprite-erase", &.{});
-    lang.addNested(0x79, 0x26, .@"sprite-set-group", &.{});
-    lang.addNested(0x79, 0x28, .@"sprite-set-image", &.{});
-    lang.addNested(0x79, 0x30, .@"sprite-mask-image", &.{});
-    lang.addNested(0x79, 0x31, .@"sprite-move", &.{});
-    lang.addNested(0x79, 0x35, .@"sprite-new", &.{});
-    lang.addNested(0x79, 0x36, .@"sprite-set-property2", &.{});
-    lang.addNested(0x79, 0x39, .@"sprite-set-palette", &.{});
-    lang.addNested(0x79, 0x3b, .@"sprite-set-order", &.{});
-    lang.addNested(0x79, 0x3c, .@"sprite-set-property", &.{});
-    lang.addNested(0x79, 0x41, .@"sprite-set-scale", &.{});
-    lang.addNested(0x79, 0x46, .@"sprite-set-shadow", &.{});
-    lang.addNested(0x79, 0x49, .@"sprite-set-state", &.{});
-    lang.addNested(0x79, 0x4a, .@"sprite-set-step-dist", &.{});
-    lang.addNested(0x79, 0x52, .@"sprite-set-update-type", &.{});
-    lang.addNested(0x79, 0x53, .@"sprite-variable-range", &.{});
-
-    lang.addNested(0x7b, 0x5a, .@"start-object", &.{});
-    lang.addNested(0x7b, 0x82, .@"start-object-rec", &.{});
-
-    lang.addNested(0x7c, 0x5a, .@"start-script", &.{});
-    lang.addNested(0x7c, 0x82, .@"start-script-rec", &.{});
-
-    lang.add(0x7e, .@"object-set-state", &.{});
-    lang.add(0x80, .@"stop-script", &.{});
-    lang.add(0x81, .@"stop-sentence", &.{});
-    lang.add(0x82, .@"stop-sound", &.{});
-    lang.add(0x83, .@"stop-line", &.{});
-    lang.add(0x84, .set, &.{.variable});
-    lang.add(0x85, .@"set-array-item", &.{.variable});
-    lang.add(0x86, .@"set-array-item-2d", &.{.variable});
-    lang.add(0x87, .sub, &.{});
-
-    lang.addNested(0x88, 0x84, .quit, &.{});
-    lang.addNested(0x88, 0x85, .@"quit-quit", &.{});
-    lang.addNested(0x88, 0x88, .@"update-screen", &.{});
-
-    lang.addNested(0x89, 0x00, .@"window-select", &.{});
-    lang.addNested(0x89, 0x06, .@"window-set-position", &.{});
-    lang.addNested(0x89, 0x28, .@"window-set-image", &.{});
-    lang.addNested(0x89, 0x35, .@"window-new", &.{});
-    lang.addNested(0x89, 0x50, .@"window-set-title-bar", &.{});
-    lang.addNested(0x89, 0x5c, .@"window-commit", &.{});
-
-    lang.addNested(0x8a, 0x3d, .@"set-timer", &.{});
-
-    lang.addNested(0x8b, 0x0e, .charset, &.{});
-    lang.addNested(0x8b, 0x0f, .@"charset-color", &.{});
-    lang.addNested(0x8b, 0x80, .@"cursor-bw", &.{});
-    lang.addNested(0x8b, 0x81, .@"cursor-color", &.{});
-    lang.addNested(0x8b, 0x86, .@"cursor-on", &.{});
-    lang.addNested(0x8b, 0x87, .@"cursor-off", &.{});
-    lang.addNested(0x8b, 0x8b, .@"userput-on", &.{});
-    lang.addNested(0x8b, 0x8c, .@"userput-off", &.{});
-
-    lang.addNested(0x8c, 0x00, .@"video-select", &.{});
-    lang.addNested(0x8c, 0x13, .@"video-close", &.{});
-    lang.addNested(0x8c, 0x2f, .@"video-load", &.{});
-    lang.addNested(0x8c, 0x43, .@"video-set-flags", &.{});
-    lang.addNested(0x8c, 0x5c, .@"video-commit", &.{});
-
-    lang.addNested(0x8d, 0x82, .@"wait-for-message", &.{});
-
-    lang.addNested(0x90, 0x05, .@"write-file-int8", &.{.u8});
-    lang.addNested(0x90, 0x2b, .@"write-file-int32", &.{});
-
-    lang.addNested(0x91, 0x2b, .@"write-system-ini-int", &.{});
-    lang.addNested(0x91, 0x4d, .@"write-system-ini-string", &.{});
-
-    lang.addNested(0x92, 0x4d, .@"write-ini-string", &.{});
-    lang.addNested(0x92, 0x2b, .@"write-ini-int", &.{});
-
-    lang.add(0x93, .abs, &.{});
-    lang.add(0x95, .@"actor-get-costume", &.{});
-    lang.add(0x99, .@"actor-get-property", &.{});
-    lang.add(0x9a, .@"actor-room", &.{});
-    lang.add(0x9b, .@"actor-get-scale", &.{});
-    lang.add(0x9c, .@"actor-get-var", &.{});
-    lang.add(0x9e, .@"actor-x", &.{});
-    lang.add(0x9f, .@"actor-y", &.{});
-    lang.add(0xa0, .@"angle-from-delta", &.{});
-    lang.add(0xa1, .@"angle-from-line", &.{});
-
-    lang.addNested(0xa3, 0x17, .@"line-length-2d", &.{});
-    lang.addNested(0xa3, 0x18, .@"line-length-3d", &.{});
-
-    lang.add(0xa4, .@"class-of", &.{});
-    lang.add(0xa6, .iif, &.{});
-    lang.add(0xa7, .cos, &.{});
-    lang.add(0xa8, .@"debug-input", &.{});
-    lang.add(0xa9, .@"file-size", &.{});
-    lang.add(0xaa, .@"find-actor", &.{});
-    lang.add(0xac, .@"find-all-objects", &.{});
-    lang.add(0xaf, .@"find-object", &.{});
-
-    lang.addNested(0xb3, 0x00, .@"font-enumerate-start", &.{});
-    lang.addNested(0xb3, 0x3c, .@"font-enumerate-property", &.{});
-
-    lang.add(0xb4, .@"free-arrays", &.{});
-
-    lang.addNested(0xb5, 0x01, .@"array-get-dim", &.{.variable});
-    lang.addNested(0xb5, 0x02, .@"array-get-height", &.{.variable});
-    lang.addNested(0xb5, 0x03, .@"array-get-width", &.{.variable});
-    lang.addNested(0xb5, 0x04, .@"array-get-x-start", &.{.variable});
-    lang.addNested(0xb5, 0x05, .@"array-get-x-end", &.{.variable});
-    lang.addNested(0xb5, 0x06, .@"array-get-y-start", &.{.variable});
-    lang.addNested(0xb5, 0x07, .@"array-get-y-end", &.{.variable});
-
-    lang.addNested(0xb7, 0x48, .@"sound-size", &.{});
-
-    lang.addNested(0xb8, 0x05, .@"sprite-group-get", &.{});
-    lang.addNested(0xb8, 0x3b, .@"sprite-group-get-order", &.{});
-    lang.addNested(0xb8, 0x55, .@"sprite-group-get-object-x", &.{});
-    lang.addNested(0xb8, 0x56, .@"sprite-group-get-object-y", &.{});
-
-    lang.addNested(0xba, 0x14, .@"image-get-color-at", &.{});
-    lang.addNested(0xba, 0x1a, .@"image-get-state-count", &.{});
-    lang.addNested(0xba, 0x27, .@"image-get-height", &.{});
-    lang.addNested(0xba, 0x36, .@"image-get-property2", &.{});
-    lang.addNested(0xba, 0x54, .@"image-get-width", &.{});
-    lang.addNested(0xba, 0x55, .@"image-get-object-x", &.{});
-    lang.addNested(0xba, 0x56, .@"image-get-object-y", &.{});
-    lang.addNested(0xba, 0x83, .@"image-get-font-start", &.{});
-
-    lang.add(0xbc, .in, &.{});
-    lang.add(0xbe, .@"kludge-call", &.{});
-    lang.add(0xbf, .max, &.{});
-    lang.add(0xc0, .min, &.{});
-    lang.add(0xc1, .@"get-object-image-x", &.{});
-    lang.add(0xc2, .@"get-object-image-y", &.{});
-    lang.add(0xc5, .@"open-file", &.{});
-    lang.add(0xc6, .overlap, &.{});
-
-    lang.addNested(0xc8, 0x14, .@"palette-color", &.{});
-    lang.addNested(0xc8, 0x35, .rgb, &.{});
-    lang.addNested(0xc8, 0x49, .@"palette-get-channel", &.{});
-
-    lang.add(0xc9, .pick, &.{});
-    lang.add(0xcb, .@"pick-random", &.{.variable});
-    lang.add(0xd0, .random, &.{});
-    lang.add(0xd1, .@"random-between", &.{});
-
-    lang.addNested(0xd3, 0x05, .@"read-file-int8", &.{.u8});
-    lang.addNested(0xd3, 0x2b, .@"read-file-int32", &.{});
-
-    lang.addNested(0xd4, 0x2b, .@"read-system-ini-int", &.{});
-    lang.addNested(0xd4, 0x4d, .@"read-system-ini-string", &.{});
-
-    lang.addNested(0xd5, 0x2b, .@"read-ini-int", &.{});
-    lang.addNested(0xd5, 0x4d, .@"read-ini-string", &.{});
-
-    lang.add(0xd6, .@"script-running", &.{});
-    lang.add(0xd7, .sin, &.{});
-    lang.add(0xd8, .@"sound-position", &.{});
-    lang.add(0xd9, .@"sound-running", &.{});
-    lang.add(0xdc, .sqrt, &.{});
-
-    lang.addNested(0xdb, 0x07, .@"sprite-get-image-at", &.{});
-    lang.addNested(0xdb, 0x10, .@"sprite-class", &.{});
-    lang.addNested(0xdb, 0x1a, .@"sprite-get-state-count", &.{});
-    lang.addNested(0xdb, 0x1e, .@"sprite-get-object-draw-x", &.{});
-    lang.addNested(0xdb, 0x1f, .@"sprite-get-object-draw-y", &.{});
-    lang.addNested(0xdb, 0x21, .@"find-sprite", &.{});
-    lang.addNested(0xdb, 0x27, .@"sprite-get-height", &.{});
-    lang.addNested(0xdb, 0x28, .@"sprite-get-image", &.{});
-    lang.addNested(0xdb, 0x39, .@"sprite-get-palette", &.{});
-    lang.addNested(0xdb, 0x3b, .@"sprite-get-order", &.{});
-    lang.addNested(0xdb, 0x49, .@"sprite-get-state", &.{});
-    lang.addNested(0xdb, 0x53, .@"sprite-get-variable", &.{});
-    lang.addNested(0xdb, 0x54, .@"sprite-get-width", &.{});
-    lang.addNested(0xdb, 0x55, .@"sprite-get-object-x", &.{});
-    lang.addNested(0xdb, 0x56, .@"sprite-get-object-y", &.{});
-
-    lang.add(0xde, .@"call-script", &.{});
-    lang.add(0xe0, .@"string-compare", &.{});
-    lang.add(0xe1, .@"string-copy", &.{});
-    lang.add(0xe2, .@"string-substr", &.{});
-    lang.add(0xe4, .@"string-length", &.{});
-    lang.add(0xe5, .@"string-margin", &.{});
-    lang.add(0xe6, .@"string-number", &.{});
-    lang.add(0xe7, .@"string-search", &.{});
-    lang.add(0xe8, .@"string-width", &.{});
-    lang.add(0xe9, .@"tell-file", &.{});
-
-    lang.addNested(0xea, 0x32, .@"get-timer", &.{});
-
-    lang.add(0xeb, .@"valid-verb", &.{});
-
-    lang.addNested(0xec, 0x49, .@"video-get-cur-frame", &.{});
-
-    return lang;
+fn builtBasketballVm() Vm {
+    var b: VmBuilder = .init();
+
+    b.add2(0x00, 0x04, .@"actor-set-animation-speed", .empty);
+    b.add2(0x00, 0x06, .@"actor-set-position", .empty);
+    b.add2(0x00, 0x09, .@"actor-bak-on", .empty);
+    b.add2(0x00, 0x16, .@"actor-set-condition", .empty);
+    b.add2(0x00, 0x19, .@"actor-set-costume", .empty);
+    b.add2(0x00, 0x35, .@"actor-new", .empty);
+    b.add2(0x00, 0x3b, .@"actor-set-order", .empty);
+    b.add2(0x00, 0x3f, .@"actor-set-palette", .empty);
+    b.add2(0x00, 0x41, .@"actor-set-scale", .empty);
+    b.add2(0x00, 0x46, .@"actor-set-shadow", .empty);
+    b.add2(0x00, 0x53, .@"actor-set-var", .empty);
+    b.add2(0x00, 0x59, .@"actor-never-zclip", .empty);
+    b.add2(0x00, 0x80, .@"actor-set-clipped", .empty);
+    b.add2(0x00, 0x81, .@"actor-select", .empty);
+    b.add2(0x00, 0x82, .@"actor-set-sounds", .empty);
+    b.add2(0x00, 0x87, .@"actor-ignore-boxes", .empty);
+    b.add2(0x00, 0x8e, .@"actor-set-talk-condition", .empty);
+
+    b.add1(0x01, .add, .empty);
+
+    b.add2(0x03, 0x86, .@"array-sort", .mk1(.variable));
+
+    b.add2(0x04, 0x23, .sprintf, .mk1(.variable));
+    b.add2(0x04, 0x4d, .@"assign-string", .mk1(.variable));
+    b.add2(0x04, 0x81, .@"array-assign", .mk1(.variable));
+    b.add2(0x04, 0x82, .@"array-assign-list", .mk1(.variable));
+    b.add2(0x04, 0x83, .@"array-assign-slice", .mk2(.variable, .variable));
+    b.add2(0x04, 0x85, .@"array-assign-range", .mk1(.variable));
+
+    b.add1(0x05, .band, .empty);
+    b.add1(0x06, .bor, .empty);
+    b.add1(0x07, .@"break-here", .empty);
+    b.add1(0x08, .@"break-here-multi", .empty);
+    b.add1(0x09, .shl, .empty);
+    b.add1(0x0a, .shr, .empty);
+    b.add1(0x0b, .xor, .empty);
+    b.add1(0x0e, .@"current-room", .empty);
+
+    b.add2(0x11, 0x5a, .@"chain-script", .empty);
+    b.add2(0x11, 0x82, .@"chain-script-rec", .empty);
+
+    b.add1(0x12, .@"object-set-class", .empty);
+    b.add1(0x13, .@"close-file", .empty);
+    b.add1(0x16, .@"create-directory", .empty);
+    b.add1(0x19, .debug, .empty);
+    b.add1(0x1b, .dec, .mk1(.variable));
+    b.add1(0x1c, .@"dec-array-item", .mk1(.variable));
+    b.add1(0x1d, .@"delete-file", .empty);
+
+    b.add2(0x1e, 0x2a, .@"dim-array-2d.int16", .mk1(.variable));
+    b.add2(0x1e, 0x2b, .@"dim-array-2d.int32", .mk1(.variable));
+    b.add2(0x1e, 0x2d, .@"dim-array-2d.int8", .mk1(.variable));
+
+    b.add2(0x1f, 0x29, .@"dim-array.int1", .mk1(.variable));
+    b.add2(0x1f, 0x2a, .@"dim-array.int16", .mk1(.variable));
+    b.add2(0x1f, 0x2b, .@"dim-array.int32", .mk1(.variable));
+    b.add2(0x1f, 0x2d, .@"dim-array.int8", .mk1(.variable));
+    b.add2(0x1f, 0x4d, .@"dim-array.string", .mk1(.variable));
+    b.add2(0x1f, 0x87, .undim, .mk1(.variable));
+
+    b.add1(0x20, .div, .empty);
+    b.add1(0x21, .@"do-animation", .empty);
+    b.add1(0x23, .@"draw-box", .empty);
+
+    b.add2(0x26, 0x14, .@"array-line-draw", .empty);
+
+    b.add2(0x27, 0x28, .@"draw-object", .empty);
+
+    b.add1(0x28, .dup, .empty);
+    b.add1(0x29, .@"dup-multi", .mk1(.i16));
+    b.add1(0x2b, .end2, .empty);
+    b.add1(0x2c, .end, .empty);
+    b.add1(0x2d, .eq, .empty);
+    b.add1(0x30, .ge, .empty);
+    b.add1(0x31, .@"get-time-date", .empty);
+
+    b.add2(0x32, 0x00, .@"sprite-group-select", .empty);
+    b.add2(0x32, 0x06, .@"sprite-group-set-position", .empty);
+    b.add2(0x32, 0x12, .@"sprite-group-set-clip", .empty);
+    b.add2(0x32, 0x26, .@"sprite-group-set-group", .empty);
+    b.add2(0x32, 0x31, .@"sprite-group-move", .empty);
+    b.add2(0x32, 0x35, .@"sprite-group-new", .empty);
+    b.add2(0x32, 0x3b, .@"sprite-group-set-order", .empty);
+    b.add2(0x32, 0x59, .@"sprite-group-never-zclip", .empty);
+
+    b.add1(0x33, .gt, .empty);
+
+    b.add2(0x34, 0x0e, .@"resource-charset", .empty);
+    b.add2(0x34, 0x19, .@"resource-costume", .empty);
+    b.add2(0x34, 0x28, .@"resource-image", .empty);
+    b.add2(0x34, 0x2f, .@"resource-load", .empty);
+    b.add2(0x34, 0x3e, .@"resource-room", .empty);
+    b.add2(0x34, 0x42, .@"resource-script", .empty);
+    b.add2(0x34, 0x48, .@"resource-sound", .empty);
+    b.add2(0x34, 0x84, .@"resource-lock", .empty);
+    b.add2(0x34, 0x85, .@"resource-nuke", .empty);
+    b.add2(0x34, 0x86, .@"resource-off-heap", .empty);
+    b.add2(0x34, 0x87, .@"resource-on-heap", .empty);
+    b.add2(0x34, 0x88, .@"resource-preload", .empty);
+
+    b.add1(0x35, .@"jump-if", .mk1(.relative_offset));
+    b.add1(0x36, .@"jump-unless", .mk1(.relative_offset));
+
+    b.add2(0x37, 0x00, .@"image-select", .empty);
+    b.add2(0x37, 0x06, .@"image-set-pos", .empty);
+    b.add2(0x37, 0x07, .@"image-set-source-image", .empty);
+    b.add2(0x37, 0x0b, .@"image-capture", .empty);
+    b.add2(0x37, 0x12, .@"image-set-clip", .empty);
+    b.add2(0x37, 0x1d, .@"image-draw", .empty);
+    b.add2(0x37, 0x27, .@"image-set-height", .empty);
+    b.add2(0x37, 0x2f, .@"image-load-external", .empty);
+    b.add2(0x37, 0x35, .@"image-new", .empty);
+    b.add2(0x37, 0x39, .@"image-set-palette", .empty);
+    b.add2(0x37, 0x3a, .@"image-polygon-capture", .empty);
+    b.add2(0x37, 0x43, .@"image-set-flags", .empty);
+    b.add2(0x37, 0x49, .@"image-set-state", .empty);
+    b.add2(0x37, 0x54, .@"image-set-width", .empty);
+    b.add2(0x37, 0x5c, .@"image-commit", .empty);
+    b.add2(0x37, 0x80, .@"image-font-create", .empty);
+    b.add2(0x37, 0x81, .@"image-font-end", .empty);
+    b.add2(0x37, 0x82, .@"image-font-render", .empty);
+    b.add2(0x37, 0x83, .@"image-font-start", .empty);
+    b.add2(0x37, 0x84, .@"image-set-histogram", .empty);
+    b.add2(0x37, 0x86, .@"image-flood-fill", .empty);
+    b.add2(0x37, 0x87, .@"image-set-render-image", .empty);
+    b.add2(0x37, 0x8a, .@"image-set-draw-box", .empty);
+
+    b.add1(0x38, .@"in-list", .empty);
+    b.add1(0x39, .inc, .mk1(.variable));
+    b.add1(0x3a, .@"inc-array-item", .mk1(.variable));
+    b.add1(0x3b, .jump, .mk1(.relative_offset));
+    b.add1(0x3c, .kludge, .empty);
+    b.add1(0x3d, .land, .empty);
+    b.add1(0x3e, .le, .empty);
+    b.add1(0x3f, .localize, .empty);
+    b.add1(0x40, .@"get-array-item", .mk1(.variable));
+    b.add1(0x41, .@"get-array-item-2d", .mk1(.variable));
+    b.add1(0x42, .lor, .empty);
+    b.add1(0x43, .lt, .empty);
+    b.add1(0x44, .mod, .empty);
+    b.add1(0x45, .mul, .empty);
+    b.add1(0x46, .ne, .empty);
+
+    b.add2(0x47, 0x2a, .@"dim-array-range.int16", .mk1(.variable));
+    b.add2(0x47, 0x2b, .@"dim-array-range.int32", .mk1(.variable));
+    b.add2(0x47, 0x2d, .@"dim-array-range.int8", .mk1(.variable));
+
+    b.add2(0x49, 0x2a, .@"redim-array-range.int16", .mk1(.variable));
+    b.add2(0x49, 0x2b, .@"redim-array-range.int32", .mk1(.variable));
+    b.add2(0x49, 0x2d, .@"redim-array-range.int8", .mk1(.variable));
+
+    b.add1(0x4a, .not, .empty);
+
+    b.add2(0x4c, 0x3b, .override, .mk1(.relative_offset));
+
+    b.add1(0x4d, .@"override-off", .empty);
+    b.add1(0x4e, .@"override-off-off", .empty);
+
+    b.add2(0x50, 0x00, .@"palette-select", .empty);
+    b.add2(0x50, 0x14, .@"palette-set-rgb", .empty);
+    b.add2(0x50, 0x19, .@"palette-from-costume", .empty);
+    b.add2(0x50, 0x28, .@"palette-from-image", .empty);
+    b.add2(0x50, 0x35, .@"palette-new", .empty);
+    b.add2(0x50, 0x51, .@"palette-set-color", .empty);
+    b.add2(0x50, 0x5c, .@"palette-commit", .empty);
+
+    b.add2(0x52, 0x1c, .@"delete-polygon", .empty);
+    b.add2(0x52, 0x44, .@"set-polygon-2", .empty);
+    b.add2(0x52, 0x45, .@"set-polygon", .empty);
+
+    b.add1(0x53, .pop, .empty);
+
+    b.add2(0x54, 0x23, .@"print-debug-printf", .mk1(.string));
+    b.add2(0x54, 0x4f, .@"print-debug-string", .mk1(.string));
+    b.add2(0x54, 0x5b, .@"print-debug-start", .empty);
+
+    b.add1(0x55, .@"print-image", .empty);
+
+    b.add2(0x57, 0x23, .@"print-system-printf", .mk1(.string));
+    b.add2(0x57, 0x4f, .@"print-system-string", .mk1(.string));
+    b.add2(0x57, 0x5b, .@"print-system-start", .empty);
+
+    b.add2(0x58, 0x06, .@"print-text-position", .empty);
+    b.add2(0x58, 0x0c, .@"print-text-center", .empty);
+    b.add2(0x58, 0x15, .@"print-text-color", .empty);
+    b.add2(0x58, 0x23, .@"print-text-printf", .mk1(.string));
+    b.add2(0x58, 0x5b, .@"print-text-start", .empty);
+
+    b.add2(0x5a, 0x82, .@"start-script-rec-order", .empty);
+
+    b.add1(0x5c, .@"push-u8", .mk1(.u8));
+    b.add1(0x5d, .@"push-i32", .mk1(.i32));
+    b.add1(0x5e, .@"push-str", .mk1(.string));
+    b.add1(0x5f, .@"push-i16", .mk1(.i16));
+    b.add1(0x60, .@"push-var", .mk1(.variable));
+    b.add1(0x62, .@"put-actor", .empty);
+
+    b.add2(0x64, 0x2b, .@"redim-array.int32", .mk1(.variable));
+    b.add2(0x64, 0x2d, .@"redim-array.int8", .mk1(.variable));
+
+    b.add1(0x66, .@"return", .empty);
+
+    b.add2(0x68, 0x3f, .@"palette-set", .empty);
+    b.add2(0x68, 0x83, .fades, .empty);
+
+    b.add2(0x69, 0x06, .@"say-line-position", .empty);
+    b.add2(0x69, 0x4e, .@"say-line-talkie", .empty);
+    b.add2(0x69, 0x5b, .@"say-line-start", .empty);
+
+    b.add1(0x6b, .@"say-line-actor", .mk1(.string));
+    b.add1(0x6e, .@"seek-file", .empty);
+
+    b.add2(0x72, 0x50, .@"title-bar", .empty);
+
+    b.add1(0x73, .shuffle, .mk1(.variable));
+    b.add1(0x74, .@"sleep-for", .empty);
+    b.add1(0x76, .@"sleep-for-seconds", .empty);
+
+    b.add2(0x77, 0x06, .@"sound-at", .empty);
+    b.add2(0x77, 0x5c, .@"sound-start", .empty);
+    b.add2(0x77, 0x81, .@"sound-channel", .empty);
+    b.add2(0x77, 0x83, .@"sound-looping", .empty);
+    b.add2(0x77, 0x84, .@"sound-select-modify", .empty);
+    b.add2(0x77, 0x85, .@"sound-pan", .empty);
+    b.add2(0x77, 0x86, .@"sound-select", .empty);
+    b.add2(0x77, 0x87, .@"sound-soft", .empty);
+    b.add2(0x77, 0x88, .@"sound-volume", .empty);
+
+    b.add2(0x79, 0x00, .@"sprite-select-range", .empty);
+    b.add2(0x79, 0x02, .@"sprite-set-angle", .empty);
+    b.add2(0x79, 0x03, .@"sprite-set-animation-type", .empty);
+    b.add2(0x79, 0x04, .@"sprite-set-animation-speed", .empty);
+    b.add2(0x79, 0x06, .@"sprite-set-position", .empty);
+    b.add2(0x79, 0x07, .@"sprite-set-source-image", .empty);
+    b.add2(0x79, 0x10, .@"sprite-set-class", .empty);
+    b.add2(0x79, 0x20, .@"sprite-erase", .empty);
+    b.add2(0x79, 0x26, .@"sprite-set-group", .empty);
+    b.add2(0x79, 0x28, .@"sprite-set-image", .empty);
+    b.add2(0x79, 0x30, .@"sprite-mask-image", .empty);
+    b.add2(0x79, 0x31, .@"sprite-move", .empty);
+    b.add2(0x79, 0x35, .@"sprite-new", .empty);
+    b.add2(0x79, 0x36, .@"sprite-set-property2", .empty);
+    b.add2(0x79, 0x39, .@"sprite-set-palette", .empty);
+    b.add2(0x79, 0x3b, .@"sprite-set-order", .empty);
+    b.add2(0x79, 0x3c, .@"sprite-set-property", .empty);
+    b.add2(0x79, 0x41, .@"sprite-set-scale", .empty);
+    b.add2(0x79, 0x46, .@"sprite-set-shadow", .empty);
+    b.add2(0x79, 0x49, .@"sprite-set-state", .empty);
+    b.add2(0x79, 0x4a, .@"sprite-set-step-dist", .empty);
+    b.add2(0x79, 0x52, .@"sprite-set-update-type", .empty);
+    b.add2(0x79, 0x53, .@"sprite-variable-range", .empty);
+
+    b.add2(0x7b, 0x5a, .@"start-object", .empty);
+    b.add2(0x7b, 0x82, .@"start-object-rec", .empty);
+
+    b.add2(0x7c, 0x5a, .@"start-script", .empty);
+    b.add2(0x7c, 0x82, .@"start-script-rec", .empty);
+
+    b.add1(0x7e, .@"object-set-state", .empty);
+    b.add1(0x80, .@"stop-script", .empty);
+    b.add1(0x81, .@"stop-sentence", .empty);
+    b.add1(0x82, .@"stop-sound", .empty);
+    b.add1(0x83, .@"stop-line", .empty);
+    b.add1(0x84, .set, .mk1(.variable));
+    b.add1(0x85, .@"set-array-item", .mk1(.variable));
+    b.add1(0x86, .@"set-array-item-2d", .mk1(.variable));
+    b.add1(0x87, .sub, .empty);
+
+    b.add2(0x88, 0x84, .quit, .empty);
+    b.add2(0x88, 0x85, .@"quit-quit", .empty);
+    b.add2(0x88, 0x88, .@"update-screen", .empty);
+
+    b.add2(0x89, 0x00, .@"window-select", .empty);
+    b.add2(0x89, 0x06, .@"window-set-position", .empty);
+    b.add2(0x89, 0x28, .@"window-set-image", .empty);
+    b.add2(0x89, 0x35, .@"window-new", .empty);
+    b.add2(0x89, 0x50, .@"window-set-title-bar", .empty);
+    b.add2(0x89, 0x5c, .@"window-commit", .empty);
+
+    b.add2(0x8a, 0x3d, .@"set-timer", .empty);
+
+    b.add2(0x8b, 0x0e, .charset, .empty);
+    b.add2(0x8b, 0x0f, .@"charset-color", .empty);
+    b.add2(0x8b, 0x80, .@"cursor-bw", .empty);
+    b.add2(0x8b, 0x81, .@"cursor-color", .empty);
+    b.add2(0x8b, 0x86, .@"cursor-on", .empty);
+    b.add2(0x8b, 0x87, .@"cursor-off", .empty);
+    b.add2(0x8b, 0x8b, .@"userput-on", .empty);
+    b.add2(0x8b, 0x8c, .@"userput-off", .empty);
+
+    b.add2(0x8c, 0x00, .@"video-select", .empty);
+    b.add2(0x8c, 0x13, .@"video-close", .empty);
+    b.add2(0x8c, 0x2f, .@"video-load", .empty);
+    b.add2(0x8c, 0x43, .@"video-set-flags", .empty);
+    b.add2(0x8c, 0x5c, .@"video-commit", .empty);
+
+    b.add2(0x8d, 0x82, .@"wait-for-message", .empty);
+
+    b.add2(0x90, 0x05, .@"write-file-int8", .mk1(.u8));
+    b.add2(0x90, 0x2b, .@"write-file-int32", .empty);
+
+    b.add2(0x91, 0x2b, .@"write-system-ini-int", .empty);
+    b.add2(0x91, 0x4d, .@"write-system-ini-string", .empty);
+
+    b.add2(0x92, 0x4d, .@"write-ini-string", .empty);
+    b.add2(0x92, 0x2b, .@"write-ini-int", .empty);
+
+    b.add1(0x93, .abs, .empty);
+    b.add1(0x95, .@"actor-get-costume", .empty);
+    b.add1(0x99, .@"actor-get-property", .empty);
+    b.add1(0x9a, .@"actor-room", .empty);
+    b.add1(0x9b, .@"actor-get-scale", .empty);
+    b.add1(0x9c, .@"actor-get-var", .empty);
+    b.add1(0x9e, .@"actor-x", .empty);
+    b.add1(0x9f, .@"actor-y", .empty);
+    b.add1(0xa0, .@"angle-from-delta", .empty);
+    b.add1(0xa1, .@"angle-from-line", .empty);
+
+    b.add2(0xa3, 0x17, .@"line-length-2d", .empty);
+    b.add2(0xa3, 0x18, .@"line-length-3d", .empty);
+
+    b.add1(0xa4, .@"class-of", .empty);
+    b.add1(0xa6, .iif, .empty);
+    b.add1(0xa7, .cos, .empty);
+    b.add1(0xa8, .@"debug-input", .empty);
+    b.add1(0xa9, .@"file-size", .empty);
+    b.add1(0xaa, .@"find-actor", .empty);
+    b.add1(0xac, .@"find-all-objects", .empty);
+    b.add1(0xaf, .@"find-object", .empty);
+
+    b.add2(0xb3, 0x00, .@"font-enumerate-start", .empty);
+    b.add2(0xb3, 0x3c, .@"font-enumerate-property", .empty);
+
+    b.add1(0xb4, .@"free-arrays", .empty);
+
+    b.add2(0xb5, 0x01, .@"array-get-dim", .mk1(.variable));
+    b.add2(0xb5, 0x02, .@"array-get-height", .mk1(.variable));
+    b.add2(0xb5, 0x03, .@"array-get-width", .mk1(.variable));
+    b.add2(0xb5, 0x04, .@"array-get-x-start", .mk1(.variable));
+    b.add2(0xb5, 0x05, .@"array-get-x-end", .mk1(.variable));
+    b.add2(0xb5, 0x06, .@"array-get-y-start", .mk1(.variable));
+    b.add2(0xb5, 0x07, .@"array-get-y-end", .mk1(.variable));
+
+    b.add2(0xb7, 0x48, .@"sound-size", .empty);
+
+    b.add2(0xb8, 0x05, .@"sprite-group-get", .empty);
+    b.add2(0xb8, 0x3b, .@"sprite-group-get-order", .empty);
+    b.add2(0xb8, 0x55, .@"sprite-group-get-object-x", .empty);
+    b.add2(0xb8, 0x56, .@"sprite-group-get-object-y", .empty);
+
+    b.add2(0xba, 0x14, .@"image-get-color-at", .empty);
+    b.add2(0xba, 0x1a, .@"image-get-state-count", .empty);
+    b.add2(0xba, 0x27, .@"image-get-height", .empty);
+    b.add2(0xba, 0x36, .@"image-get-property2", .empty);
+    b.add2(0xba, 0x54, .@"image-get-width", .empty);
+    b.add2(0xba, 0x55, .@"image-get-object-x", .empty);
+    b.add2(0xba, 0x56, .@"image-get-object-y", .empty);
+    b.add2(0xba, 0x83, .@"image-get-font-start", .empty);
+
+    b.add1(0xbc, .in, .empty);
+    b.add1(0xbe, .@"kludge-call", .empty);
+    b.add1(0xbf, .max, .empty);
+    b.add1(0xc0, .min, .empty);
+    b.add1(0xc1, .@"get-object-image-x", .empty);
+    b.add1(0xc2, .@"get-object-image-y", .empty);
+    b.add1(0xc5, .@"open-file", .empty);
+    b.add1(0xc6, .overlap, .empty);
+
+    b.add2(0xc8, 0x14, .@"palette-color", .empty);
+    b.add2(0xc8, 0x35, .rgb, .empty);
+    b.add2(0xc8, 0x49, .@"palette-get-channel", .empty);
+
+    b.add1(0xc9, .pick, .empty);
+    b.add1(0xcb, .@"pick-random", .mk1(.variable));
+    b.add1(0xd0, .random, .empty);
+    b.add1(0xd1, .@"random-between", .empty);
+
+    b.add2(0xd3, 0x05, .@"read-file-int8", .mk1(.u8));
+    b.add2(0xd3, 0x2b, .@"read-file-int32", .empty);
+
+    b.add2(0xd4, 0x2b, .@"read-system-ini-int", .empty);
+    b.add2(0xd4, 0x4d, .@"read-system-ini-string", .empty);
+
+    b.add2(0xd5, 0x2b, .@"read-ini-int", .empty);
+    b.add2(0xd5, 0x4d, .@"read-ini-string", .empty);
+
+    b.add1(0xd6, .@"script-running", .empty);
+    b.add1(0xd7, .sin, .empty);
+    b.add1(0xd8, .@"sound-position", .empty);
+    b.add1(0xd9, .@"sound-running", .empty);
+    b.add1(0xdc, .sqrt, .empty);
+
+    b.add2(0xdb, 0x07, .@"sprite-get-image-at", .empty);
+    b.add2(0xdb, 0x10, .@"sprite-class", .empty);
+    b.add2(0xdb, 0x1a, .@"sprite-get-state-count", .empty);
+    b.add2(0xdb, 0x1e, .@"sprite-get-object-draw-x", .empty);
+    b.add2(0xdb, 0x1f, .@"sprite-get-object-draw-y", .empty);
+    b.add2(0xdb, 0x21, .@"find-sprite", .empty);
+    b.add2(0xdb, 0x27, .@"sprite-get-height", .empty);
+    b.add2(0xdb, 0x28, .@"sprite-get-image", .empty);
+    b.add2(0xdb, 0x39, .@"sprite-get-palette", .empty);
+    b.add2(0xdb, 0x3b, .@"sprite-get-order", .empty);
+    b.add2(0xdb, 0x49, .@"sprite-get-state", .empty);
+    b.add2(0xdb, 0x53, .@"sprite-get-variable", .empty);
+    b.add2(0xdb, 0x54, .@"sprite-get-width", .empty);
+    b.add2(0xdb, 0x55, .@"sprite-get-object-x", .empty);
+    b.add2(0xdb, 0x56, .@"sprite-get-object-y", .empty);
+
+    b.add1(0xde, .@"call-script", .empty);
+    b.add1(0xe0, .@"string-compare", .empty);
+    b.add1(0xe1, .@"string-copy", .empty);
+    b.add1(0xe2, .@"string-substr", .empty);
+    b.add1(0xe4, .@"string-length", .empty);
+    b.add1(0xe5, .@"string-margin", .empty);
+    b.add1(0xe6, .@"string-number", .empty);
+    b.add1(0xe7, .@"string-search", .empty);
+    b.add1(0xe8, .@"string-width", .empty);
+    b.add1(0xe9, .@"tell-file", .empty);
+
+    b.add2(0xea, 0x32, .@"get-timer", .empty);
+
+    b.add1(0xeb, .@"valid-verb", .empty);
+
+    b.add2(0xec, 0x49, .@"video-get-cur-frame", .empty);
+
+    return b.vm;
 }
 
-pub fn buildInsMap(
-    allocator: std.mem.Allocator,
-    language: *const Language,
-) !std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) {
-    var inss: std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)) = .empty;
-    errdefer inss.deinit(allocator);
-    try inss.ensureUnusedCapacity(allocator, 256);
+pub const LangIns = struct {
+    op: Op,
+    opcode: utils.TinyArray(u8, 2),
+    operands: LangOperands,
+};
 
-    for (0..256) |b1_usize| {
-        const b1: u8 = @intCast(b1_usize);
-        switch (language.opcodes[b1]) {
-            .unknown => {},
-            .ins => |ins| {
-                const bytes = std.BoundedArray(u8, 2).fromSlice(&.{b1}) catch unreachable;
-                try inss.putNoClobber(allocator, @tagName(ins.op), bytes);
-            },
-            .nested => |n| {
-                for (0..256) |b2_usize| {
-                    const b2: u8 = @intCast(b2_usize);
-                    switch (language.opcodes[n << 8 | b2]) {
-                        .unknown => {},
-                        .ins => |ins| {
-                            const bytes = std.BoundedArray(u8, 2).fromSlice(&.{ b1, b2 }) catch unreachable;
-                            try inss.putNoClobber(allocator, @tagName(ins.op), bytes);
-                        },
-                        .nested => unreachable,
-                    }
-                }
-            },
-        }
-    }
-
-    return inss;
-}
-
-pub fn lookup(
-    language: *const Language,
-    inss: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
-    name: []const u8,
-) ?struct { std.BoundedArray(u8, 2), *const LangIns } {
-    const opcode = inss.get(name) orelse return null;
-    const ins = switch (opcode.len) {
-        1 => &language.opcodes[opcode.get(0)].ins,
-        2 => blk: {
-            const nest_start = language.opcodes[opcode.get(0)].nested;
-            break :blk &language.opcodes[nest_start << 8 | opcode.get(1)].ins;
-        },
-        else => unreachable,
-    };
-    return .{ opcode, ins };
+pub fn lookup(vm: *const Vm, name: []const u8) ?LangIns {
+    const op = std.meta.stringToEnum(Op, name) orelse return null;
+    const opcode = vm.opcodes[@intFromEnum(op)];
+    if (opcode.len == 0) return null;
+    const operands = vm.operands[@intFromEnum(op)];
+    return .{ .op = op, .opcode = opcode, .operands = operands };
 }
 
 pub const Ins = struct {
@@ -1534,15 +1583,15 @@ pub const Variable = struct {
 };
 
 pub const Disasm = struct {
-    lang: *const Language,
+    vm: *const Vm,
     reader: std.io.FixedBufferStream([]const u8),
     poison: bool,
 
-    pub fn init(lang: *const Language, bytecode: []const u8) Disasm {
+    pub fn init(vm: *const Vm, bytecode: []const u8) Disasm {
         const reader = std.io.fixedBufferStream(bytecode);
 
         return .{
-            .lang = lang,
+            .vm = vm,
             .reader = reader,
             .poison = false,
         };
@@ -1557,14 +1606,14 @@ pub const Disasm = struct {
 
         const start: u16 = @intCast(self.reader.pos);
         const b1 = self.reader.reader().readByte() catch unreachable;
-        return switch (self.lang.opcodes[b1]) {
-            .unknown => try self.becomePoison(1),
-            .ins => |*ins| try disasmIns(&self.reader, start, ins),
+        return switch (OpcodeEntry.decode(self.vm.opcode_lookup[b1])) {
+            .op => |op| try disasmIns(self.vm, &self.reader, start, op),
+            .unset => try self.becomePoison(1),
             .nested => |n| {
                 const b2 = try self.reader.reader().readByte();
-                return switch (self.lang.opcodes[n << 8 | b2]) {
-                    .unknown => try self.becomePoison(2),
-                    .ins => |*ins| try disasmIns(&self.reader, start, ins),
+                return switch (OpcodeEntry.decode(self.vm.opcode_lookup[n + b2])) {
+                    .op => |op| try disasmIns(self.vm, &self.reader, start, op),
+                    .unset => try self.becomePoison(2),
                     .nested => unreachable,
                 };
             },
@@ -1595,17 +1644,18 @@ fn unknownByte(reader: anytype) !?Ins {
     };
 }
 
-fn disasmIns(reader: anytype, start: u16, ins: *const LangIns) !Ins {
+fn disasmIns(vm: *const Vm, reader: anytype, start: u16, op: Op) !Ins {
+    var lang_operands = vm.operands[@intFromEnum(op)];
     var operands: OperandArray = .{};
-    for (ins.operands.slice()) |lang_op| {
-        const op = try disasmOperand(reader, lang_op);
-        operands.appendAssumeCapacity(op);
+    for (lang_operands.items().slice()) |lang_op| {
+        const operand = try disasmOperand(reader, lang_op);
+        operands.appendAssumeCapacity(operand);
     }
     const end: u16 = @intCast(reader.pos);
     return .{
         .start = start,
         .end = end,
-        .op = .{ .op = ins.op },
+        .op = .{ .op = op },
         .operands = operands,
     };
 }

@@ -68,8 +68,7 @@ pub fn run(
     defer for (&room_scopes) |*s| s.deinit(gpa);
 
     (blk: {
-        const language = lang.buildLanguage(game);
-        const ins_map = lang.buildInsMap(gpa, &language) catch |err| break :blk err;
+        const vm = lang.buildVm(game);
         const op_map = decompile.buildOpMap(game);
         cx = .{
             .gpa = gpa,
@@ -78,8 +77,7 @@ pub fn run(
             .project_dir = project_dir,
             .project = project,
             .awiz_strategy = awiz_strategy,
-            .language = &language,
-            .ins_map = &ins_map,
+            .vm = &vm,
             .op_map = &op_map,
             .project_scope = .empty,
             .room_scopes = &room_scopes,
@@ -115,8 +113,7 @@ const Context = struct {
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
-    language: *const lang.Language,
-    ins_map: *const std.StringHashMapUnmanaged(std.BoundedArray(u8, 2)),
+    vm: *const lang.Vm,
     op_map: *const std.EnumArray(lang.Op, decompile.Op),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
     room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
@@ -542,7 +539,7 @@ fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .global = scr.glob_number };
-    const result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    const result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .SCRP,
@@ -566,7 +563,7 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
         .encd => .{ .enter = .{ .room = room_number } },
         .excd => .{ .exit = .{ .room = room_number } },
     };
-    var result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     errdefer result.deinit(cx.gpa);
 
     const block_id: BlockId = switch (edge) {
@@ -589,7 +586,7 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
         .room = room_number,
         .number = lsc.script_number,
     } };
-    var bytecode = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var bytecode = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     defer bytecode.deinit(cx.gpa);
 
     const block_type = cx.room_lsc_types[room_number].defined;
@@ -853,7 +850,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .SCRP,
@@ -880,7 +877,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
         .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = lsc_type.blockId(),
@@ -900,7 +897,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .ENCD,
@@ -920,7 +917,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .EXCD,
@@ -989,7 +986,7 @@ fn planObjectInner(
                             .number = object.number,
                             .verb = verb.number,
                         } };
-                        var result = try assemble.assemble(cx.gpa, cx.language, cx.ins_map, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+                        var result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
                         defer result.deinit(cx.gpa);
 
                         try out.appendSlice(cx.gpa, result.items); // TODO: avoid this memcpy
@@ -999,7 +996,7 @@ fn planObjectInner(
                             .diagnostic = cx.diagnostic,
                             .path = room_file.path,
                         };
-                        try compile.compile(cx.gpa, &diag, cx.language, cx.ins_map, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
+                        try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
                     },
                 }
 
