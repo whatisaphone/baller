@@ -1003,9 +1003,7 @@ fn popString(cx: *DecompileCx) !ExprIndex {
     const expr = &cx.exprs.items[ei];
     if (expr.* == .int and expr.int == -1)
         return cx.str_stack.pop() orelse return error.BadData;
-    if (expr.* == .variable)
-        return ei;
-    return error.BadData;
+    return ei;
 }
 
 fn popList(cx: *DecompileCx) !ExprIndex {
