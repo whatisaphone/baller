@@ -3,6 +3,7 @@ const std = @import("std");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
 
 const Ast = @This();
@@ -326,6 +327,26 @@ pub const BinOp = enum {
             .eq, .ne, .lt, .le, .gt, .ge => false,
             .add, .sub, .mul, .div, .mod, .shl, .shr => true,
             .land, .lor => false,
+        };
+    }
+
+    pub fn op(self: BinOp) lang.Op {
+        return switch (self) {
+            .eq => .eq,
+            .ne => .ne,
+            .lt => .lt,
+            .le => .le,
+            .gt => .gt,
+            .ge => .ge,
+            .add => .add,
+            .sub => .sub,
+            .mul => .mul,
+            .div => .div,
+            .mod => .mod,
+            .shl => .shl,
+            .shr => .shr,
+            .land => .land,
+            .lor => .lor,
         };
     }
 };

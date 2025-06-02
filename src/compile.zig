@@ -51,12 +51,12 @@ pub fn compile(
 pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlice) !void {
     try emitBody(cx, statements);
 
-    const end = switch (cx.ast.nodes.items[root_node]) {
-        .script, .local_script => "end",
-        .enter, .exit, .object => "end2",
+    const end: lang.Op = switch (cx.ast.nodes.items[root_node]) {
+        .script, .local_script => .end,
+        .enter, .exit, .object => .end2,
         else => unreachable,
     };
-    try emitOpcodeByName(cx, end);
+    try emitOpcode(cx, end);
 
     for (cx.label_fixups.items) |fixup| {
         const label_offset = cx.label_offsets.get(fixup.label_name) orelse return error.BadData;
@@ -121,20 +121,20 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             switch (lhs.*) {
                 .identifier => {
                     try pushExpr(cx, s.rhs);
-                    try emitOpcodeByName(cx, "set");
+                    try emitOpcode(cx, .set);
                     try emitVariable(cx, s.lhs);
                 },
                 .array_get => |a| {
                     try pushExpr(cx, a.index);
                     try pushExpr(cx, s.rhs);
-                    try emitOpcodeByName(cx, "set-array-item");
+                    try emitOpcode(cx, .@"set-array-item");
                     try emitVariable(cx, a.lhs);
                 },
                 .array_get2 => |a| {
                     try pushExpr(cx, a.index1);
                     try pushExpr(cx, a.index2);
                     try pushExpr(cx, s.rhs);
-                    try emitOpcodeByName(cx, "set-array-item-2d");
+                    try emitOpcode(cx, .@"set-array-item-2d");
                     try emitVariable(cx, a.lhs);
                 },
                 else => return error.BadData,
@@ -145,35 +145,35 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             if (lhs.* == .identifier) {
                 try pushExpr(cx, e.lhs);
                 try pushExpr(cx, e.rhs);
-                try emitOpcodeByName(cx, @tagName(e.op));
-                try emitOpcodeByName(cx, "set");
+                try emitOpcode(cx, e.op.op());
+                try emitOpcode(cx, .set);
                 try emitVariable(cx, e.lhs);
             } else if (lhs.* == .array_get) {
                 try pushExpr(cx, lhs.array_get.index);
-                try emitOpcodeByName(cx, "dup");
-                try emitOpcodeByName(cx, "get-array-item");
+                try emitOpcode(cx, .dup);
+                try emitOpcode(cx, .@"get-array-item");
                 try emitVariable(cx, lhs.array_get.lhs);
                 try pushExpr(cx, e.rhs);
-                try emitOpcodeByName(cx, @tagName(e.op));
-                try emitOpcodeByName(cx, "set-array-item");
+                try emitOpcode(cx, e.op.op());
+                try emitOpcode(cx, .@"set-array-item");
                 try emitVariable(cx, lhs.array_get.lhs);
             } else if (lhs.* == .array_get2) {
                 try pushExpr(cx, lhs.array_get2.index1);
                 try pushExpr(cx, lhs.array_get2.index2);
-                try emitOpcodeByName(cx, "dup-multi");
+                try emitOpcode(cx, .@"dup-multi");
                 try cx.out.writer(cx.gpa).writeInt(i16, 2, .little);
-                try emitOpcodeByName(cx, "get-array-item-2d");
+                try emitOpcode(cx, .@"get-array-item-2d");
                 try emitVariable(cx, lhs.array_get2.lhs);
                 try pushExpr(cx, e.rhs);
-                try emitOpcodeByName(cx, @tagName(e.op));
-                try emitOpcodeByName(cx, "set-array-item-2d");
+                try emitOpcode(cx, e.op.op());
+                try emitOpcode(cx, .@"set-array-item-2d");
                 try emitVariable(cx, lhs.array_get2.lhs);
             } else return error.BadData;
         },
         .call => try emitCall(cx, node_index),
         .@"if" => |*s| {
             try pushExpr(cx, s.condition);
-            try emitOpcodeByName(cx, "jump-unless");
+            try emitOpcode(cx, .@"jump-unless");
             const cond_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try emitBlock(cx, s.true);
@@ -182,7 +182,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             // empty else block (start=???, len=0). We need to know the
             // difference for a byte-identical roundtrip.
             if (s.false.start != 0) {
-                try emitOpcodeByName(cx, "jump");
+                try emitOpcode(cx, .jump);
                 const true_end_fixup: u32 = @intCast(cx.out.items.len);
                 _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                 try fixupJumpToHere(cx, cond_fixup);
@@ -195,11 +195,11 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .@"while" => |*s| {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try pushExpr(cx, s.condition);
-            try emitOpcodeByName(cx, "jump-unless");
+            try emitOpcode(cx, .@"jump-unless");
             const cond_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
             try emitBlock(cx, s.body);
-            try emitOpcodeByName(cx, "jump");
+            try emitOpcode(cx, .jump);
             try writeJumpTargetBackwards(cx, loop_target);
             try fixupJumpToHere(cx, cond_fixup);
         },
@@ -207,34 +207,34 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try emitBlock(cx, s.body);
             if (s.condition == Ast.null_node) {
-                try emitOpcodeByName(cx, "jump");
+                try emitOpcode(cx, .jump);
                 try writeJumpTargetBackwards(cx, loop_target);
             } else {
                 try pushExpr(cx, s.condition);
-                try emitOpcodeByName(cx, "jump-unless");
+                try emitOpcode(cx, .@"jump-unless");
                 try writeJumpTargetBackwards(cx, loop_target);
             }
         },
         .@"for" => |*s| {
             try pushExpr(cx, s.start);
-            try emitOpcodeByName(cx, "set");
+            try emitOpcode(cx, .set);
             try emitVariable(cx, s.accumulator);
 
             const loop_target: u32 = @intCast(cx.out.items.len);
 
             try pushExpr(cx, s.accumulator);
             try pushExpr(cx, s.end);
-            try emitOpcodeByName(cx, if (s.direction == .up) "le" else "ge");
-            try emitOpcodeByName(cx, "jump-unless");
+            try emitOpcode(cx, if (s.direction == .up) .le else .ge);
+            try emitOpcode(cx, .@"jump-unless");
             const end_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
 
             try emitBlock(cx, s.body);
 
-            try emitOpcodeByName(cx, if (s.direction == .up) "inc" else "dec");
+            try emitOpcode(cx, if (s.direction == .up) .inc else .dec);
             try emitVariable(cx, s.accumulator);
 
-            try emitOpcodeByName(cx, "jump");
+            try emitOpcode(cx, .jump);
             try writeJumpTargetBackwards(cx, loop_target);
 
             try fixupJumpToHere(cx, end_fixup);
@@ -242,48 +242,48 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .for_in => |*s| {
             try pushExpr(cx, s.list);
             try pushInt(cx, 1);
-            try emitOpcodeByName(cx, "array-assign");
+            try emitOpcode(cx, .@"array-assign");
             try emitVariable(cx, s.backing);
 
             try pushExpr(cx, s.backing);
-            try emitOpcodeByName(cx, "localize");
+            try emitOpcode(cx, .localize);
 
             try pushInt(cx, 0);
             try pushInt(cx, 0);
-            try emitOpcodeByName(cx, "set-array-item");
+            try emitOpcode(cx, .@"set-array-item");
             try emitVariable(cx, s.backing);
 
             const loop_target: u32 = @intCast(cx.out.items.len);
 
             try pushInt(cx, 0);
-            try emitOpcodeByName(cx, "inc-array-item");
+            try emitOpcode(cx, .@"inc-array-item");
             try emitVariable(cx, s.backing);
 
             try pushInt(cx, 0);
-            try emitOpcodeByName(cx, "get-array-item");
+            try emitOpcode(cx, .@"get-array-item");
             try emitVariable(cx, s.backing);
             try pushInt(cx, @intCast(cx.ast.nodes.items[s.list].list.items.len));
-            try emitOpcodeByName(cx, "le");
-            try emitOpcodeByName(cx, "jump-unless");
+            try emitOpcode(cx, .le);
+            try emitOpcode(cx, .@"jump-unless");
             const end_fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
 
             try pushInt(cx, 0);
-            try emitOpcodeByName(cx, "get-array-item");
+            try emitOpcode(cx, .@"get-array-item");
             try emitVariable(cx, s.backing);
-            try emitOpcodeByName(cx, "get-array-item");
+            try emitOpcode(cx, .@"get-array-item");
             try emitVariable(cx, s.backing);
-            try emitOpcodeByName(cx, "set");
+            try emitOpcode(cx, .set);
             try emitVariable(cx, s.target);
 
             try emitBlock(cx, s.body);
 
-            try emitOpcodeByName(cx, "jump");
+            try emitOpcode(cx, .jump);
             try writeJumpTargetBackwards(cx, loop_target);
 
             try fixupJumpToHere(cx, end_fixup);
 
-            try emitOpcodeByName(cx, "undim");
+            try emitOpcode(cx, .undim);
             try emitVariable(cx, s.backing);
         },
         .case => |*s| {
@@ -296,27 +296,27 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
                     try fixupJumpToHere(cx, fixup);
                 switch (branch.condition) {
                     .eq => |ei| {
-                        try emitOpcodeByName(cx, "dup");
+                        try emitOpcode(cx, .dup);
                         try pushExpr(cx, ei);
-                        try emitOpcodeByName(cx, "eq");
-                        try emitOpcodeByName(cx, "jump-unless");
+                        try emitOpcode(cx, .eq);
+                        try emitOpcode(cx, .@"jump-unless");
                         cond_fixup = @intCast(cx.out.items.len);
                         _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                     },
                     .in => |slice| {
-                        try emitOpcodeByName(cx, "dup");
+                        try emitOpcode(cx, .dup);
                         try pushList(cx, cx.ast.getExtra(slice));
-                        try emitOpcodeByName(cx, "in-list");
-                        try emitOpcodeByName(cx, "jump-unless");
+                        try emitOpcode(cx, .@"in-list");
+                        try emitOpcode(cx, .@"jump-unless");
                         cond_fixup = @intCast(cx.out.items.len);
                         _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                     },
                     .default => {},
                 }
-                try emitOpcodeByName(cx, "pop");
+                try emitOpcode(cx, .pop);
                 try emitBlock(cx, branch.body);
                 if (branch.condition != .default) {
-                    try emitOpcodeByName(cx, "jump");
+                    try emitOpcode(cx, .jump);
                     end_fixups.append(@intCast(cx.out.items.len)) catch unreachable;
                     _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                 }
@@ -426,81 +426,81 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
         .@"sprite-select" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
-            try emitOpcodeByName(cx, "sprite-select-range");
+            try emitOpcode(cx, .dup);
+            try emitOpcode(cx, .@"sprite-select-range");
         },
         .@"array-sort-rows" => {
             if (args.len != 5) return error.BadData;
             try pushExpr(cx, args[1]);
             try pushExpr(cx, args[2]);
             try pushExpr(cx, args[3]);
-            try emitOpcodeByName(cx, "dup");
+            try emitOpcode(cx, .dup);
             try pushExpr(cx, args[4]);
-            try emitOpcodeByName(cx, "array-sort");
+            try emitOpcode(cx, .@"array-sort");
             try emitVariable(cx, args[0]);
         },
         .@"array-sort-cols" => {
             if (args.len != 5) return error.BadData;
             try pushExpr(cx, args[1]);
-            try emitOpcodeByName(cx, "dup");
+            try emitOpcode(cx, .dup);
             try pushExpr(cx, args[2]);
             try pushExpr(cx, args[3]);
             try pushExpr(cx, args[4]);
-            try emitOpcodeByName(cx, "array-sort");
+            try emitOpcode(cx, .@"array-sort");
             try emitVariable(cx, args[0]);
         },
         .@"lock-and-load-script" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
-            try emitOpcodeByName(cx, "lock-script");
-            try emitOpcodeByName(cx, "load-script");
+            try emitOpcode(cx, .dup);
+            try emitOpcode(cx, .@"lock-script");
+            try emitOpcode(cx, .@"load-script");
         },
         .@"lock-and-load-costume" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
-            try emitOpcodeByName(cx, "lock-costume");
-            try emitOpcodeByName(cx, "load-costume");
+            try emitOpcode(cx, .dup);
+            try emitOpcode(cx, .@"lock-costume");
+            try emitOpcode(cx, .@"load-costume");
         },
         .@"lock-and-load-image" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
-            try emitOpcodeByName(cx, "lock-image");
-            try emitOpcodeByName(cx, "load-image");
+            try emitOpcode(cx, .dup);
+            try emitOpcode(cx, .@"lock-image");
+            try emitOpcode(cx, .@"load-image");
         },
         .@"palette-set-slot-rgb" => {
             if (args.len != 4) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
+            try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
             try pushExpr(cx, args[2]);
             try pushExpr(cx, args[3]);
-            try emitOpcodeByName(cx, "palette-set-rgb");
+            try emitOpcode(cx, .@"palette-set-rgb");
         },
         .@"palette-set-slot-color" => {
             if (args.len != 2) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
+            try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
-            try emitOpcodeByName(cx, "palette-set-color");
+            try emitOpcode(cx, .@"palette-set-color");
         },
         .@"delete-one-polygon" => {
             if (args.len != 1) return error.BadData;
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "dup");
-            try emitOpcodeByName(cx, "delete-polygon");
+            try emitOpcode(cx, .dup);
+            try emitOpcode(cx, .@"delete-polygon");
         },
         .@"break-until" => {
             if (args.len != 1) return error.BadData;
             const start: u32 = @intCast(cx.out.items.len);
             try pushExpr(cx, args[0]);
-            try emitOpcodeByName(cx, "jump-if");
+            try emitOpcode(cx, .@"jump-if");
             const fixup: u32 = @intCast(cx.out.items.len);
             _ = try cx.out.addManyAsSlice(cx.gpa, 2);
-            try emitOpcodeByName(cx, "break-here");
-            try emitOpcodeByName(cx, "jump");
+            try emitOpcode(cx, .@"break-here");
+            try emitOpcode(cx, .jump);
             try writeJumpTargetBackwards(cx, start);
             try fixupJumpToHere(cx, fixup);
         },
@@ -517,19 +517,19 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
         .list => |list| try pushList(cx, cx.ast.getExtra(list.items)),
         .array_get => |e| {
             try pushExpr(cx, e.index);
-            try emitOpcodeByName(cx, "get-array-item");
+            try emitOpcode(cx, .@"get-array-item");
             try emitVariable(cx, e.lhs);
         },
         .array_get2 => |e| {
             try pushExpr(cx, e.index1);
             try pushExpr(cx, e.index2);
-            try emitOpcodeByName(cx, "get-array-item-2d");
+            try emitOpcode(cx, .@"get-array-item-2d");
             try emitVariable(cx, e.lhs);
         },
         .binop => |e| {
             try pushExpr(cx, e.lhs);
             try pushExpr(cx, e.rhs);
-            try emitOpcodeByName(cx, @tagName(e.op));
+            try emitOpcode(cx, e.op.op());
         },
         else => return error.BadData,
     }
@@ -537,19 +537,19 @@ fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, Bad
 
 fn pushInt(cx: *const Cx, integer: i32) !void {
     if (std.math.cast(u8, integer)) |i| {
-        try emitOpcodeByName(cx, "push-u8");
+        try emitOpcode(cx, .@"push-u8");
         try cx.out.append(cx.gpa, i);
     } else if (std.math.cast(i16, integer)) |i| {
-        try emitOpcodeByName(cx, "push-i16");
+        try emitOpcode(cx, .@"push-i16");
         try cx.out.writer(cx.gpa).writeInt(i16, i, .little);
     } else {
-        try emitOpcodeByName(cx, "push-i32");
+        try emitOpcode(cx, .@"push-i32");
         try cx.out.writer(cx.gpa).writeInt(i32, integer, .little);
     }
 }
 
 fn pushStr(cx: *Cx, node_index: u32) !void {
-    try emitOpcodeByName(cx, "push-str");
+    try emitOpcode(cx, .@"push-str");
     try emitString(cx, node_index);
     try pushInt(cx, -1);
 }
@@ -560,9 +560,7 @@ fn pushList(cx: *Cx, items: []const Ast.NodeIndex) !void {
     try pushInt(cx, @intCast(items.len));
 }
 
-// TODO: this is why this is slow! don't use strings!
-fn emitOpcodeByName(cx: *const Cx, name: []const u8) !void {
-    const op = std.meta.stringToEnum(lang.Op, name).?;
+fn emitOpcode(cx: *const Cx, op: lang.Op) !void {
     const opcode = cx.vm.opcodes[@intFromEnum(op)];
     std.debug.assert(opcode.len != 0);
     try cx.out.appendSlice(cx.gpa, opcode.slice());
@@ -602,7 +600,7 @@ fn pushSymbol(cx: *const Cx, node_index: u32) !void {
 }
 
 fn pushVar(cx: *const Cx, variable: lang.Variable) !void {
-    try emitOpcodeByName(cx, "push-var");
+    try emitOpcode(cx, .@"push-var");
     try emitVarNumber(cx, variable);
 }
 
