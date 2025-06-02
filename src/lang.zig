@@ -60,12 +60,15 @@ const VmBuilder = struct {
     }
 
     fn add1(self: *VmBuilder, byte: u8, op: Op, operands: LangOperands) void {
-        std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
-        self.vm.opcodes[@intFromEnum(op)] = .init(&.{byte});
-        self.vm.operands[@intFromEnum(op)] = operands;
+        self.add(&.{byte}, op, operands);
+    }
 
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[byte]) == .unset);
-        self.vm.opcode_lookup[byte] = OpcodeEntry.encode(.{ .op = op });
+    fn add2(self: *VmBuilder, b1: u8, b2: u8, op: Op, operands: LangOperands) void {
+        self.add(&.{ b1, b2 }, op, operands);
+    }
+
+    fn add3(self: *VmBuilder, b1: u8, b2: u8, b3: u8, op: Op, operands: LangOperands) void {
+        self.add(&.{ b1, b2, b3 }, op, operands);
     }
 
     fn makeNested(self: *VmBuilder, index: u16) void {
@@ -78,43 +81,24 @@ const VmBuilder = struct {
         self.opcode_lookup_pos += 256;
     }
 
-    fn add2(self: *VmBuilder, byte1: u8, byte2: u8, op: Op, operands: LangOperands) void {
+    fn add(self: *VmBuilder, bytes: []const u8, op: Op, operands: LangOperands) void {
         std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
-        self.vm.opcodes[@intFromEnum(op)] = .init(&.{ byte1, byte2 });
+        self.vm.opcodes[@intFromEnum(op)] = .init(bytes);
         self.vm.operands[@intFromEnum(op)] = operands;
 
-        switch (OpcodeEntry.decode(self.vm.opcode_lookup[byte1])) {
-            .op => unreachable,
-            .nested => {},
-            .unset => self.makeNested(byte1),
+        var start: u16 = 0;
+        for (bytes[0 .. bytes.len - 1]) |byte| {
+            const index = start + byte;
+            switch (OpcodeEntry.decode(self.vm.opcode_lookup[index])) {
+                .op => unreachable,
+                .nested => {},
+                .unset => self.makeNested(index),
+            }
+            start = OpcodeEntry.decode(self.vm.opcode_lookup[index]).nested;
         }
-        const start = OpcodeEntry.decode(self.vm.opcode_lookup[byte1]).nested;
-        const offset = start + byte2;
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[offset]) == .unset);
-        self.vm.opcode_lookup[offset] = OpcodeEntry.encode(.{ .op = op });
-    }
-
-    fn add3(self: *VmBuilder, b1: u8, b2: u8, b3: u8, op: Op, operands: LangOperands) void {
-        std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
-        self.vm.opcodes[@intFromEnum(op)] = .init(&.{ b1, b2, b3 });
-        self.vm.operands[@intFromEnum(op)] = operands;
-
-        switch (OpcodeEntry.decode(self.vm.opcode_lookup[b1])) {
-            .op => unreachable,
-            .nested => {},
-            .unset => self.makeNested(b1),
-        }
-        const start = OpcodeEntry.decode(self.vm.opcode_lookup[b1]).nested;
-        const offset2 = start + b2;
-        switch (OpcodeEntry.decode(self.vm.opcode_lookup[offset2])) {
-            .op => unreachable,
-            .nested => {},
-            .unset => self.makeNested(offset2),
-        }
-        const start3 = OpcodeEntry.decode(self.vm.opcode_lookup[offset2]).nested;
-        const offset3 = start3 + b3;
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[offset3]) == .unset);
-        self.vm.opcode_lookup[offset3] = OpcodeEntry.encode(.{ .op = op });
+        const index = start + bytes[bytes.len - 1];
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
+        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .op = op });
     }
 };
 
