@@ -955,9 +955,6 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
             for (ins.operands.slice()) |operand| {
                 const expr: Expr = switch (operand) {
-                    // TODO: try to get rid of u8 here. all occurrences are
-                    // probably better represented as subopcodes
-                    .u8 => |i| .{ .int = i },
                     .variable => |v| .{ .variable = v },
                     .string => |s| .{ .string = s },
                     else => unreachable,

@@ -11,11 +11,11 @@ pub const max_operands = 3;
 pub const Vm = struct {
     const op_count = @typeInfo(Op).@"enum".fields.len;
 
-    opcodes: [op_count]utils.TinyArray(u8, 2),
+    opcodes: [op_count]utils.TinyArray(u8, 3),
     operands: [op_count]LangOperands,
     /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
     /// of `Entry`s.
-    opcode_lookup: [256 * 51]u16,
+    opcode_lookup: [256 * 53]u16,
 };
 
 const OpcodeEntry = union(enum) {
@@ -68,11 +68,11 @@ const VmBuilder = struct {
         self.vm.opcode_lookup[byte] = OpcodeEntry.encode(.{ .op = op });
     }
 
-    fn makeNested(self: *VmBuilder, byte1: u8) void {
+    fn makeNested(self: *VmBuilder, index: u16) void {
         const pos = self.opcode_lookup_pos;
 
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[byte1]) == .unset);
-        self.vm.opcode_lookup[byte1] = OpcodeEntry.encode(.{ .nested = pos });
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
+        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .nested = pos });
         @memset(self.vm.opcode_lookup[pos..][0..256], OpcodeEntry.encode(.unset));
 
         self.opcode_lookup_pos += 256;
@@ -92,6 +92,29 @@ const VmBuilder = struct {
         const offset = start + byte2;
         std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[offset]) == .unset);
         self.vm.opcode_lookup[offset] = OpcodeEntry.encode(.{ .op = op });
+    }
+
+    fn add3(self: *VmBuilder, b1: u8, b2: u8, b3: u8, op: Op, operands: LangOperands) void {
+        std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
+        self.vm.opcodes[@intFromEnum(op)] = .init(&.{ b1, b2, b3 });
+        self.vm.operands[@intFromEnum(op)] = operands;
+
+        switch (OpcodeEntry.decode(self.vm.opcode_lookup[b1])) {
+            .op => unreachable,
+            .nested => {},
+            .unset => self.makeNested(b1),
+        }
+        const start = OpcodeEntry.decode(self.vm.opcode_lookup[b1]).nested;
+        const offset2 = start + b2;
+        switch (OpcodeEntry.decode(self.vm.opcode_lookup[offset2])) {
+            .op => unreachable,
+            .nested => {},
+            .unset => self.makeNested(offset2),
+        }
+        const start3 = OpcodeEntry.decode(self.vm.opcode_lookup[offset2]).nested;
+        const offset3 = start3 + b3;
+        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[offset3]) == .unset);
+        self.vm.opcode_lookup[offset3] = OpcodeEntry.encode(.{ .op = op });
     }
 };
 
@@ -1014,11 +1037,11 @@ fn buildNormalVm(game: Game) Vm {
 
     b.add2(0xdb, 0x05, .@"read-file-int16", .empty);
     b.add2(0xdb, 0x06, .@"read-file-int32", .empty);
-    b.add2(0xdb, 0x08, .@"read-file-int8", .mk1(.u8));
+    b.add3(0xdb, 0x08, 0x04, .@"read-file-int8", .empty);
 
     b.add2(0xdc, 0x05, .@"write-file-int16", .empty);
     b.add2(0xdc, 0x06, .@"write-file-int32", .empty);
-    b.add2(0xdc, 0x08, .@"write-file-int8", .mk1(.u8));
+    b.add3(0xdc, 0x08, 0x04, .@"write-file-int8", .empty);
 
     b.add1(0xdd, .@"find-all-objects2", .empty);
     b.add1(0xde, .@"delete-file", .empty);
@@ -1370,7 +1393,7 @@ fn builtBasketballVm() Vm {
 
     b.add2(0x8d, 0x82, .@"wait-for-message", .empty);
 
-    b.add2(0x90, 0x05, .@"write-file-int8", .mk1(.u8));
+    b.add3(0x90, 0x05, 0x2d, .@"write-file-int8", .empty);
     b.add2(0x90, 0x2b, .@"write-file-int32", .empty);
 
     b.add2(0x91, 0x2b, .@"write-system-ini-int", .empty);
@@ -1449,7 +1472,7 @@ fn builtBasketballVm() Vm {
     b.add1(0xd0, .random, .empty);
     b.add1(0xd1, .@"random-between", .empty);
 
-    b.add2(0xd3, 0x05, .@"read-file-int8", .mk1(.u8));
+    b.add3(0xd3, 0x05, 0x2d, .@"read-file-int8", .empty);
     b.add2(0xd3, 0x2b, .@"read-file-int32", .empty);
 
     b.add2(0xd4, 0x2b, .@"read-system-ini-int", .empty);
@@ -1502,7 +1525,7 @@ fn builtBasketballVm() Vm {
 
 pub const LangIns = struct {
     op: Op,
-    opcode: utils.TinyArray(u8, 2),
+    opcode: utils.TinyArray(u8, 3),
     operands: LangOperands,
 };
 
@@ -1611,12 +1634,19 @@ pub const Disasm = struct {
         return switch (OpcodeEntry.decode(self.vm.opcode_lookup[b1])) {
             .op => |op| try disasmIns(self.vm, &self.reader, start, op),
             .unset => try self.becomePoison(1),
-            .nested => |n| {
+            .nested => |s2| {
                 const b2 = try self.reader.reader().readByte();
-                return switch (OpcodeEntry.decode(self.vm.opcode_lookup[n + b2])) {
+                return switch (OpcodeEntry.decode(self.vm.opcode_lookup[s2 + b2])) {
                     .op => |op| try disasmIns(self.vm, &self.reader, start, op),
                     .unset => try self.becomePoison(2),
-                    .nested => unreachable,
+                    .nested => |s3| {
+                        const b3 = try self.reader.reader().readByte();
+                        return switch (OpcodeEntry.decode(self.vm.opcode_lookup[s3 + b3])) {
+                            .op => |op| try disasmIns(self.vm, &self.reader, start, op),
+                            .unset => try self.becomePoison(3),
+                            .nested => unreachable,
+                        };
+                    },
                 };
             },
         };

@@ -365,7 +365,7 @@ fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
 }
 
 const InsData = struct {
-    opcode: utils.TinyArray(u8, 2),
+    opcode: utils.TinyArray(u8, 3),
     op: lang.Op,
     operands: lang.LangOperands,
     normal_params: usize,
@@ -568,14 +568,6 @@ fn emitOpcode(cx: *const Cx, op: lang.Op) !void {
 
 fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
     switch (op) {
-        // TODO: try to get rid of u8 here. all occurrences are probably better
-        // represented as subopcodes
-        .u8 => {
-            const node = &cx.ast.nodes.items[node_index];
-            if (node.* != .integer) return error.BadData;
-            const i = std.math.cast(u8, node.integer) orelse return error.BadData;
-            try cx.out.append(cx.gpa, i);
-        },
         .relative_offset => {
             const label_expr = &cx.ast.nodes.items[node_index];
             if (label_expr.* != .identifier) return error.BadData;
