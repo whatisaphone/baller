@@ -9,7 +9,7 @@ const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const FxbclReader = @import("block_reader.zig").FxbclReader;
-const StreamingBlockReader2 = @import("block_reader.zig").StreamingBlockReader2;
+const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const fxbclPos = @import("block_reader.zig").fxbclPos;
 const cliargs = @import("cliargs.zig");
@@ -669,10 +669,10 @@ fn extractDisk(
     var in_count = std.io.countingReader(in_buf.reader());
     var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
-    var file_blocks: StreamingBlockReader2 = .init(&in, &diag);
+    var file_blocks: StreamingBlockReader = .init(&in, &diag);
 
     const lecf = try file_blocks.expect(.LECF) orelse return error.BadData;
-    var lecf_blocks: StreamingBlockReader2 = .init(&in, &diag);
+    var lecf_blocks: StreamingBlockReader = .init(&in, &diag);
 
     while (try lecf_blocks.expect(.LFLF)) |block| {
         try extractRoom(cx, disk_number, &in, &diag, code);
@@ -888,7 +888,7 @@ fn readRoomInner(
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
 ) !void {
-    var lflf_blocks: StreamingBlockReader2 = .init(in, diag);
+    var lflf_blocks: StreamingBlockReader = .init(in, diag);
 
     const rmim_chunk_index = try cx.claimChunkIndex();
     const rmim_block = try lflf_blocks.expect(.RMIM) orelse return error.BadData;
@@ -936,7 +936,7 @@ fn extractRmda(
         buffered_blocks.deinit(cx.cx.gpa);
     }
 
-    var rmda_blocks: StreamingBlockReader2 = .init(in, diag);
+    var rmda_blocks: StreamingBlockReader = .init(in, diag);
 
     while (try rmda_blocks.next()) |block| {
         switch (block.id) {

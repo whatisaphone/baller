@@ -3,7 +3,7 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const Block = @import("block_reader.zig").Block;
 const FxbclReader = @import("block_reader.zig").FxbclReader;
-const StreamingBlockReader2 = @import("block_reader.zig").StreamingBlockReader2;
+const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -89,7 +89,7 @@ pub fn run(
 }
 
 fn dump(cx: *Cx) !void {
-    var br: StreamingBlockReader2 = .init(cx.in, cx.diag);
+    var br: StreamingBlockReader = .init(cx.in, cx.diag);
     while (try br.next()) |block| {
         try dumpBlock(cx, &block);
         try br.finish(&block);
@@ -102,7 +102,7 @@ fn dumpBlock(cx: *Cx, block: *const Block) anyerror!void {
     // Try dumping it as nested, but if anything fails, fall back to raw
     if (block.size < Block.header_size)
         return dumpRaw(cx, block, null);
-    var br: StreamingBlockReader2 = .init(cx.in, cx.diag);
+    var br: StreamingBlockReader = .init(cx.in, cx.diag);
     const offset, const header = try br.readHeader() orelse return error.BadData;
     const child = br.validate(offset, header) orelse
         return dumpRaw(cx, block, std.mem.toBytes(header));
@@ -112,7 +112,7 @@ fn dumpBlock(cx: *Cx, block: *const Block) anyerror!void {
 
 fn dumpNested(
     cx: *Cx,
-    br: *StreamingBlockReader2,
+    br: *StreamingBlockReader,
     parent: *const Block,
     first_child: *const Block,
 ) !void {

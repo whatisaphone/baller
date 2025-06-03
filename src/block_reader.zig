@@ -384,7 +384,7 @@ pub fn fxbclPos(in: *const FxbclReader) u32 {
     return @intCast(in.inner_reader.context.bytes_read);
 }
 
-pub const StreamingBlockReader2 = struct {
+pub const StreamingBlockReader = struct {
     in: *FxbclReader,
     diag: *const Diagnostic.ForBinaryFile,
     state: union {
@@ -392,7 +392,7 @@ pub const StreamingBlockReader2 = struct {
         inside_block: struct { next_limit: u32 },
     },
 
-    pub fn init(in: *FxbclReader, diag: *const Diagnostic.ForBinaryFile) StreamingBlockReader2 {
+    pub fn init(in: *FxbclReader, diag: *const Diagnostic.ForBinaryFile) StreamingBlockReader {
         return .{
             .in = in,
             .diag = diag,
@@ -400,14 +400,14 @@ pub const StreamingBlockReader2 = struct {
         };
     }
 
-    pub fn next(self: *StreamingBlockReader2) !?Block {
+    pub fn next(self: *StreamingBlockReader) !?Block {
         const offset, const header = try self.readHeader() orelse return null;
         const block = self.validate(offset, header) orelse return error.BadData;
         self.commit(&block);
         return block;
     }
 
-    pub fn readHeader(self: *const StreamingBlockReader2) !?struct { u32, RawBlockHeader } {
+    pub fn readHeader(self: *const StreamingBlockReader) !?struct { u32, RawBlockHeader } {
         _ = self.state.baseline;
         const offset = fxbclPos(self.in);
         var header: RawBlockHeader = undefined;
@@ -418,7 +418,7 @@ pub const StreamingBlockReader2 = struct {
     }
 
     pub fn validate(
-        self: *const StreamingBlockReader2,
+        self: *const StreamingBlockReader,
         offset: u32,
         header: RawBlockHeader,
     ) ?Block {
@@ -434,7 +434,7 @@ pub const StreamingBlockReader2 = struct {
         return .{ .start = start, .id = id, .size = size };
     }
 
-    pub fn commit(self: *StreamingBlockReader2, block: *const Block) void {
+    pub fn commit(self: *StreamingBlockReader, block: *const Block) void {
         _ = self.state.baseline;
 
         self.diag.trace(block.offset(), "start block {}", .{block.id});
@@ -448,7 +448,7 @@ pub const StreamingBlockReader2 = struct {
         self.in.bytes_left = block.size;
     }
 
-    pub fn finish(self: *StreamingBlockReader2, block: *const Block) !void {
+    pub fn finish(self: *StreamingBlockReader, block: *const Block) !void {
         _ = self.state.inside_block;
 
         const pos = fxbclPos(self.in);
@@ -461,16 +461,16 @@ pub const StreamingBlockReader2 = struct {
         self.state = .{ .baseline = {} };
     }
 
-    pub fn end(self: *const StreamingBlockReader2) !void {
+    pub fn end(self: *const StreamingBlockReader) !void {
         _ = self.state.baseline;
         if (self.in.bytes_left != 0) return error.BadData;
     }
 
-    pub fn expectMismatchedEnd(self: *const StreamingBlockReader2) void {
+    pub fn expectMismatchedEnd(self: *const StreamingBlockReader) void {
         _ = self.state.baseline;
     }
 
-    pub fn expect(self: *StreamingBlockReader2, id: BlockId) !?Block {
+    pub fn expect(self: *StreamingBlockReader, id: BlockId) !?Block {
         const block = try self.next() orelse return null;
         if (block.id != id) {
             self.diag.err(block.offset(), "expected block {} but found {}", .{ id, block.id });
