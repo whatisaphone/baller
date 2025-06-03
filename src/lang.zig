@@ -3,16 +3,13 @@ const std = @import("std");
 const Game = @import("games.zig").Game;
 const utils = @import("utils.zig");
 
-const LangOperandArray = std.BoundedArray(LangOperand, max_operands);
-const OperandArray = std.BoundedArray(Operand, max_operands);
-
 pub const max_operands = 3;
 
 pub const Vm = struct {
     const op_count = @typeInfo(Op).@"enum".fields.len;
 
     opcodes: [op_count]utils.TinyArray(u8, 3),
-    operands: [op_count]LangOperands,
+    operands: [op_count]utils.TinyArray(LangOperand, max_operands),
     /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
     /// of `Entry`s.
     opcode_lookup: [256 * 53]OpcodeEntry,
@@ -64,22 +61,22 @@ const VmBuilder = struct {
         return result;
     }
 
-    fn add1(self: *VmBuilder, byte: u8, op: Op, operands: LangOperands) void {
+    fn add1(self: *VmBuilder, byte: u8, op: Op, operands: LangOperandHelper) void {
         self.add(&.{byte}, op, operands);
     }
 
-    fn add2(self: *VmBuilder, b1: u8, b2: u8, op: Op, operands: LangOperands) void {
+    fn add2(self: *VmBuilder, b1: u8, b2: u8, op: Op, operands: LangOperandHelper) void {
         self.add(&.{ b1, b2 }, op, operands);
     }
 
-    fn add3(self: *VmBuilder, b1: u8, b2: u8, b3: u8, op: Op, operands: LangOperands) void {
+    fn add3(self: *VmBuilder, b1: u8, b2: u8, b3: u8, op: Op, operands: LangOperandHelper) void {
         self.add(&.{ b1, b2, b3 }, op, operands);
     }
 
-    fn add(self: *VmBuilder, bytes: []const u8, op: Op, operands: LangOperands) void {
+    fn add(self: *VmBuilder, bytes: []const u8, op: Op, operands: LangOperandHelper) void {
         std.debug.assert(self.vm.opcodes[@intFromEnum(op)].len == 0);
         self.vm.opcodes[@intFromEnum(op)] = .init(bytes);
-        self.vm.operands[@intFromEnum(op)] = operands;
+        self.vm.operands[@intFromEnum(op)] = operands.value;
 
         var start: u16 = 0;
         for (bytes[0 .. bytes.len - 1]) |byte| {
@@ -107,53 +104,21 @@ const VmBuilder = struct {
     }
 };
 
-/// Packs up to 3 `LangOperand`s into 11 bits
-pub const LangOperands = packed struct {
-    len: u2,
-    @"0": u3,
-    @"1": u3,
-    @"2": u3,
+pub const LangOperandHelper = struct {
+    value: utils.TinyArray(LangOperand, max_operands),
 
-    const empty: LangOperands = .{
-        .len = 0,
-        .@"0" = undefined,
-        .@"1" = undefined,
-        .@"2" = undefined,
-    };
+    const empty: LangOperandHelper = .{ .value = .empty };
 
-    fn mk1(a: LangOperand) LangOperands {
-        return .{
-            .len = 1,
-            .@"0" = @intFromEnum(a),
-            .@"1" = undefined,
-            .@"2" = undefined,
-        };
+    fn mk1(a: LangOperand) LangOperandHelper {
+        return .{ .value = .init(&.{a}) };
     }
 
-    fn mk2(a: LangOperand, b: LangOperand) LangOperands {
-        return .{
-            .len = 2,
-            .@"0" = @intFromEnum(a),
-            .@"1" = @intFromEnum(b),
-            .@"2" = undefined,
-        };
+    fn mk2(a: LangOperand, b: LangOperand) LangOperandHelper {
+        return .{ .value = .init(&.{ a, b }) };
     }
 
-    fn mk3(a: LangOperand, b: LangOperand, c: LangOperand) LangOperands {
-        return .{
-            .len = 3,
-            .@"0" = @intFromEnum(a),
-            .@"1" = @intFromEnum(b),
-            .@"2" = @intFromEnum(c),
-        };
-    }
-
-    pub fn items(self: LangOperands) std.BoundedArray(LangOperand, 3) {
-        var result: std.BoundedArray(LangOperand, 3) = .{};
-        if (self.len > 0) result.appendAssumeCapacity(@enumFromInt(self.@"0"));
-        if (self.len > 1) result.appendAssumeCapacity(@enumFromInt(self.@"1"));
-        if (self.len > 2) result.appendAssumeCapacity(@enumFromInt(self.@"2"));
-        return result;
+    fn mk3(a: LangOperand, b: LangOperand, c: LangOperand) LangOperandHelper {
+        return .{ .value = .init(&.{ a, b, c }) };
     }
 };
 
@@ -1515,7 +1480,7 @@ fn builtBasketballVm() Vm {
 pub const LangIns = struct {
     op: Op,
     opcode: utils.TinyArray(u8, 3),
-    operands: LangOperands,
+    operands: utils.TinyArray(LangOperand, max_operands),
 };
 
 pub fn lookup(vm: *const Vm, name: []const u8) ?LangIns {
@@ -1530,7 +1495,7 @@ pub const Ins = struct {
     start: u16,
     end: u16,
     op: union(enum) { op: Op, unknown_byte },
-    operands: OperandArray,
+    operands: utils.TinyArray(Operand, max_operands),
 };
 
 pub const Operand = union(LangOperand) {
@@ -1645,8 +1610,8 @@ fn unknownByte(reader: anytype) !?Ins {
     const start: u16 = @intCast(reader.pos);
     const byte = reader.reader().readByte() catch unreachable;
     const end: u16 = @intCast(reader.pos);
-    var operands: OperandArray = .{};
-    operands.appendAssumeCapacity(.{ .u8 = byte });
+    var operands: utils.TinyArray(Operand, max_operands) = .empty;
+    operands.append(.{ .u8 = byte }) catch unreachable;
     return .{
         .start = start,
         .end = end,
@@ -1657,10 +1622,10 @@ fn unknownByte(reader: anytype) !?Ins {
 
 fn disasmIns(vm: *const Vm, reader: anytype, start: u16, op: Op) !Ins {
     var lang_operands = vm.operands[@intFromEnum(op)];
-    var operands: OperandArray = .{};
-    for (lang_operands.items().slice()) |lang_op| {
+    var operands: utils.TinyArray(Operand, max_operands) = .empty;
+    for (lang_operands.slice()) |lang_op| {
         const operand = try disasmOperand(reader, lang_op);
-        operands.appendAssumeCapacity(operand);
+        operands.append(operand) catch unreachable;
     }
     const end: u16 = @intCast(reader.pos);
     return .{

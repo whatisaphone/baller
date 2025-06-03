@@ -134,7 +134,7 @@ fn assembleLine(
 
     try bytecode.appendSlice(allocator, ins.opcode.slice());
 
-    for (ins.operands.items().slice()) |op| {
+    for (ins.operands.slice()) |op| {
         switch (op) {
             .u8 => {
                 const int, rest = try tokenizeInt(u8, rest);

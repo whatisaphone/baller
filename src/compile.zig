@@ -360,14 +360,14 @@ fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
 
     try cx.out.appendSlice(cx.gpa, ins.opcode.slice());
 
-    for (ins.operands.items().slice(), args_operands) |op, ei|
+    for (ins.operands.slice(), args_operands) |op, ei|
         try emitOperand(cx, op, ei);
 }
 
 const InsData = struct {
     opcode: utils.TinyArray(u8, 3),
     op: lang.Op,
-    operands: lang.LangOperands,
+    operands: utils.TinyArray(lang.LangOperand, lang.max_operands),
     normal_params: usize,
     variadic: bool,
 };

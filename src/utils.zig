@@ -168,6 +168,7 @@ pub fn growBoundedArray(
     xs.len = minimum_len;
 }
 
+/// std.BoundedArray, but `len` is not wastefully large
 pub fn TinyArray(T: type, capacity: usize) type {
     return struct {
         const Self = @This();
@@ -185,8 +186,33 @@ pub fn TinyArray(T: type, capacity: usize) type {
             return result;
         }
 
-        pub fn slice(self: *const Self) []const T {
+        pub fn get(self: *const Self, index: usize) T {
+            std.debug.assert(index < self.len);
+            return self.buffer[index];
+        }
+
+        pub fn slice(self: anytype) switch (@TypeOf(self)) {
+            *Self => []T,
+            *const Self => []const T,
+            else => unreachable,
+        } {
             return self.buffer[0..self.len];
+        }
+
+        pub fn ensureUnusedCapacity(self: Self, additional_count: usize) !void {
+            if (self.len + additional_count > capacity)
+                return error.Overflow;
+        }
+
+        pub fn addOne(self: *Self) !*T {
+            try self.ensureUnusedCapacity(1);
+            self.len += 1;
+            return &self.slice()[self.len - 1];
+        }
+
+        pub fn append(self: *Self, item: T) !void {
+            const ptr = try self.addOne();
+            ptr.* = item;
         }
     };
 }
