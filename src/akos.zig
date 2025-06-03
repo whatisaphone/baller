@@ -4,9 +4,8 @@ const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
-const beginBlock = @import("block_writer.zig").beginBlock;
-const endBlock = @import("block_writer.zig").endBlock;
-const Fixup = @import("block_writer.zig").Fixup;
+const beginBlockAl = @import("block_writer.zig").beginBlockAl;
+const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
@@ -228,8 +227,7 @@ pub fn encode(
     awiz_strategy: awiz.EncodingStrategy,
     room_number: u8,
     akos_node_index: u32,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const file = &project.files.items[room_number].?;
     const akos = &file.ast.nodes.items[akos_node_index].akos;
@@ -255,20 +253,20 @@ pub fn encode(
         const node = &file.ast.nodes.items[node_index];
 
         if (node.* != .akcd)
-            try flushCels(&state, out, fixups);
+            try flushCels(gpa, &state, out);
 
         switch (node.*) {
             .raw_block => |*n| {
-                try encodeRawBlock(n.block_id, project_dir, n.path, out, fixups);
+                try encodeRawBlock(gpa, n.block_id, project_dir, n.path, out);
             },
             .akpl => |*n| {
                 if (akpl != null) return error.BadData;
                 akpl = .{};
                 try fs.readFileInto(project_dir, n.path, akpl.?.writer());
 
-                const start = try beginBlock(out, .AKPL);
-                try out.writer().writeAll(akpl.?.slice());
-                try endBlock(out, fixups, start);
+                const start = try beginBlockAl(gpa, out, .AKPL);
+                try out.appendSlice(gpa, akpl.?.slice());
+                try endBlockAl(out, start);
             },
             .akcd => |*n| {
                 if (akpl == null) return error.BadData;
@@ -278,7 +276,7 @@ pub fn encode(
         }
     }
 
-    try flushCels(&state, out, fixups);
+    try flushCels(gpa, &state, out);
 }
 
 fn encodeCelRaw(
@@ -420,27 +418,27 @@ fn encodeCelTrle(bitmap: *const bmp.Bmp, strategy: awiz.EncodingStrategy, out: a
     try awiz.encodeRle(bitmap.*, strategy, out);
 }
 
-fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !void {
+fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: anytype) !void {
     if (state.akci.items.len == 0)
         return;
 
-    const akof_start = try beginBlock(out, .AKOF);
+    const akof_start = try beginBlockAl(gpa, out, .AKOF);
     for (0.., state.cd_offsets.items) |i, cd_off| {
         const off: Akof = .{
             .akci = @intCast(i * @sizeOf(Akci)),
             .akcd = cd_off,
         };
-        try out.writer().writeAll(std.mem.asBytes(&off));
+        try out.appendSlice(gpa, std.mem.asBytes(&off));
     }
-    try endBlock(out, fixups, akof_start);
+    try endBlockAl(out, akof_start);
 
-    const akci_start = try beginBlock(out, .AKCI);
-    try out.writer().writeAll(std.mem.sliceAsBytes(state.akci.items));
-    try endBlock(out, fixups, akci_start);
+    const akci_start = try beginBlockAl(gpa, out, .AKCI);
+    try out.appendSlice(gpa, std.mem.sliceAsBytes(state.akci.items));
+    try endBlockAl(out, akci_start);
 
-    const akcd_start = try beginBlock(out, .AKCD);
-    try out.writer().writeAll(std.mem.sliceAsBytes(state.akcd.items));
-    try endBlock(out, fixups, akcd_start);
+    const akcd_start = try beginBlockAl(gpa, out, .AKCD);
+    try out.appendSlice(gpa, std.mem.sliceAsBytes(state.akcd.items));
+    try endBlockAl(out, akcd_start);
 
     state.akci.clearRetainingCapacity();
     state.cd_offsets.clearRetainingCapacity();
@@ -449,13 +447,13 @@ fn flushCels(state: *EncodeState, out: anytype, fixups: *std.ArrayList(Fixup)) !
 
 // TODO: this is duplicated
 fn encodeRawBlock(
+    gpa: std.mem.Allocator,
     block_id: BlockId,
     dir: std.fs.Dir,
     path: []const u8,
-    writer: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const start = try beginBlock(writer, block_id);
-    try fs.readFileInto(dir, path, writer.writer());
-    try endBlock(writer, fixups, start);
+    const start = try beginBlockAl(gpa, out, block_id);
+    try fs.readFileInto(dir, path, out.writer(gpa));
+    try endBlockAl(out, start);
 }

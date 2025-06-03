@@ -518,12 +518,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
-
-    var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try rmim_encode.encode(rmim.compression, bmp, &stream, &fixups);
-    applyFixups(out.items, fixups.items);
+    try rmim_encode.encode(cx.gpa, rmim.compression, bmp, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .RMIM,
@@ -690,12 +685,7 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
-
-    var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try planAwizInner(cx, room_number, awiz_node.children, &stream, &fixups);
-    applyFixups(out.items, fixups.items);
+    try planAwizInner(cx, room_number, awiz_node.children, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .AWIZ,
@@ -708,8 +698,7 @@ fn planAwizInner(
     cx: *const Context,
     room_number: u8,
     children: Ast.ExtraSlice,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     var the_awiz: awiz.Awiz = .{};
     defer the_awiz.deinit(cx.gpa);
@@ -742,7 +731,7 @@ fn planAwizInner(
         }
     }
 
-    try awiz.encode(&the_awiz, cx.awiz_strategy, out, fixups);
+    try awiz.encode(cx.gpa, &the_awiz, cx.awiz_strategy, out);
 }
 
 fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -751,12 +740,7 @@ fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
-
-    var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try planMultInner(cx, room_number, mult, &stream, &fixups);
-    applyFixups(out.items, fixups.items);
+    try planMultInner(cx, room_number, mult, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .MULT,
@@ -769,53 +753,49 @@ fn planMultInner(
     cx: *const Context,
     room_number: u8,
     mult_node: *const @FieldType(Ast.Node, "mult"),
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const room_file = &cx.project.files.items[room_number].?;
 
     if (mult_node.raw_block != Ast.null_node) {
         const defa = &room_file.ast.nodes.items[mult_node.raw_block].raw_block_nested;
-        const defa_start = try beginBlock(out, .DEFA);
+        const defa_start = try beginBlockAl(cx.gpa, out, .DEFA);
         for (room_file.ast.getExtra(defa.children)) |child_node| {
             const child = &room_file.ast.nodes.items[child_node].raw_block;
 
             const file = try cx.project_dir.openFile(child.path, .{});
             defer file.close();
 
-            const child_start = try beginBlock(out, child.block_id);
-            try io.copy(file, out.writer());
-            try endBlock(out, fixups, child_start);
+            const child_start = try beginBlockAl(cx.gpa, out, child.block_id);
+            try io.copy(file, out.writer(cx.gpa));
+            try endBlockAl(out, child_start);
         }
-        try endBlock(out, fixups, defa_start);
+        try endBlockAl(out, defa_start);
     }
 
-    const wrap_start = try beginBlock(out, .WRAP);
+    const wrap_start = try beginBlockAl(cx.gpa, out, .WRAP);
 
-    const offs_start = try beginBlock(out, .OFFS);
-    // just write garbage bytes for now, they'll be replaced at the end
-    try out.writer().writeAll(std.mem.sliceAsBytes(room_file.ast.getExtra(mult_node.indices)));
-    try endBlock(out, fixups, offs_start);
+    const offs_start = try beginBlockAl(cx.gpa, out, .OFFS);
+    // the offsets are filled in at the end
+    _ = try out.addManyAsSlice(cx.gpa, mult_node.indices.len * 4);
+    try endBlockAl(out, offs_start);
 
     var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
     for (room_file.ast.getExtra(mult_node.children)) |node| {
-        awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.bytes_written)) - offs_start);
+        awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.items.len)) - offs_start);
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
-        const awiz_start = try beginBlock(out, .AWIZ);
-        try planAwizInner(cx, room_number, wiz.children, out, fixups);
-        try endBlock(out, fixups, awiz_start);
+        const awiz_start = try beginBlockAl(cx.gpa, out, .AWIZ);
+        try planAwizInner(cx, room_number, wiz.children, out);
+        try endBlockAl(out, awiz_start);
     }
 
     var off_pos = offs_start + block_header_size;
     for (room_file.ast.getExtra(mult_node.indices)) |i| {
-        try fixups.append(.{
-            .offset = off_pos,
-            .bytes = Fixup.encode(awiz_offsets.get(i), .little),
-        });
+        std.mem.writeInt(u32, out.items[off_pos..][0..4], awiz_offsets.get(i), .little);
         off_pos += 4;
     }
 
-    try endBlock(out, fixups, wrap_start);
+    try endBlockAl(out, wrap_start);
 }
 
 fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -824,12 +804,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
-
-    var stream = std.io.countingWriter(out.writer(cx.gpa));
-    try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &stream, &fixups);
-    applyFixups(out.items, fixups.items);
+    try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .AKOS,

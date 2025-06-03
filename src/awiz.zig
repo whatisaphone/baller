@@ -4,9 +4,8 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
-const Fixup = @import("block_writer.zig").Fixup;
-const beginBlock = @import("block_writer.zig").beginBlock;
-const endBlock = @import("block_writer.zig").endBlock;
+const beginBlockAl = @import("block_writer.zig").beginBlockAl;
+const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -250,10 +249,10 @@ pub fn extractChildren(
 pub const EncodingStrategy = enum { original, max };
 
 pub fn encode(
+    gpa: std.mem.Allocator,
     wiz: *const Awiz,
     strategy: EncodingStrategy,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     // First find the bitmap block so we can preload all data before we start
 
@@ -268,38 +267,38 @@ pub fn encode(
 
     for (wiz.blocks.slice()) |block| switch (block) {
         .rgbs => {
-            const fixup = try beginBlock(out, .RGBS);
-            try writeRgbs(header, out);
-            try endBlock(out, fixups, fixup);
+            const fixup = try beginBlockAl(gpa, out, .RGBS);
+            try writeRgbs(gpa, header, out);
+            try endBlockAl(out, fixup);
         },
         .two_ints => |b| {
-            const fixup = try beginBlock(out, b.id);
-            try out.writer().writeInt(i32, b.ints[0], .little);
-            try out.writer().writeInt(i32, b.ints[1], .little);
-            try endBlock(out, fixups, fixup);
+            const fixup = try beginBlockAl(gpa, out, b.id);
+            try out.writer(gpa).writeInt(i32, b.ints[0], .little);
+            try out.writer(gpa).writeInt(i32, b.ints[1], .little);
+            try endBlockAl(out, fixup);
         },
         .wizh => {
-            const fixup = try beginBlock(out, .WIZH);
-            try out.writer().writeInt(i32, @intFromEnum(wizd.compression), .little);
-            try out.writer().writeInt(i32, header.width(), .little);
-            try out.writer().writeInt(i32, header.height(), .little);
-            try endBlock(out, fixups, fixup);
+            const fixup = try beginBlockAl(gpa, out, .WIZH);
+            try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
+            try out.writer(gpa).writeInt(i32, header.width(), .little);
+            try out.writer(gpa).writeInt(i32, header.height(), .little);
+            try endBlockAl(out, fixup);
         },
         .trns => |trns| {
-            const fixup = try beginBlock(out, .TRNS);
-            try out.writer().writeInt(i32, trns, .little);
-            try endBlock(out, fixups, fixup);
+            const fixup = try beginBlockAl(gpa, out, .TRNS);
+            try out.writer(gpa).writeInt(i32, trns, .little);
+            try endBlockAl(out, fixup);
         },
         .wizd => |_| {
-            const fixup = try beginBlock(out, .WIZD);
+            const fixup = try beginBlockAl(gpa, out, .WIZD);
             switch (wizd.compression) {
-                .none => try encodeUncompressed(header, out.writer()),
-                .rle => try encodeRle(header, strategy, out.writer()),
+                .none => try encodeUncompressed(header, out.writer(gpa)),
+                .rle => try encodeRle(header, strategy, out.writer(gpa)),
             }
             // Pad output to a multiple of 2 bytes
-            if ((out.bytes_written - fixup) & 1 != 0)
-                try out.writer().writeByte(0);
-            try endBlock(out, fixups, fixup);
+            if ((out.items.len - fixup) & 1 != 0)
+                try out.append(gpa, 0);
+            try endBlockAl(out, fixup);
         },
     };
 }
@@ -316,11 +315,11 @@ pub const placeholder_palette = placeholder_palette: {
     break :placeholder_palette result;
 };
 
-fn writeRgbs(header: bmp.Bmp, out: anytype) !void {
+fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
     for (header.palette) |color| {
-        try out.writer().writeByte(color.rgbRed);
-        try out.writer().writeByte(color.rgbGreen);
-        try out.writer().writeByte(color.rgbBlue);
+        try out.append(gpa, color.rgbRed);
+        try out.append(gpa, color.rgbGreen);
+        try out.append(gpa, color.rgbBlue);
     }
 }
 

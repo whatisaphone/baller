@@ -1,8 +1,7 @@
 const std = @import("std");
 
-const Fixup = @import("block_writer.zig").Fixup;
-const beginBlock = @import("block_writer.zig").beginBlock;
-const endBlock = @import("block_writer.zig").endBlock;
+const beginBlockAl = @import("block_writer.zig").beginBlockAl;
+const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
@@ -11,27 +10,27 @@ const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
 const BMCOMP_NMAJMIN_HT8 = @import("rmim.zig").BMCOMP_NMAJMIN_HT8;
 
 pub fn encode(
+    gpa: std.mem.Allocator,
     compression: u8,
     bmp_raw: []const u8,
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const header = try bmp.readHeader(bmp_raw, .{ .skip_bounds_check = true });
 
-    const rmih_fixup = try beginBlock(out, .RMIH);
-    try out.writer().writeInt(u16, 0, .little);
-    try endBlock(out, fixups, rmih_fixup);
+    const rmih_fixup = try beginBlockAl(gpa, out, .RMIH);
+    try out.appendNTimes(gpa, 0, 2);
+    try endBlockAl(out, rmih_fixup);
 
-    const im00_fixup = try beginBlock(out, .IM00);
+    const im00_fixup = try beginBlockAl(gpa, out, .IM00);
 
-    const bmap_fixup = try beginBlock(out, .BMAP);
+    const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
-    try out.writer().writeByte(compression);
-    try compressBmap(header, compression, out.writer());
+    try out.append(gpa, compression);
+    try compressBmap(header, compression, out.writer(gpa));
 
-    try endBlock(out, fixups, bmap_fixup);
+    try endBlockAl(out, bmap_fixup);
 
-    try endBlock(out, fixups, im00_fixup);
+    try endBlockAl(out, im00_fixup);
 }
 
 fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
