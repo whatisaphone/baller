@@ -8,8 +8,10 @@ const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
+const FxbclReader = @import("block_reader.zig").FxbclReader;
+const StreamingBlockReader2 = @import("block_reader.zig").StreamingBlockReader2;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
-const streamingBlockReader = @import("block_reader.zig").streamingBlockReader;
+const fxbclPos = @import("block_reader.zig").fxbclPos;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
 const disasm = @import("disasm.zig");
@@ -644,8 +646,6 @@ const Context = struct {
     }
 };
 
-const DiskReader = std.io.CountingReader(std.io.BufferedReader(4096, io.XorReader(std.fs.File.Reader).Reader).Reader);
-
 fn extractDisk(
     cx: *Context,
     diagnostic: *Diagnostic,
@@ -666,21 +666,23 @@ fn extractDisk(
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), xor_key);
     var in_buf = std.io.bufferedReader(in_xor.reader());
-    var in: DiskReader = std.io.countingReader(in_buf.reader());
+    var in_count = std.io.countingReader(in_buf.reader());
+    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
-    var file_blocks = streamingBlockReader(&in, &diag);
+    var file_blocks: StreamingBlockReader2 = .init(&in, &diag);
 
-    const lecf = try file_blocks.expect(.LECF).block();
-    var lecf_blocks = streamingBlockReader(&in, &diag);
+    const lecf = try file_blocks.expect(.LECF) orelse return error.BadData;
+    var lecf_blocks: StreamingBlockReader2 = .init(&in, &diag);
 
-    while (in.bytes_read < lecf.end()) {
-        const lflf = try lecf_blocks.expect(.LFLF).block();
-        try extractRoom(cx, disk_number, &in, &diag, lflf.end(), code);
+    while (try lecf_blocks.expect(.LFLF)) |block| {
+        try extractRoom(cx, disk_number, &in, &diag, code);
+        try lecf_blocks.finish(&block);
     }
 
-    try lecf_blocks.finish(lecf.end());
+    try lecf_blocks.end();
 
-    try file_blocks.finishEof();
+    try file_blocks.finish(&lecf);
+    file_blocks.expectMismatchedEnd();
 
     try code.appendSlice(cx.gpa, "}\n");
 }
@@ -711,17 +713,16 @@ fn extractRoom(
     disk_number: u8,
     in: anytype,
     disk_diag: *const Diagnostic.ForBinaryFile,
-    lflf_end: u32,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const room_number = findRoomNumber(cx.game, cx.index, disk_number, @intCast(in.bytes_read)) orelse
+    const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbclPos(in)) orelse
         return error.BadData;
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
 
     var events: sync.Channel(Event, 16) = .init;
 
-    try cx.pool.spawn(readRoomJob, .{ cx, in, &diag, lflf_end, room_number, &events });
+    try cx.pool.spawn(readRoomJob, .{ cx, in, &diag, room_number, &events });
 
     try emitRoom(cx, room_number, project_code, &events);
 }
@@ -800,7 +801,6 @@ fn readRoomJob(
     cx: *Context,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-    lflf_end: u32,
     room_number: u8,
     events: *sync.Channel(Event, 16),
 ) void {
@@ -828,26 +828,26 @@ fn readRoomJob(
         room_dir = cx.output_dir.openDir(rcx.room_path, .{}) catch |err| break :blk err;
         rcx.room_dir = room_dir.?;
 
-        readRoomInner(&rcx, in, diag, lflf_end) catch |err| break :blk err;
+        readRoomInner(&rcx, in, diag) catch |err| break :blk err;
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
-            diag.zigErr(@intCast(in.bytes_read), "room {}: unexpected error: {s}", .{room_number}, err);
+            diag.zigErr(fxbclPos(in), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
     };
 
-    diag.trace(@intCast(in.bytes_read), "waiting for jobs", .{});
+    diag.trace(fxbclPos(in), "waiting for jobs", .{});
     while (true) {
         const pending = rcx.pending_jobs.load(.acquire);
         if (pending == 0) break;
         std.Thread.Futex.wait(&rcx.pending_jobs, pending);
     }
-    diag.trace(@intCast(in.bytes_read), "all jobs finished", .{});
+    diag.trace(fxbclPos(in), "all jobs finished", .{});
 
     // This depends on usage data that the script jobs wrote to context. Do it
     // after the join so we know they finished.
     emitRoomVars(&rcx) catch |err| {
         if (err != error.AddedToDiagnostic)
-            diag.zigErr(@intCast(in.bytes_read), "room {}: unexpected error: {s}", .{room_number}, err);
+            diag.zigErr(fxbclPos(in), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
     };
 
@@ -887,39 +887,39 @@ fn readRoomInner(
     cx: *RoomContext,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-    lflf_end: u32,
 ) !void {
-    var lflf_blocks = streamingBlockReader(in, diag);
+    var lflf_blocks: StreamingBlockReader2 = .init(in, diag);
 
     const rmim_chunk_index = try cx.claimChunkIndex();
-    const rmim_block = try lflf_blocks.expect(.RMIM).block();
+    const rmim_block = try lflf_blocks.expect(.RMIM) orelse return error.BadData;
     var rmim_raw = try cx.cx.gpa.alloc(u8, rmim_block.size);
     defer cx.cx.gpa.free(rmim_raw);
     try in.reader().readNoEof(rmim_raw);
+    try lflf_blocks.finish(&rmim_block);
 
     {
-        const rmda = try lflf_blocks.expect(.RMDA).block();
-        const room_palette = try extractRmda(cx, in, diag, &rmda);
+        const block = try lflf_blocks.expect(.RMDA) orelse return error.BadData;
+        const room_palette = try extractRmda(cx, in, diag);
         cx.room_palette = .{ .defined = room_palette };
+        try lflf_blocks.finish(&block);
     }
 
     // extract RMIM after RMDA since it needs the room palette
     try spawnBlockJob(extractRmimJob, cx, diag, &rmim_block, rmim_raw, rmim_chunk_index);
     rmim_raw.len = 0; // ownership was moved to the job, don't free it here
 
-    while (in.bytes_read < lflf_end) {
-        const block = try lflf_blocks.next().block();
+    while (try lflf_blocks.next()) |block| {
         try readBlockAndSpawn(extractGlobJob, cx, in, diag, &block);
+        try lflf_blocks.finish(&block);
     }
 
-    try lflf_blocks.finish(lflf_end);
+    try lflf_blocks.end();
 }
 
 fn extractRmda(
     cx: *RoomContext,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-    rmda: *const Block,
 ) ![0x300]u8 {
     try cx.sendSyncFmt(.top, "rmda {{\n", .{});
 
@@ -936,10 +936,9 @@ fn extractRmda(
         buffered_blocks.deinit(cx.cx.gpa);
     }
 
-    var rmda_blocks = streamingBlockReader(in, diag);
+    var rmda_blocks: StreamingBlockReader2 = .init(in, diag);
 
-    while (in.bytes_read < rmda.end()) {
-        const block = try rmda_blocks.next().block();
+    while (try rmda_blocks.next()) |block| {
         switch (block.id) {
             .PALS => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
@@ -961,11 +960,12 @@ fn extractRmda(
                 try cx.sendSync(.top, code);
             },
         }
+        try rmda_blocks.finish(&block);
     }
 
     try spawnBufferedBlockJobs(cx, diag, &buffered_blocks);
 
-    try rmda_blocks.finish(rmda.end());
+    try rmda_blocks.end();
 
     try cx.sendSyncFmt(.top, "}}\n", .{});
 
@@ -2045,7 +2045,7 @@ pub fn writeRawBlock(
     block_id: BlockId,
     data_source: union(enum) {
         bytes: []const u8,
-        reader: struct { in: *DiskReader, size: u32 },
+        reader: struct { in: *FxbclReader, size: u32 },
     },
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,

@@ -516,6 +516,10 @@ fn StreamingBlockResult(Stream: type) type {
 
 pub const FxbclReader = std.io.LimitedReader(std.io.CountingReader(std.io.BufferedReader(4096, io.XorReader(std.fs.File.Reader).Reader).Reader).Reader);
 
+pub fn fxbclPos(in: *const FxbclReader) u32 {
+    return @intCast(in.inner_reader.context.bytes_read);
+}
+
 pub const StreamingBlockReader2 = struct {
     in: *FxbclReader,
     diag: *const Diagnostic.ForBinaryFile,
@@ -541,7 +545,7 @@ pub const StreamingBlockReader2 = struct {
 
     pub fn readHeader(self: *const StreamingBlockReader2) !?struct { u32, RawBlockHeader } {
         _ = self.state.baseline;
-        const offset: u32 = @intCast(self.in.inner_reader.context.bytes_read);
+        const offset = fxbclPos(self.in);
         var header: RawBlockHeader = undefined;
         const len = try self.in.reader().readAll(std.mem.asBytes(&header));
         if (len == 0) return null;
@@ -571,8 +575,7 @@ pub const StreamingBlockReader2 = struct {
 
         self.diag.trace(block.offset(), "start block {}", .{block.id});
 
-        const pos: u32 = @intCast(self.in.inner_reader.context.bytes_read);
-        std.debug.assert(pos == block.start);
+        std.debug.assert(fxbclPos(self.in) == block.start);
 
         const prev_limit: u32 = @intCast(self.in.bytes_left);
         const next_limit = prev_limit - block.size;
@@ -584,7 +587,7 @@ pub const StreamingBlockReader2 = struct {
     pub fn finish(self: *StreamingBlockReader2, block: *const Block) !void {
         _ = self.state.inside_block;
 
-        const pos: u32 = @intCast(self.in.inner_reader.context.bytes_read);
+        const pos = fxbclPos(self.in);
         self.diag.trace(pos, "end block {}", .{block.id});
 
         if (self.in.bytes_left != 0) return error.BadData;
@@ -601,6 +604,15 @@ pub const StreamingBlockReader2 = struct {
 
     pub fn expectMismatchedEnd(self: *const StreamingBlockReader2) void {
         _ = self.state.baseline;
+    }
+
+    pub fn expect(self: *StreamingBlockReader2, id: BlockId) !?Block {
+        const block = try self.next() orelse return null;
+        if (block.id != id) {
+            self.diag.err(block.offset(), "expected block {} but found {}", .{ id, block.id });
+            return error.AddedToDiagnostic;
+        }
+        return block;
     }
 };
 
