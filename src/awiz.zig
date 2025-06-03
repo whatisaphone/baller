@@ -187,8 +187,6 @@ pub fn decodeRle(
     reader: anytype,
     bmp_buf: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const bmp_writer = bmp_buf.writer(utils.null_allocator);
-
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
 
@@ -199,20 +197,21 @@ pub fn decodeRle(
             const n = try reader.reader().readByte();
             if (n & 1 != 0) {
                 const count = n >> 1;
-                try bmp_writer.writeByteNTimes(transparent, count);
+                try bmp_buf.appendNTimes(utils.null_allocator, transparent, count);
             } else if (n & 2 != 0) {
                 const count = (n >> 2) + 1;
                 const color = try reader.reader().readByte();
-                try bmp_writer.writeByteNTimes(color, count);
+                try bmp_buf.appendNTimes(utils.null_allocator, color, count);
             } else {
                 const count = (n >> 2) + 1;
-                try io.copy(std.io.limitedReader(reader.reader(), count), bmp_writer);
+                const chunk = try io.readInPlace(reader, count);
+                try bmp_buf.appendSlice(utils.null_allocator, chunk);
             }
         }
 
         try bmp_buf.appendNTimes(utils.null_allocator, transparent, out_row_end - bmp_buf.items.len);
 
-        try bmp.padRow(bmp_writer, width);
+        try bmp.padRow(bmp_buf.writer(utils.null_allocator), width);
     }
 }
 
