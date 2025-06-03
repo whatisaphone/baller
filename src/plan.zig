@@ -12,9 +12,9 @@ const block_header_size = @import("block_reader.zig").block_header_size;
 const Fixup = @import("block_writer.zig").Fixup;
 const applyFixups = @import("block_writer.zig").applyFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockAL = @import("block_writer.zig").beginBlockAL;
+const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlock = @import("block_writer.zig").endBlock;
-const endBlockAL = @import("block_writer.zig").endBlockAL;
+const endBlockAl = @import("block_writer.zig").endBlockAl;
 const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
@@ -642,9 +642,9 @@ fn compileObim(
             },
             .obim_im => {
                 const block_id = obim.makeImBlockId(im_index) orelse return error.BadData;
-                const im_start = try beginBlockAL(cx.gpa, out, block_id);
+                const im_start = try beginBlockAl(cx.gpa, out, block_id);
                 try compileIm(cx, room_number, child_index, out);
-                try endBlockAL(out, im_start);
+                try endBlockAl(out, im_start);
                 im_index += 1;
             },
             else => unreachable,
@@ -679,9 +679,9 @@ fn encodeRawBlock(
     dir: std.fs.Dir,
     path: []const u8,
 ) !void {
-    const start = try beginBlockAL(gpa, out, block_id);
+    const start = try beginBlockAl(gpa, out, block_id);
     try fs.readFileInto(dir, path, out.writer(gpa));
-    try endBlockAL(out, start);
+    try endBlockAl(out, start);
 }
 
 fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -963,7 +963,7 @@ fn planObjectInner(
             },
             .verb => |verb| {
                 if (verb_fixup == null) {
-                    verb_fixup = try beginBlockAL(cx.gpa, out, .VERB);
+                    verb_fixup = try beginBlockAl(cx.gpa, out, .VERB);
                     _ = try out.addManyAsSlice(cx.gpa, verb_count * @sizeOf(VerbEntry));
                     try out.append(cx.gpa, 0);
                 }
@@ -1007,15 +1007,15 @@ fn planObjectInner(
     }
 
     if (verb_fixup == null) {
-        verb_fixup = try beginBlockAL(cx.gpa, out, .VERB);
+        verb_fixup = try beginBlockAl(cx.gpa, out, .VERB);
         try out.append(cx.gpa, 0);
     }
-    try endBlockAL(out, verb_fixup.?);
+    try endBlockAl(out, verb_fixup.?);
 
-    const obna_fixup = try beginBlockAL(cx.gpa, out, .OBNA);
+    const obna_fixup = try beginBlockAl(cx.gpa, out, .OBNA);
     try out.appendSlice(cx.gpa, object.obna);
     try out.append(cx.gpa, 0);
-    try endBlockAL(out, obna_fixup);
+    try endBlockAl(out, obna_fixup);
 }
 
 fn planIndex(cx: *Context) !void {

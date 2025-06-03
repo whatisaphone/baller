@@ -20,7 +20,7 @@ pub fn endBlock(stream: anytype, fixups: *std.ArrayList(Fixup), block_start: u32
     });
 }
 
-pub fn beginBlockAL(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id: BlockId) !u32 {
+pub fn beginBlockAl(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id: BlockId) !u32 {
     const block_start: u32 = @intCast(out.items.len);
 
     try out.writer(gpa).writeInt(BlockId.Raw, id.raw(), .little);
@@ -30,7 +30,7 @@ pub fn beginBlockAL(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id
     return block_start;
 }
 
-pub fn endBlockAL(out: *std.ArrayListUnmanaged(u8), block_start: u32) !void {
+pub fn endBlockAl(out: *std.ArrayListUnmanaged(u8), block_start: u32) !void {
     const dest = out.items[block_start + 4 ..][0..4];
     const pos: u32 = @intCast(out.items.len);
     const value = pos - block_start;
