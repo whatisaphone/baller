@@ -15,29 +15,34 @@ pub const Vm = struct {
     operands: [op_count]LangOperands,
     /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
     /// of `Entry`s.
-    opcode_lookup: [256 * 53]u16,
+    opcode_lookup: [256 * 53]OpcodeEntry,
 };
 
-const OpcodeEntry = union(enum) {
-    op: Op,
-    /// Points to the starting offset of 256 subentries.
-    nested: u16,
-    unset,
+const OpcodeEntry = struct {
+    raw: u16,
 
-    fn encode(self: OpcodeEntry) u16 {
-        return switch (self) {
+    const Decoded = union(enum) {
+        op: Op,
+        /// Points to the starting offset of 256 subentries.
+        nested: u16,
+        unset,
+    };
+
+    fn encode(entry: Decoded) OpcodeEntry {
+        const raw = switch (entry) {
             .op => |op| @intFromEnum(op),
             .nested => |i| 0x8000 | i,
             .unset => 0xffff,
         };
+        return .{ .raw = raw };
     }
 
-    fn decode(raw: u16) OpcodeEntry {
-        if (raw & 0x8000 == 0)
-            return .{ .op = @enumFromInt(raw & 0x7fff) };
-        if (raw == 0xffff)
+    fn decode(self: OpcodeEntry) Decoded {
+        if (self.raw & 0x8000 == 0)
+            return .{ .op = @enumFromInt(self.raw & 0x7fff) };
+        if (self.raw == 0xffff)
             return .unset;
-        return .{ .nested = raw & 0x7fff };
+        return .{ .nested = self.raw & 0x7fff };
     }
 };
 
@@ -55,7 +60,7 @@ const VmBuilder = struct {
             .opcode_lookup_pos = 256,
         };
         // Fill in the first 256 (each possible first byte of an opcode)
-        @memset(result.vm.opcode_lookup[0..256], @as(OpcodeEntry, .unset).encode());
+        @memset(result.vm.opcode_lookup[0..256], .encode(.unset));
         return result;
     }
 
@@ -79,24 +84,24 @@ const VmBuilder = struct {
         var start: u16 = 0;
         for (bytes[0 .. bytes.len - 1]) |byte| {
             const index = start + byte;
-            switch (OpcodeEntry.decode(self.vm.opcode_lookup[index])) {
+            switch (self.vm.opcode_lookup[index].decode()) {
                 .op => unreachable,
                 .nested => {},
                 .unset => self.makeNested(index),
             }
-            start = OpcodeEntry.decode(self.vm.opcode_lookup[index]).nested;
+            start = self.vm.opcode_lookup[index].decode().nested;
         }
         const index = start + bytes[bytes.len - 1];
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
-        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .op = op });
+        std.debug.assert(self.vm.opcode_lookup[index].decode() == .unset);
+        self.vm.opcode_lookup[index] = .encode(.{ .op = op });
     }
 
     fn makeNested(self: *VmBuilder, index: u16) void {
         const pos = self.opcode_lookup_pos;
 
-        std.debug.assert(OpcodeEntry.decode(self.vm.opcode_lookup[index]) == .unset);
-        self.vm.opcode_lookup[index] = OpcodeEntry.encode(.{ .nested = pos });
-        @memset(self.vm.opcode_lookup[pos..][0..256], OpcodeEntry.encode(.unset));
+        std.debug.assert(self.vm.opcode_lookup[index].decode() == .unset);
+        self.vm.opcode_lookup[index] = .encode(.{ .nested = pos });
+        @memset(self.vm.opcode_lookup[pos..][0..256], .encode(.unset));
 
         self.opcode_lookup_pos += 256;
     }
@@ -1618,7 +1623,7 @@ pub const Disasm = struct {
         var group_pos: u16 = 0;
         while (true) {
             const byte = self.reader.reader().readByte() catch unreachable;
-            switch (OpcodeEntry.decode(self.vm.opcode_lookup[group_pos + byte])) {
+            switch (self.vm.opcode_lookup[group_pos + byte].decode()) {
                 .op => |op| return try disasmIns(self.vm, &self.reader, ins_start, op),
                 .unset => return self.becomePoison(1),
                 .nested => |next_start| group_pos = next_start,
