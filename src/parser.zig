@@ -51,11 +51,13 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         index,
         disk,
         @"var",
+        @"const",
     };
 
     var index_children_opt: ?std.BoundedArray(Ast.NodeIndex, 16) = null;
     var disks: [2]Ast.NodeIndex = @splat(Ast.null_node);
     var variables: std.BoundedArray(u32, 768) = .{};
+    var constants: std.BoundedArray(u32, 1024) = .{};
 
     while (true) {
         skipWhitespace(cx);
@@ -74,6 +76,10 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
                     const node = try parseVar(cx, token);
                     try appendNode(cx, &variables, node);
                 },
+                .@"const" => {
+                    const node = try parseConst(cx, token);
+                    try appendNode(cx, &constants, node);
+                },
             },
             .eof => break,
             else => return reportUnexpected(cx, token),
@@ -91,6 +97,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         .index = index_extra,
         .disks = disks_extra,
         .variables = variables_extra,
+        .constants = try storeExtra(cx, constants.slice()),
     } });
 }
 
@@ -203,6 +210,18 @@ fn parseVar(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     return storeNode(cx, token, .{ .variable = .{
         .name = name,
         .number = number,
+    } });
+}
+
+fn parseConst(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .eq);
+    const value = try expectInteger(cx);
+    try expect(cx, .newline);
+
+    return storeNode(cx, token, .{ .constant = .{
+        .name = name,
+        .value = value,
     } });
 }
 

@@ -309,6 +309,10 @@ pub fn run(
         }
     }
 
+    for (cx.symbols.enums.items) |*the_enum|
+        for (the_enum.entries.items) |*entry|
+            try code.writer(gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
+
     try fs.writeFileZ(output_dir, "project.scu", code.items);
 
     return cx.stats;

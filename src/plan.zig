@@ -168,6 +168,12 @@ fn buildProjectScope(cx: *Context) !void {
         try addScopeSymbol(cx, &cx.project_scope, var_node.name, symbol);
     }
 
+    for (project_file.ast.getExtra(project_node.constants)) |node_index| {
+        const const_node = &project_file.ast.nodes.items[node_index].constant;
+        const symbol: script.Symbol = .{ .constant = const_node.value };
+        try addScopeSymbol(cx, &cx.project_scope, const_node.name, symbol);
+    }
+
     for (project_file.ast.getExtra(project_node.disks)) |disk_node| {
         if (disk_node == Ast.null_node) continue;
         const disk = &project_file.ast.nodes.items[disk_node].disk;

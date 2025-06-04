@@ -2,7 +2,7 @@ const lang = @import("lang.zig");
 
 pub const Symbol = union(enum) {
     variable: lang.Variable,
-    constant: u16,
+    constant: i32,
 };
 
 pub const max_params = 13;

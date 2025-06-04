@@ -3200,6 +3200,18 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             try cx.symbols.writeScriptName(cx.room_number, num, cx.out.writer(cx.gpa));
             return;
         },
+        .@"enum" => |enum_index| {
+            const the_enum = &cx.symbols.enums.items[enum_index];
+            const index = std.sort.binarySearch(
+                Symbols.EnumEntry,
+                the_enum.entries.items,
+                int,
+                Symbols.EnumEntry.orderByValue,
+            ) orelse break :write_name;
+            const entry = &the_enum.entries.items[index];
+            try cx.out.appendSlice(cx.gpa, entry.name);
+            return;
+        },
     };
     try cx.out.writer(cx.gpa).print("{}", .{int});
 }

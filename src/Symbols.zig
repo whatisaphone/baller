@@ -56,14 +56,40 @@ const Room = struct {
     }
 };
 
+const Enum = struct {
+    /// Sorted by value
+    entries: std.ArrayListUnmanaged(EnumEntry),
+
+    const empty: Enum = .{ .entries = .empty };
+
+    fn deinit(self: *Enum, allocator: std.mem.Allocator) void {
+        self.entries.deinit(allocator);
+    }
+};
+
+pub const EnumEntry = struct {
+    name: []const u8,
+    value: i32,
+
+    pub fn orderByValue(value: i32, other: EnumEntry) std.math.Order {
+        return std.math.order(value, other.value);
+    }
+};
+
 game: games.Game,
 globals: ArrayMap(Variable) = .empty,
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 scripts: ArrayMap(Script) = .empty,
 rooms: ArrayMap(Room) = .empty,
+enums: std.ArrayListUnmanaged(Enum) = .empty,
+/// Map from enum name to index within `enums`
+enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
+    self.enum_names.deinit(allocator);
+    self.enums.deinit(allocator);
+
     var i = self.rooms.len();
     while (i > 0) {
         i -= 1;
@@ -146,6 +172,8 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
         try handleGlobalScript(&cx)
     else if (std.mem.eql(u8, part, "room"))
         try handleRoom(&cx)
+    else if (std.mem.eql(u8, part, "enum"))
+        try handleEnum(&cx)
     else
         return error.BadData;
 }
@@ -156,7 +184,7 @@ fn handleGlobal(cx: *Cx) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    const variable = try parseVariable(cx.value);
+    const variable = try parseVariable(cx, cx.value);
     try cx.result.globals.putNew(cx.allocator, number, variable);
 
     const entry = try cx.result.global_names.getOrPut(cx.allocator, variable.name);
@@ -198,7 +226,7 @@ fn handleScriptLocal(cx: *Cx, script: *Script) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    const variable = try parseVariable(cx.value);
+    const variable = try parseVariable(cx, cx.value);
     try script.locals.putNew(cx.allocator, number, variable);
 }
 
@@ -232,7 +260,7 @@ fn handleRoomVar(cx: *Cx, room: *Room) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    const variable = try parseVariable(cx.value);
+    const variable = try parseVariable(cx, cx.value);
     try room.vars.putNew(cx.allocator, number, variable);
 
     const entry = try room.var_names.getOrPut(cx.allocator, variable.name);
@@ -254,20 +282,48 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
     try handleScript(cx, script);
 }
 
-fn parseVariable(value: []const u8) !Variable {
+fn handleEnum(cx: *Cx) !void {
+    const enum_name = cx.key_parts.next() orelse return error.BadData;
+
+    const value_str = cx.key_parts.next() orelse return error.BadData;
+    const value = try std.fmt.parseInt(i32, value_str, 10);
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    const item_name = cx.value;
+
+    const enum_entry = try cx.result.enum_names.getOrPut(cx.allocator, enum_name);
+    if (!enum_entry.found_existing) {
+        const enum_index = std.math.cast(u16, cx.result.enums.items.len) orelse
+            return error.BadData;
+        const the_enum = try cx.result.enums.addOne(cx.allocator);
+        the_enum.* = .empty;
+        enum_entry.value_ptr.* = enum_index;
+    }
+    const the_enum = &cx.result.enums.items[enum_entry.value_ptr.*];
+
+    const value_index = std.sort.lowerBound(EnumEntry, the_enum.entries.items, value, EnumEntry.orderByValue);
+    if (value_index != the_enum.entries.items.len and the_enum.entries.items[value_index].value == value)
+        return error.BadData;
+    try the_enum.entries.insert(cx.allocator, value_index, .{ .name = item_name, .value = value });
+}
+
+fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     const colon = std.mem.indexOfScalar(u8, value, ':') orelse
         return .{ .name = value, .type = null };
     const name = std.mem.trimRight(u8, value[0..colon], " ");
     const type_str = std.mem.trimLeft(u8, value[colon + 1 ..], " ");
-    const typ = try parseType(type_str);
+    const typ = try parseType(cx, type_str);
     return .{ .name = name, .type = typ };
 }
 
-fn parseType(s: []const u8) !Type {
+fn parseType(cx: *Cx, s: []const u8) !Type {
     if (std.mem.eql(u8, s, "Room"))
         return .room
     else if (std.mem.eql(u8, s, "Script"))
         return .script
+    else if (cx.result.enum_names.get(s)) |e|
+        return .{ .@"enum" = e }
     else
         return error.BadData;
 }
@@ -340,9 +396,11 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
     return script.name;
 }
 
-pub const Type = enum {
+pub const Type = union(enum) {
     room,
     script,
+    /// Index within `symbols.enums`
+    @"enum": u16,
 };
 
 pub const GlobKind = enum {
