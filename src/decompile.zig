@@ -3224,23 +3224,11 @@ fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
-    const kind, const number = try variable.decode();
-    switch (kind) {
-        .global => {
-            if (cx.symbols.globals.getPtr(number)) |sym|
-                return try cx.out.appendSlice(cx.gpa, sym.name);
-        },
-        .local => {
-            if (cx.symbols.getScript(cx.id)) |ss|
-                if (ss.locals.getPtr(number)) |sym|
-                    return try cx.out.appendSlice(cx.gpa, sym.name);
-        },
-        .room => {
-            if (cx.symbols.getRoom(cx.room_number)) |room|
-                if (room.vars.getPtr(number)) |sym|
-                    return try cx.out.appendSlice(cx.gpa, sym.name);
-        },
+    if (cx.symbols.getVariable(cx.room_number, cx.id, variable)) |sym| {
+        try cx.out.appendSlice(cx.gpa, sym.name);
+        return;
     }
+    const kind, const number = try variable.decode();
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
 }
 

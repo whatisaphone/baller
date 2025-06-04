@@ -204,32 +204,10 @@ fn emitVariable(
     room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
-    const kind, const num = try variable.decode();
-    switch (kind) {
-        .global => {
-            if (symbols.globals.getPtr(num)) |sym| {
-                try out.writeAll(sym.name);
-                return;
-            }
-            try out.print("global{}", .{num});
-        },
-        .local => {
-            if (symbols.getScript(id)) |script| {
-                if (script.locals.getPtr(num)) |sym| {
-                    try out.writeAll(sym.name);
-                    return;
-                }
-            }
-            try out.print("local{}", .{num});
-        },
-        .room => {
-            if (symbols.getRoom(room_number)) |room| {
-                if (room.vars.getPtr(num)) |sym| {
-                    try out.writeAll(sym.name);
-                    return;
-                }
-            }
-            try out.print("room{}", .{num});
-        },
+    if (symbols.getVariable(room_number, id, variable)) |sym| {
+        try out.writeAll(sym.name);
+        return;
     }
+    const kind, const number = try variable.decode();
+    try out.print("{s}{}", .{ @tagName(kind), number });
 }
