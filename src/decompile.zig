@@ -1124,6 +1124,10 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .@"load-script" => {
             setType(cx, args[0], .script);
         },
+        .@"open-file" => {
+            const file_mode = cx.symbols.enum_names.get("FileMode").?;
+            setType(cx, args[1], .{ .@"enum" = file_mode });
+        },
         else => {},
     }
 }

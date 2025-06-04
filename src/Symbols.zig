@@ -110,21 +110,12 @@ pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.globals.deinit(allocator);
 }
 
-pub fn parse(
-    allocator: std.mem.Allocator,
-    game: games.Game,
-    ini_text: []const u8,
-) !Symbols {
-    var result: Symbols = .{
-        .game = game,
-    };
-    errdefer result.deinit(allocator);
-
+pub fn parse(self: *Symbols, allocator: std.mem.Allocator, ini_text: []const u8) !void {
     var line_number: u32 = 0;
     var lines = std.mem.splitScalar(u8, ini_text, '\n');
     while (lines.next()) |line| {
         line_number += 1;
-        parseLine(allocator, line, &result) catch {
+        parseLine(allocator, line, self) catch {
             try std.io.getStdErr().writer().print(
                 "error on line {}\n",
                 .{line_number},
@@ -132,7 +123,6 @@ pub fn parse(
             return error.Reported;
         };
     }
-    return result;
 }
 
 const Cx = struct {

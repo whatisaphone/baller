@@ -245,11 +245,19 @@ pub fn run(
     var symbols_text: []const u8 = "";
     defer gpa.free(symbols_text);
 
-    var symbols: Symbols = if (args.symbols_path) |path| symbols: {
-        symbols_text = try fs.readFileZ(gpa, std.fs.cwd(), path);
-        break :symbols try .parse(gpa, game, symbols_text);
-    } else .{ .game = game };
+    var symbols: Symbols = .{ .game = game };
     defer symbols.deinit(gpa);
+
+    try symbols.parse(gpa,
+        \\enum.FileMode.1=FOR-READ
+        \\enum.FileMode.2=FOR-WRITE
+        \\enum.FileMode.6=FOR-APPEND
+    );
+
+    if (args.symbols_path) |path| {
+        symbols_text = try fs.readFileZ(gpa, std.fs.cwd(), path);
+        try symbols.parse(gpa, symbols_text);
+    }
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
