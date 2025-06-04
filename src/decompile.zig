@@ -1654,16 +1654,20 @@ fn huntIfElse(cx: *StructuringCx, ni_first: NodeIndex) !void {
         if (ni_false_end == null_node) continue;
 
         const ni_f_e = if (ni_false_end != ni) ni_false_end else null_node;
-        try makeIfElse(cx, ni, ni_f_e);
+        try makeIfElse(cx, ni, ni_true_end, ni_f_e);
     }
 }
 
-fn makeIfElse(cx: *StructuringCx, ni: NodeIndex, ni_false_end: NodeIndex) !void {
+fn makeIfElse(
+    cx: *StructuringCx,
+    ni: NodeIndex,
+    ni_true_end: NodeIndex,
+    ni_false_end: NodeIndex,
+) !void {
     const empty = ni_false_end == null_node;
     const node = &cx.nodes.items[ni];
     const condition = node.kind.@"if".condition;
     const ni_true_start = node.kind.@"if".true;
-    const ni_true_end = findLastNode(cx, ni_true_start);
     const ni_false_start = if (!empty) node.next else null_node;
     const ni_last = niOpt(ni_false_end) orelse ni;
     const ni_after = cx.nodes.items[ni_last].next;
@@ -1843,6 +1847,7 @@ fn huntForIn(cx: *StructuringCx, ni_initial: NodeIndex) !void {
 }
 
 const ForIn = struct {
+    ni_body_end: NodeIndex,
     target: lang.Variable,
     list: ExprIndex,
     backing: lang.Variable,
@@ -2012,6 +2017,7 @@ fn isForIn(cx: *StructuringCx, ni: NodeIndex) ?ForIn {
     if (body_end.kind.basic_block.exit.jump != inc_node.start) return null;
 
     return .{
+        .ni_body_end = ni_body_end,
         .target = target,
         .list = assign_args[1],
         .backing = backing,
@@ -2024,14 +2030,13 @@ fn makeForIn(cx: *StructuringCx, ni: NodeIndex, info: ForIn) void {
     const node_inc = &cx.nodes.items[ni_inc];
     const ni_init = node_inc.prev;
     const ni_body = node.kind.@"if".true;
-    const ni_body_end = findLastNode(cx, ni_body);
     const ni_after = node.next;
 
     cx.nodes.items[ni_init].next = ni;
     chopEndStmts(cx, ni_init, 3);
 
     chopStartStmts(cx, ni_body, 1); // chop off `target = backing[backing[0]]`
-    chopJump(cx, ni_body_end);
+    chopJump(cx, info.ni_body_end);
 
     orphanNode(cx, ni_inc);
 
