@@ -421,7 +421,7 @@ fn extractIndex(
     @memcpy(maxs_present_bytes, maxs_raw);
     @memset(maxs_missing_bytes, 0);
 
-    try writeRawBlock(gpa, .MAXS, .{ .bytes = maxs_present_bytes }, output_dir, null, 4, .index_block, code);
+    try writeRawBlock(gpa, .MAXS, maxs_present_bytes, output_dir, null, 4, .index_block, code);
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
         diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
@@ -620,7 +620,7 @@ fn extractRawIndexBlock(
 ) !void {
     const block = try blocks.expect(block_id).block();
     const bytes = try io.readInPlace(blocks.stream, block.size);
-    try writeRawBlock(gpa, block.id, .{ .bytes = bytes }, output_dir, null, 4, .index_block, code);
+    try writeRawBlock(gpa, block.id, bytes, output_dir, null, 4, .index_block, code);
 }
 
 const Context = struct {
@@ -956,7 +956,7 @@ fn extractRmda(
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
-                try writeRawBlock(cx.cx.gpa, block.id, .{ .reader = .{ .in = in, .size = block.size } }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
+                try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = .{ .in = in, .size = block.size } }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
             },
         }
@@ -997,7 +997,7 @@ fn extractPals(
     try wrap_blocks.finish();
     try pals_blocks.finish();
 
-    try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = &pals_raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, code);
+    try writeRawBlock(cx.cx.gpa, block.id, &pals_raw, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, code);
 
     return apal.*;
 }
@@ -1193,7 +1193,7 @@ fn extractRmdaChildJob(
     }
 
     // If decoding failed or was skipped, extract as raw
-    try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
+    try writeRawBlock(cx.cx.gpa, block.id, raw, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
     const section: Section = switch (block.id) {
         .OBIM => .bottom,
         .OBCD => .bottom,
@@ -1262,7 +1262,7 @@ fn decodeObcd(
         .{ cdhd.object_id, name },
     );
 
-    try writeRawBlock(cx.cx.gpa, .CDHD, .{ .bytes = std.mem.asBytes(cdhd) }, cx.room_dir, cx.room_path, 4, .{ .object = cdhd.object_id }, code);
+    try writeRawBlock(cx.cx.gpa, .CDHD, std.mem.asBytes(cdhd), cx.room_dir, cx.room_path, 4, .{ .object = cdhd.object_id }, code);
 
     for (verbs, 0..) |v, vi| {
         if (v.offset < min_code_offset) return error.BadData;
@@ -1681,7 +1681,7 @@ fn extractGlobJob(
         // This should normally be impossible, but there's a glitched CHAR block
         // in soccer that we need to handle in order to round-trip.
         disk_diag.trace(block.offset(), "glob missing from directory", .{});
-        try writeRawBlock(cx.cx.gpa, block.id, .{ .bytes = raw }, cx.room_dir, cx.room_path, 0, .{ .block_offset = block.offset() }, &code);
+        try writeRawBlock(cx.cx.gpa, block.id, raw, cx.room_dir, cx.room_path, 0, .{ .block_offset = block.offset() }, &code);
         cx.sendChunk(chunk_index, .bottom, code);
         return;
     };
@@ -2041,6 +2041,19 @@ fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?uni
 }
 
 pub fn writeRawBlock(
+    gpa: std.mem.Allocator,
+    block_id: BlockId,
+    bytes: []const u8,
+    output_dir: std.fs.Dir,
+    output_path: ?[]const u8,
+    indent: u8,
+    filename_pattern: @typeInfo(@TypeOf(writeRawBlockImpl)).@"fn".params[6].type.?,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try writeRawBlockImpl(gpa, block_id, .{ .bytes = bytes }, output_dir, output_path, indent, filename_pattern, code);
+}
+
+fn writeRawBlockImpl(
     gpa: std.mem.Allocator,
     block_id: BlockId,
     data_source: union(enum) {

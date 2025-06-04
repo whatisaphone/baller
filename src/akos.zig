@@ -49,18 +49,18 @@ pub fn decode(
     var blocks = oldFixedBlockReader(&stream);
 
     const akhd = try blocks.expectAsValue(.AKHD, Akhd);
-    try writeRawBlock(allocator, .AKHD, .{ .bytes = std.mem.asBytes(akhd) }, out_dir, out_path, 4, .block, manifest);
+    try writeRawBlock(allocator, .AKHD, std.mem.asBytes(akhd), out_dir, out_path, 4, .block, manifest);
 
     const akpl = try blocks.expectAsSlice(.AKPL);
     try fs.writeFileZ(out_dir, "AKPL.bin", akpl);
     try manifest.writer(allocator).print("    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
 
     const rgbs = try blocks.expectAsValue(.RGBS, [0x300]u8);
-    try writeRawBlock(allocator, .RGBS, .{ .bytes = rgbs }, out_dir, out_path, 4, .block, manifest);
+    try writeRawBlock(allocator, .RGBS, rgbs, out_dir, out_path, 4, .block, manifest);
 
     while (try blocks.peek() != .AKOF) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try writeRawBlock(allocator, block_id, .{ .bytes = block_raw }, out_dir, out_path, 4, .block, manifest);
+        try writeRawBlock(allocator, block_id, block_raw, out_dir, out_path, 4, .block, manifest);
     }
 
     const akof_len = try blocks.assume(.AKOF);
@@ -99,7 +99,7 @@ pub fn decode(
 
     while (stream.pos < akos_raw.len) {
         const block_id, const block_raw = try blocks.nextAsSlice();
-        try writeRawBlock(allocator, block_id, .{ .bytes = block_raw }, out_dir, out_path, 4, .block, manifest);
+        try writeRawBlock(allocator, block_id, block_raw, out_dir, out_path, 4, .block, manifest);
     }
 
     try blocks.finishEof();

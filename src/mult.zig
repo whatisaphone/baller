@@ -131,7 +131,7 @@ fn extractDefa(
         const block = try blocks.next().block();
         const bytes = try io.readInPlace(&stream, block.size);
 
-        try writeRawBlock(gpa, block.id, .{ .bytes = bytes }, out_dir, out_path, 8, .block, code);
+        try writeRawBlock(gpa, block.id, bytes, out_dir, out_path, 8, .block, code);
 
         if (block.id == .RGBS) {
             if (rgbs != null) return error.BadData;

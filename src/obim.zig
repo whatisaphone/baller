@@ -22,7 +22,7 @@ pub fn extract(
     const imhd_raw = try blocks.expect(.IMHD).bytes();
     if (imhd_raw.len < @sizeOf(Imhd)) return error.BadData;
     const imhd = std.mem.bytesAsValue(Imhd, imhd_raw[0..@sizeOf(Imhd)]);
-    try writeRawBlock(gpa, .IMHD, .{ .bytes = imhd_raw }, out_dir, out_path, 4, .{ .object = imhd.object_number }, code);
+    try writeRawBlock(gpa, .IMHD, imhd_raw, out_dir, out_path, 4, .{ .object = imhd.object_number }, code);
 
     var im_index: usize = 0;
     while (!blocks.atEnd()) : (im_index += 1) {
@@ -32,11 +32,11 @@ pub fn extract(
         try code.appendSlice(gpa, "    im {\n");
 
         const smap = try im_blocks.expect(.SMAP).bytes();
-        try writeRawBlock(gpa, .SMAP, .{ .bytes = smap }, out_dir, out_path, 8, .{ .object_block = .{ imhd.object_number, im_block_id } }, code);
+        try writeRawBlock(gpa, .SMAP, smap, out_dir, out_path, 8, .{ .object_block = .{ imhd.object_number, im_block_id } }, code);
 
         if (!im_blocks.atEnd()) {
             const zp01 = try im_blocks.expect(.ZP01).bytes();
-            try writeRawBlock(gpa, .ZP01, .{ .bytes = zp01 }, out_dir, out_path, 8, .{ .object_block = .{ imhd.object_number, im_block_id } }, code);
+            try writeRawBlock(gpa, .ZP01, zp01, out_dir, out_path, 8, .{ .object_block = .{ imhd.object_number, im_block_id } }, code);
         }
 
         try im_blocks.finish();
