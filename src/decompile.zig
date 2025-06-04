@@ -1103,9 +1103,8 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     for (args) |ei|
         recoverExpr(cx, ei);
     switch (op) {
-        .set => {
-            if (cx.types.get(args[0])) |lhs_type|
-                setType(cx, args[1], lhs_type);
+        .eq, .ne, .set => {
+            unify(cx, args[0], args[1]);
         },
         .@"start-script" => {
             setType(cx, args[0], .script);
@@ -1131,6 +1130,15 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
 
 fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.Type) void {
     cx.types.put(utils.null_allocator, ei, typ) catch unreachable;
+}
+
+fn unify(cx: *TypeCx, a: ExprIndex, b: ExprIndex) void {
+    const a_type = cx.types.get(a);
+    const b_type = cx.types.get(b);
+    if (a_type == null) if (b_type) |typ|
+        cx.types.put(utils.null_allocator, a, typ) catch unreachable;
+    if (b_type == null) if (a_type) |typ|
+        cx.types.put(utils.null_allocator, b, typ) catch unreachable;
 }
 
 fn getExtra3(
