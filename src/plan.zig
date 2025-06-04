@@ -173,6 +173,10 @@ fn buildProjectScope(cx: *Context) !void {
         const disk = &project_file.ast.nodes.items[disk_node].disk;
         for (project_file.ast.getExtra(disk.children)) |room_node| {
             const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
+
+            const room_symbol: script.Symbol = .{ .constant = disk_room.room_number };
+            try addScopeSymbol(cx, &cx.project_scope, disk_room.name, room_symbol);
+
             const room_file = &cx.project.files.items[disk_room.room_number].?;
             const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
             for (room_file.ast.getExtra(root.children)) |child_index| {

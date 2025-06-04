@@ -6,6 +6,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
+const Index = @import("extract.zig").Index;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
@@ -22,6 +23,7 @@ pub fn run(
     room_number: u8,
     id: Symbols.ScriptId,
     bytecode: []const u8,
+    index: *const Index,
     /// Bitmask of which local scripts exist in the room. Any script in the mask
     /// is eligible to be emitted by name instead of by number.
     lsc_mask: *const UsageTracker.LocalScripts,
@@ -101,6 +103,7 @@ pub fn run(
         .stmt_ends = if (annotate) .init(dcx.stmt_ends.items) else null,
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
+        .index = index,
         .lsc_mask = lsc_mask,
         .local_var_usage = &usage.local_vars,
         .types = &tcx.types,
@@ -1060,6 +1063,7 @@ const TypeCx = struct {
 };
 
 const Type = union(enum) {
+    room,
     script,
 };
 
@@ -1098,6 +1102,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         },
         .@"start-script-rec" => {
             setType(cx, args[0], .script);
+        },
+        .@"current-room" => {
+            setType(cx, args[0], .room);
         },
         .@"script-running" => {
             setType(cx, args[0], .script);
@@ -2784,6 +2791,7 @@ const EmitCx = struct {
     stmt_ends: ?utils.SafeManyPointer([*]const u16),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
+    index: *const Index,
     lsc_mask: *const UsageTracker.LocalScripts,
     local_var_usage: *const UsageTracker.LocalVars,
     types: *const ArrayMap(Type),
@@ -3151,6 +3159,12 @@ fn binOp(op: lang.Op) ?Ast.BinOp {
 fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
     const int = cx.exprs.getPtr(ei).int;
     if (cx.types.get(ei)) |t| write_name: switch (t) {
+        .room => {
+            const num = std.math.cast(u8, int) orelse break :write_name;
+            const name = cx.index.room_names.get(num) orelse break :write_name;
+            try cx.out.appendSlice(cx.gpa, name);
+            return;
+        },
         .script => {
             const num = std.math.cast(u32, int) orelse break :write_name;
             if (num < games.firstLocalScript(cx.symbols.game)) {

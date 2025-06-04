@@ -314,7 +314,7 @@ pub fn run(
     return cx.stats;
 }
 
-const Index = struct {
+pub const Index = struct {
     maxs: Maxs,
     directories: Directories,
     lfl_offsets: utils.SafeManyPointer([*]u32),
@@ -375,9 +375,9 @@ const RoomNames = struct {
     starts: utils.SafeManyPointer([*]u16),
     lens: utils.SafeManyPointer([*]u8),
 
-    fn get(self: *const RoomNames, room_number: u8) []const u8 {
+    pub fn get(self: *const RoomNames, room_number: u8) ?[]const u8 {
         const len = self.lens.get(room_number);
-        if (len == 0) return "";
+        if (len == 0) return null;
         const start = self.starts.get(room_number);
         return self.buffer.use()[start..][0..len];
     }
@@ -822,7 +822,7 @@ fn readRoomJob(
     };
 
     (blk: {
-        rcx.room_path = cx.index.room_names.get(room_number);
+        rcx.room_path = cx.index.room_names.get(room_number) orelse break :blk error.BadData;
         fs.makeDirIfNotExist(cx.output_dir, rcx.room_path) catch |err| break :blk err;
         room_dir = cx.output_dir.openDir(rcx.room_path, .{}) catch |err| break :blk err;
         rcx.room_dir = room_dir.?;
@@ -1348,7 +1348,7 @@ fn decompileVerb(
 
     try code.writer(cx.cx.gpa).print("\n    verb {} {{\n", .{verb});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 2, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 2, &usage);
     try code.appendSlice(cx.cx.gpa, "    }\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1477,7 +1477,7 @@ fn extractEncdExcdDecompile(
     };
     try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1623,7 +1623,7 @@ fn extractLscDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -1910,7 +1910,7 @@ fn extractScrpDecompile(
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
-    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, &cx.lsc_mask, code, 1, &usage);
+    try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
 
     errdefer comptime unreachable; // if we get here, success and commit
@@ -2137,7 +2137,7 @@ fn emitRoom(
 
     std.sort.block(Chunk, chunks.slice(), {}, Chunk.sectionAsc);
 
-    const room_name = cx.index.room_names.get(room_number);
+    const room_name = cx.index.room_names.get(room_number) orelse return error.BadData;
     var room_scu_path_buf: [Ast.max_room_name_len + ".scu".len + 1]u8 = undefined;
     const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
 
