@@ -21,7 +21,6 @@ const io = @import("io.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const obim = @import("obim.zig");
-const pathf = @import("pathf.zig");
 const rmim = @import("rmim.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
@@ -656,13 +655,13 @@ fn extractDisk(
 ) !void {
     try code.writer(cx.gpa).print("disk {} {{\n", .{disk_number});
 
-    var disk_name_buf: pathf.Path = .{};
-    const disk_name = try pathf.append(&disk_name_buf, index_name);
-    games.pointPathToDisk(cx.game, disk_name.full(), disk_number);
+    var disk_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    const disk_name = std.fmt.bufPrintZ(&disk_name_buf, "{s}", .{index_name}) catch unreachable;
+    games.pointPathToDisk(cx.game, disk_name, disk_number);
 
-    const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name.full());
+    const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name);
 
-    const in_file = try input_dir.openFileZ(disk_name.full(), .{});
+    const in_file = try input_dir.openFileZ(disk_name, .{});
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), xor_key);
     var in_buf = std.io.bufferedReader(in_xor.reader());

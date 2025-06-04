@@ -11,7 +11,6 @@ const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const pathf = @import("pathf.zig");
 const plan = @import("plan.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
@@ -110,11 +109,11 @@ fn emitDisk(
     disk_number: u8,
     index: *Index,
 ) !void {
-    var out_name_buf: pathf.Path = .{};
-    const out_name = try pathf.append(&out_name_buf, index_name);
-    games.pointPathToDisk(game, out_name.full(), disk_number);
+    var out_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    const out_name = std.fmt.bufPrintZ(&out_name_buf, "{s}", .{index_name}) catch unreachable;
+    games.pointPathToDisk(game, out_name, disk_number);
 
-    const out_file = try output_dir.createFileZ(out_name.full(), .{});
+    const out_file = try output_dir.createFileZ(out_name, .{});
     defer out_file.close();
     const out_xor = io.xorWriter(out_file.writer(), xor_key);
     var out_buf = std.io.bufferedWriter(out_xor.writer());

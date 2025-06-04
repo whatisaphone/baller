@@ -22,6 +22,8 @@ pub const Game = enum {
     }
 };
 
+pub const longest_index_name_len = "baseball 2001.he0".len;
+
 pub fn detectGameOrFatal(index_path: []const u8) !Game {
     const input_name = std.fs.path.basename(index_path);
     return if (std.mem.eql(u8, input_name, "BASEBALL.HE0"))
