@@ -10,6 +10,7 @@ const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 const report = @import("report.zig");
 const utils = @import("utils.zig");
 
@@ -257,7 +258,7 @@ pub fn encode(
 
         switch (node.*) {
             .raw_block => |*n| {
-                try encodeRawBlock(gpa, n.block_id, project_dir, n.path, out);
+                try encodeRawBlock(gpa, out, n.block_id, project_dir, n.path);
             },
             .akpl => |*n| {
                 if (akpl != null) return error.BadData;
@@ -443,17 +444,4 @@ fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: anytype) !void {
     state.akci.clearRetainingCapacity();
     state.cd_offsets.clearRetainingCapacity();
     state.akcd.clearRetainingCapacity();
-}
-
-// TODO: this is duplicated
-fn encodeRawBlock(
-    gpa: std.mem.Allocator,
-    block_id: BlockId,
-    dir: std.fs.Dir,
-    path: []const u8,
-    out: *std.ArrayListUnmanaged(u8),
-) !void {
-    const start = try beginBlockAl(gpa, out, block_id);
-    try fs.readFileInto(dir, path, out.writer(gpa));
-    try endBlockAl(out, start);
 }

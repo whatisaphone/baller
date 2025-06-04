@@ -20,7 +20,6 @@ const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
-const io = @import("io.zig");
 const lang = @import("lang.zig");
 const obim = @import("obim.zig");
 const rmim_encode = @import("rmim_encode.zig");
@@ -666,8 +665,7 @@ fn compileIm(
     }
 }
 
-// TODO: this is duplicated
-fn encodeRawBlock(
+pub fn encodeRawBlock(
     gpa: std.mem.Allocator,
     out: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
@@ -762,13 +760,7 @@ fn planMultInner(
         const defa_start = try beginBlockAl(cx.gpa, out, .DEFA);
         for (room_file.ast.getExtra(defa.children)) |child_node| {
             const child = &room_file.ast.nodes.items[child_node].raw_block;
-
-            const file = try cx.project_dir.openFile(child.path, .{});
-            defer file.close();
-
-            const child_start = try beginBlockAl(cx.gpa, out, child.block_id);
-            try io.copy(file, out.writer(cx.gpa));
-            try endBlockAl(out, child_start);
+            try encodeRawBlock(cx.gpa, out, child.block_id, cx.project_dir, child.path);
         }
         try endBlockAl(out, defa_start);
     }
