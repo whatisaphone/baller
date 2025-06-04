@@ -615,7 +615,7 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
         const num: u14 = @intCast(num_usize);
         if (local_name) |n|
             if (std.mem.eql(u8, name, n))
-                return .{ .variable = .init2(.local, num) };
+                return .{ .variable = .init(.local, num) };
     }
     if (cx.room_scope.get(name)) |sym| return sym;
     if (cx.project_scope.get(name)) |sym| return sym;

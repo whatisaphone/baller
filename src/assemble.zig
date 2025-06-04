@@ -216,7 +216,7 @@ fn tokenizeVariable(str: []const u8, locals: []const []const u8, scopes: Scopes)
 fn parseVariable(var_str: []const u8, locals: []const []const u8, scopes: Scopes) !lang.Variable {
     for (0.., locals) |i, name|
         if (std.mem.eql(u8, name, var_str))
-            return .init(.{ .local = @intCast(i) });
+            return .init(.local, @intCast(i));
 
     if (scopes.room.get(var_str)) |s| if (s == .variable) return s.variable;
     if (scopes.project.get(var_str)) |s| if (s == .variable) return s.variable;
@@ -231,7 +231,7 @@ fn parseVariable(var_str: []const u8, locals: []const []const u8, scopes: Scopes
 
     return switch (kind) {
         .global => unreachable,
-        .local => .init(.{ .local = num }),
+        .local => .init(.local, num),
         .room => unreachable,
     };
 }

@@ -111,7 +111,7 @@ fn writePreamble(room_number: u8, id: Symbols.ScriptId, symbols: *const Symbols,
 
     if (script.locals.len() != 0) {
         for (0..script.locals.len()) |i| {
-            const variable: lang.Variable = .init(.{ .local = @intCast(i) });
+            const variable: lang.Variable = .init(.local, @intCast(i));
             try out.writeAll(".local ");
             try emitVariable(out, variable, symbols, room_number, id);
             try out.writeByte('\n');
@@ -204,15 +204,16 @@ fn emitVariable(
     room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
-    switch (try variable.decode()) {
-        .global => |num| {
+    const kind, const num = try variable.decode();
+    switch (kind) {
+        .global => {
             const name_opt = symbols.globals.get(num);
             if (name_opt) |name|
                 try out.writeAll(name)
             else
                 try out.print("global{}", .{num});
         },
-        .local => |num| {
+        .local => {
             if (symbols.getScript(id)) |script| {
                 if (script.locals.get(num)) |name| {
                     try out.writeAll(name);
@@ -221,7 +222,7 @@ fn emitVariable(
             }
             try out.print("local{}", .{num});
         },
-        .room => |num| {
+        .room => {
             if (symbols.getRoom(room_number)) |room| {
                 if (room.vars.get(num)) |name| {
                     try out.writeAll(name);

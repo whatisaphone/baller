@@ -164,7 +164,7 @@ fn buildProjectScope(cx: *Context) !void {
     for (project_file.ast.getExtra(project_node.variables)) |node_index| {
         const var_node = &project_file.ast.nodes.items[node_index].variable;
         const var_num = std.math.cast(u14, var_node.number) orelse return error.BadData;
-        const symbol: script.Symbol = .{ .variable = .init2(.global, var_num) };
+        const symbol: script.Symbol = .{ .variable = .init(.global, var_num) };
         try addScopeSymbol(cx, &cx.project_scope, var_node.name, symbol);
     }
 
@@ -250,7 +250,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
     for (room_file.ast.getExtra(root.variables)) |node_index| {
         const node = &room_file.ast.nodes.items[node_index].variable;
         const num = std.math.cast(u14, node.number) orelse return error.BadData;
-        const symbol: script.Symbol = .{ .variable = .init2(.room, num) };
+        const symbol: script.Symbol = .{ .variable = .init(.room, num) };
         try addScopeSymbol(cx, room_scope, node.name, symbol);
     }
 

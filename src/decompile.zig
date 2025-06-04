@@ -3199,7 +3199,7 @@ fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
-    const kind, const number = try variable.decode2();
+    const kind, const number = try variable.decode();
     switch (kind) {
         .global => {
             if (cx.symbols.globals.get(number)) |name|

@@ -1516,21 +1516,7 @@ pub const Variable = struct {
         room,
     };
 
-    const Decoded = union(Kind) {
-        global: u16,
-        local: u16,
-        room: u16,
-    };
-
-    pub fn init(variable: Decoded) Variable {
-        return switch (variable) {
-            .global => |n| .{ .raw = n | 0 },
-            .local => |n| .{ .raw = n | 0x4000 },
-            .room => |n| .{ .raw = n | 0x8000 },
-        };
-    }
-
-    pub fn init2(kind: Kind, num: u14) Variable {
+    pub fn init(kind: Kind, num: u14) Variable {
         const k: u16 = switch (kind) {
             .global => 0,
             .local => 0x4000,
@@ -1539,17 +1525,7 @@ pub const Variable = struct {
         return .{ .raw = k | num };
     }
 
-    pub fn decode(self: Variable) !Decoded {
-        return switch (self.raw & 0xc000) {
-            0x0000 => .{ .global = self.raw & 0x3fff },
-            0x4000 => .{ .local = self.raw & 0x3fff },
-            0x8000 => .{ .room = self.raw & 0x3fff },
-            0xc000 => error.BadData,
-            else => unreachable,
-        };
-    }
-
-    pub fn decode2(self: Variable) !struct { Kind, u14 } {
+    pub fn decode(self: Variable) !struct { Kind, u14 } {
         const kind: Kind = switch (self.raw & 0xc000) {
             0x0000 => .global,
             0x4000 => .local,

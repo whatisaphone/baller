@@ -35,7 +35,7 @@ pub fn init(game: games.Game) UsageTracker {
 }
 
 pub fn track(self: *UsageTracker, variable: lang.Variable) !void {
-    const kind, const number = try variable.decode2();
+    const kind, const number = try variable.decode();
     const max: u16 = switch (kind) {
         .global => max_global_vars,
         .local => max_local_vars,
