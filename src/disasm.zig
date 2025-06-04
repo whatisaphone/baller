@@ -207,16 +207,16 @@ fn emitVariable(
     const kind, const num = try variable.decode();
     switch (kind) {
         .global => {
-            const name_opt = symbols.globals.get(num);
-            if (name_opt) |name|
-                try out.writeAll(name)
-            else
-                try out.print("global{}", .{num});
+            if (symbols.globals.getPtr(num)) |sym| {
+                try out.writeAll(sym.name);
+                return;
+            }
+            try out.print("global{}", .{num});
         },
         .local => {
             if (symbols.getScript(id)) |script| {
-                if (script.locals.get(num)) |name| {
-                    try out.writeAll(name);
+                if (script.locals.getPtr(num)) |sym| {
+                    try out.writeAll(sym.name);
                     return;
                 }
             }
@@ -224,8 +224,8 @@ fn emitVariable(
         },
         .room => {
             if (symbols.getRoom(room_number)) |room| {
-                if (room.vars.get(num)) |name| {
-                    try out.writeAll(name);
+                if (room.vars.getPtr(num)) |sym| {
+                    try out.writeAll(sym.name);
                     return;
                 }
             }

@@ -3,6 +3,7 @@ const std = @import("std");
 const ArrayMap = @import("array_map.zig").ArrayMap;
 const BlockId = @import("block_id.zig").BlockId;
 const games = @import("games.zig");
+const lang = @import("lang.zig");
 const utils = @import("utils.zig");
 
 const Symbols = @This();
@@ -17,10 +18,14 @@ pub const ScriptId = union(enum) {
     object: struct { room: u8, number: u16, verb: u8 },
 };
 
+const Variable = struct {
+    name: []const u8,
+    type: ?Type,
+};
+
 pub const Script = struct {
     name: ?[]const u8 = null,
-    /// Lookup table from number to name
-    locals: ArrayMap([]const u8) = .empty,
+    locals: ArrayMap(Variable) = .empty,
 
     fn deinit(self: *Script, allocator: std.mem.Allocator) void {
         self.locals.deinit(allocator);
@@ -28,8 +33,7 @@ pub const Script = struct {
 };
 
 const Room = struct {
-    /// Lookup table from number to name
-    vars: ArrayMap([]const u8) = .empty,
+    vars: ArrayMap(Variable) = .empty,
     /// Map from name to number
     var_names: std.StringHashMapUnmanaged(u16) = .empty,
     enter: Script = .{},
@@ -53,8 +57,7 @@ const Room = struct {
 };
 
 game: games.Game,
-/// Lookup table from number to name
-globals: ArrayMap([]const u8) = .empty,
+globals: ArrayMap(Variable) = .empty,
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 scripts: ArrayMap(Script) = .empty,
@@ -153,9 +156,10 @@ fn handleGlobal(cx: *Cx) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    try cx.result.globals.putNew(cx.allocator, number, cx.value);
+    const variable = try parseVariable(cx.value);
+    try cx.result.globals.putNew(cx.allocator, number, variable);
 
-    const entry = try cx.result.global_names.getOrPut(cx.allocator, cx.value);
+    const entry = try cx.result.global_names.getOrPut(cx.allocator, variable.name);
     if (entry.found_existing)
         return error.BadData;
     entry.value_ptr.* = number;
@@ -194,7 +198,8 @@ fn handleScriptLocal(cx: *Cx, script: *Script) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    try script.locals.putNew(cx.allocator, number, cx.value);
+    const variable = try parseVariable(cx.value);
+    try script.locals.putNew(cx.allocator, number, variable);
 }
 
 fn handleRoom(cx: *Cx) !void {
@@ -227,9 +232,10 @@ fn handleRoomVar(cx: *Cx, room: *Room) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    try room.vars.putNew(cx.allocator, number, cx.value);
+    const variable = try parseVariable(cx.value);
+    try room.vars.putNew(cx.allocator, number, variable);
 
-    const entry = try room.var_names.getOrPut(cx.allocator, cx.value);
+    const entry = try room.var_names.getOrPut(cx.allocator, variable.name);
     if (entry.found_existing)
         return error.BadData;
     entry.value_ptr.* = number;
@@ -246,6 +252,24 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
     const script = &script_entry.*.?;
 
     try handleScript(cx, script);
+}
+
+fn parseVariable(value: []const u8) !Variable {
+    const colon = std.mem.indexOfScalar(u8, value, ':') orelse
+        return .{ .name = value, .type = null };
+    const name = std.mem.trimRight(u8, value[0..colon], " ");
+    const type_str = std.mem.trimLeft(u8, value[colon + 1 ..], " ");
+    const typ = try parseType(type_str);
+    return .{ .name = name, .type = typ };
+}
+
+fn parseType(s: []const u8) !Type {
+    if (std.mem.eql(u8, s, "Room"))
+        return .room
+    else if (std.mem.eql(u8, s, "Script"))
+        return .script
+    else
+        return error.BadData;
 }
 
 pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
@@ -266,6 +290,26 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
         },
         .object => null,
     };
+}
+
+pub fn getVariable(
+    self: *const Symbols,
+    room_number: u8,
+    script_id: ScriptId,
+    variable: lang.Variable,
+) ?*const Variable {
+    const kind, const num = variable.decode() catch return null;
+    switch (kind) {
+        .global => return self.globals.getPtr(num),
+        .local => {
+            const script_symbol = self.getScript(script_id) orelse return null;
+            return script_symbol.locals.getPtr(num);
+        },
+        .room => {
+            const room = self.getRoom(room_number) orelse return null;
+            return room.vars.getPtr(num);
+        },
+    }
 }
 
 pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {
@@ -295,6 +339,11 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
     const script = self.getScript(id) orelse return null;
     return script.name;
 }
+
+pub const Type = enum {
+    room,
+    script,
+};
 
 pub const GlobKind = enum {
     room_image,

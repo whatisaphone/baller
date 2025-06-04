@@ -63,6 +63,9 @@ pub fn run(
     try decompileBasicBlocks(&dcx, bytecode);
 
     var tcx: TypeCx = .{
+        .symbols = symbols,
+        .room_number = room_number,
+        .id = id,
         .basic_blocks = dcx.basic_blocks,
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
@@ -1055,16 +1058,14 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
 }
 
 const TypeCx = struct {
+    symbols: *const Symbols,
+    room_number: u8,
+    id: Symbols.ScriptId,
     basic_blocks: []const BasicBlock,
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
-    types: ArrayMap(Type),
-};
-
-const Type = union(enum) {
-    room,
-    script,
+    types: ArrayMap(Symbols.Type),
 };
 
 fn recoverTypes(cx: *TypeCx) void {
@@ -1082,7 +1083,12 @@ fn recoverTypes(cx: *TypeCx) void {
 
 fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
     switch (cx.exprs.getPtr(ei).*) {
-        .int, .string, .variable, .dup => {},
+        .int, .string, .dup => {},
+        .variable => |v| {
+            const sym = cx.symbols.getVariable(cx.room_number, cx.id, v) orelse return;
+            const typ = sym.type orelse return;
+            setType(cx, ei, typ);
+        },
         .call => |call| recoverCall(cx, call.op, call.args),
         .list, .variadic_list => |items| {
             for (getExtra3(cx.extra, items)) |i|
@@ -1097,6 +1103,10 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     for (args) |ei|
         recoverExpr(cx, ei);
     switch (op) {
+        .set => {
+            if (cx.types.get(args[0])) |lhs_type|
+                setType(cx, args[1], lhs_type);
+        },
         .@"start-script" => {
             setType(cx, args[0], .script);
         },
@@ -1119,7 +1129,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     }
 }
 
-fn setType(cx: *TypeCx, ei: ExprIndex, typ: Type) void {
+fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.Type) void {
     cx.types.put(utils.null_allocator, ei, typ) catch unreachable;
 }
 
@@ -2794,7 +2804,7 @@ const EmitCx = struct {
     index: *const Index,
     lsc_mask: *const UsageTracker.LocalScripts,
     local_var_usage: *const UsageTracker.LocalVars,
-    types: *const ArrayMap(Type),
+    types: *const ArrayMap(Symbols.Type),
     jump_targets: []const u16,
 
     out: *std.ArrayListUnmanaged(u8),
@@ -2822,8 +2832,9 @@ fn emitLocalVarsDecl(cx: *EmitCx) !void {
         const name = name: {
             const used = UsageTracker.get(cx.local_var_usage, num);
             if (!used) break :name "_";
-            if (script_symbols) |ss| break :name ss.locals.get(num);
-            break :name null;
+            const ss = script_symbols orelse break :name null;
+            const sym = ss.locals.getPtr(num) orelse break :name null;
+            break :name sym.name;
         };
         try cx.out.append(cx.gpa, ' ');
         if (name) |n|
@@ -3216,18 +3227,18 @@ fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
     const kind, const number = try variable.decode();
     switch (kind) {
         .global => {
-            if (cx.symbols.globals.get(number)) |name|
-                return try cx.out.appendSlice(cx.gpa, name);
+            if (cx.symbols.globals.getPtr(number)) |sym|
+                return try cx.out.appendSlice(cx.gpa, sym.name);
         },
         .local => {
             if (cx.symbols.getScript(cx.id)) |ss|
-                if (ss.locals.get(number)) |name|
-                    return try cx.out.appendSlice(cx.gpa, name);
+                if (ss.locals.getPtr(number)) |sym|
+                    return try cx.out.appendSlice(cx.gpa, sym.name);
         },
         .room => {
             if (cx.symbols.getRoom(cx.room_number)) |room|
-                if (room.vars.get(number)) |name|
-                    return try cx.out.appendSlice(cx.gpa, name);
+                if (room.vars.getPtr(number)) |sym|
+                    return try cx.out.appendSlice(cx.gpa, sym.name);
         },
     }
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });

@@ -301,8 +301,8 @@ pub fn run(
         for (0..UsageTracker.max_global_vars) |num| {
             if (!UsageTracker.get(&cx.global_var_usage, num)) continue;
             try code.appendSlice(gpa, "var ");
-            if (symbols.globals.get(num)) |name|
-                try code.appendSlice(gpa, name)
+            if (symbols.globals.getPtr(num)) |sym|
+                try code.appendSlice(gpa, sym.name)
             else // Fall back to generated name
                 try code.writer(gpa).print("global{}", .{num});
             try code.writer(gpa).print("@{}\n", .{num});
@@ -865,8 +865,8 @@ fn emitRoomVars(cx: *RoomContext) !void {
         if (!UsageTracker.get(&cx.room_var_usage, num)) continue;
         try out.appendSlice(cx.cx.gpa, "var ");
         write_name: {
-            if (symbols_room) |sr| if (sr.vars.get(num)) |name| {
-                try out.appendSlice(cx.cx.gpa, name);
+            if (symbols_room) |sr| if (sr.vars.getPtr(num)) |sym| {
+                try out.appendSlice(cx.cx.gpa, sym.name);
                 break :write_name;
             };
             // Fall back to generated name
