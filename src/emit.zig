@@ -5,7 +5,9 @@ const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockKnown = @import("block_writer.zig").beginBlockKnown;
 const endBlock = @import("block_writer.zig").endBlock;
+const endBlockKnown = @import("block_writer.zig").endBlockKnown;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
@@ -157,9 +159,9 @@ fn emitRoom(
     });
 
     while (true) switch (try receiver.next(gpa)) {
-        .glob => |*b| try emitGlob(gpa, game, out, fixups, index, room_number, b),
+        .glob => |*b| try emitGlob(gpa, game, out, index, room_number, b),
         .glob_start => |*b| try emitGlobBlock(gpa, game, receiver, out, fixups, index, room_number, b),
-        .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
+        .raw_block => |*b| try emitRawBlock(gpa, out, b),
         .room_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -171,20 +173,18 @@ fn emitRoom(
 fn emitRawBlock(
     gpa: std.mem.Allocator,
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
     var data_mut = raw_block.data;
     defer data_mut.deinit(gpa);
 
-    try writeBlock(out, fixups, raw_block.block_id, raw_block.data.items);
+    try writeBlock(out, raw_block.block_id, raw_block.data.items);
 }
 
 fn emitGlob(
     gpa: std.mem.Allocator,
     game: games.Game,
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
     index: *Index,
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob"),
@@ -193,7 +193,7 @@ fn emitGlob(
     defer data_mut.deinit(gpa);
 
     const start: u32 = @intCast(out.bytes_written);
-    try writeBlock(out, fixups, glob.block_id, glob.data.items);
+    try writeBlock(out, glob.block_id, glob.data.items);
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
@@ -213,7 +213,7 @@ fn emitGlobBlock(
     const start = try beginBlock(out, glob.block_id);
 
     while (true) switch (try receiver.next(gpa)) {
-        .raw_block => |*b| try emitRawBlock(gpa, out, fixups, b),
+        .raw_block => |*b| try emitRawBlock(gpa, out, b),
         .glob_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -270,15 +270,10 @@ fn addGlobToIndex(
     });
 }
 
-fn writeBlock(
-    out: anytype,
-    fixups: *std.ArrayList(Fixup),
-    block_id: BlockId,
-    data: []const u8,
-) !void {
-    const start = try beginBlock(out, block_id);
+fn writeBlock(out: anytype, block_id: BlockId, data: []const u8) !void {
+    const start = try beginBlockKnown(out, block_id, @intCast(data.len));
     try out.writer().writeAll(data);
-    try endBlock(out, fixups, start);
+    try endBlockKnown(out, start);
 }
 
 const Index = struct {
@@ -394,7 +389,7 @@ fn emitIndex(
             },
             .RNAM => unreachable,
         },
-        .raw_block => |*rb| try emitRawBlock(gpa, &out, &fixups, rb),
+        .raw_block => |*rb| try emitRawBlock(gpa, &out, rb),
         .index_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
