@@ -811,8 +811,7 @@ fn parseRawGlobFile(
 ) !Ast.NodeIndex {
     try expect(cx, .newline);
 
-    const path_source = cx.source[path_token.span.start.offset..path_token.span.end.offset];
-    const path = path_source[1 .. path_source.len - 1];
+    const path = parseString(cx, path_token);
 
     return storeNode(cx, token, .{ .raw_glob_file = .{
         .block_id = block_id,
@@ -939,8 +938,7 @@ fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         .string => {
             try expect(cx, .newline);
 
-            const path_source = cx.source[contents.span.start.offset..contents.span.end.offset];
-            const path = path_source[1 .. path_source.len - 1];
+            const path = parseString(cx, contents);
 
             break :body .{ .assembly = path };
         },
@@ -980,7 +978,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         // Check for labels
         if (peekToken(cx).kind == .colon) {
             _ = consumeToken(cx);
-            const identifier = cx.source[token.span.start.offset..token.span.end.offset];
+            const identifier = getIdentifier(cx, token);
             return storeNode(cx, token, .{ .label = identifier });
         }
         // Check for keywords
@@ -992,7 +990,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     const name = switch (token2.kind) {
                         .newline => break,
                         .underscore => null,
-                        .identifier => cx.source[token2.span.start.offset..token2.span.end.offset],
+                        .identifier => getIdentifier(cx, token2),
                         else => return reportUnexpected(cx, token2),
                     };
                     const node_index = try storeNode(cx, token2, .{ .local_var = .{
@@ -1251,12 +1249,11 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             return try storeNode(cx, token, .{ .integer = integer });
         },
         .string => {
-            const source = cx.source[token.span.start.offset..token.span.end.offset];
-            const string = source[1 .. source.len - 1];
+            const string = parseString(cx, token);
             return try storeNode(cx, token, .{ .string = string });
         },
         .identifier => {
-            const identifier = cx.source[token.span.start.offset..token.span.end.offset];
+            const identifier = getIdentifier(cx, token);
             return try storeNode(cx, token, .{ .identifier = identifier });
         },
         .paren_l => {
@@ -1322,7 +1319,7 @@ fn parseList(cx: *Cx) !Ast.ExtraSlice {
 fn parseIdentifierNode(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     if (token.kind != .identifier)
         return reportExpected(cx, token, .identifier);
-    const identifier = cx.source[token.span.start.offset..token.span.end.offset];
+    const identifier = getIdentifier(cx, token);
     return storeNode(cx, token, .{ .identifier = identifier });
 }
 
@@ -1392,6 +1389,11 @@ fn expectString(cx: *Cx) ![]const u8 {
     const token = consumeToken(cx);
     if (token.kind != .string)
         return reportExpected(cx, token, .string);
+    return parseString(cx, token);
+}
+
+fn parseString(cx: *const Cx, token: *const lexer.Token) []const u8 {
+    std.debug.assert(token.kind == .string);
     const source = cx.source[token.span.start.offset..token.span.end.offset];
     return source[1 .. source.len - 1];
 }
@@ -1424,6 +1426,11 @@ fn parseIdentifierOpt(cx: *Cx, token: *const lexer.Token, T: type) ?T {
 fn parseIdentifier(cx: *Cx, token: *const lexer.Token, T: type) !T {
     return parseIdentifierOpt(cx, token, T) orelse
         return reportUnexpected(cx, token);
+}
+
+fn getIdentifier(cx: *Cx, token: *const lexer.Token) []const u8 {
+    std.debug.assert(token.kind == .identifier);
+    return cx.source[token.span.start.offset..token.span.end.offset];
 }
 
 fn expectBlockId(cx: *Cx) !BlockId {
