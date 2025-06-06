@@ -1401,14 +1401,14 @@ fn parseString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
     const str = source[1 .. source.len - 1];
     const result_start: u32 = @intCast(cx.result.strings.buf.items.len);
     // yeah uhhhh sorry if you're reading this, but it works
-    var i: u32 = 0;
-    while (i < str.len) {
-        if (str[i] != '\\') {
-            try cx.result.strings.buf.append(cx.gpa, str[i]);
-            i += 1;
-            continue;
-        }
-        i += 1;
+    var i: usize = 0;
+    while (true) {
+        const next_escape = std.mem.indexOfScalar(u8, str[i..], '\\') orelse {
+            try cx.result.strings.buf.appendSlice(cx.gpa, str[i..]);
+            break;
+        };
+        try cx.result.strings.buf.appendSlice(cx.gpa, str[i..][0..next_escape]);
+        i += next_escape + 1;
         if (i >= str.len)
             return reportError(cx, token, "invalid string", .{});
         const e = str[i];
