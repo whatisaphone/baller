@@ -158,12 +158,7 @@ fn decodeCel(
 
 // based on ScummVM's AkosRenderer::paintCelByleRLE
 fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
-    const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
-        16 => .{ 0xf, 4 },
-        32 => .{ 0x7, 3 },
-        64 => .{ 0x3, 2 },
-        else => return error.CelDecode,
-    };
+    const run_mask, const color_shift = byleParams(akpl.len) orelse return error.CelDecode;
 
     var in_stream = std.io.fixedBufferStream(cel.data);
     var in = in_stream.reader();
@@ -192,6 +187,16 @@ fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void
             }
         }
     }
+}
+
+/// returns `run_mask`, `color_shift`
+fn byleParams(akpl_len: usize) ?struct { u8, u3 } {
+    return switch (akpl_len) {
+        16 => .{ 0xf, 4 },
+        32 => .{ 0x7, 3 },
+        64 => .{ 0x3, 2 },
+        else => null,
+    };
 }
 
 fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
@@ -355,13 +360,7 @@ const CelEncodeState = struct {
 };
 
 fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
-    // TODO: duplicated
-    const run_mask: u8, const color_shift: u3 = switch (akpl.len) {
-        16 => .{ 0xf, 4 },
-        32 => .{ 0x7, 3 },
-        64 => .{ 0x3, 2 },
-        else => return error.BadData,
-    };
+    const run_mask, const color_shift = byleParams(akpl.len) orelse return error.BadData;
 
     var state: CelEncodeState = .{
         .run_mask = run_mask,

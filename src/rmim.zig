@@ -4,6 +4,7 @@ const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
+const utils = @import("utils.zig");
 
 pub const BMCOMP_NMAJMIN_H7 = 0x89;
 pub const BMCOMP_NMAJMIN_H8 = 0x8a;
@@ -81,7 +82,7 @@ fn decompressBmap(compression: u8, reader: anytype, end: u32, out: anytype) !voi
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {
                 const d = try in.readBitsNoEof(u3, 3);
-                color +%= @as(u8, @bitCast(delta[d])); // TODO: how to properly do this
+                color = utils.add(u8, color, delta[d]) orelse return error.DecompressBmap;
             } else {
                 color = try in.readBitsNoEof(u8, color_bits);
             }
