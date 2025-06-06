@@ -3106,7 +3106,18 @@ fn emitExpr(
     switch (cx.exprs.get(ei)) {
         .int => try emitInt(cx, ei),
         .variable => |v| try emitVariable(cx, v),
-        .string => |s| try cx.out.writer(cx.gpa).print("\"{s}\"", .{s}),
+        .string => |s| {
+            try cx.out.append(cx.gpa, '"');
+            for (s) |c| {
+                if (c == '\\')
+                    try cx.out.appendSlice(cx.gpa, "\\\\")
+                else if (32 <= c and c <= 126)
+                    try cx.out.append(cx.gpa, c)
+                else
+                    try cx.out.writer(cx.gpa).print("\\x{x:0>2}", .{c});
+            }
+            try cx.out.append(cx.gpa, '"');
+        },
         .call => |call| {
             const args = getExtra(cx, call.args);
             if (call.op == .@"get-array-item") {

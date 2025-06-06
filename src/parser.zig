@@ -1399,7 +1399,36 @@ fn parseString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
     std.debug.assert(token.kind == .string);
     const source = cx.source[token.span.start.offset..token.span.end.offset];
     const str = source[1 .. source.len - 1];
-    return cx.result.strings.add(cx.gpa, str);
+    const result_start: u32 = @intCast(cx.result.strings.buf.items.len);
+    // yeah uhhhh sorry if you're reading this, but it works
+    var i: u32 = 0;
+    while (i < str.len) {
+        if (str[i] != '\\') {
+            try cx.result.strings.buf.append(cx.gpa, str[i]);
+            i += 1;
+            continue;
+        }
+        i += 1;
+        if (i >= str.len)
+            return reportError(cx, token, "invalid string", .{});
+        const e = str[i];
+        i += 1;
+        switch (e) {
+            '\\' => try cx.result.strings.buf.append(cx.gpa, '\\'),
+            'x' => {
+                if (i + 2 > str.len)
+                    return reportError(cx, token, "invalid string", .{});
+                const hex = str[i..][0..2];
+                i += 2;
+                const num = std.fmt.parseInt(u8, hex, 16) catch
+                    return reportError(cx, token, "invalid string", .{});
+                try cx.result.strings.buf.append(cx.gpa, num);
+            },
+            else => return reportError(cx, token, "invalid string", .{}),
+        }
+    }
+    const result_len: u32 = @intCast(cx.result.strings.buf.items.len - result_start);
+    return .{ .start = result_start, .len = result_len };
 }
 
 fn expectInteger(cx: *Cx) !i32 {
