@@ -12,8 +12,10 @@ root: NodeIndex,
 nodes: std.ArrayListUnmanaged(Node),
 node_tokens: std.ArrayListUnmanaged(u32),
 extra: std.ArrayListUnmanaged(u32),
+strings: StringTable,
 
 pub fn deinit(self: *Ast, gpa: std.mem.Allocator) void {
+    self.strings.deinit(gpa);
     self.extra.deinit(gpa);
     self.node_tokens.deinit(gpa);
     self.nodes.deinit(gpa);
@@ -43,8 +45,8 @@ pub const Node = union(enum) {
     },
     disk_room: struct {
         room_number: u8,
-        name: []const u8,
-        path: []const u8,
+        name: StringSlice,
+        path: StringSlice,
     },
     room_file: struct {
         children: ExtraSlice,
@@ -52,7 +54,7 @@ pub const Node = union(enum) {
     },
     raw_block: struct {
         block_id: BlockId,
-        path: []const u8,
+        path: StringSlice,
     },
     raw_block_nested: struct {
         block_id: BlockId,
@@ -60,38 +62,38 @@ pub const Node = union(enum) {
     },
     raw_glob_file: struct {
         block_id: BlockId,
-        name: ?[]const u8,
+        name: ?StringSlice,
         glob_number: u16,
-        path: []const u8,
+        path: StringSlice,
     },
     raw_glob_block: struct {
         block_id: BlockId,
-        name: ?[]const u8,
+        name: ?StringSlice,
         glob_number: u16,
         children: ExtraSlice,
     },
     rmim: struct {
         compression: u8,
-        path: []const u8,
+        path: StringSlice,
     },
     rmda: struct {
         children: ExtraSlice,
     },
     scr: struct {
-        name: []const u8,
+        name: StringSlice,
         glob_number: u16,
-        path: []const u8,
+        path: StringSlice,
     },
     encd: struct {
-        path: []const u8,
+        path: StringSlice,
     },
     excd: struct {
-        path: []const u8,
+        path: StringSlice,
     },
     lsc: struct {
-        name: []const u8,
+        name: StringSlice,
         script_number: u16,
-        path: []const u8,
+        path: StringSlice,
     },
     obim: struct {
         children: ExtraSlice,
@@ -111,7 +113,7 @@ pub const Node = union(enum) {
     awiz_wizh,
     awiz_bmp: struct {
         compression: awiz.Compression,
-        path: []const u8,
+        path: StringSlice,
     },
     mult: struct {
         glob_number: u16,
@@ -127,27 +129,27 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     akpl: struct {
-        path: []const u8,
+        path: StringSlice,
     },
     akcd: struct {
         compression: akos.CompressionCodec,
-        path: []const u8,
+        path: StringSlice,
     },
     constant: struct {
-        name: []const u8,
+        name: StringSlice,
         value: i32,
     },
     variable: struct {
-        name: []const u8,
+        name: StringSlice,
         number: u16,
     },
     script: struct {
-        name: []const u8,
+        name: StringSlice,
         glob_number: u16,
         statements: ExtraSlice,
     },
     local_script: struct {
-        name: []const u8,
+        name: StringSlice,
         script_number: u16,
         statements: ExtraSlice,
     },
@@ -158,9 +160,9 @@ pub const Node = union(enum) {
         statements: ExtraSlice,
     },
     object: struct {
-        name: []const u8,
+        name: StringSlice,
         number: u16,
-        obna: []const u8,
+        obna: StringSlice,
         children: ExtraSlice,
     },
     verb: struct {
@@ -171,12 +173,12 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     local_var: struct {
-        name: ?[]const u8,
+        name: ?StringSlice,
     },
-    label: []const u8,
+    label: StringSlice,
     integer: i32,
-    string: []const u8,
-    identifier: []const u8,
+    string: StringSlice,
+    identifier: StringSlice,
     set: struct {
         lhs: NodeIndex,
         rhs: NodeIndex,
@@ -206,7 +208,7 @@ pub const Node = union(enum) {
     },
     field: struct {
         lhs: NodeIndex,
-        field: []const u8,
+        field: StringSlice,
     },
     list: struct {
         items: ExtraSlice,
@@ -259,7 +261,7 @@ pub const ForDirection = enum {
 };
 
 pub const VerbBody = union(enum) {
-    assembly: []const u8,
+    assembly: StringSlice,
     script: ExtraSlice,
 };
 
@@ -268,6 +270,32 @@ pub const ExtraSlice = struct {
     len: u32,
 
     pub const empty: ExtraSlice = .{ .start = 0, .len = 0 };
+};
+
+const StringTable = struct {
+    buf: std.ArrayListUnmanaged(u8),
+
+    pub const empty: StringTable = .{ .buf = .empty };
+
+    fn deinit(self: *StringTable, gpa: std.mem.Allocator) void {
+        self.buf.deinit(gpa);
+    }
+
+    pub fn get(self: *const StringTable, slice: StringSlice) []const u8 {
+        return self.buf.items[slice.start..][0..slice.len];
+    }
+
+    pub fn add(self: *StringTable, gpa: std.mem.Allocator, str: []const u8) !StringSlice {
+        const start: u32 = @intCast(self.buf.items.len);
+        const len: u32 = @intCast(str.len);
+        try self.buf.appendSlice(gpa, str);
+        return .{ .start = start, .len = len };
+    }
+};
+
+pub const StringSlice = struct {
+    start: u32,
+    len: u32,
 };
 
 pub const BinOp = enum {

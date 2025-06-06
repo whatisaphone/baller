@@ -258,12 +258,12 @@ pub fn encode(
 
         switch (node.*) {
             .raw_block => |*n| {
-                try encodeRawBlock(gpa, out, n.block_id, project_dir, n.path);
+                try encodeRawBlock(gpa, out, n.block_id, project_dir, file.ast.strings.get(n.path));
             },
             .akpl => |*n| {
                 if (akpl != null) return error.BadData;
                 akpl = .{};
-                try fs.readFileInto(project_dir, n.path, akpl.?.writer());
+                try fs.readFileInto(project_dir, file.ast.strings.get(n.path), akpl.?.writer());
 
                 const start = try beginBlockAl(gpa, out, .AKPL);
                 try out.appendSlice(gpa, akpl.?.slice());
@@ -271,7 +271,7 @@ pub fn encode(
             },
             .akcd => |*n| {
                 if (akpl == null) return error.BadData;
-                try encodeCelBmp(gpa, akpl.?.slice(), n.path, &state, n.compression, awiz_strategy);
+                try encodeCelBmp(gpa, akpl.?.slice(), file.ast.strings.get(n.path), &state, n.compression, awiz_strategy);
             },
             else => unreachable,
         }

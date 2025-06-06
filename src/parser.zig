@@ -38,6 +38,7 @@ pub fn parseProject(
             .nodes = .empty,
             .node_tokens = .empty,
             .extra = .empty,
+            .strings = .empty,
         },
     };
     errdefer cx.result.deinit(gpa);
@@ -121,9 +122,10 @@ fn parseIndex(cx: *Cx) !std.BoundedArray(Ast.NodeIndex, 16) {
                     try appendNode(cx, &children, node_index);
                 },
                 .@"index-block" => {
-                    const block_id_str = try expectIdentifier(cx);
+                    const block_id_ident = try expectIdentifier(cx);
                     try expect(cx, .newline);
                     const IndexBlock = @FieldType(Ast.Node, "index_block");
+                    const block_id_str = cx.result.strings.get(block_id_ident);
                     const block_id = std.meta.stringToEnum(IndexBlock, block_id_str) orelse
                         return reportError(cx, token, "unsupported block id", .{});
                     const index_block = try storeNode(cx, token, .{ .index_block = block_id });
@@ -242,6 +244,7 @@ pub fn parseRoom(
             .nodes = .empty,
             .node_tokens = .empty,
             .extra = .empty,
+            .strings = .empty,
         },
     };
     errdefer cx.result.deinit(gpa);
@@ -805,13 +808,13 @@ fn parseRawGlobFile(
     cx: *Cx,
     token: *const lexer.Token,
     block_id: BlockId,
-    name: ?[]const u8,
+    name: ?Ast.StringSlice,
     glob_number: u16,
     path_token: *const lexer.Token,
 ) !Ast.NodeIndex {
     try expect(cx, .newline);
 
-    const path = parseString(cx, path_token);
+    const path = try parseString(cx, path_token);
 
     return storeNode(cx, token, .{ .raw_glob_file = .{
         .block_id = block_id,
@@ -825,7 +828,7 @@ fn parseRawGlobBlock(
     cx: *Cx,
     token: *const lexer.Token,
     block_id: BlockId,
-    name: ?[]const u8,
+    name: ?Ast.StringSlice,
     glob_number: u16,
 ) !Ast.NodeIndex {
     const Keyword = enum {
@@ -860,7 +863,7 @@ fn parseRawGlobBlock(
 fn parseScript(
     cx: *Cx,
     token: *const lexer.Token,
-    name: []const u8,
+    name: Ast.StringSlice,
     glob_number: u16,
 ) !Ast.NodeIndex {
     const statements = try parseScriptBlock(cx);
@@ -874,7 +877,7 @@ fn parseScript(
 fn parseLocalScript(
     cx: *Cx,
     token: *const lexer.Token,
-    name: []const u8,
+    name: Ast.StringSlice,
     script_number: u16,
 ) !Ast.NodeIndex {
     const statements = try parseScriptBlock(cx);
@@ -938,7 +941,7 @@ fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         .string => {
             try expect(cx, .newline);
 
-            const path = parseString(cx, contents);
+            const path = try parseString(cx, contents);
 
             break :body .{ .assembly = path };
         },
@@ -978,7 +981,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         // Check for labels
         if (peekToken(cx).kind == .colon) {
             _ = consumeToken(cx);
-            const identifier = getIdentifier(cx, token);
+            const identifier = try getIdentifier(cx, token);
             return storeNode(cx, token, .{ .label = identifier });
         }
         // Check for keywords
@@ -990,7 +993,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     const name = switch (token2.kind) {
                         .newline => break,
                         .underscore => null,
-                        .identifier => getIdentifier(cx, token2),
+                        .identifier => try getIdentifier(cx, token2),
                         else => return reportUnexpected(cx, token2),
                     };
                     const node_index = try storeNode(cx, token2, .{ .local_var = .{
@@ -1249,11 +1252,11 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             return try storeNode(cx, token, .{ .integer = integer });
         },
         .string => {
-            const string = parseString(cx, token);
+            const string = try parseString(cx, token);
             return try storeNode(cx, token, .{ .string = string });
         },
         .identifier => {
-            const identifier = getIdentifier(cx, token);
+            const identifier = try getIdentifier(cx, token);
             return try storeNode(cx, token, .{ .identifier = identifier });
         },
         .paren_l => {
@@ -1319,7 +1322,7 @@ fn parseList(cx: *Cx) !Ast.ExtraSlice {
 fn parseIdentifierNode(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     if (token.kind != .identifier)
         return reportExpected(cx, token, .identifier);
-    const identifier = getIdentifier(cx, token);
+    const identifier = try getIdentifier(cx, token);
     return storeNode(cx, token, .{ .identifier = identifier });
 }
 
@@ -1385,17 +1388,18 @@ fn anyWhitespaceBetweenNextToken(cx: *const Cx) bool {
     return prev.span.end.offset != next.span.start.offset;
 }
 
-fn expectString(cx: *Cx) ![]const u8 {
+fn expectString(cx: *Cx) !Ast.StringSlice {
     const token = consumeToken(cx);
     if (token.kind != .string)
         return reportExpected(cx, token, .string);
     return parseString(cx, token);
 }
 
-fn parseString(cx: *const Cx, token: *const lexer.Token) []const u8 {
+fn parseString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
     std.debug.assert(token.kind == .string);
     const source = cx.source[token.span.start.offset..token.span.end.offset];
-    return source[1 .. source.len - 1];
+    const str = source[1 .. source.len - 1];
+    return cx.result.strings.add(cx.gpa, str);
 }
 
 fn expectInteger(cx: *Cx) !i32 {
@@ -1407,11 +1411,11 @@ fn expectInteger(cx: *Cx) !i32 {
         reportError(cx, token, "invalid integer", .{});
 }
 
-fn expectIdentifier(cx: *Cx) ![]const u8 {
+fn expectIdentifier(cx: *Cx) !Ast.StringSlice {
     const token = consumeToken(cx);
     if (token.kind != .identifier)
         return reportExpected(cx, token, .integer);
-    return cx.source[token.span.start.offset..token.span.end.offset];
+    return getIdentifier(cx, token);
 }
 
 fn parseIdentifierOpt(cx: *Cx, token: *const lexer.Token, T: type) ?T {
@@ -1428,15 +1432,16 @@ fn parseIdentifier(cx: *Cx, token: *const lexer.Token, T: type) !T {
         return reportUnexpected(cx, token);
 }
 
-fn getIdentifier(cx: *Cx, token: *const lexer.Token) []const u8 {
+fn getIdentifier(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
     std.debug.assert(token.kind == .identifier);
-    return cx.source[token.span.start.offset..token.span.end.offset];
+    const str = cx.source[token.span.start.offset..token.span.end.offset];
+    return cx.result.strings.add(cx.gpa, str);
 }
 
 fn expectBlockId(cx: *Cx) !BlockId {
     const token = peekToken(cx);
     const ident = try expectIdentifier(cx);
-    return BlockId.parse(ident) orelse
+    return BlockId.parse(cx.result.strings.get(ident)) orelse
         reportError(cx, token, "invalid block id", .{});
 }
 

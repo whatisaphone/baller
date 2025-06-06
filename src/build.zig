@@ -115,7 +115,7 @@ fn addFile(
     };
 
     const source = try fs.readFile(gpa, project_dir, path);
-    errdefer gpa.free(source);
+    defer gpa.free(source);
 
     var lex = try lexer.run(gpa, &diag, source);
     errdefer lex.deinit(gpa);
@@ -125,7 +125,6 @@ fn addFile(
 
     return .{
         .path = path,
-        .source = source,
         .lex = lex,
         .ast = ast,
     };
@@ -138,26 +137,31 @@ fn readRooms(
     project_dir: std.fs.Dir,
 ) !void {
     var room_nodes: std.BoundedArray(Ast.NodeIndex, 255) = .{};
+    var max_room_number: u8 = 0;
 
-    const project_file = &project.files.items[0].?;
+    var project_file = &project.files.items[0].?;
     const root = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(root.disks)) |disk_node| {
         if (disk_node == Ast.null_node) continue;
         const disk = &project_file.ast.nodes.items[disk_node].disk;
         for (project_file.ast.getExtra(disk.children)) |disk_child_node| {
             const disk_child = &project_file.ast.nodes.items[disk_child_node];
-            if (disk_child.* == .disk_room)
-                try room_nodes.append(disk_child_node);
+            if (disk_child.* != .disk_room) continue;
+            try room_nodes.append(disk_child_node);
+            max_room_number = @max(max_room_number, disk_child.disk_room.room_number);
         }
     }
 
+    try utils.growArrayList(?Project.SourceFile, &project.files, gpa, max_room_number + 1, null);
+    project_file = &project.files.items[0].?; // since pointer was invalidated
+
     for (room_nodes.slice()) |room_node| {
-        const room = &project.files.items[0].?.ast.nodes.items[room_node].disk_room;
-        try utils.growArrayList(?Project.SourceFile, &project.files, gpa, room.room_number + 1, null);
+        const room = &project_file.ast.nodes.items[room_node].disk_room;
         if (project.files.items[room.room_number] != null)
             @panic("TODO");
 
-        const file = try addFile(gpa, diagnostic, project_dir, room.path, parser.parseRoom);
+        const room_path = project_file.ast.strings.get(room.path);
+        const file = try addFile(gpa, diagnostic, project_dir, room_path, parser.parseRoom);
         project.files.items[room.room_number] = file;
     }
 }

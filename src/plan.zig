@@ -165,13 +165,13 @@ fn buildProjectScope(cx: *Context) !void {
         const var_node = &project_file.ast.nodes.items[node_index].variable;
         const var_num = std.math.cast(u14, var_node.number) orelse return error.BadData;
         const symbol: script.Symbol = .{ .variable = .init(.global, var_num) };
-        try addScopeSymbol(cx, &cx.project_scope, var_node.name, symbol);
+        try addScopeSymbol(cx, &cx.project_scope, project_file, var_node.name, symbol);
     }
 
     for (project_file.ast.getExtra(project_node.constants)) |node_index| {
         const const_node = &project_file.ast.nodes.items[node_index].constant;
         const symbol: script.Symbol = .{ .constant = const_node.value };
-        try addScopeSymbol(cx, &cx.project_scope, const_node.name, symbol);
+        try addScopeSymbol(cx, &cx.project_scope, project_file, const_node.name, symbol);
     }
 
     for (project_file.ast.getExtra(project_node.disks)) |disk_node| {
@@ -181,7 +181,7 @@ fn buildProjectScope(cx: *Context) !void {
             const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
 
             const room_symbol: script.Symbol = .{ .constant = disk_room.room_number };
-            try addScopeSymbol(cx, &cx.project_scope, disk_room.name, room_symbol);
+            try addScopeSymbol(cx, &cx.project_scope, project_file, disk_room.name, room_symbol);
 
             const room_file = &cx.project.files.items[disk_room.room_number].?;
             const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
@@ -189,19 +189,19 @@ fn buildProjectScope(cx: *Context) !void {
                 switch (room_file.ast.nodes.items[child_index]) {
                     .raw_glob_file => |n| if (n.name) |name| {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, name, symbol);
+                        try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
                     },
                     .raw_glob_block => |n| if (n.name) |name| {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, name, symbol);
+                        try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
                     },
                     .scr => |n| {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
+                        try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
                     },
                     .script => |n| {
                         const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, n.name, symbol);
+                        try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
                     },
                     else => {},
                 }
@@ -213,12 +213,14 @@ fn buildProjectScope(cx: *Context) !void {
 fn addScopeSymbol(
     cx: *const Context,
     scope: *std.StringHashMapUnmanaged(script.Symbol),
-    name: []const u8,
+    file: *const Project.SourceFile,
+    name: Ast.StringSlice,
     symbol: script.Symbol,
 ) !void {
-    const entry = try scope.getOrPut(cx.gpa, name);
+    const str = file.ast.strings.get(name);
+    const entry = try scope.getOrPut(cx.gpa, str);
     if (entry.found_existing) {
-        cx.diagnostic.err("duplicate name: {s}", .{name});
+        cx.diagnostic.err("duplicate name: {s}", .{str});
         return error.AddedToDiagnostic;
     }
     entry.value_ptr.* = symbol;
@@ -261,18 +263,18 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
         const node = &room_file.ast.nodes.items[node_index].variable;
         const num = std.math.cast(u14, node.number) orelse return error.BadData;
         const symbol: script.Symbol = .{ .variable = .init(.room, num) };
-        try addScopeSymbol(cx, room_scope, node.name, symbol);
+        try addScopeSymbol(cx, room_scope, room_file, node.name, symbol);
     }
 
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.items[node_index]) {
             .lsc => |n| {
                 const symbol: script.Symbol = .{ .constant = n.script_number };
-                try addScopeSymbol(cx, room_scope, n.name, symbol);
+                try addScopeSymbol(cx, room_scope, room_file, n.name, symbol);
             },
             .local_script => |n| {
                 const symbol: script.Symbol = .{ .constant = n.script_number };
-                try addScopeSymbol(cx, room_scope, n.name, symbol);
+                try addScopeSymbol(cx, room_scope, room_file, n.name, symbol);
             },
             else => {},
         }
@@ -411,9 +413,9 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
             switch (work) {
                 .event => |payload| cx.sendSyncEvent(payload),
                 .node => |child_node| switch (room_file.ast.nodes.items[child_node]) {
-                    .raw_glob_file => |*n| try planRawGlobFile(cx, n),
+                    .raw_glob_file => |*n| try planRawGlobFile(cx, room_file, n),
                     .raw_glob_block => |*n| try planRawGlobBlock(cx, room_number, n),
-                    .raw_block => |*n| try planRawBlock(cx, n),
+                    .raw_block => |*n| try planRawBlock(cx, room_file, n),
                     .rmim => try spawnJob(planRmim, cx, room_number, child_node),
                     .scr => try spawnJob(planScr, cx, room_number, child_node),
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
@@ -434,8 +436,12 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
     }
 }
 
-fn planRawBlock(cx: *Context, node: *const @FieldType(Ast.Node, "raw_block")) !void {
-    const data = try fs.readFile(cx.gpa, cx.project_dir, node.path);
+fn planRawBlock(
+    cx: *Context,
+    file: *const Project.SourceFile,
+    node: *const @FieldType(Ast.Node, "raw_block"),
+) !void {
+    const data = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(node.path));
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .raw_block = .{
@@ -444,8 +450,12 @@ fn planRawBlock(cx: *Context, node: *const @FieldType(Ast.Node, "raw_block")) !v
     } });
 }
 
-fn planRawGlobFile(cx: *Context, node: *const @FieldType(Ast.Node, "raw_glob_file")) !void {
-    const data = try fs.readFile(cx.gpa, cx.project_dir, node.path);
+fn planRawGlobFile(
+    cx: *Context,
+    file: *const Project.SourceFile,
+    node: *const @FieldType(Ast.Node, "raw_glob_file"),
+) !void {
+    const data = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(node.path));
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .glob = .{
@@ -468,7 +478,7 @@ fn planRawGlobBlock(
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(glob.children)) |node| {
         const child = &room_file.ast.nodes.items[node].raw_block;
-        try planRawBlock(cx, child);
+        try planRawBlock(cx, room_file, child);
     }
 
     cx.sendSyncEvent(.glob_end);
@@ -519,9 +529,10 @@ fn runJob(job: Job, cx: *Context, room_number: u8, node_index: u32, event_index:
 }
 
 fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const rmim = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].rmim;
+    const file = &cx.project.files.items[room_number].?;
+    const rmim = &file.ast.nodes.items[node_index].rmim;
 
-    const bmp = try fs.readFile(cx.gpa, cx.project_dir, rmim.path);
+    const bmp = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(rmim.path));
     defer cx.gpa.free(bmp);
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
@@ -537,9 +548,10 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
 }
 
 fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const scr = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].scr;
+    const file = &cx.project.files.items[room_number].?;
+    const scr = &file.ast.nodes.items[node_index].scr;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, scr.path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(scr.path));
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .global = scr.glob_number };
@@ -553,14 +565,15 @@ fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
 }
 
 fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index];
+    const file = &cx.project.files.items[room_number].?;
+    const node = &file.ast.nodes.items[node_index];
     const edge: enum { encd, excd }, const path = switch (node.*) {
         .encd => |*n| .{ .encd, n.path },
         .excd => |*n| .{ .excd, n.path },
         else => unreachable,
     };
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(path));
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = switch (edge) {
@@ -581,9 +594,10 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
 }
 
 fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const lsc = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].lsc;
+    const file = &cx.project.files.items[room_number].?;
+    const lsc = &file.ast.nodes.items[node_index].lsc;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, lsc.path);
+    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(lsc.path));
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .local = .{
@@ -634,7 +648,8 @@ fn compileObim(
     node_index: u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const obim_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].obim;
+    const file = &cx.project.files.items[room_number].?;
+    const obim_node = &file.ast.nodes.items[node_index].obim;
 
     var im_index: usize = 0;
 
@@ -642,7 +657,7 @@ fn compileObim(
     for (room_file.ast.getExtra(obim_node.children)) |child_index| {
         switch (room_file.ast.nodes.items[child_index]) {
             .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
             },
             .obim_im => {
                 const block_id = obim.makeImBlockId(im_index) orelse return error.BadData;
@@ -662,13 +677,14 @@ fn compileIm(
     node_index: u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const im_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].obim_im;
+    const file = &cx.project.files.items[room_number].?;
+    const im_node = &file.ast.nodes.items[node_index].obim_im;
 
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(im_node.children)) |child_index| {
         switch (room_file.ast.nodes.items[child_index]) {
             .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
             },
             else => unreachable,
         }
@@ -728,7 +744,7 @@ fn planAwizInner(
                 the_awiz.blocks.append(.wizh) catch unreachable;
             },
             .awiz_bmp => |wizd| {
-                const awiz_raw = try fs.readFile(cx.gpa, cx.project_dir, wizd.path);
+                const awiz_raw = try fs.readFile(cx.gpa, cx.project_dir, room_file.ast.strings.get(wizd.path));
                 const awiz_raw_arraylist: std.ArrayListUnmanaged(u8) = .fromOwnedSlice(awiz_raw);
                 the_awiz.blocks.append(.{ .wizd = .{
                     .compression = wizd.compression,
@@ -770,7 +786,7 @@ fn planMultInner(
         const defa_start = try beginBlockAl(cx.gpa, out, .DEFA);
         for (room_file.ast.getExtra(defa.children)) |child_node| {
             const child = &room_file.ast.nodes.items[child_node].raw_block;
-            try encodeRawBlock(cx.gpa, out, child.block_id, cx.project_dir, child.path);
+            try encodeRawBlock(cx.gpa, out, child.block_id, cx.project_dir, room_file.ast.strings.get(child.path));
         }
         try endBlockAl(out, defa_start);
     }
@@ -936,7 +952,7 @@ fn planObjectInner(
         const child = &room_file.ast.nodes.items[child_index];
         switch (child.*) {
             .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, n.path);
+                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, room_file.ast.strings.get(n.path));
             },
             .verb => |verb| {
                 if (verb_fixup == null) {
@@ -955,7 +971,7 @@ fn planObjectInner(
 
                 switch (verb.body) {
                     .assembly => |path| {
-                        const in = try fs.readFile(cx.gpa, cx.project_dir, path);
+                        const in = try fs.readFile(cx.gpa, cx.project_dir, room_file.ast.strings.get(path));
                         defer cx.gpa.free(in);
 
                         const id: Symbols.ScriptId = .{ .object = .{
@@ -990,7 +1006,7 @@ fn planObjectInner(
     try endBlockAl(out, verb_fixup.?);
 
     const obna_fixup = try beginBlockAl(cx.gpa, out, .OBNA);
-    try out.appendSlice(cx.gpa, object.obna);
+    try out.appendSlice(cx.gpa, room_file.ast.strings.get(object.obna));
     try out.append(cx.gpa, 0);
     try endBlockAl(out, obna_fixup);
 }
@@ -1002,7 +1018,7 @@ fn planIndex(cx: *Context) !void {
     const project_root = &project_file.ast.nodes.items[project_file.ast.root].project;
     for (project_file.ast.getExtra(project_root.index)) |node| {
         switch (project_file.ast.nodes.items[node]) {
-            .raw_block => |*n| try planRawBlock(cx, n),
+            .raw_block => |*n| try planRawBlock(cx, project_file, n),
             .index_block => |b| switch (b) {
                 .RNAM => try planRoomNames(cx),
                 else => cx.sendSyncEvent(.{ .index_block = b }),
@@ -1039,7 +1055,7 @@ fn planRoomNames(cx: *Context) !void {
         if (room_node == Ast.null_node) continue;
         const room = &project_file.ast.nodes.items[room_node].disk_room;
         try result.appendSlice(cx.gpa, std.mem.asBytes(&@as(u16, room.room_number)));
-        try result.appendSlice(cx.gpa, room.name);
+        try result.appendSlice(cx.gpa, project_file.ast.strings.get(room.name));
         try result.append(cx.gpa, 0);
     }
     try result.appendSlice(cx.gpa, &.{ 0, 0 });

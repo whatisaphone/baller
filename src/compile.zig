@@ -90,7 +90,8 @@ fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {
         if (stmt.* != .local_vars) break i;
         for (cx.ast.getExtra(stmt.local_vars.children)) |ni| {
             const var_node = &cx.ast.nodes.items[ni].local_var;
-            try cx.local_vars.append(var_node.name);
+            const name = if (var_node.name) |n| cx.ast.strings.get(n) else null;
+            try cx.local_vars.append(name);
         }
     } else return;
 
@@ -108,7 +109,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
     switch (node.*) {
         .label => |name| {
             const offset: u16 = @intCast(cx.out.items.len);
-            const entry = try cx.label_offsets.getOrPut(cx.gpa, name);
+            const entry = try cx.label_offsets.getOrPut(cx.gpa, cx.ast.strings.get(name));
             // TODO: forbid duplicate labels, this would mean fixing the decompiler first
             if (entry.found_existing) {
                 if (entry.value_ptr.* != offset) return error.BadData;
@@ -379,13 +380,15 @@ fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
     const expr = &cx.ast.nodes.items[node_index];
     var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
-        .identifier => |id| id,
+        .identifier => |id| cx.ast.strings.get(id),
         .field => |f| blk: {
             const lhs = &cx.ast.nodes.items[f.lhs];
             if (lhs.* != .identifier) return null;
             const lhs_str = lhs.identifier;
-            break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{ lhs_str, f.field }) catch
-                return null;
+            break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{
+                cx.ast.strings.get(lhs_str),
+                cx.ast.strings.get(f.field),
+            }) catch return null;
         },
         else => return null,
     };
@@ -571,7 +574,7 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
         .relative_offset => {
             const label_expr = &cx.ast.nodes.items[node_index];
             if (label_expr.* != .identifier) return error.BadData;
-            const label_name = label_expr.identifier;
+            const label_name = cx.ast.strings.get(label_expr.identifier);
 
             const offset: u16 = @intCast(cx.out.items.len);
             // undefined bytes will be filled in at the end
@@ -609,7 +612,7 @@ fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
 fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     const expr = &cx.ast.nodes.items[node_index];
     if (expr.* != .identifier) return error.BadData;
-    const name = expr.identifier;
+    const name = cx.ast.strings.get(expr.identifier);
 
     for (cx.local_vars.slice(), 0..) |local_name, num_usize| {
         const num: u14 = @intCast(num_usize);
@@ -630,7 +633,7 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
 fn emitString(cx: *const Cx, node_index: u32) !void {
     const expr = &cx.ast.nodes.items[node_index];
     if (expr.* != .string) return error.BadData;
-    const str = expr.string;
+    const str = cx.ast.strings.get(expr.string);
     try cx.out.appendSlice(cx.gpa, str);
     try cx.out.append(cx.gpa, 0);
 }

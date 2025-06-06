@@ -23,13 +23,11 @@ pub fn deinit(self: *Project, gpa: std.mem.Allocator) void {
 
 pub const SourceFile = struct {
     path: []const u8,
-    source: []const u8,
     lex: lexer.Lex,
     ast: Ast,
 
     fn deinit(self: *SourceFile, gpa: std.mem.Allocator) void {
         self.ast.deinit(gpa);
         self.lex.deinit(gpa);
-        gpa.free(self.source);
     }
 };
