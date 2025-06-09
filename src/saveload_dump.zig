@@ -102,14 +102,13 @@ pub fn run(cx: *const Cx) !void {
     try cx.out.writeByte('\n');
 
     while (!save_blocks.atEnd()) {
-        const dbgl = try save_blocks.nextIf(.DBGL) orelse break;
-        _ = try dbgl.bytes();
-    }
-
-    while (!save_blocks.atEnd()) {
-        const hbgl = try save_blocks.nextIf(.HBGL) orelse break;
-        const raw = try hbgl.bytes();
-        try dumpHbgl(cx, raw);
+        const block = try save_blocks.next().block();
+        const raw = try io.readInPlace(cx.in, block.size);
+        switch (block.id) {
+            .DBGL => {}, // not useful
+            .HBGL => try dumpHbgl(cx, raw),
+            else => return error.BadData,
+        }
     }
 
     try save_blocks.finish();
@@ -180,6 +179,7 @@ fn dumpHbgl(cx: *const Cx, raw: []const u8) !void {
     try cx.out.print("glob {} {} = ", .{ header.type, header.number });
     switch (header.type) {
         .array => try dumpArray(cx, payload),
+        .image => try cx.out.writeAll("<image>"),
         else => try cx.out.print("{}", .{std.fmt.fmtSliceHexLower(payload)}),
     }
     try cx.out.writeByte('\n');
@@ -243,6 +243,7 @@ const HbglHeader = extern struct {
 
     const Type = enum(u16) {
         array = 7,
+        image = 19,
         _,
 
         pub fn format(
