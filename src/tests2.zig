@@ -7,6 +7,7 @@ const extract = @import("extract.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const fixture_hashes = @import("tests.zig").fixture_hashes;
+const saveload_dump = @import("saveload_dump.zig");
 
 // Extract and rebuild every supported game, and verify the output is identical
 // to the original.
@@ -365,4 +366,29 @@ fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *con
 fn dumpExtractStats(stats: *const std.EnumArray(extract.Stat, u16)) void {
     for (std.meta.tags(extract.Stat)) |stat|
         std.debug.print("{s} = {}\n", .{ @tagName(stat), stats.get(stat) });
+}
+
+test "Backyard Baseball 1997 saveload dump smoke test" {
+    try saveloadDumpSmokeTest(std.testing.allocator, "saveload/baseball1997.sg1");
+}
+
+fn saveloadDumpSmokeTest(gpa: std.mem.Allocator, comptime name: []const u8) !void {
+    const path = "src/fixtures/" ++ name;
+    const data = try fs.readFileZ(gpa, std.fs.cwd(), path);
+    defer gpa.free(data);
+    var in = std.io.fixedBufferStream(@as([]const u8, data));
+
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+    const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
+
+    const sink = try std.fs.cwd().createFileZ("/dev/null", .{});
+    defer sink.close();
+
+    try saveload_dump.run(&.{
+        .in = &in,
+        .diag = &diag,
+        .out = sink.writer(),
+    });
 }

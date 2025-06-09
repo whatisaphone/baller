@@ -39,7 +39,7 @@ const Cx = struct {
     out: std.fs.File.Writer,
 };
 
-fn run(cx: *const Cx) !void {
+pub fn run(cx: *const Cx) !void {
     var result: Save = undefined;
 
     var root = fixedBlockReader(cx.in, cx.diag);
