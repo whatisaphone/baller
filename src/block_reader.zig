@@ -245,7 +245,9 @@ const FixedBlockReader = struct {
         } };
     }
 
-    fn peek(self: *const Self) !BlockId {
+    fn peek(self: *Self) !BlockId {
+        if (!self.checkEndBlock()) return error.AddedToDiagnostic;
+
         const offset: u32 = @intCast(self.stream.pos);
         if (offset + block_header_size > self.stream.buffer.len) {
             self.diag.err(offset, "eof during block header", .{});
