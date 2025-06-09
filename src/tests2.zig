@@ -369,26 +369,38 @@ fn dumpExtractStats(stats: *const std.EnumArray(extract.Stat, u16)) void {
 }
 
 test "Backyard Baseball 1997 saveload dump smoke test" {
-    try saveloadDumpSmokeTest(std.testing.allocator, "saveload/baseball1997.sg1");
+    try saveloadDumpSmokeTest(
+        std.testing.allocator,
+        "baseball1997/BASEBALL.HE0",
+        "saveload/baseball1997.sg1",
+    );
 }
 
-fn saveloadDumpSmokeTest(gpa: std.mem.Allocator, comptime name: []const u8) !void {
-    const path = "src/fixtures/" ++ name;
-    const data = try fs.readFileZ(gpa, std.fs.cwd(), path);
-    defer gpa.free(data);
-    var in = std.io.fixedBufferStream(@as([]const u8, data));
+test "Backyard Baseball 2001 saveload dump smoke test" {
+    try saveloadDumpSmokeTest(
+        std.testing.allocator,
+        "baseball2001/baseball 2001.he0",
+        "saveload/baseball2001.sg",
+    );
+}
 
+fn saveloadDumpSmokeTest(
+    gpa: std.mem.Allocator,
+    comptime index_path: []const u8,
+    comptime savegame_path: []const u8,
+) !void {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
-    const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
     const sink = try std.fs.cwd().createFileZ("/dev/null", .{});
     defer sink.close();
 
-    try saveload_dump.run(&.{
-        .in = &in,
-        .diag = &diag,
+    try saveload_dump.run(.{
+        .gpa = gpa,
+        .diagnostic = &diagnostic,
+        .index_path = "src/fixtures/" ++ index_path,
+        .savegame_path = "src/fixtures/" ++ savegame_path,
         .out = sink.writer(),
     });
 }

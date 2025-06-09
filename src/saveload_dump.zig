@@ -4,109 +4,261 @@ const Diagnostic = @import("Diagnostic.zig");
 const Block = @import("block_reader.zig").Block;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const cliargs = @import("cliargs.zig");
+const Maxs = @import("extract.zig").Maxs;
+const xor_key = @import("extract.zig").xor_key;
+const fs = @import("fs.zig");
+const games = @import("games.zig");
 const io = @import("io.zig");
 const utils = @import("utils.zig");
 
+const debug = false;
+
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
+    var index_path_opt: ?[:0]const u8 = null;
+    var savegame_path_opt: ?[:0]const u8 = null;
+
     var it: cliargs.Iterator = .init(args);
-    if (it.next()) |arg|
-        return arg.reportUnexpected();
+    while (it.next()) |arg| switch (arg) {
+        .positional => |str| {
+            if (index_path_opt == null)
+                index_path_opt = str
+            else if (savegame_path_opt == null)
+                savegame_path_opt = str
+            else
+                return arg.reportUnexpected();
+        },
+        else => return arg.reportUnexpected(),
+    };
+
+    const index_path = index_path_opt orelse return cliargs.reportMissing("index");
+    const savegame_path = savegame_path_opt orelse return cliargs.reportMissing("savegame");
 
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();
-    const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
-    var in_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, 1 << 20);
-    defer in_buf.deinit(gpa);
-    try io.copy(std.io.getStdIn().reader(), in_buf.fixedWriter());
-    var in = std.io.fixedBufferStream(@as([]const u8, in_buf.items));
-
-    const cx: Cx = .{
-        .in = &in,
-        .diag = &diag,
+    run(.{
+        .gpa = gpa,
+        .diagnostic = &diagnostic,
+        .index_path = index_path,
+        .savegame_path = savegame_path,
         .out = std.io.getStdOut().writer(),
-    };
-    _ = run(&cx) catch |err| {
+    }) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
     };
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 
-const Cx = struct {
-    in: *std.io.FixedBufferStream([]const u8),
-    diag: *const Diagnostic.ForBinaryFile,
+const Args = struct {
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    index_path: [:0]const u8,
+    savegame_path: [:0]const u8,
     out: std.fs.File.Writer,
 };
 
-pub fn run(cx: *const Cx) !void {
-    var result: Save = undefined;
+pub fn run(args: Args) !void {
+    const game = try games.detectGameOrFatal(args.index_path);
+    const maxs = try readIndex(args.diagnostic, game, args.index_path);
 
-    var root = fixedBlockReader(cx.in, cx.diag);
+    var arena: std.heap.ArenaAllocator = .init(args.gpa);
+    defer arena.deinit();
+
+    const buf = try fs.readFileZ(arena.allocator(), std.fs.cwd(), args.savegame_path);
+    var in = std.io.fixedBufferStream(@as([]const u8, buf));
+
+    const diag: Diagnostic.ForBinaryFile = .init(args.diagnostic, args.savegame_path);
+
+    try dumpSaveGame(arena.allocator(), game, &maxs, &in, &diag, args.out);
+}
+
+// This is basically just enough of `extract.readIndex` to read the MAXS block.
+fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8) !Maxs {
+    const diag: Diagnostic.ForBinaryFile = .init(diagnostic, index_path);
+
+    const file = try std.fs.cwd().openFileZ(index_path, .{});
+    defer file.close();
+
+    var raw: [8 + @sizeOf(Maxs)]u8 = undefined;
+    try file.reader().readNoEof(&raw);
+    for (&raw) |*b|
+        b.* ^= xor_key;
+
+    var in = std.io.fixedBufferStream(@as([]const u8, &raw));
+    var blocks = fixedBlockReader(&in, &diag);
+
+    const maxs_raw = try blocks.expect(.MAXS).bytes();
+    if (maxs_raw.len != games.maxsLen(game))
+        return error.BadData;
+
+    var maxs: Maxs = undefined;
+    const maxs_present_bytes = std.mem.asBytes(&maxs)[0..maxs_raw.len];
+    const maxs_missing_bytes = std.mem.asBytes(&maxs)[maxs_raw.len..@sizeOf(Maxs)];
+    @memcpy(maxs_present_bytes, maxs_raw);
+    @memset(maxs_missing_bytes, 0);
+
+    blocks.abandon();
+
+    return maxs;
+}
+
+fn dumpSaveGame(
+    arena: std.mem.Allocator,
+    game: games.Game,
+    maxs: *const Maxs,
+    in: *std.io.FixedBufferStream([]const u8),
+    diag: *const Diagnostic.ForBinaryFile,
+    out: anytype,
+) !void {
+    var save: Save = undefined;
+
+    var root = fixedBlockReader(in, diag);
     var save_blocks = try root.expect(.SAVE).nested();
 
     _ = try save_blocks.expect(.VARS).block();
-    try fill(cx, &result.room);
-    try fill(cx, &result.objects);
-    try fill(cx, &result.scripts);
-    try fill(cx, &result.polygons);
-    try fill(cx, &result.default_actor_clipping);
-    try fill(cx, &result.actors);
-    try fill(cx, &result.array_local_script_number);
-    try fill(cx, &result.local_scripts_offset);
-    try fill(cx, &result.local_scripts_data_offset);
-    try fill(cx, &result.object_states);
-    try fill(cx, &result.object_owners);
-    try fill(cx, &result.object_rooms);
-    try fill(cx, &result.object_classes);
-    try fill(cx, &result.global_vars);
-    try fill(cx, &result.room_vars);
-    try fill(cx, &result.local_vars);
-    try fill(cx, &result.new_object_names);
-    try fill(cx, &result.room_pseudo_table);
-    try fill(cx, &result.stack);
-    try fill(cx, &result.stack_ptr);
-    try fill(cx, &result.text_colors);
-    try fill(cx, &result.charset_colors);
-    try fill(cx, &result.actor_talkies);
-    try fill(cx, &result.next_script);
-    try fill(cx, &result.cur_script_slot);
-    try fill(cx, &result.skipped_blob_1);
-    try fill(cx, &result.msgs_buffer);
-    try fill(cx, &result.msgs_ptr);
-    try fill(cx, &result.sentence_queue_ptr);
-    try fill(cx, &result.sentence_queue);
-    try fill(cx, &result.cutscene_stack_ptr);
-    try fill(cx, &result.cutscene);
-    try fill(cx, &result.recursive_stacks);
-    try fill(cx, &result.recursive_stack_ptr);
-    try fill(cx, &result.skipped_blob_2);
 
-    try cx.out.print("room: {}\n", .{result.room.number});
-    try cx.out.print("cur_script_slot: {}\n", .{result.cur_script_slot});
-    try cx.out.print("next_script: {}\n", .{result.next_script});
-    try cx.out.print("stack_ptr: {}\n", .{result.stack_ptr});
-    for (0..result.scripts.len) |i|
-        try dumpScript(cx, &result, i);
+    try readValue(in, &save.room);
+    try debugValue(out, "room", &save.room);
 
-    try cx.out.writeAll("\nglobal vars:\n");
-    for (result.global_vars, 0..) |value, i|
+    save.objects = try readArray(arena, in, Object, maxs.objects_in_room);
+    try debugSlice(out, "objects", save.objects);
+
+    try readValue(in, &save.scripts);
+    try debugSlice(out, "scripts", &save.scripts);
+
+    try readValue(in, &save.polygons);
+    try debugSlice(out, "polygons", &save.polygons);
+
+    try readValue(in, &save.default_actor_clipping);
+    try debugSlice(out, "default_actor_clipping", &save.default_actor_clipping);
+
+    switch (game) {
+        .baseball_1997 => _ = try io.readInPlaceAsValue(in, [62]ActorBaseball1997),
+        .baseball_2001 => _ = try io.readInPlaceAsValue(in, [62]ActorBaseball2001),
+        else => return error.GameNotSupported,
+    }
+
+    save.array_local_script_number = try readArray(arena, in, i32, maxs.arrays);
+    try debugSlice(out, "array_local_script_number", save.array_local_script_number);
+
+    save.local_scripts_offset = try readArray(arena, in, u32, maxs.local_scripts);
+    try debugSlice(out, "local_scripts_offset", save.local_scripts_offset);
+
+    save.local_scripts_data_offset = try readArray(arena, in, u32, maxs.local_scripts);
+    try debugSlice(out, "local_scripts_data_offset", save.local_scripts_data_offset);
+
+    save.object_states = try readArray(arena, in, u8, maxs.objects);
+    try debugSlice(out, "object_states", save.object_states);
+
+    save.object_owners = try readArray(arena, in, u8, maxs.objects);
+    try debugSlice(out, "object_owners", save.object_owners);
+
+    save.object_rooms = try readArray(arena, in, u8, maxs.objects);
+    try debugSlice(out, "object_rooms", save.object_rooms);
+
+    save.object_classes = try readArray(arena, in, i32, maxs.objects);
+    try debugSlice(out, "object_classes", save.object_classes);
+
+    save.global_vars = try readArray(arena, in, i32, maxs.variables);
+    try debugSlice(out, "global_vars", save.global_vars);
+
+    save.room_vars = try readArray(arena, in, i32, maxs.room_variables);
+    try debugSlice(out, "room_vars", save.room_vars);
+
+    try readValue(in, &save.local_vars);
+    try debugSlice(out, "local_vars", &save.local_vars);
+
+    try readValue(in, &save.new_object_names);
+    try debugSlice(out, "new_object_names", &save.new_object_names);
+
+    try readValue(in, &save.room_pseudo_table);
+    try debugSlice(out, "room_pseudo_table", &save.room_pseudo_table);
+
+    const stack_size: usize = switch (game) {
+        .baseball_1997 => 100,
+        .baseball_2001 => 256,
+        else => return error.GameNotSupported,
+    };
+    try in.reader().readNoEof(std.mem.sliceAsBytes(save.stack[0..stack_size]));
+    try debugSlice(out, "stack", save.stack[0..stack_size]);
+
+    try readValue(in, &save.stack_ptr);
+    try debugValue(out, "stack_ptr", &save.stack_ptr);
+
+    try readValue(in, &save.text_colors);
+    try debugSlice(out, "text_colors", &save.text_colors);
+
+    save.charset_colors = try readArray(arena, in, [16]i32, maxs.charsets);
+    try debugSlice(out, "charset_colors", save.charset_colors);
+
+    try readValue(in, &save.actor_talkies);
+    try debugSlice(out, "actor_talkies", &save.actor_talkies);
+
+    try readValue(in, &save.next_script);
+    try debugValue(out, "next_script", &save.next_script);
+
+    try readValue(in, &save.cur_script_slot);
+    try debugValue(out, "cur_script_slot", &save.cur_script_slot);
+
+    try readValue(in, &save.skipped_blob_1);
+    try debugValue(out, "skipped_blob_1", &save.skipped_blob_1);
+
+    try readValue(in, &save.msgs_buffer);
+    try debugValue(out, "msgs_buffer", &save.msgs_buffer);
+
+    try readValue(in, &save.msgs_ptr);
+    try debugValue(out, "msgs_ptr", &save.msgs_ptr);
+
+    try readValue(in, &save.sentence_queue_ptr);
+    try debugValue(out, "sentence_queue_ptr", &save.sentence_queue_ptr);
+
+    try readValue(in, &save.sentence_queue);
+    try debugSlice(out, "sentence_queue", &save.sentence_queue);
+
+    try readValue(in, &save.cutscene_stack_ptr);
+    try debugValue(out, "cutscene_stack_ptr", &save.cutscene_stack_ptr);
+
+    try readValue(in, &save.cutscene);
+    try debugSlice(out, "cutscene", &save.cutscene);
+
+    try readValue(in, &save.recursive_stacks);
+    try debugSlice(out, "recursive_stacks", &save.recursive_stacks);
+
+    try readValue(in, &save.recursive_stack_ptr);
+    try debugValue(out, "recursive_stack_ptr", &save.recursive_stack_ptr);
+
+    const trailing: usize = switch (game) {
+        .baseball_1997 => 26043,
+        .baseball_2001 => 214572,
+        else => return error.GameNotSupported,
+    };
+    _ = try io.readInPlace(in, trailing);
+
+    try out.print("room: {}\n", .{save.room.number});
+    try out.print("cur_script_slot: {}\n", .{save.cur_script_slot});
+    try out.print("next_script: {}\n", .{save.next_script});
+    try out.print("stack_ptr: {}\n", .{save.stack_ptr});
+    for (0..save.scripts.len) |i|
+        try dumpScript(game, maxs, &save, i, out);
+
+    try out.writeAll("\nglobal vars:\n");
+    for (save.global_vars, 0..) |value, i|
         if (value != 0)
-            try dumpVar(cx, "global", i, value);
+            try dumpVar("global", i, value, out);
 
-    try cx.out.writeAll("\nroom vars:\n");
-    for (result.room_vars, 0..) |value, i|
+    try out.writeAll("\nroom vars:\n");
+    for (save.room_vars, 0..) |value, i|
         if (value != 0)
-            try dumpVar(cx, "room", i, value);
+            try dumpVar("room", i, value, out);
 
-    try cx.out.writeByte('\n');
+    try out.writeByte('\n');
 
     while (!save_blocks.atEnd()) {
         const block = try save_blocks.next().block();
-        const raw = try io.readInPlace(cx.in, block.size);
+        const raw = try io.readInPlace(in, block.size);
         switch (block.id) {
             .DBGL => {}, // not useful
-            .HBGL => try dumpHbgl(cx, raw),
+            .HBGL => try dumpHbgl(raw, out),
             else => return error.BadData,
         }
     }
@@ -115,16 +267,29 @@ pub fn run(cx: *const Cx) !void {
     try root.finish();
 }
 
-fn fill(cx: *const Cx, ptr: anytype) !void {
-    const value = try io.readInPlaceAsValue(cx.in, @TypeOf(ptr.*));
+fn readValue(in: anytype, ptr: anytype) !void {
+    const value = try io.readInPlaceAsValue(in, @TypeOf(ptr.*));
     ptr.* = value.*;
 }
 
-fn dumpScript(cx: *const Cx, save: *const Save, slot: usize) !void {
+fn readArray(gpa: std.mem.Allocator, in: anytype, T: type, count: usize) ![]T {
+    const result = try gpa.alloc(T, count);
+    errdefer gpa.free(result);
+    try in.reader().readNoEof(std.mem.sliceAsBytes(result));
+    return result;
+}
+
+fn dumpScript(
+    game: games.Game,
+    maxs: *const Maxs,
+    save: *const Save,
+    slot: usize,
+    out: anytype,
+) !void {
     const script = &save.scripts[slot];
     if (script.state == .dead) return;
 
-    try cx.out.print("\nscript slot {}: [{c}] ", .{ slot, script.state.char() });
+    try out.print("\nscript slot {}: [{c}] ", .{ slot, script.state.char() });
     const type_str = switch (script.type) {
         .inventory => "inv",
         .object => "obj",
@@ -133,14 +298,15 @@ fn dumpScript(cx: *const Cx, save: *const Save, slot: usize) !void {
         .flobject => "flo",
         _ => "err",
     };
-    try cx.out.print("{s}{}, pc=", .{ type_str, script.script });
+    try out.print("{s}{}, pc=", .{ type_str, script.script });
 
     const real_pc = pc: switch (script.type) {
         .script => script.pc - Block.header_size,
         .local_script => {
+            const first_lsc = games.firstLocalScript(game);
             if (script.script < first_lsc) break :pc null;
             const number: u32 = @intCast(script.script - first_lsc);
-            if (number >= maxs_local_scripts) break :pc null;
+            if (number >= maxs.local_scripts) break :pc null;
             break :pc script.pc -
                 save.local_scripts_offset[number] -
                 save.local_scripts_data_offset[number];
@@ -148,22 +314,22 @@ fn dumpScript(cx: *const Cx, save: *const Save, slot: usize) !void {
         else => null,
     };
     if (real_pc) |pc|
-        try cx.out.print("0x{x}", .{pc})
+        try out.print("0x{x}", .{pc})
     else
-        try cx.out.print("(raw)0x{x}", .{script.pc});
-    try cx.out.writeByte('\n');
+        try out.print("(raw)0x{x}", .{script.pc});
+    try out.writeByte('\n');
 
     const locals = &save.local_vars[slot];
     for (locals, 0..) |value, i|
         if (value != 0)
-            try dumpVar(cx, "local", i, value);
+            try dumpVar("local", i, value, out);
 }
 
-fn dumpVar(cx: *const Cx, prefix: []const u8, number: usize, value: i32) !void {
-    try cx.out.print("    {s}{} = {}", .{ prefix, number, value });
+fn dumpVar(prefix: []const u8, number: usize, value: i32, out: anytype) !void {
+    try out.print("    {s}{} = {}", .{ prefix, number, value });
     if (getArrayNumber(value)) |array_number|
-        try cx.out.print(" <array {}>", .{array_number});
-    try cx.out.writeByte('\n');
+        try out.print(" <array {}>", .{array_number});
+    try out.writeByte('\n');
 }
 
 fn getArrayNumber(value: i32) ?u8 {
@@ -171,21 +337,21 @@ fn getArrayNumber(value: i32) ?u8 {
     return @intCast(value & 0xff);
 }
 
-fn dumpHbgl(cx: *const Cx, raw: []const u8) !void {
+fn dumpHbgl(raw: []const u8, out: anytype) !void {
     if (raw.len < @sizeOf(HbglHeader)) return error.BadData;
     const header = std.mem.bytesAsValue(HbglHeader, raw[0..@sizeOf(HbglHeader)]);
     const payload = raw[@sizeOf(HbglHeader)..];
     if (header.size != payload.len) return error.BadData;
-    try cx.out.print("glob {} {} = ", .{ header.type, header.number });
+    try out.print("glob {} {} = ", .{ header.type, header.number });
     switch (header.type) {
-        .array => try dumpArray(cx, payload),
-        .image => try cx.out.writeAll("<image>"),
-        else => try cx.out.print("{}", .{std.fmt.fmtSliceHexLower(payload)}),
+        .array => try dumpArray(payload, out),
+        .image => try out.writeAll("<image>"),
+        else => try out.print("{}", .{std.fmt.fmtSliceHexLower(payload)}),
     }
-    try cx.out.writeByte('\n');
+    try out.writeByte('\n');
 }
 
-fn dumpArray(cx: *const Cx, raw: []const u8) !void {
+fn dumpArray(raw: []const u8, out: anytype) !void {
     if (raw.len < @sizeOf(ArrayHeader)) return error.BadData;
     // verify we can safely cast
     _ = std.meta.intToEnum(ArrayHeader.Type, std.mem.readInt(u32, raw[0..4], .little)) catch
@@ -202,7 +368,7 @@ fn dumpArray(cx: *const Cx, raw: []const u8) !void {
     const excess = payload.len - expected_size;
     if (excess > 3) return error.BadData;
 
-    try cx.out.print("array {s} [{} to {}][{} to {}]\n", .{
+    try out.print("array {s} [{} to {}][{} to {}]\n", .{
         header.type.str(),
         header.down_min,
         header.down_max,
@@ -212,11 +378,11 @@ fn dumpArray(cx: *const Cx, raw: []const u8) !void {
 
     var cur: utils.SafeManyPointer([*]const u8) = .init(payload);
     for (0..down_len) |y_from_0| {
-        try cx.out.print("    [{}] =", .{utils.add(i32, header.down_min, y_from_0).?});
+        try out.print("    [{}] =", .{utils.add(i32, header.down_min, y_from_0).?});
         switch (header.type) {
             .string => {
                 const str = cur.use()[0..across_len];
-                try cx.out.print(" \"{}\"", .{std.fmt.fmtSliceEscapeLower(str)});
+                try out.print(" \"{}\"", .{std.fmt.fmtSliceEscapeLower(str)});
             },
             else => {
                 for (0..across_len) |_| {
@@ -226,12 +392,12 @@ fn dumpArray(cx: *const Cx, raw: []const u8) !void {
                         .int16 => std.mem.readInt(i16, cur.use()[0..2], .little),
                         .int32 => std.mem.readInt(i32, cur.use()[0..4], .little),
                     };
-                    try cx.out.print(" {}", .{value});
+                    try out.print(" {}", .{value});
                     cur = cur.plus(header.type.bytes());
                 }
             },
         }
-        try cx.out.writeByte('\n');
+        try out.writeByte('\n');
     }
 }
 
@@ -294,39 +460,28 @@ const ArrayHeader = extern struct {
 /// avoid UB if we read a byte other than 0 or 1
 const BoolU8 = enum(u8) { false, true, _ };
 
-const first_lsc = 200;
-
-const maxs_variables = 500;
-const maxs_room_variables = 64;
-const maxs_objects_in_room = 200;
-const maxs_arrays = 100;
-const maxs_charsets = 12;
-const maxs_objects = 1250;
-const maxs_local_scripts = 256;
-
 const Save = struct {
     room: Room,
-    objects: [maxs_objects_in_room]Object,
+    objects: []Object,
     scripts: [80]Script,
     polygons: [200]Polygon,
     default_actor_clipping: [4]i32,
-    actors: [62]Actor,
-    array_local_script_number: [maxs_arrays]i32,
-    local_scripts_offset: [maxs_local_scripts]u32,
-    local_scripts_data_offset: [maxs_local_scripts]u32,
-    object_states: [maxs_objects]u8,
-    object_owners: [maxs_objects]u8,
-    object_rooms: [maxs_objects]u8,
-    object_classes: [maxs_objects]i32,
-    global_vars: [maxs_variables]i32,
-    room_vars: [maxs_room_variables]i32,
+    array_local_script_number: []i32,
+    local_scripts_offset: []u32,
+    local_scripts_data_offset: []u32,
+    object_states: []u8,
+    object_owners: []u8,
+    object_rooms: []u8,
+    object_classes: []i32,
+    global_vars: []i32,
+    room_vars: []i32,
     local_vars: [80][25]i32,
     new_object_names: [10]u32,
     room_pseudo_table: [127]i32,
-    stack: [100]i32,
+    stack: [256]i32,
     stack_ptr: i32,
     text_colors: [16]i32,
-    charset_colors: [maxs_charsets][16]i32,
+    charset_colors: [][16]i32,
     actor_talkies: [16]ActorTalkie,
     next_script: i32,
     cur_script_slot: i32,
@@ -339,7 +494,6 @@ const Save = struct {
     cutscene: [5]Cutscene,
     recursive_stacks: [15]RecursiveStack,
     recursive_stack_ptr: i32,
-    skipped_blob_2: [26043]u8,
 };
 
 const Room = extern struct {
@@ -393,7 +547,8 @@ const Script = extern struct {
 };
 
 const Polygon = [68]u8;
-const Actor = [1923]u8;
+const ActorBaseball1997 = [1923]u8;
+const ActorBaseball2001 = [1951]u8;
 const ActorTalkie = [144]u8;
 const Sentence = [11]u8;
 const Cutscene = [12]u8;
@@ -420,4 +575,21 @@ fn FmtTagNameNonExhaustive(E: type) type {
             return writer.print("0x{x}", .{@intFromEnum(self.value)});
         }
     };
+}
+
+fn debugValue(out: anytype, name: []const u8, ptr: anytype) !void {
+    if (!debug) return;
+    try out.print(
+        "{s}: {}\n",
+        .{ name, std.fmt.fmtSliceHexLower(std.mem.asBytes(ptr)) },
+    );
+}
+
+fn debugSlice(out: anytype, name: []const u8, slice: anytype) !void {
+    if (!debug) return;
+    for (slice, 0..) |*ptr, i|
+        try out.print(
+            "{s}[{}]: {}\n",
+            .{ name, i, std.fmt.fmtSliceHexLower(std.mem.asBytes(ptr)) },
+        );
 }

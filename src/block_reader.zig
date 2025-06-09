@@ -314,6 +314,11 @@ const FixedBlockReader = struct {
         }
         self.diag.trace(pos, "end of container", .{});
     }
+
+    /// hint for the reader that we're throwing away the rest on purpose
+    pub fn abandon(self: *Self) void {
+        _ = self;
+    }
 };
 
 const BlockResult = union(enum) {

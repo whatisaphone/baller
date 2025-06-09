@@ -133,9 +133,8 @@ const usage =
     \\    <output>      Path to output directory
     \\    -x=|--xor=    XOR key
     \\
-    \\baller saveload dump
+    \\baller saveload dump <index> <savegame>
     \\
-    \\                  (reads from stdin)
     \\                  (writes to stdout)
     \\
 ;

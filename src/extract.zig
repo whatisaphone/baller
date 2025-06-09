@@ -334,7 +334,7 @@ pub const Index = struct {
     room_names: RoomNames,
 };
 
-const Maxs = extern struct {
+pub const Maxs = extern struct {
     variables: u16,
     unknown_02: u16,
     room_variables: u16,
