@@ -3259,10 +3259,12 @@ fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
-    if (cx.symbols.getVariable(cx.room_number, cx.id, variable)) |sym| {
-        try cx.out.appendSlice(cx.gpa, sym.name);
-        return;
-    }
+    if (cx.symbols.getVariable(cx.room_number, cx.id, variable)) |sym|
+        if (sym.name) |name| {
+            try cx.out.appendSlice(cx.gpa, name);
+            return;
+        };
+
     const kind, const number = try variable.decode();
     try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
 }

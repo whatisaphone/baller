@@ -23,6 +23,7 @@ const baseball1997: Game = .{
     .fixture_dir = "baseball1997",
     .index_name = "BASEBALL.HE0",
     .fixture_names = &.{"BASEBALL.HE1"},
+    .symbols_path = "src/fixtures/baseball1997-symbols.ini",
 };
 test "Backyard Baseball 1997 round trip raw" {
     _ = try testRoundTrip(baseball1997, .raw);

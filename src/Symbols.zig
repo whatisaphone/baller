@@ -19,12 +19,13 @@ pub const ScriptId = union(enum) {
 };
 
 const Variable = struct {
-    name: []const u8,
-    type: ?Type,
+    name: ?[]const u8 = null,
+    type: ?Type = null,
 };
 
 pub const Script = struct {
     name: ?[]const u8 = null,
+    params: ?u8 = null,
     locals: ArrayMap(Variable) = .empty,
 
     fn deinit(self: *Script, allocator: std.mem.Allocator) void {
@@ -177,10 +178,12 @@ fn handleGlobal(cx: *Cx) !void {
     const variable = try parseVariable(cx, cx.value);
     try cx.result.globals.putNew(cx.allocator, number, variable);
 
-    const entry = try cx.result.global_names.getOrPut(cx.allocator, variable.name);
-    if (entry.found_existing)
-        return error.BadData;
-    entry.value_ptr.* = number;
+    if (variable.name) |name| {
+        const entry = try cx.result.global_names.getOrPut(cx.allocator, name);
+        if (entry.found_existing)
+            return error.BadData;
+        entry.value_ptr.* = number;
+    }
 }
 
 fn handleGlobalScript(cx: *Cx) !void {
@@ -192,16 +195,32 @@ fn handleGlobalScript(cx: *Cx) !void {
         script_entry.* = .{};
     const script = &script_entry.*.?;
 
-    try handleScript(cx, script);
+    try handleScript(cx, script, true);
 }
 
-fn handleScript(cx: *Cx, script: *Script) !void {
-    const part = cx.key_parts.next() orelse
-        return handleScriptName(cx, script);
-    if (std.mem.eql(u8, part, "local"))
-        return handleScriptLocal(cx, script)
-    else
-        return error.BadData;
+fn handleScript(cx: *Cx, script: *Script, can_have_name: bool) !void {
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    const name_str, const after_name_opt = split(cx.value, '(');
+    script.name = if (name_str.len == 0) null else name_str;
+    if (!can_have_name and script.name != null) return error.BadData;
+
+    const after_name = after_name_opt orelse return;
+    const params, const after_params_opt = split(after_name, ')');
+    const after_params = after_params_opt orelse return error.BadData;
+
+    var it = std.mem.tokenizeScalar(u8, params, ' ');
+    while (it.next()) |s| {
+        const v = try parseVariable(cx, s);
+        try script.locals.putNew(cx.allocator, script.locals.len(), v);
+    }
+    script.params = std.math.cast(u8, script.locals.len()) orelse return error.BadData;
+
+    it = std.mem.tokenizeScalar(u8, after_params, ' ');
+    while (it.next()) |s| {
+        const v = try parseVariable(cx, s);
+        try script.locals.putNew(cx.allocator, script.locals.len(), v);
+    }
 }
 
 fn handleScriptName(cx: *Cx, script: *Script) !void {
@@ -237,9 +256,9 @@ fn handleRoom(cx: *Cx) !void {
     else if (std.mem.eql(u8, part, "script"))
         try handleRoomScript(cx, room)
     else if (std.mem.eql(u8, part, "enter"))
-        try handleScript(cx, &room.enter)
+        try handleScript(cx, &room.enter, false)
     else if (std.mem.eql(u8, part, "exit"))
-        try handleScript(cx, &room.exit)
+        try handleScript(cx, &room.exit, false)
     else
         return error.BadData;
 }
@@ -253,10 +272,12 @@ fn handleRoomVar(cx: *Cx, room: *Room) !void {
     const variable = try parseVariable(cx, cx.value);
     try room.vars.putNew(cx.allocator, number, variable);
 
-    const entry = try room.var_names.getOrPut(cx.allocator, variable.name);
-    if (entry.found_existing)
-        return error.BadData;
-    entry.value_ptr.* = number;
+    if (variable.name) |name| {
+        const entry = try room.var_names.getOrPut(cx.allocator, name);
+        if (entry.found_existing)
+            return error.BadData;
+        entry.value_ptr.* = number;
+    }
 }
 
 fn handleRoomScript(cx: *Cx, room: *Room) !void {
@@ -269,7 +290,7 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
         script_entry.* = .{};
     const script = &script_entry.*.?;
 
-    try handleScript(cx, script);
+    try handleScript(cx, script, true);
 }
 
 fn handleEnum(cx: *Cx) !void {
@@ -299,12 +320,12 @@ fn handleEnum(cx: *Cx) !void {
 }
 
 fn parseVariable(cx: *Cx, value: []const u8) !Variable {
-    const colon = std.mem.indexOfScalar(u8, value, ':') orelse
-        return .{ .name = value, .type = null };
-    const name = std.mem.trimRight(u8, value[0..colon], " ");
-    const type_str = std.mem.trimLeft(u8, value[colon + 1 ..], " ");
-    const typ = try parseType(cx, type_str);
-    return .{ .name = name, .type = typ };
+    var result: Variable = .{};
+    const name_str, const type_str_opt = split(value, ':');
+    result.name = if (name_str.len == 1 and name_str[0] == '_') null else name_str;
+    if (type_str_opt) |type_str|
+        result.type = try parseType(cx, type_str);
+    return result;
 }
 
 fn parseType(cx: *Cx, s: []const u8) !Type {
@@ -316,6 +337,14 @@ fn parseType(cx: *Cx, s: []const u8) !Type {
         return .{ .@"enum" = e }
     else
         return error.BadData;
+}
+
+fn split(str: []const u8, ch: u8) struct { []const u8, ?[]const u8 } {
+    const i = std.mem.indexOfScalar(u8, str, ch) orelse return .{ str, null };
+    return .{
+        std.mem.trimRight(u8, str[0..i], " "),
+        std.mem.trimLeft(u8, str[i + 1 ..], " "),
+    };
 }
 
 pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
