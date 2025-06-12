@@ -1083,7 +1083,7 @@ fn recoverTypes(cx: *TypeCx) void {
 
 fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
     switch (cx.exprs.getPtr(ei).*) {
-        .int, .string, .dup => {},
+        .int, .string => {},
         .variable => |v| {
             const sym = cx.symbols.getVariable(cx.room_number, cx.id, v) orelse return;
             const typ = sym.type orelse return;
@@ -1094,6 +1094,11 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
             for (getExtra3(cx.extra, items)) |i|
                 recoverExpr(cx, i);
         },
+        .dup => |child| {
+            recoverExpr(cx, child);
+            if (cx.types.get(child)) |t|
+                setType(cx, ei, t);
+        },
         .stack_fault => {},
     }
 }
@@ -1103,7 +1108,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     for (args) |ei|
         recoverExpr(cx, ei);
     switch (op) {
-        .eq, .ne, .set => {
+        .eq, .ne, .gt, .lt, .le, .ge, .set => {
             unify(cx, args[0], args[1]);
         },
         .@"start-script" => {
