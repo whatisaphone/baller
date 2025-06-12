@@ -2146,7 +2146,7 @@ fn emitRoom(
         .err => ok = false,
         .code_chunk => |chunk| {
             utils.growBoundedArray(&chunks, chunk.index + 1, .{ .section = .top, .code = .empty });
-            std.debug.assert(chunks.get(chunk.index).code.items.len == 0);
+            std.debug.assert(chunks.constSlice()[chunk.index].code.items.len == 0);
             chunks.set(chunk.index, .{ .section = chunk.section, .code = chunk.code });
         },
     };
