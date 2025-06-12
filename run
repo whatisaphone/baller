@@ -4,7 +4,7 @@ set -euo pipefail
 
 command_roundtrip() {
     command_extract "$@"
-    command_build "$@"
+    command_build "$1"
 }
 
 command_extract() {

@@ -3202,8 +3202,16 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         .script => {
             const num = std.math.cast(u32, int) orelse break :write_name;
             if (num < games.firstLocalScript(cx.symbols.game)) {
-                // for now always name global scripts
+                // it's a global script
+                const valid = num < cx.index.maxs.scripts and
+                    cx.index.directories.scripts.rooms.get(num) != 0;
+                if (!valid) {
+                    if (num != 0)
+                        cx.diag.info(0, "reference to missing script {}", .{num});
+                    break :write_name;
+                }
             } else {
+                // it's a local script
                 const index = num - games.firstLocalScript(cx.symbols.game);
                 if (index >= UsageTracker.max_local_scripts) break :write_name;
                 const valid = std.mem.readPackedInt(u1, std.mem.asBytes(cx.lsc_mask), index, .little) != 0;
