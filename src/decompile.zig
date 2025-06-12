@@ -1113,9 +1113,11 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         },
         .@"start-script" => {
             setType(cx, args[0], .script);
+            recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"start-script-rec" => {
             setType(cx, args[0], .script);
+            recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"current-room" => {
             setType(cx, args[0], .room);
@@ -1125,6 +1127,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         },
         .@"call-script" => {
             setType(cx, args[0], .script);
+            recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"load-script" => {
             setType(cx, args[0], .script);
@@ -1134,6 +1137,33 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             setType(cx, args[1], .{ .@"enum" = file_mode });
         },
         else => {},
+    }
+}
+
+fn recoverScriptArgs(cx: *TypeCx, script_ei: ExprIndex, args_ei: ExprIndex) void {
+    const script_expr = cx.exprs.getPtr(script_ei);
+    const script_number_i32 = switch (script_expr.*) {
+        .int => |i| i,
+        else => return,
+    };
+    const script_number = std.math.cast(u32, script_number_i32) orelse return;
+    const first_lsc = games.firstLocalScript(cx.symbols.game);
+    const script_id: Symbols.ScriptId = if (script_number < first_lsc)
+        .{ .global = script_number }
+    else
+        .{ .local = .{ .room = cx.room_number, .number = script_number } };
+    const script_symbol = cx.symbols.getScript(script_id) orelse return;
+
+    const args_expr = cx.exprs.getPtr(args_ei);
+    const arg_eis = switch (args_expr.*) {
+        .variadic_list => |s| getExtra3(cx.extra, s),
+        else => return,
+    };
+
+    for (arg_eis, 0..) |arg_ei, i| {
+        const local = script_symbol.locals.getPtr(i) orelse continue;
+        if (local.type) |t|
+            setType(cx, arg_ei, t);
     }
 }
 
