@@ -352,6 +352,7 @@ fn encodeCelBmp(
 const CelEncodeState = struct {
     run_mask: u8,
     color_shift: u3,
+    color_map: [256]u8,
     bitmap: *const bmp.Bmp,
     x: usize,
     y: usize,
@@ -365,12 +366,18 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
     var state: CelEncodeState = .{
         .run_mask = run_mask,
         .color_shift = color_shift,
+        .color_map = @splat(0xff),
         .bitmap = bitmap,
         .x = 0,
         .y = 0,
         .run = 0,
         .color = undefined,
     };
+
+    for (0.., akpl) |i, color| {
+        if (state.color_map[color] == 0xff)
+            state.color_map[color] = @intCast(i);
+    }
 
     while (true) {
         const color = bitmap.getPixel(state.x, state.y);
@@ -381,7 +388,7 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
         } else if (color == state.color and state.run < 255) {
             state.run += 1;
         } else {
-            try flushRun(akpl, &state, out);
+            try flushRun(&state, out);
             state.color = color;
             state.run = 1;
         }
@@ -394,17 +401,15 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
                 break;
         }
     }
-    try flushRun(akpl, &state, out);
+    try flushRun(&state, out);
 }
 
-fn flushRun(akpl: []const u8, state: *CelEncodeState, out: anytype) !void {
-    const index: u8 = for (0.., akpl) |i, color| {
-        if (color == state.color)
-            break @intCast(i);
-    } else {
+fn flushRun(state: *CelEncodeState, out: anytype) !void {
+    const index = state.color_map[state.color];
+    if (index == 0xff) {
         report.fatal("color index {} found in image but not in AKPL", .{state.color});
         return error.BadData;
-    };
+    }
 
     if (state.run == state.run & state.run_mask) {
         try out.writeByte(state.run | @shlExact(index, state.color_shift));
