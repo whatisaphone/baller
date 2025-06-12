@@ -324,13 +324,13 @@ fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnmanag
 }
 
 pub fn encodeUncompressed(header: bmp.Bmp, out: anytype) !void {
-    var rows = try header.iterRows();
+    var rows = header.iterRows();
     while (rows.next()) |row|
         try out.writeAll(row);
 }
 
 pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !void {
-    var rows = try header.iterRows();
+    var rows = header.iterRows();
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte

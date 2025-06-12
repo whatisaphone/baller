@@ -113,7 +113,7 @@ pub const Bmp = struct {
         return .init(self.header, self.pixels);
     }
 
-    pub fn iterRows(self: *const Bmp) !RowIter {
+    pub fn iterRows(self: *const Bmp) RowIter {
         return .init(self.header, self.pixels);
     }
 
@@ -196,7 +196,7 @@ pub const RowIter = struct {
     width: u31,
     stride: i32,
 
-    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) !RowIter {
+    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) RowIter {
         const width: u31 = @intCast(header.biWidth);
         const stride = calcStride(width);
 
