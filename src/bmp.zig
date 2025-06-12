@@ -194,7 +194,7 @@ pub const RowIter = struct {
     pixels: []const u8,
     pos: u32,
     width: u31,
-    stride: i32,
+    stride: u31,
 
     fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) RowIter {
         const width: u31 = @intCast(header.biWidth);
@@ -213,7 +213,7 @@ pub const RowIter = struct {
             .pixels = pixels,
             .pos = @as(u32, @intCast(pixels.len)),
             .width = width,
-            .stride = -@as(i32, stride),
+            .stride = stride,
         };
     }
 
@@ -221,14 +221,13 @@ pub const RowIter = struct {
         if (self.stride > 0) {
             const pos = self.pos;
 
-            self.pos += @intCast(self.stride);
+            self.pos += self.stride;
             if (self.pos > self.pixels.len)
                 return null;
 
             return self.pixels[pos..][0..self.width];
         } else {
-            // std.debug.print("self.pos = {}\n", .{self.pos});
-            self.pos = std.math.sub(u32, self.pos, @intCast(-self.stride)) catch
+            self.pos = std.math.sub(u32, self.pos, self.stride) catch
                 return null;
 
             return self.pixels[self.pos..][0..self.width];
