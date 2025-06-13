@@ -89,6 +89,9 @@ enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.enum_names.deinit(allocator);
+
+    for (self.enums.items) |*e|
+        e.deinit(allocator);
     self.enums.deinit(allocator);
 
     var i = self.rooms.len();
