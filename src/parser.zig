@@ -55,10 +55,8 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         @"const",
     };
 
-    var index_children_opt: ?std.BoundedArray(Ast.NodeIndex, 16) = null;
-    var disks: [2]Ast.NodeIndex = @splat(Ast.null_node);
-    var variables: std.BoundedArray(u32, 768) = .{};
-    var constants: std.BoundedArray(u32, 1024) = .{};
+    var children: std.BoundedArray(u32, 8192) = .{};
+    var parsed_index = false;
 
     while (true) {
         skipWhitespace(cx);
@@ -66,20 +64,23 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .index => {
-                    if (index_children_opt != null)
+                    if (parsed_index)
                         return reportError(cx, token, "duplicate index", .{});
-                    index_children_opt = try parseIndex(cx);
+                    const node = try parseIndex(cx, token);
+                    try appendNode(cx, &children, node);
+                    parsed_index = true;
                 },
                 .disk => {
-                    try parseDisk(cx, token, &disks);
+                    const node = try parseDisk(cx, token);
+                    try appendNode(cx, &children, node);
                 },
                 .@"var" => {
                     const node = try parseVar(cx, token);
-                    try appendNode(cx, &variables, node);
+                    try appendNode(cx, &children, node);
                 },
                 .@"const" => {
                     const node = try parseConst(cx, token);
-                    try appendNode(cx, &constants, node);
+                    try appendNode(cx, &children, node);
                 },
             },
             .eof => break,
@@ -88,21 +89,16 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     }
 
     const token = &cx.lex.tokens.items[dummy_root_token];
-    const index_children = index_children_opt orelse
+
+    if (!parsed_index)
         return reportError(cx, token, "missing index", .{});
-    const index_extra = try storeExtra(cx, index_children.slice());
-    const disks_extra = try storeExtra(cx, &disks);
-    const variables_extra = try storeExtra(cx, variables.slice());
 
     return storeNode(cx, token, .{ .project = .{
-        .index = index_extra,
-        .disks = disks_extra,
-        .variables = variables_extra,
-        .constants = try storeExtra(cx, constants.slice()),
+        .children = try storeExtra(cx, children.slice()),
     } });
 }
 
-fn parseIndex(cx: *Cx) !std.BoundedArray(Ast.NodeIndex, 16) {
+fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
         @"index-block",
@@ -137,23 +133,22 @@ fn parseIndex(cx: *Cx) !std.BoundedArray(Ast.NodeIndex, 16) {
         }
     }
 
-    return children;
+    return storeNode(cx, index_token, .{ .index = .{
+        .children = try storeExtra(cx, children.slice()),
+    } });
 }
 
-fn parseDisk(cx: *Cx, token: *const lexer.Token, disks: *[2]Ast.NodeIndex) !void {
+fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
         room,
     };
 
-    const disk_number = try expectInteger(cx);
+    const disk_number_i32 = try expectInteger(cx);
     try expect(cx, .brace_l);
 
-    if (!(1 <= disk_number and disk_number <= disks.len))
+    const disk_number = std.math.cast(u8, disk_number_i32) orelse
         return reportError(cx, token, "disk number out of range", .{});
-    const disk_index: u8 = @intCast(disk_number - 1);
-    if (disks[disk_index] != Ast.null_node)
-        return reportError(cx, token, "duplicate disk number", .{});
 
     var children: std.BoundedArray(Ast.NodeIndex, 32) = .{};
 
@@ -176,7 +171,8 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token, disks: *[2]Ast.NodeIndex) !void
         }
     }
 
-    disks[disk_index] = try storeNode(cx, token, .{ .disk = .{
+    return storeNode(cx, token, .{ .disk = .{
+        .number = disk_number,
         .children = try storeExtra(cx, children.slice()),
     } });
 }

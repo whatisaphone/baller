@@ -138,12 +138,11 @@ fn planProject(cx: *Context) !void {
 
     try buildProjectScope(cx);
 
-    for (project_file.ast.getExtra(project_node.disks), 0..) |disk_node, disk_index| {
-        if (disk_node == Ast.null_node) continue;
-        const disk_number: u8 = @intCast(disk_index + 1);
-        const disk = &project_file.ast.nodes.items[disk_node].disk;
-        cx.sendSyncEvent(.{ .disk_start = disk_number });
-        for (project_file.ast.getExtra(disk.children)) |room_node| {
+    for (project_file.ast.getExtra(project_node.children)) |node_index| {
+        const node = &project_file.ast.nodes.items[node_index];
+        if (node.* != .disk) continue;
+        cx.sendSyncEvent(.{ .disk_start = node.disk.number });
+        for (project_file.ast.getExtra(node.disk.children)) |room_node| {
             const room = &project_file.ast.nodes.items[room_node].disk_room;
             cx.sendSyncEvent(.{ .room_start = room.room_number });
             try planRoom(cx, room);
@@ -161,51 +160,50 @@ fn buildProjectScope(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
 
-    for (project_file.ast.getExtra(project_node.variables)) |node_index| {
-        const var_node = &project_file.ast.nodes.items[node_index].variable;
-        const var_num = std.math.cast(u14, var_node.number) orelse return error.BadData;
-        const symbol: script.Symbol = .{ .variable = .init(.global, var_num) };
-        try addScopeSymbol(cx, &cx.project_scope, project_file, var_node.name, symbol);
-    }
+    for (project_file.ast.getExtra(project_node.children)) |node_index| {
+        switch (project_file.ast.nodes.items[node_index]) {
+            .constant => |c| {
+                const symbol: script.Symbol = .{ .constant = c.value };
+                try addScopeSymbol(cx, &cx.project_scope, project_file, c.name, symbol);
+            },
+            .variable => |v| {
+                const var_num = std.math.cast(u14, v.number) orelse return error.BadData;
+                const symbol: script.Symbol = .{ .variable = .init(.global, var_num) };
+                try addScopeSymbol(cx, &cx.project_scope, project_file, v.name, symbol);
+            },
+            .disk => |disk| {
+                for (project_file.ast.getExtra(disk.children)) |room_node| {
+                    const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
 
-    for (project_file.ast.getExtra(project_node.constants)) |node_index| {
-        const const_node = &project_file.ast.nodes.items[node_index].constant;
-        const symbol: script.Symbol = .{ .constant = const_node.value };
-        try addScopeSymbol(cx, &cx.project_scope, project_file, const_node.name, symbol);
-    }
+                    const room_symbol: script.Symbol = .{ .constant = disk_room.room_number };
+                    try addScopeSymbol(cx, &cx.project_scope, project_file, disk_room.name, room_symbol);
 
-    for (project_file.ast.getExtra(project_node.disks)) |disk_node| {
-        if (disk_node == Ast.null_node) continue;
-        const disk = &project_file.ast.nodes.items[disk_node].disk;
-        for (project_file.ast.getExtra(disk.children)) |room_node| {
-            const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
-
-            const room_symbol: script.Symbol = .{ .constant = disk_room.room_number };
-            try addScopeSymbol(cx, &cx.project_scope, project_file, disk_room.name, room_symbol);
-
-            const room_file = &cx.project.files.items[disk_room.room_number].?;
-            const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
-            for (room_file.ast.getExtra(root.children)) |child_index| {
-                switch (room_file.ast.nodes.items[child_index]) {
-                    .raw_glob_file => |n| if (n.name) |name| {
-                        const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
-                    },
-                    .raw_glob_block => |n| if (n.name) |name| {
-                        const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
-                    },
-                    .scr => |n| {
-                        const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
-                    },
-                    .script => |n| {
-                        const symbol: script.Symbol = .{ .constant = n.glob_number };
-                        try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
-                    },
-                    else => {},
+                    const room_file = &cx.project.files.items[disk_room.room_number].?;
+                    const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+                    for (room_file.ast.getExtra(root.children)) |child_index| {
+                        switch (room_file.ast.nodes.items[child_index]) {
+                            .raw_glob_file => |n| if (n.name) |name| {
+                                const symbol: script.Symbol = .{ .constant = n.glob_number };
+                                try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
+                            },
+                            .raw_glob_block => |n| if (n.name) |name| {
+                                const symbol: script.Symbol = .{ .constant = n.glob_number };
+                                try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
+                            },
+                            .scr => |n| {
+                                const symbol: script.Symbol = .{ .constant = n.glob_number };
+                                try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
+                            },
+                            .script => |n| {
+                                const symbol: script.Symbol = .{ .constant = n.glob_number };
+                                try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
+                            },
+                            else => {},
+                        }
+                    }
                 }
-            }
+            },
+            else => {},
         }
     }
 }
@@ -1016,7 +1014,14 @@ fn planIndex(cx: *Context) !void {
 
     const project_file = &cx.project.files.items[0].?;
     const project_root = &project_file.ast.nodes.items[project_file.ast.root].project;
-    for (project_file.ast.getExtra(project_root.index)) |node| {
+
+    const index_node = for (project_file.ast.getExtra(project_root.children)) |node_index| {
+        const node = &project_file.ast.nodes.items[node_index];
+        if (node.* == .index) break node_index;
+    } else unreachable;
+    const index = &project_file.ast.nodes.items[index_node].index;
+
+    for (project_file.ast.getExtra(index.children)) |node| {
         switch (project_file.ast.nodes.items[node]) {
             .raw_block => |*n| try planRawBlock(cx, project_file, n),
             .index_block => |b| switch (b) {
@@ -1038,10 +1043,10 @@ fn planRoomNames(cx: *Context) !void {
     var room_nodes: std.BoundedArray(Ast.NodeIndex, 256) = .{};
     const project_file = &cx.project.files.items[0].?;
     const project_root = &project_file.ast.nodes.items[project_file.ast.root].project;
-    for (project_file.ast.getExtra(project_root.disks)) |disk_node| {
-        if (disk_node == Ast.null_node) continue;
-        const disk = &project_file.ast.nodes.items[disk_node].disk;
-        for (project_file.ast.getExtra(disk.children)) |child_node| {
+    for (project_file.ast.getExtra(project_root.children)) |node_index| {
+        const node = &project_file.ast.nodes.items[node_index];
+        if (node.* != .disk) continue;
+        for (project_file.ast.getExtra(node.disk.children)) |child_node| {
             const child = &project_file.ast.nodes.items[child_node];
             if (child.* != .disk_room) continue;
             const room = &child.disk_room;

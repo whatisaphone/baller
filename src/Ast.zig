@@ -34,13 +34,14 @@ pub const null_node: NodeIndex = std.math.maxInt(NodeIndex);
 
 pub const Node = union(enum) {
     project: struct {
-        index: ExtraSlice,
-        disks: ExtraSlice,
-        variables: ExtraSlice,
-        constants: ExtraSlice,
+        children: ExtraSlice,
+    },
+    index: struct {
+        children: ExtraSlice,
     },
     index_block: enum { DIRI, DIRR, DIRS, DIRN, DIRC, DIRF, DIRM, DIRT, DLFL, DISK, RNAM },
     disk: struct {
+        number: u8,
         children: ExtraSlice,
     },
     disk_room: struct {

@@ -141,10 +141,10 @@ fn readRooms(
 
     var project_file = &project.files.items[0].?;
     const root = &project_file.ast.nodes.items[project_file.ast.root].project;
-    for (project_file.ast.getExtra(root.disks)) |disk_node| {
-        if (disk_node == Ast.null_node) continue;
-        const disk = &project_file.ast.nodes.items[disk_node].disk;
-        for (project_file.ast.getExtra(disk.children)) |disk_child_node| {
+    for (project_file.ast.getExtra(root.children)) |child_node| {
+        const child = &project_file.ast.nodes.items[child_node];
+        if (child.* != .disk) continue;
+        for (project_file.ast.getExtra(child.disk.children)) |disk_child_node| {
             const disk_child = &project_file.ast.nodes.items[disk_child_node];
             if (disk_child.* != .disk_room) continue;
             try room_nodes.append(disk_child_node);
