@@ -45,6 +45,7 @@ pub const Payload = union(enum) {
     raw_block: struct { block_id: BlockId, data: std.ArrayListUnmanaged(u8) },
     index_start,
     index_end,
+    index_maxs: std.ArrayListUnmanaged(u8),
     index_block: @FieldType(Ast.Node, "index_block"),
     err,
 };
@@ -1063,10 +1064,7 @@ fn planMaxs(cx: *Context, node: *const @FieldType(Ast.Node, "maxs")) !void {
     const data = try fs.readFile(cx.gpa, cx.project_dir, path);
     errdefer cx.gpa.free(data);
 
-    cx.sendSyncEvent(.{ .raw_block = .{
-        .block_id = .MAXS,
-        .data = .fromOwnedSlice(data),
-    } });
+    cx.sendSyncEvent(.{ .index_maxs = .fromOwnedSlice(data) });
 }
 
 fn planRoomNames(cx: *Context) !void {

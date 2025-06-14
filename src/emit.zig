@@ -61,7 +61,7 @@ pub fn runInner(
 
     while (true) switch (try receiver.next(gpa)) {
         .disk_start => |num| try emitDisk(gpa, output_dir, index_name, target, receiver, num, &index),
-        .index_start => try emitIndex(gpa, receiver, output_dir, index_name, &index),
+        .index_start => try emitIndex(gpa, receiver, target, output_dir, index_name, &index),
         .project_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -350,6 +350,7 @@ const DirectoryEntry = struct {
 fn emitIndex(
     gpa: std.mem.Allocator,
     receiver: *OrderedReceiver,
+    target: games.Target,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     index: *Index,
@@ -371,6 +372,7 @@ fn emitIndex(
         room.* = @intCast(i);
 
     while (true) switch (try receiver.next(gpa)) {
+        .index_maxs => |data| try writeMaxs(gpa, target, &out, data),
         .index_block => |id| switch (id) {
             .DIRI => try writeDirectory(&out, &fixups, .DIRI, &index.directories.room_images),
             .DIRR => try writeDirectory(&out, &fixups, .DIRR, &index.directories.rooms),
@@ -403,6 +405,23 @@ fn emitIndex(
     try out_buf.flush();
 
     try writeFixups(out_file, out_xor.writer(), fixups.items);
+}
+
+fn writeMaxs(
+    gpa: std.mem.Allocator,
+    target: games.Target,
+    out: anytype,
+    data_mut: std.ArrayListUnmanaged(u8),
+) !void {
+    var data = data_mut;
+    defer data.deinit(gpa);
+
+    if (data.items.len != games.maxsLen(target.pickAnyGame()))
+        return error.BadData;
+
+    const start = try beginBlockKnown(out, .MAXS, @intCast(data.items.len));
+    try out.writer().writeAll(data.items);
+    try endBlockKnown(out, start);
 }
 
 fn writeDirectory(
