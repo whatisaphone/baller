@@ -280,6 +280,8 @@ pub fn run(
     if (args.options.annotate)
         try code.appendSlice(gpa, "#error cannot build after extracting with --annotate\n\n");
 
+    try code.writer(gpa).print("target {s}\n\n", .{@tagName(game.target())});
+
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
 
@@ -673,7 +675,7 @@ fn extractDisk(
 
     var disk_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const disk_name = std.fmt.bufPrintZ(&disk_name_buf, "{s}", .{index_name}) catch unreachable;
-    games.pointPathToDisk(cx.game, disk_name, disk_number);
+    games.pointPathToDisk(cx.game.target(), disk_name, disk_number);
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name);
 

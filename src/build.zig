@@ -77,8 +77,6 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     defer if (output_path_opt) |_|
         output_dir.close();
 
-    const game = try games.detectGameOrFatal(index_name);
-
     var project: Project = .empty;
     defer project.deinit(gpa);
 
@@ -97,9 +95,9 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     var events: sync.Channel(plan.Event, 16) = .init;
 
-    try pool.spawn(plan.run, .{ gpa, diagnostic, game, project_dir, &project, args.options.awiz_strategy, &pool, &events });
+    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, &pool, &events });
 
-    try emit.run(gpa, diagnostic, output_dir, index_name, game, &events);
+    try emit.run(gpa, diagnostic, output_dir, index_name, &events);
 }
 
 fn addFile(

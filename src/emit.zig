@@ -22,13 +22,12 @@ pub fn run(
     diagnostic: *Diagnostic,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
-    game: games.Game,
     events: *sync.Channel(plan.Event, 16),
 ) !void {
     var receiver: OrderedReceiver = .init(events);
     defer receiver.deinit(gpa);
 
-    runInner(gpa, output_dir, index_name, game, &receiver) catch |err| {
+    runInner(gpa, output_dir, index_name, &receiver) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
 
@@ -48,14 +47,16 @@ pub fn runInner(
     gpa: std.mem.Allocator,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
-    game: games.Game,
     receiver: *OrderedReceiver,
 ) !void {
     var index: Index = try .init(gpa);
     defer index.deinit(gpa);
 
+    const target_message = try receiver.next(gpa);
+    const target = target_message.target;
+
     while (true) switch (try receiver.next(gpa)) {
-        .disk_start => |num| try emitDisk(gpa, output_dir, index_name, game, receiver, num, &index),
+        .disk_start => |num| try emitDisk(gpa, output_dir, index_name, target, receiver, num, &index),
         .index_start => try emitIndex(gpa, receiver, output_dir, index_name, &index),
         .project_end => break,
         .err => return error.AddedToDiagnostic,
@@ -106,14 +107,14 @@ fn emitDisk(
     gpa: std.mem.Allocator,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
-    game: games.Game,
+    target: games.Target,
     receiver: *OrderedReceiver,
     disk_number: u8,
     index: *Index,
 ) !void {
     var out_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const out_name = std.fmt.bufPrintZ(&out_name_buf, "{s}", .{index_name}) catch unreachable;
-    games.pointPathToDisk(game, out_name, disk_number);
+    games.pointPathToDisk(target, out_name, disk_number);
 
     const out_file = try output_dir.createFileZ(out_name, .{});
     defer out_file.close();
@@ -127,7 +128,7 @@ fn emitDisk(
     const lecf_start = try beginBlock(&out, .LECF);
 
     while (true) switch (try receiver.next(gpa)) {
-        .room_start => |room_number| try emitRoom(gpa, game, receiver, disk_number, &out, &fixups, room_number, index),
+        .room_start => |room_number| try emitRoom(gpa, target.pickAnyGame(), receiver, disk_number, &out, &fixups, room_number, index),
         .disk_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,

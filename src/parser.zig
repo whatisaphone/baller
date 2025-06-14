@@ -6,6 +6,7 @@ const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const games = @import("games.zig");
 const lexer = @import("lexer.zig");
 
 const Cx = struct {
@@ -49,6 +50,7 @@ pub fn parseProject(
 
 fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     const Keyword = enum {
+        target,
         index,
         disk,
         @"var",
@@ -56,6 +58,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     };
 
     var children: std.BoundedArray(u32, 8192) = .{};
+    var parsed_target = false;
     var parsed_index = false;
 
     while (true) {
@@ -63,6 +66,17 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         const token = consumeToken(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
+                .target => {
+                    if (parsed_target)
+                        return reportError(cx, token, "duplicate target", .{});
+
+                    const target = try parseIdentifier(cx, consumeToken(cx), games.Target);
+                    try expect(cx, .newline);
+
+                    const node = try storeNode(cx, token, .{ .target = target });
+                    try appendNode(cx, &children, node);
+                    parsed_target = true;
+                },
                 .index => {
                     if (parsed_index)
                         return reportError(cx, token, "duplicate index", .{});

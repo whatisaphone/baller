@@ -34,6 +34,7 @@ pub const Event = struct {
 
 pub const Payload = union(enum) {
     project_end,
+    target: games.Target,
     disk_start: u8,
     disk_end,
     room_start: u8,
@@ -51,7 +52,6 @@ pub const Payload = union(enum) {
 pub fn run(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
-    game: games.Game,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
@@ -67,17 +67,14 @@ pub fn run(
     defer for (&room_scopes) |*s| s.deinit(gpa);
 
     (blk: {
-        const vm = lang.buildVm(game);
-        const op_map = decompile.buildOpMap(game);
         cx = .{
             .gpa = gpa,
             .diagnostic = diagnostic,
-            .game = game,
             .project_dir = project_dir,
             .project = project,
             .awiz_strategy = awiz_strategy,
-            .vm = &vm,
-            .op_map = &op_map,
+            .vm = .undef,
+            .op_map = .undef,
             .project_scope = .empty,
             .room_scopes = &room_scopes,
             .room_lsc_types = @splat(.undef),
@@ -108,12 +105,11 @@ pub fn run(
 const Context = struct {
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
-    game: games.Game,
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
-    vm: *const lang.Vm,
-    op_map: *const std.EnumArray(lang.Op, decompile.Op),
+    vm: utils.SafeUndefined(lang.Vm),
+    op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
     room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
@@ -136,6 +132,8 @@ fn planProject(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
 
+    try planTarget(cx);
+
     try buildProjectScope(cx);
 
     for (project_file.ast.getExtra(project_node.children)) |node_index| {
@@ -154,6 +152,28 @@ fn planProject(cx: *Context) !void {
     try planIndex(cx);
 
     cx.sendSyncEvent(.project_end);
+}
+
+fn planTarget(cx: *Context) !void {
+    const project_file = &cx.project.files.items[0].?;
+    const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
+    const project_children = project_file.ast.getExtra(project_node.children);
+
+    const target = target: {
+        if (project_children.len == 0) break :target null;
+        const target_node = &project_file.ast.nodes.items[project_children[0]];
+        if (target_node.* != .target) break :target null;
+        break :target target_node.target;
+    } orelse {
+        cx.diagnostic.err("missing target", .{});
+        return error.AddedToDiagnostic;
+    };
+
+    cx.sendSyncEvent(.{ .target = target });
+
+    const game = target.pickAnyGame();
+    cx.vm.setOnce(lang.buildVm(game));
+    cx.op_map.setOnce(decompile.buildOpMap(game));
 }
 
 fn buildProjectScope(cx: *Context) !void {
@@ -553,7 +573,7 @@ fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .global = scr.glob_number };
-    const result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    const result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .SCRP,
@@ -578,7 +598,7 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: u32, event_inde
         .encd => .{ .enter = .{ .room = room_number } },
         .excd => .{ .exit = .{ .room = room_number } },
     };
-    var result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     errdefer result.deinit(cx.gpa);
 
     const block_id: BlockId = switch (edge) {
@@ -602,7 +622,7 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: u32, event_index: u1
         .room = room_number,
         .number = lsc.script_number,
     } };
-    var bytecode = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var bytecode = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
     defer bytecode.deinit(cx.gpa);
 
     const block_type = cx.room_lsc_types[room_number].defined;
@@ -841,7 +861,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: u32, event_index:
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .SCRP,
@@ -868,7 +888,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: u32, event_i
         .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
 
-    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = lsc_type.blockId(),
@@ -888,7 +908,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: u32, event_i
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .ENCD,
@@ -908,7 +928,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: u32, event_in
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .EXCD,
@@ -977,7 +997,7 @@ fn planObjectInner(
                             .number = object.number,
                             .verb = verb.number,
                         } };
-                        var result = try assemble.assemble(cx.gpa, cx.vm, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+                        var result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
                         defer result.deinit(cx.gpa);
 
                         try out.appendSlice(cx.gpa, result.items); // TODO: avoid this memcpy
@@ -987,7 +1007,7 @@ fn planObjectInner(
                             .diagnostic = cx.diagnostic,
                             .path = room_file.path,
                         };
-                        try compile.compile(cx.gpa, &diag, cx.vm, cx.op_map, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
+                        try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
                     },
                 }
 

@@ -3,6 +3,7 @@ const std = @import("std");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const games = @import("games.zig");
 const lang = @import("lang.zig");
 const Precedence = @import("parser.zig").Precedence;
 
@@ -36,6 +37,7 @@ pub const Node = union(enum) {
     project: struct {
         children: ExtraSlice,
     },
+    target: games.Target,
     index: struct {
         children: ExtraSlice,
     },
