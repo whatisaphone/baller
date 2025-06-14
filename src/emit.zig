@@ -9,6 +9,7 @@ const beginBlockKnown = @import("block_writer.zig").beginBlockKnown;
 const endBlock = @import("block_writer.zig").endBlock;
 const endBlockKnown = @import("block_writer.zig").endBlockKnown;
 const writeFixups = @import("block_writer.zig").writeFixups;
+const Maxs = @import("extract.zig").Maxs;
 const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
@@ -372,7 +373,7 @@ fn emitIndex(
         room.* = @intCast(i);
 
     while (true) switch (try receiver.next(gpa)) {
-        .index_maxs => |data| try writeMaxs(gpa, target, &out, data),
+        .index_maxs => |data| try writeMaxs(gpa, target, &out, data, index),
         .index_block => |id| switch (id) {
             .DIRI => try writeDirectory(&out, &fixups, .DIRI, &index.directories.room_images),
             .DIRR => try writeDirectory(&out, &fixups, .DIRR, &index.directories.rooms),
@@ -412,12 +413,24 @@ fn writeMaxs(
     target: games.Target,
     out: anytype,
     data_mut: std.ArrayListUnmanaged(u8),
+    index: *const Index,
 ) !void {
     var data = data_mut;
     defer data.deinit(gpa);
 
     if (data.items.len != games.maxsLen(target.pickAnyGame()))
         return error.BadData;
+
+    // Overwrite some of the fields I know how to generate
+    const maxs: *align(1) Maxs = @ptrCast(data.items);
+    maxs.rooms = @intCast(index.rooms.len);
+    maxs.scripts = @intCast(index.directories.scripts.len);
+    maxs.sounds = @intCast(index.directories.sounds.len);
+    maxs.charsets = @intCast(index.directories.charsets.len);
+    maxs.costumes = @intCast(index.directories.costumes.len);
+    maxs.images = @intCast(index.directories.images.len);
+    if (games.hasTalkies(target.pickAnyGame()))
+        maxs.talkies = @intCast(index.directories.talkies.len);
 
     const start = try beginBlockKnown(out, .MAXS, @intCast(data.items.len));
     try out.writer().writeAll(data.items);
