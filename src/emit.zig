@@ -53,7 +53,11 @@ pub fn runInner(
     defer index.deinit(gpa);
 
     const target_message = try receiver.next(gpa);
-    const target = target_message.target;
+    const target = switch (target_message) {
+        .target => |t| t,
+        .err => return error.AddedToDiagnostic,
+        else => unreachable,
+    };
 
     while (true) switch (try receiver.next(gpa)) {
         .disk_start => |num| try emitDisk(gpa, output_dir, index_name, target, receiver, num, &index),
