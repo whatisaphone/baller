@@ -41,6 +41,9 @@ pub const Node = union(enum) {
     index: struct {
         children: ExtraSlice,
     },
+    maxs: struct {
+        path: StringSlice,
+    },
     index_block: enum { DIRI, DIRR, DIRS, DIRN, DIRC, DIRF, DIRM, DIRT, DLFL, DISK, RNAM },
     disk: struct {
         number: u8,

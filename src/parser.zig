@@ -113,6 +113,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
 fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
+        maxs,
         @"index-block",
     };
 
@@ -128,6 +129,12 @@ fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(cx, token);
                     try appendNode(cx, &children, node_index);
+                },
+                .maxs => {
+                    const path = try expectString(cx);
+                    try expect(cx, .newline);
+                    const node = try storeNode(cx, token, .{ .maxs = .{ .path = path } });
+                    try appendNode(cx, &children, node);
                 },
                 .@"index-block" => {
                     const block_id_ident = try expectIdentifier(cx);

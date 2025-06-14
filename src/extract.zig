@@ -428,17 +428,25 @@ fn extractIndex(
 
     // MAXS
 
-    const maxs_raw = try blocks.expect(.MAXS).bytes();
-    if (maxs_raw.len != games.maxsLen(game))
-        return error.BadData;
+    const maxs = maxs: {
+        const maxs_raw = try blocks.expect(.MAXS).bytes();
+        if (maxs_raw.len != games.maxsLen(game))
+            return error.BadData;
 
-    var maxs: Maxs = undefined;
-    const maxs_present_bytes = std.mem.asBytes(&maxs)[0..maxs_raw.len];
-    const maxs_missing_bytes = std.mem.asBytes(&maxs)[maxs_raw.len..@sizeOf(Maxs)];
-    @memcpy(maxs_present_bytes, maxs_raw);
-    @memset(maxs_missing_bytes, 0);
+        var maxs: Maxs = undefined;
+        const maxs_present_bytes = std.mem.asBytes(&maxs)[0..maxs_raw.len];
+        const maxs_missing_bytes = std.mem.asBytes(&maxs)[maxs_raw.len..@sizeOf(Maxs)];
+        @memcpy(maxs_present_bytes, maxs_raw);
+        @memset(maxs_missing_bytes, 0);
 
-    try writeRawBlock(gpa, .MAXS, maxs_present_bytes, output_dir, null, 4, .index_block, code);
+        var path_buf: ["index_MAXS.bin".len + 1]u8 = undefined;
+        const path = try std.fmt.bufPrintZ(&path_buf, "index_{}.bin", .{BlockId.MAXS});
+        try fs.writeFileZ(output_dir, path, maxs_present_bytes);
+
+        try code.writer(gpa).print("    maxs \"{s}\"\n", .{path});
+
+        break :maxs maxs;
+    };
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
         diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });

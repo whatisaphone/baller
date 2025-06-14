@@ -1044,6 +1044,7 @@ fn planIndex(cx: *Context) !void {
     for (project_file.ast.getExtra(index.children)) |node| {
         switch (project_file.ast.nodes.items[node]) {
             .raw_block => |*n| try planRawBlock(cx, project_file, n),
+            .maxs => |*n| try planMaxs(cx, n),
             .index_block => |b| switch (b) {
                 .RNAM => try planRoomNames(cx),
                 else => cx.sendSyncEvent(.{ .index_block = b }),
@@ -1053,6 +1054,19 @@ fn planIndex(cx: *Context) !void {
     }
 
     cx.sendSyncEvent(.index_end);
+}
+
+fn planMaxs(cx: *Context, node: *const @FieldType(Ast.Node, "maxs")) !void {
+    const project_file = &cx.project.files.items[0].?;
+
+    const path = project_file.ast.strings.get(node.path);
+    const data = try fs.readFile(cx.gpa, cx.project_dir, path);
+    errdefer cx.gpa.free(data);
+
+    cx.sendSyncEvent(.{ .raw_block = .{
+        .block_id = .MAXS,
+        .data = .fromOwnedSlice(data),
+    } });
 }
 
 fn planRoomNames(cx: *Context) !void {
