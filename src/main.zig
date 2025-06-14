@@ -147,4 +147,5 @@ comptime {
 test {
     _ = @import("tests.zig");
     _ = @import("tests2.zig");
+    _ = @import("tests_compile_errors.zig");
 }
