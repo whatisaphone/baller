@@ -1109,6 +1109,12 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .eq, .ne, .gt, .lt, .le, .ge, .set => {
             unify(cx, args[0], args[1]);
         },
+        .@"set-array-item" => {
+            const lhsi = cx.types.get(args[0]) orelse return;
+            const lhs = cx.symbols.types.items[lhsi];
+            if (lhs != .array) return;
+            giveType(cx, args[2], lhs.array);
+        },
         .@"start-script" => {
             setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
@@ -3277,6 +3283,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             try cx.out.appendSlice(cx.gpa, entry.name);
             return;
         },
+        .array => {},
     };
     try cx.out.writer(cx.gpa).print("{}", .{int});
 }

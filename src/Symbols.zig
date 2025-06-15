@@ -364,7 +364,11 @@ pub fn getInternedType(typ: InternedType) TypeIndex {
 }
 
 fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
-    if (std.mem.eql(u8, s, "Char"))
+    if (s.len != 0 and s[0] == '[') {
+        if (s.len < 2 or s[1] != ']') return error.BadData;
+        const child = try parseType(cx, s[2..]);
+        return addType(cx, .{ .array = child });
+    } else if (std.mem.eql(u8, s, "Char"))
         return addType(cx, .char)
     else if (std.mem.eql(u8, s, "Room"))
         return addType(cx, .room)
@@ -467,6 +471,7 @@ pub const Type = union(enum) {
     script,
     /// Index within `symbols.enums`
     @"enum": u16,
+    array: TypeIndex,
 };
 
 pub const GlobKind = enum {
