@@ -332,7 +332,9 @@ fn parseVariable(cx: *Cx, value: []const u8) !Variable {
 }
 
 fn parseType(cx: *Cx, s: []const u8) !Type {
-    if (std.mem.eql(u8, s, "Room"))
+    if (std.mem.eql(u8, s, "Char"))
+        return .char
+    else if (std.mem.eql(u8, s, "Room"))
         return .room
     else if (std.mem.eql(u8, s, "Script"))
         return .script
@@ -419,6 +421,7 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
 }
 
 pub const Type = union(enum) {
+    char,
     room,
     script,
     /// Index within `symbols.enums`

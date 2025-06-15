@@ -3228,6 +3228,11 @@ fn binOp(op: lang.Op) ?Ast.BinOp {
 fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
     const int = cx.exprs.getPtr(ei).int;
     if (cx.types.get(ei)) |t| write_name: switch (t) {
+        .char => {
+            if (!(32 <= int and int < 127)) break :write_name;
+            try cx.out.writer(cx.gpa).print("'{c}'", .{@as(u8, @intCast(int))});
+            return;
+        },
         .room => {
             const num = std.math.cast(u8, int) orelse break :write_name;
             const name = cx.index.room_names.get(num) orelse break :write_name;

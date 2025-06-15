@@ -64,6 +64,7 @@ pub const Token = struct {
         brace_r,
         swat,
         integer,
+        char,
         string,
         identifier,
 
@@ -99,6 +100,7 @@ pub const Token = struct {
                 .brace_r => "'}'",
                 .swat => "'@'",
                 .integer => "<integer>",
+                .char => "<character>",
                 .string => "<string>",
                 .identifier => "<identifier>",
             };
@@ -215,6 +217,8 @@ pub fn run(
             try appendToken(&state, loc, .swat);
         } else if (ch >= '0' and ch <= '9') {
             try lexInteger(&state, loc);
+        } else if (ch == '\'') {
+            try lexCharLiteral(&state, loc);
         } else if (ch == '"') {
             try lexStringLiteral(&state, loc);
         } else if (isIdentStart(ch)) {
@@ -275,6 +279,15 @@ fn lexIdent(state: *State, start: Loc) !void {
             break;
     }
     try appendToken(state, start, .identifier);
+}
+
+fn lexCharLiteral(state: *State, start: Loc) !void {
+    (err: {
+        const ch = consumeChar(state) orelse break :err error.E;
+        if (ch == '\'') break :err error.E;
+        if (consumeChar(state) != '\'') break :err error.E;
+    }) catch return reportError(state, start, "bad char literal", .{});
+    try appendToken(state, start, .char);
 }
 
 fn lexStringLiteral(state: *State, start: Loc) !void {

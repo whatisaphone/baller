@@ -1253,7 +1253,7 @@ fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
 fn isAtomToken(token: *const lexer.Token) bool {
     return switch (token.kind) {
-        .integer, .string, .identifier, .paren_l, .bracket_l => true,
+        .integer, .char, .string, .identifier, .paren_l, .bracket_l => true,
         else => false,
     };
 }
@@ -1265,6 +1265,11 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             const integer = std.fmt.parseInt(i32, source, 10) catch
                 return reportError(cx, token, "invalid integer", .{});
             return try storeNode(cx, token, .{ .integer = integer });
+        },
+        .char => {
+            std.debug.assert(token.span.end.offset == token.span.start.offset + 3);
+            const char = cx.source[token.span.start.offset + 1];
+            return try storeNode(cx, token, .{ .integer = char });
         },
         .string => {
             const string = try parseString(cx, token);
