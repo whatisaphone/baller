@@ -1109,6 +1109,11 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .eq, .ne, .gt, .lt, .le, .ge, .set => {
             unify(cx, args[0], args[1]);
         },
+        .@"in-list", .in => {
+            const list = cx.exprs.getPtr(args[1]).list;
+            for (getExtra3(cx.extra, list)) |ei|
+                unify(cx, args[0], ei);
+        },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
             const lhs = cx.symbols.types.items[lhsi];
@@ -1126,15 +1131,29 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .@"current-room" => {
             setType(cx, args[0], .room);
         },
+        .@"stop-script" => {
+            setType(cx, args[0], .script);
+        },
         .@"script-running" => {
             setType(cx, args[0], .script);
+        },
+        .@"load-script" => {
+            setType(cx, args[0], .script);
+        },
+        .@"preload-room" => {
+            setType(cx, args[0], .room);
         },
         .@"call-script" => {
             setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
-        .@"load-script" => {
+        .@"chain-script" => {
             setType(cx, args[0], .script);
+            recoverScriptArgs(cx, args[0], args[1]);
+        },
+        .@"chain-script-rec" => {
+            setType(cx, args[0], .script);
+            recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"open-file" => {
             setType(cx, args[1], .FileMode);
