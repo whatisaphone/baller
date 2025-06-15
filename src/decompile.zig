@@ -1065,7 +1065,7 @@ const TypeCx = struct {
     stmts: utils.SafeManyPointer([*]const Stmt),
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: utils.SafeManyPointer([*]const ExprIndex),
-    types: ArrayMap(Symbols.Type),
+    types: ArrayMap(Symbols.TypeIndex),
 };
 
 fn recoverTypes(cx: *TypeCx) void {
@@ -1086,8 +1086,7 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
         .int, .string => {},
         .variable => |v| {
             const sym = cx.symbols.getVariable(cx.room_number, cx.id, v) orelse return;
-            const typ = sym.type orelse return;
-            setType(cx, ei, typ);
+            giveType(cx, ei, sym.type);
         },
         .call => |call| recoverCall(cx, call.op, call.args),
         .list, .variadic_list => |items| {
@@ -1096,8 +1095,7 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
         },
         .dup => |child| {
             recoverExpr(cx, child);
-            if (cx.types.get(child)) |t|
-                setType(cx, ei, t);
+            unify(cx, ei, child);
         },
         .stack_fault => {},
     }
@@ -1133,8 +1131,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             setType(cx, args[0], .script);
         },
         .@"open-file" => {
-            const file_mode = cx.symbols.enum_names.get("FileMode").?;
-            setType(cx, args[1], .{ .@"enum" = file_mode });
+            setType(cx, args[1], .FileMode);
         },
         else => {},
     }
@@ -1162,13 +1159,18 @@ fn recoverScriptArgs(cx: *TypeCx, script_ei: ExprIndex, args_ei: ExprIndex) void
 
     for (arg_eis, 0..) |arg_ei, i| {
         const local = script_symbol.locals.getPtr(i) orelse continue;
-        if (local.type) |t|
-            setType(cx, arg_ei, t);
+        giveType(cx, arg_ei, local.type);
     }
 }
 
-fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.Type) void {
-    cx.types.put(utils.null_allocator, ei, typ) catch unreachable;
+fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.InternedType) void {
+    const ti = Symbols.getInternedType(typ);
+    cx.types.put(utils.null_allocator, ei, ti) catch unreachable;
+}
+
+fn giveType(cx: *TypeCx, ei: ExprIndex, typ: ?Symbols.TypeIndex) void {
+    const t = typ orelse return;
+    cx.types.put(utils.null_allocator, ei, t) catch unreachable;
 }
 
 fn unify(cx: *TypeCx, a: ExprIndex, b: ExprIndex) void {
@@ -2851,7 +2853,7 @@ const EmitCx = struct {
     index: *const Index,
     lsc_mask: *const UsageTracker.LocalScripts,
     local_var_usage: *const UsageTracker.LocalVars,
-    types: *const ArrayMap(Symbols.Type),
+    types: *const ArrayMap(Symbols.TypeIndex),
     jump_targets: []const u16,
 
     out: *std.ArrayListUnmanaged(u8),
@@ -3227,7 +3229,7 @@ fn binOp(op: lang.Op) ?Ast.BinOp {
 
 fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
     const int = cx.exprs.getPtr(ei).int;
-    if (cx.types.get(ei)) |t| write_name: switch (t) {
+    if (cx.types.get(ei)) |ti| write_name: switch (cx.symbols.types.items[ti]) {
         .char => {
             if (!(32 <= int and int < 127)) break :write_name;
             try cx.out.writer(cx.gpa).print("'{c}'", .{@as(u8, @intCast(int))});

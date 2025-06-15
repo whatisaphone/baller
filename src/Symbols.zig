@@ -20,7 +20,7 @@ pub const ScriptId = union(enum) {
 
 const Variable = struct {
     name: ?[]const u8 = null,
-    type: ?Type = null,
+    type: ?TypeIndex = null,
 };
 
 pub const Script = struct {
@@ -78,6 +78,7 @@ pub const EnumEntry = struct {
 };
 
 game: games.Game,
+types: std.ArrayListUnmanaged(Type) = .empty,
 globals: ArrayMap(Variable) = .empty,
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
@@ -86,6 +87,15 @@ rooms: ArrayMap(Room) = .empty,
 enums: std.ArrayListUnmanaged(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
+
+pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
+    var result: Symbols = .{ .game = game };
+    errdefer result.deinit(allocator);
+
+    try result.addInternedTypes(allocator);
+
+    return result;
+}
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.enum_names.deinit(allocator);
@@ -112,6 +122,7 @@ pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
 
     self.global_names.deinit(allocator);
     self.globals.deinit(allocator);
+    self.types.deinit(allocator);
 }
 
 pub fn parse(self: *Symbols, allocator: std.mem.Allocator, ini_text: []const u8) !void {
@@ -331,17 +342,45 @@ fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     return result;
 }
 
-fn parseType(cx: *Cx, s: []const u8) !Type {
+pub const InternedType = enum {
+    room,
+    script,
+    FileMode,
+};
+
+fn addInternedTypes(self: *Symbols, allocator: std.mem.Allocator) !void {
+    try self.types.append(allocator, .room);
+    try self.types.append(allocator, .script);
+    try self.parse(allocator,
+        \\enum.FileMode.1=FOR-READ
+        \\enum.FileMode.2=FOR-WRITE
+        \\enum.FileMode.6=FOR-APPEND
+    );
+    try self.types.append(allocator, .{ .@"enum" = 0 });
+}
+
+pub fn getInternedType(typ: InternedType) TypeIndex {
+    return @intFromEnum(typ);
+}
+
+fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
     if (std.mem.eql(u8, s, "Char"))
-        return .char
+        return addType(cx, .char)
     else if (std.mem.eql(u8, s, "Room"))
-        return .room
+        return addType(cx, .room)
     else if (std.mem.eql(u8, s, "Script"))
-        return .script
+        return addType(cx, .script)
     else if (cx.result.enum_names.get(s)) |e|
-        return .{ .@"enum" = e }
+        return addType(cx, .{ .@"enum" = e })
     else
         return error.BadData;
+}
+
+fn addType(cx: *Cx, typ: Type) !TypeIndex {
+    const index = std.math.cast(TypeIndex, cx.result.types.items.len) orelse
+        return error.BadData;
+    try cx.result.types.append(cx.allocator, typ);
+    return index;
 }
 
 fn split(str: []const u8, ch: u8) struct { []const u8, ?[]const u8 } {
@@ -419,6 +458,8 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
     const script = self.getScript(id) orelse return null;
     return script.name;
 }
+
+pub const TypeIndex = u16;
 
 pub const Type = union(enum) {
     char,

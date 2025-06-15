@@ -245,14 +245,8 @@ pub fn run(
     var symbols_text: []const u8 = "";
     defer gpa.free(symbols_text);
 
-    var symbols: Symbols = .{ .game = game };
+    var symbols: Symbols = try .init(gpa, game);
     defer symbols.deinit(gpa);
-
-    try symbols.parse(gpa,
-        \\enum.FileMode.1=FOR-READ
-        \\enum.FileMode.2=FOR-WRITE
-        \\enum.FileMode.6=FOR-APPEND
-    );
 
     if (args.symbols_path) |path| {
         symbols_text = try fs.readFileZ(gpa, std.fs.cwd(), path);
