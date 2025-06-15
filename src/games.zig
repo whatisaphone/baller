@@ -107,14 +107,6 @@ pub fn writeMultLen(game: Game) bool {
     return game != .baseball_1997;
 }
 
-// TODO: this should be determined from the index DISK block (or lack thereof)
-pub fn numberOfDisks(game: Game) u8 {
-    return switch (game) {
-        .football_1999, .baseball_2001, .basketball => 2,
-        else => 1,
-    };
-}
-
 pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
     // change ".HE0" to ".HE1"
     if (target.le(.sputm90)) {

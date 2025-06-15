@@ -301,7 +301,14 @@ pub fn run(
         .stats = .initFill(0),
     };
 
-    for (0..games.numberOfDisks(game)) |disk_index| {
+    const num_disks = if (games.hasDisk(game)) num_disks: {
+        var max: u8 = 0;
+        for (index.lfl_disks.defined.slice(index.maxs.rooms)) |n|
+            max = @max(max, n);
+        break :num_disks max;
+    } else 1;
+
+    for (0..num_disks) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
         try extractDisk(&cx, diagnostic, input_dir, index_name, disk_number, &code);
     }
