@@ -404,7 +404,7 @@ fn makeInsData(cx: *const Cx, ins: lang.LangIns) ?InsData {
     const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.op).*) {
         .jump_if, .jump_unless => &.{.int},
         .jump, .override => &.{},
-        .generic => |*g| g.params.slice(),
+        .generic => |*g| g.params,
         else => return null,
     };
     var param_exprs = params.len;

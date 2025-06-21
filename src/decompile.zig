@@ -301,7 +301,7 @@ pub const Op = union(enum) {
     override,
     generic: struct {
         call: bool,
-        params: std.BoundedArray(script.Param, script.max_params),
+        params: []const script.Param,
     },
     illegal,
 };
@@ -324,9 +324,10 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     for (langdef.calls) |c| {
         if (!(target.ge(c.target_min) and target.le(c.target_max))) continue;
         std.debug.assert(result.getPtrConst(c.op).* == .illegal);
+        std.debug.assert(c.params.len <= script.max_params);
         result.set(c.op, .{ .generic = .{
             .call = c.call,
-            .params = std.BoundedArray(script.Param, script.max_params).fromSlice(c.params) catch unreachable,
+            .params = c.params,
         } });
     }
 
@@ -525,7 +526,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             var pi = gen.params.len;
             while (pi > 0) {
                 pi -= 1;
-                const param = gen.params.get(pi);
+                const param = gen.params[pi];
                 const ei = switch (param) {
                     .int => try pop(cx),
                     .string => try popString(cx),
