@@ -671,7 +671,23 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             const lhsi = cx.types.get(args[0]) orelse return;
             const lhs = cx.symbols.types.items[lhsi];
             if (lhs != .array) return;
-            giveType(cx, args[2], lhs.array);
+            giveType(cx, args[1], lhs.array.across);
+            giveType(cx, args[2], lhs.array.value);
+        },
+        .@"get-array-item-2d" => {
+            const lhsi = cx.types.get(args[0]) orelse return;
+            const lhs = cx.symbols.types.items[lhsi];
+            if (lhs != .array) return;
+            giveType(cx, args[1], lhs.array.down);
+            giveType(cx, args[2], lhs.array.across);
+        },
+        .@"set-array-item-2d" => {
+            const lhsi = cx.types.get(args[0]) orelse return;
+            const lhs = cx.symbols.types.items[lhsi];
+            if (lhs != .array) return;
+            giveType(cx, args[1], lhs.array.down);
+            giveType(cx, args[2], lhs.array.across);
+            giveType(cx, args[3], lhs.array.value);
         },
         .@"start-script" => {
             setType(cx, args[0], .script);
@@ -746,9 +762,9 @@ fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.InternedType) void {
     cx.types.put(utils.null_allocator, ei, ti) catch unreachable;
 }
 
-fn giveType(cx: *TypeCx, ei: ExprIndex, typ: ?Symbols.TypeIndex) void {
-    const t = typ orelse return;
-    cx.types.put(utils.null_allocator, ei, t) catch unreachable;
+fn giveType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.TypeIndex) void {
+    if (typ == Symbols.null_type) return;
+    cx.types.put(utils.null_allocator, ei, typ) catch unreachable;
 }
 
 fn unify(cx: *TypeCx, a: ExprIndex, b: ExprIndex) void {

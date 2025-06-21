@@ -20,7 +20,7 @@ pub const ScriptId = union(enum) {
 
 const Variable = struct {
     name: ?[]const u8 = null,
-    type: ?TypeIndex = null,
+    type: TypeIndex = null_type,
 };
 
 pub const Script = struct {
@@ -365,9 +365,28 @@ pub fn getInternedType(typ: InternedType) TypeIndex {
 
 fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
     if (s.len != 0 and s[0] == '[') {
-        if (s.len < 2 or s[1] != ']') return error.BadData;
-        const child = try parseType(cx, s[2..]);
-        return addType(cx, .{ .array = child });
+        var rest = s[1..];
+        var down = null_type;
+        var across = null_type;
+        blk: {
+            const istr, rest = try splitAlways(rest, ']');
+            if (istr.len == 0) break :blk;
+            across = try parseType(cx, istr);
+        }
+        blk: {
+            if (rest.len == 0) break :blk;
+            if (rest[0] != '[') break :blk;
+            down = across;
+            const istr, rest = try splitAlways(rest[1..], ']');
+            if (istr.len == 0) break :blk;
+            across = try parseType(cx, istr);
+        }
+        const value = blk: {
+            if (rest.len == 0) break :blk null_type;
+            if (rest[0] == '[') return error.BadData;
+            break :blk try parseType(cx, rest);
+        };
+        return addType(cx, .{ .array = .{ .down = down, .across = across, .value = value } });
     } else if (std.mem.eql(u8, s, "Char"))
         return addType(cx, .char)
     else if (std.mem.eql(u8, s, "Room"))
@@ -393,6 +412,12 @@ fn split(str: []const u8, ch: u8) struct { []const u8, ?[]const u8 } {
         std.mem.trimRight(u8, str[0..i], " "),
         std.mem.trimLeft(u8, str[i + 1 ..], " "),
     };
+}
+
+fn splitAlways(str: []const u8, ch: u8) !struct { []const u8, []const u8 } {
+    const a, const b = split(str, ch);
+    if (b == null) return error.BadData;
+    return .{ a, b.? };
 }
 
 pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
@@ -464,6 +489,7 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
 }
 
 pub const TypeIndex = u16;
+pub const null_type: TypeIndex = 0xffff;
 
 pub const Type = union(enum) {
     char,
@@ -471,7 +497,7 @@ pub const Type = union(enum) {
     script,
     /// Index within `symbols.enums`
     @"enum": u16,
-    array: TypeIndex,
+    array: struct { down: TypeIndex, across: TypeIndex, value: TypeIndex },
 };
 
 pub const GlobKind = enum {
