@@ -41,6 +41,10 @@ pub const Target = enum {
         return @intFromEnum(a) <= @intFromEnum(b);
     }
 
+    pub fn ge(a: Target, b: Target) bool {
+        return @intFromEnum(a) >= @intFromEnum(b);
+    }
+
     // mild hack, i should probably get rid of `Game` and switch to `Target`
     // everywhere
     pub fn pickAnyGame(self: Target) Game {

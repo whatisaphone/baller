@@ -179,6 +179,9 @@ pub fn TinyArray(T: type, capacity: usize) type {
         pub const empty: Self = .{ .buffer = undefined, .len = 0 };
 
         pub fn init(xs: []const T) Self {
+            // TODO: wrong place for this. fix this one day
+            @setEvalBranchQuota(3000);
+
             var result: Self = .empty;
             result.len = @intCast(xs.len);
             for (result.buffer[0..xs.len], xs) |*p, x|
