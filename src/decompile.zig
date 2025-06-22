@@ -455,7 +455,8 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
     for (ins.operands.slice()) |o|
         if (o == .variable)
             try cx.usage.track(o.variable);
-    switch (cx.op_map.get(ins.op.op)) {
+    const info = cx.op_map.getPtrConst(ins.op.op);
+    switch (info.*) {
         .push8 => {
             try push(cx, .{ .int = ins.operands.get(0).u8 });
         },
@@ -512,7 +513,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             const target = utils.add(u16, ins.end, rel).?;
             try storeStmt(cx, ins.end, .{ .override = .{ .target = target } });
         },
-        .generic => |gen| {
+        .generic => |*gen| {
             var args: std.BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
             for (ins.operands.slice()) |operand| {
                 const expr: Expr = switch (operand) {
