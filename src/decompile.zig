@@ -65,6 +65,7 @@ pub fn run(
     try decompileBasicBlocks(&dcx, bytecode);
 
     var tcx: TypeCx = .{
+        .op_map = op_map,
         .symbols = symbols,
         .room_number = room_number,
         .id = id,
@@ -529,7 +530,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
                 pi -= 1;
                 const param = gen.params[pi];
                 const ei = switch (param) {
-                    .int => try pop(cx),
+                    .int, .room, .script, .sound, .image => try pop(cx),
                     .string => try popString(cx),
                     .list => try popList(cx),
                     .variadic => try popVariadicList(cx),
@@ -612,6 +613,7 @@ fn storeExtra(cx: *DecompileCx, items: []const ExprIndex) !ExtraSlice {
 }
 
 const TypeCx = struct {
+    op_map: *const std.EnumArray(lang.Op, Op),
     symbols: *const Symbols,
     room_number: u8,
     id: Symbols.ScriptId,
@@ -659,6 +661,14 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     const args = getExtra3(cx.extra, arg_eis);
     for (args) |ei|
         recoverExpr(cx, ei);
+
+    const info = cx.op_map.getPtrConst(op);
+    if (info.* == .generic) {
+        const gen = &info.generic;
+        for (args[0..gen.params.len], gen.params) |arg, param|
+            setTypeAsParam(cx, arg, param);
+    }
+
     switch (op) {
         .eq, .ne, .gt, .lt, .le, .ge, .set => {
             unify(cx, args[0], args[1]);
@@ -667,9 +677,6 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             const list = cx.exprs.getPtr(args[1]).list;
             for (getExtra3(cx.extra, list)) |ei|
                 unify(cx, args[0], ei);
-        },
-        .@"image-select" => {
-            setType(cx, args[0], .image);
         },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
@@ -694,44 +701,18 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             giveType(cx, args[3], lhs.array.value);
         },
         .@"start-script" => {
-            setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"start-script-rec" => {
-            setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
-        .@"sound-select" => {
-            setType(cx, args[0], .sound);
-        },
-        .@"current-room" => {
-            setType(cx, args[0], .room);
-        },
-        .@"stop-script" => {
-            setType(cx, args[0], .script);
-        },
-        .@"script-running" => {
-            setType(cx, args[0], .script);
-        },
-        .@"sound-running" => {
-            setType(cx, args[0], .sound);
-        },
-        .@"load-script" => {
-            setType(cx, args[0], .script);
-        },
-        .@"preload-room" => {
-            setType(cx, args[0], .room);
-        },
         .@"call-script" => {
-            setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"chain-script" => {
-            setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"chain-script-rec" => {
-            setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"open-file" => {
@@ -770,6 +751,17 @@ fn recoverScriptArgs(cx: *TypeCx, script_ei: ExprIndex, args_ei: ExprIndex) void
 fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.InternedType) void {
     const ti = Symbols.getInternedType(typ);
     cx.types.put(utils.null_allocator, ei, ti) catch unreachable;
+}
+
+fn setTypeAsParam(cx: *TypeCx, ei: ExprIndex, param: script.Param) void {
+    const typ: Symbols.InternedType = switch (param) {
+        .int, .string, .list, .variadic => return,
+        .room => .room,
+        .script => .script,
+        .sound => .sound,
+        .image => .image,
+    };
+    setType(cx, ei, typ);
 }
 
 fn giveType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.TypeIndex) void {

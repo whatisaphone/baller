@@ -12,6 +12,11 @@ pub const Param = union(enum) {
     string,
     list,
     variadic,
+
+    room,
+    script,
+    sound,
+    image,
 };
 
 pub const Compound = enum {
