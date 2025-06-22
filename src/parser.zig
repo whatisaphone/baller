@@ -518,12 +518,15 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseAwiz(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
     const children = try parseAwizChildren(cx);
 
     return storeNode(cx, token, .{ .awiz = .{
+        .name = name,
         .glob_number = glob_number,
         .children = children,
     } });
@@ -597,6 +600,8 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         indices,
     };
 
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
@@ -641,6 +646,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             return reportError(cx, token, "out of range", .{});
 
     return storeNode(cx, token, .{ .mult = .{
+        .name = name,
         .glob_number = glob_number,
         .raw_block = raw_block,
         .children = try storeExtra(cx, children.slice()),

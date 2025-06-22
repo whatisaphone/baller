@@ -108,6 +108,7 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     awiz: struct {
+        name: StringSlice,
         glob_number: u16,
         children: ExtraSlice,
     },
@@ -122,6 +123,7 @@ pub const Node = union(enum) {
         path: StringSlice,
     },
     mult: struct {
+        name: StringSlice,
         glob_number: u16,
         raw_block: NodeIndex,
         children: ExtraSlice,

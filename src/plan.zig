@@ -203,19 +203,11 @@ fn buildProjectScope(cx: *Context) !void {
                     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
                     for (room_file.ast.getExtra(root.children)) |child_index| {
                         switch (room_file.ast.nodes.items[child_index]) {
-                            .raw_glob_file => |n| if (n.name) |name| {
+                            inline .raw_glob_file, .raw_glob_block => |n| if (n.name) |name| {
                                 const symbol: script.Symbol = .{ .constant = n.glob_number };
                                 try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
                             },
-                            .raw_glob_block => |n| if (n.name) |name| {
-                                const symbol: script.Symbol = .{ .constant = n.glob_number };
-                                try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
-                            },
-                            .scr => |n| {
-                                const symbol: script.Symbol = .{ .constant = n.glob_number };
-                                try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
-                            },
-                            .script => |n| {
+                            inline .scr, .script, .awiz, .mult => |n| {
                                 const symbol: script.Symbol = .{ .constant = n.glob_number };
                                 try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
                             },

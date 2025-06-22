@@ -50,8 +50,6 @@ fn extractMultInner(
     var mult_dir = try room_dir.openDirZ(mult_path_basename, .{});
     defer mult_dir.close();
 
-    try code.writer(gpa).print("mult {} {{\n", .{glob_number});
-
     var mult_blocks = fixedBlockReader(in, diag);
 
     var mult_palette: ?*const [0x300]u8 = null;

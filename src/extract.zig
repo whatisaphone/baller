@@ -1958,7 +1958,9 @@ fn extractAwiz(
     var decoded = try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined);
     defer decoded.deinit(cx.cx.gpa);
 
-    try code.writer(cx.cx.gpa).print("awiz {} {{\n", .{glob_number});
+    try code.appendSlice(cx.cx.gpa, "awiz ");
+    try writeGlobName(cx, .image, glob_number, code);
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
 
     var bmp_path_buf: ["image0000.bmp".len + 1]u8 = undefined;
     const bmp_path = std.fmt.bufPrintZ(
@@ -1978,6 +1980,10 @@ fn extractMult(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    try code.appendSlice(cx.cx.gpa, "mult ");
+    try writeGlobName(cx, .image, glob_number, code);
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+
     try mult.extract(cx.cx.gpa, diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
 }
 
