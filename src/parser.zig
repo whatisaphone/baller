@@ -163,11 +163,8 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         room,
     };
 
-    const disk_number_i32 = try expectInteger(cx);
+    const disk_number = try expectInteger(cx, u8);
     try expect(cx, .brace_l);
-
-    const disk_number = std.math.cast(u8, disk_number_i32) orelse
-        return reportError(cx, token, "disk number out of range", .{});
 
     var children: std.BoundedArray(Ast.NodeIndex, 32) = .{};
 
@@ -197,14 +194,13 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseDiskRoom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
-    const room_number_i32 = try expectInteger(cx);
+    const room_number = try expectInteger(cx, u8);
     const room_name = try expectString(cx);
     const path = try expectString(cx);
     try expect(cx, .newline);
 
-    if (!(1 <= room_number_i32 and room_number_i32 <= 255))
-        return reportError(cx, token, "room number out of range", .{});
-    const room_number: u8 = @intCast(room_number_i32);
+    if (room_number == 0)
+        return reportError(cx, token, "out of range", .{});
     if (!(1 <= room_name.len and room_name.len <= Ast.max_room_name_len))
         return reportError(cx, token, "invalid room name", .{});
 
@@ -218,11 +214,8 @@ fn parseDiskRoom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseVar(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const name = try expectIdentifier(cx);
     try expect(cx, .swat);
-    const number_i32 = try expectInteger(cx);
+    const number = try expectInteger(cx, u16);
     try expect(cx, .newline);
-
-    const number = std.math.cast(u16, number_i32) orelse
-        return reportError(cx, token, "out of range", .{});
 
     return storeNode(cx, token, .{ .variable = .{
         .name = name,
@@ -233,7 +226,7 @@ fn parseVar(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseConst(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const name = try expectIdentifier(cx);
     try expect(cx, .eq);
-    const value = try expectInteger(cx);
+    const value = try expectInteger(cx, i32);
     try expect(cx, .newline);
 
     return storeNode(cx, token, .{ .constant = .{
@@ -307,12 +300,9 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &children, node_index);
                 },
                 .rmim => {
-                    const compression_i32 = try expectInteger(cx);
+                    const compression = try expectInteger(cx, u8);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
-
-                    const compression = std.math.cast(u8, compression_i32) orelse
-                        return reportError(cx, token, "out of range", .{});
 
                     const node_index = try storeNode(cx, token, .{ .rmim = .{
                         .compression = compression,
@@ -327,12 +317,9 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 .scr => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
-                    const glob_number_i32 = try expectInteger(cx);
+                    const glob_number = try expectInteger(cx, u16);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
-
-                    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-                        return reportError(cx, token, "invalid glob number", .{});
 
                     const node_index = try storeNode(cx, token, .{ .scr = .{
                         .name = name,
@@ -358,12 +345,9 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 .lsc => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
-                    const script_number_i32 = try expectInteger(cx);
+                    const script_number = try expectInteger(cx, u16);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
-
-                    const script_number = std.math.cast(u16, script_number_i32) orelse
-                        return reportError(cx, token, "invalid script number", .{});
 
                     const node_index = try storeNode(cx, token, .{ .lsc = .{
                         .name = name,
@@ -395,9 +379,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 .script => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
-                    const glob_number_i32 = try expectInteger(cx);
-                    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-                        return reportError(cx, token, "out of range", .{});
+                    const glob_number = try expectInteger(cx, u16);
                     try expect(cx, .brace_l);
                     const node_index = try parseScript(cx, token, name, glob_number);
                     try appendNode(cx, &children, node_index);
@@ -405,9 +387,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 .@"local-script" => {
                     const name = try expectIdentifier(cx);
                     try expect(cx, .swat);
-                    const script_number_i32 = try expectInteger(cx);
-                    const script_number = std.math.cast(u16, script_number_i32) orelse
-                        return reportError(cx, token, "out of range", .{});
+                    const script_number = try expectInteger(cx, u16);
                     try expect(cx, .brace_l);
                     const node_index = try parseLocalScript(cx, token, name, script_number);
                     try appendNode(cx, &children, node_index);
@@ -538,11 +518,8 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseAwiz(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
-    const glob_number_i32 = try expectInteger(cx);
+    const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
-
-    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-        return reportError(cx, token, "invalid glob number", .{});
 
     const children = try parseAwizChildren(cx);
 
@@ -575,7 +552,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                 },
                 .@"two-ints" => {
                     const block_id = try expectBlockId(cx);
-                    const ints = .{ try expectInteger(cx), try expectInteger(cx) };
+                    const ints = .{ try expectInteger(cx, i32), try expectInteger(cx, i32) };
                     try expect(cx, .newline);
 
                     const node_index = try storeNode(cx, token, .{ .awiz_two_ints = .{
@@ -591,7 +568,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                     try appendNode(cx, &children, node_index);
                 },
                 .bmp => {
-                    const compression_int = try expectInteger(cx);
+                    const compression_int = try expectInteger(cx, u8);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
 
@@ -620,11 +597,8 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         indices,
     };
 
-    const glob_number_i32 = try expectInteger(cx);
+    const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
-
-    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-        return reportError(cx, token, "invalid glob number", .{});
 
     var raw_block = Ast.null_node;
     var children: std.BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
@@ -681,11 +655,8 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         akcd,
     };
 
-    const glob_number_i32 = try expectInteger(cx);
+    const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
-
-    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-        return reportError(cx, token, "invalid glob number", .{});
 
     var children: std.BoundedArray(Ast.NodeIndex, 1536) = .{};
 
@@ -807,9 +778,7 @@ fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         break :name name;
     } else null;
 
-    const glob_number_i32 = try expectInteger(cx);
-    const glob_number = std.math.cast(u16, glob_number_i32) orelse
-        return reportError(cx, token, "invalid glob number", .{});
+    const glob_number = try expectInteger(cx, u16);
 
     const contents = consumeToken(cx);
     return switch (contents.kind) {
@@ -911,9 +880,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     const name = try expectIdentifier(cx);
     try expect(cx, .swat);
-    const number_i32 = try expectInteger(cx);
-    const number = std.math.cast(u16, number_i32) orelse
-        return reportError(cx, token, "out of range", .{});
+    const number = try expectInteger(cx, u16);
     const obna = try expectString(cx);
     try expect(cx, .brace_l);
 
@@ -947,9 +914,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
-    const number_i32 = try expectInteger(cx);
-    const number = std.math.cast(u8, number_i32) orelse
-        return reportError(cx, token, "out of range", .{});
+    const number = try expectInteger(cx, u8);
 
     const contents = consumeToken(cx);
     const body: Ast.VerbBody = body: switch (contents.kind) {
@@ -1451,13 +1416,15 @@ fn parseString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
     return .{ .start = result_start, .len = result_len };
 }
 
-fn expectInteger(cx: *Cx) !i32 {
+fn expectInteger(cx: *Cx, T: type) !T {
     const token = consumeToken(cx);
     if (token.kind != .integer)
         return reportExpected(cx, token, .integer);
     const source = cx.source[token.span.start.offset..token.span.end.offset];
-    return std.fmt.parseInt(i32, source, 10) catch
-        reportError(cx, token, "invalid integer", .{});
+    const int = std.fmt.parseInt(i32, source, 10) catch
+        return reportError(cx, token, "invalid integer", .{});
+    return std.math.cast(T, int) orelse
+        return reportError(cx, token, "out of range", .{});
 }
 
 fn expectIdentifier(cx: *Cx) !Ast.StringSlice {
