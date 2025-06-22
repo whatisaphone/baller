@@ -5,9 +5,11 @@ const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const bmp = @import("bmp.zig");
 const utils = @import("utils.zig");
 
-pub const BMCOMP_NMAJMIN_H7 = 0x89;
-pub const BMCOMP_NMAJMIN_H8 = 0x8a;
-pub const BMCOMP_NMAJMIN_HT8 = 0x94;
+pub const Compression = struct {
+    pub const BMCOMP_NMAJMIN_H7 = 137;
+    pub const BMCOMP_NMAJMIN_H8 = 138;
+    pub const BMCOMP_NMAJMIN_HT8 = 148;
+};
 
 const Rmim = struct {
     compression: u8,
@@ -70,17 +72,29 @@ fn decompressBmap(
     end: u32,
     out: anytype,
 ) !void {
+    switch (compression) {
+        Compression.BMCOMP_NMAJMIN_H7,
+        Compression.BMCOMP_NMAJMIN_H8,
+        Compression.BMCOMP_NMAJMIN_HT8,
+        => {
+            try decompressBmapNMajMin(compression, reader, end, out);
+        },
+        else => {
+            diag.err(@intCast(reader.pos), "unsupported BMAP compression {}", .{compression});
+            return error.AddedToDiagnostic;
+        },
+    }
+}
+
+fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytype) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
     var in = std.io.bitReader(.little, reader.reader());
 
     const color_bits: u8 = switch (compression) {
-        BMCOMP_NMAJMIN_H7 => 7,
-        BMCOMP_NMAJMIN_H8, BMCOMP_NMAJMIN_HT8 => 8,
-        else => {
-            diag.err(@intCast(reader.pos), "unsupported BMAP compression {}", .{compression});
-            return error.AddedToDiagnostic;
-        },
+        Compression.BMCOMP_NMAJMIN_H7 => 7,
+        Compression.BMCOMP_NMAJMIN_H8, Compression.BMCOMP_NMAJMIN_HT8 => 8,
+        else => unreachable,
     };
 
     var color = try in.readBitsNoEof(u8, 8);

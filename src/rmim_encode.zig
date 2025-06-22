@@ -5,9 +5,7 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
-const BMCOMP_NMAJMIN_H7 = @import("rmim.zig").BMCOMP_NMAJMIN_H7;
-const BMCOMP_NMAJMIN_H8 = @import("rmim.zig").BMCOMP_NMAJMIN_H8;
-const BMCOMP_NMAJMIN_HT8 = @import("rmim.zig").BMCOMP_NMAJMIN_HT8;
+const Compression = @import("rmim.zig").Compression;
 
 pub fn encode(
     gpa: std.mem.Allocator,
@@ -34,10 +32,22 @@ pub fn encode(
 }
 
 fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
-    const color_bits: u8 = switch (compression) {
-        BMCOMP_NMAJMIN_H7 => 7,
-        BMCOMP_NMAJMIN_H8, BMCOMP_NMAJMIN_HT8 => 8,
+    switch (compression) {
+        Compression.BMCOMP_NMAJMIN_H7,
+        Compression.BMCOMP_NMAJMIN_H8,
+        Compression.BMCOMP_NMAJMIN_HT8,
+        => {
+            try compressBmapNMajMin(header, compression, writer);
+        },
         else => return error.BadData,
+    }
+}
+
+fn compressBmapNMajMin(header: bmp.Bmp, compression: u8, writer: anytype) !void {
+    const color_bits: u8 = switch (compression) {
+        Compression.BMCOMP_NMAJMIN_H7 => 7,
+        Compression.BMCOMP_NMAJMIN_H8, Compression.BMCOMP_NMAJMIN_HT8 => 8,
+        else => unreachable,
     };
     const max_pixel: u8 = @intCast((@as(u9, 1) << @intCast(color_bits)) - 1);
 
