@@ -2060,19 +2060,31 @@ fn writeGlobName(
     glob_number: u32,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    switch (getGlobName(cx, kind, glob_number)) {
-        .string => |s| try code.appendSlice(cx.cx.gpa, s),
-        .prefixed => |p| try code.writer(cx.cx.gpa).print("{s}{}", .{ p, glob_number }),
+    try writeGlobName2(cx.cx.gpa, cx.cx.symbols, kind, glob_number, code);
+}
+
+pub fn writeGlobName2(
+    gpa: std.mem.Allocator,
+    symbols: *const Symbols,
+    kind: Symbols.GlobKind,
+    glob_number: u32,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    switch (getGlobName(symbols, kind, glob_number)) {
+        .string => |s| try code.appendSlice(gpa, s),
+        .prefixed => |p| try code.writer(gpa).print("{s}{}", .{ p, glob_number }),
     }
 }
 
-fn getGlobName(cx: *const RoomContext, kind: Symbols.GlobKind, glob_number: u32) union(enum) {
+fn getGlobName(symbols: *const Symbols, kind: Symbols.GlobKind, glob_number: u32) union(enum) {
     string: []const u8,
     prefixed: []const u8,
 } {
     switch (kind) {
-        .script => if (cx.cx.symbols.scripts.getPtr(glob_number)) |s|
+        .script => if (symbols.scripts.getPtr(glob_number)) |s|
             if (s.name) |n| return .{ .string = n },
+        .image => if (symbols.images.get(glob_number)) |s|
+            return .{ .string = s },
         else => {},
     }
 

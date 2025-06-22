@@ -87,6 +87,7 @@ rooms: ArrayMap(Room) = .empty,
 enums: std.ArrayListUnmanaged(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
+images: ArrayMap([]const u8) = .empty,
 
 pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
     var result: Symbols = .{ .game = game };
@@ -98,6 +99,7 @@ pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
 }
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
+    self.images.deinit(allocator);
     self.enum_names.deinit(allocator);
 
     for (self.enums.items) |*e|
@@ -179,6 +181,8 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
         try handleRoom(&cx)
     else if (std.mem.eql(u8, part, "enum"))
         try handleEnum(&cx)
+    else if (std.mem.eql(u8, part, "image"))
+        try handleImage(&cx)
     else
         return error.BadData;
 }
@@ -342,6 +346,15 @@ fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     return result;
 }
 
+fn handleImage(cx: *Cx) !void {
+    const num_str = cx.key_parts.next() orelse return error.BadData;
+    const num = std.fmt.parseInt(u16, num_str, 10) catch return error.BadData;
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    try cx.result.images.putNew(cx.allocator, num, cx.value);
+}
+
 pub const InternedType = enum {
     room,
     script,
@@ -393,6 +406,8 @@ fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
         return addType(cx, .room)
     else if (std.mem.eql(u8, s, "Script"))
         return addType(cx, .script)
+    else if (std.mem.eql(u8, s, "Image"))
+        return addType(cx, .image)
     else if (cx.result.enum_names.get(s)) |e|
         return addType(cx, .{ .@"enum" = e })
     else
@@ -498,6 +513,7 @@ pub const Type = union(enum) {
     /// Index within `symbols.enums`
     @"enum": u16,
     array: struct { down: TypeIndex, across: TypeIndex, value: TypeIndex },
+    image,
 };
 
 pub const GlobKind = enum {
