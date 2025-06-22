@@ -2030,11 +2030,9 @@ fn writeRawGlob(
     try fs.writeFileZ(cx.room_dir, filename, data);
 
     try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
-    if (getGlobName(cx, block.id, glob_number)) |name| {
-        switch (name) {
-            .string => |s| try code.appendSlice(cx.cx.gpa, s),
-            .prefixed => |p| try code.writer(cx.cx.gpa).print("{s}{}", .{ p, glob_number }),
-        }
+    const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
+    if (globKindHasName(kind)) {
+        try writeGlobName(cx, kind, glob_number, code);
         try code.append(cx.cx.gpa, '@');
     }
     try code.writer(cx.cx.gpa).print(
@@ -2043,11 +2041,29 @@ fn writeRawGlob(
     );
 }
 
-fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?union(enum) {
+fn globKindHasName(kind: Symbols.GlobKind) bool {
+    return switch (kind) {
+        .room_image, .room => false,
+        .script, .sound, .costume, .charset, .image, .talkie => true,
+    };
+}
+
+fn writeGlobName(
+    cx: *const RoomContext,
+    kind: Symbols.GlobKind,
+    glob_number: u32,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    switch (getGlobName(cx, kind, glob_number)) {
+        .string => |s| try code.appendSlice(cx.cx.gpa, s),
+        .prefixed => |p| try code.writer(cx.cx.gpa).print("{s}{}", .{ p, glob_number }),
+    }
+}
+
+fn getGlobName(cx: *const RoomContext, kind: Symbols.GlobKind, glob_number: u32) union(enum) {
     string: []const u8,
     prefixed: []const u8,
 } {
-    const kind = Symbols.GlobKind.fromBlockId(block_id) orelse unreachable;
     switch (kind) {
         .script => if (cx.cx.symbols.scripts.getPtr(glob_number)) |s|
             if (s.name) |n| return .{ .string = n },
@@ -2055,7 +2071,7 @@ fn getGlobName(cx: *const RoomContext, block_id: BlockId, glob_number: u32) ?uni
     }
 
     const prefix = switch (kind) {
-        .room_image, .room => return null,
+        .room_image, .room => unreachable,
         .script => "scr",
         .sound => "sound",
         .costume => "costume",
