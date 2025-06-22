@@ -7,7 +7,6 @@ const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
 const Index = @import("extract.zig").Index;
-const writeGlobName2 = @import("extract.zig").writeGlobName2;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const langdef = @import("langdef.zig");
@@ -2877,7 +2876,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             const num = std.math.cast(u32, int) orelse break :write_name;
             if (num >= cx.index.maxs.images) break :write_name;
             if (cx.index.directories.images.rooms.get(num) == 0) break :write_name;
-            try writeGlobName2(cx.gpa, cx.symbols, .image, num, cx.out);
+            try cx.symbols.writeGlobName(.image, num, cx.out.writer(cx.gpa));
             return;
         },
     };

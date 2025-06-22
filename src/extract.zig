@@ -1959,7 +1959,7 @@ fn extractAwiz(
     defer decoded.deinit(cx.cx.gpa);
 
     try code.appendSlice(cx.cx.gpa, "awiz ");
-    try writeGlobName(cx, .image, glob_number, code);
+    try cx.cx.symbols.writeGlobName(.image, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
 
     var bmp_path_buf: ["image0000.bmp".len + 1]u8 = undefined;
@@ -1981,7 +1981,7 @@ fn extractMult(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try code.appendSlice(cx.cx.gpa, "mult ");
-    try writeGlobName(cx, .image, glob_number, code);
+    try cx.cx.symbols.writeGlobName(.image, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
 
     try mult.extract(cx.cx.gpa, diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
@@ -2037,67 +2037,14 @@ fn writeRawGlob(
 
     try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
     const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
-    if (globKindHasName(kind)) {
-        try writeGlobName(cx, kind, glob_number, code);
+    if (kind.hasName()) {
+        try cx.cx.symbols.writeGlobName(kind, glob_number, code.writer(cx.cx.gpa));
         try code.append(cx.cx.gpa, '@');
     }
     try code.writer(cx.cx.gpa).print(
         "{} \"{s}/{s}\"\n",
         .{ glob_number, cx.room_path, filename },
     );
-}
-
-fn globKindHasName(kind: Symbols.GlobKind) bool {
-    return switch (kind) {
-        .room_image, .room => false,
-        .script, .sound, .costume, .charset, .image, .talkie => true,
-    };
-}
-
-fn writeGlobName(
-    cx: *const RoomContext,
-    kind: Symbols.GlobKind,
-    glob_number: u32,
-    code: *std.ArrayListUnmanaged(u8),
-) !void {
-    try writeGlobName2(cx.cx.gpa, cx.cx.symbols, kind, glob_number, code);
-}
-
-pub fn writeGlobName2(
-    gpa: std.mem.Allocator,
-    symbols: *const Symbols,
-    kind: Symbols.GlobKind,
-    glob_number: u32,
-    code: *std.ArrayListUnmanaged(u8),
-) !void {
-    switch (getGlobName(symbols, kind, glob_number)) {
-        .string => |s| try code.appendSlice(gpa, s),
-        .prefixed => |p| try code.writer(gpa).print("{s}{}", .{ p, glob_number }),
-    }
-}
-
-fn getGlobName(symbols: *const Symbols, kind: Symbols.GlobKind, glob_number: u32) union(enum) {
-    string: []const u8,
-    prefixed: []const u8,
-} {
-    switch (kind) {
-        .script => if (symbols.scripts.getPtr(glob_number)) |s|
-            if (s.name) |n| return .{ .string = n },
-        .image => if (symbols.images.get(glob_number)) |s|
-            return .{ .string = s },
-        else => {},
-    }
-
-    const prefix = switch (kind) {
-        .room_image, .room => unreachable,
-        .script => "scr",
-        .sound => "sound",
-        .costume => "costume",
-        .charset => "charset",
-        .image => "image",
-        .talkie => "talkie",
-    };
-    return .{ .prefixed = prefix };
 }
 
 pub fn writeRawBlock(

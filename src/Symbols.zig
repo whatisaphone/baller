@@ -503,6 +503,42 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
     return script.name;
 }
 
+pub fn writeGlobName(
+    self: *const Symbols,
+    kind: GlobKind,
+    glob_number: u32,
+    out: anytype,
+) !void {
+    switch (self.getGlobName(kind, glob_number)) {
+        .string => |s| try out.writeAll(s),
+        .prefixed => |p| try out.print("{s}{}", .{ p, glob_number }),
+    }
+}
+
+fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enum) {
+    string: []const u8,
+    prefixed: []const u8,
+} {
+    switch (kind) {
+        .script => if (self.scripts.getPtr(glob_number)) |s|
+            if (s.name) |n| return .{ .string = n },
+        .image => if (self.images.get(glob_number)) |s|
+            return .{ .string = s },
+        else => {},
+    }
+
+    const prefix = switch (kind) {
+        .room_image, .room => unreachable,
+        .script => "scr",
+        .sound => "sound",
+        .costume => "costume",
+        .charset => "charset",
+        .image => "image",
+        .talkie => "talkie",
+    };
+    return .{ .prefixed = prefix };
+}
+
 pub const TypeIndex = u16;
 pub const null_type: TypeIndex = 0xffff;
 
@@ -537,6 +573,13 @@ pub const GlobKind = enum {
             .AWIZ, .MULT => .image,
             .TLKE => .talkie,
             else => null,
+        };
+    }
+
+    pub fn hasName(self: GlobKind) bool {
+        return switch (self) {
+            .room_image, .room => false,
+            .script, .sound, .costume, .charset, .image, .talkie => true,
         };
     }
 };
