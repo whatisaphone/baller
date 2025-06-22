@@ -6,8 +6,10 @@ const bmp = @import("bmp.zig");
 const utils = @import("utils.zig");
 
 pub const Compression = struct {
+    pub const BMCOMP_NMAJMIN_H4 = 134;
     pub const BMCOMP_NMAJMIN_H7 = 137;
     pub const BMCOMP_NMAJMIN_H8 = 138;
+    pub const BMCOMP_NMAJMIN_HT4 = 144;
     pub const BMCOMP_NMAJMIN_HT8 = 148;
     pub const BMCOMP_SOLID_COLOR_FILL = 150;
 };
@@ -74,8 +76,10 @@ fn decompressBmap(
     out: anytype,
 ) !void {
     switch (compression) {
+        Compression.BMCOMP_NMAJMIN_H4,
         Compression.BMCOMP_NMAJMIN_H7,
         Compression.BMCOMP_NMAJMIN_H8,
+        Compression.BMCOMP_NMAJMIN_HT4,
         Compression.BMCOMP_NMAJMIN_HT8,
         => {
             try decompressBmapNMajMin(compression, reader, end, out);
@@ -96,6 +100,7 @@ fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytyp
     var in = std.io.bitReader(.little, reader.reader());
 
     const color_bits: u8 = switch (compression) {
+        Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
         Compression.BMCOMP_NMAJMIN_H7 => 7,
         Compression.BMCOMP_NMAJMIN_H8, Compression.BMCOMP_NMAJMIN_HT8 => 8,
         else => unreachable,
