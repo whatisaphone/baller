@@ -6,6 +6,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
+const Directory = @import("extract.zig").Directory;
 const Index = @import("extract.zig").Index;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
@@ -667,6 +668,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             for (getExtra3(cx.extra, list)) |ei|
                 unify(cx, args[0], ei);
         },
+        .@"image-select" => {
+            setType(cx, args[0], .image);
+        },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
             const lhs = cx.symbols.types.items[lhsi];
@@ -697,6 +701,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             setType(cx, args[0], .script);
             recoverScriptArgs(cx, args[0], args[1]);
         },
+        .@"sound-select" => {
+            setType(cx, args[0], .sound);
+        },
         .@"current-room" => {
             setType(cx, args[0], .room);
         },
@@ -705,6 +712,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         },
         .@"script-running" => {
             setType(cx, args[0], .script);
+        },
+        .@"sound-running" => {
+            setType(cx, args[0], .sound);
         },
         .@"load-script" => {
             setType(cx, args[0], .script);
@@ -2873,14 +2883,30 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         },
         .array => {},
         .image => {
-            const num = std.math.cast(u32, int) orelse break :write_name;
-            if (num >= cx.index.maxs.images) break :write_name;
-            if (cx.index.directories.images.rooms.get(num) == 0) break :write_name;
-            try cx.symbols.writeGlobName(.image, num, cx.out.writer(cx.gpa));
-            return;
+            if (try emitIntAsGlob(cx, .image, int, &cx.index.directories.images, cx.index.maxs.images))
+                return;
+        },
+        .sound => {
+            if (try emitIntAsGlob(cx, .sound, int, &cx.index.directories.sounds, cx.index.maxs.sounds))
+                return;
         },
     };
     try cx.out.writer(cx.gpa).print("{}", .{int});
+}
+
+fn emitIntAsGlob(
+    cx: *const EmitCx,
+    kind: Symbols.GlobKind,
+    int: i32,
+    dir: *const Directory,
+    dir_len: u16,
+) !bool {
+    const num = std.math.cast(u32, int) orelse return false;
+    if (num >= dir_len) return false;
+    if (dir.rooms.get(num) == 0) return false;
+
+    try cx.symbols.writeGlobName(kind, num, cx.out.writer(cx.gpa));
+    return true;
 }
 
 fn emitCall(cx: *const EmitCx, op: []const u8, args: ExtraSlice) !void {

@@ -88,6 +88,7 @@ enums: std.ArrayListUnmanaged(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 images: ArrayMap([]const u8) = .empty,
+sounds: ArrayMap([]const u8) = .empty,
 
 pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
     var result: Symbols = .{ .game = game };
@@ -99,6 +100,7 @@ pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
 }
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
+    self.sounds.deinit(allocator);
     self.images.deinit(allocator);
     self.enum_names.deinit(allocator);
 
@@ -183,6 +185,8 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
         try handleEnum(&cx)
     else if (std.mem.eql(u8, part, "image"))
         try handleImage(&cx)
+    else if (std.mem.eql(u8, part, "sound"))
+        try handleSound(&cx)
     else
         return error.BadData;
 }
@@ -355,15 +359,28 @@ fn handleImage(cx: *Cx) !void {
     try cx.result.images.putNew(cx.allocator, num, cx.value);
 }
 
+fn handleSound(cx: *Cx) !void {
+    const num_str = cx.key_parts.next() orelse return error.BadData;
+    const num = std.fmt.parseInt(u16, num_str, 10) catch return error.BadData;
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    try cx.result.sounds.putNew(cx.allocator, num, cx.value);
+}
+
 pub const InternedType = enum {
     room,
     script,
+    image,
+    sound,
     FileMode,
 };
 
 fn addInternedTypes(self: *Symbols, allocator: std.mem.Allocator) !void {
     try self.types.append(allocator, .room);
     try self.types.append(allocator, .script);
+    try self.types.append(allocator, .image);
+    try self.types.append(allocator, .sound);
     try self.parse(allocator,
         \\enum.FileMode.1=FOR-READ
         \\enum.FileMode.2=FOR-WRITE
@@ -408,6 +425,8 @@ fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
         return addType(cx, .script)
     else if (std.mem.eql(u8, s, "Image"))
         return addType(cx, .image)
+    else if (std.mem.eql(u8, s, "Sound"))
+        return addType(cx, .sound)
     else if (cx.result.enum_names.get(s)) |e|
         return addType(cx, .{ .@"enum" = e })
     else
@@ -522,6 +541,8 @@ fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enu
     switch (kind) {
         .script => if (self.scripts.getPtr(glob_number)) |s|
             if (s.name) |n| return .{ .string = n },
+        .sound => if (self.sounds.get(glob_number)) |s|
+            return .{ .string = s },
         .image => if (self.images.get(glob_number)) |s|
             return .{ .string = s },
         else => {},
@@ -550,6 +571,7 @@ pub const Type = union(enum) {
     @"enum": u16,
     array: struct { down: TypeIndex, across: TypeIndex, value: TypeIndex },
     image,
+    sound,
 };
 
 pub const GlobKind = enum {

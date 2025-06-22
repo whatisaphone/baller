@@ -377,7 +377,7 @@ const Directories = struct {
     talkies: Directory,
 };
 
-const Directory = struct {
+pub const Directory = struct {
     rooms: utils.SafeManyPointer([*]u8),
     offsets: utils.SafeManyPointer([*]u32),
     sizes: utils.SafeManyPointer([*]u32),
