@@ -39,6 +39,9 @@ fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
         => {
             try compressBmapNMajMin(header, compression, writer);
         },
+        Compression.BMCOMP_SOLID_COLOR_FILL => {
+            try compressBmapSolidColorFill(header, writer);
+        },
         else => return error.BadData,
     }
 }
@@ -82,4 +85,10 @@ fn compressBmapNMajMin(header: bmp.Bmp, compression: u8, writer: anytype) !void 
     }
 
     try out.flushBits();
+}
+
+fn compressBmapSolidColorFill(header: bmp.Bmp, writer: anytype) !void {
+    const color = header.pixels[0];
+    if (!std.mem.allEqual(u8, header.pixels[1..], color)) return error.BadData;
+    try writer.writeByte(color);
 }

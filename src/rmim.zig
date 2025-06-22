@@ -9,6 +9,7 @@ pub const Compression = struct {
     pub const BMCOMP_NMAJMIN_H7 = 137;
     pub const BMCOMP_NMAJMIN_H8 = 138;
     pub const BMCOMP_NMAJMIN_HT8 = 148;
+    pub const BMCOMP_SOLID_COLOR_FILL = 150;
 };
 
 const Rmim = struct {
@@ -79,6 +80,9 @@ fn decompressBmap(
         => {
             try decompressBmapNMajMin(compression, reader, end, out);
         },
+        Compression.BMCOMP_SOLID_COLOR_FILL => {
+            try decompressBmapSolidColorFill(reader, end, out);
+        },
         else => {
             diag.err(@intCast(reader.pos), "unsupported BMAP compression {}", .{compression});
             return error.AddedToDiagnostic;
@@ -109,4 +113,13 @@ fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytyp
             }
         }
     }
+}
+
+fn decompressBmapSolidColorFill(reader: anytype, end: u32, out: anytype) !void {
+    const color = try reader.reader().readByte();
+    if (reader.pos != end) return error.BadData;
+
+    var buf = out.context.self;
+    @memset(buf.unusedCapacitySlice(), color);
+    buf.items.len = buf.capacity;
 }
