@@ -1160,11 +1160,11 @@ fn extractRmimJob(
 
 fn extractRmimInner(
     cx: *const RoomContext,
-    _: *const Diagnostic.ForBinaryFile,
+    diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try rmim.decode(cx.cx.gpa, raw, &cx.room_palette.defined);
+    var decoded = try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined);
     defer decoded.deinit(cx.cx.gpa);
 
     var path_buf: [Ast.max_room_name_len + "/rmim.bmp".len + 1]u8 = undefined;
