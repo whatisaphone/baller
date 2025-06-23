@@ -300,14 +300,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &children, node_index);
                 },
                 .rmim => {
-                    const compression = try expectInteger(cx, u8);
-                    const path = try expectString(cx);
-                    try expect(cx, .newline);
-
-                    const node_index = try storeNode(cx, token, .{ .rmim = .{
-                        .compression = compression,
-                        .path = path,
-                    } });
+                    const node_index = try parseRmim(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .rmda => {
@@ -422,6 +415,74 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
     return storeNode(cx, token, .{ .room_file = .{
         .children = try storeExtra(cx, children.slice()),
         .variables = try storeExtra(cx, variables.slice()),
+    } });
+}
+
+fn parseRmim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    try expect(cx, .brace_l);
+
+    const rmih = rmih: {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        _ = try parseIdentifier(cx, token2, enum { @"raw-block" });
+        break :rmih try parseRawBlock(cx, token2);
+    };
+
+    const im = im: {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        _ = try parseIdentifier(cx, token2, enum { im });
+        break :im try parseRmimIm(cx, token2);
+    };
+
+    skipWhitespace(cx);
+    try expect(cx, .brace_r);
+
+    return storeNode(cx, token, .{ .rmim = .{
+        .rmih = rmih,
+        .im = im,
+    } });
+}
+
+// TODO: maybe merge this with obim at some point?
+fn parseRmimIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const Keyword = enum {
+        @"raw-block",
+        bmap,
+    };
+
+    try expect(cx, .brace_l);
+
+    var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token2 = consumeToken(cx);
+        switch (token2.kind) {
+            .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+                .bmap => {
+                    const compression = try expectInteger(cx, u8);
+                    const path = try expectString(cx);
+                    try expect(cx, .newline);
+
+                    const node_index = try storeNode(cx, token, .{ .bmap = .{
+                        .compression = compression,
+                        .path = path,
+                    } });
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token2),
+        }
+    }
+
+    return storeNode(cx, token, .{ .rmim_im = .{
+        .children = try storeExtra(cx, children.slice()),
     } });
 }
 

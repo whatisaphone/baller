@@ -543,13 +543,30 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     const file = &cx.project.files.items[room_number].?;
     const rmim = &file.ast.nodes.items[node_index].rmim;
 
-    const bmp = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(rmim.path));
-    defer cx.gpa.free(bmp);
-
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try rmim_encode.encode(cx.gpa, rmim.compression, bmp, &out);
+    const rmih = &file.ast.nodes.items[rmim.rmih].raw_block;
+    try encodeRawBlock(cx.gpa, &out, rmih.block_id, cx.project_dir, file.ast.strings.get(rmih.path));
+
+    const im00_start = try beginBlockAl(cx.gpa, &out, .IM00);
+
+    const im = &file.ast.nodes.items[rmim.im].rmim_im;
+    for (file.ast.getExtra(im.children)) |child_index| {
+        switch (file.ast.nodes.items[child_index]) {
+            .raw_block => |*n| {
+                try encodeRawBlock(cx.gpa, &out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
+            },
+            .bmap => |*n| {
+                const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(n.path));
+                defer cx.gpa.free(bmp_raw);
+                try rmim_encode.encode(cx.gpa, n.compression, bmp_raw, &out);
+            },
+            else => unreachable,
+        }
+    }
+
+    try endBlockAl(&out, im00_start);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .RMIM,

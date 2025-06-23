@@ -15,20 +15,12 @@ pub fn encode(
 ) !void {
     const header = try bmp.readHeader(bmp_raw, .{ .skip_bounds_check = true });
 
-    const rmih_fixup = try beginBlockAl(gpa, out, .RMIH);
-    try out.appendNTimes(gpa, 0, 2);
-    try endBlockAl(out, rmih_fixup);
-
-    const im00_fixup = try beginBlockAl(gpa, out, .IM00);
-
     const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
     try out.append(gpa, compression);
     try compressBmap(header, compression, out.writer(gpa));
 
     try endBlockAl(out, bmap_fixup);
-
-    try endBlockAl(out, im00_fixup);
 }
 
 fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {

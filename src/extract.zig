@@ -1164,14 +1164,7 @@ fn extractRmimInner(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined);
-    defer decoded.deinit(cx.cx.gpa);
-
-    var path_buf: [Ast.max_room_name_len + "/rmim.bmp".len + 1]u8 = undefined;
-    const path = std.fmt.bufPrintZ(&path_buf, "{s}/rmim.bmp", .{cx.room_path}) catch unreachable;
-    try fs.writeFileZ(cx.room_dir, "rmim.bmp", decoded.bmp.items);
-
-    try code.writer(cx.cx.gpa).print("rmim {} \"{s}\"\n", .{ decoded.compression, path });
+    try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
 }
 
 fn extractRmdaChildJob(
@@ -2074,6 +2067,7 @@ fn writeRawBlockImpl(
         block,
         block_offset: u32,
         index_block,
+        rmim_block: BlockId,
         object: u16,
         object_block: struct { u16, BlockId },
     },
@@ -2094,6 +2088,11 @@ fn writeRawBlockImpl(
         .index_block => try std.fmt.bufPrintZ(
             &filename_buf,
             "index_{}.bin",
+            .{block_id},
+        ),
+        .rmim_block => try std.fmt.bufPrintZ(
+            &filename_buf,
+            "RMIM_{}.bin",
             .{block_id},
         ),
         .object => |number| try std.fmt.bufPrintZ(

@@ -3,6 +3,9 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const bmp = @import("bmp.zig");
+const writeRawBlock = @import("extract.zig").writeRawBlock;
+const fs = @import("fs.zig");
+const io = @import("io.zig");
 const utils = @import("utils.zig");
 
 pub const Compression = struct {
@@ -14,30 +17,29 @@ pub const Compression = struct {
     pub const BMCOMP_SOLID_COLOR_FILL = 150;
 };
 
-const Rmim = struct {
-    compression: u8,
-    bmp: std.ArrayListUnmanaged(u8),
-
-    pub fn deinit(self: *Rmim, allocator: std.mem.Allocator) void {
-        self.bmp.deinit(allocator);
-    }
-};
-
 pub fn decode(
     allocator: std.mem.Allocator,
     rmim_raw: []const u8,
     diag: *const Diagnostic.ForBinaryFile,
     apal: *const [0x300]u8,
-) !Rmim {
+    code: *std.ArrayListUnmanaged(u8),
+    out_dir: std.fs.Dir,
+    out_path: []const u8,
+) !void {
     const width = 640; // TODO: use the real size
     const height = 480;
+
+    try code.appendSlice(allocator, "rmim {\n");
 
     var rmim_reader = std.io.fixedBufferStream(rmim_raw);
     var rmim_blocks = fixedBlockReader(&rmim_reader, diag);
 
-    _ = try rmim_blocks.expect(.RMIH).bytes();
+    const rmih = try rmim_blocks.expect(.RMIH).bytes();
+    try writeRawBlock(allocator, .RMIH, rmih, out_dir, out_path, 4, .block, code);
 
     var im00_blocks = try rmim_blocks.expect(.IM00).nested();
+
+    try code.appendSlice(allocator, "    im {\n");
 
     const bmap = try im00_blocks.expect(.BMAP).block();
     const bmap_end = bmap.end();
@@ -46,26 +48,29 @@ pub fn decode(
 
     const bmp_size = bmp.calcFileSize(width, height);
     var out: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_size);
-    errdefer out.deinit(allocator);
+    defer out.deinit(allocator);
 
     try bmp.writeHeader(out.writer(allocator), width, height, bmp_size);
     try bmp.writePalette(out.writer(allocator), apal);
     try decompressBmap(diag, compression, &rmim_reader, bmap_end, out.writer(allocator));
 
-    if (!im00_blocks.atEnd()) {
+    try fs.writeFileZ(out_dir, "RMIM.bmp", out.items);
+    try code.writer(allocator).print(
+        "        bmap {} \"{s}/{s}\"\n",
+        .{ compression, out_path, "RMIM.bmp" },
+    );
+
+    while (!im00_blocks.atEnd()) {
         const block = try im00_blocks.next().block();
-        diag.err(block.offset(), "skipping RMIM due to trailing {}", .{block.id});
-        return error.AddedToDiagnostic;
+        const bytes = try io.readInPlace(&rmim_reader, block.size);
+        try writeRawBlock(allocator, block.id, bytes, out_dir, out_path, 8, .{ .rmim_block = block.id }, code);
     }
 
     try im00_blocks.finish();
 
     try rmim_blocks.finish();
 
-    return .{
-        .compression = compression,
-        .bmp = out,
-    };
+    try code.appendSlice(allocator, "    }\n}\n");
 }
 
 fn decompressBmap(

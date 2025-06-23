@@ -79,6 +79,13 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     rmim: struct {
+        rmih: NodeIndex,
+        im: NodeIndex,
+    },
+    rmim_im: struct {
+        children: ExtraSlice,
+    },
+    bmap: struct {
         compression: u8,
         path: StringSlice,
     },
