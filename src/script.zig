@@ -16,7 +16,10 @@ pub const Param = union(enum) {
     room,
     script,
     sound,
+    costume,
+    charset,
     image,
+    talkie,
 };
 
 pub const Compound = enum {

@@ -87,8 +87,11 @@ rooms: ArrayMap(Room) = .empty,
 enums: std.ArrayListUnmanaged(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
-images: ArrayMap([]const u8) = .empty,
 sounds: ArrayMap([]const u8) = .empty,
+costumes: ArrayMap([]const u8) = .empty,
+charsets: ArrayMap([]const u8) = .empty,
+images: ArrayMap([]const u8) = .empty,
+talkies: ArrayMap([]const u8) = .empty,
 
 pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
     var result: Symbols = .{ .game = game };
@@ -100,8 +103,11 @@ pub fn init(allocator: std.mem.Allocator, game: games.Game) !Symbols {
 }
 
 pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
-    self.sounds.deinit(allocator);
+    self.talkies.deinit(allocator);
     self.images.deinit(allocator);
+    self.charsets.deinit(allocator);
+    self.costumes.deinit(allocator);
+    self.sounds.deinit(allocator);
     self.enum_names.deinit(allocator);
 
     for (self.enums.items) |*e|
@@ -183,10 +189,16 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
         try handleRoom(&cx)
     else if (std.mem.eql(u8, part, "enum"))
         try handleEnum(&cx)
-    else if (std.mem.eql(u8, part, "image"))
-        try handleSimpleGlob(&cx, &cx.result.images)
     else if (std.mem.eql(u8, part, "sound"))
         try handleSimpleGlob(&cx, &cx.result.sounds)
+    else if (std.mem.eql(u8, part, "costume"))
+        try handleSimpleGlob(&cx, &cx.result.costumes)
+    else if (std.mem.eql(u8, part, "charset"))
+        try handleSimpleGlob(&cx, &cx.result.charsets)
+    else if (std.mem.eql(u8, part, "image"))
+        try handleSimpleGlob(&cx, &cx.result.images)
+    else if (std.mem.eql(u8, part, "talkie"))
+        try handleSimpleGlob(&cx, &cx.result.talkies)
     else
         return error.BadData;
 }
@@ -362,16 +374,22 @@ fn handleSimpleGlob(cx: *Cx, map: *ArrayMap([]const u8)) !void {
 pub const InternedType = enum {
     room,
     script,
-    image,
     sound,
+    costume,
+    charset,
+    image,
+    talkie,
     FileMode,
 };
 
 fn addInternedTypes(self: *Symbols, allocator: std.mem.Allocator) !void {
     try self.types.append(allocator, .room);
     try self.types.append(allocator, .script);
-    try self.types.append(allocator, .image);
     try self.types.append(allocator, .sound);
+    try self.types.append(allocator, .costume);
+    try self.types.append(allocator, .charset);
+    try self.types.append(allocator, .image);
+    try self.types.append(allocator, .talkie);
     try self.parse(allocator,
         \\enum.FileMode.1=FOR-READ
         \\enum.FileMode.2=FOR-WRITE
@@ -535,7 +553,13 @@ fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enu
             if (s.name) |n| return .{ .string = n },
         .sound => if (self.sounds.get(glob_number)) |s|
             return .{ .string = s },
+        .costume => if (self.costumes.get(glob_number)) |s|
+            return .{ .string = s },
+        .charset => if (self.charsets.get(glob_number)) |s|
+            return .{ .string = s },
         .image => if (self.images.get(glob_number)) |s|
+            return .{ .string = s },
+        .talkie => if (self.talkies.get(glob_number)) |s|
             return .{ .string = s },
         else => {},
     }
@@ -562,8 +586,11 @@ pub const Type = union(enum) {
     /// Index within `symbols.enums`
     @"enum": u16,
     array: struct { down: TypeIndex, across: TypeIndex, value: TypeIndex },
-    image,
     sound,
+    costume,
+    charset,
+    image,
+    talkie,
 };
 
 pub const GlobKind = enum {

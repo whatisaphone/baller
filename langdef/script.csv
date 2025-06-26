@@ -194,7 +194,7 @@ userput-on,false,,,
 userput-off,false,,,
 cursor-soft-on,false,,,
 cursor-soft-off,false,,,
-charset,false,int,,
+charset,false,charset,,
 charset-color,false,list,,
 break-here,false,,,
 class-of,true,int list,,
@@ -229,17 +229,17 @@ override-off,false,,,
 sound-running,true,sound,,
 load-script,false,script,,99
 load-sound,false,sound,,99
-load-costume,false,int,,99
+load-costume,false,costume,,99
 load-room,false,room,,99
 nuke-sound,false,sound,98,99
-nuke-costume,false,int,,99
+nuke-costume,false,costume,,99
 lock-script,false,script,,99
-lock-costume,false,int,,99
-unlock-costume,false,int,,99
-load-charset,false,int,,99
+lock-costume,false,costume,,99
+unlock-costume,false,costume,,99
+load-charset,false,charset,,99
 preload-script,false,script,98,99
 preload-sound,false,sound,,99
-preload-costume,false,int,,99
+preload-costume,false,costume,,99
 preload-room,false,room,,99
 unlock-image,false,image,,99
 nuke-image,false,image,,99
@@ -262,7 +262,7 @@ actor-set-clipped,false,int int int int,,
 actor-set-position,false,int int,99,
 actor-set-clip,false,int int int int,99,
 actor-erase,false,int,98,
-actor-set-costume,false,int,,
+actor-set-costume,false,costume,,
 actor-set-sounds,false,list,,
 actor-set-talk-animation,false,int int,,
 actor-set-elevation,false,int,,
@@ -329,7 +329,7 @@ print-system-start,false,,,
 say-line-position,false,int int,,
 say-line-center,false,,99,
 say-line-string,false,,,
-say-line-talkie,false,int,99,
+say-line-talkie,false,talkie,99,
 say-line-color,false,list,99,
 say-line-start,false,int,99,
 say-line-actor-start,false,,,
@@ -387,7 +387,7 @@ string-length,true,int,,
 string-substr,true,int int int,,
 string-concat,true,int int,99,
 string-compare,true,int int,,
-costume-loaded,true,int,,
+costume-loaded,true,costume,,
 sound-loaded,true,int,98,
 read-system-ini-int,true,string,,
 read-system-ini-string,true,string,,

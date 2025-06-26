@@ -531,7 +531,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
                 pi -= 1;
                 const param = gen.params[pi];
                 const ei = switch (param) {
-                    .int, .room, .script, .sound, .image => try pop(cx),
+                    .int, .room, .script, .sound, .costume, .charset, .image, .talkie => try pop(cx),
                     .string => try popString(cx),
                     .list => try popList(cx),
                     .variadic => try popVariadicList(cx),
@@ -766,7 +766,10 @@ fn setTypeAsParam(cx: *TypeCx, ei: ExprIndex, param: script.Param) void {
         .room => .room,
         .script => .script,
         .sound => .sound,
+        .costume => .costume,
+        .charset => .charset,
         .image => .image,
+        .talkie => .talkie,
     };
     setType(cx, ei, typ);
 }
@@ -2881,8 +2884,11 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             return;
         },
         .array => {},
-        .image => if (try emitIntAsGlob(cx, .image, int)) return,
         .sound => if (try emitIntAsGlob(cx, .sound, int)) return,
+        .costume => if (try emitIntAsGlob(cx, .costume, int)) return,
+        .charset => if (try emitIntAsGlob(cx, .charset, int)) return,
+        .image => if (try emitIntAsGlob(cx, .image, int)) return,
+        .talkie => if (try emitIntAsGlob(cx, .talkie, int)) return,
     };
     try cx.out.writer(cx.gpa).print("{}", .{int});
 }
