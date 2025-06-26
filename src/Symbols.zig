@@ -407,6 +407,7 @@ fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
             if (rest.len == 0) break :blk;
             if (rest[0] != '[') break :blk;
             down = across;
+            across = null_type;
             const istr, rest = try splitAlways(rest[1..], ']');
             if (istr.len == 0) break :blk;
             across = try parseType(cx, istr);

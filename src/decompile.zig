@@ -679,6 +679,12 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             for (getExtra3(cx.extra, list)) |ei|
                 unify(cx, args[0], ei);
         },
+        .@"get-array-item" => {
+            const lhsi = cx.types.get(args[0]) orelse return;
+            const lhs = cx.symbols.types.items[lhsi];
+            if (lhs != .array) return;
+            giveType(cx, args[1], lhs.array.across);
+        },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
             const lhs = cx.symbols.types.items[lhsi];
