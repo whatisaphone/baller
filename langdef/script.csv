@@ -23,20 +23,20 @@ image-load-external,false,string,99,
 image-capture,false,int int int int int,,
 image-set-state,false,int,,
 image-set-flags,false,int,,
-draw-image-at,false,int int int int int,,
+draw-image-at,false,image int int int int,,
 image-select,false,image,,
 image-set-source-image,false,int,100,
 image-set-pos,false,int int,,
 image-set-color,false,int int,,
 image-set-clip,false,int int int int,98,
 image-set-palette,false,int,99,
-image-set-shadow,false,int,99,
+image-set-shadow,false,image,99,
 image-set-histogram,false,int int,100,
 image-polygon-capture,false,int int int,100,
 image-set-draw-box,false,int int int int int,99,
 image-set-draw-line,false,int int int int int,99,
 image-flood-fill,false,int int int,100,
-image-set-render-image,false,int,99,
+image-set-render-image,false,image,99,
 image-set-hotspot,false,int int,99,
 image-new,false,,99,
 image-set-polygon,false,int,,
@@ -81,7 +81,7 @@ sprite-set-angle,false,int,100,
 sprite-select-one,false,int,,98
 sprite-select-range,false,int int,99,
 sprite-set-source-image,false,int,100,
-sprite-set-image,false,int,,
+sprite-set-image,false,image,,
 sprite-set-position,false,int int,,
 sprite-erase,false,int,98,
 sprite-set-step-dist,false,int int,,
@@ -89,7 +89,7 @@ sprite-set-animation-type,false,int,,
 sprite-set-palette,false,int,99,
 sprite-set-scale,false,int,100,
 sprite-set-animation-speed,false,int,99,
-sprite-set-shadow,false,int,,
+sprite-set-shadow,false,image,,
 sprite-set-update-type,false,int,,
 sprite-set-class,false,list,98,
 sprite-set-property2,false,int int,100,
@@ -110,12 +110,12 @@ sprite-group-set-position,false,int int,,
 sprite-group-set-clip,false,int int int int,,
 sprite-group-never-zclip,false,,100,
 sprite-group-new,false,,,
-image-get-object-x,true,int int,,
-image-get-object-y,true,int int,,
-image-get-width,true,int int,,
-image-get-height,true,int int,,
-image-get-state-count,true,int,98,
-image-get-color-at,true,int int int int,99,
+image-get-object-x,true,image int,,
+image-get-object-y,true,image int,,
+image-get-width,true,image int,,
+image-get-height,true,image int,,
+image-get-state-count,true,image,98,
+image-get-color-at,true,image int int int,99,
 image-get-property2,true,int int int,100,
 actor-get-property,true,int int int,99,
 start-script-order,false,int int variadic,99,
@@ -167,7 +167,7 @@ start-object,false,int int variadic,,
 start-object-rec,false,int int variadic,,
 draw-object,false,int int,,
 draw-object-at,false,int int int,,
-print-image,false,int,,
+print-image,false,image,,
 array-get-dim,true,,,
 array-get-height,true,,,
 array-get-width,true,,,
@@ -208,7 +208,7 @@ sound-at,false,int,,
 sound-select,false,sound,,
 sound-looping,false,,,
 sound-start,false,,,
-stop-sound,false,int,,
+stop-sound,false,sound,,
 stop-object,false,int,99,
 current-room,false,room,,
 stop-script,false,script,,
@@ -228,24 +228,24 @@ rgb,true,int int int,99,
 override-off,false,,,
 sound-running,true,sound,,
 load-script,false,script,,99
-load-sound,false,int,,99
+load-sound,false,sound,,99
 load-costume,false,int,,99
-load-room,false,int,,99
-nuke-sound,false,int,98,99
+load-room,false,room,,99
+nuke-sound,false,sound,98,99
 nuke-costume,false,int,,99
-lock-script,false,int,,99
+lock-script,false,script,,99
 lock-costume,false,int,,99
 unlock-costume,false,int,,99
 load-charset,false,int,,99
-preload-script,false,int,98,99
-preload-sound,false,int,,99
+preload-script,false,script,98,99
+preload-sound,false,sound,,99
 preload-costume,false,int,,99
 preload-room,false,room,,99
-unlock-image,false,int,,99
-nuke-image,false,int,,99
+unlock-image,false,image,,99
+nuke-image,false,image,,99
 load-image,false,int,,99
-lock-image,false,int,,99
-preload-image,false,int,,99
+lock-image,false,image,,99
+preload-image,false,image,,99
 preload-flush,false,,98,99
 palette-set,false,int int int int,,
 intensity,false,int int int,,
@@ -273,7 +273,7 @@ actor-never-zclip,false,,,
 actor-always-zclip,false,int,,
 actor-ignore-boxes,false,,,
 actor-set-animation-speed,false,int,,
-actor-set-shadow,false,int,,
+actor-set-shadow,false,image,,
 actor-set-text-offset,false,int int,,
 actor-set-palette,false,int,100,
 actor-select,false,int,,
