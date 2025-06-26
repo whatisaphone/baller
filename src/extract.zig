@@ -339,6 +339,22 @@ pub const Index = struct {
     lfl_offsets: utils.SafeManyPointer([*]u32),
     lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)),
     room_names: RoomNames,
+
+    pub fn directory(
+        self: *const Index,
+        dir: Symbols.GlobKind,
+    ) struct { *const Directory, u32 } {
+        return switch (dir) {
+            .room_image => .{ &self.directories.room_images, self.maxs.rooms },
+            .room => .{ &self.directories.rooms, self.maxs.rooms },
+            .script => .{ &self.directories.scripts, self.maxs.scripts },
+            .sound => .{ &self.directories.sounds, self.maxs.sounds },
+            .costume => .{ &self.directories.costumes, self.maxs.costumes },
+            .charset => .{ &self.directories.charsets, self.maxs.charsets },
+            .image => .{ &self.directories.images, self.maxs.images },
+            .talkie => .{ &self.directories.talkies, self.maxs.talkies },
+        };
+    }
 };
 
 pub const Maxs = extern struct {
@@ -1664,16 +1680,7 @@ fn findGlobNumber(
     offset_in_disk: u32,
 ) ?u16 {
     const kind = Symbols.GlobKind.fromBlockId(block_id) orelse return null;
-    const dir, const dir_len = switch (kind) {
-        .room_image => .{ &index.directories.room_images, index.maxs.rooms },
-        .room => .{ &index.directories.rooms, index.maxs.rooms },
-        .script => .{ &index.directories.scripts, index.maxs.scripts },
-        .sound => .{ &index.directories.sounds, index.maxs.sounds },
-        .costume => .{ &index.directories.costumes, index.maxs.costumes },
-        .charset => .{ &index.directories.charsets, index.maxs.charsets },
-        .image => .{ &index.directories.images, index.maxs.images },
-        .talkie => .{ &index.directories.talkies, index.maxs.talkies },
-    };
+    const dir, const dir_len = index.directory(kind);
     const offset_in_room = offset_in_disk - index.lfl_offsets.get(room_number);
     for (dir.rooms.slice(dir_len), dir.offsets.slice(dir_len), 0..) |r, o, i|
         if (r == room_number and o == offset_in_room)

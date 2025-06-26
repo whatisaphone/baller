@@ -184,9 +184,9 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
     else if (std.mem.eql(u8, part, "enum"))
         try handleEnum(&cx)
     else if (std.mem.eql(u8, part, "image"))
-        try handleImage(&cx)
+        try handleSimpleGlob(&cx, &cx.result.images)
     else if (std.mem.eql(u8, part, "sound"))
-        try handleSound(&cx)
+        try handleSimpleGlob(&cx, &cx.result.sounds)
     else
         return error.BadData;
 }
@@ -350,22 +350,13 @@ fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     return result;
 }
 
-fn handleImage(cx: *Cx) !void {
+fn handleSimpleGlob(cx: *Cx, map: *ArrayMap([]const u8)) !void {
     const num_str = cx.key_parts.next() orelse return error.BadData;
     const num = std.fmt.parseInt(u16, num_str, 10) catch return error.BadData;
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    try cx.result.images.putNew(cx.allocator, num, cx.value);
-}
-
-fn handleSound(cx: *Cx) !void {
-    const num_str = cx.key_parts.next() orelse return error.BadData;
-    const num = std.fmt.parseInt(u16, num_str, 10) catch return error.BadData;
-
-    if (cx.key_parts.next()) |_| return error.BadData;
-
-    try cx.result.sounds.putNew(cx.allocator, num, cx.value);
+    try map.putNew(cx.allocator, num, cx.value);
 }
 
 pub const InternedType = enum {

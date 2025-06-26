@@ -2881,25 +2881,14 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             return;
         },
         .array => {},
-        .image => {
-            if (try emitIntAsGlob(cx, .image, int, &cx.index.directories.images, cx.index.maxs.images))
-                return;
-        },
-        .sound => {
-            if (try emitIntAsGlob(cx, .sound, int, &cx.index.directories.sounds, cx.index.maxs.sounds))
-                return;
-        },
+        .image => if (try emitIntAsGlob(cx, .image, int)) return,
+        .sound => if (try emitIntAsGlob(cx, .sound, int)) return,
     };
     try cx.out.writer(cx.gpa).print("{}", .{int});
 }
 
-fn emitIntAsGlob(
-    cx: *const EmitCx,
-    kind: Symbols.GlobKind,
-    int: i32,
-    dir: *const Directory,
-    dir_len: u16,
-) !bool {
+fn emitIntAsGlob(cx: *const EmitCx, kind: Symbols.GlobKind, int: i32) !bool {
+    const dir, const dir_len = cx.index.directory(kind);
     const num = std.math.cast(u32, int) orelse return false;
     if (num >= dir_len) return false;
     if (dir.rooms.get(num) == 0) return false;
