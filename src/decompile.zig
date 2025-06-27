@@ -531,10 +531,10 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
                 pi -= 1;
                 const param = gen.params[pi];
                 const ei = switch (param) {
-                    .int, .room, .script, .sound, .costume, .charset, .image, .talkie => try pop(cx),
                     .string => try popString(cx),
                     .list => try popList(cx),
                     .variadic => try popVariadicList(cx),
+                    else => try pop(cx),
                 };
                 args.buffer[args.len + pi] = ei;
             }
@@ -714,9 +714,6 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .@"start-script-rec" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
-        .@"saveload-game" => {
-            setType(cx, args[0], .SaveLoad);
-        },
         .@"call-script" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
@@ -725,9 +722,6 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         },
         .@"chain-script-rec" => {
             recoverScriptArgs(cx, args[0], args[1]);
-        },
-        .@"open-file" => {
-            setType(cx, args[1], .FileMode);
         },
         else => {},
     }
@@ -774,6 +768,8 @@ fn getTypeFromParam(param: script.Param) ?Symbols.InternedType {
         .charset => .charset,
         .image => .image,
         .talkie => .talkie,
+        .FileMode => .FileMode,
+        .SaveLoad => .SaveLoad,
     };
 }
 

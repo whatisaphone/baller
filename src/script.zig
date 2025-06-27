@@ -20,6 +20,8 @@ pub const Param = union(enum) {
     charset,
     image,
     talkie,
+    FileMode,
+    SaveLoad,
 };
 
 pub const Compound = enum {
