@@ -140,6 +140,7 @@ pub const Node = union(enum) {
         children: ExtraSlice,
     },
     akos: struct {
+        name: StringSlice,
         glob_number: u16,
         children: ExtraSlice,
     },

@@ -722,6 +722,8 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         akcd,
     };
 
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
@@ -771,6 +773,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     }
 
     return storeNode(cx, token, .{ .akos = .{
+        .name = name,
         .glob_number = glob_number,
         .children = try storeExtra(cx, children.slice()),
     } });

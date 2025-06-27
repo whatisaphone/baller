@@ -2015,7 +2015,9 @@ fn extractAkos(
         .{ cx.room_path, name },
     ) catch unreachable;
 
-    try code.writer(cx.cx.gpa).print("akos {} {{\n", .{glob_number});
+    try code.appendSlice(cx.cx.gpa, "akos ");
+    try cx.cx.symbols.writeGlobName(.costume, glob_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     try akos.decode(cx.cx.gpa, raw, path, dir, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 }

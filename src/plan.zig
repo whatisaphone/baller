@@ -207,7 +207,7 @@ fn buildProjectScope(cx: *Context) !void {
                                 const symbol: script.Symbol = .{ .constant = n.glob_number };
                                 try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
                             },
-                            inline .scr, .script, .awiz, .mult => |n| {
+                            inline .scr, .script, .awiz, .mult, .akos => |n| {
                                 const symbol: script.Symbol = .{ .constant = n.glob_number };
                                 try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
                             },
