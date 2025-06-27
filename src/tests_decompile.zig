@@ -262,6 +262,38 @@ test "type room" {
     );
 }
 
+test "open-file consts" {
+    try testRoundTrip(
+        \\var v@0
+    ,
+        \\script s@1 {
+        \\    v = open-file "" 1
+        \\}
+    ,
+        \\
+    ,
+        \\script scr1@1 {
+        \\    global0 = open-file "" FOR-READ
+        \\}
+    );
+}
+
+test "saveload consts" {
+    try testRoundTrip(
+        \\
+    ,
+        \\script s@1 {
+        \\    saveload-game 1 ""
+        \\}
+    ,
+        \\
+    ,
+        \\script scr1@1 {
+        \\    saveload-game SAVE ""
+        \\}
+    );
+}
+
 /// Compile a project and decompile, then check that the decompilation matches
 /// the expected output.
 fn testRoundTrip(
