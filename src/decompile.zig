@@ -713,6 +713,9 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
         .@"start-script-rec" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
+        .@"saveload-game" => {
+            setType(cx, args[0], .SaveLoad);
+        },
         .@"call-script" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },

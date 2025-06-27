@@ -380,6 +380,7 @@ pub const InternedType = enum {
     image,
     talkie,
     FileMode,
+    SaveLoad,
 };
 
 fn addInternedTypes(self: *Symbols, allocator: std.mem.Allocator) !void {
@@ -394,8 +395,11 @@ fn addInternedTypes(self: *Symbols, allocator: std.mem.Allocator) !void {
         \\enum.FileMode.1=FOR-READ
         \\enum.FileMode.2=FOR-WRITE
         \\enum.FileMode.6=FOR-APPEND
+        \\enum.SaveLoad.1=SAVE
+        \\enum.SaveLoad.2=LOAD
     );
     try self.types.append(allocator, .{ .@"enum" = 0 });
+    try self.types.append(allocator, .{ .@"enum" = 1 });
 }
 
 pub fn getInternedType(typ: InternedType) TypeIndex {
