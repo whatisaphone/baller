@@ -667,7 +667,8 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
     if (info.* == .generic) {
         const gen = &info.generic;
         for (args[0..gen.params.len], gen.params) |arg, param|
-            setTypeAsParam(cx, arg, param);
+            if (getTypeFromParam(param)) |ty|
+                setType(cx, arg, ty);
     }
 
     switch (op) {
@@ -763,9 +764,9 @@ fn setType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.InternedType) void {
     cx.types.put(utils.null_allocator, ei, ti) catch unreachable;
 }
 
-fn setTypeAsParam(cx: *TypeCx, ei: ExprIndex, param: script.Param) void {
-    const typ: Symbols.InternedType = switch (param) {
-        .int, .string, .list, .variadic => return,
+fn getTypeFromParam(param: script.Param) ?Symbols.InternedType {
+    return switch (param) {
+        .int, .string, .list, .variadic => null,
         .room => .room,
         .script => .script,
         .sound => .sound,
@@ -774,7 +775,6 @@ fn setTypeAsParam(cx: *TypeCx, ei: ExprIndex, param: script.Param) void {
         .image => .image,
         .talkie => .talkie,
     };
-    setType(cx, ei, typ);
 }
 
 fn giveType(cx: *TypeCx, ei: ExprIndex, typ: Symbols.TypeIndex) void {
