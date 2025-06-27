@@ -181,35 +181,42 @@ fn buildProjectScope(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.items[project_file.ast.root].project;
 
+    const from_proj: AddSymbolArgs = .{
+        .cx = cx,
+        .scope = &cx.project_scope,
+        .file = project_file,
+    };
+
     for (project_file.ast.getExtra(project_node.children)) |node_index| {
         switch (project_file.ast.nodes.items[node_index]) {
             .constant => |c| {
-                const symbol: script.Symbol = .{ .constant = c.value };
-                try addScopeSymbol(cx, &cx.project_scope, project_file, c.name, symbol);
+                try addScopeSymbol(&from_proj, c.name, .{ .constant = c.value });
             },
             .variable => |v| {
                 const var_num = std.math.cast(u14, v.number) orelse return error.BadData;
-                const symbol: script.Symbol = .{ .variable = .init(.global, var_num) };
-                try addScopeSymbol(cx, &cx.project_scope, project_file, v.name, symbol);
+                const variable: lang.Variable = .init(.global, var_num);
+                try addScopeSymbol(&from_proj, v.name, .{ .variable = variable });
             },
             .disk => |disk| {
                 for (project_file.ast.getExtra(disk.children)) |room_node| {
                     const disk_room = &project_file.ast.nodes.items[room_node].disk_room;
-
-                    const room_symbol: script.Symbol = .{ .constant = disk_room.room_number };
-                    try addScopeSymbol(cx, &cx.project_scope, project_file, disk_room.name, room_symbol);
+                    try addScopeSymbol(&from_proj, disk_room.name, .{ .constant = disk_room.room_number });
 
                     const room_file = &cx.project.files.items[disk_room.room_number].?;
+                    const from_room: AddSymbolArgs = .{
+                        .cx = cx,
+                        .scope = &cx.project_scope,
+                        .file = room_file,
+                    };
+
                     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
                     for (room_file.ast.getExtra(root.children)) |child_index| {
                         switch (room_file.ast.nodes.items[child_index]) {
                             inline .raw_glob_file, .raw_glob_block => |n| if (n.name) |name| {
-                                const symbol: script.Symbol = .{ .constant = n.glob_number };
-                                try addScopeSymbol(cx, &cx.project_scope, room_file, name, symbol);
+                                try addScopeSymbol(&from_room, name, .{ .constant = n.glob_number });
                             },
                             inline .scr, .script, .awiz, .mult, .akos => |n| {
-                                const symbol: script.Symbol = .{ .constant = n.glob_number };
-                                try addScopeSymbol(cx, &cx.project_scope, room_file, n.name, symbol);
+                                try addScopeSymbol(&from_room, n.name, .{ .constant = n.glob_number });
                             },
                             else => {},
                         }
@@ -221,17 +228,17 @@ fn buildProjectScope(cx: *Context) !void {
     }
 }
 
-fn addScopeSymbol(
+const AddSymbolArgs = struct {
     cx: *const Context,
     scope: *std.StringHashMapUnmanaged(script.Symbol),
     file: *const Project.SourceFile,
-    name: Ast.StringSlice,
-    symbol: script.Symbol,
-) !void {
-    const str = file.ast.strings.get(name);
-    const entry = try scope.getOrPut(cx.gpa, str);
+};
+
+fn addScopeSymbol(args: *const AddSymbolArgs, name: Ast.StringSlice, symbol: script.Symbol) !void {
+    const str = args.file.ast.strings.get(name);
+    const entry = try args.scope.getOrPut(args.cx.gpa, str);
     if (entry.found_existing) {
-        cx.diagnostic.err("duplicate name: {s}", .{str});
+        args.cx.diagnostic.err("duplicate name: {s}", .{str});
         return error.AddedToDiagnostic;
     }
     entry.value_ptr.* = symbol;
@@ -265,27 +272,28 @@ fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void 
 }
 
 fn buildRoomScope(cx: *Context, room_number: u8) !void {
-    const room_scope = &cx.room_scopes[room_number];
-
     const room_file = &cx.project.files.items[room_number].?;
     const root = &room_file.ast.nodes.items[room_file.ast.root].room_file;
+
+    const from_room: AddSymbolArgs = .{
+        .cx = cx,
+        .scope = &cx.room_scopes[room_number],
+        .file = room_file,
+    };
 
     for (room_file.ast.getExtra(root.variables)) |node_index| {
         const node = &room_file.ast.nodes.items[node_index].variable;
         const num = std.math.cast(u14, node.number) orelse return error.BadData;
-        const symbol: script.Symbol = .{ .variable = .init(.room, num) };
-        try addScopeSymbol(cx, room_scope, room_file, node.name, symbol);
+        try addScopeSymbol(&from_room, node.name, .{ .variable = .init(.room, num) });
     }
 
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.items[node_index]) {
             .lsc => |n| {
-                const symbol: script.Symbol = .{ .constant = n.script_number };
-                try addScopeSymbol(cx, room_scope, room_file, n.name, symbol);
+                try addScopeSymbol(&from_room, n.name, .{ .constant = n.script_number });
             },
             .local_script => |n| {
-                const symbol: script.Symbol = .{ .constant = n.script_number };
-                try addScopeSymbol(cx, room_scope, room_file, n.name, symbol);
+                try addScopeSymbol(&from_room, n.name, .{ .constant = n.script_number });
             },
             else => {},
         }
