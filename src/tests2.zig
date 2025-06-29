@@ -111,9 +111,9 @@ test "Backyard Football round trip decode all" {
         try std.testing.expectEqual(stats.get(.verb_total), 294);
         try std.testing.expectEqual(stats.get(.verb_decompile), 294);
         try std.testing.expectEqual(stats.get(.excd_total), 56);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 50); // the other 6 are zero-length
+        try std.testing.expectEqual(stats.get(.excd_decompile), 56);
         try std.testing.expectEqual(stats.get(.encd_total), 56);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 50); // the other 6 are zero-length
+        try std.testing.expectEqual(stats.get(.encd_decompile), 56);
         try std.testing.expectEqual(stats.get(.lsc2_total), 890);
         try std.testing.expectEqual(stats.get(.lsc2_decompile), 890);
     }
@@ -146,9 +146,9 @@ test "Backyard Baseball 2001 round trip decode all" {
         try std.testing.expectEqual(stats.get(.verb_total), 43);
         try std.testing.expectEqual(stats.get(.verb_decompile), 43);
         try std.testing.expectEqual(stats.get(.excd_total), 37);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 34); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.excd_decompile), 37);
         try std.testing.expectEqual(stats.get(.encd_total), 37);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 34); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.encd_decompile), 37);
         try std.testing.expectEqual(stats.get(.lsc2_total), 1529);
         try std.testing.expectEqual(stats.get(.lsc2_decompile), 1529);
     }
@@ -180,9 +180,9 @@ test "Backyard Basketball round trip decode all" {
         try std.testing.expectEqual(stats.get(.verb_total), 11);
         try std.testing.expectEqual(stats.get(.verb_decompile), 11);
         try std.testing.expectEqual(stats.get(.excd_total), 33);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 30); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.excd_decompile), 33);
         try std.testing.expectEqual(stats.get(.encd_total), 33);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 30); // the other 3 are zero-length
+        try std.testing.expectEqual(stats.get(.encd_decompile), 33);
         try std.testing.expectEqual(stats.get(.lsc2_total), 1142);
         try std.testing.expectEqual(stats.get(.lsc2_decompile), 1142);
     }

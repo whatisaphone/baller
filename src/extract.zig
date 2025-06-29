@@ -333,6 +333,8 @@ pub fn run(
 
     try fs.writeFileZ(output_dir, "project.scu", code.items);
 
+    sanityCheckStats(&cx.stats);
+
     return cx.stats;
 }
 
@@ -1514,8 +1516,22 @@ fn extractEncdExcdDecompile(
     // with just the `end-object` instruction. As usual we need to differentiate
     // between those two cases in order to roundtrip successfully. This is where
     // that happens on the decompiler side.
-    if (raw.len == 0) return;
+    if (raw.len != 0)
+        try extractEncdExcdDecompileInner(cx, diag, edge, raw, code);
 
+    cx.cx.incStat(switch (edge) {
+        .encd => .encd_decompile,
+        .excd => .excd_decompile,
+    });
+}
+
+fn extractEncdExcdDecompileInner(
+    cx: *RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    edge: EncdExcd,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
         .excd => .{ .exit = .{ .room = cx.room_number } },
@@ -1536,11 +1552,6 @@ fn extractEncdExcdDecompile(
 
     UsageTracker.atomicUnion(&cx.cx.global_var_usage, &usage.global_vars);
     UsageTracker.atomicUnion(&cx.room_var_usage, &usage.room_vars);
-
-    cx.cx.incStat(switch (edge) {
-        .encd => .encd_decompile,
-        .excd => .excd_decompile,
-    });
 }
 
 const LocalScriptBlockType = enum {
@@ -2204,4 +2215,14 @@ const Chunk = struct {
 
 fn iovec(s: []const u8) std.posix.iovec_const {
     return .{ .base = s.ptr, .len = s.len };
+}
+
+fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {
+    std.debug.assert(s.get(.rmim_total) == s.get(.rmim_raw) + s.get(.rmim_decode));
+    std.debug.assert(s.get(.scrp_total) == s.get(.scrp_decompile) + s.get(.scrp_disassemble) + s.get(.scrp_raw));
+    std.debug.assert(s.get(.verb_total) == s.get(.verb_decompile) + s.get(.verb_disassemble));
+    std.debug.assert(s.get(.excd_total) == s.get(.excd_decompile) + s.get(.excd_disassemble) + s.get(.excd_raw));
+    std.debug.assert(s.get(.encd_total) == s.get(.encd_decompile) + s.get(.encd_disassemble) + s.get(.encd_raw));
+    std.debug.assert(s.get(.lscr_total) == s.get(.lscr_decompile) + s.get(.lscr_disassemble) + s.get(.lscr_raw));
+    std.debug.assert(s.get(.lsc2_total) == s.get(.lsc2_decompile) + s.get(.lsc2_disassemble) + s.get(.lsc2_raw));
 }
