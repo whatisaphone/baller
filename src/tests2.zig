@@ -32,6 +32,8 @@ test "Backyard Baseball 1997 round trip decode all" {
     const stats = try testRoundTrip(baseball1997, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 30);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 30);
         try std.testing.expectEqual(stats.get(.scrp_total), 193);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 193);
         try std.testing.expectEqual(stats.get(.verb_total), 200);
@@ -66,6 +68,8 @@ test "Backyard Soccer round trip decode all" {
     const stats = try testRoundTrip(soccer, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 29);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 29);
         try std.testing.expectEqual(stats.get(.scrp_total), 135);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 135);
         try std.testing.expectEqual(stats.get(.verb_total), 191);
@@ -100,6 +104,8 @@ test "Backyard Football round trip decode all" {
     const stats = try testRoundTrip(football, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 56);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 55);
         try std.testing.expectEqual(stats.get(.scrp_total), 388);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 388);
         try std.testing.expectEqual(stats.get(.verb_total), 294);
@@ -133,6 +139,8 @@ test "Backyard Baseball 2001 round trip decode all" {
     const stats = try testRoundTrip(baseball2001, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 37);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 37);
         try std.testing.expectEqual(stats.get(.scrp_total), 417);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 417);
         try std.testing.expectEqual(stats.get(.verb_total), 43);
@@ -165,6 +173,8 @@ test "Backyard Basketball round trip decode all" {
     const stats = try testRoundTrip(basketball, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 33);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 32);
         try std.testing.expectEqual(stats.get(.scrp_total), 663);
         try std.testing.expectEqual(stats.get(.scrp_decompile), 663);
         try std.testing.expectEqual(stats.get(.verb_total), 11);

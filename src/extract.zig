@@ -197,6 +197,9 @@ const ScriptMode = enum {
 };
 
 pub const Stat = enum {
+    rmim_total,
+    rmim_decode,
+    rmim_raw,
     scrp_total,
     scrp_disassemble,
     scrp_decompile,
@@ -1158,6 +1161,8 @@ fn extractRmimJob(
     raw: []const u8,
     chunk_index: u16,
 ) !void {
+    cx.cx.incStat(.rmim_total);
+
     std.debug.assert(disk_diag.offset == 0);
     var diag = disk_diag.child(block.start, .{ .block_id = .RMIM });
     diag.cap_level = true;
@@ -1174,6 +1179,8 @@ fn extractRmimJob(
     // If decoding failed or was skipped, extract as raw
     try writeRawGlob(cx, block, cx.room_number, raw, &code);
     cx.sendChunk(chunk_index, .top, code);
+
+    cx.cx.incStat(.rmim_raw);
 }
 
 fn extractRmimInner(
@@ -1183,6 +1190,10 @@ fn extractRmimInner(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    cx.cx.incStat(.rmim_decode);
 }
 
 fn extractRmdaChildJob(
