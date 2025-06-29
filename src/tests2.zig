@@ -32,20 +32,13 @@ test "Backyard Baseball 1997 round trip decode all" {
     const stats = try testRoundTrip(baseball1997, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.rmim_total), 30);
-        try std.testing.expectEqual(stats.get(.rmim_decode), 30);
-        try std.testing.expectEqual(stats.get(.scrp_total), 193);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 193);
-        try std.testing.expectEqual(stats.get(.verb_total), 200);
-        try std.testing.expectEqual(stats.get(.verb_decompile), 200);
-        try std.testing.expectEqual(stats.get(.excd_total), 30);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 30);
-        try std.testing.expectEqual(stats.get(.encd_total), 30);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 30);
-        try std.testing.expectEqual(stats.get(.lscr_total), 375);
-        try std.testing.expectEqual(stats.get(.lscr_decompile), 375);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 202);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 202);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 30);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 193);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 200);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 30);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 30);
+        try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 375);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 202);
     }
 }
 test "Backyard Baseball 1997 round trip disasm" {
@@ -68,20 +61,13 @@ test "Backyard Soccer round trip decode all" {
     const stats = try testRoundTrip(soccer, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.rmim_total), 29);
-        try std.testing.expectEqual(stats.get(.rmim_decode), 29);
-        try std.testing.expectEqual(stats.get(.scrp_total), 135);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 135);
-        try std.testing.expectEqual(stats.get(.verb_total), 191);
-        try std.testing.expectEqual(stats.get(.verb_decompile), 191);
-        try std.testing.expectEqual(stats.get(.excd_total), 29);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 29);
-        try std.testing.expectEqual(stats.get(.encd_total), 29);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 29);
-        try std.testing.expectEqual(stats.get(.lscr_total), 384);
-        try std.testing.expectEqual(stats.get(.lscr_decompile), 384);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 143);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 143);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 29);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 135);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 191);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 29);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 29);
+        try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 384);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 143);
     }
 }
 test "Backyard Soccer round trip disasm" {
@@ -106,16 +92,11 @@ test "Backyard Football round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.rmim_total), 56);
         try std.testing.expectEqual(stats.get(.rmim_decode), 55);
-        try std.testing.expectEqual(stats.get(.scrp_total), 388);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 388);
-        try std.testing.expectEqual(stats.get(.verb_total), 294);
-        try std.testing.expectEqual(stats.get(.verb_decompile), 294);
-        try std.testing.expectEqual(stats.get(.excd_total), 56);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 56);
-        try std.testing.expectEqual(stats.get(.encd_total), 56);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 56);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 890);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 890);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 388);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 294);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 56);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 56);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 890);
     }
 }
 test "Backyard Football round trip disasm" {
@@ -139,18 +120,12 @@ test "Backyard Baseball 2001 round trip decode all" {
     const stats = try testRoundTrip(baseball2001, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.rmim_total), 37);
-        try std.testing.expectEqual(stats.get(.rmim_decode), 37);
-        try std.testing.expectEqual(stats.get(.scrp_total), 417);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 417);
-        try std.testing.expectEqual(stats.get(.verb_total), 43);
-        try std.testing.expectEqual(stats.get(.verb_decompile), 43);
-        try std.testing.expectEqual(stats.get(.excd_total), 37);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 37);
-        try std.testing.expectEqual(stats.get(.encd_total), 37);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 37);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 1529);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1529);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 37);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 417);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 43);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 37);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 37);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1529);
     }
 }
 test "Backyard Baseball 2001 round trip disasm" {
@@ -175,16 +150,11 @@ test "Backyard Basketball round trip decode all" {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.rmim_total), 33);
         try std.testing.expectEqual(stats.get(.rmim_decode), 32);
-        try std.testing.expectEqual(stats.get(.scrp_total), 663);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 663);
-        try std.testing.expectEqual(stats.get(.verb_total), 11);
-        try std.testing.expectEqual(stats.get(.verb_decompile), 11);
-        try std.testing.expectEqual(stats.get(.excd_total), 33);
-        try std.testing.expectEqual(stats.get(.excd_decompile), 33);
-        try std.testing.expectEqual(stats.get(.encd_total), 33);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 33);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 1142);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1142);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 663);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 11);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 33);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 33);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1142);
     }
 }
 test "Backyard Basketball round trip disasm" {
@@ -372,6 +342,16 @@ fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *con
 
     if (!std.mem.eql(u8, &actual_hash, &expected_hash))
         return error.TestExpectedEqual;
+}
+
+fn expectTwoStatsEq(
+    stats: *const std.EnumArray(extract.Stat, u16),
+    stat_a: extract.Stat,
+    stat_b: extract.Stat,
+    expected: u16,
+) !void {
+    try std.testing.expectEqual(stats.get(stat_a), expected);
+    try std.testing.expectEqual(stats.get(stat_b), expected);
 }
 
 fn dumpExtractStats(stats: *const std.EnumArray(extract.Stat, u16)) void {
