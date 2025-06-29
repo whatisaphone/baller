@@ -26,6 +26,7 @@ pub fn encode(
 fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
+        Compression.BMCOMP_NMAJMIN_H5,
         Compression.BMCOMP_NMAJMIN_H7,
         Compression.BMCOMP_NMAJMIN_H8,
         Compression.BMCOMP_NMAJMIN_HT4,
@@ -43,6 +44,7 @@ fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
 fn compressBmapNMajMin(header: bmp.Bmp, compression: u8, writer: anytype) !void {
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
+        Compression.BMCOMP_NMAJMIN_H5 => 5,
         Compression.BMCOMP_NMAJMIN_H7 => 7,
         Compression.BMCOMP_NMAJMIN_H8, Compression.BMCOMP_NMAJMIN_HT8 => 8,
         else => unreachable,

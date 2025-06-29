@@ -10,6 +10,7 @@ const utils = @import("utils.zig");
 
 pub const Compression = struct {
     pub const BMCOMP_NMAJMIN_H4 = 134;
+    pub const BMCOMP_NMAJMIN_H5 = 135;
     pub const BMCOMP_NMAJMIN_H7 = 137;
     pub const BMCOMP_NMAJMIN_H8 = 138;
     pub const BMCOMP_NMAJMIN_HT4 = 144;
@@ -82,6 +83,7 @@ fn decompressBmap(
 ) !void {
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
+        Compression.BMCOMP_NMAJMIN_H5,
         Compression.BMCOMP_NMAJMIN_H7,
         Compression.BMCOMP_NMAJMIN_H8,
         Compression.BMCOMP_NMAJMIN_HT4,
@@ -106,6 +108,7 @@ fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytyp
 
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
+        Compression.BMCOMP_NMAJMIN_H5 => 5,
         Compression.BMCOMP_NMAJMIN_H7 => 7,
         Compression.BMCOMP_NMAJMIN_H8, Compression.BMCOMP_NMAJMIN_HT8 => 8,
         else => unreachable,

@@ -90,8 +90,7 @@ test "Backyard Football round trip decode all" {
     const stats = try testRoundTrip(football, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.rmim_total), 56);
-        try std.testing.expectEqual(stats.get(.rmim_decode), 55);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 56);
         try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 388);
         try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 294);
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 56);
@@ -148,8 +147,7 @@ test "Backyard Basketball round trip decode all" {
     const stats = try testRoundTrip(basketball, .decode_all);
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.rmim_total), 33);
-        try std.testing.expectEqual(stats.get(.rmim_decode), 32);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 33);
         try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 663);
         try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 11);
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 33);
