@@ -1165,8 +1165,10 @@ fn extractRmimJob(
     var code: std.ArrayListUnmanaged(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
+    var tx: Transaction = .init(&code);
+
     if (cx.cx.options.rmim == .decode)
-        if (tryDecodeAndSend(extractRmimInner, cx, &diag, .{raw}, &code, chunk_index, .top))
+        if (tryDecodeAndSend(extractRmimInner, cx, &tx, &diag, .{raw}, &code, chunk_index, .top))
             return;
 
     // If decoding failed or was skipped, extract as raw
@@ -1206,22 +1208,24 @@ fn extractRmdaChildJob(
     var code: std.ArrayListUnmanaged(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
+    var tx: Transaction = .init(&code);
+
     // First try to decode
     switch (block.id) {
         .OBIM => if (cx.cx.options.obim == .decode) {
-            if (tryDecodeAndSend(extractObim, cx, &diag, .{raw}, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractObim, cx, &tx, &diag, .{raw}, &code, chunk_index, .bottom))
                 return;
         },
         .OBCD => if (cx.cx.options.obcd == .decode) {
-            if (tryDecodeAndSend(decodeObcd, cx, &diag, .{raw}, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(decodeObcd, cx, &tx, &diag, .{raw}, &code, chunk_index, .bottom))
                 return;
         },
         .EXCD, .ENCD => {
-            if (extractEncdExcd(cx, &diag, block.id, raw, &code, chunk_index))
+            if (extractEncdExcd(cx, &tx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
         .LSCR, .LSC2 => {
-            if (extractLsc(cx, &diag, block.id, raw, &code, chunk_index))
+            if (extractLsc(cx, &tx, &diag, block.id, raw, &code, chunk_index))
                 return;
         },
         else => unreachable, // This is only called for the above block ids
@@ -1315,9 +1319,9 @@ fn decodeObcd(
         cx.cx.incStat(.verb_total);
 
         if (cx.cx.options.script == .decompile and
-            tryDecodeTx("decompile", decompileVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
+            tryDecode("decompile", decompileVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
             continue;
-        if (tryDecodeTx("disassemble", disassembleVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
+        if (tryDecode("disassemble", disassembleVerb, cx, &tx, diag, .{ cdhd.object_id, v.number, bytecode }, code))
             continue;
         return error.AddedToDiagnostic;
     }
@@ -1410,6 +1414,7 @@ const EncdExcd = enum {
 
 fn extractEncdExcd(
     cx: *RoomContext,
+    tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
@@ -1430,12 +1435,12 @@ fn extractEncdExcd(
     };
 
     if (cx.cx.options.script == .decompile and
-        tryDecode("decompile", extractEncdExcdDecompile, cx, diag, .{ edge, raw }, code))
+        tryDecode("decompile", extractEncdExcdDecompile, cx, tx, diag, .{ edge, raw }, code))
     {
         cx.sendChunk(chunk_index, section, code.*);
         return true;
     }
-    if (tryDecode("disassemble", extractEncdExcdDisassemble, cx, diag, .{ edge, raw }, code)) {
+    if (tryDecode("disassemble", extractEncdExcdDisassemble, cx, tx, diag, .{ edge, raw }, code)) {
         cx.sendChunk(chunk_index, section, code.*);
         return true;
     }
@@ -1542,6 +1547,7 @@ const LocalScriptBlockType = enum {
 
 fn extractLsc(
     cx: *RoomContext,
+    tx: *Transaction,
     diag: *Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
@@ -1555,22 +1561,20 @@ fn extractLsc(
     };
     if (option == .raw) return false;
 
-    var tx: Transaction = .init(code);
-
     const script_number, const bytecode = parseLscHeader(block_type, raw) catch |err|
-        return handleDecodeResult(err, &tx, "decode", diag, code);
+        return handleDecodeResult(err, tx, "decode", diag, code);
 
     // mild hack: patch the log context now that we know the script number
     diag.section = .{ .glob = .{ block_id, script_number } };
     diag.trace(0, "found script number", .{});
 
     if (cx.cx.options.script == .decompile and
-        tryDecodeTx("decompile", extractLscDecompile, cx, &tx, diag, .{ block_type, script_number, bytecode }, code))
+        tryDecode("decompile", extractLscDecompile, cx, tx, diag, .{ block_type, script_number, bytecode }, code))
     {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
-    if (tryDecodeTx("disassemble", extractLscDisassemble, cx, &tx, diag, .{ block_type, script_number, bytecode }, code)) {
+    if (tryDecode("disassemble", extractLscDisassemble, cx, tx, diag, .{ block_type, script_number, bytecode }, code)) {
         cx.sendChunk(chunk_index, .local_scripts, code.*);
         return true;
     }
@@ -1718,20 +1722,22 @@ fn extractGlobJob(
     var diag = disk_diag.child(block.start, .{ .glob = .{ block.id, glob_number } });
     diag.cap_level = true;
 
+    var tx: Transaction = .init(&code);
+
     // First try to decode
     switch (block.id) {
         .SCRP => {
-            if (extractScrp(cx, &diag, glob_number, raw, &code, chunk_index))
+            if (extractScrp(cx, &tx, &diag, glob_number, raw, &code, chunk_index))
                 return;
         },
         .AWIZ => if (cx.cx.options.awiz == .decode)
-            if (tryDecodeAndSend(extractAwiz, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractAwiz, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         .MULT => if (cx.cx.options.mult == .decode)
-            if (tryDecodeAndSend(extractMult, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractMult, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         .AKOS => if (cx.cx.options.akos == .decode)
-            if (tryDecodeAndSend(extractAkos, cx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractAkos, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         else => {},
     }
@@ -1763,18 +1769,6 @@ const Transaction = struct {
 };
 
 fn tryDecode(
-    decoder_name: []const u8,
-    decodeFn: anytype,
-    cx: *RoomContext,
-    diag: *const Diagnostic.ForBinaryFile,
-    decode_args: anytype,
-    code: *std.ArrayListUnmanaged(u8),
-) bool {
-    var tx: Transaction = .init(code);
-    return tryDecodeTx(decoder_name, decodeFn, cx, &tx, diag, decode_args, code);
-}
-
-fn tryDecodeTx(
     decoder_name: []const u8,
     decodeFn: anytype,
     cx: *RoomContext,
@@ -1811,15 +1805,15 @@ fn handleDecodeResult(
 fn tryDecodeAndSend(
     decodeFn: anytype,
     cx: *RoomContext,
+    tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     decode_args: anytype,
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
     section: Section,
 ) bool {
-    var tx: Transaction = .init(code);
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
-    return handleDecodeAndSendResult(result, cx, &tx, diag, code, chunk_index, section);
+    return handleDecodeAndSendResult(result, cx, tx, diag, code, chunk_index, section);
 }
 
 // break out the non-generic code for better codegen
@@ -1841,6 +1835,7 @@ fn handleDecodeAndSendResult(
 
 fn extractScrp(
     cx: *RoomContext,
+    tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
@@ -1850,12 +1845,12 @@ fn extractScrp(
     if (cx.cx.options.scrp == .raw)
         return false;
     if (cx.cx.options.script == .decompile and
-        tryDecode("decompile", extractScrpDecompile, cx, diag, .{ glob_number, raw }, code))
+        tryDecode("decompile", extractScrpDecompile, cx, tx, diag, .{ glob_number, raw }, code))
     {
         cx.sendChunk(chunk_index, .global_scripts, code.*);
         return true;
     }
-    if (tryDecode("disassemble", extractScrpDisassemble, cx, diag, .{ glob_number, raw }, code)) {
+    if (tryDecode("disassemble", extractScrpDisassemble, cx, tx, diag, .{ glob_number, raw }, code)) {
         cx.sendChunk(chunk_index, .global_scripts, code.*);
         return true;
     }
