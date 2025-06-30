@@ -232,6 +232,9 @@ pub const Stat = enum {
     lsc2_decompile,
     lsc2_raw,
     script_unknown_byte,
+    digi_total,
+    digi_decode,
+    digi_raw,
 };
 
 pub fn run(
@@ -1731,6 +1734,7 @@ fn extractGlobJob(
 ) !void {
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_total,
+        .DIGI => .digi_total,
         else => null,
     });
 
@@ -1782,6 +1786,7 @@ fn extractGlobJob(
 
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_raw,
+        .DIGI => .digi_raw,
         else => null,
     });
 }
@@ -1990,6 +1995,10 @@ fn extractDigi(
     try sounds.extract(cx.cx.gpa, diag, glob_number, raw, code, cx.room_dir, cx.room_path);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    cx.cx.incStat(.digi_decode);
 }
 
 fn extractAwiz(
@@ -2258,4 +2267,5 @@ fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {
     std.debug.assert(s.get(.encd_total) == s.get(.encd_decompile) + s.get(.encd_disassemble) + s.get(.encd_raw));
     std.debug.assert(s.get(.lscr_total) == s.get(.lscr_decompile) + s.get(.lscr_disassemble) + s.get(.lscr_raw));
     std.debug.assert(s.get(.lsc2_total) == s.get(.lsc2_decompile) + s.get(.lsc2_disassemble) + s.get(.lsc2_raw));
+    std.debug.assert(s.get(.digi_total) == s.get(.digi_raw) + s.get(.digi_decode));
 }

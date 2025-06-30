@@ -39,6 +39,7 @@ test "Backyard Baseball 1997 round trip decode all" {
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 30);
         try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 375);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 202);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
     }
 }
 test "Backyard Baseball 1997 round trip disasm" {
@@ -68,6 +69,7 @@ test "Backyard Soccer round trip decode all" {
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 29);
         try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 384);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 143);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1686);
     }
 }
 test "Backyard Soccer round trip disasm" {
@@ -96,6 +98,7 @@ test "Backyard Football round trip decode all" {
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 56);
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 56);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 890);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1599);
     }
 }
 test "Backyard Football round trip disasm" {
@@ -125,6 +128,7 @@ test "Backyard Baseball 2001 round trip decode all" {
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 37);
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 37);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1529);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 3662);
     }
 }
 test "Backyard Baseball 2001 round trip disasm" {
@@ -153,6 +157,7 @@ test "Backyard Basketball round trip decode all" {
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 33);
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 33);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1142);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
     }
 }
 test "Backyard Basketball round trip disasm" {
