@@ -22,6 +22,7 @@ const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const obim = @import("obim.zig");
 const rmim = @import("rmim.zig");
+const sounds = @import("sounds.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -41,6 +42,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var lsc2_option: ?RawOrDecode = null;
     var obim_option: ?RawOrDecode = null;
     var obcd_option: ?RawOrDecode = null;
+    var digi_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
     var akos_option: ?RawOrDecode = null;
@@ -103,6 +105,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (obcd_option != null) return arg.reportDuplicate();
                 obcd_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "digi")) {
+                if (digi_option != null) return arg.reportDuplicate();
+                digi_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
@@ -143,6 +149,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .lsc2 = lsc2_option orelse .decode,
             .obim = obim_option orelse .decode,
             .obcd = obcd_option orelse .decode,
+            .digi = digi_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
             .akos = akos_option orelse .decode,
@@ -172,6 +179,7 @@ const Options = struct {
     lsc2: RawOrDecode,
     obim: RawOrDecode,
     obcd: RawOrDecode,
+    digi: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
@@ -1752,6 +1760,9 @@ fn extractGlobJob(
             if (extractScrp(cx, &tx, &diag, glob_number, raw, &code, chunk_index))
                 return;
         },
+        .DIGI => if (cx.cx.options.digi == .decode)
+            if (tryDecodeAndSend(extractDigi, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+                return,
         .AWIZ => if (cx.cx.options.awiz == .decode)
             if (tryDecodeAndSend(extractAwiz, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
@@ -1965,6 +1976,22 @@ fn extractScrpDecompile(
     cx.cx.incStat(.scrp_decompile);
 }
 
+fn extractDigi(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    try code.appendSlice(cx.cx.gpa, "digi ");
+    try cx.cx.symbols.writeGlobName(.sound, glob_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+
+    try sounds.extract(cx.cx.gpa, diag, glob_number, raw, code, cx.room_dir, cx.room_path);
+
+    try code.appendSlice(cx.cx.gpa, "}\n");
+}
+
 fn extractAwiz(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
@@ -2094,6 +2121,7 @@ fn writeRawBlockImpl(
         block_offset: u32,
         index_block,
         block_block: BlockId,
+        block_number_block: struct { BlockId, u16 },
         object: u16,
         object_block: struct { u16, BlockId },
     },
@@ -2120,6 +2148,11 @@ fn writeRawBlockImpl(
             &filename_buf,
             "{}_{}.bin",
             .{ id, block_id },
+        ),
+        .block_number_block => |x| try std.fmt.bufPrintZ(
+            &filename_buf,
+            "{}_{:0>4}_{}.bin",
+            x ++ .{block_id},
         ),
         .object => |number| try std.fmt.bufPrintZ(
             &filename_buf,

@@ -90,6 +90,7 @@ pub const BlockId = enum(u32) {
     ENCD = make("ENCD"),
     EXCD = make("EXCD"),
     HBGL = make("HBGL"),
+    HSHD = make("HSHD"),
     IM00 = make("IM00"),
     IMHD = make("IMHD"),
     INIB = make("INIB"),

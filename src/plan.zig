@@ -24,6 +24,7 @@ const lang = @import("lang.zig");
 const obim = @import("obim.zig");
 const rmim_encode = @import("rmim_encode.zig");
 const script = @import("script.zig");
+const sounds = @import("sounds.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
 
@@ -215,7 +216,7 @@ fn buildProjectScope(cx: *Context) !void {
                             inline .raw_glob_file, .raw_glob_block => |n| if (n.name) |name| {
                                 try addScopeSymbol(&from_room, name, .{ .constant = n.glob_number });
                             },
-                            inline .scr, .script, .awiz, .mult, .akos => |n| {
+                            inline .scr, .script, .digi, .awiz, .mult, .akos => |n| {
                                 try addScopeSymbol(&from_room, n.name, .{ .constant = n.glob_number });
                             },
                             else => {},
@@ -349,6 +350,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
             .lsc => try plan.add(.rmda_lsc, .{ .node = child_node }),
             .obim => try plan.add(.rmda_obim, .{ .node = child_node }),
+            .digi => try plan.add(.end, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
             .local_script => try plan.add(.rmda_lsc, .{ .node = child_node }),
@@ -440,6 +442,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
                     .lsc => try spawnJob(planLsc, cx, room_number, child_node),
                     .obim => try spawnJob(planObim, cx, room_number, child_node),
+                    .digi => try spawnJob(planDigi, cx, room_number, child_node),
                     .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
@@ -737,6 +740,22 @@ pub fn encodeRawBlock(
     const start = try beginBlockAl(gpa, out, block_id);
     try fs.readFileInto(dir, path, out.writer(gpa));
     try endBlockAl(out, start);
+}
+
+fn planDigi(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const file = &cx.project.files.items[room_number].?;
+    const node = &file.ast.nodes.items[node_index].digi;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    try sounds.build(cx.gpa, cx.project_dir, file, node.children, &out);
+
+    cx.sendEvent(event_index, .{ .glob = .{
+        .block_id = .DIGI,
+        .glob_number = node.glob_number,
+        .data = out,
+    } });
 }
 
 fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {

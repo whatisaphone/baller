@@ -272,6 +272,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         excd,
         lsc,
         obim,
+        digi,
         awiz,
         mult,
         akos,
@@ -351,6 +352,10 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 },
                 .obim => {
                     const node_index = try parseObim(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+                .digi => {
+                    const node_index = try parseDigi(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .awiz => {
@@ -576,6 +581,46 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     return storeNode(cx, token, .{ .obim_im = .{
         .children = try storeExtra(cx, children.slice()),
     } });
+}
+
+fn parseDigi(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
+    const glob_number = try expectInteger(cx, u16);
+    try expect(cx, .brace_l);
+
+    const children = try parseDigiChildren(cx);
+
+    return storeNode(cx, token, .{ .digi = .{
+        .name = name,
+        .glob_number = glob_number,
+        .children = children,
+    } });
+}
+
+fn parseDigiChildren(cx: *Cx) !Ast.ExtraSlice {
+    const Keyword = enum {
+        @"raw-block",
+    };
+
+    var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token = consumeToken(cx);
+        switch (token.kind) {
+            .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token),
+        }
+    }
+
+    return storeExtra(cx, children.slice());
 }
 
 fn parseAwiz(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {

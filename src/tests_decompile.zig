@@ -389,6 +389,7 @@ fn testRoundTrip(
             .lsc2 = .decode,
             .obim = .decode,
             .obcd = .decode,
+            .digi = .decode,
             .awiz = .decode,
             .mult = .decode,
             .akos = .decode,

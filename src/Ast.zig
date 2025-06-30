@@ -114,6 +114,11 @@ pub const Node = union(enum) {
     obim_im: struct {
         children: ExtraSlice,
     },
+    digi: struct {
+        name: StringSlice,
+        glob_number: u16,
+        children: ExtraSlice,
+    },
     awiz: struct {
         name: StringSlice,
         glob_number: u16,
