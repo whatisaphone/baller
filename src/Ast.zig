@@ -119,6 +119,9 @@ pub const Node = union(enum) {
         glob_number: u16,
         children: ExtraSlice,
     },
+    sdat: struct {
+        path: StringSlice,
+    },
     awiz: struct {
         name: StringSlice,
         glob_number: u16,

@@ -601,6 +601,7 @@ fn parseDigi(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseDigiChildren(cx: *Cx) !Ast.ExtraSlice {
     const Keyword = enum {
         @"raw-block",
+        sdat,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
@@ -612,6 +613,12 @@ fn parseDigiChildren(cx: *Cx) !Ast.ExtraSlice {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+                .sdat => {
+                    const path = try expectString(cx);
+                    try expect(cx, .newline);
+                    const node_index = try storeNode(cx, token, .{ .sdat = .{ .path = path } });
                     try appendNode(cx, &children, node_index);
                 },
             },
