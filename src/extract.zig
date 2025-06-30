@@ -2093,7 +2093,7 @@ fn writeRawBlockImpl(
         block,
         block_offset: u32,
         index_block,
-        rmim_block: BlockId,
+        block_block: BlockId,
         object: u16,
         object_block: struct { u16, BlockId },
     },
@@ -2116,10 +2116,10 @@ fn writeRawBlockImpl(
             "index_{}.bin",
             .{block_id},
         ),
-        .rmim_block => try std.fmt.bufPrintZ(
+        .block_block => |id| try std.fmt.bufPrintZ(
             &filename_buf,
-            "RMIM_{}.bin",
-            .{block_id},
+            "{}_{}.bin",
+            .{ id, block_id },
         ),
         .object => |number| try std.fmt.bufPrintZ(
             &filename_buf,

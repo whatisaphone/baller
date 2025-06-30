@@ -64,7 +64,7 @@ pub fn decode(
     while (!im00_blocks.atEnd()) {
         const block = try im00_blocks.next().block();
         const bytes = try io.readInPlace(&rmim_reader, block.size);
-        try writeRawBlock(allocator, block.id, bytes, out_dir, out_path, 8, .{ .rmim_block = block.id }, code);
+        try writeRawBlock(allocator, block.id, bytes, out_dir, out_path, 8, .{ .block_block = .RMIM }, code);
     }
 
     try im00_blocks.finish();
