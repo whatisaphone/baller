@@ -759,58 +759,19 @@ fn planDigi(cx: *const Context, room_number: u8, node_index: u32, event_index: u
 }
 
 fn planAwiz(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
-    const awiz_node = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].awiz;
+    const file = &cx.project.files.items[room_number].?;
+    const awiz_node = &file.ast.nodes.items[node_index].awiz;
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try planAwizInner(cx, room_number, awiz_node.children, &out);
+    try awiz.encode(cx.gpa, cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .AWIZ,
         .glob_number = awiz_node.glob_number,
         .data = out,
     } });
-}
-
-fn planAwizInner(
-    cx: *const Context,
-    room_number: u8,
-    children: Ast.ExtraSlice,
-    out: *std.ArrayListUnmanaged(u8),
-) !void {
-    var the_awiz: awiz.Awiz = .{};
-    defer the_awiz.deinit(cx.gpa);
-
-    const room_file = &cx.project.files.items[room_number].?;
-    for (room_file.ast.getExtra(children)) |node| {
-        const child_node = &room_file.ast.nodes.items[node];
-        switch (child_node.*) {
-            .awiz_rgbs => {
-                the_awiz.blocks.append(.rgbs) catch unreachable;
-            },
-            .awiz_two_ints => |ti| {
-                the_awiz.blocks.append(.{ .two_ints = .{
-                    .id = ti.block_id,
-                    .ints = ti.ints,
-                } }) catch unreachable;
-            },
-            .awiz_wizh => {
-                the_awiz.blocks.append(.wizh) catch unreachable;
-            },
-            .awiz_bmp => |wizd| {
-                const awiz_raw = try fs.readFile(cx.gpa, cx.project_dir, room_file.ast.strings.get(wizd.path));
-                const awiz_raw_arraylist: std.ArrayListUnmanaged(u8) = .fromOwnedSlice(awiz_raw);
-                the_awiz.blocks.append(.{ .wizd = .{
-                    .compression = wizd.compression,
-                    .bmp = awiz_raw_arraylist,
-                } }) catch unreachable;
-            },
-            else => unreachable,
-        }
-    }
-
-    try awiz.encode(cx.gpa, &the_awiz, cx.awiz_strategy, out);
 }
 
 fn planMult(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -858,7 +819,7 @@ fn planMultInner(
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.items.len)) - offs_start);
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
         const awiz_start = try beginBlockAl(cx.gpa, out, .AWIZ);
-        try planAwizInner(cx, room_number, wiz.children, out);
+        try awiz.encode(cx.gpa, cx.project_dir, room_file, wiz.children, cx.awiz_strategy, out);
         try endBlockAl(out, awiz_start);
     }
 

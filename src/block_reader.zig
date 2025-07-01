@@ -245,7 +245,7 @@ const FixedBlockReader = struct {
         } };
     }
 
-    fn peek(self: *Self) !BlockId {
+    pub fn peek(self: *Self) !BlockId {
         if (!self.checkEndBlock()) return error.AddedToDiagnostic;
 
         const offset: u32 = @intCast(self.stream.pos);
@@ -295,6 +295,10 @@ const FixedBlockReader = struct {
         return self.next().expect(id);
     }
 
+    pub fn assume(self: *Self, id: BlockId) BlockResult {
+        return self.next().assume(id);
+    }
+
     pub fn atEnd(self: *const Self) bool {
         const pos: u32 = @intCast(self.stream.pos);
         return pos == self.end;
@@ -339,6 +343,12 @@ const BlockResult = union(enum) {
             .{ id, self.ok.block.id },
         );
         return .err;
+    }
+
+    pub fn assume(self: Self, id: BlockId) Self {
+        if (self != .ok) return .err;
+        std.debug.assert(id == self.ok.block.id);
+        return self;
     }
 
     pub fn block(self: *const Self) !Block {

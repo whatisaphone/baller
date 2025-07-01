@@ -1,14 +1,19 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const Project = @import("Project.zig");
+const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
+const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
+const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 const utils = @import("utils.zig");
 
 const max_supported_width = 1600;
@@ -19,39 +24,19 @@ pub const Compression = enum(u8) {
     rle = 1,
 };
 
-pub const Awiz = struct {
-    pub const max_blocks = 5;
-
-    blocks: std.BoundedArray(Block, max_blocks) = .{},
-
-    pub fn deinit(self: *Awiz, allocator: std.mem.Allocator) void {
-        for (self.blocks.slice()) |*block| switch (block.*) {
-            .rgbs, .two_ints, .wizh, .trns => {},
-            .wizd => |*wizd| wizd.bmp.deinit(allocator),
-        };
-    }
-};
-
-const Block = union(enum) {
-    rgbs,
-    two_ints: struct { id: BlockId, ints: [2]i32 },
-    wizh,
-    trns: i32,
-    wizd: struct {
-        compression: Compression,
-        /// A raw BMP file
-        bmp: std.ArrayListUnmanaged(u8),
-    },
-};
-
 pub fn decode(
     allocator: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     awiz_raw: []const u8,
     default_palette: *const [0x300]u8,
-) error{AddedToDiagnostic}!Awiz {
+    name: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+    indent: u8,
+    out_dir: std.fs.Dir,
+    out_path: []const u8,
+) error{AddedToDiagnostic}!void {
     var stream = std.io.fixedBufferStream(awiz_raw);
-    return decodeInner(allocator, &stream, default_palette) catch |err| {
+    return decodeInner(allocator, diag, &stream, default_palette, name, code, indent, out_dir, out_path) catch |err| {
         diag.zigErr(@intCast(stream.pos), "general decode failure: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -59,10 +44,15 @@ pub fn decode(
 
 fn decodeInner(
     allocator: std.mem.Allocator,
+    diag: *const Diagnostic.ForBinaryFile,
     reader: anytype,
     default_palette: *const [0x300]u8,
-) !Awiz {
-    var result: Awiz = .{};
+    name: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+    indent: u8,
+    out_dir: std.fs.Dir,
+    out_path: []const u8,
+) !void {
     var rgbs_opt: ?*const [0x300]u8 = null;
     var wizh_opt: ?struct {
         compression: Compression,
@@ -70,34 +60,22 @@ fn decodeInner(
         height: u31,
     } = null;
 
-    var awiz_blocks = oldFixedBlockReader(reader);
+    var awiz_blocks = fixedBlockReader(reader, diag);
 
     while (try awiz_blocks.peek() != .WIZD) {
-        const id, const len = try awiz_blocks.next();
-        switch (id) {
+        try code.appendNTimes(allocator, ' ', indent);
+        const block = try awiz_blocks.next().block();
+        switch (block.id) {
             .RGBS => {
                 const expected_rgbs_len = 0x300;
-                if (len != expected_rgbs_len)
+                if (block.size != expected_rgbs_len)
                     return error.BadData;
                 rgbs_opt = try io.readInPlaceBytes(reader, expected_rgbs_len);
 
-                try result.blocks.append(.rgbs);
-            },
-            .CNVS, .SPOT, .RELO => {
-                if (len != 8)
-                    return error.BadData;
-                const int1 = try reader.reader().readInt(i32, .little);
-                const int2 = try reader.reader().readInt(i32, .little);
-
-                try result.blocks.append(.{
-                    .two_ints = .{
-                        .id = id,
-                        .ints = .{ int1, int2 },
-                    },
-                });
+                try code.appendSlice(allocator, "rgbs\n");
             },
             .WIZH => {
-                if (len != 12)
+                if (block.size != 12)
                     return error.BadData;
                 const compression_int = try reader.reader().readInt(i32, .little);
                 const compression = std.meta.intToEnum(Compression, compression_int) catch return error.BadData;
@@ -112,20 +90,17 @@ fn decodeInner(
                     .height = height,
                 };
 
-                try result.blocks.append(.wizh);
+                try code.appendSlice(allocator, "wizh\n");
             },
-            .TRNS => {
-                if (len != 4)
-                    return error.BadData;
-                const trns = try reader.reader().readInt(i32, .little);
-                try result.blocks.append(.{ .trns = trns });
+            else => {
+                const data = try io.readInPlace(reader, block.size);
+                try writeRawBlock(allocator, block.id, data, out_dir, out_path, 0, .{ .symbol_block = name }, code);
             },
-            else => return error.BadData,
         }
     }
 
-    const wizd_len = try awiz_blocks.assume(.WIZD);
-    const wizd_end = reader.pos + wizd_len;
+    const wizd = try awiz_blocks.assume(.WIZD).block();
+    const wizd_end = wizd.end();
 
     const wizh = wizh_opt orelse return error.BadData;
     const width = wizh.width;
@@ -136,7 +111,7 @@ fn decodeInner(
 
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
-    errdefer bmp_buf.deinit(allocator);
+    defer bmp_buf.deinit(allocator);
 
     const bmp_writer = bmp_buf.writer(allocator);
 
@@ -153,16 +128,17 @@ fn decodeInner(
     if (reader.pos < wizd_end)
         _ = try reader.reader().readByte();
 
-    try result.blocks.append(.{
-        .wizd = .{
-            .compression = wizh.compression,
-            .bmp = bmp_buf,
-        },
-    });
+    try awiz_blocks.finish();
 
-    try awiz_blocks.finishEof();
+    var bmp_path_buf: [Symbols.max_name_len + ".bmp".len + 1]u8 = undefined;
+    const bmp_path = std.fmt.bufPrintZ(&bmp_path_buf, "{s}.bmp", .{name}) catch unreachable;
+    try fs.writeFileZ(out_dir, bmp_path, bmp_buf.items);
 
-    return result;
+    try code.appendNTimes(allocator, ' ', indent);
+    try code.writer(allocator).print(
+        "bmp {} \"{s}/{s}\"\n",
+        .{ @intFromEnum(wizh.compression), out_path, bmp_path },
+    );
 }
 
 fn decodeUncompressed(
@@ -214,93 +190,61 @@ pub fn decodeRle(
     }
 }
 
-pub fn extractChildren(
-    gpa: std.mem.Allocator,
-    output_dir: std.fs.Dir,
-    output_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
-    decoded: *const Awiz,
-    bmp_path: [*:0]const u8,
-    indent: u8,
-) !void {
-    for (decoded.blocks.slice()) |block| {
-        try code.appendNTimes(gpa, ' ', indent);
-        switch (block) {
-            .rgbs => try code.appendSlice(gpa, "    rgbs\n"),
-            .two_ints => |ti| {
-                try code.writer(gpa).print(
-                    "two-ints {} {} {}\n",
-                    .{ ti.id, ti.ints[0], ti.ints[1] },
-                );
-            },
-            .wizh => try code.appendSlice(gpa, "wizh\n"),
-            .trns => return error.BadData, // TODO: unused?
-            .wizd => |wizd| {
-                try fs.writeFileZ(output_dir, bmp_path, wizd.bmp.items);
-                try code.writer(gpa).print(
-                    "bmp {} \"{s}/{s}\"\n",
-                    .{ @intFromEnum(wizd.compression), output_path, bmp_path },
-                );
-            },
-        }
-    }
-}
-
 pub const EncodingStrategy = enum { original, max };
 
 pub fn encode(
     gpa: std.mem.Allocator,
-    wiz: *const Awiz,
+    project_dir: std.fs.Dir,
+    file: *const Project.SourceFile,
+    children: Ast.ExtraSlice,
     strategy: EncodingStrategy,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     // First find the bitmap block so we can preload all data before we start
 
-    const wizd = for (wiz.blocks.slice()) |block| {
-        if (block == .wizd)
-            break block.wizd;
+    const wizd = for (file.ast.getExtra(children)) |node_index| {
+        const node = &file.ast.nodes.items[node_index];
+        if (node.* == .awiz_bmp) break &node.awiz_bmp;
     } else return error.BadData;
 
-    const header = try bmp.readHeader(wizd.bmp.items, .{});
+    const bmp_raw = try fs.readFile(gpa, project_dir, file.ast.strings.get(wizd.path));
+    defer gpa.free(bmp_raw);
+
+    const header = try bmp.readHeader(bmp_raw, .{});
 
     // Now write the blocks in the requested order
 
-    for (wiz.blocks.slice()) |block| switch (block) {
-        .rgbs => {
-            const fixup = try beginBlockAl(gpa, out, .RGBS);
-            try writeRgbs(gpa, header, out);
-            try endBlockAl(out, fixup);
-        },
-        .two_ints => |b| {
-            const fixup = try beginBlockAl(gpa, out, b.id);
-            try out.writer(gpa).writeInt(i32, b.ints[0], .little);
-            try out.writer(gpa).writeInt(i32, b.ints[1], .little);
-            try endBlockAl(out, fixup);
-        },
-        .wizh => {
-            const fixup = try beginBlockAl(gpa, out, .WIZH);
-            try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
-            try out.writer(gpa).writeInt(i32, header.width(), .little);
-            try out.writer(gpa).writeInt(i32, header.height(), .little);
-            try endBlockAl(out, fixup);
-        },
-        .trns => |trns| {
-            const fixup = try beginBlockAl(gpa, out, .TRNS);
-            try out.writer(gpa).writeInt(i32, trns, .little);
-            try endBlockAl(out, fixup);
-        },
-        .wizd => |_| {
-            const fixup = try beginBlockAl(gpa, out, .WIZD);
-            switch (wizd.compression) {
-                .none => try encodeUncompressed(header, out.writer(gpa)),
-                .rle => try encodeRle(header, strategy, out.writer(gpa)),
-            }
-            // Pad output to a multiple of 2 bytes
-            if ((out.items.len - fixup) & 1 != 0)
-                try out.append(gpa, 0);
-            try endBlockAl(out, fixup);
-        },
-    };
+    for (file.ast.getExtra(children)) |node_index| {
+        switch (file.ast.nodes.items[node_index]) {
+            .raw_block => |*n| {
+                try encodeRawBlock(gpa, out, n.block_id, project_dir, file.ast.strings.get(n.path));
+            },
+            .awiz_rgbs => {
+                const fixup = try beginBlockAl(gpa, out, .RGBS);
+                try writeRgbs(gpa, header, out);
+                try endBlockAl(out, fixup);
+            },
+            .awiz_wizh => {
+                const fixup = try beginBlockAl(gpa, out, .WIZH);
+                try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
+                try out.writer(gpa).writeInt(i32, header.width(), .little);
+                try out.writer(gpa).writeInt(i32, header.height(), .little);
+                try endBlockAl(out, fixup);
+            },
+            .awiz_bmp => |_| {
+                const fixup = try beginBlockAl(gpa, out, .WIZD);
+                switch (wizd.compression) {
+                    .none => try encodeUncompressed(header, out.writer(gpa)),
+                    .rle => try encodeRle(header, strategy, out.writer(gpa)),
+                }
+                // Pad output to a multiple of 2 bytes
+                if ((out.items.len - fixup) & 1 != 0)
+                    try out.append(gpa, 0);
+                try endBlockAl(out, fixup);
+            },
+            else => unreachable,
+        }
+    }
 }
 
 pub const placeholder_palette = placeholder_palette: {

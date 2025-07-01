@@ -2025,19 +2025,13 @@ fn extractAwiz(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var decoded = try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined);
-    defer decoded.deinit(cx.cx.gpa);
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len) = .{};
+    cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
+    const name = name_buf.slice();
 
-    try code.appendSlice(cx.cx.gpa, "awiz ");
-    try cx.cx.symbols.writeGlobName(.image, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    try code.writer(cx.cx.gpa).print("awiz {s}@{} {{\n", .{ name, glob_number });
 
-    var bmp_path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".bmp".len + 1) = .{};
-    cx.cx.symbols.writeGlobName(.image, glob_number, bmp_path_buf.writer()) catch unreachable;
-    bmp_path_buf.appendSlice(".bmp\x00") catch unreachable;
-    const bmp_path = bmp_path_buf.slice()[0 .. bmp_path_buf.len - 1 :0];
-
-    try awiz.extractChildren(cx.cx.gpa, cx.room_dir, cx.room_path, code, &decoded, bmp_path, 4);
+    try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined, name, code, 4, cx.room_dir, cx.room_path);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
 

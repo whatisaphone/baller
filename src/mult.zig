@@ -62,21 +62,19 @@ fn extractMultInner(
 
     while (!wrap_blocks.atEnd()) {
         const awiz_block = try wrap_blocks.expect(.AWIZ).block();
+        const awiz_raw = try io.readInPlace(in, awiz_block.size);
         const awiz_offset = awiz_block.offset() - offs_block.offset();
         try awiz_offsets.append(awiz_offset);
-
-        const awiz_raw = try io.readInPlace(in, awiz_block.size);
-        var the_awiz = try awiz.decode(gpa, diag, awiz_raw, mult_palette orelse room_palette);
-        defer the_awiz.deinit(gpa);
 
         const first_index = for (offs, 0..) |off, i| {
             if (awiz_offset == off) break i;
         } else return error.BadData;
 
-        var bmp_path_buf: ["0000.bmp".len + 1]u8 = undefined;
-        const bmp_path = std.fmt.bufPrintZ(&bmp_path_buf, "{:0>4}.bmp", .{first_index}) catch unreachable;
+        var awiz_name_buf: ["0000".len]u8 = undefined;
+        const awiz_name = std.fmt.bufPrint(&awiz_name_buf, "{:0>4}", .{first_index}) catch unreachable;
+
         try code.appendSlice(gpa, "    awiz {\n");
-        try awiz.extractChildren(gpa, mult_dir, mult_path, code, &the_awiz, bmp_path, 8);
+        try awiz.decode(gpa, diag, awiz_raw, mult_palette orelse room_palette, awiz_name, code, 8, mult_dir, mult_path);
         try code.appendSlice(gpa, "    }\n");
     }
 

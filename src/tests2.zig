@@ -41,7 +41,7 @@ test "Backyard Baseball 1997 round trip decode all" {
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 202);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
         try std.testing.expectEqual(stats.get(.awiz_total), 1039);
-        try std.testing.expectEqual(stats.get(.awiz_decode), 988);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 1008);
     }
 }
 test "Backyard Baseball 1997 round trip disasm" {
@@ -73,7 +73,7 @@ test "Backyard Soccer round trip decode all" {
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 143);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1686);
         try std.testing.expectEqual(stats.get(.awiz_total), 1616);
-        try std.testing.expectEqual(stats.get(.awiz_decode), 1167);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 1552);
     }
 }
 test "Backyard Soccer round trip disasm" {
@@ -104,7 +104,7 @@ test "Backyard Football round trip decode all" {
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 890);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1599);
         try std.testing.expectEqual(stats.get(.awiz_total), 1159);
-        try std.testing.expectEqual(stats.get(.awiz_decode), 1030);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 1111);
     }
 }
 test "Backyard Football round trip disasm" {
@@ -136,7 +136,7 @@ test "Backyard Baseball 2001 round trip decode all" {
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1529);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 3662);
         try std.testing.expectEqual(stats.get(.awiz_total), 750);
-        try std.testing.expectEqual(stats.get(.awiz_decode), 747);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 749);
     }
 }
 test "Backyard Baseball 2001 round trip disasm" {
@@ -167,7 +167,7 @@ test "Backyard Basketball round trip decode all" {
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1142);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
         try std.testing.expectEqual(stats.get(.awiz_total), 166);
-        try std.testing.expectEqual(stats.get(.awiz_decode), 160);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 162);
     }
 }
 test "Backyard Basketball round trip disasm" {

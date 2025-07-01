@@ -647,34 +647,27 @@ fn parseAwiz(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
 fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
     const Keyword = enum {
+        @"raw-block",
         rgbs,
-        @"two-ints",
         wizh,
         bmp,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, awiz.Awiz.max_blocks) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 8) = .{};
 
     while (true) {
         skipWhitespace(cx);
         const token = consumeToken(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
+                .@"raw-block" => {
+                    const node_index = try parseRawBlock(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
                 .rgbs => {
                     try expect(cx, .newline);
 
                     const node_index = try storeNode(cx, token, .awiz_rgbs);
-                    try appendNode(cx, &children, node_index);
-                },
-                .@"two-ints" => {
-                    const block_id = try expectBlockId(cx);
-                    const ints = .{ try expectInteger(cx, i32), try expectInteger(cx, i32) };
-                    try expect(cx, .newline);
-
-                    const node_index = try storeNode(cx, token, .{ .awiz_two_ints = .{
-                        .block_id = block_id,
-                        .ints = ints,
-                    } });
                     try appendNode(cx, &children, node_index);
                 },
                 .wizh => {
