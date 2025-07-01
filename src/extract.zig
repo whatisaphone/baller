@@ -2092,18 +2092,23 @@ fn writeRawGlob(
     data: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["XXXX_0000.bin".len + 1]u8 = undefined;
-    const filename = try std.fmt.bufPrintZ(
-        &filename_buf,
-        "{}_{:0>4}.bin",
-        .{ block.id, glob_number },
-    );
+    var filename_buf: std.BoundedArray(u8, Symbols.max_name_len + ".bin".len + 1) = .{};
+    const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
+    const name = if (kind.hasName()) blk: {
+        cx.cx.symbols.writeGlobName(kind, glob_number, filename_buf.writer()) catch unreachable;
+        break :blk filename_buf.slice();
+    } else blk: {
+        try filename_buf.writer().print("{}_{:0>4}", .{ block.id, glob_number });
+        break :blk null;
+    };
+    filename_buf.appendSlice(".bin\x00") catch unreachable;
+    const filename = filename_buf.slice()[0 .. filename_buf.len - 1 :0];
+
     try fs.writeFileZ(cx.room_dir, filename, data);
 
     try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
-    const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
-    if (kind.hasName()) {
-        try cx.cx.symbols.writeGlobName(kind, glob_number, code.writer(cx.cx.gpa));
+    if (name) |n| {
+        try code.appendSlice(cx.cx.gpa, n);
         try code.append(cx.cx.gpa, '@');
     }
     try code.writer(cx.cx.gpa).print(
