@@ -2061,19 +2061,17 @@ fn extractAkos(
 ) !void {
     _ = diag;
 
-    var name_buf: ["costume0000".len:0]u8 = undefined;
-    const name = std.fmt.bufPrintZ(
-        name_buf[0 .. name_buf.len + 1],
-        "costume{:0>4}",
-        .{glob_number},
-    ) catch unreachable;
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    cx.cx.symbols.writeGlobName(.costume, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.appendSlice("\x00") catch unreachable;
+    const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
     try fs.makeDirIfNotExistZ(cx.room_dir, name);
 
     var dir = try cx.room_dir.openDirZ(name, .{});
     defer dir.close();
 
-    var path_buf: [Ast.max_room_name_len + 1 + name_buf.len:0]u8 = undefined;
+    var path_buf: [Ast.max_room_name_len + 1 + Symbols.max_name_len:0]u8 = undefined;
     const path = std.fmt.bufPrintZ(
         path_buf[0 .. path_buf.len + 1],
         "{s}/{s}",
