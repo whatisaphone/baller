@@ -235,6 +235,9 @@ pub const Stat = enum {
     digi_total,
     digi_decode,
     digi_raw,
+    awiz_total,
+    awiz_decode,
+    awiz_raw,
 };
 
 pub fn run(
@@ -1740,6 +1743,7 @@ fn extractGlobJob(
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_total,
         .DIGI => .digi_total,
+        .AWIZ => .awiz_total,
         else => null,
     });
 
@@ -1792,6 +1796,7 @@ fn extractGlobJob(
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_raw,
         .DIGI => .digi_raw,
+        .AWIZ => .awiz_raw,
         else => null,
     });
 }
@@ -2035,6 +2040,10 @@ fn extractAwiz(
     try awiz.extractChildren(cx.cx.gpa, cx.room_dir, cx.room_path, code, &decoded, bmp_path, 4);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
+
+    errdefer comptime unreachable; // if we get here, success and commit
+
+    cx.cx.incStat(.awiz_decode);
 }
 
 fn extractMult(
@@ -2291,4 +2300,5 @@ fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {
     std.debug.assert(s.get(.lscr_total) == s.get(.lscr_decompile) + s.get(.lscr_disassemble) + s.get(.lscr_raw));
     std.debug.assert(s.get(.lsc2_total) == s.get(.lsc2_decompile) + s.get(.lsc2_disassemble) + s.get(.lsc2_raw));
     std.debug.assert(s.get(.digi_total) == s.get(.digi_raw) + s.get(.digi_decode));
+    std.debug.assert(s.get(.awiz_total) == s.get(.awiz_raw) + s.get(.awiz_decode));
 }
