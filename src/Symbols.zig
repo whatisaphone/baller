@@ -8,6 +8,8 @@ const utils = @import("utils.zig");
 
 const Symbols = @This();
 
+pub const max_name_len = 255;
+
 const first_room = 1;
 
 pub const ScriptId = union(enum) {
@@ -238,6 +240,7 @@ fn handleScript(cx: *Cx, script: *Script, can_have_name: bool) !void {
     const name_str, const after_name_opt = split(cx.value, '(');
     script.name = if (name_str.len == 0) null else name_str;
     if (!can_have_name and script.name != null) return error.BadData;
+    if (script.name) |n| try validateSymbolName(n);
 
     const after_name = after_name_opt orelse return;
     const params, const after_params_opt = split(after_name, ')');
@@ -336,6 +339,7 @@ fn handleEnum(cx: *Cx) !void {
     if (cx.key_parts.next()) |_| return error.BadData;
 
     const item_name = cx.value;
+    try validateSymbolName(item_name);
 
     const enum_entry = try cx.result.enum_names.getOrPut(cx.allocator, enum_name);
     if (!enum_entry.found_existing) {
@@ -357,6 +361,7 @@ fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     var result: Variable = .{};
     const name_str, const type_str_opt = split(value, ':');
     result.name = if (name_str.len == 1 and name_str[0] == '_') null else name_str;
+    if (result.name) |n| try validateSymbolName(n);
     if (type_str_opt) |type_str|
         result.type = try parseType(cx, type_str);
     return result;
@@ -368,7 +373,14 @@ fn handleSimpleGlob(cx: *Cx, map: *ArrayMap([]const u8)) !void {
 
     if (cx.key_parts.next()) |_| return error.BadData;
 
-    try map.putNew(cx.allocator, num, cx.value);
+    const name = cx.value;
+    try validateSymbolName(name);
+
+    try map.putNew(cx.allocator, num, name);
+}
+
+fn validateSymbolName(name: []const u8) !void {
+    if (name.len > max_name_len) return error.BadData;
 }
 
 pub const InternedType = enum {

@@ -1657,13 +1657,18 @@ fn extractLscDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: ["lsc0000.s".len + 1]u8 = undefined;
-    const path = std.fmt.bufPrintZ(&path_buf, "lsc{:0>4}.s", .{script_number}) catch unreachable;
+    var path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
+    cx.cx.symbols.writeScriptName(cx.room_number, script_number, path_buf.writer()) catch unreachable;
+    const name = path_buf.slice();
+
+    path_buf.appendSlice(".s\x00") catch unreachable;
+    const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "\nlsc ");
-    try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ script_number, cx.room_path, path });
+    try code.writer(cx.cx.gpa).print(
+        "\nlsc {s}@{} \"{s}/{s}\"\n",
+        .{ name, script_number, cx.room_path, path },
+    );
 
     errdefer comptime unreachable; // if we get here, success and commit
 
@@ -1916,13 +1921,18 @@ fn extractScrpDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: ["scr0000.s".len + 1]u8 = undefined;
-    const path = std.fmt.bufPrintZ(&path_buf, "scr{:0>4}.s", .{glob_number}) catch unreachable;
+    var path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
+    cx.cx.symbols.writeScriptName(cx.room_number, glob_number, path_buf.writer()) catch unreachable;
+    const name = path_buf.slice();
+
+    path_buf.appendSlice(".s\x00") catch unreachable;
+    const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
     try fs.writeFileZ(cx.room_dir, path, out.items);
 
-    try code.appendSlice(cx.cx.gpa, "\nscr ");
-    try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, path });
+    try code.writer(cx.cx.gpa).print(
+        "\nscr {s}@{} \"{s}/{s}\"\n",
+        .{ name, glob_number, cx.room_path, path },
+    );
 
     errdefer comptime unreachable; // if we get here, success and commit
 
