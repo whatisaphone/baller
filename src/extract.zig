@@ -2025,12 +2025,11 @@ fn extractAwiz(
     try cx.cx.symbols.writeGlobName(.image, glob_number, code.writer(cx.cx.gpa));
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
 
-    var bmp_path_buf: ["image0000.bmp".len + 1]u8 = undefined;
-    const bmp_path = std.fmt.bufPrintZ(
-        &bmp_path_buf,
-        "image{:0>4}.bmp",
-        .{glob_number},
-    ) catch unreachable;
+    var bmp_path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".bmp".len + 1) = .{};
+    cx.cx.symbols.writeGlobName(.image, glob_number, bmp_path_buf.writer()) catch unreachable;
+    bmp_path_buf.appendSlice(".bmp\x00") catch unreachable;
+    const bmp_path = bmp_path_buf.slice()[0 .. bmp_path_buf.len - 1 :0];
+
     try awiz.extractChildren(cx.cx.gpa, cx.room_dir, cx.room_path, code, &decoded, bmp_path, 4);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
