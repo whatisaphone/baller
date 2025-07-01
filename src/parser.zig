@@ -650,7 +650,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
         @"raw-block",
         rgbs,
         wizh,
-        bmp,
+        wizd,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 8) = .{};
@@ -676,7 +676,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                     const node_index = try storeNode(cx, token, .awiz_wizh);
                     try appendNode(cx, &children, node_index);
                 },
-                .bmp => {
+                .wizd => {
                     const compression_int = try expectInteger(cx, u8);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
@@ -684,7 +684,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
                     const compression = std.meta.intToEnum(awiz.Compression, compression_int) catch
                         return reportError(cx, token, "invalid compression", .{});
 
-                    const node_index = try storeNode(cx, token, .{ .awiz_bmp = .{
+                    const node_index = try storeNode(cx, token, .{ .awiz_wizd = .{
                         .compression = compression,
                         .path = path,
                     } });

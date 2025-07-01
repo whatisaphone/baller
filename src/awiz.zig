@@ -136,7 +136,7 @@ fn decodeInner(
 
     try code.appendNTimes(allocator, ' ', indent);
     try code.writer(allocator).print(
-        "bmp {} \"{s}/{s}\"\n",
+        "wizd {} \"{s}/{s}\"\n",
         .{ @intFromEnum(wizh.compression), out_path, bmp_path },
     );
 }
@@ -204,7 +204,7 @@ pub fn encode(
 
     const wizd = for (file.ast.getExtra(children)) |node_index| {
         const node = &file.ast.nodes.items[node_index];
-        if (node.* == .awiz_bmp) break &node.awiz_bmp;
+        if (node.* == .awiz_wizd) break &node.awiz_wizd;
     } else return error.BadData;
 
     const bmp_raw = try fs.readFile(gpa, project_dir, file.ast.strings.get(wizd.path));
@@ -231,7 +231,7 @@ pub fn encode(
                 try out.writer(gpa).writeInt(i32, header.height(), .little);
                 try endBlockAl(out, fixup);
             },
-            .awiz_bmp => |_| {
+            .awiz_wizd => |_| {
                 const fixup = try beginBlockAl(gpa, out, .WIZD);
                 switch (wizd.compression) {
                     .none => try encodeUncompressed(header, out.writer(gpa)),

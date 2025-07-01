@@ -133,7 +133,7 @@ pub const Node = union(enum) {
         ints: [2]i32,
     },
     awiz_wizh,
-    awiz_bmp: struct {
+    awiz_wizd: struct {
         compression: awiz.Compression,
         path: StringSlice,
     },
