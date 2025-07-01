@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const Symbols = @import("Symbols.zig");
 const awiz = @import("awiz.zig");
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
@@ -11,7 +12,7 @@ const io = @import("io.zig");
 pub fn extract(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    glob_number: u16,
+    name: [:0]const u8,
     mult_raw: []const u8,
     room_palette: *const [0x300]u8,
     room_dir: std.fs.Dir,
@@ -19,7 +20,7 @@ pub fn extract(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var in = std.io.fixedBufferStream(mult_raw);
-    extractMultInner(gpa, diag, glob_number, &in, room_palette, room_dir, room_path, code) catch |err| {
+    extractMultInner(gpa, diag, name, &in, room_palette, room_dir, room_path, code) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(@intCast(in.pos), "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
@@ -29,25 +30,18 @@ pub fn extract(
 fn extractMultInner(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    glob_number: u16,
+    name: [:0]const u8,
     in: *std.io.FixedBufferStream([]const u8),
     room_palette: *const [0x300]u8,
     room_dir: std.fs.Dir,
     room_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var mult_path_buf: std.BoundedArray(u8, Ast.max_room_name_len + "/image0000".len + 1) = .{};
-    mult_path_buf.appendSlice(room_path) catch unreachable;
-    mult_path_buf.append('/') catch unreachable;
-    const mult_path_basename_start = mult_path_buf.len;
-    mult_path_buf.writer().print("image{:0>4}", .{glob_number}) catch unreachable;
-    const mult_path_end = mult_path_buf.len;
-    mult_path_buf.append(0) catch unreachable;
-    const mult_path_basename = mult_path_buf.slice()[mult_path_basename_start..mult_path_end :0];
-    const mult_path = mult_path_buf.slice()[0..mult_path_end];
+    var mult_path_buf: [Ast.max_room_name_len + 1 + Symbols.max_name_len + 1]u8 = undefined;
+    const mult_path = std.fmt.bufPrintZ(&mult_path_buf, "{s}/{s}", .{ room_path, name }) catch unreachable;
 
-    try fs.makeDirIfNotExistZ(room_dir, mult_path_basename);
-    var mult_dir = try room_dir.openDirZ(mult_path_basename, .{});
+    try fs.makeDirIfNotExistZ(room_dir, name);
+    var mult_dir = try room_dir.openDirZ(name, .{});
     defer mult_dir.close();
 
     var mult_blocks = fixedBlockReader(in, diag);

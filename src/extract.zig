@@ -2042,11 +2042,14 @@ fn extractMult(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.appendSlice(cx.cx.gpa, "mult ");
-    try cx.cx.symbols.writeGlobName(.image, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.appendSlice("\x00") catch unreachable;
+    const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
-    try mult.extract(cx.cx.gpa, diag, glob_number, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
+    try code.writer(cx.cx.gpa).print("mult {s}@{} {{\n", .{ name, glob_number });
+
+    try mult.extract(cx.cx.gpa, diag, name, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
 }
 
 fn extractAkos(
