@@ -565,6 +565,7 @@ fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enu
     prefixed: []const u8,
 } {
     switch (kind) {
+        .room_image, .room => unreachable,
         .script => if (self.scripts.getPtr(glob_number)) |s|
             if (s.name) |n| return .{ .string = n },
         .sound => if (self.sounds.get(glob_number)) |s|
@@ -577,7 +578,6 @@ fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enu
             return .{ .string = s },
         .talkie => if (self.talkies.get(glob_number)) |s|
             return .{ .string = s },
-        else => {},
     }
 
     const prefix = switch (kind) {
