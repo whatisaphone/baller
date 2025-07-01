@@ -1998,11 +1998,13 @@ fn extractDigi(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.appendSlice(cx.cx.gpa, "digi ");
-    try cx.cx.symbols.writeGlobName(.sound, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    cx.cx.symbols.writeGlobName(.sound, glob_number, name_buf.writer()) catch unreachable;
+    const name = name_buf.slice();
 
-    try sounds.extract(cx.cx.gpa, diag, glob_number, raw, code, cx.room_dir, cx.room_path);
+    try code.writer(cx.cx.gpa).print("digi {s}@{} {{\n", .{ name, glob_number });
+
+    try sounds.extract(cx.cx.gpa, diag, name, raw, code, cx.room_dir, cx.room_path);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
 
@@ -2148,10 +2150,11 @@ fn writeRawBlockImpl(
         block_number_block: struct { BlockId, u16 },
         object: u16,
         object_block: struct { u16, BlockId },
+        symbol_block: []const u8,
     },
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: ["object0000_XXXX_XXXX.bin".len + 1]u8 = undefined;
+    var filename_buf: [Symbols.max_name_len + "_XXXX.bin".len + 1]u8 = undefined;
     const filename = switch (filename_pattern) {
         .block => try std.fmt.bufPrintZ(
             &filename_buf,
@@ -2187,6 +2190,11 @@ fn writeRawBlockImpl(
             &filename_buf,
             "object{:0>4}_{}_{}.bin",
             o ++ .{block_id},
+        ),
+        .symbol_block => |s| try std.fmt.bufPrintZ(
+            &filename_buf,
+            "{s}_{}.bin",
+            .{ s, block_id },
         ),
     };
 

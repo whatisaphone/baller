@@ -3,7 +3,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
-const BlockId = @import("block_id.zig").BlockId;
+const Symbols = @import("Symbols.zig");
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
@@ -14,24 +14,22 @@ const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 pub fn extract(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    glob_number: u16,
+    name: []const u8,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
-    const block_id: BlockId = .DIGI;
-
     var stream = std.io.fixedBufferStream(raw);
     var blocks = fixedBlockReader(&stream, diag);
 
     const hshd = try blocks.expect(.HSHD).value([16]u8);
-    try writeRawBlock(gpa, .HSHD, hshd, out_dir, out_path, 4, .{ .block_number_block = .{ block_id, glob_number } }, code);
+    try writeRawBlock(gpa, .HSHD, hshd, out_dir, out_path, 4, .{ .symbol_block = name }, code);
 
     const sdat = try blocks.expect(.SDAT).bytes();
 
-    var wav_path_buf: ["DIGI_0000.wav".len + 1]u8 = undefined;
-    const wav_path = std.fmt.bufPrintZ(&wav_path_buf, "{}_{:0>4}.wav", .{ block_id, glob_number }) catch unreachable;
+    var wav_path_buf: [Symbols.max_name_len + ".wav".len + 1]u8 = undefined;
+    const wav_path = std.fmt.bufPrintZ(&wav_path_buf, "{s}.wav", .{name}) catch unreachable;
     try writeWav(out_dir, wav_path, sdat);
 
     try code.writer(gpa).print("    sdat \"{s}/{s}\"\n", .{ out_path, wav_path });
