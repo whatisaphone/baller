@@ -51,9 +51,12 @@ pub fn decode(
     var out: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_size);
     defer out.deinit(allocator);
 
-    try bmp.writeHeader(out.writer(allocator), width, height, bmp_size);
-    try bmp.writePalette(out.writer(allocator), apal);
-    try decompressBmap(diag, compression, &rmim_reader, bmap_end, out.writer(allocator));
+    try bmp.writeHeader(out.fixedWriter(), width, height, bmp_size);
+    try bmp.writePalette(out.fixedWriter(), apal);
+    try decompressBmap(diag, compression, &rmim_reader, bmap_end, &out);
+
+    // All decompressors must fully fill the buffer
+    std.debug.assert(out.items.len == out.capacity);
 
     try fs.writeFileZ(out_dir, "RMIM.bmp", out.items);
     try code.writer(allocator).print(
@@ -79,7 +82,7 @@ fn decompressBmap(
     compression: u8,
     reader: anytype,
     end: u32,
-    out: anytype,
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
@@ -101,7 +104,12 @@ fn decompressBmap(
     }
 }
 
-fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytype) !void {
+fn decompressBmapNMajMin(
+    compression: u8,
+    reader: anytype,
+    end: u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
     var in = std.io.bitReader(.little, reader.reader());
@@ -116,7 +124,10 @@ fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytyp
 
     var color = try in.readBitsNoEof(u8, 8);
     while (reader.pos < end or in.count != 0) {
-        try out.writeByte(color);
+        if (out.items.len == out.capacity) break;
+
+        out.appendAssumeCapacity(color);
+
         if (try in.readBitsNoEof(u1, 1) != 0) {
             if (try in.readBitsNoEof(u1, 1) != 0) {
                 const d = try in.readBitsNoEof(u3, 3);
@@ -126,13 +137,32 @@ fn decompressBmapNMajMin(compression: u8, reader: anytype, end: u32, out: anytyp
             }
         }
     }
+
+    // Allow at most one extra input byte. The encoder is allowed to pad the
+    // compressed data to an even number of bytes.
+    if (reader.pos != end) {
+        _ = reader.reader().readByte() catch unreachable;
+        if (reader.pos != end)
+            return error.BadData;
+    }
+
+    // Allow the output to be missing at most one pixel. I'm not sure why this
+    // happens.
+    if (out.items.len != out.capacity) {
+        out.appendAssumeCapacity(out.getLast());
+        if (out.items.len != out.capacity)
+            return error.BadData;
+    }
 }
 
-fn decompressBmapSolidColorFill(reader: anytype, end: u32, out: anytype) !void {
+fn decompressBmapSolidColorFill(
+    reader: anytype,
+    end: u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
     const color = try reader.reader().readByte();
     if (reader.pos != end) return error.BadData;
 
-    var buf = out.context.self;
-    @memset(buf.unusedCapacitySlice(), color);
-    buf.items.len = buf.capacity;
+    @memset(out.unusedCapacitySlice(), color);
+    out.items.len = out.capacity;
 }

@@ -3,27 +3,34 @@ const std = @import("std");
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
+const games = @import("games.zig");
 const io = @import("io.zig");
 const report = @import("report.zig");
 const Compression = @import("rmim.zig").Compression;
 
 pub fn encode(
     gpa: std.mem.Allocator,
+    target: games.Target,
     compression: u8,
     bmp_raw: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const header = try bmp.readHeader(bmp_raw, .{ .skip_bounds_check = true });
+    const header = try bmp.readHeader(bmp_raw, .{});
 
     const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
     try out.append(gpa, compression);
-    try compressBmap(header, compression, out.writer(gpa));
+    try compressBmap(header, target, compression, out.writer(gpa));
 
     try endBlockAl(out, bmap_fixup);
 }
 
-fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
+fn compressBmap(
+    header: bmp.Bmp,
+    target: games.Target,
+    compression: u8,
+    writer: anytype,
+) !void {
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
         Compression.BMCOMP_NMAJMIN_H5,
@@ -32,7 +39,7 @@ fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
         Compression.BMCOMP_NMAJMIN_HT4,
         Compression.BMCOMP_NMAJMIN_HT8,
         => {
-            try compressBmapNMajMin(header, compression, writer);
+            try compressBmapNMajMin(header, target, compression, writer);
         },
         Compression.BMCOMP_SOLID_COLOR_FILL => {
             try compressBmapSolidColorFill(header, writer);
@@ -41,7 +48,12 @@ fn compressBmap(header: bmp.Bmp, compression: u8, writer: anytype) !void {
     }
 }
 
-fn compressBmapNMajMin(header: bmp.Bmp, compression: u8, writer: anytype) !void {
+fn compressBmapNMajMin(
+    header: bmp.Bmp,
+    target: games.Target,
+    compression: u8,
+    writer: anytype,
+) !void {
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
         Compression.BMCOMP_NMAJMIN_H5 => 5,
@@ -82,6 +94,10 @@ fn compressBmapNMajMin(header: bmp.Bmp, compression: u8, writer: anytype) !void 
     }
 
     try out.flushBits();
+
+    // Older versions pad the output to an even number of bytes
+    if (target.le(.sputm99) and writer.context.self.items.len & 1 != 0)
+        try writer.writeByte(0);
 }
 
 fn compressBmapSolidColorFill(header: bmp.Bmp, writer: anytype) !void {

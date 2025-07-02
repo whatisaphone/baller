@@ -75,6 +75,7 @@ pub fn run(
             .project_dir = project_dir,
             .project = project,
             .awiz_strategy = awiz_strategy,
+            .target = .undef,
             .vm = .undef,
             .op_map = .undef,
             .project_scope = .empty,
@@ -110,6 +111,7 @@ const Context = struct {
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
+    target: utils.SafeUndefined(games.Target),
     vm: utils.SafeUndefined(lang.Vm),
     op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
@@ -174,6 +176,7 @@ fn planTarget(cx: *Context) !void {
     cx.sendSyncEvent(.{ .target = target });
 
     const game = target.pickAnyGame();
+    cx.target.setOnce(target);
     cx.vm.setOnce(lang.buildVm(game));
     cx.op_map.setOnce(decompile.buildOpMap(game));
 }
@@ -574,7 +577,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
             .bmap => |*n| {
                 const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(n.path));
                 defer cx.gpa.free(bmp_raw);
-                try rmim_encode.encode(cx.gpa, n.compression, bmp_raw, &out);
+                try rmim_encode.encode(cx.gpa, cx.target.defined, n.compression, bmp_raw, &out);
             },
             else => unreachable,
         }
