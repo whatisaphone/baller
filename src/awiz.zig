@@ -217,7 +217,7 @@ pub fn encode(
     for (file.ast.getExtra(children)) |node_index| {
         switch (file.ast.nodes.items[node_index]) {
             .raw_block => |*n| {
-                try encodeRawBlock(gpa, out, n.block_id, project_dir, file.ast.strings.get(n.path));
+                try encodeRawBlock(gpa, project_dir, file, n, out);
             },
             .awiz_rgbs => {
                 const fixup = try beginBlockAl(gpa, out, .RGBS);

@@ -558,7 +558,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     errdefer out.deinit(cx.gpa);
 
     const rmih = &file.ast.nodes.items[rmim.rmih].raw_block;
-    try encodeRawBlock(cx.gpa, &out, rmih.block_id, cx.project_dir, file.ast.strings.get(rmih.path));
+    try encodeRawBlock(cx.gpa, cx.project_dir, file, rmih, &out);
 
     const im00_start = try beginBlockAl(cx.gpa, &out, .IM00);
 
@@ -566,7 +566,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     for (file.ast.getExtra(im.children)) |child_index| {
         switch (file.ast.nodes.items[child_index]) {
             .raw_block => |*n| {
-                try encodeRawBlock(cx.gpa, &out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
+                try encodeRawBlock(cx.gpa, cx.project_dir, file, n, &out);
             },
             .bmap => |*n| {
                 const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(n.path));
@@ -695,8 +695,8 @@ fn compileObim(
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(obim_node.children)) |child_index| {
         switch (room_file.ast.nodes.items[child_index]) {
-            .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
+            .raw_block => |*n| {
+                try encodeRawBlock(cx.gpa, cx.project_dir, file, n, out);
             },
             .obim_im => {
                 const block_id = obim.makeImBlockId(im_index) orelse return error.BadData;
@@ -722,8 +722,8 @@ fn compileIm(
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(im_node.children)) |child_index| {
         switch (room_file.ast.nodes.items[child_index]) {
-            .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, file.ast.strings.get(n.path));
+            .raw_block => |*n| {
+                try encodeRawBlock(cx.gpa, cx.project_dir, file, n, out);
             },
             else => unreachable,
         }
@@ -732,13 +732,13 @@ fn compileIm(
 
 pub fn encodeRawBlock(
     gpa: std.mem.Allocator,
-    out: *std.ArrayListUnmanaged(u8),
-    block_id: BlockId,
     dir: std.fs.Dir,
-    path: []const u8,
+    file: *const Project.SourceFile,
+    node: *const @FieldType(Ast.Node, "raw_block"),
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const start = try beginBlockAl(gpa, out, block_id);
-    try fs.readFileInto(dir, path, out.writer(gpa));
+    const start = try beginBlockAl(gpa, out, node.block_id);
+    try fs.readFileInto(dir, file.ast.strings.get(node.path), out.writer(gpa));
     try endBlockAl(out, start);
 }
 
@@ -802,7 +802,7 @@ fn planMultInner(
         const defa_start = try beginBlockAl(cx.gpa, out, .DEFA);
         for (room_file.ast.getExtra(defa.children)) |child_node| {
             const child = &room_file.ast.nodes.items[child_node].raw_block;
-            try encodeRawBlock(cx.gpa, out, child.block_id, cx.project_dir, room_file.ast.strings.get(child.path));
+            try encodeRawBlock(cx.gpa, cx.project_dir, room_file, child, out);
         }
         try endBlockAl(out, defa_start);
     }
@@ -967,10 +967,10 @@ fn planObjectInner(
     for (room_file.ast.getExtra(object.children)) |child_index| {
         const child = &room_file.ast.nodes.items[child_index];
         switch (child.*) {
-            .raw_block => |n| {
-                try encodeRawBlock(cx.gpa, out, n.block_id, cx.project_dir, room_file.ast.strings.get(n.path));
+            .raw_block => |*n| {
+                try encodeRawBlock(cx.gpa, cx.project_dir, room_file, n, out);
             },
-            .verb => |verb| {
+            .verb => |*verb| {
                 if (verb_fixup == null) {
                     verb_fixup = try beginBlockAl(cx.gpa, out, .VERB);
                     _ = try out.addManyAsSlice(cx.gpa, verb_count * @sizeOf(VerbEntry));

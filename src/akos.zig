@@ -263,7 +263,7 @@ pub fn encode(
 
         switch (node.*) {
             .raw_block => |*n| {
-                try encodeRawBlock(gpa, out, n.block_id, project_dir, file.ast.strings.get(n.path));
+                try encodeRawBlock(gpa, project_dir, file, n, out);
             },
             .akpl => |*n| {
                 if (akpl != null) return error.BadData;

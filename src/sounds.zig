@@ -46,10 +46,10 @@ pub fn build(
 ) !void {
     for (file.ast.getExtra(children)) |node| {
         switch (file.ast.nodes.items[node]) {
-            .raw_block => |n| {
-                try encodeRawBlock(gpa, out, n.block_id, project_dir, file.ast.strings.get(n.path));
+            .raw_block => |*n| {
+                try encodeRawBlock(gpa, project_dir, file, n, out);
             },
-            .sdat => |n| {
+            .sdat => |*n| {
                 const start = try beginBlockAl(gpa, out, .SDAT);
                 try readWav(gpa, project_dir, file.ast.strings.get(n.path), out);
                 try endBlockAl(out, start);
