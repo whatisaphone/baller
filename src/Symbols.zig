@@ -260,22 +260,6 @@ fn handleScript(cx: *Cx, script: *Script, can_have_name: bool) !void {
     }
 }
 
-fn handleScriptName(cx: *Cx, script: *Script) !void {
-    if (script.name != null)
-        return error.BadData;
-    script.name = cx.value;
-}
-
-fn handleScriptLocal(cx: *Cx, script: *Script) !void {
-    const number_str = cx.key_parts.next() orelse return error.BadData;
-    const number = try std.fmt.parseInt(u16, number_str, 10);
-
-    if (cx.key_parts.next()) |_| return error.BadData;
-
-    const variable = try parseVariable(cx, cx.value);
-    try script.locals.putNew(cx.allocator, number, variable);
-}
-
 fn handleRoom(cx: *Cx) !void {
     const number_str = cx.key_parts.next() orelse return error.BadData;
     const number = try std.fmt.parseInt(u8, number_str, 10);
