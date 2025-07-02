@@ -210,7 +210,7 @@ pub fn encode(
     const bmp_raw = try fs.readFile(gpa, project_dir, file.ast.strings.get(wizd.path));
     defer gpa.free(bmp_raw);
 
-    const header = try bmp.readHeader(bmp_raw, .{});
+    const header = try bmp.readHeader(bmp_raw);
 
     // Now write the blocks in the requested order
 

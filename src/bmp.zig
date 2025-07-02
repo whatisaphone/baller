@@ -37,19 +37,7 @@ const RGBQUAD = extern struct {
     rgbReserved: u8,
 };
 
-pub fn readHeader(
-    bmp: []const u8,
-    options: struct {
-        /// RMIM sometimes encodes too many/too few bytes. For it to round-trip,
-        /// we need to either figure out the reasoning, or preserve the mismatch
-        /// somehow. Right now that data is preserved by creating a bitmap with
-        /// the wrong number of pixels. Probably not the best way to do it.
-        ///
-        /// With this flag, the only safe way to access the bitmap is through
-        /// `iterPixels`.
-        skip_bounds_check: bool = false,
-    },
-) !Bmp {
+pub fn readHeader(bmp: []const u8) !Bmp {
     if (bmp.len < bitmap_file_header_size + 4)
         return error.BadData;
 
@@ -86,7 +74,7 @@ pub fn readHeader(
 
     const pixels = bmp[file_header.bfOffBits..];
 
-    if (!options.skip_bounds_check and pixels.len != stride * height)
+    if (pixels.len != stride * height)
         return error.BadData;
 
     return .{

@@ -332,7 +332,7 @@ fn encodeCelBmp(
     const bmp_data = try fs.readFile(allocator, state.project_dir, path);
     defer allocator.free(bmp_data);
 
-    const bitmap = try bmp.readHeader(bmp_data, .{});
+    const bitmap = try bmp.readHeader(bmp_data);
     const width = std.math.cast(u16, bitmap.width()) orelse return error.BadData;
     const height = std.math.cast(u16, bitmap.height()) orelse return error.BadData;
 

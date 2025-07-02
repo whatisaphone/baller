@@ -15,7 +15,7 @@ pub fn encode(
     bmp_raw: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const header = try bmp.readHeader(bmp_raw, .{});
+    const header = try bmp.readHeader(bmp_raw);
 
     const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
