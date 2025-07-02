@@ -65,32 +65,35 @@ fn compressBmapNMajMin(
 
     var out = std.io.bitWriter(.little, writer);
 
-    var pixit = try header.iterPixels();
-
-    var current = pixit.next() orelse return error.EndOfStream;
+    var current = header.pixels[0];
+    if (current > max_pixel)
+        return reportColorOutOfRange(current);
     try out.writeBits(current, 8);
 
-    while (pixit.next()) |pixel| {
-        if (pixel > max_pixel) {
-            report.fatal("color index {} too large for encoding", .{pixel});
-            return error.Reported;
-        }
+    var it = header.iterRows();
+    var y: u32 = 0;
+    while (it.next()) |full_row| : (y += 1) {
+        const row = if (y == 0) full_row[1..] else full_row;
+        for (row) |pixel| {
+            if (pixel > max_pixel)
+                return reportColorOutOfRange(pixel);
 
-        const diff = @as(i16, pixel) - current;
-        if (diff == 0) {
-            try out.writeBits(@as(u1, 0), 1);
-        } else if (-4 <= diff and diff < 0) {
-            try out.writeBits(@as(u2, 3), 2);
-            try out.writeBits(@as(u3, @intCast(diff + 4)), 3);
-        } else if (0 < diff and diff <= 4) {
-            try out.writeBits(@as(u2, 3), 2);
-            try out.writeBits(@as(u3, @intCast(diff + 3)), 3);
-        } else {
-            try out.writeBits(@as(u2, 1), 2);
-            try out.writeBits(pixel, color_bits);
-        }
+            const diff = @as(i16, pixel) - current;
+            if (diff == 0) {
+                try out.writeBits(@as(u1, 0), 1);
+            } else if (-4 <= diff and diff < 0) {
+                try out.writeBits(@as(u2, 3), 2);
+                try out.writeBits(@as(u3, @intCast(diff + 4)), 3);
+            } else if (0 < diff and diff <= 4) {
+                try out.writeBits(@as(u2, 3), 2);
+                try out.writeBits(@as(u3, @intCast(diff + 3)), 3);
+            } else {
+                try out.writeBits(@as(u2, 1), 2);
+                try out.writeBits(pixel, color_bits);
+            }
 
-        current = pixel;
+            current = pixel;
+        }
     }
 
     try out.flushBits();
@@ -98,6 +101,11 @@ fn compressBmapNMajMin(
     // Older versions pad the output to an even number of bytes
     if (target.le(.sputm99) and writer.context.self.items.len & 1 != 0)
         try writer.writeByte(0);
+}
+
+fn reportColorOutOfRange(pixel: u8) error{Reported} {
+    report.fatal("color index {} too large for encoding", .{pixel});
+    return error.Reported;
 }
 
 fn compressBmapSolidColorFill(header: bmp.Bmp, writer: anytype) !void {
