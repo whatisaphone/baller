@@ -163,12 +163,11 @@ pub const PixelIter = union(enum) {
     pub fn next(self: *PixelIter) ?u8 {
         switch (self.*) {
             .top_down => |*s| {
-                const result = s.pixels[s.i];
-
-                s.i += 1;
                 if (s.i >= s.pixels.len)
                     return null;
 
+                const result = s.pixels[s.i];
+                s.i += 1;
                 return result;
             },
             .bottom_up => |*s| {
