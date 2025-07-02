@@ -844,12 +844,19 @@ fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
 
 fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id = try expectBlockId(cx);
-    const path = try expectString(cx);
+
+    const contents_token = consumeToken(cx);
+    const contents: Ast.RawContents = switch (contents_token.kind) {
+        .string => .{ .path = try parseString(cx, contents_token) },
+        .hex_string => .{ .data = try parseHexString(cx, contents_token) },
+        else => return reportUnexpected(cx, contents_token),
+    };
+
     try expect(cx, .newline);
 
     return storeNode(cx, token, .{ .raw_block = .{
         .block_id = block_id,
-        .path = path,
+        .contents = contents,
     } });
 }
 
@@ -1527,6 +1534,21 @@ fn parseString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
             else => return reportError(cx, token, "invalid string", .{}),
         }
     }
+    const result_len: u32 = @intCast(cx.result.strings.buf.items.len - result_start);
+    return .{ .start = result_start, .len = result_len };
+}
+
+fn parseHexString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
+    std.debug.assert(token.kind == .hex_string);
+    const source = cx.source[token.span.start.offset..token.span.end.offset];
+    const str = source[1 .. source.len - 1];
+    const len = std.math.divExact(usize, str.len, 2) catch
+        return reportError(cx, token, "invalid hex string", .{});
+
+    const result_start: u32 = @intCast(cx.result.strings.buf.items.len);
+    const dest = try cx.result.strings.buf.addManyAsSlice(cx.gpa, len);
+    _ = std.fmt.hexToBytes(dest, str) catch
+        return reportError(cx, token, "invalid hex string", .{});
     const result_len: u32 = @intCast(cx.result.strings.buf.items.len - result_start);
     return .{ .start = result_start, .len = result_len };
 }

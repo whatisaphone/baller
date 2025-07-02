@@ -60,7 +60,7 @@ pub const Node = union(enum) {
     },
     raw_block: struct {
         block_id: BlockId,
-        path: StringSlice,
+        contents: RawContents,
     },
     raw_block_nested: struct {
         block_id: BlockId,
@@ -271,6 +271,11 @@ pub const Node = union(enum) {
         condition: CaseCondition,
         body: ExtraSlice,
     },
+};
+
+pub const RawContents = union(enum) {
+    path: StringSlice,
+    data: StringSlice,
 };
 
 pub const CaseCondition = union(enum) {

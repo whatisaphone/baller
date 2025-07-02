@@ -463,7 +463,10 @@ fn planRawBlock(
     file: *const Project.SourceFile,
     node: *const @FieldType(Ast.Node, "raw_block"),
 ) !void {
-    const data = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(node.path));
+    const data = switch (node.contents) {
+        .path => |ss| try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(ss)),
+        .data => |ss| try cx.gpa.dupe(u8, file.ast.strings.get(ss)),
+    };
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .raw_block = .{
@@ -738,7 +741,10 @@ pub fn encodeRawBlock(
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const start = try beginBlockAl(gpa, out, node.block_id);
-    try fs.readFileInto(dir, file.ast.strings.get(node.path), out.writer(gpa));
+    switch (node.contents) {
+        .path => |ss| try fs.readFileInto(dir, file.ast.strings.get(ss), out.writer(gpa)),
+        .data => |ss| try out.appendSlice(gpa, file.ast.strings.get(ss)),
+    }
     try endBlockAl(out, start);
 }
 

@@ -2157,6 +2157,34 @@ fn writeRawBlockImpl(
     },
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
+    const inline_threshold = 24;
+
+    for (0..indent) |_|
+        try code.append(gpa, ' ');
+    try code.writer(gpa).print("raw-block {} ", .{block_id});
+
+    // If the data is short enough, write it inline
+
+    const len = switch (data_source) {
+        .bytes => |b| b.len,
+        .reader => |r| r.size,
+    };
+    if (len <= inline_threshold) {
+        var buf: [inline_threshold]u8 = undefined;
+        const data = switch (data_source) {
+            .bytes => |bytes| bytes,
+            .reader => |r| blk: {
+                const data = buf[0..len];
+                try r.in.reader().readNoEof(data);
+                break :blk data;
+            },
+        };
+        try code.writer(gpa).print("`{}`\n", .{std.fmt.fmtSliceHexLower(data)});
+        return;
+    }
+
+    // If the data is long, write it to a file
+
     var filename_buf: [Symbols.max_name_len + "_XXXX.bin".len + 1]u8 = undefined;
     const filename = switch (filename_pattern) {
         .block => try std.fmt.bufPrintZ(
@@ -2208,9 +2236,7 @@ fn writeRawBlockImpl(
         .reader => |r| try io.copy(std.io.limitedReader(r.in.reader(), r.size), file),
     }
 
-    for (0..indent) |_|
-        try code.append(gpa, ' ');
-    try code.writer(gpa).print("raw-block {} \"", .{block_id});
+    try code.appendSlice(gpa, "\"");
     if (output_path) |path|
         try code.writer(gpa).print("{s}/", .{path});
     try code.writer(gpa).print("{s}\"\n", .{filename});

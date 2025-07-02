@@ -66,6 +66,7 @@ pub const Token = struct {
         integer,
         char,
         string,
+        hex_string,
         identifier,
 
         pub fn describe(self: Kind) []const u8 {
@@ -102,6 +103,7 @@ pub const Token = struct {
                 .integer => "<integer>",
                 .char => "<character>",
                 .string => "<string>",
+                .hex_string => "<hex-string>",
                 .identifier => "<identifier>",
             };
         }
@@ -221,6 +223,8 @@ pub fn run(
             try lexCharLiteral(&state, loc);
         } else if (ch == '"') {
             try lexStringLiteral(&state, loc);
+        } else if (ch == '`') {
+            try lexHexStringLiteral(&state, loc);
         } else if (isIdentStart(ch)) {
             try lexIdent(&state, loc);
         } else {
@@ -298,6 +302,16 @@ fn lexStringLiteral(state: *State, start: Loc) !void {
             break;
     }
     try appendToken(state, start, .string);
+}
+
+fn lexHexStringLiteral(state: *State, start: Loc) !void {
+    while (true) {
+        const ch = consumeChar(state) orelse
+            return reportError(state, start, "string not terminated", .{});
+        if (ch == '`')
+            break;
+    }
+    try appendToken(state, start, .hex_string);
 }
 
 fn lexInteger(state: *State, start: Loc) !void {
