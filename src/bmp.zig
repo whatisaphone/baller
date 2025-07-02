@@ -37,8 +37,8 @@ const RGBQUAD = extern struct {
     rgbReserved: u8,
 };
 
-pub fn readHeader(bmp: []const u8) !Bmp {
-    if (bmp.len < bitmap_file_header_size + 4)
+pub fn readHeader(bmp: []u8) !Bmp {
+    if (bmp.len < @sizeOf(BITMAPFILEHEADER) + @sizeOf(BITMAPINFOHEADER))
         return error.BadData;
 
     const file_header = std.mem.bytesAsValue(BITMAPFILEHEADER, bmp);
@@ -65,49 +65,53 @@ pub fn readHeader(bmp: []const u8) !Bmp {
         return error.BadData;
     const stride = calcStride(width);
 
+    const palette_start = bitmap_file_header_size + info_header.biSize;
+    const palette_size = num_colors * @sizeOf(RGBQUAD);
+    if (palette_start + palette_size > bmp.len)
+        return error.BadData;
+    const palette: *const [num_colors]RGBQUAD = @ptrCast(bmp[palette_start..][0..palette_size]);
+
     if (file_header.bfOffBits > bmp.len)
         return error.BadData;
-
-    const palette_start = bitmap_file_header_size + header_size;
-    const palette: *const [num_colors]RGBQUAD =
-        @ptrCast(bmp[palette_start..][0 .. num_colors * @sizeOf(RGBQUAD)]);
-
     const pixels = bmp[file_header.bfOffBits..];
-
     if (pixels.len != stride * height)
         return error.BadData;
 
+    // If the bmp is bottom-up, flip it so it's top-down
+    const bottom_up = info_header.biHeight > 0;
+    if (bottom_up) {
+        for (0..height / 2) |y| {
+            const row_a = pixels[y * stride ..][0..width];
+            const flipped_y = height - 1 - y;
+            const row_b = pixels[flipped_y * stride ..][0..width];
+            for (row_a, row_b) |*a, *b|
+                std.mem.swap(u8, a, b);
+        }
+    }
+
     return .{
-        .header = info_header,
+        .width = width,
+        .height = height,
         .palette = palette,
         .pixels = pixels,
     };
 }
 
 pub const Bmp = struct {
-    header: *align(1) const BITMAPINFOHEADER,
+    width: u31,
+    height: u31,
     palette: *const [num_colors]RGBQUAD,
     pixels: []const u8,
 
-    pub fn width(self: *const Bmp) u31 {
-        return @intCast(self.header.biWidth);
-    }
-
-    pub fn height(self: *const Bmp) u31 {
-        return @intCast(@abs(self.header.biHeight));
-    }
-
     pub fn iterRows(self: *const Bmp) RowIter {
-        return .init(self.header, self.pixels);
+        return .init(self.width, self.pixels);
     }
 
     pub fn getPixel(self: *const Bmp, x: usize, y: usize) u8 {
-        std.debug.assert(x < self.width());
-        std.debug.assert(y < self.height());
-        const stride = calcStride(self.width());
-        const top_down = self.header.biHeight < 0;
-        const mem_y = if (top_down) y else self.height() - 1 - y;
-        return self.pixels[mem_y * stride + x];
+        std.debug.assert(x < self.width);
+        std.debug.assert(y < self.height);
+        const stride = calcStride(self.width);
+        return self.pixels[y * stride + x];
     }
 };
 
@@ -117,42 +121,23 @@ pub const RowIter = struct {
     width: u31,
     stride: u31,
 
-    fn init(header: *align(1) const BITMAPINFOHEADER, pixels: []const u8) RowIter {
-        const width: u31 = @intCast(header.biWidth);
-        const stride = calcStride(width);
-
-        const top_down = header.biHeight < 0;
-        if (top_down)
-            return .{
-                .pixels = pixels,
-                .pos = 0,
-                .width = width,
-                .stride = stride,
-            };
-
+    fn init(width: u31, pixels: []const u8) RowIter {
         return .{
             .pixels = pixels,
-            .pos = @as(u32, @intCast(pixels.len)),
+            .pos = 0,
             .width = width,
-            .stride = stride,
+            .stride = calcStride(width),
         };
     }
 
     pub fn next(self: *RowIter) ?[]const u8 {
-        if (self.stride > 0) {
-            const pos = self.pos;
+        const pos = self.pos;
 
-            self.pos += self.stride;
-            if (self.pos > self.pixels.len)
-                return null;
+        self.pos += self.stride;
+        if (self.pos > self.pixels.len)
+            return null;
 
-            return self.pixels[pos..][0..self.width];
-        } else {
-            self.pos = std.math.sub(u32, self.pos, self.stride) catch
-                return null;
-
-            return self.pixels[self.pos..][0..self.width];
-        }
+        return self.pixels[pos..][0..self.width];
     }
 };
 

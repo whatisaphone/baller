@@ -333,8 +333,8 @@ fn encodeCelBmp(
     defer allocator.free(bmp_data);
 
     const bitmap = try bmp.readHeader(bmp_data);
-    const width = std.math.cast(u16, bitmap.width()) orelse return error.BadData;
-    const height = std.math.cast(u16, bitmap.height()) orelse return error.BadData;
+    const width = std.math.cast(u16, bitmap.width) orelse return error.BadData;
+    const height = std.math.cast(u16, bitmap.height) orelse return error.BadData;
 
     try state.akci.append(utils.null_allocator, .{ .width = width, .height = height });
 
@@ -394,10 +394,10 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
         }
 
         state.y += 1;
-        if (state.y == state.bitmap.height()) {
+        if (state.y == state.bitmap.height) {
             state.y = 0;
             state.x += 1;
-            if (state.x == state.bitmap.width())
+            if (state.x == state.bitmap.width)
                 break;
         }
     }

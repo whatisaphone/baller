@@ -12,7 +12,7 @@ pub fn encode(
     gpa: std.mem.Allocator,
     target: games.Target,
     compression: u8,
-    bmp_raw: []const u8,
+    bmp_raw: []u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const header = try bmp.readHeader(bmp_raw);

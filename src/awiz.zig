@@ -227,8 +227,8 @@ pub fn encode(
             .awiz_wizh => {
                 const fixup = try beginBlockAl(gpa, out, .WIZH);
                 try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
-                try out.writer(gpa).writeInt(i32, header.width(), .little);
-                try out.writer(gpa).writeInt(i32, header.height(), .little);
+                try out.writer(gpa).writeInt(i32, header.width, .little);
+                try out.writer(gpa).writeInt(i32, header.height, .little);
                 try endBlockAl(out, fixup);
             },
             .awiz_wizd => |_| {
