@@ -220,7 +220,7 @@ fn buildProjectScope(cx: *Context) !void {
                             inline .raw_glob_file, .raw_glob_block => |n| if (n.name) |name| {
                                 try addScopeSymbol(&from_room, name, .{ .constant = n.glob_number });
                             },
-                            inline .scr, .script, .digi, .awiz, .mult, .akos => |n| {
+                            inline .scr, .script, .sound, .awiz, .mult, .akos => |n| {
                                 try addScopeSymbol(&from_room, n.name, .{ .constant = n.glob_number });
                             },
                             else => {},
@@ -358,7 +358,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
             .lsc => try plan.add(.rmda_lsc, .{ .node = child_node }),
             .obim => try plan.add(.rmda_obim, .{ .node = child_node }),
-            .digi => try plan.add(.end, .{ .node = child_node }),
+            .sound => try plan.add(.end, .{ .node = child_node }),
             .awiz, .mult, .akos => try plan.add(.end, .{ .node = child_node }),
             .script => try plan.add(.end, .{ .node = child_node }),
             .local_script => try plan.add(.rmda_lsc, .{ .node = child_node }),
@@ -450,7 +450,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
                     .lsc => try spawnJob(planLsc, cx, room_number, child_node),
                     .obim => try spawnJob(planObim, cx, room_number, child_node),
-                    .digi => try spawnJob(planDigi, cx, room_number, child_node),
+                    .sound => try spawnJob(planSound, cx, room_number, child_node),
                     .awiz => try spawnJob(planAwiz, cx, room_number, child_node),
                     .mult => try spawnJob(planMult, cx, room_number, child_node),
                     .akos => try spawnJob(planAkos, cx, room_number, child_node),
@@ -804,9 +804,9 @@ pub fn encodeRawBlock(
     endBlockAl(out, start);
 }
 
-fn planDigi(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+fn planSound(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
-    const node = &file.ast.nodes.items[node_index].digi;
+    const node = &file.ast.nodes.items[node_index].sound;
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -814,7 +814,7 @@ fn planDigi(cx: *const Context, room_number: u8, node_index: u32, event_index: u
     try sounds.build(cx.gpa, cx.project_dir, file, node.children, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
-        .block_id = .DIGI,
+        .block_id = node.block_id,
         .glob_number = node.glob_number,
         .data = out,
     } });

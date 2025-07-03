@@ -390,6 +390,7 @@ fn testRoundTrip(
             .obim = .decode,
             .obcd = .decode,
             .digi = .decode,
+            .talk = .decode,
             .awiz = .decode,
             .mult = .decode,
             .akos = .decode,

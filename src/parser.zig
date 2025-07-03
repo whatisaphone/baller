@@ -272,7 +272,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         excd,
         lsc,
         obim,
-        digi,
+        sound,
         awiz,
         mult,
         akos,
@@ -354,8 +354,8 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     const node_index = try parseObim(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
-                .digi => {
-                    const node_index = try parseDigi(cx, token);
+                .sound => {
+                    const node_index = try parseSound(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .awiz => {
@@ -583,22 +583,24 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     } });
 }
 
-fn parseDigi(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+fn parseSound(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const block_id = try expectBlockId(cx);
     const name = try expectIdentifier(cx);
     try expect(cx, .swat);
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
-    const children = try parseDigiChildren(cx);
+    const children = try parseSoundChildren(cx);
 
-    return storeNode(cx, token, .{ .digi = .{
+    return storeNode(cx, token, .{ .sound = .{
+        .block_id = block_id,
         .name = name,
         .glob_number = glob_number,
         .children = children,
     } });
 }
 
-fn parseDigiChildren(cx: *Cx) !Ast.ExtraSlice {
+fn parseSoundChildren(cx: *Cx) !Ast.ExtraSlice {
     const Keyword = enum {
         @"raw-block",
         sdat,

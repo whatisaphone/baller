@@ -43,6 +43,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var obim_option: ?RawOrDecode = null;
     var obcd_option: ?RawOrDecode = null;
     var digi_option: ?RawOrDecode = null;
+    var talk_option: ?RawOrDecode = null;
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
     var akos_option: ?RawOrDecode = null;
@@ -109,6 +110,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (digi_option != null) return arg.reportDuplicate();
                 digi_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "talk")) {
+                if (talk_option != null) return arg.reportDuplicate();
+                talk_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "awiz")) {
                 if (awiz_option != null) return arg.reportDuplicate();
                 awiz_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
@@ -150,6 +155,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .obim = obim_option orelse .decode,
             .obcd = obcd_option orelse .decode,
             .digi = digi_option orelse .decode,
+            .talk = talk_option orelse .decode,
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
             .akos = akos_option orelse .decode,
@@ -180,6 +186,7 @@ const Options = struct {
     obim: RawOrDecode,
     obcd: RawOrDecode,
     digi: RawOrDecode,
+    talk: RawOrDecode,
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
@@ -235,6 +242,9 @@ pub const Stat = enum {
     digi_total,
     digi_decode,
     digi_raw,
+    talk_total,
+    talk_decode,
+    talk_raw,
     awiz_total,
     awiz_decode,
     awiz_raw,
@@ -1754,6 +1764,7 @@ fn extractGlobJob(
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_total,
         .DIGI => .digi_total,
+        .TALK => .talk_total,
         .AWIZ => .awiz_total,
         else => null,
     });
@@ -1785,7 +1796,10 @@ fn extractGlobJob(
                 return;
         },
         .DIGI => if (cx.cx.options.digi == .decode)
-            if (tryDecodeAndSend(extractDigi, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+            if (tryDecodeAndSend(extractSound, cx, &tx, &diag, .{ block.id, glob_number, raw }, &code, chunk_index, .bottom))
+                return,
+        .TALK => if (cx.cx.options.talk == .decode)
+            if (tryDecodeAndSend(extractSound, cx, &tx, &diag, .{ block.id, glob_number, raw }, &code, chunk_index, .bottom))
                 return,
         .AWIZ => if (cx.cx.options.awiz == .decode)
             if (tryDecodeAndSend(extractAwiz, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
@@ -1807,6 +1821,7 @@ fn extractGlobJob(
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_raw,
         .DIGI => .digi_raw,
+        .TALK => .talk_raw,
         .AWIZ => .awiz_raw,
         else => null,
     });
@@ -2007,9 +2022,10 @@ fn extractScrpDecompile(
     cx.cx.incStat(.scrp_decompile);
 }
 
-fn extractDigi(
+fn extractSound(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
+    block_id: BlockId,
     glob_number: u16,
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
@@ -2018,7 +2034,7 @@ fn extractDigi(
     cx.cx.symbols.writeGlobName(.sound, glob_number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
 
-    try code.writer(cx.cx.gpa).print("digi {s}@{} {{\n", .{ name, glob_number });
+    try code.writer(cx.cx.gpa).print("sound {} {s}@{} {{\n", .{ block_id, name, glob_number });
 
     try sounds.extract(cx.cx.gpa, diag, name, raw, code, cx.room_dir, cx.room_path);
 
@@ -2026,7 +2042,11 @@ fn extractDigi(
 
     errdefer comptime unreachable; // if we get here, success and commit
 
-    cx.cx.incStat(.digi_decode);
+    cx.cx.incStat(switch (block_id) {
+        .DIGI => .digi_decode,
+        .TALK => .talk_decode,
+        else => unreachable,
+    });
 }
 
 fn extractAwiz(
