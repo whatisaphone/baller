@@ -15,6 +15,7 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
+const bmp = @import("bmp.zig");
 const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
@@ -335,6 +336,7 @@ const RoomSection = enum {
 const RoomWork = union(enum) {
     event: Payload,
     node: Ast.NodeIndex,
+    node_second_pass: Ast.NodeIndex,
 };
 
 fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
@@ -346,7 +348,10 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
                 const section = sectionForBlockId(n.block_id) orelse plan.cur_section;
                 try plan.add(section, .{ .node = child_node });
             },
-            .rmim => try plan.add(plan.cur_section, .{ .node = child_node }),
+            .rmim => {
+                try plan.add(.start, .{ .node = child_node });
+                try plan.add(.rmda_obim, .{ .node_second_pass = child_node });
+            },
             .rmda => |*rmda| try scanRmda(cx, plan, room_number, rmda),
             .scr => try plan.add(.end, .{ .node = child_node }),
             .excd => try plan.add(.rmda_excd, .{ .node = child_node }),
@@ -454,6 +459,10 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                     .enter => try spawnJob(planEnterScript, cx, room_number, child_node),
                     .exit => try spawnJob(planExitScript, cx, room_number, child_node),
                     .object => try spawnJob(planObject, cx, room_number, child_node),
+                    else => unreachable,
+                },
+                .node_second_pass => |child_node| switch (room_file.ast.nodes.items[child_node]) {
+                    .rmim => try spawnJob(planPalsFromRmim, cx, room_number, child_node),
                     else => unreachable,
                 },
             }
@@ -590,6 +599,50 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
         .glob_number = room_number,
         .data = out,
     } });
+}
+
+fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    const file = &cx.project.files.items[room_number].?;
+    const rmim = &file.ast.nodes.items[node_index].rmim;
+
+    var out: std.ArrayListUnmanaged(u8) = .empty;
+    errdefer out.deinit(cx.gpa);
+
+    const im = &file.ast.nodes.items[rmim.im].rmim_im;
+    const im_children = file.ast.getExtra(im.children);
+    if (im_children.len == 0) return error.BadData;
+    const bmap = &file.ast.nodes.items[im_children[0]];
+    if (bmap.* != .bmap) return error.BadData;
+
+    const bmp_path = file.ast.strings.get(bmap.bmap.path);
+    // XXX: this is not quite ideal since it reads the bmp from disk a second time
+    const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, bmp_path);
+    defer cx.gpa.free(bmp_raw);
+    const bitmap = try bmp.readHeader(bmp_raw);
+    try buildPals(cx.gpa, &bitmap, &out);
+
+    cx.sendEvent(event_index, .{ .raw_block = .{
+        .block_id = .PALS,
+        .data = out,
+    } });
+}
+
+fn buildPals(
+    gpa: std.mem.Allocator,
+    bitmap: *const bmp.Bmp,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const wrap_start = try beginBlockAl(gpa, out, .WRAP);
+
+    const offs_start = try beginBlockAl(gpa, out, .OFFS);
+    try out.writer(gpa).writeInt(u32, 12, .little);
+    try endBlockAl(out, offs_start);
+
+    const apal_start = try beginBlockAl(gpa, out, .APAL);
+    try awiz.writeRgbs(gpa, bitmap.*, out);
+    try endBlockAl(out, apal_start);
+
+    try endBlockAl(out, wrap_start);
 }
 
 fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {

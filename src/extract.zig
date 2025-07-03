@@ -954,20 +954,19 @@ fn readRoomInner(
     const rmim_chunk_index = try cx.claimChunkIndex();
     const rmim_block = try lflf_blocks.expect(.RMIM) orelse return error.BadData;
     var rmim_raw = try cx.cx.gpa.alloc(u8, rmim_block.size);
-    defer cx.cx.gpa.free(rmim_raw);
+    errdefer cx.cx.gpa.free(rmim_raw);
     try in.reader().readNoEof(rmim_raw);
     try lflf_blocks.finish(&rmim_block);
 
-    {
-        const block = try lflf_blocks.expect(.RMDA) orelse return error.BadData;
-        const room_palette = try extractRmda(cx, in, diag);
-        cx.room_palette = .{ .defined = room_palette };
-        try lflf_blocks.finish(&block);
-    }
+    const rmda_block = try lflf_blocks.expect(.RMDA) orelse return error.BadData;
+    const pals_chunk_index, var pals_raw = try extractRmda(cx, in, diag);
+    errdefer cx.cx.gpa.free(pals_raw);
+    try lflf_blocks.finish(&rmda_block);
 
     // extract RMIM after RMDA since it needs the room palette
-    try spawnBlockJob(extractRmimJob, cx, diag, &rmim_block, rmim_raw, rmim_chunk_index);
+    try spawnBlockJob(extractRmimAndPalsJob, cx, diag, &rmim_block, rmim_raw, rmim_chunk_index, .{ pals_raw, pals_chunk_index });
     rmim_raw.len = 0; // ownership was moved to the job, don't free it here
+    pals_raw.len = 0;
 
     while (try lflf_blocks.next()) |block| {
         try readBlockAndSpawn(extractGlobJob, cx, in, diag, &block);
@@ -981,10 +980,12 @@ fn extractRmda(
     cx: *RoomContext,
     in: anytype,
     diag: *const Diagnostic.ForBinaryFile,
-) ![0x300]u8 {
+) !struct { u16, []u8 } {
     try cx.sendSyncFmt(.top, "rmda {{\n", .{});
 
-    var apal_opt: ?[0x300]u8 = null;
+    var pals_chunk_index: ?u16 = null;
+    var pals_raw: []u8 = &.{};
+    errdefer cx.cx.gpa.free(pals_raw);
 
     // Buffer script blocks until the end, so we can collect a list of valid
     // local script numbers for the decompiler. This is needed specifically for
@@ -1002,11 +1003,13 @@ fn extractRmda(
     while (try rmda_blocks.next()) |block| {
         switch (block.id) {
             .PALS => {
-                var code: std.ArrayListUnmanaged(u8) = .empty;
-                errdefer code.deinit(cx.cx.gpa);
-                if (apal_opt != null) return error.BadData;
-                apal_opt = try extractPals(cx, in, diag, &block, &code);
-                try cx.sendSync(.top, code);
+                if (pals_chunk_index != null) return error.BadData;
+                pals_chunk_index = try cx.claimChunkIndex();
+
+                pals_raw = try cx.cx.gpa.alloc(u8, block.size);
+                try in.reader().readNoEof(pals_raw);
+
+                cx.room_palette.setOnce(try extractPals(pals_raw, diag, &block));
             },
             .OBIM => {
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
@@ -1030,22 +1033,20 @@ fn extractRmda(
 
     try cx.sendSyncFmt(.top, "}}\n", .{});
 
-    return apal_opt orelse return error.BadData;
+    if (pals_chunk_index == null) return error.BadData;
+    return .{ pals_chunk_index.?, pals_raw };
 }
 
 fn extractPals(
-    cx: *const RoomContext,
-    in: anytype,
+    pals_raw: []const u8,
     disk_diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
-    code: *std.ArrayListUnmanaged(u8),
 ) ![0x300]u8 {
     const diag = disk_diag.child(block.start, .{ .block_id = .PALS });
 
     const expected_len = 796;
-    if (block.size != expected_len) return error.BadData;
-    const pals_raw = try in.reader().readBytesNoEof(expected_len);
-    var pals_stream = std.io.fixedBufferStream(&pals_raw);
+    if (pals_raw.len != expected_len) return error.BadData;
+    var pals_stream = std.io.fixedBufferStream(pals_raw);
     var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 
     var wrap_blocks = try pals_blocks.expect(.WRAP).nested();
@@ -1057,8 +1058,6 @@ fn extractPals(
 
     try wrap_blocks.finish();
     try pals_blocks.finish();
-
-    try writeRawBlock(cx.cx.gpa, block.id, &pals_raw, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, code);
 
     return apal.*;
 }
@@ -1109,7 +1108,7 @@ fn spawnBufferedBlockJobs(
         errdefer cx.cx.gpa.free(lsc.data);
 
         const chunk_index = try cx.claimChunkIndex();
-        try spawnBlockJob(extractRmdaChildJob, cx, diag, &lsc.block, lsc.data, chunk_index);
+        try spawnBlockJob(extractRmdaChildJob, cx, diag, &lsc.block, lsc.data, chunk_index, .{});
     }
 }
 
@@ -1134,32 +1133,34 @@ fn readBlockAndSpawn(
 
     const chunk_index = try cx.claimChunkIndex();
 
-    try spawnBlockJob(job, cx, diag, block, raw, chunk_index);
+    try spawnBlockJob(job, cx, diag, block, raw, chunk_index, .{});
 }
 
 fn spawnBlockJob(
-    job: BlockJob,
+    job: anytype,
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
     raw: []const u8,
     chunk_index: u16,
+    args: anytype,
 ) !void {
     _ = cx.pending_jobs.fetchAdd(1, .monotonic);
-    try cx.cx.pool.spawn(runBlockJob, .{ job, cx, diag, block.*, raw, chunk_index });
+    try cx.cx.pool.spawn(runBlockJob, .{ job, cx, diag, block.*, raw, chunk_index, args });
 }
 
 fn runBlockJob(
-    job: BlockJob,
+    job: anytype,
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     block: Block,
     raw: []const u8,
     chunk_index: u16,
+    args: anytype,
 ) void {
     defer cx.cx.gpa.free(raw);
 
-    job(cx, diag, &block, raw, chunk_index) catch |err| {
+    @call(.auto, job, .{ cx, diag, &block, raw, chunk_index } ++ args) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
         cx.events.send(.err);
@@ -1170,13 +1171,17 @@ fn runBlockJob(
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
 
-fn extractRmimJob(
+fn extractRmimAndPalsJob(
     cx: *RoomContext,
     disk_diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
-    raw: []const u8,
-    chunk_index: u16,
+    rmim_raw: []const u8,
+    rmim_chunk_index: u16,
+    pals_raw: []const u8,
+    pals_chunk_index: u16,
 ) !void {
+    defer cx.cx.gpa.free(pals_raw);
+
     cx.cx.incStat(.rmim_total);
 
     std.debug.assert(disk_diag.offset == 0);
@@ -1189,12 +1194,18 @@ fn extractRmimJob(
     var tx: Transaction = .init(&code);
 
     if (cx.cx.options.rmim == .decode)
-        if (tryDecodeAndSend(extractRmimInner, cx, &tx, &diag, .{raw}, &code, chunk_index, .top))
+        if (tryDecodeAndSend(extractRmimInner, cx, &tx, &diag, .{rmim_raw}, &code, rmim_chunk_index, .top))
             return;
 
-    // If decoding failed or was skipped, extract as raw
-    try writeRawGlob(cx, block, cx.room_number, raw, &code);
-    cx.sendChunk(chunk_index, .top, code);
+    // If the RMIM was decoded successfully, the .bmp specifies the palette.
+    // Otherwise output them both as separate raw blocks.
+
+    try writeRawGlob(cx, block, cx.room_number, rmim_raw, &code);
+    cx.sendChunk(rmim_chunk_index, .top, code);
+
+    code = .empty;
+    try writeRawBlock(cx.cx.gpa, .PALS, pals_raw, cx.room_dir, cx.room_path, 4, .block, &code);
+    cx.sendChunk(pals_chunk_index, .top, code);
 
     cx.cx.incStat(.rmim_raw);
 }

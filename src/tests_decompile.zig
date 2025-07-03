@@ -405,7 +405,7 @@ fn testRoundTrip(
     const full_expected_room_scu =
         \\raw-glob RMIM 1 "test-room/RMIM_0001.bin"
         \\rmda {
-        \\    raw-block PALS "test-room/PALS_00000020.bin"
+        \\    raw-block PALS "test-room/PALS.bin"
         \\}
         \\
         \\

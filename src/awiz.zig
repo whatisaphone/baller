@@ -259,7 +259,7 @@ pub const placeholder_palette = placeholder_palette: {
     break :placeholder_palette result;
 };
 
-fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
+pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
     for (header.palette) |color| {
         try out.append(gpa, color.rgbRed);
         try out.append(gpa, color.rgbGreen);
