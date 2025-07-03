@@ -2750,14 +2750,7 @@ fn emitExpr(
         .variable => |v| try emitVariable(cx, v),
         .string => |s| {
             try cx.out.append(cx.gpa, '"');
-            for (s) |c| {
-                if (c == '\\')
-                    try cx.out.appendSlice(cx.gpa, "\\\\")
-                else if (32 <= c and c <= 126)
-                    try cx.out.append(cx.gpa, c)
-                else
-                    try cx.out.writer(cx.gpa).print("\\x{x:0>2}", .{c});
-            }
+            try emitStringContents(cx.gpa, cx.out, s);
             try cx.out.append(cx.gpa, '"');
         },
         .call => |call| {
@@ -2808,6 +2801,21 @@ fn emitExpr(
             // With --annotate, dump the target expr for help debugging
             try cx.out.appendSlice(cx.gpa, "#stackfault");
         },
+    }
+}
+
+pub fn emitStringContents(
+    gpa: std.mem.Allocator,
+    out: *std.ArrayListUnmanaged(u8),
+    str: []const u8,
+) !void {
+    for (str) |c| {
+        if (c == '\\')
+            try out.appendSlice(gpa, "\\\\")
+        else if (32 <= c and c <= 126)
+            try out.append(gpa, c)
+        else
+            try out.writer(gpa).print("\\x{x:0>2}", .{c});
     }
 }
 

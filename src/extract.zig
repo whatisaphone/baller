@@ -47,6 +47,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var awiz_option: ?RawOrDecode = null;
     var mult_option: ?RawOrDecode = null;
     var akos_option: ?RawOrDecode = null;
+    var tlke_option: ?RawOrDecode = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -126,6 +127,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 if (akos_option != null) return arg.reportDuplicate();
                 akos_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
                     return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "tlke")) {
+                if (tlke_option != null) return arg.reportDuplicate();
+                tlke_option = std.meta.stringToEnum(RawOrDecode, opt.value) orelse
+                    return arg.reportInvalidValue();
             } else {
                 return arg.reportUnexpected();
             }
@@ -159,6 +164,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .awiz = awiz_option orelse .decode,
             .mult = mult_option orelse .decode,
             .akos = akos_option orelse .decode,
+            .tlke = tlke_option orelse .decode,
         },
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
@@ -190,6 +196,7 @@ const Options = struct {
     awiz: RawOrDecode,
     mult: RawOrDecode,
     akos: RawOrDecode,
+    tlke: RawOrDecode,
 
     fn anyScriptDecode(self: *const Options) bool {
         return self.scrp == .decode or
@@ -1810,6 +1817,9 @@ fn extractGlobJob(
         .AKOS => if (cx.cx.options.akos == .decode)
             if (tryDecodeAndSend(extractAkos, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
                 return,
+        .TLKE => if (cx.cx.options.tlke == .decode)
+            if (tryDecodeAndSend(extractTlke, cx, &tx, &diag, .{ glob_number, raw }, &code, chunk_index, .bottom))
+                return,
         else => {},
     }
 
@@ -2119,6 +2129,32 @@ fn extractAkos(
     try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
     try akos.decode(cx.cx.gpa, raw, path, dir, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
+}
+
+fn extractTlke(
+    cx: *const RoomContext,
+    diag: *const Diagnostic.ForBinaryFile,
+    glob_number: u16,
+    raw: []const u8,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var stream = std.io.fixedBufferStream(raw);
+    var blocks = fixedBlockReader(&stream, diag);
+    const text_raw = try blocks.expect(.TEXT).bytes();
+    try blocks.finish();
+
+    // Check for null terminator and no interior nulls
+    if (text_raw.len == 0) return error.BadData;
+    if (std.mem.indexOfScalar(u8, text_raw[0 .. text_raw.len - 1], 0) != null)
+        return error.BadData;
+    if (text_raw[text_raw.len - 1] != 0) return error.BadData;
+    const text = text_raw[0 .. text_raw.len - 1];
+
+    try code.appendSlice(cx.cx.gpa, "talkie ");
+    try cx.cx.symbols.writeGlobName(.talkie, glob_number, code.writer(cx.cx.gpa));
+    try code.writer(cx.cx.gpa).print("@{} = \"", .{glob_number});
+    try decompile.emitStringContents(cx.cx.gpa, code, text);
+    try code.appendSlice(cx.cx.gpa, "\"\n");
 }
 
 fn writeRawGlob(

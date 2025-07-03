@@ -160,6 +160,11 @@ pub const Node = union(enum) {
         compression: akos.CompressionCodec,
         path: StringSlice,
     },
+    talkie: struct {
+        name: StringSlice,
+        glob_number: u16,
+        text: StringSlice,
+    },
     constant: struct {
         name: StringSlice,
         value: i32,

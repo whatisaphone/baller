@@ -121,6 +121,7 @@ pub const BlockId = enum(u32) {
     SPOT = make("SPOT"),
     SVER = make("SVER"),
     TALK = make("TALK"),
+    TEXT = make("TEXT"),
     TLKB = make("TLKB"),
     TLKE = make("TLKE"),
     TRNS = make("TRNS"),

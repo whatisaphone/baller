@@ -276,6 +276,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         awiz,
         mult,
         akos,
+        talkie,
         @"var",
         script,
         @"local-script",
@@ -368,6 +369,10 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                 },
                 .akos => {
                     const node_index = try parseAkos(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+                .talkie => {
+                    const node_index = try parseTalkie(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .@"var" => {
@@ -823,6 +828,21 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         .name = name,
         .glob_number = glob_number,
         .children = try storeExtra(cx, children.slice()),
+    } });
+}
+
+fn parseTalkie(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
+    const glob_number = try expectInteger(cx, u16);
+    try expect(cx, .eq);
+    const text = try expectString(cx);
+    try expect(cx, .newline);
+
+    return storeNode(cx, token, .{ .talkie = .{
+        .name = name,
+        .glob_number = glob_number,
+        .text = text,
     } });
 }
 

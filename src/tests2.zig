@@ -233,6 +233,7 @@ fn testRoundTrip(
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,
+                .tlke = .raw,
             },
             .decode_all => .{
                 .script = .decompile,
@@ -250,6 +251,7 @@ fn testRoundTrip(
                 .awiz = .decode,
                 .mult = .decode,
                 .akos = .decode,
+                .tlke = .decode,
             },
             .disasm => .{
                 .script = .disassemble,
@@ -267,6 +269,7 @@ fn testRoundTrip(
                 .awiz = .raw,
                 .mult = .raw,
                 .akos = .raw,
+                .tlke = .raw,
             },
         },
     });
@@ -323,6 +326,7 @@ test "decompile annotate smoke test" {
             .awiz = .raw,
             .mult = .raw,
             .akos = .raw,
+            .tlke = .raw,
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
@@ -355,6 +359,7 @@ test "disasm annotate smoke test" {
             .awiz = .raw,
             .mult = .raw,
             .akos = .raw,
+            .tlke = .raw,
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();

@@ -394,6 +394,7 @@ fn testRoundTrip(
             .awiz = .decode,
             .mult = .decode,
             .akos = .decode,
+            .tlke = .decode,
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
