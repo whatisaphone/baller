@@ -521,6 +521,10 @@ pub const Block = struct {
         return self.start - block_header_size;
     }
 
+    pub fn full_size(self: *const Block) u32 {
+        return header_size + self.size;
+    }
+
     pub fn end(self: *const Block) u32 {
         return self.start + self.size;
     }

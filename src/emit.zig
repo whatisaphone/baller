@@ -61,6 +61,7 @@ pub fn runInner(
     };
 
     while (true) switch (try receiver.next(gpa)) {
+        .nop => {},
         .disk_start => |num| try emitDisk(gpa, output_dir, index_name, target, receiver, num, &index),
         .index_start => try emitIndex(gpa, receiver, target, output_dir, index_name, &index),
         .project_end => break,

@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const report = @import("report.zig");
@@ -124,6 +125,21 @@ pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
     path[path.len - 3] = '(';
     path[path.len - 2] = ('A' | lowercase) - 1 + disk_number;
     path[path.len - 1] = ')';
+}
+
+/// change ".he0" to ".he4"
+pub fn pointPathToMusic(game: Game, path: []u8) void {
+    if (builtin.mode == .Debug) {
+        const ext = path[path.len - 4 ..];
+        std.debug.assert(std.mem.eql(u8, ext, ".he0") or std.mem.eql(u8, ext, ".HE0"));
+    }
+
+    path[path.len - 1] = '4';
+
+    if (game.target() == .sputm99) {
+        for (path) |*c|
+            c.* = std.ascii.toLower(c.*);
+    }
 }
 
 pub fn firstLocalScript(game: Game) u16 {

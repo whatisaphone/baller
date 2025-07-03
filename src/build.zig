@@ -100,7 +100,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     var events: sync.Channel(plan.Event, 16) = .init;
 
-    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, &pool, &events });
+    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, output_dir, index_name, &pool, &events });
 
     try emit.run(gpa, diagnostic, output_dir, index_name, &events);
 }

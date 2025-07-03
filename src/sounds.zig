@@ -82,13 +82,20 @@ fn writeWav(dir: std.fs.Dir, path: [*:0]const u8, samples: []const u8) !void {
 
     var buf = std.io.bufferedWriter(file.writer());
 
-    try buf.writer().writeAll("RIFF");
-    try buf.writer().writeInt(u32, @intCast(4 + 8 + 16 + 8 + samples.len), .little);
-    try buf.writer().writeAll("WAVE");
+    try writeWavHeader(buf.writer(), @intCast(samples.len));
+    try buf.writer().writeAll(samples);
 
-    try buf.writer().writeAll("fmt ");
-    try buf.writer().writeInt(u32, @sizeOf(PCMWAVEFORMAT), .little);
-    try buf.writer().writeAll(std.mem.asBytes(&PCMWAVEFORMAT{
+    try buf.flush();
+}
+
+pub fn writeWavHeader(out: anytype, num_samples: u32) !void {
+    try out.writeAll("RIFF");
+    try out.writeInt(u32, @intCast(4 + 8 + 16 + 8 + num_samples), .little);
+    try out.writeAll("WAVE");
+
+    try out.writeAll("fmt ");
+    try out.writeInt(u32, @sizeOf(PCMWAVEFORMAT), .little);
+    try out.writeAll(std.mem.asBytes(&PCMWAVEFORMAT{
         .wFormatTag = WAVE_FORMAT_PCM,
         .nChannels = 1,
         .nSamplesPerSec = 11025,
@@ -97,11 +104,8 @@ fn writeWav(dir: std.fs.Dir, path: [*:0]const u8, samples: []const u8) !void {
         .wBitsPerSample = 8,
     }));
 
-    try buf.writer().writeAll("data");
-    try buf.writer().writeInt(u32, @intCast(samples.len), .little);
-    try buf.writer().writeAll(samples);
-
-    try buf.flush();
+    try out.writeAll("data");
+    try out.writeInt(u32, num_samples, .little);
 }
 
 fn readWav(

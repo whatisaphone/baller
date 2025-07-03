@@ -22,6 +22,7 @@ const VerbEntry = @import("extract.zig").VerbEntry;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
+const music = @import("music.zig");
 const obim = @import("obim.zig");
 const rmim_encode = @import("rmim_encode.zig");
 const script = @import("script.zig");
@@ -35,6 +36,7 @@ pub const Event = struct {
 };
 
 pub const Payload = union(enum) {
+    nop,
     project_end,
     target: games.Target,
     disk_start: u8,
@@ -58,6 +60,8 @@ pub fn run(
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
+    output_dir: std.fs.Dir,
+    index_name: []const u8,
     pool: *std.Thread.Pool,
     events: *sync.Channel(Event, 16),
 ) void {
@@ -76,6 +80,8 @@ pub fn run(
             .project_dir = project_dir,
             .project = project,
             .awiz_strategy = awiz_strategy,
+            .output_dir = output_dir,
+            .index_name = index_name,
             .target = .undef,
             .vm = .undef,
             .op_map = .undef,
@@ -112,6 +118,8 @@ const Context = struct {
     project_dir: std.fs.Dir,
     project: *const Project,
     awiz_strategy: awiz.EncodingStrategy,
+    output_dir: std.fs.Dir,
+    index_name: []const u8,
     target: utils.SafeUndefined(games.Target),
     vm: utils.SafeUndefined(lang.Vm),
     op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
@@ -155,6 +163,8 @@ fn planProject(cx: *Context) !void {
     }
 
     try planIndex(cx);
+
+    try spawnJob(buildMusic, cx, 0, Ast.null_node);
 
     cx.sendSyncEvent(.project_end);
 }
@@ -1179,4 +1189,18 @@ fn planRoomNames(cx: *Context) !void {
         .block_id = .RNAM,
         .data = result,
     } });
+}
+
+fn buildMusic(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
+    // HACK: function signature is all wrong
+    std.debug.assert(room_number == 0);
+    std.debug.assert(node_index == Ast.null_node);
+    // if I fixed it I wouldn't need nop nodes at all
+    cx.sendEvent(event_index, .nop);
+
+    var path_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    const path = std.fmt.bufPrintZ(&path_buf, "{s}", .{cx.index_name}) catch unreachable;
+    games.pointPathToMusic(cx.target.defined.pickAnyGame(), path);
+
+    try music.build(cx.gpa, cx.project_dir, cx.project, cx.output_dir, path);
 }

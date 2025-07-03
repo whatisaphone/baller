@@ -52,6 +52,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     const Keyword = enum {
         index,
         disk,
+        music,
         @"var",
         @"const",
     };
@@ -84,6 +85,10 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
                 },
                 .disk => {
                     const node = try parseDisk(cx, token);
+                    try appendNode(cx, &children, node);
+                },
+                .music => {
+                    const node = try parseMusic(cx, token);
                     try appendNode(cx, &children, node);
                 },
                 .@"var" => {
@@ -862,6 +867,41 @@ fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
         }
     }
     return storeExtra(cx, result.slice());
+}
+
+fn parseMusic(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    try expect(cx, .brace_l);
+
+    const children = try parseMusicChildren(cx);
+
+    return storeNode(cx, token, .{ .music = .{
+        .children = children,
+    } });
+}
+
+fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
+    const Keyword = enum {
+        sound,
+    };
+
+    var children: std.BoundedArray(Ast.NodeIndex, 192) = .{};
+
+    while (true) {
+        skipWhitespace(cx);
+        const token = consumeToken(cx);
+        switch (token.kind) {
+            .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
+                .sound => {
+                    const node_index = try parseSound(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+            },
+            .brace_r => break,
+            else => return reportUnexpected(cx, token),
+        }
+    }
+
+    return storeExtra(cx, children.slice());
 }
 
 fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {

@@ -21,6 +21,7 @@ const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
+const music = @import("music.zig");
 const obim = @import("obim.zig");
 const rmim = @import("rmim.zig");
 const sounds = @import("sounds.zig");
@@ -35,6 +36,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var symbols_path: ?[:0]const u8 = null;
     var script: ?ScriptMode = null;
     var annotate: ?bool = null;
+    var music_option: ?YesNo = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
@@ -75,6 +77,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             } else if (std.mem.eql(u8, opt.flag, "script")) {
                 if (script != null) return arg.reportDuplicate();
                 script = std.meta.stringToEnum(ScriptMode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "music")) {
+                if (music_option != null) return arg.reportDuplicate();
+                music_option = std.meta.stringToEnum(YesNo, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "rmim")) {
                 if (rmim_option != null) return arg.reportDuplicate();
@@ -152,6 +158,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .options = .{
             .script = script orelse .decompile,
             .annotate = annotate orelse false,
+            .music = (music_option orelse YesNo.yes).toBool(),
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
@@ -184,6 +191,7 @@ const Extract = struct {
 const Options = struct {
     script: ScriptMode,
     annotate: bool,
+    music: bool,
     rmim: RawOrDecode,
     scrp: RawOrDecode,
     encd: RawOrDecode,
@@ -217,6 +225,15 @@ const RawOrDecode = enum {
 const ScriptMode = enum {
     disassemble,
     decompile,
+};
+
+const YesNo = enum {
+    no,
+    yes,
+
+    fn toBool(self: YesNo) bool {
+        return self != .no;
+    }
 };
 
 pub const Stat = enum {
@@ -344,6 +361,10 @@ pub fn run(
     for (0..num_disks) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
         try extractDisk(&cx, diagnostic, input_dir, index_name, disk_number, &code);
+    }
+
+    if (cx.options.music) {
+        try extractMusic(&cx, diagnostic, input_dir, index_name, output_dir, &code);
     }
 
     if (args.options.anyScriptDecode()) {
@@ -2381,6 +2402,26 @@ const Chunk = struct {
 
 fn iovec(s: []const u8) std.posix.iovec_const {
     return .{ .base = s.ptr, .len = s.len };
+}
+
+fn extractMusic(
+    cx: *Context,
+    diagnostic: *Diagnostic,
+    input_dir: std.fs.Dir,
+    index_name: [:0]const u8,
+    output_parent_dir: std.fs.Dir,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    var in_path_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    const in_path = std.fmt.bufPrintZ(&in_path_buf, "{s}", .{index_name}) catch unreachable;
+    games.pointPathToMusic(cx.game, in_path);
+
+    const output_path = "music";
+    try fs.makeDirIfNotExistZ(output_parent_dir, output_path);
+    var output_dir = try output_parent_dir.openDirZ(output_path, .{});
+    defer output_dir.close();
+
+    try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
 }
 
 fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {

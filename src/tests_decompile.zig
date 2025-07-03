@@ -385,6 +385,7 @@ fn testRoundTrip(
         .options = .{
             .script = .decompile,
             .annotate = false,
+            .music = false,
             .rmim = .decode,
             .scrp = .decode,
             .encd = .decode,

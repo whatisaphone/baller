@@ -165,6 +165,9 @@ pub const Node = union(enum) {
         glob_number: u16,
         text: StringSlice,
     },
+    music: struct {
+        children: ExtraSlice,
+    },
     constant: struct {
         name: StringSlice,
         value: i32,

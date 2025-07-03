@@ -26,10 +26,10 @@ const baseball1997: Game = .{
     .symbols_path = "src/fixtures/baseball1997-symbols.ini",
 };
 test "Backyard Baseball 1997 round trip raw" {
-    _ = try testRoundTrip(baseball1997, .raw);
+    _ = try testRoundTrip(baseball1997, .raw, &.{});
 }
 test "Backyard Baseball 1997 round trip decode all" {
-    const stats = try testRoundTrip(baseball1997, .decode_all);
+    const stats = try testRoundTrip(baseball1997, .decode_all, &.{"BASEBALL.HE4"});
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 30);
@@ -46,7 +46,7 @@ test "Backyard Baseball 1997 round trip decode all" {
     }
 }
 test "Backyard Baseball 1997 round trip disasm" {
-    const stats = try testRoundTrip(baseball1997, .disasm);
+    const stats = try testRoundTrip(baseball1997, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
@@ -59,10 +59,10 @@ const soccer: Game = .{
     .fixture_names = &.{"SOCCER.(A)"},
 };
 test "Backyard Soccer round trip raw" {
-    _ = try testRoundTrip(soccer, .raw);
+    _ = try testRoundTrip(soccer, .raw, &.{});
 }
 test "Backyard Soccer round trip decode all" {
-    const stats = try testRoundTrip(soccer, .decode_all);
+    const stats = try testRoundTrip(soccer, .decode_all, &.{"SOCCER.HE4"});
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 29);
@@ -79,7 +79,7 @@ test "Backyard Soccer round trip decode all" {
     }
 }
 test "Backyard Soccer round trip disasm" {
-    const stats = try testRoundTrip(soccer, .disasm);
+    const stats = try testRoundTrip(soccer, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
@@ -92,10 +92,10 @@ const football: Game = .{
     .fixture_names = &.{ "FOOTBALL.(A)", "FOOTBALL.(B)" },
 };
 test "Backyard Football round trip raw" {
-    _ = try testRoundTrip(football, .raw);
+    _ = try testRoundTrip(football, .raw, &.{});
 }
 test "Backyard Football round trip decode all" {
-    const stats = try testRoundTrip(football, .decode_all);
+    const stats = try testRoundTrip(football, .decode_all, &.{"football.he4"});
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 56);
@@ -111,7 +111,7 @@ test "Backyard Football round trip decode all" {
     }
 }
 test "Backyard Football round trip disasm" {
-    const stats = try testRoundTrip(football, .disasm);
+    const stats = try testRoundTrip(football, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
@@ -125,10 +125,10 @@ const baseball2001: Game = .{
     .symbols_path = "src/fixtures/baseball2001-symbols.ini",
 };
 test "Backyard Baseball 2001 round trip raw" {
-    _ = try testRoundTrip(baseball2001, .raw);
+    _ = try testRoundTrip(baseball2001, .raw, &.{});
 }
 test "Backyard Baseball 2001 round trip decode all" {
-    const stats = try testRoundTrip(baseball2001, .decode_all);
+    const stats = try testRoundTrip(baseball2001, .decode_all, &.{"baseball 2001.he4"});
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 37);
@@ -144,7 +144,7 @@ test "Backyard Baseball 2001 round trip decode all" {
     }
 }
 test "Backyard Baseball 2001 round trip disasm" {
-    const stats = try testRoundTrip(baseball2001, .disasm);
+    const stats = try testRoundTrip(baseball2001, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
@@ -157,10 +157,10 @@ const basketball: Game = .{
     .fixture_names = &.{ "Basketball.(a)", "Basketball.(b)" },
 };
 test "Backyard Basketball round trip raw" {
-    _ = try testRoundTrip(basketball, .raw);
+    _ = try testRoundTrip(basketball, .raw, &.{});
 }
 test "Backyard Basketball round trip decode all" {
-    const stats = try testRoundTrip(basketball, .decode_all);
+    const stats = try testRoundTrip(basketball, .decode_all, &.{}); // TODO: test he4
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 33);
@@ -176,7 +176,7 @@ test "Backyard Basketball round trip decode all" {
     }
 }
 test "Backyard Basketball round trip disasm" {
-    const stats = try testRoundTrip(basketball, .disasm);
+    const stats = try testRoundTrip(basketball, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
         try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
@@ -204,6 +204,7 @@ test "dump smoke test" {
 fn testRoundTrip(
     comptime game: Game,
     options: enum { raw, decode_all, disasm },
+    comptime addl_fixtures: []const [:0]const u8,
 ) !std.EnumArray(extract.Stat, u16) {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
@@ -223,6 +224,7 @@ fn testRoundTrip(
             .raw => .{
                 .script = .decompile, // (ignored since everything is .raw)
                 .annotate = false,
+                .music = false,
                 .rmim = .raw,
                 .scrp = .raw,
                 .encd = .raw,
@@ -241,6 +243,8 @@ fn testRoundTrip(
             .decode_all => .{
                 .script = .decompile,
                 .annotate = false,
+                // TODO: basketball music
+                .music = !std.mem.eql(u8, game.index_name, "Basketball.he0"),
                 .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,
@@ -259,6 +263,7 @@ fn testRoundTrip(
             .disasm => .{
                 .script = .disassemble,
                 .annotate = false,
+                .music = false,
                 .rmim = .raw,
                 .scrp = .decode,
                 .encd = .decode,
@@ -293,7 +298,7 @@ fn testRoundTrip(
     var output_dir = try std.fs.cwd().openDirZ(build_path, .{});
     defer output_dir.close();
 
-    inline for (.{game.index_name} ++ game.fixture_names) |name| {
+    inline for (.{game.index_name} ++ game.fixture_names ++ addl_fixtures) |name| {
         errdefer std.debug.print("{s}\n", .{name});
         const expected_hex = @field(fixture_hashes, game.fixture_dir ++ "/" ++ name);
         try expectFileHashEquals(output_dir, name, expected_hex);
@@ -320,6 +325,7 @@ test "decompile annotate smoke test" {
         .options = .{
             .script = .decompile,
             .annotate = true,
+            .music = false,
             .rmim = .raw,
             .scrp = .decode,
             .encd = .decode,
@@ -357,6 +363,7 @@ test "disasm annotate smoke test" {
         .options = .{
             .script = .disassemble,
             .annotate = true,
+            .music = false,
             .rmim = .raw,
             .scrp = .decode,
             .encd = .decode,
