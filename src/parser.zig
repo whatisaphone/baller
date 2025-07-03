@@ -606,7 +606,7 @@ fn parseSoundChildren(cx: *Cx) !Ast.ExtraSlice {
         sdat,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
 
     while (true) {
         skipWhitespace(cx);

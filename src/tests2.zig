@@ -40,6 +40,7 @@ test "Backyard Baseball 1997 round trip decode all" {
         try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 375);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 202);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 0);
         try std.testing.expectEqual(stats.get(.awiz_total), 1039);
         try std.testing.expectEqual(stats.get(.awiz_decode), 1008);
     }
@@ -72,6 +73,7 @@ test "Backyard Soccer round trip decode all" {
         try expectTwoStatsEq(&stats, .lscr_total, .lscr_decompile, 384);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 143);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1686);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 2146);
         try std.testing.expectEqual(stats.get(.awiz_total), 1616);
         try std.testing.expectEqual(stats.get(.awiz_decode), 1552);
     }
@@ -103,6 +105,7 @@ test "Backyard Football round trip decode all" {
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 56);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 890);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1599);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 2768);
         try std.testing.expectEqual(stats.get(.awiz_total), 1159);
         try std.testing.expectEqual(stats.get(.awiz_decode), 1111);
     }
@@ -135,6 +138,7 @@ test "Backyard Baseball 2001 round trip decode all" {
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 37);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1529);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 3662);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 617);
         try std.testing.expectEqual(stats.get(.awiz_total), 750);
         try std.testing.expectEqual(stats.get(.awiz_decode), 749);
     }
@@ -166,6 +170,7 @@ test "Backyard Basketball round trip decode all" {
         try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 33);
         try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1142);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 0);
         try std.testing.expectEqual(stats.get(.awiz_total), 166);
         try std.testing.expectEqual(stats.get(.awiz_decode), 162);
     }

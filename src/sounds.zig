@@ -26,7 +26,13 @@ pub fn extract(
     const hshd = try blocks.expect(.HSHD).value([16]u8);
     try writeRawBlock(gpa, .HSHD, hshd, out_dir, out_path, 4, .{ .symbol_block = name }, code);
 
-    const sdat = try blocks.expect(.SDAT).bytes();
+    while (try blocks.peek() != .SDAT) {
+        const block = try blocks.next().block();
+        const bytes = try io.readInPlace(&stream, block.size);
+        try writeRawBlock(gpa, block.id, bytes, out_dir, out_path, 4, .{ .symbol_block = name }, code);
+    }
+
+    const sdat = try blocks.assume(.SDAT).bytes();
 
     var wav_path_buf: [Symbols.max_name_len + ".wav".len + 1]u8 = undefined;
     const wav_path = std.fmt.bufPrintZ(&wav_path_buf, "{s}.wav", .{name}) catch unreachable;
