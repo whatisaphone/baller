@@ -592,7 +592,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: u32, event_index: u
         }
     }
 
-    try endBlockAl(&out, im00_start);
+    endBlockAl(&out, im00_start);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .block_id = .RMIM,
@@ -636,13 +636,13 @@ fn buildPals(
 
     const offs_start = try beginBlockAl(gpa, out, .OFFS);
     try out.writer(gpa).writeInt(u32, 12, .little);
-    try endBlockAl(out, offs_start);
+    endBlockAl(out, offs_start);
 
     const apal_start = try beginBlockAl(gpa, out, .APAL);
     try awiz.writeRgbs(gpa, bitmap.*, out);
-    try endBlockAl(out, apal_start);
+    endBlockAl(out, apal_start);
 
-    try endBlockAl(out, wrap_start);
+    endBlockAl(out, wrap_start);
 }
 
 fn planScr(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -761,7 +761,7 @@ fn compileObim(
                 const block_id = obim.makeImBlockId(im_index) orelse return error.BadData;
                 const im_start = try beginBlockAl(cx.gpa, out, block_id);
                 try compileIm(cx, room_number, child_index, out);
-                try endBlockAl(out, im_start);
+                endBlockAl(out, im_start);
                 im_index += 1;
             },
             else => unreachable,
@@ -801,7 +801,7 @@ pub fn encodeRawBlock(
         .path => |ss| try fs.readFileInto(dir, file.ast.strings.get(ss), out.writer(gpa)),
         .data => |ss| try out.appendSlice(gpa, file.ast.strings.get(ss)),
     }
-    try endBlockAl(out, start);
+    endBlockAl(out, start);
 }
 
 fn planDigi(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -866,7 +866,7 @@ fn planMultInner(
             const child = &room_file.ast.nodes.items[child_node].raw_block;
             try encodeRawBlock(cx.gpa, cx.project_dir, room_file, child, out);
         }
-        try endBlockAl(out, defa_start);
+        endBlockAl(out, defa_start);
     }
 
     const wrap_start = try beginBlockAl(cx.gpa, out, .WRAP);
@@ -874,7 +874,7 @@ fn planMultInner(
     const offs_start = try beginBlockAl(cx.gpa, out, .OFFS);
     // the offsets are filled in at the end
     _ = try out.addManyAsSlice(cx.gpa, mult_node.indices.len * 4);
-    try endBlockAl(out, offs_start);
+    endBlockAl(out, offs_start);
 
     var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
     for (room_file.ast.getExtra(mult_node.children)) |node| {
@@ -882,7 +882,7 @@ fn planMultInner(
         const wiz = &room_file.ast.nodes.items[node].mult_awiz;
         const awiz_start = try beginBlockAl(cx.gpa, out, .AWIZ);
         try awiz.encode(cx.gpa, cx.project_dir, room_file, wiz.children, cx.awiz_strategy, out);
-        try endBlockAl(out, awiz_start);
+        endBlockAl(out, awiz_start);
     }
 
     var off_pos = offs_start + block_header_size;
@@ -891,7 +891,7 @@ fn planMultInner(
         off_pos += 4;
     }
 
-    try endBlockAl(out, wrap_start);
+    endBlockAl(out, wrap_start);
 }
 
 fn planAkos(cx: *const Context, room_number: u8, node_index: u32, event_index: u16) !void {
@@ -1081,12 +1081,12 @@ fn planObjectInner(
         verb_fixup = try beginBlockAl(cx.gpa, out, .VERB);
         try out.append(cx.gpa, 0);
     }
-    try endBlockAl(out, verb_fixup.?);
+    endBlockAl(out, verb_fixup.?);
 
     const obna_fixup = try beginBlockAl(cx.gpa, out, .OBNA);
     try out.appendSlice(cx.gpa, room_file.ast.strings.get(object.obna));
     try out.append(cx.gpa, 0);
-    try endBlockAl(out, obna_fixup);
+    endBlockAl(out, obna_fixup);
 }
 
 fn planIndex(cx: *Context) !void {

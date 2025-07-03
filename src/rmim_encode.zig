@@ -22,7 +22,7 @@ pub fn encode(
     try out.append(gpa, compression);
     try compressBmap(header, target, compression, out.writer(gpa));
 
-    try endBlockAl(out, bmap_fixup);
+    endBlockAl(out, bmap_fixup);
 }
 
 fn compressBmap(

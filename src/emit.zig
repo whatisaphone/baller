@@ -279,7 +279,7 @@ fn addGlobToIndex(
 fn writeBlock(out: anytype, block_id: BlockId, data: []const u8) !void {
     const start = try beginBlockKnown(out, block_id, @intCast(data.len));
     try out.writer().writeAll(data);
-    try endBlockKnown(out, start);
+    endBlockKnown(out, start);
 }
 
 const Index = struct {
@@ -434,7 +434,7 @@ fn writeMaxs(
 
     const start = try beginBlockKnown(out, .MAXS, @intCast(data.items.len));
     try out.writer().writeAll(data.items);
-    try endBlockKnown(out, start);
+    endBlockKnown(out, start);
 }
 
 fn writeDirectory(

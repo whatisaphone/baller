@@ -222,14 +222,14 @@ pub fn encode(
             .awiz_rgbs => {
                 const fixup = try beginBlockAl(gpa, out, .RGBS);
                 try writeRgbs(gpa, header, out);
-                try endBlockAl(out, fixup);
+                endBlockAl(out, fixup);
             },
             .awiz_wizh => {
                 const fixup = try beginBlockAl(gpa, out, .WIZH);
                 try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
                 try out.writer(gpa).writeInt(i32, header.width, .little);
                 try out.writer(gpa).writeInt(i32, header.height, .little);
-                try endBlockAl(out, fixup);
+                endBlockAl(out, fixup);
             },
             .awiz_wizd => |_| {
                 const fixup = try beginBlockAl(gpa, out, .WIZD);
@@ -240,7 +240,7 @@ pub fn encode(
                 // Pad output to a multiple of 2 bytes
                 if ((out.items.len - fixup) & 1 != 0)
                     try out.append(gpa, 0);
-                try endBlockAl(out, fixup);
+                endBlockAl(out, fixup);
             },
             else => unreachable,
         }

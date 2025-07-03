@@ -52,7 +52,7 @@ pub fn build(
             .sdat => |*n| {
                 const start = try beginBlockAl(gpa, out, .SDAT);
                 try readWav(gpa, project_dir, file.ast.strings.get(n.path), out);
-                try endBlockAl(out, start);
+                endBlockAl(out, start);
             },
             else => unreachable,
         }

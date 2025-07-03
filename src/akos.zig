@@ -272,7 +272,7 @@ pub fn encode(
 
                 const start = try beginBlockAl(gpa, out, .AKPL);
                 try out.appendSlice(gpa, akpl.?.slice());
-                try endBlockAl(out, start);
+                endBlockAl(out, start);
             },
             .akcd => |*n| {
                 if (akpl == null) return error.BadData;
@@ -435,15 +435,15 @@ fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: anytype) !void {
         };
         try out.appendSlice(gpa, std.mem.asBytes(&off));
     }
-    try endBlockAl(out, akof_start);
+    endBlockAl(out, akof_start);
 
     const akci_start = try beginBlockAl(gpa, out, .AKCI);
     try out.appendSlice(gpa, std.mem.sliceAsBytes(state.akci.items));
-    try endBlockAl(out, akci_start);
+    endBlockAl(out, akci_start);
 
     const akcd_start = try beginBlockAl(gpa, out, .AKCD);
     try out.appendSlice(gpa, std.mem.sliceAsBytes(state.akcd.items));
-    try endBlockAl(out, akcd_start);
+    endBlockAl(out, akcd_start);
 
     state.akci.clearRetainingCapacity();
     state.cd_offsets.clearRetainingCapacity();

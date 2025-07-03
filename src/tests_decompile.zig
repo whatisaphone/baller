@@ -424,13 +424,13 @@ fn buildDummyPals() [796]u8 {
 
     const offs_start = beginBlockAl(na, &out, .OFFS) catch unreachable;
     out.writer(na).writeInt(u32, 12, .little) catch unreachable;
-    endBlockAl(&out, offs_start) catch unreachable;
+    endBlockAl(&out, offs_start);
 
     const apal_start = beginBlockAl(na, &out, .APAL) catch unreachable;
     out.appendNTimes(na, 0, 0x300) catch unreachable;
-    endBlockAl(&out, apal_start) catch unreachable;
+    endBlockAl(&out, apal_start);
 
-    endBlockAl(&out, wrap_start) catch unreachable;
+    endBlockAl(&out, wrap_start);
 
     std.debug.assert(out.items.len == out.capacity);
     return result;

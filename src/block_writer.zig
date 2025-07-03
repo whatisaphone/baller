@@ -29,7 +29,7 @@ pub fn beginBlockKnown(stream: anytype, id: BlockId, size: u32) !struct { u32, u
     return .{ block_start, size + 8 };
 }
 
-pub fn endBlockKnown(stream: anytype, start_and_size: struct { u32, u32 }) !void {
+pub fn endBlockKnown(stream: anytype, start_and_size: struct { u32, u32 }) void {
     const start, const size = start_and_size;
     const pos: u32 = @intCast(stream.bytes_written);
     std.debug.assert(pos - start == size);
@@ -45,7 +45,7 @@ pub fn beginBlockAl(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id
     return block_start;
 }
 
-pub fn endBlockAl(out: *std.ArrayListUnmanaged(u8), block_start: u32) !void {
+pub fn endBlockAl(out: *std.ArrayListUnmanaged(u8), block_start: u32) void {
     const dest = out.items[block_start + 4 ..][0..4];
     const pos: u32 = @intCast(out.items.len);
     const value = pos - block_start;
