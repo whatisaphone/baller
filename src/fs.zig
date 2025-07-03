@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const io = @import("io.zig");
@@ -75,4 +76,10 @@ pub fn splitPathZ(path: [:0]const u8) struct { ?[]const u8, [:0]const u8 } {
     const name = std.fs.path.basename(path);
     const name_offset = name.ptr - path.ptr;
     return .{ dir, path[name_offset..] };
+}
+
+pub fn assertNotExists(dir: std.fs.Dir, sub_path: []const u8) void {
+    std.debug.assert(builtin.is_test);
+    const ok = if (dir.statFile(sub_path)) |_| false else |err| err == error.FileNotFound;
+    std.debug.assert(ok);
 }

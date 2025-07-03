@@ -308,6 +308,10 @@ fn testRoundTrip(
     const build_path = "/tmp/baller-test-build";
     const out_path = "/tmp/baller-test-out";
 
+    try std.fs.cwd().deleteTree(in_path);
+    try std.fs.cwd().deleteTree(build_path);
+    try std.fs.cwd().deleteTree(out_path);
+
     // Write project
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);

@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
@@ -269,6 +270,10 @@ pub fn run(
         std.fs.cwd();
     defer if (input_path_opt) |_|
         input_dir.close();
+
+    // Make sure tests always write to an empty dir
+    if (builtin.is_test)
+        fs.assertNotExists(std.fs.cwd(), args.output_path);
 
     try fs.makeDirIfNotExistZ(std.fs.cwd(), args.output_path);
     var output_dir = try std.fs.cwd().openDirZ(args.output_path, .{});

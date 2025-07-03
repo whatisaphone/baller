@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
@@ -71,6 +72,10 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     const output_path_opt, const index_name = fs.splitPathZ(args.index_path);
     var output_dir = if (output_path_opt) |output_path| output_dir: {
+        // Make sure tests always write to an empty dir
+        if (builtin.is_test)
+            fs.assertNotExists(std.fs.cwd(), output_path);
+
         try fs.makeDirIfNotExist(std.fs.cwd(), output_path);
         break :output_dir try std.fs.cwd().openDir(output_path, .{});
     } else std.fs.cwd();

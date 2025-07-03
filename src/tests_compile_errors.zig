@@ -17,6 +17,9 @@ fn testRoomError(case_str: []const u8) !void {
     const in_path = "/tmp/baller-test-in";
     const build_path = "/tmp/baller-test-build";
 
+    try std.fs.cwd().deleteTree(in_path);
+    try std.fs.cwd().deleteTree(build_path);
+
     try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
     var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
     defer in_dir.close();

@@ -212,6 +212,9 @@ fn testRoundTrip(
     const extract_path = "/tmp/" ++ game.fixture_dir;
     const build_path = extract_path ++ "build";
 
+    try std.fs.cwd().deleteTree(extract_path);
+    try std.fs.cwd().deleteTree(build_path);
+
     const extract_stats = try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
         .output_path = extract_path,
@@ -302,13 +305,17 @@ fn testRoundTrip(
 test "decompile annotate smoke test" {
     const game = &baseball2001;
 
+    const out_path = "/tmp/" ++ game.fixture_dir;
+
+    try std.fs.cwd().deleteTree(out_path);
+
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
 
     _ = try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
-        .output_path = "/tmp/" ++ game.fixture_dir,
+        .output_path = out_path,
         .symbols_path = game.symbols_path,
         .options = .{
             .script = .decompile,
@@ -335,13 +342,17 @@ test "decompile annotate smoke test" {
 test "disasm annotate smoke test" {
     const game = &baseball2001;
 
+    const out_path = "/tmp/" ++ game.fixture_dir;
+
+    try std.fs.cwd().deleteTree(out_path);
+
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
 
     _ = try extract.run(std.testing.allocator, &diagnostic, .{
         .index_path = "src/fixtures/" ++ game.fixture_dir ++ "/" ++ game.index_name,
-        .output_path = "/tmp/" ++ game.fixture_dir,
+        .output_path = out_path,
         .symbols_path = game.symbols_path,
         .options = .{
             .script = .disassemble,
