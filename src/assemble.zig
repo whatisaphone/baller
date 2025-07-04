@@ -5,7 +5,7 @@ const lang = @import("lang.zig");
 const report = @import("report.zig");
 const script = @import("script.zig");
 
-const horizontal_whitespace = " \t";
+const horizontal_whitespace = " \t\r";
 
 const Scopes = struct {
     project: *const std.StringHashMapUnmanaged(script.Symbol),

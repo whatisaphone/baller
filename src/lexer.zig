@@ -142,6 +142,9 @@ pub fn run(
         const ch = consumeChar(&state) orelse break;
         if (ch == '\n') {
             try appendToken(&state, loc, .newline);
+        } else if (ch == '\r' and peekChar(&state) == '\n') {
+            _ = consumeChar(&state);
+            try appendToken(&state, loc, .newline);
         } else if (ch == ',') {
             try appendToken(&state, loc, .comma);
         } else if (ch == '.') {

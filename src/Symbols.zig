@@ -162,6 +162,10 @@ const Cx = struct {
 fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbols) !void {
     var line = full_line;
 
+    // chop off windows cr
+    if (line.len != 0 and line[line.len - 1] == '\r')
+        line = line[0 .. line.len - 1];
+
     // chop off comments
     const comment_start = std.mem.indexOfScalar(u8, full_line, ';');
     if (comment_start) |i|
