@@ -1201,13 +1201,15 @@ fn runBlockJob(
     chunk_index: u16,
     args: anytype,
 ) void {
-    defer cx.cx.gpa.free(raw);
+    {
+        defer cx.cx.gpa.free(raw);
 
-    @call(.auto, job, .{ cx, diag, &block, raw, chunk_index } ++ args) catch |err| {
-        if (err != error.AddedToDiagnostic)
-            diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
-        cx.events.send(.err);
-    };
+        @call(.auto, job, .{ cx, diag, &block, raw, chunk_index } ++ args) catch |err| {
+            if (err != error.AddedToDiagnostic)
+                diag.zigErr(block.offset(), "unexpected error: {s}", .{}, err);
+            cx.events.send(.err);
+        };
+    }
 
     const prev_pending = cx.pending_jobs.fetchSub(1, .acq_rel);
     if (prev_pending == 1)
