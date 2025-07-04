@@ -14,13 +14,13 @@ const Cx = struct {
     diag: *const Diagnostic.ForTextFile,
     source: []const u8,
     lex: *const lexer.Lex,
-    token_index: u32,
+    token_index: @typeInfo(lexer.TokenIndex).@"enum".tag_type,
     result: Ast,
 };
 
 const ParseError = error{ OutOfMemory, AddedToDiagnostic };
 
-const dummy_root_token = 0;
+const dummy_root_token: lexer.TokenIndex = .fromIndex(0);
 
 pub fn parseProject(
     gpa: std.mem.Allocator,
@@ -105,7 +105,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         }
     }
 
-    const token = &cx.lex.tokens.items[dummy_root_token];
+    const token = cx.lex.tokens.at(dummy_root_token);
 
     if (!parsed_index)
         return reportError(cx, token, "missing index", .{});
@@ -426,7 +426,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         }
     }
 
-    const token = &cx.lex.tokens.items[dummy_root_token];
+    const token = cx.lex.tokens.at(dummy_root_token);
     return storeNode(cx, token, .{ .room_file = .{
         .children = try storeExtra(cx, children.slice()),
         .variables = try storeExtra(cx, variables.slice()),
@@ -1508,13 +1508,13 @@ fn storeNodeWithTokenIndex(cx: *Cx, token_index: lexer.TokenIndex, node: Ast.Nod
 }
 
 fn recoverTokenIndex(cx: *Cx, token: *const lexer.Token) lexer.TokenIndex {
-    return @intCast(token - cx.lex.tokens.items.ptr);
+    return .fromIndex(@intCast(token - cx.lex.tokens.at(.fromIndex(0))));
 }
 
 fn appendNode(cx: *Cx, nodes: anytype, node_index: Ast.NodeIndex) !void {
     nodes.append(node_index) catch {
         const token_index = cx.result.node_tokens.items[node_index];
-        const token = &cx.lex.tokens.items[token_index];
+        const token = cx.lex.tokens.at(token_index);
         return reportError(cx, token, "too many children", .{});
     };
 }
@@ -1527,15 +1527,15 @@ fn storeExtra(cx: *Cx, items: []const u32) !Ast.ExtraSlice {
 }
 
 fn peekToken(cx: *const Cx) *const lexer.Token {
-    return &cx.lex.tokens.items[cx.token_index];
+    return cx.lex.tokens.at(.fromIndex(cx.token_index));
 }
 
 fn peekSecondToken(cx: *const Cx) *const lexer.Token {
-    return &cx.lex.tokens.items[cx.token_index + 1];
+    return cx.lex.tokens.at(.fromIndex(cx.token_index + 1));
 }
 
 fn consumeToken(cx: *Cx) *const lexer.Token {
-    const result = &cx.lex.tokens.items[cx.token_index];
+    const result = cx.lex.tokens.at(.fromIndex(cx.token_index));
     cx.token_index += 1;
     return result;
 }
@@ -1551,8 +1551,8 @@ fn skipWhitespace(cx: *Cx) void {
 }
 
 fn anyWhitespaceBetweenNextToken(cx: *const Cx) bool {
-    const prev = &cx.lex.tokens.items[cx.token_index - 1];
-    const next = &cx.lex.tokens.items[cx.token_index];
+    const prev = cx.lex.tokens.at(.fromIndex(cx.token_index - 1));
+    const next = cx.lex.tokens.at(.fromIndex(cx.token_index));
     std.debug.assert(prev.span.end.offset <= next.span.start.offset);
     return prev.span.end.offset != next.span.start.offset;
 }

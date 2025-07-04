@@ -1,11 +1,12 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const keyed = @import("keyed.zig");
 
-pub const TokenIndex = u32;
+pub const TokenIndex = keyed.Key(enum(u32) {});
 
 pub const Lex = struct {
-    tokens: std.ArrayListUnmanaged(Token),
+    tokens: keyed.List(TokenIndex, Token),
 
     pub fn deinit(self: *Lex, gpa: std.mem.Allocator) void {
         self.tokens.deinit(gpa);
@@ -235,7 +236,7 @@ pub fn run(
         }
     }
 
-    try state.result.tokens.append(gpa, .{
+    _ = try state.result.tokens.append(gpa, .{
         .span = .{ .start = state.loc, .end = state.loc },
         .kind = .eof,
     });
@@ -272,7 +273,7 @@ fn peekChar(state: *const State) ?u8 {
 }
 
 fn appendToken(state: *State, start: Loc, kind: Token.Kind) !void {
-    try state.result.tokens.append(state.gpa, .{
+    _ = try state.result.tokens.append(state.gpa, .{
         .span = .{ .start = start, .end = state.loc },
         .kind = kind,
     });

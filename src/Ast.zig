@@ -5,13 +5,14 @@ const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
+const lexer = @import("lexer.zig");
 const Precedence = @import("parser.zig").Precedence;
 
 const Ast = @This();
 
 root: NodeIndex,
 nodes: std.ArrayListUnmanaged(Node),
-node_tokens: std.ArrayListUnmanaged(u32),
+node_tokens: std.ArrayListUnmanaged(lexer.TokenIndex),
 extra: std.ArrayListUnmanaged(u32),
 strings: StringTable,
 
