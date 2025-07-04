@@ -100,15 +100,21 @@ const usage =
     \\    --symbols=
     \\    --script=disassemble|decompile
     \\    --annotate
+    \\    --music=yes|no
     \\    --rmim=raw|decode
     \\    --scrp=raw|decode
     \\    --encd=raw|decode
     \\    --excd=raw|decode
     \\    --lscr=raw|decode
     \\    --lsc2=raw|decode
+    \\    --obim=raw|decode
+    \\    --obcd=raw|decode
+    \\    --digi=raw|decode
+    \\    --talk=raw|decode
     \\    --awiz=raw|decode
     \\    --mult=raw|decode
     \\    --akos=raw|decode
+    \\    --tlke=raw|decode
     \\
     \\baller build <project> <output>
     \\
@@ -136,6 +142,8 @@ const usage =
     \\baller saveload dump <index> <savegame>
     \\
     \\                  (writes to stdout)
+    \\    <index>       Path to index file ending in .he0
+    \\    <savegame>    Path to savegame file, usually ending in .sg
     \\
 ;
 
