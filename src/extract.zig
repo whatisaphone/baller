@@ -310,7 +310,10 @@ pub fn run(
     }
 
     var pool: std.Thread.Pool = undefined;
-    try pool.init(.{ .allocator = gpa });
+    // 1 thread isn't enough, we need a minimum of 2 since the reader thread is
+    // here and spawns its own jobs too.
+    const n_jobs = @max(2, std.Thread.getCpuCount() catch 1);
+    try pool.init(.{ .allocator = gpa, .n_jobs = n_jobs });
     defer pool.deinit();
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
