@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const report = @import("report.zig");
 
 pub const Game = enum {
@@ -60,22 +61,29 @@ pub const Target = enum {
 
 pub const longest_index_name_len = "baseball 2001.he0".len;
 
-pub fn detectGameOrFatal(index_path: []const u8) !Game {
-    const input_name = std.fs.path.basename(index_path);
-    return if (std.mem.eql(u8, input_name, "BASEBALL.HE0"))
-        .baseball_1997
-    else if (std.mem.eql(u8, input_name, "SOCCER.HE0"))
-        .soccer_1998
-    else if (std.mem.eql(u8, input_name, "FOOTBALL.HE0"))
-        .football_1999
-    else if (std.mem.eql(u8, input_name, "baseball 2001.he0"))
-        .baseball_2001
-    else if (std.mem.eql(u8, input_name, "Basketball.he0"))
-        .basketball
-    else {
-        report.fatal("could not detect game", .{});
-        return error.Fatal;
+pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game {
+    const names: []const struct { []const u8, Game } = &.{
+        .{ "BASEBALL.HE0", .baseball_1997 },
+        .{ "SOCCER.HE0", .soccer_1998 },
+        .{ "FOOTBALL.HE0", .football_1999 },
+        .{ "baseball 2001.he0", .baseball_2001 },
+        .{ "Basketball.he0", .basketball },
     };
+
+    const error_suffix = comptime error_suffix: {
+        var error_suffix: []const u8 = "\nsupported filenames:";
+        for (names) |p|
+            error_suffix = error_suffix ++ "\n- " ++ p[0];
+        break :error_suffix error_suffix[0..error_suffix.len];
+    };
+
+    const input_name = std.fs.path.basename(index_path);
+    for (names) |p|
+        if (std.mem.eql(u8, input_name, p[0]))
+            return p[1];
+
+    diagnostic.err("index filename not recognized: {s}" ++ error_suffix, .{input_name});
+    return error.AddedToDiagnostic;
 }
 
 pub fn maxsLen(game: Game) u32 {

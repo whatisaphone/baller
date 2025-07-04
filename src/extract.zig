@@ -296,7 +296,7 @@ pub fn run(
     var output_dir = try std.fs.cwd().openDirZ(args.output_path, .{});
     defer output_dir.close();
 
-    const game = try games.detectGameOrFatal(index_name);
+    const game = try games.detectGameOrFatal(diagnostic, index_name);
 
     var symbols_text: []const u8 = "";
     defer gpa.free(symbols_text);

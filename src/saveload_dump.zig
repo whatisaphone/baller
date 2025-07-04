@@ -58,7 +58,7 @@ const Args = struct {
 };
 
 pub fn run(args: Args) !void {
-    const game = try games.detectGameOrFatal(args.index_path);
+    const game = try games.detectGameOrFatal(args.diagnostic, args.index_path);
     const maxs = try readIndex(args.diagnostic, game, args.index_path);
 
     var arena: std.heap.ArenaAllocator = .init(args.gpa);
