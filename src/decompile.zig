@@ -345,7 +345,8 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     // handle the case where it's an infinite loop, otherwise fail.
     for (cx.basic_blocks, 0..) |*bb, bbi_usize| {
         const bbi: BasicBlockIndex = @intCast(bbi_usize);
-        std.debug.assert(bb.state == .new or bb.state == .decompiled);
+        if (builtin.mode == .Debug)
+            std.debug.assert(bb.state == .new or bb.state == .decompiled);
         if (bb.state != .new) continue;
         try scheduleBasicBlockWithAssumedStack(cx, bbi);
         return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
