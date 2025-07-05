@@ -1,6 +1,8 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
+const Project = @import("Project.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Loc = @import("lexer.zig").Loc;
 
@@ -8,6 +10,20 @@ const Diagnostic = @This();
 
 const live_spew = builtin.mode == .Debug;
 pub const enable_trace = live_spew and !builtin.is_test;
+
+const Location = struct {
+    path: []const u8,
+    loc: Loc,
+
+    pub fn node(file: *const Project.SourceFile, node_index: Ast.NodeIndex) Location {
+        const token_index = file.ast.node_tokens.get(node_index);
+        const token = file.lex.tokens.at(token_index);
+        return .{
+            .path = file.path,
+            .loc = token.span.start,
+        };
+    }
+};
 
 const Message = struct {
     level: Level,
@@ -57,6 +73,11 @@ pub fn err(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
     defer self.mutex.unlock();
 
     self.formatAndAdd(.err, fmt, args);
+}
+
+pub fn errAt(self: *Diagnostic, loc: Location, comptime fmt: []const u8, args: anytype) void {
+    const diag: ForTextFile = .init(self, loc.path);
+    diag.err(loc.loc, fmt, args);
 }
 
 pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_err: anytype) void {

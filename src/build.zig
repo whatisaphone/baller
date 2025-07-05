@@ -157,8 +157,10 @@ fn readRooms(
 
     for (room_nodes.slice()) |room_node| {
         const room = &project_file.ast.nodes.at(room_node).disk_room;
-        if (project.files.items[room.room_number] != null)
-            @panic("TODO");
+        if (project.files.items[room.room_number] != null) {
+            diagnostic.errAt(.node(project_file, room_node), "duplicate room number", .{});
+            return error.AddedToDiagnostic;
+        }
 
         const room_path = project_file.ast.strings.get(room.path);
         const file = try addFile(gpa, diagnostic, project_dir, room_path, parser.parseRoom);
