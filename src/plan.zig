@@ -944,10 +944,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).script;
 
-    const diag: Diagnostic.ForTextFile = .{
-        .diagnostic = cx.diagnostic,
-        .path = room_file.path,
-    };
+    const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -965,10 +962,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).local_script;
 
-    const diag: Diagnostic.ForTextFile = .{
-        .diagnostic = cx.diagnostic,
-        .path = room_file.path,
-    };
+    const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -991,10 +985,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).enter;
 
-    const diag: Diagnostic.ForTextFile = .{
-        .diagnostic = cx.diagnostic,
-        .path = room_file.path,
-    };
+    const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -1011,10 +1002,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).exit;
 
-    const diag: Diagnostic.ForTextFile = .{
-        .diagnostic = cx.diagnostic,
-        .path = room_file.path,
-    };
+    const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);

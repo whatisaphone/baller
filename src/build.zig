@@ -112,10 +112,7 @@ fn addFile(
     path: []const u8,
     parseFn: anytype,
 ) !Project.SourceFile {
-    const diag: Diagnostic.ForTextFile = .{
-        .diagnostic = diagnostic,
-        .path = path,
-    };
+    const diag: Diagnostic.ForTextFile = .init(diagnostic, path);
 
     const source = try fs.readFile(gpa, project_dir, path);
     defer gpa.free(source);

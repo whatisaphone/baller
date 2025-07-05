@@ -265,6 +265,13 @@ pub const ForTextFile = struct {
     diagnostic: *Diagnostic,
     path: []const u8,
 
+    pub fn init(diagnostic: *Diagnostic, path: []const u8) ForTextFile {
+        return .{
+            .diagnostic = diagnostic,
+            .path = path,
+        };
+    }
+
     pub fn err(
         self: *const ForTextFile,
         loc: Loc,
