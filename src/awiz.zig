@@ -203,7 +203,7 @@ pub fn encode(
     // First find the bitmap block so we can preload all data before we start
 
     const wizd = for (file.ast.getExtra(children)) |node_index| {
-        const node = &file.ast.nodes.items[node_index];
+        const node = file.ast.nodes.at(node_index);
         if (node.* == .awiz_wizd) break &node.awiz_wizd;
     } else return error.BadData;
 
@@ -215,7 +215,7 @@ pub fn encode(
     // Now write the blocks in the requested order
 
     for (file.ast.getExtra(children)) |node_index| {
-        switch (file.ast.nodes.items[node_index]) {
+        switch (file.ast.nodes.at(node_index).*) {
             .raw_block => |*n| {
                 try encodeRawBlock(gpa, project_dir, file, n, out);
             },

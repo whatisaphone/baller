@@ -57,7 +57,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         @"const",
     };
 
-    var children: std.BoundedArray(u32, 8192) = .{};
+    var children: std.BoundedArray(Ast.NodeIndex, 8192) = .{};
     var parsed_index = false;
 
     {
@@ -723,7 +723,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
-    var raw_block = Ast.null_node;
+    var raw_block: Ast.NodeIndex.Optional = .null;
     var children: std.BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
     var indices_opt: ?Ast.ExtraSlice = null;
 
@@ -733,9 +733,9 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
-                    if (raw_block != Ast.null_node)
+                    if (raw_block != .null)
                         return reportError(cx, token2, "too many children", .{});
-                    raw_block = try parseRawBlockNested(cx, token2);
+                    raw_block = (try parseRawBlockNested(cx, token2)).wrap();
                 },
                 .awiz => {
                     try expect(cx, .brace_l);
@@ -759,7 +759,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     }
 
     const indices = indices_opt orelse return reportError(cx, token, "missing indices", .{});
-    for (cx.result.getExtra(indices)) |index|
+    for (cx.result.getExtraU32(indices)) |index|
         if (index >= children.len)
             return reportError(cx, token, "out of range", .{});
 
@@ -860,13 +860,13 @@ fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
                 const source = cx.source[token.span.start.offset..token.span.end.offset];
                 const int = std.fmt.parseInt(u32, source, 10) catch
                     return reportError(cx, token, "invalid integer", .{});
-                try appendNode(cx, &result, int);
+                try appendU32(cx, token, &result, int);
             },
             .bracket_r => break,
             else => return reportUnexpected(cx, token),
         }
     }
-    return storeExtra(cx, result.slice());
+    return storeExtraU32(cx, result.slice());
 }
 
 fn parseMusic(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
@@ -1248,14 +1248,14 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
                 const token2 = consumeToken(cx);
-                const condition = condition: switch (token2.kind) {
-                    .newline => Ast.null_node,
+                const condition: Ast.NodeIndex.Optional = condition: switch (token2.kind) {
+                    .newline => .null,
                     .identifier => {
                         _ = try parseIdentifier(cx, token2, enum { until });
                         const next = consumeToken(cx);
                         const condition = try parseExpr(cx, next, .space);
                         try expect(cx, .newline);
-                        break :condition condition;
+                        break :condition condition.wrap();
                     },
                     else => return reportUnexpected(cx, token2),
                 };
@@ -1327,9 +1327,9 @@ fn parseTopLevelExpr(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn makeExprTopLevel(cx: *Cx, ei: Ast.NodeIndex) !Ast.NodeIndex {
-    if (cx.result.nodes.items[ei] == .identifier) {
+    if (cx.result.nodes.at(ei).* == .identifier) {
         // A lonely identifier is a call with 0 args
-        const token = cx.result.node_tokens.items[ei];
+        const token = cx.result.node_tokens.items[ei.index()];
         return storeNodeWithTokenIndex(cx, token, .{ .call = .{ .callee = ei, .args = .empty } });
     }
     return ei;
@@ -1390,7 +1390,7 @@ fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         _ = consumeToken(cx);
         const index2 = try parseExpr(cx, consumeToken(cx), .all);
         try expect(cx, .bracket_r);
-        const cur_node = &cx.result.nodes.items[cur];
+        const cur_node = cx.result.nodes.at(cur);
         cur_node.* = .{ .array_get2 = .{
             .lhs = cur_node.array_get.lhs,
             .index1 = cur_node.array_get.index,
@@ -1501,8 +1501,7 @@ fn storeNode(cx: *Cx, token: *const lexer.Token, node: Ast.Node) !Ast.NodeIndex 
 }
 
 fn storeNodeWithTokenIndex(cx: *Cx, token_index: lexer.TokenIndex, node: Ast.Node) !Ast.NodeIndex {
-    const result: Ast.NodeIndex = @intCast(cx.result.nodes.items.len);
-    try cx.result.nodes.append(cx.gpa, node);
+    const result = try cx.result.nodes.append(cx.gpa, node);
     try cx.result.node_tokens.append(cx.gpa, token_index);
     return result;
 }
@@ -1513,13 +1512,23 @@ fn recoverTokenIndex(cx: *Cx, token: *const lexer.Token) lexer.TokenIndex {
 
 fn appendNode(cx: *Cx, nodes: anytype, node_index: Ast.NodeIndex) !void {
     nodes.append(node_index) catch {
-        const token_index = cx.result.node_tokens.items[node_index];
+        const token_index = cx.result.node_tokens.items[node_index.index()];
         const token = cx.lex.tokens.at(token_index);
         return reportError(cx, token, "too many children", .{});
     };
 }
 
-fn storeExtra(cx: *Cx, items: []const u32) !Ast.ExtraSlice {
+fn appendU32(cx: *Cx, token: *const lexer.Token, nodes: anytype, int: u32) !void {
+    nodes.append(int) catch {
+        return reportError(cx, token, "too many children", .{});
+    };
+}
+
+fn storeExtra(cx: *Cx, items: []const Ast.NodeIndex) !Ast.ExtraSlice {
+    return storeExtraU32(cx, @ptrCast(items));
+}
+
+fn storeExtraU32(cx: *Cx, items: []const u32) !Ast.ExtraSlice {
     const start: u32 = @intCast(cx.result.extra.items.len);
     const len: u32 = @intCast(items.len);
     try cx.result.extra.appendSlice(cx.gpa, items);

@@ -20,6 +20,31 @@ pub fn Key(Template: type) type {
         pub fn index(self: Self) Index {
             return @intFromEnum(self);
         }
+
+        pub fn wrap(self: Self) Optional {
+            return .fromIndex(self.index());
+        }
+
+        pub const Optional = enum(Index) {
+            null = std.math.maxInt(Index),
+            _,
+
+            fn fromIndex(idx: Index) Optional {
+                std.debug.assert(idx != @intFromEnum(Optional.null));
+                return @enumFromInt(idx);
+            }
+
+            pub fn index(self: Optional) Index {
+                return @intFromEnum(self);
+            }
+
+            pub fn unwrap(self: Optional) ?Self {
+                return switch (self) {
+                    .null => null,
+                    else => .fromIndex(self.index()),
+                };
+            }
+        };
     };
 }
 

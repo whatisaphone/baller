@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -232,11 +233,11 @@ pub fn encode(
     project_dir: std.fs.Dir,
     awiz_strategy: awiz.EncodingStrategy,
     room_number: u8,
-    akos_node_index: u32,
+    akos_node_index: Ast.NodeIndex,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const file = &project.files.items[room_number].?;
-    const akos = &file.ast.nodes.items[akos_node_index].akos;
+    const akos = &file.ast.nodes.at(akos_node_index).akos;
 
     var state: EncodeState = .{
         .project_dir = project_dir,
@@ -245,7 +246,7 @@ pub fn encode(
 
     var akcd_count: u32 = 0;
     for (file.ast.getExtra(akos.children)) |node_index| {
-        if (file.ast.nodes.items[node_index] == .akcd)
+        if (file.ast.nodes.at(node_index).* == .akcd)
             akcd_count += 1;
     }
 
@@ -256,7 +257,7 @@ pub fn encode(
     var akpl: ?std.BoundedArray(u8, 64) = null;
 
     for (file.ast.getExtra(akos.children)) |node_index| {
-        const node = &file.ast.nodes.items[node_index];
+        const node = file.ast.nodes.at(node_index);
 
         if (node.* != .akcd)
             try flushCels(gpa, &state, out);

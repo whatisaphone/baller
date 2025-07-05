@@ -51,7 +51,7 @@ pub fn build(
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     for (file.ast.getExtra(children)) |node| {
-        switch (file.ast.nodes.items[node]) {
+        switch (file.ast.nodes.at(node).*) {
             .raw_block => |*n| {
                 try encodeRawBlock(gpa, project_dir, file, n, out);
             },

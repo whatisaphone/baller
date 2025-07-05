@@ -41,7 +41,7 @@ pub fn compile(
 
     compileInner(&cx, root_node, statements) catch |err| {
         if (err != error.AddedToDiagnostic) {
-            const token_index = file.ast.node_tokens.items[root_node];
+            const token_index = file.ast.node_tokens.items[root_node.index()];
             const loc = file.lex.tokens.at(token_index).span.start;
             diag.zigErr(loc, "unexpected error: {s}", .{}, err);
         }
@@ -51,7 +51,7 @@ pub fn compile(
 pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlice) !void {
     try emitBody(cx, statements);
 
-    const end: lang.Op = switch (cx.ast.nodes.items[root_node]) {
+    const end: lang.Op = switch (cx.ast.nodes.at(root_node).*) {
         .script, .local_script => .end,
         .enter, .exit, .object => .end2,
         else => unreachable,
@@ -86,10 +86,10 @@ fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {
     // Vars must come first
     const stmts = cx.ast.getExtra(slice);
     const first_non_var_stmt = for (stmts, 0..) |si, i| {
-        const stmt = &cx.ast.nodes.items[si];
+        const stmt = cx.ast.nodes.at(si);
         if (stmt.* != .local_vars) break i;
         for (cx.ast.getExtra(stmt.local_vars.children)) |ni| {
-            const var_node = &cx.ast.nodes.items[ni].local_var;
+            const var_node = &cx.ast.nodes.at(ni).local_var;
             const name = if (var_node.name) |n| cx.ast.strings.get(n) else null;
             try cx.local_vars.append(name);
         }
@@ -104,8 +104,8 @@ fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, AddedToDiagnost
         try emitStatement(cx, i);
 }
 
-fn emitStatement(cx: *Cx, node_index: u32) !void {
-    const node = &cx.ast.nodes.items[node_index];
+fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
+    const node = cx.ast.nodes.at(node_index);
     switch (node.*) {
         .label => |name| {
             const offset: u16 = @intCast(cx.out.items.len);
@@ -118,7 +118,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             }
         },
         .set => |*s| {
-            const lhs = &cx.ast.nodes.items[s.lhs];
+            const lhs = cx.ast.nodes.at(s.lhs);
             switch (lhs.*) {
                 .identifier => {
                     try pushExpr(cx, s.rhs);
@@ -142,7 +142,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             }
         },
         .binop_assign => |e| {
-            const lhs = &cx.ast.nodes.items[e.lhs];
+            const lhs = cx.ast.nodes.at(e.lhs);
             if (lhs.* == .identifier) {
                 try pushExpr(cx, e.lhs);
                 try pushExpr(cx, e.rhs);
@@ -207,11 +207,11 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
         .do => |*s| {
             const loop_target: u32 = @intCast(cx.out.items.len);
             try emitBlock(cx, s.body);
-            if (s.condition == Ast.null_node) {
+            if (s.condition == .null) {
                 try emitOpcode(cx, .jump);
                 try writeJumpTargetBackwards(cx, loop_target);
             } else {
-                try pushExpr(cx, s.condition);
+                try pushExpr(cx, s.condition.unwrap().?);
                 try emitOpcode(cx, .@"jump-unless");
                 try writeJumpTargetBackwards(cx, loop_target);
             }
@@ -263,7 +263,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             try pushInt(cx, 0);
             try emitOpcode(cx, .@"get-array-item");
             try emitVariable(cx, s.backing);
-            try pushInt(cx, @intCast(cx.ast.nodes.items[s.list].list.items.len));
+            try pushInt(cx, @intCast(cx.ast.nodes.at(s.list).list.items.len));
             try emitOpcode(cx, .le);
             try emitOpcode(cx, .@"jump-unless");
             const end_fixup: u32 = @intCast(cx.out.items.len);
@@ -292,7 +292,7 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
             try pushExpr(cx, s.value);
             var cond_fixup: ?u32 = null;
             for (cx.ast.getExtra(s.branches)) |ni_branch| {
-                const branch = &cx.ast.nodes.items[ni_branch].case_branch;
+                const branch = &cx.ast.nodes.at(ni_branch).case_branch;
                 if (cond_fixup) |fixup|
                     try fixupJumpToHere(cx, fixup);
                 switch (branch.condition) {
@@ -330,11 +330,11 @@ fn emitStatement(cx: *Cx, node_index: u32) !void {
     }
 }
 
-fn emitCall(cx: *Cx, node_index: u32) !void {
-    const call = &cx.ast.nodes.items[node_index].call;
+fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
+    const call = &cx.ast.nodes.at(node_index).call;
 
     const callee = findCallee(cx, call.callee) orelse {
-        const token_index = cx.ast.node_tokens.items[node_index];
+        const token_index = cx.ast.node_tokens.items[node_index.index()];
         const loc = cx.lex.tokens.at(token_index).span.start;
         cx.diag.err(loc, "instruction not found", .{});
         return error.AddedToDiagnostic;
@@ -373,16 +373,16 @@ const InsData = struct {
     variadic: bool,
 };
 
-fn findCallee(cx: *const Cx, node_index: u32) ?union(enum) {
+fn findCallee(cx: *const Cx, node_index: Ast.NodeIndex) ?union(enum) {
     ins: InsData,
     compound: script.Compound,
 } {
-    const expr = &cx.ast.nodes.items[node_index];
+    const expr = cx.ast.nodes.at(node_index);
     var name_buf: [24]u8 = undefined;
     const name = switch (expr.*) {
         .identifier => |id| cx.ast.strings.get(id),
         .field => |f| blk: {
-            const lhs = &cx.ast.nodes.items[f.lhs];
+            const lhs = cx.ast.nodes.at(f.lhs);
             if (lhs.* != .identifier) return null;
             const lhs_str = lhs.identifier;
             break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{
@@ -510,8 +510,8 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
     }
 }
 
-fn pushExpr(cx: *Cx, node_index: u32) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
-    const expr = &cx.ast.nodes.items[node_index];
+fn pushExpr(cx: *Cx, node_index: Ast.NodeIndex) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
+    const expr = cx.ast.nodes.at(node_index);
     switch (expr.*) {
         .integer => |int| try pushInt(cx, int),
         .string => try pushStr(cx, node_index),
@@ -551,7 +551,7 @@ fn pushInt(cx: *const Cx, integer: i32) !void {
     }
 }
 
-fn pushStr(cx: *Cx, node_index: u32) !void {
+fn pushStr(cx: *Cx, node_index: Ast.NodeIndex) !void {
     try emitOpcode(cx, .@"push-str");
     try emitString(cx, node_index);
     try pushInt(cx, -1);
@@ -569,10 +569,10 @@ fn emitOpcode(cx: *const Cx, op: lang.Op) !void {
     try cx.out.appendSlice(cx.gpa, opcode.slice());
 }
 
-fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
+fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: Ast.NodeIndex) !void {
     switch (op) {
         .relative_offset => {
-            const label_expr = &cx.ast.nodes.items[node_index];
+            const label_expr = cx.ast.nodes.at(node_index);
             if (label_expr.* != .identifier) return error.BadData;
             const label_name = cx.ast.strings.get(label_expr.identifier);
 
@@ -587,7 +587,7 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: u32) !void {
     }
 }
 
-fn pushSymbol(cx: *const Cx, node_index: u32) !void {
+fn pushSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !void {
     switch (try lookupSymbol(cx, node_index)) {
         .variable => |v| try pushVar(cx, v),
         .constant => |i| try pushInt(cx, i),
@@ -599,7 +599,7 @@ fn pushVar(cx: *const Cx, variable: lang.Variable) !void {
     try emitVarNumber(cx, variable);
 }
 
-fn emitVariable(cx: *const Cx, node_index: u32) !void {
+fn emitVariable(cx: *const Cx, node_index: Ast.NodeIndex) !void {
     const symbol = try lookupSymbol(cx, node_index);
     if (symbol != .variable) return error.BadData;
     try emitVarNumber(cx, symbol.variable);
@@ -610,7 +610,7 @@ fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
 }
 
 fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
-    const expr = &cx.ast.nodes.items[node_index];
+    const expr = cx.ast.nodes.at(node_index);
     if (expr.* != .identifier) return error.BadData;
     const name = cx.ast.strings.get(expr.identifier);
 
@@ -624,14 +624,14 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     if (cx.project_scope.get(name)) |sym| return sym;
 
     // Not found, return an error
-    const token_index = cx.ast.node_tokens.items[node_index];
+    const token_index = cx.ast.node_tokens.items[node_index.index()];
     const loc = cx.lex.tokens.at(token_index).span.start;
     cx.diag.err(loc, "name not found", .{});
     return error.AddedToDiagnostic;
 }
 
-fn emitString(cx: *const Cx, node_index: u32) !void {
-    const expr = &cx.ast.nodes.items[node_index];
+fn emitString(cx: *const Cx, node_index: Ast.NodeIndex) !void {
+    const expr = cx.ast.nodes.at(node_index);
     if (expr.* != .string) return error.BadData;
     const str = cx.ast.strings.get(expr.string);
     try cx.out.appendSlice(cx.gpa, str);

@@ -4,6 +4,7 @@ const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const games = @import("games.zig");
+const keyed = @import("keyed.zig");
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
 const Precedence = @import("parser.zig").Precedence;
@@ -11,7 +12,7 @@ const Precedence = @import("parser.zig").Precedence;
 const Ast = @This();
 
 root: NodeIndex,
-nodes: std.ArrayListUnmanaged(Node),
+nodes: keyed.List(NodeIndex, Node),
 node_tokens: std.ArrayListUnmanaged(lexer.TokenIndex),
 extra: std.ArrayListUnmanaged(u32),
 strings: StringTable,
@@ -23,7 +24,11 @@ pub fn deinit(self: *Ast, gpa: std.mem.Allocator) void {
     self.nodes.deinit(gpa);
 }
 
-pub fn getExtra(self: *const Ast, slice: ExtraSlice) []const u32 {
+pub fn getExtra(self: *const Ast, slice: ExtraSlice) []const NodeIndex {
+    return @ptrCast(self.extra.items[slice.start..][0..slice.len]);
+}
+
+pub fn getExtraU32(self: *const Ast, slice: ExtraSlice) []const u32 {
     return self.extra.items[slice.start..][0..slice.len];
 }
 
@@ -31,8 +36,7 @@ pub const max_room_name_len = 255;
 pub const max_mult_children = 256;
 pub const max_case_branches = 320;
 
-pub const NodeIndex = u32;
-pub const null_node: NodeIndex = std.math.maxInt(NodeIndex);
+pub const NodeIndex = keyed.Key(enum(u32) {});
 
 pub const Node = union(enum) {
     project: struct {
@@ -142,7 +146,7 @@ pub const Node = union(enum) {
     mult: struct {
         name: StringSlice,
         glob_number: u16,
-        raw_block: NodeIndex,
+        raw_block: NodeIndex.Optional,
         children: ExtraSlice,
         indices: ExtraSlice,
     },
@@ -258,7 +262,7 @@ pub const Node = union(enum) {
     },
     do: struct {
         body: ExtraSlice,
-        condition: NodeIndex,
+        condition: NodeIndex.Optional,
     },
     @"for": struct {
         accumulator: NodeIndex,

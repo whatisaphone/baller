@@ -121,9 +121,9 @@ pub fn build(
     out_name: [:0]const u8,
 ) !void {
     const file = &project.files.items[0].?;
-    const root = &file.ast.nodes.items[file.ast.root].project;
+    const root = &file.ast.nodes.at(file.ast.root).project;
     const music_node = for (file.ast.getExtra(root.children)) |child_index| {
-        const node = &file.ast.nodes.items[child_index];
+        const node = file.ast.nodes.at(child_index);
         if (node.* == .music) break &node.music;
     } else return;
 
@@ -157,7 +157,7 @@ pub fn build(
     defer buf.deinit(gpa);
 
     for (file.ast.getExtra(music_node.children)) |sound_index| {
-        const sound = &file.ast.nodes.items[sound_index].sound;
+        const sound = &file.ast.nodes.at(sound_index).sound;
         const start = try beginBlock(&out, sound.block_id);
         buf.clearRetainingCapacity();
         try sounds.build(gpa, project_dir, file, sound.children, &buf);

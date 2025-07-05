@@ -143,12 +143,12 @@ fn readRooms(
     var max_room_number: u8 = 0;
 
     var project_file = &project.files.items[0].?;
-    const root = &project_file.ast.nodes.items[project_file.ast.root].project;
+    const root = &project_file.ast.nodes.at(project_file.ast.root).project;
     for (project_file.ast.getExtra(root.children)) |child_node| {
-        const child = &project_file.ast.nodes.items[child_node];
+        const child = project_file.ast.nodes.at(child_node);
         if (child.* != .disk) continue;
         for (project_file.ast.getExtra(child.disk.children)) |disk_child_node| {
-            const disk_child = &project_file.ast.nodes.items[disk_child_node];
+            const disk_child = project_file.ast.nodes.at(disk_child_node);
             if (disk_child.* != .disk_room) continue;
             try room_nodes.append(disk_child_node);
             max_room_number = @max(max_room_number, disk_child.disk_room.room_number);
@@ -159,7 +159,7 @@ fn readRooms(
     project_file = &project.files.items[0].?; // since pointer was invalidated
 
     for (room_nodes.slice()) |room_node| {
-        const room = &project_file.ast.nodes.items[room_node].disk_room;
+        const room = &project_file.ast.nodes.at(room_node).disk_room;
         if (project.files.items[room.room_number] != null)
             @panic("TODO");
 
