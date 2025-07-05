@@ -1,6 +1,8 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const build_options = @import("build_options");
+
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
@@ -319,6 +321,8 @@ pub fn run(
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
+
+    try code.writer(gpa).print("; Extracted with Baller {s}\n\n", .{build_options.version});
 
     var vm: lang.Vm = undefined;
     var vm_ptr: utils.SafeUndefined(*const lang.Vm) = .undef;

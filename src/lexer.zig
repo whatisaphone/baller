@@ -231,6 +231,8 @@ pub fn run(
             try lexHexStringLiteral(&state, loc);
         } else if (isIdentStart(ch)) {
             try lexIdent(&state, loc);
+        } else if (ch == ';') {
+            try skipComment(&state);
         } else {
             return reportError(&state, loc, "unexpected character '{c}'", .{ch});
         }
@@ -334,6 +336,13 @@ fn isIdentStart(ch: u8) bool {
 
 fn isIdentContinue(ch: u8) bool {
     return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_';
+}
+
+fn skipComment(state: *State) !void {
+    while (peekChar(state)) |ch| {
+        if (ch == '\n') break;
+        _ = consumeChar(state);
+    }
 }
 
 fn reportError(
