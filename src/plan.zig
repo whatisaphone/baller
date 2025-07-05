@@ -43,10 +43,20 @@ pub const Payload = union(enum) {
     disk_end,
     room_start: u8,
     room_end,
-    glob: struct { block_id: BlockId, glob_number: u16, data: std.ArrayListUnmanaged(u8) },
-    glob_start: struct { block_id: BlockId, glob_number: u16 },
+    glob: struct {
+        block_id: BlockId,
+        glob_number: u16,
+        data: std.ArrayListUnmanaged(u8),
+    },
+    glob_start: struct {
+        block_id: BlockId,
+        glob_number: u16,
+    },
     glob_end,
-    raw_block: struct { block_id: BlockId, data: std.ArrayListUnmanaged(u8) },
+    raw_block: struct {
+        block_id: BlockId,
+        data: std.ArrayListUnmanaged(u8),
+    },
     index_start,
     index_end,
     index_maxs: std.ArrayListUnmanaged(u8),
