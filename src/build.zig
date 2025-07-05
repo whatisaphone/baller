@@ -102,7 +102,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, output_dir, index_name, &pool, &events });
 
-    try emit.run(gpa, diagnostic, output_dir, index_name, &events);
+    try emit.run(gpa, diagnostic, &project, output_dir, index_name, &events);
 }
 
 fn addFile(

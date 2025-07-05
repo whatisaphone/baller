@@ -1,6 +1,8 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
@@ -21,6 +23,7 @@ const utils = @import("utils.zig");
 pub fn run(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     events: *sync.Channel(plan.Event, 16),
@@ -28,7 +31,7 @@ pub fn run(
     var receiver: OrderedReceiver = .init(events);
     defer receiver.deinit(gpa);
 
-    runInner(gpa, output_dir, index_name, &receiver) catch |err| {
+    runInner(gpa, diagnostic, project, output_dir, index_name, &receiver) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
 
@@ -46,6 +49,8 @@ pub fn run(
 
 pub fn runInner(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     receiver: *OrderedReceiver,
@@ -62,6 +67,8 @@ pub fn runInner(
 
     const cx: Cx = .{
         .gpa = gpa,
+        .diagnostic = diagnostic,
+        .project = project,
         .output_dir = output_dir,
         .index_name = index_name,
         .receiver = receiver,
@@ -81,6 +88,8 @@ pub fn runInner(
 
 const Cx = struct {
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     receiver: *OrderedReceiver,

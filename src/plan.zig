@@ -44,11 +44,13 @@ pub const Payload = union(enum) {
     room_start: u8,
     room_end,
     glob: struct {
+        node_index: Ast.NodeIndex,
         block_id: BlockId,
         glob_number: u16,
         data: std.ArrayListUnmanaged(u8),
     },
     glob_start: struct {
+        node_index: Ast.NodeIndex,
         block_id: BlockId,
         glob_number: u16,
     },
@@ -372,7 +374,7 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
                 try plan.add(.start, .{ .node = child_node });
                 try plan.add(.rmda_obim, .{ .node_second_pass = child_node });
             },
-            .rmda => |*rmda| try scanRmda(cx, plan, room_number, rmda),
+            .rmda => try scanRmda(cx, plan, room_number, child_node),
             .scr => try plan.add(.end, .{ .node = child_node }),
             .excd => try plan.add(.rmda_excd, .{ .node = child_node }),
             .encd => try plan.add(.rmda_encd, .{ .node = child_node }),
@@ -421,13 +423,15 @@ fn scanRmda(
     cx: *Context,
     plan: *RoomPlan,
     room_number: u8,
-    rmda: *const @FieldType(Ast.Node, "rmda"),
+    rmda_node_index: Ast.NodeIndex,
 ) !void {
     try plan.add(plan.cur_section, .{ .event = .{ .glob_start = .{
+        .node_index = rmda_node_index,
         .block_id = .RMDA,
         .glob_number = room_number,
     } } });
     const room_file = &cx.project.files.items[room_number].?;
+    const rmda = &room_file.ast.nodes.at(rmda_node_index).rmda;
     for (room_file.ast.getExtra(rmda.children)) |node_index| {
         const raw_block = &room_file.ast.nodes.at(node_index).raw_block;
         if (raw_block.block_id == .OBCD)
@@ -461,8 +465,8 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
             switch (work) {
                 .event => |payload| cx.sendSyncEvent(payload),
                 .node => |child_node| switch (room_file.ast.nodes.at(child_node).*) {
-                    .raw_glob_file => |*n| try planRawGlobFile(cx, room_file, n),
-                    .raw_glob_block => |*n| try planRawGlobBlock(cx, room_number, n),
+                    .raw_glob_file => try planRawGlobFile(cx, room_number, child_node),
+                    .raw_glob_block => try planRawGlobBlock(cx, room_number, child_node),
                     .raw_block => |*n| try planRawBlock(cx, room_file, n),
                     .rmim => try spawnJob(planRmim, cx, room_number, child_node),
                     .scr => try spawnJob(planScr, cx, room_number, child_node),
@@ -507,27 +511,27 @@ fn planRawBlock(
     } });
 }
 
-fn planRawGlobFile(
-    cx: *Context,
-    file: *const Project.SourceFile,
-    node: *const @FieldType(Ast.Node, "raw_glob_file"),
-) !void {
+fn planRawGlobFile(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
+    const file = &cx.project.files.items[room_number].?;
+    const node = &file.ast.nodes.at(node_index).raw_glob_file;
+
     const data = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(node.path));
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .glob = .{
+        .node_index = node_index,
         .block_id = node.block_id,
         .glob_number = node.glob_number,
         .data = .fromOwnedSlice(data),
     } });
 }
 
-fn planRawGlobBlock(
-    cx: *Context,
-    room_number: u8,
-    glob: *const @FieldType(Ast.Node, "raw_glob_block"),
-) !void {
+fn planRawGlobBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
+    const file = &cx.project.files.items[room_number].?;
+    const glob = &file.ast.nodes.at(node_index).raw_glob_block;
+
     cx.sendSyncEvent(.{ .glob_start = .{
+        .node_index = node_index,
         .block_id = glob.block_id,
         .glob_number = glob.glob_number,
     } });
@@ -615,6 +619,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     endBlockAl(&out, im00_start);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .RMIM,
         .glob_number = room_number,
         .data = out,
@@ -676,6 +681,7 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     const result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .SCRP,
         .glob_number = scr.glob_number,
         .data = result,
@@ -834,6 +840,7 @@ fn planSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
     try sounds.build(cx.gpa, cx.project_dir, file, node.children, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = node.block_id,
         .glob_number = node.glob_number,
         .data = out,
@@ -850,6 +857,7 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     try awiz.encode(cx.gpa, cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .AWIZ,
         .glob_number = awiz_node.glob_number,
         .data = out,
@@ -866,6 +874,7 @@ fn planMult(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     try planMultInner(cx, room_number, mult, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .MULT,
         .glob_number = mult.glob_number,
         .data = out,
@@ -925,6 +934,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .AKOS,
         .glob_number = node.glob_number,
         .data = out,
@@ -944,6 +954,7 @@ fn planTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     endBlockAl(&out, text_start);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .TLKE,
         .glob_number = node.glob_number,
         .data = out,
@@ -962,6 +973,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
+        .node_index = node_index,
         .block_id = .SCRP,
         .glob_number = node.glob_number,
         .data = out,
