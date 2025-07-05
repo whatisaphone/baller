@@ -128,7 +128,7 @@ fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     }) catch oom();
 }
 
-pub fn writeToStderrAndPropagateIfAnyErrors(self: *Diagnostic) !void {
+pub fn writeToStderrAndPropagateIfAnyErrors(self: *const Diagnostic) !void {
     const out_file = std.io.getStdErr();
     var out = std.io.bufferedWriter(out_file.writer());
 
@@ -136,7 +136,7 @@ pub fn writeToStderrAndPropagateIfAnyErrors(self: *Diagnostic) !void {
         try out.writer().writeByte('\n');
 
     var total: std.EnumArray(Level, u32) = .initFill(0);
-    var it = self.messages.iterator(0);
+    var it = self.messages.constIterator(0);
     while (it.next()) |message| {
         try out.writer().print("[{c}] {s}\n", .{ message.level.char(), message.text });
         total.set(message.level, total.get(message.level) + 1);
