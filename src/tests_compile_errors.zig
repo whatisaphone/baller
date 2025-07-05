@@ -18,6 +18,35 @@ test "raw-glob file not found" {
     );
 }
 
+test "bad array lhs node" {
+    try testRoomError(
+        \\var v@0
+        \\script s@1 {
+        \\    v = 0[0]
+        \\        ^ expected a name in this position
+        \\}
+    );
+}
+
+test "bad array lhs symbol" {
+    try testRoomError(
+        \\var v@0
+        \\script s@1 {
+        \\    v = s[0]
+        \\        ^ not a variable
+        \\}
+    );
+}
+
+test "bad jump operand" {
+    try testRoomError(
+        \\script s@1 {
+        \\    jump 0
+        \\         ^ jump target must be a label
+        \\}
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 
@@ -51,17 +80,16 @@ fn testRoomError(case_str: []const u8) !void {
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
 
-    try std.testing.expectError(
-        error.AddedToDiagnostic,
-        build.run(gpa, &diagnostic, .{
-            .project_path = in_path ++ "/project.scu",
-            .index_path = build_path ++ "/baseball 2001.he0",
-            .options = .{
-                .awiz_strategy = .max,
-                .write_version = true,
-            },
-        }),
-    );
+    const result = build.run(gpa, &diagnostic, .{
+        .project_path = in_path ++ "/project.scu",
+        .index_path = build_path ++ "/baseball 2001.he0",
+        .options = .{
+            .awiz_strategy = .max,
+            .write_version = true,
+        },
+    });
+    if (result) |_| {} else |err| try std.testing.expect(err == error.AddedToDiagnostic);
+    try std.testing.expect(diagnostic.messages.len != 0);
 
     const message = diagnostic.messages.at(0);
     try std.testing.expectEqual(message.level, .err);

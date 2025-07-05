@@ -573,7 +573,8 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: Ast.NodeIndex) !void {
     switch (op) {
         .relative_offset => {
             const label_expr = cx.ast.nodes.at(node_index);
-            if (label_expr.* != .identifier) return error.BadData;
+            if (label_expr.* != .identifier)
+                return fail(cx, node_index, "jump target must be a label", .{});
             const label_name = cx.ast.strings.get(label_expr.identifier);
 
             const offset: u16 = @intCast(cx.out.items.len);
@@ -601,7 +602,8 @@ fn pushVar(cx: *const Cx, variable: lang.Variable) !void {
 
 fn emitVariable(cx: *const Cx, node_index: Ast.NodeIndex) !void {
     const symbol = try lookupSymbol(cx, node_index);
-    if (symbol != .variable) return error.BadData;
+    if (symbol != .variable)
+        return fail(cx, node_index, "not a variable", .{});
     try emitVarNumber(cx, symbol.variable);
 }
 
@@ -611,7 +613,8 @@ fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
 
 fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     const expr = cx.ast.nodes.at(node_index);
-    if (expr.* != .identifier) return error.BadData;
+    if (expr.* != .identifier)
+        return fail(cx, node_index, "expected a name in this position", .{});
     const name = cx.ast.strings.get(expr.identifier);
 
     for (cx.local_vars.slice(), 0..) |local_name, num_usize| {
@@ -623,11 +626,7 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     if (cx.room_scope.get(name)) |sym| return sym;
     if (cx.project_scope.get(name)) |sym| return sym;
 
-    // Not found, return an error
-    const token_index = cx.ast.node_tokens.get(node_index);
-    const loc = cx.lex.tokens.at(token_index).span.start;
-    cx.diag.err(loc, "name not found", .{});
-    return error.AddedToDiagnostic;
+    return fail(cx, node_index, "name not found", .{});
 }
 
 fn emitString(cx: *const Cx, node_index: Ast.NodeIndex) !void {
@@ -650,4 +649,16 @@ fn writeJumpTargetBackwards(cx: *Cx, target: u32) !void {
     const rel_wide = target_signed - (here + 2);
     const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
     try cx.out.writer(cx.gpa).writeInt(i16, rel, .little);
+}
+
+fn fail(
+    cx: *const Cx,
+    node_index: Ast.NodeIndex,
+    comptime fmt: []const u8,
+    args: anytype,
+) error{AddedToDiagnostic} {
+    const token_index = cx.ast.node_tokens.get(node_index);
+    const token = cx.lex.tokens.at(token_index);
+    cx.diag.err(token.span.start, fmt, args);
+    return error.AddedToDiagnostic;
 }
