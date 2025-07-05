@@ -20,6 +20,7 @@ const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
 const fs = @import("fs.zig");
+const fsd = @import("fsd.zig");
 const games = @import("games.zig");
 const lang = @import("lang.zig");
 const music = @import("music.zig");
@@ -467,7 +468,7 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
                 .node => |child_node| switch (room_file.ast.nodes.at(child_node).*) {
                     .raw_glob_file => try planRawGlobFile(cx, room_number, child_node),
                     .raw_glob_block => try planRawGlobBlock(cx, room_number, child_node),
-                    .raw_block => |*n| try planRawBlock(cx, room_file, n),
+                    .raw_block => try planRawBlock(cx, room_number, child_node),
                     .rmim => try spawnJob(planRmim, cx, room_number, child_node),
                     .scr => try spawnJob(planScr, cx, room_number, child_node),
                     .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, child_node),
@@ -494,13 +495,18 @@ fn scheduleRoom(cx: *Context, plan: *const RoomPlan, room_number: u8) !void {
     }
 }
 
-fn planRawBlock(
-    cx: *Context,
-    file: *const Project.SourceFile,
-    node: *const @FieldType(Ast.Node, "raw_block"),
-) !void {
+fn planRawBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
+    const file = &cx.project.files.items[room_number].?;
+    const node = &file.ast.nodes.at(node_index).raw_block;
+
     const data = switch (node.contents) {
-        .path => |ss| try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(ss)),
+        .path => |ss| try fsd.readFile(
+            cx.gpa,
+            cx.diagnostic,
+            .node(file, node_index),
+            cx.project_dir,
+            file.ast.strings.get(ss),
+        ),
         .data => |ss| try cx.gpa.dupe(u8, file.ast.strings.get(ss)),
     };
     errdefer cx.gpa.free(data);
@@ -515,7 +521,13 @@ fn planRawGlobFile(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !vo
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).raw_glob_file;
 
-    const data = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(node.path));
+    const data = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(file, node_index),
+        cx.project_dir,
+        file.ast.strings.get(node.path),
+    );
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .glob = .{
@@ -538,8 +550,7 @@ fn planRawGlobBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !v
 
     const room_file = &cx.project.files.items[room_number].?;
     for (room_file.ast.getExtra(glob.children)) |node| {
-        const child = &room_file.ast.nodes.at(node).raw_block;
-        try planRawBlock(cx, room_file, child);
+        try planRawBlock(cx, room_number, node);
     }
 
     cx.sendSyncEvent(.glob_end);
@@ -557,7 +568,7 @@ fn planRmda(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
     for (room_file.ast.getExtra(rmda.children)) |node| {
         const child = &room_file.ast.nodes.items[node];
         switch (child.*) {
-            .raw_block => |*n| try planRawBlock(cx, n),
+            .raw_block => try planRawBlock(cx, room_number, node),
             .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, node),
             .lsc => try spawnJob(planLsc, cx, room_number, node),
             else => unreachable,
@@ -608,7 +619,13 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
                 try encodeRawBlock(cx.gpa, cx.project_dir, file, n, &out);
             },
             .bmap => |*n| {
-                const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(n.path));
+                const bmp_raw = try fsd.readFile(
+                    cx.gpa,
+                    cx.diagnostic,
+                    .node(file, child_index),
+                    cx.project_dir,
+                    file.ast.strings.get(n.path),
+                );
                 defer cx.gpa.free(bmp_raw);
                 try rmim_encode.encode(cx.gpa, cx.target.defined, n.compression, bmp_raw, &out);
             },
@@ -636,12 +653,19 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     const im = &file.ast.nodes.at(rmim.im).rmim_im;
     const im_children = file.ast.getExtra(im.children);
     if (im_children.len == 0) return error.BadData;
-    const bmap = file.ast.nodes.at(im_children[0]);
+    const bmap_node_index = im_children[0];
+    const bmap = file.ast.nodes.at(bmap_node_index);
     if (bmap.* != .bmap) return error.BadData;
 
     const bmp_path = file.ast.strings.get(bmap.bmap.path);
     // XXX: this is not quite ideal since it reads the bmp from disk a second time
-    const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, bmp_path);
+    const bmp_raw = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(file, bmap_node_index),
+        cx.project_dir,
+        bmp_path,
+    );
     defer cx.gpa.free(bmp_raw);
     const bitmap = try bmp.readHeader(bmp_raw);
     try buildPals(cx.gpa, &bitmap, &out);
@@ -674,7 +698,13 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     const file = &cx.project.files.items[room_number].?;
     const scr = &file.ast.nodes.at(node_index).scr;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(scr.path));
+    const in = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(file, node_index),
+        cx.project_dir,
+        file.ast.strings.get(scr.path),
+    );
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .global = scr.glob_number };
@@ -697,7 +727,13 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, 
         else => unreachable,
     };
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(path));
+    const in = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(file, node_index),
+        cx.project_dir,
+        file.ast.strings.get(path),
+    );
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = switch (edge) {
@@ -721,7 +757,13 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     const file = &cx.project.files.items[room_number].?;
     const lsc = &file.ast.nodes.at(node_index).lsc;
 
-    const in = try fs.readFile(cx.gpa, cx.project_dir, file.ast.strings.get(lsc.path));
+    const in = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(file, node_index),
+        cx.project_dir,
+        file.ast.strings.get(lsc.path),
+    );
     defer cx.gpa.free(in);
 
     const id: Symbols.ScriptId = .{ .local = .{
@@ -824,6 +866,7 @@ pub fn encodeRawBlock(
 ) !void {
     const start = try beginBlockAl(gpa, out, node.block_id);
     switch (node.contents) {
+        // TODO: use `fsd` for better errors
         .path => |ss| try fs.readFileInto(dir, file.ast.strings.get(ss), out.writer(gpa)),
         .data => |ss| try out.appendSlice(gpa, file.ast.strings.get(ss)),
     }
@@ -1090,7 +1133,13 @@ fn planObjectInner(
 
                 switch (verb.body) {
                     .assembly => |path| {
-                        const in = try fs.readFile(cx.gpa, cx.project_dir, room_file.ast.strings.get(path));
+                        const in = try fsd.readFile(
+                            cx.gpa,
+                            cx.diagnostic,
+                            .node(room_file, child_index),
+                            cx.project_dir,
+                            room_file.ast.strings.get(path),
+                        );
                         defer cx.gpa.free(in);
 
                         const id: Symbols.ScriptId = .{ .object = .{
@@ -1144,8 +1193,8 @@ fn planIndex(cx: *Context) !void {
 
     for (project_file.ast.getExtra(index.children)) |node| {
         switch (project_file.ast.nodes.at(node).*) {
-            .raw_block => |*n| try planRawBlock(cx, project_file, n),
-            .maxs => |*n| try planMaxs(cx, n),
+            .raw_block => try planRawBlock(cx, 0, node),
+            .maxs => try planMaxs(cx, node),
             .index_block => |b| switch (b) {
                 .RNAM => try planRoomNames(cx),
                 else => cx.sendSyncEvent(.{ .index_block = b }),
@@ -1157,11 +1206,18 @@ fn planIndex(cx: *Context) !void {
     cx.sendSyncEvent(.index_end);
 }
 
-fn planMaxs(cx: *Context, node: *const @FieldType(Ast.Node, "maxs")) !void {
+fn planMaxs(cx: *Context, node_index: Ast.NodeIndex) !void {
     const project_file = &cx.project.files.items[0].?;
+    const node = &project_file.ast.nodes.at(node_index).maxs;
 
     const path = project_file.ast.strings.get(node.path);
-    const data = try fs.readFile(cx.gpa, cx.project_dir, path);
+    const data = try fsd.readFile(
+        cx.gpa,
+        cx.diagnostic,
+        .node(project_file, node_index),
+        cx.project_dir,
+        path,
+    );
     errdefer cx.gpa.free(data);
 
     cx.sendSyncEvent(.{ .index_maxs = .fromOwnedSlice(data) });

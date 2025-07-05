@@ -11,7 +11,7 @@ const Diagnostic = @This();
 const live_spew = builtin.mode == .Debug;
 pub const enable_trace = live_spew and !builtin.is_test;
 
-const Location = struct {
+pub const Location = struct {
     path: []const u8,
     loc: Loc,
 

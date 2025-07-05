@@ -11,6 +11,13 @@ test "script must have number" {
     );
 }
 
+test "raw-glob file not found" {
+    try testRoomError(
+        \\raw-glob DIGI 1 "oops.bin"
+        \\^ failed to read file: oops.bin (FileNotFound)
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 

@@ -69,6 +69,23 @@ pub fn createFileZ(
     };
 }
 
+pub fn readFile(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    location: Diagnostic.Location,
+    dir: std.fs.Dir,
+    sub_path: []const u8,
+) ![]u8 {
+    return fs.readFile(gpa, dir, sub_path) catch |err| {
+        diagnostic.errAt(
+            location,
+            "failed to read file: {s} ({s})",
+            .{ sub_path, @errorName(err) },
+        );
+        return error.AddedToDiagnostic;
+    };
+}
+
 pub fn readFileZ(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
