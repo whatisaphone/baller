@@ -218,7 +218,7 @@ fn emitGlob(
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(cx, room_number, glob.block_id, glob.glob_number, start, size);
+    try addGlobToIndex(cx, room_number, glob.node_index, glob.block_id, glob.glob_number, start, size);
 }
 
 fn emitGlobBlock(
@@ -241,12 +241,13 @@ fn emitGlobBlock(
     const end: u32 = @intCast(out.bytes_written);
     const size = end - start;
 
-    try addGlobToIndex(cx, room_number, glob.block_id, glob.glob_number, start, size);
+    try addGlobToIndex(cx, room_number, glob.node_index, glob.block_id, glob.glob_number, start, size);
 }
 
 fn addGlobToIndex(
     cx: *const Cx,
     room_number: u8,
+    node_index: Ast.NodeIndex,
     block_id: BlockId,
     glob_number: u16,
     offset_in_disk: u32,
@@ -271,8 +272,14 @@ fn addGlobToIndex(
     };
     try utils.growMultiArrayList(DirectoryEntry, directory, cx.gpa, glob_number + 1, zero);
 
-    if (directory.items(.room)[glob_number] != 0)
-        @panic("TODO");
+    if (directory.items(.room)[glob_number] != 0) {
+        cx.diagnostic.errAt(
+            .node(&cx.project.files.items[room_number].?, node_index),
+            "duplicate glob number {}",
+            .{glob_number},
+        );
+        return error.AddedToDiagnostic;
+    }
 
     const offset_in_room = offset_in_disk - cx.index.rooms.items(.offset)[room_number];
     const write_size = if (block_id == .MULT and !games.writeMultLen(cx.target))
