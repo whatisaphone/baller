@@ -284,8 +284,8 @@ pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !voi
         line_buf.len = 2;
 
         switch (strategy) {
-            .original => try encodeRleRowOriginal(row, &line_buf),
-            .max => try encodeRleRowMax(row, &line_buf),
+            .original => encodeRleRowOriginal(row, &line_buf),
+            .max => encodeRleRowMax(row, &line_buf),
         }
 
         // fill in line size
@@ -299,7 +299,7 @@ pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !voi
 fn encodeRleRowMax(
     row: []const u8,
     line_buf: *std.BoundedArray(u8, 2 + max_supported_width * 2),
-) !void {
+) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))
         return;
@@ -339,15 +339,15 @@ fn encodeRleRowMax(
 
         if (color == transparent) {
             const n = 1 | @shlExact(run_len, 1);
-            try line_buf.append(n);
+            line_buf.appendAssumeCapacity(n);
         } else if (run_len != 1) {
             const n = 2 | @shlExact(run_len - 1, 2);
-            try line_buf.append(n);
-            try line_buf.append(color);
+            line_buf.appendAssumeCapacity(n);
+            line_buf.appendAssumeCapacity(color);
         } else {
             const n = @shlExact(blit_len - 1, 2);
-            try line_buf.append(n);
-            try line_buf.appendSlice(row[i - blit_len .. i]);
+            line_buf.appendAssumeCapacity(n);
+            line_buf.appendSliceAssumeCapacity(row[i - blit_len .. i]);
         }
     }
 }
@@ -355,7 +355,7 @@ fn encodeRleRowMax(
 fn encodeRleRowOriginal(
     row: []const u8,
     line_buf: *std.BoundedArray(u8, 2 + max_supported_width * 2),
-) !void {
+) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))
         return;
@@ -403,7 +403,7 @@ fn encodeRleRowOriginal(
                 remaining -= cur;
 
                 const n = 1 | @shlExact(cur, 1);
-                try line_buf.append(n);
+                line_buf.appendAssumeCapacity(n);
             }
         } else if (run_len != 1) {
             var remaining = run_len;
@@ -412,8 +412,8 @@ fn encodeRleRowOriginal(
                 remaining -= cur;
 
                 const n = 2 | @shlExact(cur - 1, 2);
-                try line_buf.append(n);
-                try line_buf.append(color);
+                line_buf.appendAssumeCapacity(n);
+                line_buf.appendAssumeCapacity(color);
             }
         } else {
             var remaining = blit_len;
@@ -422,8 +422,8 @@ fn encodeRleRowOriginal(
                 remaining -= cur;
 
                 const n = @shlExact(cur - 1, 2);
-                try line_buf.append(n);
-                try line_buf.appendSlice(row[i - remaining - cur .. i - remaining]);
+                line_buf.appendAssumeCapacity(n);
+                line_buf.appendSliceAssumeCapacity(row[i - remaining - cur .. i - remaining]);
             }
         }
     }
