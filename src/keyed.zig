@@ -74,6 +74,10 @@ pub fn List(K: type, V: type) type {
             return &self.list.items[key.index()];
         }
 
+        pub fn get(self: *const Self, key: K) V {
+            return self.at(key).*;
+        }
+
         pub fn append(self: *Self, gpa: std.mem.Allocator, value: V) !K {
             const key = K.fromUsize(self.len());
             try self.list.append(gpa, value);

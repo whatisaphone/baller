@@ -41,7 +41,7 @@ pub fn compile(
 
     compileInner(&cx, root_node, statements) catch |err| {
         if (err != error.AddedToDiagnostic) {
-            const token_index = file.ast.node_tokens.items[root_node.index()];
+            const token_index = file.ast.node_tokens.get(root_node);
             const loc = file.lex.tokens.at(token_index).span.start;
             diag.zigErr(loc, "unexpected error: {s}", .{}, err);
         }
@@ -334,7 +334,7 @@ fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
     const call = &cx.ast.nodes.at(node_index).call;
 
     const callee = findCallee(cx, call.callee) orelse {
-        const token_index = cx.ast.node_tokens.items[node_index.index()];
+        const token_index = cx.ast.node_tokens.get(node_index);
         const loc = cx.lex.tokens.at(token_index).span.start;
         cx.diag.err(loc, "instruction not found", .{});
         return error.AddedToDiagnostic;
@@ -624,7 +624,7 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     if (cx.project_scope.get(name)) |sym| return sym;
 
     // Not found, return an error
-    const token_index = cx.ast.node_tokens.items[node_index.index()];
+    const token_index = cx.ast.node_tokens.get(node_index);
     const loc = cx.lex.tokens.at(token_index).span.start;
     cx.diag.err(loc, "name not found", .{});
     return error.AddedToDiagnostic;

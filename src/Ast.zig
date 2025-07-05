@@ -13,7 +13,7 @@ const Ast = @This();
 
 root: NodeIndex,
 nodes: keyed.List(NodeIndex, Node),
-node_tokens: std.ArrayListUnmanaged(lexer.TokenIndex),
+node_tokens: keyed.List(NodeIndex, lexer.TokenIndex),
 extra: std.ArrayListUnmanaged(u32),
 strings: StringTable,
 

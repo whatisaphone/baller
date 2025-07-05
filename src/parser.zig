@@ -1329,7 +1329,7 @@ fn parseTopLevelExpr(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn makeExprTopLevel(cx: *Cx, ei: Ast.NodeIndex) !Ast.NodeIndex {
     if (cx.result.nodes.at(ei).* == .identifier) {
         // A lonely identifier is a call with 0 args
-        const token = cx.result.node_tokens.items[ei.index()];
+        const token = cx.result.node_tokens.get(ei);
         return storeNodeWithTokenIndex(cx, token, .{ .call = .{ .callee = ei, .args = .empty } });
     }
     return ei;
@@ -1502,7 +1502,7 @@ fn storeNode(cx: *Cx, token: *const lexer.Token, node: Ast.Node) !Ast.NodeIndex 
 
 fn storeNodeWithTokenIndex(cx: *Cx, token_index: lexer.TokenIndex, node: Ast.Node) !Ast.NodeIndex {
     const result = try cx.result.nodes.append(cx.gpa, node);
-    try cx.result.node_tokens.append(cx.gpa, token_index);
+    _ = try cx.result.node_tokens.append(cx.gpa, token_index);
     return result;
 }
 
@@ -1512,7 +1512,7 @@ fn recoverTokenIndex(cx: *Cx, token: *const lexer.Token) lexer.TokenIndex {
 
 fn appendNode(cx: *Cx, nodes: anytype, node_index: Ast.NodeIndex) !void {
     nodes.append(node_index) catch {
-        const token_index = cx.result.node_tokens.items[node_index.index()];
+        const token_index = cx.result.node_tokens.get(node_index);
         const token = cx.lex.tokens.at(token_index);
         return reportError(cx, token, "too many children", .{});
     };
