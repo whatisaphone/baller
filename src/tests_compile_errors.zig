@@ -47,6 +47,33 @@ test "bad jump operand" {
     );
 }
 
+test "ins wrong arg count" {
+    try testRoomError(
+        \\script s@1 {
+        \\    print-image 0 0
+        \\    ^ expected 1 args, found 2
+        \\}
+    );
+}
+
+test "ins variadic too few args" {
+    try testRoomError(
+        \\script s@1 {
+        \\    start-script
+        \\    ^ expected at least 1 args, found 0
+        \\}
+    );
+}
+
+test "compound wrong arg count" {
+    try testRoomError(
+        \\script s@1 {
+        \\    sprite-select 0 0
+        \\    ^ expected 1 args, found 2
+        \\}
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 

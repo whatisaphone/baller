@@ -340,19 +340,26 @@ fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
         return error.AddedToDiagnostic;
     };
     switch (callee) {
-        .ins => |*ins| try emitCallIns(cx, ins, call.args),
-        .compound => |c| try emitCallCompound(cx, c, call.args),
+        .ins => |*ins| try emitCallIns(cx, node_index, ins, call.args),
+        .compound => |c| try emitCallCompound(cx, node_index, c, call.args),
     }
 }
 
-fn emitCallIns(cx: *Cx, ins: *const InsData, args_slice: Ast.ExtraSlice) !void {
+fn emitCallIns(
+    cx: *Cx,
+    node_index: Ast.NodeIndex,
+    ins: *const InsData,
+    args_slice: Ast.ExtraSlice,
+) !void {
     const args = cx.ast.getExtra(args_slice);
     const required = ins.operands.len + ins.normal_params;
-    if (args.len < required) return error.BadData;
+    if (args.len < required)
+        return failArgCount(cx, node_index, args.len, required, ins.variadic);
     const args_operands = args[0..ins.operands.len];
     const args_stack = args[ins.operands.len..required];
     const args_variadic = args[required..];
-    if (!ins.variadic and args_variadic.len != 0) return error.BadData;
+    if (!ins.variadic and args_variadic.len != 0)
+        return failArgCount(cx, node_index, args.len, required, false);
 
     for (args_stack) |ei|
         try pushExpr(cx, ei);
@@ -423,17 +430,22 @@ fn makeInsData(cx: *const Cx, ins: lang.LangIns) ?InsData {
     };
 }
 
-fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSlice) !void {
+fn emitCallCompound(
+    cx: *Cx,
+    node_index: Ast.NodeIndex,
+    compound: script.Compound,
+    args_slice: Ast.ExtraSlice,
+) !void {
     const args = cx.ast.getExtra(args_slice);
     switch (compound) {
         .@"sprite-select" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try emitOpcode(cx, .@"sprite-select-range");
         },
         .@"array-sort-rows" => {
-            if (args.len != 5) return error.BadData;
+            try checkArgCount(cx, node_index, args, 5);
             try pushExpr(cx, args[1]);
             try pushExpr(cx, args[2]);
             try pushExpr(cx, args[3]);
@@ -443,7 +455,7 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitVariable(cx, args[0]);
         },
         .@"array-sort-cols" => {
-            if (args.len != 5) return error.BadData;
+            try checkArgCount(cx, node_index, args, 5);
             try pushExpr(cx, args[1]);
             try emitOpcode(cx, .dup);
             try pushExpr(cx, args[2]);
@@ -453,28 +465,28 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitVariable(cx, args[0]);
         },
         .@"lock-and-load-script" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try emitOpcode(cx, .@"lock-script");
             try emitOpcode(cx, .@"load-script");
         },
         .@"lock-and-load-costume" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try emitOpcode(cx, .@"lock-costume");
             try emitOpcode(cx, .@"load-costume");
         },
         .@"lock-and-load-image" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try emitOpcode(cx, .@"lock-image");
             try emitOpcode(cx, .@"load-image");
         },
         .@"palette-set-slot-rgb" => {
-            if (args.len != 4) return error.BadData;
+            try checkArgCount(cx, node_index, args, 4);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
@@ -483,20 +495,20 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try emitOpcode(cx, .@"palette-set-rgb");
         },
         .@"palette-set-slot-color" => {
-            if (args.len != 2) return error.BadData;
+            try checkArgCount(cx, node_index, args, 2);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
             try emitOpcode(cx, .@"palette-set-color");
         },
         .@"delete-one-polygon" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try emitOpcode(cx, .@"delete-polygon");
         },
         .@"break-until" => {
-            if (args.len != 1) return error.BadData;
+            try checkArgCount(cx, node_index, args, 1);
             const start: u32 = @intCast(cx.out.items.len);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .@"jump-if");
@@ -508,6 +520,31 @@ fn emitCallCompound(cx: *Cx, compound: script.Compound, args_slice: Ast.ExtraSli
             try fixupJumpToHere(cx, fixup);
         },
     }
+}
+
+fn checkArgCount(
+    cx: *Cx,
+    node_index: Ast.NodeIndex,
+    args: []const Ast.NodeIndex,
+    expected_len: u32,
+) !void {
+    if (args.len != expected_len)
+        return failArgCount(cx, node_index, args.len, expected_len, false);
+}
+
+fn failArgCount(
+    cx: *Cx,
+    node_index: Ast.NodeIndex,
+    actual_len: usize,
+    expected_len: usize,
+    variadic: bool,
+) error{AddedToDiagnostic} {
+    return fail(
+        cx,
+        node_index,
+        "expected{s} {} args, found {}",
+        .{ if (variadic) " at least" else "", expected_len, actual_len },
+    );
 }
 
 fn pushExpr(cx: *Cx, node_index: Ast.NodeIndex) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {
