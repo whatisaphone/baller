@@ -109,15 +109,15 @@ pub fn hasIndexSver(game: Game) bool {
     return game == .basketball;
 }
 
-pub fn directoryNonPresentLen(game: Game) u32 {
-    return if (game == .baseball_1997)
+pub fn directoryNonPresentLen(target: Target) u32 {
+    return if (target == .sputm90)
         0xffff_ffff
     else
         0;
 }
 
-pub fn writeMultLen(game: Game) bool {
-    return game != .baseball_1997;
+pub fn writeMultLen(target: Target) bool {
+    return target != .sputm90;
 }
 
 pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
