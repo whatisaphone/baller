@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const build_options = @import("build_options");
+
 const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
@@ -7,10 +9,13 @@ const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
+const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const beginBlockKnown = @import("block_writer.zig").beginBlockKnown;
 const endBlock = @import("block_writer.zig").endBlock;
+const endBlockAl = @import("block_writer.zig").endBlockAl;
 const endBlockKnown = @import("block_writer.zig").endBlockKnown;
 const writeFixups = @import("block_writer.zig").writeFixups;
+const Options = @import("build.zig").Options;
 const Maxs = @import("extract.zig").Maxs;
 const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
@@ -26,12 +31,13 @@ pub fn run(
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
+    options: *const Options,
     events: *sync.Channel(plan.Event, 16),
 ) !void {
     var receiver: OrderedReceiver = .init(events);
     defer receiver.deinit(gpa);
 
-    runInner(gpa, diagnostic, project, output_dir, index_name, &receiver) catch |err| {
+    runInner(gpa, diagnostic, project, output_dir, index_name, options, &receiver) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
 
@@ -53,6 +59,7 @@ pub fn runInner(
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
+    options: *const Options,
     receiver: *OrderedReceiver,
 ) !void {
     var index: Index = try .init(gpa);
@@ -71,6 +78,7 @@ pub fn runInner(
         .project = project,
         .output_dir = output_dir,
         .index_name = index_name,
+        .options = options,
         .receiver = receiver,
         .target = target,
         .index = &index,
@@ -92,6 +100,7 @@ const Cx = struct {
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
+    options: *const Options,
     receiver: *OrderedReceiver,
     target: games.Target,
     index: *Index,
@@ -407,7 +416,12 @@ fn emitIndex(cx: *const Cx) !void {
             },
             .RNAM => unreachable,
         },
-        .raw_block => |*rb| try emitRawBlock(cx.gpa, &out, rb),
+        .raw_block => |*rb| {
+            if (rb.block_id == .INIB and cx.options.write_version)
+                try writeVersionIntoInib(cx.gpa, &out, &fixups, rb)
+            else
+                try emitRawBlock(cx.gpa, &out, rb);
+        },
         .index_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -454,4 +468,30 @@ fn writeDirectory(
     try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
     try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.size)));
     try endBlock(out, fixups, start);
+}
+
+fn writeVersionIntoInib(
+    gpa: std.mem.Allocator,
+    out: anytype,
+    fixups: *std.ArrayList(Fixup),
+    raw_block: *const @FieldType(plan.Payload, "raw_block"),
+) !void {
+    std.debug.assert(raw_block.block_id == .INIB);
+
+    // Discard the data since we're replacing it
+    var data_mut = raw_block.data;
+    data_mut.deinit(gpa);
+
+    const inib_start = try beginBlock(out, .INIB);
+
+    const note_start = try beginBlock(out, .NOTE);
+    // double-xor so it's readable in the raw file
+    try io.xorWriter(out.writer(), xor_key).writer().print(
+        "\r\nBuilt with Baller {s} <https://baller.whatisaph.one/>\r\n",
+        .{build_options.version},
+    );
+    try out.writer().writeByte(0);
+    try endBlock(out, fixups, note_start);
+
+    try endBlock(out, fixups, inib_start);
 }

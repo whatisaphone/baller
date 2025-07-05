@@ -101,6 +101,7 @@ pub const BlockId = enum(u32) {
     MAXS = make("MAXS"),
     MULT = make("MULT"),
     NLSC = make("NLSC"),
+    NOTE = make("NOTE"),
     OBCD = make("OBCD"),
     OBIM = make("OBIM"),
     OBNA = make("OBNA"),

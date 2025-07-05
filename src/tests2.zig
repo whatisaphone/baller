@@ -291,6 +291,7 @@ fn testRoundTrip(
         .index_path = build_path ++ "/" ++ game.index_name,
         .options = .{
             .awiz_strategy = .original,
+            .write_version = false,
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();

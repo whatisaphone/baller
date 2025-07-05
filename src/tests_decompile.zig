@@ -367,6 +367,7 @@ fn testRoundTrip(
         .index_path = build_path ++ "/baseball 2001.he0",
         .options = .{
             .awiz_strategy = .max,
+            .write_version = true,
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();

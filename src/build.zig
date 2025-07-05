@@ -18,6 +18,7 @@ const utils = @import("utils.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var project_path_opt: ?[:0]const u8 = null;
     var index_path_opt: ?[:0]const u8 = null;
+    var write_version: ?YesNo = null;
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -28,6 +29,15 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 index_path_opt = str
             else
                 return arg.reportUnexpected();
+        },
+        .long_option => |opt| {
+            if (std.mem.eql(u8, opt.flag, "write-version")) {
+                if (write_version != null) return arg.reportDuplicate();
+                write_version = std.meta.stringToEnum(YesNo, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else {
+                return arg.reportUnexpected();
+            }
         },
         else => return arg.reportUnexpected(),
     };
@@ -43,6 +53,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .index_path = index_path,
         .options = .{
             .awiz_strategy = .max,
+            .write_version = (write_version orelse YesNo.yes).toBool(),
         },
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
@@ -57,8 +68,18 @@ const Build = struct {
     options: Options,
 };
 
-const Options = struct {
+pub const Options = struct {
     awiz_strategy: awiz.EncodingStrategy,
+    write_version: bool,
+};
+
+const YesNo = enum {
+    no,
+    yes,
+
+    fn toBool(self: YesNo) bool {
+        return self != .no;
+    }
 };
 
 pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
@@ -102,7 +123,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, output_dir, index_name, &pool, &events });
 
-    try emit.run(gpa, diagnostic, &project, output_dir, index_name, &events);
+    try emit.run(gpa, diagnostic, &project, output_dir, index_name, &args.options, &events);
 }
 
 fn addFile(

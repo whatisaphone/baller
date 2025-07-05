@@ -58,6 +58,7 @@ fn testRoomError(case_str: []const u8) !void {
             .index_path = build_path ++ "/baseball 2001.he0",
             .options = .{
                 .awiz_strategy = .max,
+                .write_version = true,
             },
         }),
     );
