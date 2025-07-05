@@ -74,6 +74,26 @@ test "compound wrong arg count" {
     );
 }
 
+test "node in forbidden position" {
+    try testRoomError(
+        \\script s@1 {
+        \\    0 = 0
+        \\    ^ node type not expected in this position
+        \\}
+    );
+}
+
+test "duplicate label" {
+    try testRoomError(
+        \\script s@1 {
+        \\    a:
+        \\    update-screen
+        \\    a:
+        \\    ^ duplicate label
+        \\}
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 

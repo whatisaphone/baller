@@ -112,7 +112,8 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
             const entry = try cx.label_offsets.getOrPut(cx.gpa, cx.ast.strings.get(name));
             // TODO: forbid duplicate labels, this would mean fixing the decompiler first
             if (entry.found_existing) {
-                if (entry.value_ptr.* != offset) return error.BadData;
+                if (entry.value_ptr.* != offset)
+                    return fail(cx, node_index, "duplicate label", .{});
             } else {
                 entry.value_ptr.* = offset;
             }
@@ -138,7 +139,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                     try emitOpcode(cx, .@"set-array-item-2d");
                     try emitVariable(cx, a.lhs);
                 },
-                else => return error.BadData,
+                else => return forbiddenNode(cx, s.lhs),
             }
         },
         .binop_assign => |e| {
@@ -169,7 +170,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                 try emitOpcode(cx, e.op.op());
                 try emitOpcode(cx, .@"set-array-item-2d");
                 try emitVariable(cx, lhs.array_get2.lhs);
-            } else return error.BadData;
+            } else return forbiddenNode(cx, e.lhs);
         },
         .call => try emitCall(cx, node_index),
         .@"if" => |*s| {
@@ -326,8 +327,12 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                 try fixupJumpToHere(cx, fixup);
         },
         // TODO: handle all errors during parsing and make this unreachable
-        else => return error.BadData,
+        else => return forbiddenNode(cx, node_index),
     }
+}
+
+fn forbiddenNode(cx: *Cx, node_index: Ast.NodeIndex) !void {
+    return fail(cx, node_index, "node type not expected in this position", .{});
 }
 
 fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
