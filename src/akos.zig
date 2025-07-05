@@ -286,42 +286,6 @@ pub fn encode(
     try flushCels(gpa, &state, out);
 }
 
-fn encodeCelRaw(
-    allocator: std.mem.Allocator,
-    line: []const u8,
-    state: *EncodeState,
-) !void {
-    // Parse line
-
-    var tokens = std.mem.tokenizeScalar(u8, line, ' ');
-
-    const width_str = tokens.next() orelse return error.BadData;
-    const width = try std.fmt.parseInt(u16, width_str, 10);
-
-    const height_str = tokens.next() orelse return error.BadData;
-    const height = try std.fmt.parseInt(u16, height_str, 10);
-
-    const path = tokens.next() orelse return error.BadData;
-
-    if (tokens.next()) |_| return error.BadData;
-
-    // Encode
-
-    try state.akci.append(utils.null_allocator, .{ .width = width, .height = height });
-
-    try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
-
-    const file = try state.project_dir.openFile(path, .{});
-    defer file.close();
-
-    const data_stat = try file.stat();
-    const data_len: u32 = @intCast(data_stat.size);
-
-    try state.akcd.ensureUnusedCapacity(allocator, data_len);
-    try file.reader().readNoEof(state.akcd.unusedCapacitySlice()[0..data_len]);
-    state.akcd.items.len += data_len;
-}
-
 fn encodeCelBmp(
     allocator: std.mem.Allocator,
     akpl: []const u8,
