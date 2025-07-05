@@ -331,10 +331,6 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
     }
 }
 
-fn forbiddenNode(cx: *const Cx, node_index: Ast.NodeIndex) error{AddedToDiagnostic} {
-    return fail(cx, node_index, "node type not expected in this position", .{});
-}
-
 fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
     const call = &cx.ast.nodes.at(node_index).call;
 
@@ -703,4 +699,8 @@ fn fail(
     const token = cx.lex.tokens.at(token_index);
     cx.diag.err(token.span.start, fmt, args);
     return error.AddedToDiagnostic;
+}
+
+fn forbiddenNode(cx: *const Cx, node_index: Ast.NodeIndex) error{AddedToDiagnostic} {
+    return fail(cx, node_index, "node type not expected in this position", .{});
 }
