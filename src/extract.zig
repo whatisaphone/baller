@@ -17,6 +17,7 @@ const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
+const fsd = @import("fsd.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
 const lang = @import("lang.zig");
@@ -282,7 +283,7 @@ pub fn run(
 ) !std.EnumArray(Stat, u16) {
     const input_path_opt, const index_name = fs.splitPathZ(args.index_path);
     var input_dir = if (input_path_opt) |input_path|
-        try std.fs.cwd().openDir(input_path, .{})
+        try fsd.openDir(diagnostic, std.fs.cwd(), input_path)
     else
         std.fs.cwd();
     defer if (input_path_opt) |_|
@@ -292,8 +293,8 @@ pub fn run(
     if (builtin.is_test)
         fs.assertNotExists(std.fs.cwd(), args.output_path);
 
-    try fs.makeDirIfNotExistZ(std.fs.cwd(), args.output_path);
-    var output_dir = try std.fs.cwd().openDirZ(args.output_path, .{});
+    try fsd.makeDirIfNotExistZ(diagnostic, std.fs.cwd(), args.output_path);
+    var output_dir = try fsd.openDirZ(diagnostic, std.fs.cwd(), args.output_path);
     defer output_dir.close();
 
     const game = try games.detectGameOrFatal(diagnostic, index_name);
@@ -305,7 +306,7 @@ pub fn run(
     defer symbols.deinit(gpa);
 
     if (args.symbols_path) |path| {
-        symbols_text = try fs.readFileZ(gpa, std.fs.cwd(), path);
+        symbols_text = try fsd.readFileZ(gpa, diagnostic, std.fs.cwd(), path);
         try symbols.parse(gpa, symbols_text);
     }
 
@@ -391,7 +392,7 @@ pub fn run(
         for (the_enum.entries.items) |*entry|
             try code.writer(gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
 
-    try fs.writeFileZ(output_dir, "project.scu", code.items);
+    try fsd.writeFileZ(diagnostic, output_dir, "project.scu", code.items);
 
     sanityCheckStats(&cx.stats);
 
@@ -494,7 +495,7 @@ fn extractIndex(
 ) !struct { Index, []u8 } {
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, index_name);
 
-    const raw = try fs.readFileZ(gpa, input_dir, index_name);
+    const raw = try fsd.readFileZ(gpa, diagnostic, input_dir, index_name);
     defer gpa.free(raw);
     for (raw) |*b|
         b.* ^= xor_key;
@@ -523,7 +524,7 @@ fn extractIndex(
 
         var path_buf: ["index_MAXS.bin".len + 1]u8 = undefined;
         const path = try std.fmt.bufPrintZ(&path_buf, "index_{}.bin", .{BlockId.MAXS});
-        try fs.writeFileZ(output_dir, path, maxs_present_bytes);
+        try fsd.writeFileZ(diagnostic, output_dir, path, maxs_present_bytes);
 
         try code.writer(gpa).print("    maxs \"{s}\"\n", .{path});
 
@@ -769,7 +770,7 @@ fn extractDisk(
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name);
 
-    const in_file = try input_dir.openFileZ(disk_name, .{});
+    const in_file = try fsd.openFileZ(diagnostic, input_dir, disk_name);
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), xor_key);
     var in_buf = std.io.bufferedReader(in_xor.reader());
@@ -831,7 +832,7 @@ fn extractRoom(
 
     try cx.pool.spawn(readRoomJob, .{ cx, in, &diag, room_number, &events });
 
-    try emitRoom(cx, room_number, project_code, &events);
+    try emitRoom(cx, diag.diagnostic, room_number, project_code, &events);
 }
 
 fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
@@ -931,8 +932,8 @@ fn readRoomJob(
 
     (blk: {
         rcx.room_path = cx.index.room_names.get(room_number) orelse break :blk error.BadData;
-        fs.makeDirIfNotExist(cx.output_dir, rcx.room_path) catch |err| break :blk err;
-        room_dir = cx.output_dir.openDir(rcx.room_path, .{}) catch |err| break :blk err;
+        fsd.makeDirIfNotExist(diag.diagnostic, cx.output_dir, rcx.room_path) catch |err| break :blk err;
+        room_dir = fsd.openDir(diag.diagnostic, cx.output_dir, rcx.room_path) catch |err| break :blk err;
         rcx.room_dir = room_dir.?;
 
         readRoomInner(&rcx, in, diag) catch |err| break :blk err;
@@ -1248,7 +1249,7 @@ fn extractRmimAndPalsJob(
     // If the RMIM was decoded successfully, the .bmp specifies the palette.
     // Otherwise output them both as separate raw blocks.
 
-    try writeRawGlob(cx, block, cx.room_number, rmim_raw, &code);
+    try writeRawGlob(cx, diag.diagnostic, block, cx.room_number, rmim_raw, &code);
     cx.sendChunk(rmim_chunk_index, .top, code);
 
     code = .empty;
@@ -1443,7 +1444,7 @@ fn disassembleVerb(
 
     var path_buf: ["object0000_00.s".len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "object{:0>4}_{:0>2}.s", .{ object, verb }) catch unreachable;
-    try fs.writeFileZ(cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print("\n    verb {} \"{s}/{s}\"\n", .{ verb, cx.room_path, path });
 
@@ -1558,7 +1559,7 @@ fn extractEncdExcdDisassemble(
 
     var path_buf: ["encd.s".len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "{s}.s", .{@tagName(edge)}) catch unreachable;
-    try fs.writeFileZ(cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print(
         "{s} \"{s}/{s}\"\n",
@@ -1725,7 +1726,7 @@ fn extractLscDisassemble(
 
     path_buf.appendSlice(".s\x00") catch unreachable;
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
-    try fs.writeFileZ(cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print(
         "\nlsc {s}@{} \"{s}/{s}\"\n",
@@ -1856,7 +1857,7 @@ fn extractGlobJob(
 
     // If decoding failed or was skipped, extract as raw
 
-    try writeRawGlob(cx, block, glob_number, raw, &code);
+    try writeRawGlob(cx, diag.diagnostic, block, glob_number, raw, &code);
     cx.sendChunk(chunk_index, .bottom, code);
 
     cx.cx.incStatOpt(switch (block.id) {
@@ -1999,7 +2000,7 @@ fn extractScrpDisassemble(
 
     path_buf.appendSlice(".s\x00") catch unreachable;
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
-    try fs.writeFileZ(cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
 
     try code.writer(cx.cx.gpa).print(
         "\nscr {s}@{} \"{s}/{s}\"\n",
@@ -2136,16 +2137,14 @@ fn extractAkos(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    _ = diag;
-
     var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
     cx.cx.symbols.writeGlobName(.costume, glob_number, name_buf.writer()) catch unreachable;
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
-    try fs.makeDirIfNotExistZ(cx.room_dir, name);
+    try fsd.makeDirIfNotExistZ(diag.diagnostic, cx.room_dir, name);
 
-    var dir = try cx.room_dir.openDirZ(name, .{});
+    var dir = try fsd.openDirZ(diag.diagnostic, cx.room_dir, name);
     defer dir.close();
 
     var path_buf: [Ast.max_room_name_len + 1 + Symbols.max_name_len:0]u8 = undefined;
@@ -2190,6 +2189,7 @@ fn extractTlke(
 
 fn writeRawGlob(
     cx: *const RoomContext,
+    diagnostic: *Diagnostic,
     block: *const Block,
     glob_number: u16,
     data: []const u8,
@@ -2207,7 +2207,7 @@ fn writeRawGlob(
     filename_buf.appendSlice(".bin\x00") catch unreachable;
     const filename = filename_buf.slice()[0 .. filename_buf.len - 1 :0];
 
-    try fs.writeFileZ(cx.room_dir, filename, data);
+    try fsd.writeFileZ(diagnostic, cx.room_dir, filename, data);
 
     try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
     if (name) |n| {
@@ -2327,6 +2327,7 @@ fn writeRawBlockImpl(
         ),
     };
 
+    // TODO: use `fsd` for better errors
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
     switch (data_source) {
@@ -2342,6 +2343,7 @@ fn writeRawBlockImpl(
 
 fn emitRoom(
     cx: *const Context,
+    diagnostic: *Diagnostic,
     room_number: u8,
     project_code: *std.ArrayListUnmanaged(u8),
     events: *sync.Channel(Event, 16),
@@ -2371,7 +2373,7 @@ fn emitRoom(
         .{ room_number, room_name, room_scu_path },
     );
 
-    const room_scu = try cx.output_dir.createFileZ(room_scu_path, .{});
+    const room_scu = try fsd.createFileZ(diagnostic, cx.output_dir, room_scu_path);
     defer room_scu.close();
 
     if (!ok)
@@ -2422,8 +2424,8 @@ fn extractMusic(
     games.pointPathToMusic(cx.game, in_path);
 
     const output_path = "music";
-    try fs.makeDirIfNotExistZ(output_parent_dir, output_path);
-    var output_dir = try output_parent_dir.openDirZ(output_path, .{});
+    try fsd.makeDirIfNotExistZ(diagnostic, output_parent_dir, output_path);
+    var output_dir = try fsd.openDirZ(diagnostic, output_parent_dir, output_path);
     defer output_dir.close();
 
     try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
