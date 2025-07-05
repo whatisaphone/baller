@@ -23,7 +23,7 @@ test "bad array lhs node" {
         \\var v@0
         \\script s@1 {
         \\    v = 0[0]
-        \\        ^ expected a name in this position
+        \\        ^ node type not expected in this position
         \\}
     );
 }
@@ -42,7 +42,7 @@ test "bad jump operand" {
     try testRoomError(
         \\script s@1 {
         \\    jump 0
-        \\         ^ jump target must be a label
+        \\         ^ node type not expected in this position
         \\}
     );
 }

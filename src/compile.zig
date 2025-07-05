@@ -331,7 +331,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
     }
 }
 
-fn forbiddenNode(cx: *Cx, node_index: Ast.NodeIndex) !void {
+fn forbiddenNode(cx: *const Cx, node_index: Ast.NodeIndex) error{AddedToDiagnostic} {
     return fail(cx, node_index, "node type not expected in this position", .{});
 }
 
@@ -616,7 +616,7 @@ fn emitOperand(cx: *Cx, op: lang.LangOperand, node_index: Ast.NodeIndex) !void {
         .relative_offset => {
             const label_expr = cx.ast.nodes.at(node_index);
             if (label_expr.* != .identifier)
-                return fail(cx, node_index, "jump target must be a label", .{});
+                return forbiddenNode(cx, node_index);
             const label_name = cx.ast.strings.get(label_expr.identifier);
 
             const offset: u16 = @intCast(cx.out.items.len);
@@ -656,7 +656,7 @@ fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
 fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     const expr = cx.ast.nodes.at(node_index);
     if (expr.* != .identifier)
-        return fail(cx, node_index, "expected a name in this position", .{});
+        return forbiddenNode(cx, node_index);
     const name = cx.ast.strings.get(expr.identifier);
 
     for (cx.local_vars.slice(), 0..) |local_name, num_usize| {
