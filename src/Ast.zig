@@ -34,7 +34,7 @@ pub fn getExtraU32(self: *const Ast, slice: ExtraSlice) []const u32 {
 
 pub const max_room_name_len = 255;
 pub const max_mult_children = 256;
-pub const max_case_branches = 320;
+pub const max_case_branches = 512;
 
 pub const NodeIndex = keyed.Key(enum(u32) {});
 
