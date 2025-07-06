@@ -35,7 +35,7 @@ test "char literal with newline" {
 test "string literal with newline" {
     try testRoomError(
         \\"
-        \\^ invalid character in string
+        \\ ^ invalid character in string
     );
 }
 

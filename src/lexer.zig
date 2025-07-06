@@ -302,10 +302,11 @@ fn lexCharLiteral(state: *State, start: Loc) !void {
 
 fn lexStringLiteral(state: *State, start: Loc) !void {
     while (true) {
+        const loc = state.loc;
         const ch = consumeChar(state) orelse
             return reportError(state, start, "string not terminated", .{});
         if (!isValidRawCharInString(ch))
-            return reportError(state, start, "invalid character in string", .{});
+            return reportError(state, loc, "invalid character in string", .{});
         if (ch == '"')
             break;
     }
