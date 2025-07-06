@@ -4,6 +4,41 @@ const Diagnostic = @import("Diagnostic.zig");
 const build = @import("build.zig");
 const fs = @import("fs.zig");
 
+test "empty char literal" {
+    try testRoomError(
+        \\''
+        \\^ bad char literal
+    );
+}
+
+test "unimplemented char literal escapes" {
+    try testRoomError(
+        \\'\'
+        \\^ bad char literal
+    );
+}
+
+test "char literal too long" {
+    try testRoomError(
+        \\'oh no'
+        \\^ bad char literal
+    );
+}
+
+test "char literal with newline" {
+    try testRoomError(
+        \\'
+        \\^ bad char literal
+    );
+}
+
+test "string literal with newline" {
+    try testRoomError(
+        \\"
+        \\^ invalid character in string
+    );
+}
+
 test "script must have number" {
     try testRoomError(
         \\script s {

@@ -294,7 +294,7 @@ fn lexIdent(state: *State, start: Loc) !void {
 fn lexCharLiteral(state: *State, start: Loc) !void {
     (err: {
         const ch = consumeChar(state) orelse break :err error.E;
-        if (ch == '\'') break :err error.E;
+        if (!isValidRawCharInString(ch) or ch == '\'' or ch == '\\') break :err error.E;
         if (consumeChar(state) != '\'') break :err error.E;
     }) catch return reportError(state, start, "bad char literal", .{});
     try appendToken(state, start, .char);
@@ -304,6 +304,8 @@ fn lexStringLiteral(state: *State, start: Loc) !void {
     while (true) {
         const ch = consumeChar(state) orelse
             return reportError(state, start, "string not terminated", .{});
+        if (!isValidRawCharInString(ch))
+            return reportError(state, start, "invalid character in string", .{});
         if (ch == '"')
             break;
     }
@@ -314,6 +316,8 @@ fn lexHexStringLiteral(state: *State, start: Loc) !void {
     while (true) {
         const ch = consumeChar(state) orelse
             return reportError(state, start, "string not terminated", .{});
+        if (!isValidRawCharInString(ch))
+            return reportError(state, start, "invalid character in string", .{});
         if (ch == '`')
             break;
     }
@@ -336,6 +340,10 @@ fn isIdentStart(ch: u8) bool {
 
 fn isIdentContinue(ch: u8) bool {
     return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_';
+}
+
+fn isValidRawCharInString(ch: u8) bool {
+    return ch >= 32 and ch < 127;
 }
 
 fn skipComment(state: *State) !void {
