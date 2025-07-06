@@ -91,6 +91,13 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     defer if (project_path_opt) |_|
         project_dir.close();
 
+    if (!std.mem.endsWith(u8, args.index_path, ".he0") and
+        !std.mem.endsWith(u8, args.index_path, ".HE0"))
+    {
+        diagnostic.err("index path doesn't end in \".he0\": {s}", .{args.index_path});
+        return error.AddedToDiagnostic;
+    }
+
     const output_path_opt, const index_name = fs.splitPathZ(args.index_path);
     var output_dir = if (output_path_opt) |output_path| output_dir: {
         // Make sure tests always write to an empty dir
