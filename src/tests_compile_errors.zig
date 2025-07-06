@@ -53,6 +53,45 @@ test "raw-glob file not found" {
     );
 }
 
+test "duplicate glob numbers" {
+    try testRoomError(
+        \\raw-glob DIGI a@1 {}
+        \\raw-glob DIGI b@1 {}
+        \\^ duplicate glob number 1
+    );
+}
+
+test "shadowing: global var, room var" {
+    try testRoomError(
+        \\var global_var@0
+        \\^ duplicate name: global_var
+    );
+}
+
+test "shadowing: glob, script" {
+    try testRoomError(
+        \\raw-glob DIGI s@1 {}
+        \\script s@1 {}
+        \\^ duplicate name: s
+    );
+}
+
+test "shadowing: script, local script" {
+    try testRoomError(
+        \\script s@1 {}
+        \\local-script s@2048 {}
+        \\^ duplicate name: s
+    );
+}
+
+test "shadowing: local script, local script" {
+    try testRoomError(
+        \\local-script s@2048 {}
+        \\local-script s@2049 {}
+        \\^ duplicate name: s
+    );
+}
+
 test "bad array lhs node" {
     try testRoomError(
         \\var v@0
@@ -148,6 +187,7 @@ fn testRoomError(case_str: []const u8) !void {
         \\disk 1 {
         \\    room 1 "room" "room.scu"
         \\}
+        \\var global_var@0
         \\
     ;
     try fs.writeFileZ(in_dir, "project.scu", project_scu);
