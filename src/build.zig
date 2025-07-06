@@ -18,6 +18,7 @@ const utils = @import("utils.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var project_path_opt: ?[:0]const u8 = null;
     var index_path_opt: ?[:0]const u8 = null;
+    var awiz_strategy: ?awiz.EncodingStrategy = null;
     var write_version: ?YesNo = null;
 
     var it: cliargs.Iterator = .init(args);
@@ -31,7 +32,11 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
                 return arg.reportUnexpected();
         },
         .long_option => |opt| {
-            if (std.mem.eql(u8, opt.flag, "write-version")) {
+            if (std.mem.eql(u8, opt.flag, "awiz")) {
+                if (awiz_strategy != null) return arg.reportDuplicate();
+                awiz_strategy = std.meta.stringToEnum(awiz.EncodingStrategy, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "write-version")) {
                 if (write_version != null) return arg.reportDuplicate();
                 write_version = std.meta.stringToEnum(YesNo, opt.value) orelse
                     return arg.reportInvalidValue();
@@ -52,7 +57,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .project_path = project_path,
         .index_path = index_path,
         .options = .{
-            .awiz_strategy = .max,
+            .awiz_strategy = awiz_strategy orelse .max,
             .write_version = (write_version orelse YesNo.yes).toBool(),
         },
     }) catch |err| {
