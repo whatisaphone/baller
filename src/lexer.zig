@@ -335,11 +335,11 @@ fn lexInteger(state: *State, start: Loc) !void {
     try appendToken(state, start, .integer);
 }
 
-fn isIdentStart(ch: u8) bool {
+pub fn isIdentStart(ch: u8) bool {
     return 'A' <= ch and ch <= 'Z' or 'a' <= ch and ch <= 'z';
 }
 
-fn isIdentContinue(ch: u8) bool {
+pub fn isIdentContinue(ch: u8) bool {
     return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_';
 }
 

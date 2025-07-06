@@ -4,6 +4,7 @@ const ArrayMap = @import("array_map.zig").ArrayMap;
 const BlockId = @import("block_id.zig").BlockId;
 const games = @import("games.zig");
 const lang = @import("lang.zig");
+const lexer = @import("lexer.zig");
 const utils = @import("utils.zig");
 
 const Symbols = @This();
@@ -368,7 +369,14 @@ fn handleSimpleGlob(cx: *Cx, map: *ArrayMap([]const u8)) !void {
 }
 
 fn validateSymbolName(name: []const u8) !void {
+    if (name.len == 0) return error.BadData;
     if (name.len > max_name_len) return error.BadData;
+
+    if (!lexer.isIdentStart(name[0]))
+        return error.BadData;
+    for (name[1..]) |c|
+        if (!lexer.isIdentContinue(c))
+            return error.BadData;
 }
 
 pub const InternedType = enum {
