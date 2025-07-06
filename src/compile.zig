@@ -91,6 +91,8 @@ fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {
         for (cx.ast.getExtra(stmt.local_vars.children)) |ni| {
             const var_node = &cx.ast.nodes.at(ni).local_var;
             const name = if (var_node.name) |n| cx.ast.strings.get(n) else null;
+            if (name) |n| if (lookupSymbolByName(cx, n)) |_|
+                return fail(cx, ni, "duplicate name: {s}", .{n});
             try cx.local_vars.append(name);
         }
     } else return;
@@ -655,6 +657,11 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
         return forbiddenNode(cx, node_index);
     const name = cx.ast.strings.get(expr.identifier);
 
+    return lookupSymbolByName(cx, name) orelse
+        fail(cx, node_index, "name not found", .{});
+}
+
+fn lookupSymbolByName(cx: *const Cx, name: []const u8) ?script.Symbol {
     for (cx.local_vars.slice(), 0..) |local_name, num_usize| {
         const num: u14 = @intCast(num_usize);
         if (local_name) |n|
@@ -664,7 +671,7 @@ fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
     if (cx.room_scope.get(name)) |sym| return sym;
     if (cx.project_scope.get(name)) |sym| return sym;
 
-    return fail(cx, node_index, "name not found", .{});
+    return null;
 }
 
 fn emitString(cx: *const Cx, node_index: Ast.NodeIndex) !void {

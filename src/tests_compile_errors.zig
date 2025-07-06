@@ -92,6 +92,25 @@ test "shadowing: local script, local script" {
     );
 }
 
+test "shadowing: global var, local var" {
+    try testRoomError(
+        \\script s@1 {
+        \\    var global_var
+        \\        ^ duplicate name: global_var
+        \\}
+    );
+}
+
+test "shadowing: local var, local var" {
+    try testRoomError(
+        \\script s@1 {
+        \\    var v
+        \\    var v
+        \\        ^ duplicate name: v
+        \\}
+    );
+}
+
 test "bad array lhs node" {
     try testRoomError(
         \\var v@0
