@@ -396,6 +396,11 @@ pub fn run(
         for (the_enum.entries.items) |*entry|
             try code.writer(gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
 
+    for (cx.symbols.maps.list.items) |*map|
+        for (map.entries.items) |*entry|
+            if (entry.name) |name|
+                try code.writer(gpa).print("const {s} = {}\n", .{ name, entry.value });
+
     try fsd.writeFileZ(diagnostic, output_dir, "project.scu", code.items);
 
     sanityCheckStats(&cx.stats);

@@ -691,8 +691,10 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
             const lhs = cx.symbols.types.items[lhsi];
             if (lhs != .array) return;
             giveType(cx, args[1], lhs.array.across);
-            if (eiOpt(result_ei)) |ei|
+            if (eiOpt(result_ei)) |ei| {
                 giveType(cx, ei, lhs.array.value);
+                recoverMappedIndexType(cx, args[1], lhs.array.across, ei);
+            }
         },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
@@ -700,6 +702,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
             if (lhs != .array) return;
             giveType(cx, args[1], lhs.array.across);
             giveType(cx, args[2], lhs.array.value);
+            recoverMappedIndexType(cx, args[1], lhs.array.across, args[2]);
         },
         .@"get-array-item-2d" => {
             const lhsi = cx.types.get(args[0]) orelse return;
@@ -707,8 +710,10 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
             if (lhs != .array) return;
             giveType(cx, args[1], lhs.array.down);
             giveType(cx, args[2], lhs.array.across);
-            if (eiOpt(result_ei)) |ei|
+            if (eiOpt(result_ei)) |ei| {
                 giveType(cx, ei, lhs.array.value);
+                recoverMappedIndexType(cx, args[2], lhs.array.across, ei);
+            }
         },
         .@"set-array-item-2d" => {
             const lhsi = cx.types.get(args[0]) orelse return;
@@ -717,6 +722,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
             giveType(cx, args[1], lhs.array.down);
             giveType(cx, args[2], lhs.array.across);
             giveType(cx, args[3], lhs.array.value);
+            recoverMappedIndexType(cx, args[2], lhs.array.across, args[3]);
         },
         .@"start-script" => {
             recoverScriptArgs(cx, args[0], args[1]);
@@ -735,6 +741,28 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
         },
         else => {},
     }
+}
+
+fn recoverMappedIndexType(
+    cx: *TypeCx,
+    index_ei: ExprIndex,
+    index_ti: Symbols.TypeIndex,
+    result_ei: ExprIndex,
+) void {
+    if (index_ti == Symbols.null_type) return;
+    const index_type = &cx.symbols.types.items[index_ti];
+    if (index_type.* != .map) return;
+    const map = cx.symbols.maps.at(index_type.map);
+    const index_expr = cx.exprs.getPtr(index_ei);
+    if (index_expr.* != .int) return;
+    const entry_index = std.sort.binarySearch(
+        Symbols.MapEntry,
+        map.entries.items,
+        index_expr.int,
+        Symbols.MapEntry.orderByValue,
+    ) orelse return;
+    const entry = &map.entries.items[entry_index];
+    giveType(cx, result_ei, entry.type);
 }
 
 fn recoverScriptArgs(cx: *TypeCx, script_ei: ExprIndex, args_ei: ExprIndex) void {
@@ -2898,6 +2926,19 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
             ) orelse break :write_name;
             const entry = &the_enum.entries.items[index];
             try cx.out.appendSlice(cx.gpa, entry.name);
+            return;
+        },
+        .map => |map_index| {
+            const map = cx.symbols.maps.at(map_index);
+            const index = std.sort.binarySearch(
+                Symbols.MapEntry,
+                map.entries.items,
+                int,
+                Symbols.MapEntry.orderByValue,
+            ) orelse break :write_name;
+            const entry = &map.entries.items[index];
+            const name = entry.name orelse break :write_name;
+            try cx.out.appendSlice(cx.gpa, name);
             return;
         },
         .array => {},

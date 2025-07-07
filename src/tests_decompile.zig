@@ -216,6 +216,54 @@ test "type 2d array all" {
     );
 }
 
+test "type 1d map" {
+    try testRoundTrip(
+        \\var v@0
+    ,
+        \\script s@1 {
+        \\    v[0] = 0
+        \\    v[1] = 0
+        \\    return (v[0] == 0 && v[1] == 0)
+        \\}
+    ,
+        \\enum.Foo.0 = FOO
+        \\enum.Bar.0 = BAR
+        \\map.Map.0 = MAP0:Foo
+        \\map.Map.1 = MAP1:Bar
+        \\global.0 = g:[Map]
+    ,
+        \\script scr1@1 {
+        \\    g[MAP0] = FOO
+        \\    g[MAP1] = BAR
+        \\    return (g[MAP0] == FOO && g[MAP1] == BAR)
+        \\}
+    );
+}
+
+test "type 2d map" {
+    try testRoundTrip(
+        \\var v@0
+    ,
+        \\script s@1 {
+        \\    v[0][0] = 0
+        \\    v[0][1] = 0
+        \\    return (v[0][0] == 0 && v[0][1] == 0)
+        \\}
+    ,
+        \\enum.Foo.0 = FOO
+        \\enum.Bar.0 = BAR
+        \\map.Map.0 = MAP0:Foo
+        \\map.Map.1 = MAP1:Bar
+        \\global.0 = g:[Map]
+    ,
+        \\script scr1@1 {
+        \\    g[0][MAP0] = FOO
+        \\    g[0][MAP1] = BAR
+        \\    return (g[0][MAP0] == FOO && g[0][MAP1] == BAR)
+        \\}
+    );
+}
+
 test "type script args" {
     try testRoundTrip(
         \\

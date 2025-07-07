@@ -3,6 +3,7 @@ const std = @import("std");
 const ArrayMap = @import("array_map.zig").ArrayMap;
 const BlockId = @import("block_id.zig").BlockId;
 const games = @import("games.zig");
+const keyed = @import("keyed.zig");
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
 const utils = @import("utils.zig");
@@ -80,6 +81,29 @@ pub const EnumEntry = struct {
     }
 };
 
+const MapIndex = keyed.Key(enum(u16) {});
+
+const Map = struct {
+    /// Sorted by value
+    entries: std.ArrayListUnmanaged(MapEntry),
+
+    const empty: Map = .{ .entries = .empty };
+
+    fn deinit(self: *Map, allocator: std.mem.Allocator) void {
+        self.entries.deinit(allocator);
+    }
+};
+
+pub const MapEntry = struct {
+    value: i32,
+    name: ?[]const u8,
+    type: TypeIndex,
+
+    pub fn orderByValue(value: i32, other: MapEntry) std.math.Order {
+        return std.math.order(value, other.value);
+    }
+};
+
 game: games.Game,
 types: std.ArrayListUnmanaged(Type) = .empty,
 globals: ArrayMap(Variable) = .empty,
@@ -90,6 +114,8 @@ rooms: ArrayMap(Room) = .empty,
 enums: std.ArrayListUnmanaged(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
+maps: keyed.List(MapIndex, Map) = .empty,
+map_names: std.StringArrayHashMapUnmanaged(MapIndex) = .empty,
 sounds: ArrayMap([]const u8) = .empty,
 costumes: ArrayMap([]const u8) = .empty,
 charsets: ArrayMap([]const u8) = .empty,
@@ -111,6 +137,12 @@ pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
     self.charsets.deinit(allocator);
     self.costumes.deinit(allocator);
     self.sounds.deinit(allocator);
+    self.map_names.deinit(allocator);
+
+    for (self.maps.list.items) |*m|
+        m.deinit(allocator);
+    self.maps.deinit(allocator);
+
     self.enum_names.deinit(allocator);
 
     for (self.enums.items) |*e|
@@ -196,6 +228,8 @@ fn parseLine(allocator: std.mem.Allocator, full_line: []const u8, result: *Symbo
         try handleRoom(&cx)
     else if (std.mem.eql(u8, part, "enum"))
         try handleEnum(&cx)
+    else if (std.mem.eql(u8, part, "map"))
+        try handleMap(&cx)
     else if (std.mem.eql(u8, part, "sound"))
         try handleSimpleGlob(&cx, &cx.result.sounds)
     else if (std.mem.eql(u8, part, "costume"))
@@ -346,6 +380,32 @@ fn handleEnum(cx: *Cx) !void {
     try the_enum.entries.insert(cx.allocator, value_index, .{ .name = item_name, .value = value });
 }
 
+fn handleMap(cx: *Cx) !void {
+    const map_name = cx.key_parts.next() orelse return error.BadData;
+
+    const value_str = cx.key_parts.next() orelse return error.BadData;
+    const value = try std.fmt.parseInt(i32, value_str, 10);
+
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    // not actually a variable, but we parse it the same way
+    const mapping = try parseVariable(cx, cx.value);
+
+    const map_entry = try cx.result.map_names.getOrPut(cx.allocator, map_name);
+    if (!map_entry.found_existing)
+        map_entry.value_ptr.* = try cx.result.maps.append(cx.allocator, .empty);
+    const map = cx.result.maps.at(map_entry.value_ptr.*);
+
+    const entry_index = std.sort.lowerBound(MapEntry, map.entries.items, value, MapEntry.orderByValue);
+    if (entry_index != map.entries.items.len and map.entries.items[entry_index].value == value)
+        return error.BadData;
+    try map.entries.insert(cx.allocator, entry_index, .{
+        .value = value,
+        .type = mapping.type,
+        .name = mapping.name,
+    });
+}
+
 fn parseVariable(cx: *Cx, value: []const u8) !Variable {
     var result: Variable = .{};
     const name_str, const type_str_opt = split(value, ':');
@@ -451,6 +511,8 @@ fn parseType(cx: *Cx, s: []const u8) !TypeIndex {
         return addType(cx, .sound)
     else if (cx.result.enum_names.get(s)) |e|
         return addType(cx, .{ .@"enum" = e })
+    else if (cx.result.map_names.get(s)) |m|
+        return addType(cx, .{ .map = m })
     else
         return error.BadData;
 }
@@ -597,6 +659,7 @@ pub const Type = union(enum) {
     script,
     /// Index within `symbols.enums`
     @"enum": u16,
+    map: MapIndex,
     array: struct { down: TypeIndex, across: TypeIndex, value: TypeIndex },
     sound,
     costume,
