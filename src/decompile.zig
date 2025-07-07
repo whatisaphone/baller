@@ -268,6 +268,11 @@ const JumpTargetAndCondition = struct {
 const ExprIndex = u16;
 const null_expr = 0xffff;
 
+fn eiOpt(ei: ExprIndex) ?ExprIndex {
+    if (ei == null_expr) return null;
+    return ei;
+}
+
 const Expr = union(enum) {
     int: i32,
     string: []const u8,
@@ -633,7 +638,7 @@ fn recoverTypes(cx: *TypeCx) void {
         for (stmts) |*stmt| switch (stmt.*) {
             .jump_if, .jump_unless => |j| recoverExpr(cx, j.condition),
             .jump, .override => {},
-            .call => |c| recoverCall(cx, c.op, c.args),
+            .call => |c| recoverCall(cx, c.op, c.args, null_expr),
             .compound, .binop_assign, .tombstone => unreachable,
         };
     }
@@ -646,7 +651,7 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
             const sym = cx.symbols.getVariable(cx.room_number, cx.id, v) orelse return;
             giveType(cx, ei, sym.type);
         },
-        .call => |call| recoverCall(cx, call.op, call.args),
+        .call => |call| recoverCall(cx, call.op, call.args, ei),
         .list, .variadic_list => |items| {
             for (getExtra3(cx.extra, items)) |i|
                 recoverExpr(cx, i);
@@ -659,7 +664,7 @@ fn recoverExpr(cx: *TypeCx, ei: ExprIndex) void {
     }
 }
 
-fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
+fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprIndex) void {
     const args = getExtra3(cx.extra, arg_eis);
     for (args) |ei|
         recoverExpr(cx, ei);
@@ -686,6 +691,8 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             const lhs = cx.symbols.types.items[lhsi];
             if (lhs != .array) return;
             giveType(cx, args[1], lhs.array.across);
+            if (eiOpt(result_ei)) |ei|
+                giveType(cx, ei, lhs.array.value);
         },
         .@"set-array-item" => {
             const lhsi = cx.types.get(args[0]) orelse return;
@@ -700,6 +707,8 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice) void {
             if (lhs != .array) return;
             giveType(cx, args[1], lhs.array.down);
             giveType(cx, args[2], lhs.array.across);
+            if (eiOpt(result_ei)) |ei|
+                giveType(cx, ei, lhs.array.value);
         },
         .@"set-array-item-2d" => {
             const lhsi = cx.types.get(args[0]) orelse return;

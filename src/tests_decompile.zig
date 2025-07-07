@@ -113,8 +113,7 @@ test "type array value" {
     ,
         \\script scr1@1 {
         \\    foo[0] = VALUE
-        \\    return (foo[0] == 0)
-        // TODO: return (foo[0] == VALUE)
+        \\    return (foo[0] == VALUE)
         \\}
     );
 }
@@ -134,8 +133,7 @@ test "type array all" {
     ,
         \\script scr1@1 {
         \\    foo[INDEX] = VALUE
-        \\    return (foo[INDEX] == 0)
-        // TODO: return (foo[INDEX] == VALUE)
+        \\    return (foo[INDEX] == VALUE)
         \\}
     );
 }
@@ -192,8 +190,7 @@ test "type 2d array value" {
     ,
         \\script scr1@1 {
         \\    foo[0][0] = VALUE
-        \\    return (foo[0][0] == 0)
-        // TODO: return (foo[0][0] == VALUE)
+        \\    return (foo[0][0] == VALUE)
         \\}
     );
 }
@@ -214,8 +211,7 @@ test "type 2d array all" {
     ,
         \\script scr1@1 {
         \\    foo[ROW][COL] = VALUE
-        \\    return (foo[ROW][COL] == 0)
-        // TODO: return (foo[ROW][COL] == VALUE)
+        \\    return (foo[ROW][COL] == VALUE)
         \\}
     );
 }
