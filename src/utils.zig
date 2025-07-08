@@ -219,3 +219,14 @@ pub fn TinyArray(T: type, capacity: usize) type {
         }
     };
 }
+
+pub fn bitSetEnsureAddressable(
+    gpa: std.mem.Allocator,
+    set: *std.DynamicBitSetUnmanaged,
+    index: usize,
+    fill: bool,
+) !void {
+    const min_len = index + 1;
+    if (set.bit_length >= min_len) return;
+    try set.resize(gpa, min_len, fill);
+}

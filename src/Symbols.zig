@@ -171,18 +171,61 @@ pub fn deinit(self: *Symbols, allocator: std.mem.Allocator) void {
 }
 
 pub fn parse(self: *Symbols, allocator: std.mem.Allocator, ini_text: []const u8) !void {
-    var line_number: u32 = 0;
+    // Major hack to allow forward references, so I don't have to rewrite
+    // everything. Keep parsing the file over and over until the number of
+    // errors converges.
+    var parsed_lines: std.DynamicBitSetUnmanaged = try .initEmpty(allocator, 0);
+    defer parsed_lines.deinit(allocator);
+
+    var prev_error_count: u32 = 0;
+    while (true) {
+        const error_count = try parsePass(self, allocator, ini_text, .parsing, &parsed_lines);
+        if (error_count == prev_error_count) break;
+        prev_error_count = error_count;
+    }
+
+    if (prev_error_count == 0) return;
+
+    const error_count = try parsePass(self, allocator, ini_text, .reporting, &parsed_lines);
+    std.debug.assert(error_count == prev_error_count);
+    return error.Reported;
+}
+
+const ParsePass = enum {
+    parsing,
+    reporting,
+};
+
+pub fn parsePass(
+    self: *Symbols,
+    allocator: std.mem.Allocator,
+    ini_text: []const u8,
+    pass: ParsePass,
+    parsed_lines: *std.DynamicBitSetUnmanaged,
+) !u32 {
+    var error_count: u32 = 0;
+    var line_index: u32 = 0;
     var lines = std.mem.splitScalar(u8, ini_text, '\n');
-    while (lines.next()) |line| {
-        line_number += 1;
-        parseLine(allocator, line, self) catch {
+    while (lines.next()) |line| : (line_index += 1) {
+        try utils.bitSetEnsureAddressable(allocator, parsed_lines, line_index, false);
+        const already_parsed = parsed_lines.isSet(line_index);
+        if (already_parsed) continue;
+
+        if (parseLine(allocator, line, self)) {
+            parsed_lines.set(line_index);
+            continue;
+        } else |_| {}
+
+        error_count += 1;
+        if (pass == .reporting) {
+            const line_number = line_index + 1;
             try std.io.getStdErr().writer().print(
                 "error on line {}\n",
                 .{line_number},
             );
-            return error.Reported;
-        };
+        }
     }
+    return error_count;
 }
 
 const Cx = struct {

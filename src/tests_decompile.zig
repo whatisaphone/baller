@@ -288,6 +288,24 @@ test "type script args" {
     );
 }
 
+test "symbols: forward reference from map to enum" {
+    try testRoundTrip(
+        \\var v@0
+    ,
+        \\script s@1 {
+        \\    v[0] = 0
+        \\}
+    ,
+        \\map.TheMap.0 = MAP-VALUE:TheEnum
+        \\enum.TheEnum.0 = ENUM-VALUE
+        \\global.0 = g:[TheMap]
+    ,
+        \\script scr1@1 {
+        \\    g[MAP-VALUE] = ENUM-VALUE
+        \\}
+    );
+}
+
 test "type room" {
     try testRoundTrip(
         \\var v@0
