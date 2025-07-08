@@ -2883,6 +2883,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
     if (cx.types.get(ei)) |ti| write_name: switch (cx.symbols.types.items[ti]) {
         .char => {
             if (!(32 <= int and int < 127)) break :write_name;
+            if (int == '\'') break :write_name; // i gotta handle escaping first
             try cx.out.writer(cx.gpa).print("'{c}'", .{@as(u8, @intCast(int))});
             return;
         },
