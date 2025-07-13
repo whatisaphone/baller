@@ -117,12 +117,12 @@ opcode,name,operands,target_min,target_max
 32,shr,,99,99
 34,find-all-objects-of-class,,99,99
 36,iif,,99,99
-37 04,dim-array-range.int8,var,98,99
-37 05,dim-array-range.int16,var,98,99
-37 06,dim-array-range.int32,var,98,99
-38 04,redim-array-range.int8,var,98,99
-38 05,redim-array-range.int16,var,99,99
-38 06,redim-array-range.int32,var,98,99
+37 04,dim-array-range.u8,var,98,99
+37 05,dim-array-range.i16,var,98,99
+37 06,dim-array-range.i32,var,98,99
+38 04,redim-array-range.u8,var,98,99
+38 05,redim-array-range.i16,var,99,99
+38 06,redim-array-range.i32,var,98,99
 39,find-segment-intersection,var var,98,99
 3a 81,array-sort,var,98,99
 43,set,var,,99
@@ -130,9 +130,9 @@ opcode,name,operands,target_min,target_max
 47,set-array-item,var,,99
 48,string-number,,,99
 4b,set-array-item-2d,var,,99
-4d 06,read-ini.int32,,,99
+4d 06,read-ini.i32,,,99
 4d 07,read-ini.string,,,99
-4e 06,write-ini.int32,,,99
+4e 06,write-ini.i32,,,99
 4e 07,write-ini.string,,,99
 4f,inc,var,,99
 50,override-off-off,,,99
@@ -316,17 +316,17 @@ b8 fe,say-line.start,,99,99
 b9 fe,say-line-actor.start,,,99
 ba,say-line-actor,str,,99
 bb,say-line,str,,99
-bc 02,dim-array.int1,var,,99
-bc 04,dim-array.int8,var,,99
-bc 05,dim-array.int16,var,,99
-bc 06,dim-array.int32,var,,99
+bc 02,dim-array.u1,var,,99
+bc 04,dim-array.u8,var,,99
+bc 05,dim-array.i16,var,,99
+bc 06,dim-array.i32,var,,99
 bc 07,dim-array.string,var,,99
 bc cc,undim,var,,99
 bd,return,,,99
 bf,call-script,,,99
-c0 04,dim-array-2d.int8,var,,99
-c0 05,dim-array-2d.int16,var,,99
-c0 06,dim-array-2d.int32,var,,99
+c0 04,dim-array-2d.u8,var,,99
+c0 05,dim-array-2d.i16,var,,99
+c0 06,dim-array-2d.i32,var,,99
 c1,debug-string,,98,99
 c4,abs,,,99
 c8,kludge-call,,,99
@@ -345,12 +345,12 @@ d6,band,,,99
 d7,bor,,99,99
 d9,close-file,,,99
 da,open-file,,,99
-db 05,read-file.int16,,,99
-db 06,read-file.int32,,,99
-db 08 04,read-file.array.int8,,,99
-dc 05,write-file.int16,,99,99
-dc 06,write-file.int32,,,99
-dc 08 04,write-file.array.int8,,,99
+db 05,read-file.u16,,,99
+db 06,read-file.i32,,,99
+db 08 04,read-file.array.u8,,,99
+dc 05,write-file.i16,,99,99
+dc 06,write-file.i32,,,99
+dc 08 04,write-file.array.u8,,,99
 dd,find-all-objects,,,99
 de,delete-file,,,99
 df,rename-file,,,99
@@ -358,9 +358,9 @@ e0 42,draw-line,,,99
 e2,localize,,,99
 e3,pick-random,var,,99
 e9,seek-file,,,99
-ea 04,redim-array.int8,var,,99
-ea 05,redim-array.int16,var,,99
-ea 06,redim-array.int32,var,,99
+ea 04,redim-array.u8,var,,99
+ea 05,redim-array.i16,var,,99
+ea 06,redim-array.i32,var,,99
 eb,tell-file,,99,99
 ec,string-copy,,99,99
 ed,string-width,,,99
@@ -370,9 +370,9 @@ f0,string-concat,,99,99
 f1,string-compare,,,99
 f2 e3,costume-loaded,,,99
 f2 e4,sound-loaded,,98,99
-f3 06,read-system-ini.int32,,,99
+f3 06,read-system-ini.i32,,,99
 f3 07,read-system-ini.string,,,99
-f4 06,write-system-ini.int32,,,99
+f4 06,write-system-ini.i32,,,99
 f4 07,write-system-ini.string,,,99
 f5,string-margin,,,99
 f6,string-search,,,99
@@ -425,13 +425,13 @@ fc,find-polygon,,,99
 1b,dec,var,100,
 1c,dec-array-item,var,100,
 1d,delete-file,,100,
-1e 2a,dim-array-2d.int16,var,100,
-1e 2b,dim-array-2d.int32,var,100,
-1e 2d,dim-array-2d.int8,var,100,
-1f 29,dim-array.int1,var,100,
-1f 2a,dim-array.int16,var,100,
-1f 2b,dim-array.int32,var,100,
-1f 2d,dim-array.int8,var,100,
+1e 2a,dim-array-2d.i16,var,100,
+1e 2b,dim-array-2d.i32,var,100,
+1e 2d,dim-array-2d.u8,var,100,
+1f 29,dim-array.u1,var,100,
+1f 2a,dim-array.i16,var,100,
+1f 2b,dim-array.i32,var,100,
+1f 2d,dim-array.u8,var,100,
 1f 4d,dim-array.string,var,100,
 1f 87,undim,var,100,
 20,div,,100,
@@ -507,12 +507,12 @@ fc,find-polygon,,,99
 44,mod,,100,
 45,mul,,100,
 46,ne,,100,
-47 2a,dim-array-range.int16,var,100,
-47 2b,dim-array-range.int32,var,100,
-47 2d,dim-array-range.int8,var,100,
-49 2a,redim-array-range.int16,var,100,
-49 2b,redim-array-range.int32,var,100,
-49 2d,redim-array-range.int8,var,100,
+47 2a,dim-array-range.i16,var,100,
+47 2b,dim-array-range.i32,var,100,
+47 2d,dim-array-range.u8,var,100,
+49 2a,redim-array-range.i16,var,100,
+49 2b,redim-array-range.i32,var,100,
+49 2d,redim-array-range.u8,var,100,
 4a,not,,100,
 4c 3b,override,rel,100,
 4d,override-off,,100,
@@ -547,8 +547,8 @@ fc,find-polygon,,,99
 5f,push.i16,i16,100,
 60,push.var,var,100,
 62,put-actor,,100,
-64 2b,redim-array.int32,var,100,
-64 2d,redim-array.int8,var,100,
+64 2b,redim-array.i32,var,100,
+64 2d,redim-array.u8,var,100,
 66,return,,100,
 68 3f,palette-set,,100,
 68 83,fades,,100,
@@ -630,12 +630,12 @@ fc,find-polygon,,,99
 8c 43,video.flags,,100,
 8c 5c,video.end,,100,
 8d 82,wait-for-message,,100,
-90 05 2d,write-file.array.int8,,100,
-90 2b,write-file.int32,,100,
-91 2b,write-system-ini.int32,,100,
+90 05 2d,write-file.array.u8,,100,
+90 2b,write-file.i32,,100,
+91 2b,write-system-ini.i32,,100,
 91 4d,write-system-ini.string,,100,
 92 4d,write-ini.string,,100,
-92 2b,write-ini.int32,,100,
+92 2b,write-ini.i32,,100,
 93,abs,,100,
 95,actor-get-costume,,100,
 99,actor-get-property,,100,
@@ -694,11 +694,11 @@ c9,pick,,100,
 cb,pick-random,var,100,
 d0,random,,100,
 d1,random-between,,100,
-d3 05 2d,read-file.array.int8,,100,
-d3 2b,read-file.int32,,100,
-d4 2b,read-system-ini.int32,,100,
+d3 05 2d,read-file.array.u8,,100,
+d3 2b,read-file.i32,,100,
+d4 2b,read-system-ini.i32,,100,
 d4 4d,read-system-ini.string,,100,
-d5 2b,read-ini.int32,,100,
+d5 2b,read-ini.i32,,100,
 d5 4d,read-ini.string,,100,
 d6,script-running,,100,
 d7,sin,,100,
