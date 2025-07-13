@@ -392,7 +392,7 @@ pub fn run(
         }
     }
 
-    try emitConsts(&cx, &code);
+    try emitConsts(&cx, diagnostic, &code);
 
     try fsd.writeFileZ(diagnostic, output_dir, "project.scu", code.items);
 
@@ -2433,7 +2433,11 @@ fn extractMusic(
     try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
 }
 
-fn emitConsts(cx: *Context, code: *std.ArrayListUnmanaged(u8)) !void {
+fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayListUnmanaged(u8)) !void {
+    // Store consts as they're emitted, to track duplicates
+    var emit_log: std.StringHashMapUnmanaged(i32) = .empty;
+    defer emit_log.deinit(cx.gpa);
+
     for (
         cx.symbols.enum_names.entries.items(.key),
         cx.symbols.enum_names.entries.items(.value),
@@ -2441,7 +2445,7 @@ fn emitConsts(cx: *Context, code: *std.ArrayListUnmanaged(u8)) !void {
         try code.writer(cx.gpa).print("\n; {s}\n", .{enum_name});
         const the_enum = &cx.symbols.enums.items[enum_index];
         for (the_enum.entries.items) |*entry|
-            try code.writer(cx.gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
+            try emitConst(cx, diagnostic, &emit_log, entry.name, entry.value, code);
     }
 
     for (
@@ -2452,8 +2456,30 @@ fn emitConsts(cx: *Context, code: *std.ArrayListUnmanaged(u8)) !void {
         const map = cx.symbols.maps.at(map_index);
         for (map.entries.items) |*entry|
             if (entry.name) |name|
-                try code.writer(cx.gpa).print("const {s} = {}\n", .{ name, entry.value });
+                try emitConst(cx, diagnostic, &emit_log, name, entry.value, code);
     }
+}
+
+fn emitConst(
+    cx: *Context,
+    diagnostic: *Diagnostic,
+    emit_log: *std.StringHashMapUnmanaged(i32),
+    name: []const u8,
+    value: i32,
+    code: *std.ArrayListUnmanaged(u8),
+) !void {
+    const log_entry = try emit_log.getOrPut(cx.gpa, name);
+    if (log_entry.found_existing) {
+        // Allow duplicates only if they have the same value
+        if (log_entry.value_ptr.* != value) {
+            diagnostic.err("duplicate symbol name: {s}", .{name});
+            return error.AddedToDiagnostic;
+        }
+        try code.appendSlice(cx.gpa, "; dup ");
+    } else {
+        log_entry.value_ptr.* = value;
+    }
+    try code.writer(cx.gpa).print("const {s} = {}\n", .{ name, value });
 }
 
 fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {

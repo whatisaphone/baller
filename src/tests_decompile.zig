@@ -306,6 +306,28 @@ test "symbols: forward reference from map to enum" {
     );
 }
 
+test "symbols: value shared between multiple enums" {
+    try testRoundTrip(
+        \\var v0@0
+        \\var v1@1
+    ,
+        \\script s@1 {
+        \\    v0 = 2
+        \\    v1 = 2
+        \\}
+    ,
+        \\enum.A.2 = V
+        \\enum.B.2 = V
+        \\global.0 = _:A
+        \\global.1 = _:B
+    ,
+        \\script scr1@1 {
+        \\    global0 = V
+        \\    global1 = V
+        \\}
+    );
+}
+
 test "type room" {
     try testRoundTrip(
         \\var v@0
