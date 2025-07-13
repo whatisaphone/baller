@@ -392,26 +392,7 @@ pub fn run(
         }
     }
 
-    for (
-        cx.symbols.enum_names.entries.items(.key),
-        cx.symbols.enum_names.entries.items(.value),
-    ) |enum_name, enum_index| {
-        try code.writer(gpa).print("\n; {s}\n", .{enum_name});
-        const the_enum = &cx.symbols.enums.items[enum_index];
-        for (the_enum.entries.items) |*entry|
-            try code.writer(gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
-    }
-
-    for (
-        cx.symbols.map_names.entries.items(.key),
-        cx.symbols.map_names.entries.items(.value),
-    ) |map_name, map_index| {
-        try code.writer(gpa).print("\n; {s}\n", .{map_name});
-        const map = cx.symbols.maps.at(map_index);
-        for (map.entries.items) |*entry|
-            if (entry.name) |name|
-                try code.writer(gpa).print("const {s} = {}\n", .{ name, entry.value });
-    }
+    try emitConsts(&cx, &code);
 
     try fsd.writeFileZ(diagnostic, output_dir, "project.scu", code.items);
 
@@ -2450,6 +2431,29 @@ fn extractMusic(
     defer output_dir.close();
 
     try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
+}
+
+fn emitConsts(cx: *Context, code: *std.ArrayListUnmanaged(u8)) !void {
+    for (
+        cx.symbols.enum_names.entries.items(.key),
+        cx.symbols.enum_names.entries.items(.value),
+    ) |enum_name, enum_index| {
+        try code.writer(cx.gpa).print("\n; {s}\n", .{enum_name});
+        const the_enum = &cx.symbols.enums.items[enum_index];
+        for (the_enum.entries.items) |*entry|
+            try code.writer(cx.gpa).print("const {s} = {}\n", .{ entry.name, entry.value });
+    }
+
+    for (
+        cx.symbols.map_names.entries.items(.key),
+        cx.symbols.map_names.entries.items(.value),
+    ) |map_name, map_index| {
+        try code.writer(cx.gpa).print("\n; {s}\n", .{map_name});
+        const map = cx.symbols.maps.at(map_index);
+        for (map.entries.items) |*entry|
+            if (entry.name) |name|
+                try code.writer(cx.gpa).print("const {s} = {}\n", .{ name, entry.value });
+    }
 }
 
 fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {
