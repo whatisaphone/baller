@@ -1,11 +1,11 @@
 opcode,name,operands,target_min,target_max
-00,push-u8,u8,,99
-01,push-i16,i16,,99
-02,push-i32,i32,,99
-03,push-var,var,,99
-04,push-str,str,,99
+00,push.u8,u8,,99
+01,push.i16,i16,,99
+02,push.i32,i32,,99
+03,push.var,var,,99
+04,push.string,str,,99
 07,get-array-item,var,,99
-0a,dup-multi,i16,99,99
+0a,dup.multi,i16,99,99
 0b,get-array-item-2d,var,,99
 0c,dup,,,99
 0d,not,,,99
@@ -23,28 +23,28 @@ opcode,name,operands,target_min,target_max
 19,lor,,,99
 1a,pop,,,99
 1b,in-list,,,99
-1c 20,image-set-width,,99,99
-1c 21,image-set-height,,99,99
-1c 30,image-draw,,,99
-1c 31,image-load-external,,99,99
-1c 33,image-capture,,,99
-1c 34,image-set-state,,,99
-1c 36,image-set-flags,,,99
+1c 20,image.width,,99,99
+1c 21,image.height,,99,99
+1c 30,image.draw,,,99
+1c 31,image.load,,99,99
+1c 33,image.capture,,,99
+1c 34,image.state,,,99
+1c 36,image.flags,,,99
 1c 38,draw-image-at,,,99
-1c 39,image-select,,,99
-1c 41,image-set-pos,,,99
-1c 42,image-set-color,,,99
-1c 43,image-set-clip,,98,99
-1c 56,image-set-palette,,99,99
-1c 62,image-set-shadow,,99,99
-1c 85,image-set-draw-box,,99,99
-1c 86,image-set-draw-line,,99,99
-1c 89,image-set-render-image,,99,99
-1c 9a,image-set-hotspot,,99,99
-1c d9,image-new,,99,99
-1c f6,image-set-polygon,,,99
-1c f9,image-unknown-1c-f9,,99,99
-1c ff,image-commit,,,99
+1c 39,image.init,,,99
+1c 41,image.at,,,99
+1c 42,image.color,,,99
+1c 43,image.clip,,98,99
+1c 56,image.palette,,99,99
+1c 62,image.shadow,,99,99
+1c 85,image.draw-box,,99,99
+1c 86,image.draw-line,,99,99
+1c 89,image.render-target,,99,99
+1c 9a,image.hotspot,,99,99
+1c d9,image.new,,99,99
+1c f6,image.polygon,,,99
+1c f9,image.color-list,,99,99
+1c ff,image.end,,,99
 1d,min,,,99
 1e,max,,,99
 1f,sin,,,99
@@ -52,8 +52,8 @@ opcode,name,operands,target_min,target_max
 21,sqrt,,,99
 22,angle-from-delta,,,99
 23,angle-from-line,,,99
-24 1c,line-length-2d,,,99
-24 1d,line-length-3d,,,99
+24 1c,line-length.2d,,,99
+24 1d,line-length.3d,,,99
 25 1e,sprite-get-object-x,,,99
 25 1f,sprite-get-object-y,,,99
 25 24,sprite-get-state-count,,99,99
@@ -65,43 +65,43 @@ opcode,name,operands,target_min,target_max
 25 2d,find-sprite,,,99
 25 34,sprite-get-state,,,99
 25 3f,sprite-get-image,,,99
-25 52,sprite-get-animation,,99,99
+25 52,sprite-get-animation-type,,99,99
 25 56,sprite-get-palette,,99,99
 25 7c,sprite-get-update-type,,99,99
-25 7d,sprite-class,,98,99
+25 7d,sprite-get-class,,98,99
 25 c6,sprite-get-variable,,,99
-26 25,sprite-set-group,,,99
-26 2a,sprite-set-property,,98,99
-26 2b,sprite-set-order,,,99
-26 2c,sprite-move,,99,99
-26 34,sprite-set-state,,,99
-26 39,sprite-select-one,,,98
-26 39,sprite-select-range,,99,99
-26 3f,sprite-set-image,,,99
-26 41,sprite-set-position,,,99
-26 44,sprite-erase,,98,99
-26 4d,sprite-set-step-dist,,,99
-26 52,sprite-set-animation-type,,,99
-26 56,sprite-set-palette,,99,99
-26 61,sprite-set-animation-speed,,99,99
-26 62,sprite-set-shadow,,,99
-26 7c,sprite-set-update-type,,,99
-26 7d,sprite-set-class,,98,99
-26 8c,sprite-mask-image,,99,99
+26 25,sprite.group,,,99
+26 2a,sprite.property,,98,99
+26 2b,sprite.order,,,99
+26 2c,sprite.move,,99,99
+26 34,sprite.state,,,99
+26 39,sprite.init-one,,,98
+26 39,sprite.init-range,,99,99
+26 3f,sprite.image,,,99
+26 41,sprite.at,,,99
+26 44,sprite.erase,,98,99
+26 4d,sprite.step-dist,,,99
+26 52,sprite.animation-type,,,99
+26 56,sprite.palette,,99,99
+26 61,sprite.animation-speed,,99,99
+26 62,sprite.shadow,,,99
+26 7c,sprite.update-type,,,99
+26 7d,sprite.class,,98,99
+26 8c,sprite.mask-image,,99,99
 26 9e,sprite-restart,,,99
-26 c6,sprite-variable-range,,,99
-26 d9,sprite-new,,,99
-27 08,sprite-group-get,,99,99
-27 1e,sprite-group-get-object-x,,,99
-27 1f,sprite-group-get-object-y,,98,99
-27 2b,sprite-group-get-order,,99,99
-28 25,sprite-group-set-group,,98,99
-28 2b,sprite-group-set-order,,99,99
-28 2c,sprite-group-move,,,99
-28 39,sprite-group-select,,,99
-28 41,sprite-group-set-position,,,99
-28 43,sprite-group-set-clip,,,99
-28 d9,sprite-group-new,,,99
+26 c6,sprite.variable-range,,,99
+26 d9,sprite.new,,,99
+27 08,group-get-array,,99,99
+27 1e,group-get-object-x,,,99
+27 1f,group-get-object-y,,98,99
+27 2b,group-get-order,,99,99
+28 25,group.group,,98,99
+28 2b,group.order,,99,99
+28 2c,group.move,,,99
+28 39,group.init,,,99
+28 41,group.at,,,99
+28 43,group.clip,,,99
+28 d9,group.new,,,99
 29 1e,image-get-object-x,,,99
 29 1f,image-get-object-y,,,99
 29 20,image-get-width,,,99
@@ -109,13 +109,13 @@ opcode,name,operands,target_min,target_max
 29 24,image-get-state-count,,98,99
 29 42,image-get-color-at,,99,99
 2a,actor-get-property,,99,99
-2b 01,start-script-order,,99,99
-2b c3,start-script-rec-order,,98,99
-2c 01,chain-script-order,,99,99
+2b 01,start-script.order,,99,99
+2b c3,start-script.order.rec,,98,99
+2c 01,chain-script.order,,99,99
 30,mod,,98,99
 31,shl,,98,99
 32,shr,,99,99
-34,find-all-objects,,99,99
+34,find-all-objects-of-class,,99,99
 36,iif,,99,99
 37 04,dim-array-range.int8,var,98,99
 37 05,dim-array-range.int16,var,98,99
@@ -130,15 +130,15 @@ opcode,name,operands,target_min,target_max
 47,set-array-item,var,,99
 48,string-number,,,99
 4b,set-array-item-2d,var,,99
-4d 06,read-ini-int,,,99
-4d 07,read-ini-string,,,99
-4e 06,write-ini-int,,,99
-4e 07,write-ini-string,,,99
+4d 06,read-ini.int32,,,99
+4d 07,read-ini.string,,,99
+4e 06,write-ini.int32,,,99
+4e 07,write-ini.string,,,99
 4f,inc,var,,99
 50,override-off-off,,,99
 53,inc-array-item,var,,99
-54,get-object-image-x,,,99
-55,get-object-image-y,,,99
+54,object-get-draw-x,,,99
+55,object-get-draw-y,,,99
 57,dec,var,,99
 58 0a,get-timer,,,99
 59 9e,set-timer,,,99
@@ -147,11 +147,11 @@ opcode,name,operands,target_min,target_max
 5c,jump-if,rel,,99
 5d,jump-unless,rel,,99
 5e 01,start-script,,,99
-5e c3,start-script-rec,,,99
+5e c3,start-script.rec,,,99
 60 01,start-object,,,99
-60 c3,start-object-rec,,,99
-61 3f,draw-object,,,99
-61 41,draw-object-at,,,99
+60 c3,start-object.rec,,,99
+61 3f,draw-object.image,,,99
+61 41,draw-object.at,,,99
 62,print-image,,,99
 63 01,array-get-dim,var,,99
 63 02,array-get-height,var,,99
@@ -161,17 +161,17 @@ opcode,name,operands,target_min,target_max
 63 06,array-get-y-start,var,99,99
 63 07,array-get-y-end,var,99,99
 64,free-arrays,,98,99
-65,end2,,,99
+65,end-object,,,99
 66,end,,,99
-69 39,window-select,,99,99
-69 3a,window-set-script,,99,99
-69 3f,window-set-image,,99,99
-69 d9,window-new,,99,99
-69 f3,window-set-title-bar,,99,99
-69 ff,window-commit,,99,99
+69 39,window.init,,99,99
+69 3a,window.script,,99,99
+69 3f,window.image,,99,99
+69 d9,window.new,,99,99
+69 f3,window.title-bar,,99,99
+69 ff,window.end,,99,99
 6a,freeze-scripts,,99,99
-6b 13,cursor-bw,,,99
-6b 14,cursor-color,,,99
+6b 13,cursor-image,,,99
+6b 14,cursor-color-image,,,99
 6b 90,cursor-on,,,99
 6b 91,cursor-off,,,99
 6b 92,userput-on,,,99
@@ -181,17 +181,17 @@ opcode,name,operands,target_min,target_max
 6b 9c,charset,,,99
 6b 9d,charset-color,,,99
 6c,break-here,,,99
-6d,class-of,,,99
-6e,object-set-class,,,99
+6d,object-get-class,,,99
+6e,object.class,,,99
 6f,object-get-state,,,99
-70,object-set-state,,,99
+70,object.state,,,99
 73,jump,rel,,99
-74 09,sound-soft,,,99
-74 e6,sound-channel,,,99
-74 e7,sound-at,,,99
-74 e8,sound-select,,,99
-74 f5,sound-looping,,,99
-74 ff,sound-start,,,99
+74 09,sound.soft,,,99
+74 e6,sound.channel,,,99
+74 e7,sound.at,,,99
+74 e8,sound.start,,,99
+74 f5,sound.looping,,,99
+74 ff,sound.end,,,99
 75,stop-sound,,,99
 77,stop-object,,99,99
 7b,current-room,,,99
@@ -201,12 +201,12 @@ opcode,name,operands,target_min,target_max
 87,random,,,99
 88,random-between,,,99
 8b,script-running,,,99
-8c,actor-room,,,99
-8d,actor-x,,,99
-8e,actor-y,,,99
-8f,actor-facing,,,99
+8c,actor-get-room,,,99
+8d,actor-get-x,,,99
+8e,actor-get-y,,,99
+8f,actor-get-facing,,,99
 91,actor-get-costume,,,99
-94 42,palette-color,,99,99
+94 42,palette-get-color,,99,99
 94 d9,rgb,,99,99
 95 73,override,rel,,99
 96,override-off,,,99
@@ -239,36 +239,36 @@ opcode,name,operands,target_min,target_max
 9c dc,copy-palette,,98,99
 9c dd,saveload-game,,,99
 9c ea,object-order,,99,99
-9d 15,actor-set-condition,,,99
-9d 2b,actor-set-order,,98,99
-9d 40,actor-set-clipped,,,99
-9d 41,actor-set-position,,99,99
-9d 43,actor-set-clip,,99,99
-9d 44,actor-erase,,98,99
-9d 4c,actor-set-costume,,,99
-9d 4e,actor-set-sounds,,,99
-9d 50,actor-set-talk-animation,,,99
-9d 54,actor-set-elevation,,,99
-9d 56,actor-set-color,,,99
-9d 57,actor-set-talk-color,,,99
-9d 5c,actor-set-scale,,,99
-9d 5d,actor-never-zclip,,,99
-9d 5e,actor-always-zclip,,,99
-9d 5f,actor-ignore-boxes,,,99
-9d 61,actor-set-animation-speed,,,99
-9d 62,actor-set-shadow,,,99
-9d 63,actor-set-text-offset,,,99
-9d c5,actor-select,,,99
-9d c6,actor-set-var,,,99
-9d d9,actor-new,,,99
-9d da,actor-bak-on,,,99
-9e 39,palette-select,,99,99
-9e 3f,palette-from-image,,99,99
-9e 42,palette-set-rgb,,99,99
-9e 46,palette-set-color,,99,99
-9e 56,palette-from-palette,,99,99
-9e d9,palette-new,,99,99
-9e ff,palette-commit,,99,99
+9d 15,actor.condition,,,99
+9d 2b,actor.order,,98,99
+9d 40,actor-default-clipped,,,99
+9d 41,actor.at,,99,99
+9d 43,actor.clip,,99,99
+9d 44,actor.erase,,98,99
+9d 4c,actor.costume,,,99
+9d 4e,actor.sounds,,,99
+9d 50,actor.talk-animation,,,99
+9d 54,actor.elevation,,,99
+9d 56,actor.color,,,99
+9d 57,actor.talk-color,,,99
+9d 5c,actor.scale,,,99
+9d 5d,actor.never-zclip,,,99
+9d 5e,actor.always-zclip,,,99
+9d 5f,actor.ignore-boxes,,,99
+9d 61,actor.animation-speed,,,99
+9d 62,actor.shadow,,,99
+9d 63,actor.text-offset,,,99
+9d c5,actor.init,,,99
+9d c6,actor.variable,,,99
+9d d9,actor.new,,,99
+9d da,actor.bak-on,,,99
+9e 39,palette.init,,99,99
+9e 3f,palette.from-image,,99,99
+9e 42,palette.rgb,,99,99
+9e 46,palette.color,,99,99
+9e 56,palette.from-palette,,99,99
+9e d9,palette.new,,99,99
+9e ff,palette.end,,99,99
 9f,find-actor,,,99
 a0,find-object,,,99
 a2,actor-get-elevation,,,99
@@ -280,7 +280,7 @@ a4 80,array-assign-range,var,98,99
 a4 8a,array-math,var var var,99,99
 a4 c2,sprintf,var,,99
 a4 d0,array-assign,var,,99
-a4 d4,array-set-row,var,,99
+a4 d4,array-assign-row,var,,99
 a6,draw-box,,,99
 a7,debug,,,99
 a9 a9,wait-for-message,,,99
@@ -291,29 +291,29 @@ ae 1a,update-screen,,,99
 ae a0,quit,,,99
 ae f4,quit-quit,,,99
 b0,sleep-for,,,99
-b1,sleep-for-seconds,,,99
+b1,sleep-for.seconds,,,99
 b3,stop-sentence,,99,99
-b5 41,print-text-position,,,99
-b5 43,print-text-clipped,,,99
-b5 45,print-text-center,,98,99
-b5 4b,print-text-string,str,,99
-b5 c2,print-text-printf,str,,99
-b5 f9,print-text-color,,,99
-b5 fe,print-text-start,,,99
-b6 4b,print-debug-string,str,,99
-b6 c2,print-debug-printf,str,,99
-b6 fe,print-debug-start,,,99
-b6 ff,print-debug-empty,,99,99
-b7 4b,print-system-string,str,,99
-b7 c2,print-system-printf,str,,99
-b7 fe,print-system-start,,,99
-b8 41,say-line-position,,,99
-b8 45,say-line-center,,99,99
-b8 4b,say-line-string,str,,99
-b8 e1,say-line-talkie,,99,99
-b8 f9,say-line-color,,99,99
-b8 fe,say-line-start,,99,99
-b9 fe,say-line-actor-start,,,99
+b5 41,print-text.at,,,99
+b5 43,print-text.clipped,,,99
+b5 45,print-text.center,,98,99
+b5 4b,print-text.string,str,,99
+b5 c2,print-text.printf,str,,99
+b5 f9,print-text.color,,,99
+b5 fe,print-text.start,,,99
+b6 4b,print-debug.string,str,,99
+b6 c2,print-debug.printf,str,,99
+b6 fe,print-debug.start,,,99
+b6 ff,print-debug.empty,,99,99
+b7 4b,print-system.string,str,,99
+b7 c2,print-system.printf,str,,99
+b7 fe,print-system.start,,,99
+b8 41,say-line.at,,,99
+b8 45,say-line.center,,99,99
+b8 4b,say-line.string,str,,99
+b8 e1,say-line.talkie,,99,99
+b8 f9,say-line.color,,99,99
+b8 fe,say-line.start,,99,99
+b9 fe,say-line-actor.start,,,99
 ba,say-line-actor,str,,99
 bb,say-line,str,,99
 bc 02,dim-array.int1,var,,99
@@ -331,30 +331,30 @@ c1,debug-string,,98,99
 c4,abs,,,99
 c8,kludge-call,,,99
 c9,kludge,,,99
-ca,break-here-multi,,,99
+ca,break-here.multi,,,99
 cb,pick,,,99
 cd,stamp-object,,,99
 cf,debug-input,,,99
 d0,get-time-date,,,99
 d1,stop-line,,,99
-d2,actor-get-var,,,99
+d2,actor-get-variable,,,99
 d4,shuffle,var,,99
 d5 01,chain-script,,,99
-d5 c3,chain-script-rec,,,99
+d5 c3,chain-script.rec,,,99
 d6,band,,,99
 d7,bor,,99,99
 d9,close-file,,,99
 da,open-file,,,99
-db 05,read-file-int16,,,99
-db 06,read-file-int32,,,99
-db 08 04,read-file-int8,,,99
-dc 05,write-file-int16,,99,99
-dc 06,write-file-int32,,,99
-dc 08 04,write-file-int8,,,99
-dd,find-all-objects2,,,99
+db 05,read-file.int16,,,99
+db 06,read-file.int32,,,99
+db 08 04,read-file.array.int8,,,99
+dc 05,write-file.int16,,99,99
+dc 06,write-file.int32,,,99
+dc 08 04,write-file.array.int8,,,99
+dd,find-all-objects,,,99
 de,delete-file,,,99
 df,rename-file,,,99
-e0 42,array-line-draw,,,99
+e0 42,draw-line,,,99
 e2,localize,,,99
 e3,pick-random,var,,99
 e9,seek-file,,,99
@@ -370,36 +370,36 @@ f0,string-concat,,99,99
 f1,string-compare,,,99
 f2 e3,costume-loaded,,,99
 f2 e4,sound-loaded,,98,99
-f3 06,read-system-ini-int,,,99
-f3 07,read-system-ini-string,,,99
-f4 06,write-system-ini-int,,,99
-f4 07,write-system-ini-string,,,99
+f3 06,read-system-ini.int32,,,99
+f3 07,read-system-ini.string,,,99
+f4 06,write-system-ini.int32,,,99
+f4 07,write-system-ini.string,,,99
 f5,string-margin,,,99
 f6,string-search,,,99
 f8 0d,sound-size,,,99
 f9,create-directory,,,99
 fa f3,title-bar,,,99
-fb f6,set-polygon-2,,98,99
+fb f6,set-polygon,,98,99
 fb f7,delete-polygon,,,99
-fb f8,set-polygon,,,99
+fb f8,set-polygon-local,,,99
 fc,find-polygon,,,99
-00 04,actor-set-animation-speed,,100,
-00 06,actor-set-position,,100,
-00 09,actor-bak-on,,100,
-00 16,actor-set-condition,,100,
-00 19,actor-set-costume,,100,
-00 35,actor-new,,100,
-00 3b,actor-set-order,,100,
-00 3f,actor-set-palette,,100,
-00 41,actor-set-scale,,100,
-00 46,actor-set-shadow,,100,
-00 53,actor-set-var,,100,
-00 59,actor-never-zclip,,100,
-00 80,actor-set-clipped,,100,
-00 81,actor-select,,100,
-00 82,actor-set-sounds,,100,
-00 87,actor-ignore-boxes,,100,
-00 8e,actor-set-talk-condition,,100,
+00 04,actor.animation-speed,,100,
+00 06,actor.at,,100,
+00 09,actor.bak-on,,100,
+00 16,actor.condition,,100,
+00 19,actor.costume,,100,
+00 35,actor.new,,100,
+00 3b,actor.order,,100,
+00 3f,actor.palette,,100,
+00 41,actor.scale,,100,
+00 46,actor.shadow,,100,
+00 53,actor.variable,,100,
+00 59,actor.never-zclip,,100,
+00 80,actor-default-clipped,,100,
+00 81,actor.init,,100,
+00 82,actor.sounds,,100,
+00 87,actor.ignore-boxes,,100,
+00 8e,actor.talk-condition,,100,
 01,add,,100,
 03 86,array-sort,var,100,
 04 23,sprintf,var,100,
@@ -411,14 +411,14 @@ fc,find-polygon,,,99
 05,band,,100,
 06,bor,,100,
 07,break-here,,100,
-08,break-here-multi,,100,
+08,break-here.multi,,100,
 09,shl,,100,
 0a,shr,,100,
 0b,xor,,100,
 0e,current-room,,100,
 11 5a,chain-script,,100,
-11 82,chain-script-rec,,100,
-12,object-set-class,,100,
+11 82,chain-script.rec,,100,
+12,object.class,,100,
 13,close-file,,100,
 16,create-directory,,100,
 19,debug,,100,
@@ -437,61 +437,61 @@ fc,find-polygon,,,99
 20,div,,100,
 21,do-animation,,100,
 23,draw-box,,100,
-26 14,array-line-draw,,100,
-27 28,draw-object,,100,
+26 14,draw-line,,100,
+27 28,draw-object.image,,100,
 28,dup,,100,
-29,dup-multi,i16,100,
-2b,end2,,100,
+29,dup.multi,i16,100,
+2b,end-object,,100,
 2c,end,,100,
 2d,eq,,100,
 30,ge,,100,
 31,get-time-date,,100,
-32 00,sprite-group-select,,100,
-32 06,sprite-group-set-position,,100,
-32 12,sprite-group-set-clip,,100,
-32 26,sprite-group-set-group,,100,
-32 31,sprite-group-move,,100,
-32 35,sprite-group-new,,100,
-32 3b,sprite-group-set-order,,100,
-32 59,sprite-group-never-zclip,,100,
+32 00,group.init,,100,
+32 06,group.at,,100,
+32 12,group.clip,,100,
+32 26,group.group,,100,
+32 31,group.move,,100,
+32 35,group.new,,100,
+32 3b,group.order,,100,
+32 59,group.never-zclip,,100,
 33,gt,,100,
-34 0e,resource-charset,,100,
-34 19,resource-costume,,100,
-34 28,resource-image,,100,
-34 2f,resource-load,,100,
-34 3e,resource-room,,100,
-34 42,resource-script,,100,
-34 48,resource-sound,,100,
-34 84,resource-lock,,100,
-34 85,resource-nuke,,100,
-34 86,resource-off-heap,,100,
-34 87,resource-on-heap,,100,
-34 88,resource-preload,,100,
+34 0e,resource.charset,,100,
+34 19,resource.costume,,100,
+34 28,resource.image,,100,
+34 2f,resource.load,,100,
+34 3e,resource.room,,100,
+34 42,resource.script,,100,
+34 48,resource.sound,,100,
+34 84,resource.lock,,100,
+34 85,resource.nuke,,100,
+34 86,resource.off-heap,,100,
+34 87,resource.on-heap,,100,
+34 88,resource.preload,,100,
 35,jump-if,rel,100,
 36,jump-unless,rel,100,
-37 00,image-select,,100,
-37 06,image-set-pos,,100,
-37 07,image-set-source-image,,100,
-37 0b,image-capture,,100,
-37 12,image-set-clip,,100,
-37 1d,image-draw,,100,
-37 27,image-set-height,,100,
-37 2f,image-load-external,,100,
-37 35,image-new,,100,
-37 39,image-set-palette,,100,
-37 3a,image-polygon-capture,,100,
-37 43,image-set-flags,,100,
-37 49,image-set-state,,100,
-37 54,image-set-width,,100,
-37 5c,image-commit,,100,
-37 80,image-font-create,,100,
-37 81,image-font-end,,100,
-37 82,image-font-render,,100,
-37 83,image-font-start,,100,
-37 84,image-set-histogram,,100,
-37 86,image-flood-fill,,100,
-37 87,image-set-render-image,,100,
-37 8a,image-set-draw-box,,100,
+37 00,image.init,,100,
+37 06,image.at,,100,
+37 07,image.source-image,,100,
+37 0b,image.capture,,100,
+37 12,image.clip,,100,
+37 1d,image.draw,,100,
+37 27,image.height,,100,
+37 2f,image.load,,100,
+37 35,image.new,,100,
+37 39,image.palette,,100,
+37 3a,image.polygon-capture,,100,
+37 43,image.flags,,100,
+37 49,image.state,,100,
+37 54,image.width,,100,
+37 5c,image.end,,100,
+37 80,image.font-create,,100,
+37 81,image.font-end,,100,
+37 82,image.font-render,,100,
+37 83,image.font-start,,100,
+37 84,image.histogram,,100,
+37 86,image.flood-fill,,100,
+37 87,image.render-target,,100,
+37 8a,image.draw-box,,100,
 38,in-list,,100,
 39,inc,var,100,
 3a,inc-array-item,var,100,
@@ -517,87 +517,87 @@ fc,find-polygon,,,99
 4c 3b,override,rel,100,
 4d,override-off,,100,
 4e,override-off-off,,100,
-50 00,palette-select,,100,
-50 14,palette-set-rgb,,100,
-50 19,palette-from-costume,,100,
-50 28,palette-from-image,,100,
-50 35,palette-new,,100,
-50 51,palette-set-color,,100,
-50 5c,palette-commit,,100,
+50 00,palette.init,,100,
+50 14,palette.rgb,,100,
+50 19,palette.from-costume,,100,
+50 28,palette.from-image,,100,
+50 35,palette.new,,100,
+50 51,palette.color,,100,
+50 5c,palette.end,,100,
 52 1c,delete-polygon,,100,
-52 44,set-polygon-2,,100,
-52 45,set-polygon,,100,
+52 44,set-polygon,,100,
+52 45,set-polygon-local,,100,
 53,pop,,100,
-54 23,print-debug-printf,str,100,
-54 4f,print-debug-string,str,100,
-54 5b,print-debug-start,,100,
+54 23,print-debug.printf,str,100,
+54 4f,print-debug.string,str,100,
+54 5b,print-debug.start,,100,
 55,print-image,,100,
-57 23,print-system-printf,str,100,
-57 4f,print-system-string,str,100,
-57 5b,print-system-start,,100,
-58 06,print-text-position,,100,
-58 0c,print-text-center,,100,
-58 15,print-text-color,,100,
-58 23,print-text-printf,str,100,
-58 5b,print-text-start,,100,
-5a 82,start-script-rec-order,,100,
-5c,push-u8,u8,100,
-5d,push-i32,i32,100,
-5e,push-str,str,100,
-5f,push-i16,i16,100,
-60,push-var,var,100,
+57 23,print-system.printf,str,100,
+57 4f,print-system.string,str,100,
+57 5b,print-system.start,,100,
+58 06,print-text.at,,100,
+58 0c,print-text.center,,100,
+58 15,print-text.color,,100,
+58 23,print-text.printf,str,100,
+58 5b,print-text.start,,100,
+5a 82,start-script.order.rec,,100,
+5c,push.u8,u8,100,
+5d,push.i32,i32,100,
+5e,push.string,str,100,
+5f,push.i16,i16,100,
+60,push.var,var,100,
 62,put-actor,,100,
 64 2b,redim-array.int32,var,100,
 64 2d,redim-array.int8,var,100,
 66,return,,100,
 68 3f,palette-set,,100,
 68 83,fades,,100,
-69 06,say-line-position,,100,
-69 4e,say-line-talkie,,100,
-69 5b,say-line-start,,100,
+69 06,say-line.at,,100,
+69 4e,say-line.talkie,,100,
+69 5b,say-line.start,,100,
 6b,say-line-actor,str,100,
 6e,seek-file,,100,
 72 50,title-bar,,100,
 73,shuffle,var,100,
 74,sleep-for,,100,
-76,sleep-for-seconds,,100,
-77 06,sound-at,,100,
-77 5c,sound-start,,100,
-77 81,sound-channel,,100,
-77 83,sound-looping,,100,
-77 84,sound-select-modify,,100,
-77 85,sound-pan,,100,
-77 86,sound-select,,100,
-77 87,sound-soft,,100,
-77 88,sound-volume,,100,
-79 00,sprite-select-range,,100,
-79 02,sprite-set-angle,,100,
-79 03,sprite-set-animation-type,,100,
-79 04,sprite-set-animation-speed,,100,
-79 06,sprite-set-position,,100,
-79 07,sprite-set-source-image,,100,
-79 10,sprite-set-class,,100,
-79 20,sprite-erase,,100,
-79 26,sprite-set-group,,100,
-79 28,sprite-set-image,,100,
-79 30,sprite-mask-image,,100,
-79 31,sprite-move,,100,
-79 35,sprite-new,,100,
-79 36,sprite-set-property2,,100,
-79 39,sprite-set-palette,,100,
-79 3b,sprite-set-order,,100,
-79 3c,sprite-set-property,,100,
-79 41,sprite-set-scale,,100,
-79 46,sprite-set-shadow,,100,
-79 49,sprite-set-state,,100,
-79 4a,sprite-set-step-dist,,100,
-79 52,sprite-set-update-type,,100,
-79 53,sprite-variable-range,,100,
+76,sleep-for.seconds,,100,
+77 06,sound.at,,100,
+77 5c,sound.end,,100,
+77 81,sound.channel,,100,
+77 83,sound.looping,,100,
+77 84,sound.modify,,100,
+77 85,sound.pan,,100,
+77 86,sound.start,,100,
+77 87,sound.soft,,100,
+77 88,sound.volume,,100,
+79 00,sprite.init-range,,100,
+79 02,sprite.angle,,100,
+79 03,sprite.animation-type,,100,
+79 04,sprite.animation-speed,,100,
+79 06,sprite.at,,100,
+79 07,sprite.source-image,,100,
+79 10,sprite.class,,100,
+79 20,sprite.erase,,100,
+79 26,sprite.group,,100,
+79 28,sprite.image,,100,
+79 30,sprite.mask-image,,100,
+79 31,sprite.move,,100,
+79 35,sprite.new,,100,
+79 36,sprite.general-property,,100,
+79 39,sprite.palette,,100,
+79 3b,sprite.order,,100,
+79 3c,sprite.property,,100,
+79 41,sprite.scale,,100,
+79 46,sprite.shadow,,100,
+79 49,sprite.state,,100,
+79 4a,sprite.step-dist,,100,
+79 52,sprite.update-type,,100,
+79 53,sprite.variable-range,,100,
 7b 5a,start-object,,100,
-7b 82,start-object-rec,,100,
+7b 82,start-object.rec,,100,
 7c 5a,start-script,,100,
-7c 82,start-script-rec,,100,
-7e,object-set-state,,100,
+7c 82,start-script.rec,,100,
+7e,object.state,,100,
 80,stop-script,,100,
 81,stop-sentence,,100,
 82,stop-sound,,100,
@@ -609,55 +609,55 @@ fc,find-polygon,,,99
 88 84,quit,,100,
 88 85,quit-quit,,100,
 88 88,update-screen,,100,
-89 00,window-select,,100,
-89 06,window-set-position,,100,
-89 28,window-set-image,,100,
-89 35,window-new,,100,
-89 50,window-set-title-bar,,100,
-89 5c,window-commit,,100,
+89 00,window.init,,100,
+89 06,window.at,,100,
+89 28,window.image,,100,
+89 35,window.new,,100,
+89 50,window.title-bar,,100,
+89 5c,window.end,,100,
 8a 3d,set-timer,,100,
 8b 0e,charset,,100,
 8b 0f,charset-color,,100,
-8b 80,cursor-bw,,100,
-8b 81,cursor-color,,100,
+8b 80,cursor-image,,100,
+8b 81,cursor-color-image,,100,
 8b 86,cursor-on,,100,
 8b 87,cursor-off,,100,
 8b 8b,userput-on,,100,
 8b 8c,userput-off,,100,
-8c 00,video-select,,100,
-8c 13,video-close,,100,
-8c 2f,video-load,,100,
-8c 43,video-set-flags,,100,
-8c 5c,video-commit,,100,
+8c 00,video.init,,100,
+8c 13,video.close,,100,
+8c 2f,video.load,,100,
+8c 43,video.flags,,100,
+8c 5c,video.end,,100,
 8d 82,wait-for-message,,100,
-90 05 2d,write-file-int8,,100,
-90 2b,write-file-int32,,100,
-91 2b,write-system-ini-int,,100,
-91 4d,write-system-ini-string,,100,
-92 4d,write-ini-string,,100,
-92 2b,write-ini-int,,100,
+90 05 2d,write-file.array.int8,,100,
+90 2b,write-file.int32,,100,
+91 2b,write-system-ini.int32,,100,
+91 4d,write-system-ini.string,,100,
+92 4d,write-ini.string,,100,
+92 2b,write-ini.int32,,100,
 93,abs,,100,
 95,actor-get-costume,,100,
 99,actor-get-property,,100,
-9a,actor-room,,100,
+9a,actor-get-room,,100,
 9b,actor-get-scale,,100,
-9c,actor-get-var,,100,
-9e,actor-x,,100,
-9f,actor-y,,100,
+9c,actor-get-variable,,100,
+9e,actor-get-x,,100,
+9f,actor-get-y,,100,
 a0,angle-from-delta,,100,
 a1,angle-from-line,,100,
-a3 17,line-length-2d,,100,
-a3 18,line-length-3d,,100,
-a4,class-of,,100,
+a3 17,line-length.2d,,100,
+a3 18,line-length.3d,,100,
+a4,object-get-class,,100,
 a6,iif,,100,
 a7,cos,,100,
 a8,debug-input,,100,
 a9,file-size,,100,
 aa,find-actor,,100,
-ac,find-all-objects,,100,
+ac,find-all-objects-of-class,,100,
 af,find-object,,100,
-b3 00,font-enumerate-start,,100,
-b3 3c,font-enumerate-property,,100,
+b3 00,font-enum.init,,100,
+b3 3c,font-enum.property,,100,
 b4,free-arrays,,100,
 b5 01,array-get-dim,var,100,
 b5 02,array-get-height,var,100,
@@ -667,14 +667,14 @@ b5 05,array-get-x-end,var,100,
 b5 06,array-get-y-start,var,100,
 b5 07,array-get-y-end,var,100,
 b7 48,sound-size,,100,
-b8 05,sprite-group-get,,100,
-b8 3b,sprite-group-get-order,,100,
-b8 55,sprite-group-get-object-x,,100,
-b8 56,sprite-group-get-object-y,,100,
+b8 05,group-get-array,,100,
+b8 3b,group-get-order,,100,
+b8 55,group-get-object-x,,100,
+b8 56,group-get-object-y,,100,
 ba 14,image-get-color-at,,100,
 ba 1a,image-get-state-count,,100,
 ba 27,image-get-height,,100,
-ba 36,image-get-property2,,100,
+ba 36,image-get-general-property,,100,
 ba 54,image-get-width,,100,
 ba 55,image-get-object-x,,100,
 ba 56,image-get-object-y,,100,
@@ -683,30 +683,30 @@ bc,in,,100,
 be,kludge-call,,100,
 bf,max,,100,
 c0,min,,100,
-c1,get-object-image-x,,100,
-c2,get-object-image-y,,100,
+c1,object-get-draw-x,,100,
+c2,object-get-draw-y,,100,
 c5,open-file,,100,
 c6,overlap,,100,
-c8 14,palette-color,,100,
+c8 14,palette-get-color,,100,
 c8 35,rgb,,100,
 c8 49,palette-get-channel,,100,
 c9,pick,,100,
 cb,pick-random,var,100,
 d0,random,,100,
 d1,random-between,,100,
-d3 05 2d,read-file-int8,,100,
-d3 2b,read-file-int32,,100,
-d4 2b,read-system-ini-int,,100,
-d4 4d,read-system-ini-string,,100,
-d5 2b,read-ini-int,,100,
-d5 4d,read-ini-string,,100,
+d3 05 2d,read-file.array.int8,,100,
+d3 2b,read-file.int32,,100,
+d4 2b,read-system-ini.int32,,100,
+d4 4d,read-system-ini.string,,100,
+d5 2b,read-ini.int32,,100,
+d5 4d,read-ini.string,,100,
 d6,script-running,,100,
 d7,sin,,100,
 d8,sound-position,,100,
 d9,sound-running,,100,
 dc,sqrt,,100,
-db 07,sprite-get-image-at,,100,
-db 10,sprite-class,,100,
+db 07,sprite-get-source-image,,100,
+db 10,sprite-get-class,,100,
 db 1a,sprite-get-state-count,,100,
 db 1e,sprite-get-object-draw-x,,100,
 db 1f,sprite-get-object-draw-y,,100,
@@ -732,4 +732,4 @@ e8,string-width,,100,
 e9,tell-file,,100,
 ea 32,get-timer,,100,
 eb,valid-verb,,100,
-ec 49,video-get-cur-frame,,100,
+ec 49,video-get-state,,100,

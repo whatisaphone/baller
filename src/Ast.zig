@@ -244,10 +244,6 @@ pub const Node = union(enum) {
         callee: NodeIndex,
         args: ExtraSlice,
     },
-    field: struct {
-        lhs: NodeIndex,
-        field: StringSlice,
-    },
     list: struct {
         items: ExtraSlice,
     },

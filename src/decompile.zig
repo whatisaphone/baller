@@ -315,12 +315,12 @@ pub const Op = union(enum) {
 
 pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     var result: std.EnumArray(lang.Op, Op) = .initFill(.illegal);
-    result.set(.@"push-u8", .push8);
-    result.set(.@"push-i16", .push16);
-    result.set(.@"push-i32", .push32);
-    result.set(.@"push-var", .push_var);
-    result.set(.@"push-str", .push_str);
-    result.set(.@"dup-multi", .dup_multi);
+    result.set(.@"push.u8", .push8);
+    result.set(.@"push.i16", .push16);
+    result.set(.@"push.i32", .push32);
+    result.set(.@"push.var", .push_var);
+    result.set(.@"push.string", .push_str);
+    result.set(.@"dup.multi", .dup_multi);
     result.set(.dup, .dup);
     result.set(.@"jump-if", .jump_if);
     result.set(.@"jump-unless", .jump_unless);
@@ -368,7 +368,7 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     if (ss.len == 0) return error.BadData;
     const stmt = &cx.stmts.items[ss.last()];
     if (stmt.* != .call) return error.BadData;
-    if (stmt.call.op != .end and stmt.call.op != .end2) return error.BadData;
+    if (stmt.call.op != .end and stmt.call.op != .@"end-object") return error.BadData;
     bb_last.end -= 1;
     bb_last.statements.defined.len -= 1;
 }
@@ -727,7 +727,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
         .@"start-script" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
-        .@"start-script-rec" => {
+        .@"start-script.rec" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
         .@"call-script" => {
@@ -736,7 +736,7 @@ fn recoverCall(cx: *TypeCx, op: lang.Op, arg_eis: ExtraSlice, result_ei: ExprInd
         .@"chain-script" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
-        .@"chain-script-rec" => {
+        .@"chain-script.rec" => {
             recoverScriptArgs(cx, args[0], args[1]);
         },
         else => {},
@@ -840,12 +840,12 @@ fn peephole(cx: *DecompileCx) void {
             peepBinOpEq(cx, stmt);
             peepBinOpArrayItem(cx, stmt);
             peepBinOpArrayItem2D(cx, stmt);
-            peepSpriteSelect(cx, stmt);
+            peepSpriteInit(cx, stmt);
             peepArraySortRows(cx, stmt);
             peepArraySortCols(cx, stmt);
             peepLockAndLoad(cx, stmts, i);
-            peepPaletteSetRgb(cx, stmt);
-            peepPaletteSetColor(cx, stmt);
+            peepPaletteRgb(cx, stmt);
+            peepPaletteColor(cx, stmt);
             peepDeleteOnePolygon(cx, stmt);
         }
     }
@@ -922,16 +922,16 @@ fn peepBinOpArrayItem2D(cx: *DecompileCx, stmt: *Stmt) void {
     stmt.* = .{ .binop_assign = .{ .op = op, .args = bin.call.args } };
 }
 
-/// Replace `sprite-select-range x dup{x}` with `sprite-select x`
-fn peepSpriteSelect(cx: *DecompileCx, stmt: *Stmt) void {
-    const args = stmtCallArgs(cx, stmt, .@"sprite-select-range", 2) orelse return;
+/// Replace `sprite.init-range x dup{x}` with `sprite.init x`
+fn peepSpriteInit(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"sprite.init-range", 2) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
 
     const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 1 };
     stmt.* = .{ .compound = .{
-        .op = .@"sprite-select",
+        .op = .@"sprite.init",
         .args = new_args,
     } };
 }
@@ -1002,9 +1002,9 @@ fn peepLockAndLoad(cx: *DecompileCx, stmts: []Stmt, stmt_index: usize) void {
     stmts[stmt_index + 1] = .tombstone;
 }
 
-/// Replace `palette-set-rgb s dup{s} r g b` with `palette-set-slot-rgb s r g b`
-fn peepPaletteSetRgb(cx: *DecompileCx, stmt: *Stmt) void {
-    const args = stmtCallArgs(cx, stmt, .@"palette-set-rgb", 5) orelse return;
+/// Replace `palette.rgb s dup{s} r g b` with `palette.slot-rgb s r g b`
+fn peepPaletteRgb(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"palette.rgb", 5) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
@@ -1012,14 +1012,14 @@ fn peepPaletteSetRgb(cx: *DecompileCx, stmt: *Stmt) void {
     std.mem.copyForwards(ExprIndex, args[1..][0..3], args[2..][0..3]);
     const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 4 };
     stmt.* = .{ .compound = .{
-        .op = .@"palette-set-slot-rgb",
+        .op = .@"palette.slot-rgb",
         .args = new_args,
     } };
 }
 
-/// Replace `palette-set-color a dup{a} b` with `palette-set-slot-color a b`
-fn peepPaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
-    const args = stmtCallArgs(cx, stmt, .@"palette-set-color", 3) orelse return;
+/// Replace `palette.color a dup{a} b` with `palette.slot-color a b`
+fn peepPaletteColor(cx: *DecompileCx, stmt: *Stmt) void {
+    const args = stmtCallArgs(cx, stmt, .@"palette.color", 3) orelse return;
     const second = &cx.exprs.items[args[1]];
     if (second.* != .dup) return;
     if (second.dup != args[0]) return;
@@ -1027,7 +1027,7 @@ fn peepPaletteSetColor(cx: *DecompileCx, stmt: *Stmt) void {
     args[1] = args[2];
     const new_args: ExtraSlice = .{ .start = stmt.call.args.start, .len = 2 };
     stmt.* = .{ .compound = .{
-        .op = .@"palette-set-slot-color",
+        .op = .@"palette.slot-color",
         .args = new_args,
     } };
 }
@@ -2767,7 +2767,7 @@ fn emitStmt(cx: *const EmitCx, start: ?u16, stmt: *const Stmt) !void {
         },
         .binop_assign => |s| {
             const args = getExtra(cx, s.args);
-            try emitExpr(cx, args[0], .field);
+            try emitExpr(cx, args[0], .space);
             try cx.out.append(cx.gpa, ' ');
             try cx.out.appendSlice(cx.gpa, s.op.str());
             try cx.out.appendSlice(cx.gpa, "= ");

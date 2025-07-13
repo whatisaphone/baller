@@ -161,7 +161,7 @@ test "ins variadic too few args" {
 test "compound wrong arg count" {
     try testRoomError(
         \\script s@1 {
-        \\    sprite-select 0 0
+        \\    sprite.init 0 0
         \\    ^ expected 1 args, found 2
         \\}
     );

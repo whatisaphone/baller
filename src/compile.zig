@@ -53,7 +53,7 @@ pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlic
 
     const end: lang.Op = switch (cx.ast.nodes.at(root_node).*) {
         .script, .local_script => .end,
-        .enter, .exit, .object => .end2,
+        .enter, .exit, .object => .@"end-object",
         else => unreachable,
     };
     try emitOpcode(cx, end);
@@ -164,7 +164,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
             } else if (lhs.* == .array_get2) {
                 try pushExpr(cx, lhs.array_get2.index1);
                 try pushExpr(cx, lhs.array_get2.index2);
-                try emitOpcode(cx, .@"dup-multi");
+                try emitOpcode(cx, .@"dup.multi");
                 try cx.out.writer(cx.gpa).writeInt(i16, 2, .little);
                 try emitOpcode(cx, .@"get-array-item-2d");
                 try emitVariable(cx, lhs.array_get2.lhs);
@@ -388,20 +388,8 @@ fn findCallee(cx: *const Cx, node_index: Ast.NodeIndex) ?union(enum) {
     compound: script.Compound,
 } {
     const expr = cx.ast.nodes.at(node_index);
-    var name_buf: [24]u8 = undefined;
-    const name = switch (expr.*) {
-        .identifier => |id| cx.ast.strings.get(id),
-        .field => |f| blk: {
-            const lhs = cx.ast.nodes.at(f.lhs);
-            if (lhs.* != .identifier) return null;
-            const lhs_str = lhs.identifier;
-            break :blk std.fmt.bufPrint(&name_buf, "{s}.{s}", .{
-                cx.ast.strings.get(lhs_str),
-                cx.ast.strings.get(f.field),
-            }) catch return null;
-        },
-        else => return null,
-    };
+    if (expr.* != .identifier) return null;
+    const name = cx.ast.strings.get(expr.identifier);
     return if (lang.lookup(cx.vm, name)) |ins|
         .{ .ins = makeInsData(cx, ins) orelse return null }
     else if (std.meta.stringToEnum(script.Compound, name)) |c|
@@ -441,11 +429,11 @@ fn emitCallCompound(
 ) !void {
     const args = cx.ast.getExtra(args_slice);
     switch (compound) {
-        .@"sprite-select" => {
+        .@"sprite.init" => {
             try checkArgCount(cx, node_index, args, 1);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
-            try emitOpcode(cx, .@"sprite-select-range");
+            try emitOpcode(cx, .@"sprite.init-range");
         },
         .@"array-sort-rows" => {
             try checkArgCount(cx, node_index, args, 5);
@@ -488,21 +476,21 @@ fn emitCallCompound(
             try emitOpcode(cx, .@"lock-image");
             try emitOpcode(cx, .@"load-image");
         },
-        .@"palette-set-slot-rgb" => {
+        .@"palette.slot-rgb" => {
             try checkArgCount(cx, node_index, args, 4);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
             try pushExpr(cx, args[2]);
             try pushExpr(cx, args[3]);
-            try emitOpcode(cx, .@"palette-set-rgb");
+            try emitOpcode(cx, .@"palette.rgb");
         },
-        .@"palette-set-slot-color" => {
+        .@"palette.slot-color" => {
             try checkArgCount(cx, node_index, args, 2);
             try pushExpr(cx, args[0]);
             try emitOpcode(cx, .dup);
             try pushExpr(cx, args[1]);
-            try emitOpcode(cx, .@"palette-set-color");
+            try emitOpcode(cx, .@"palette.color");
         },
         .@"delete-one-polygon" => {
             try checkArgCount(cx, node_index, args, 1);
@@ -580,19 +568,19 @@ fn pushExpr(cx: *Cx, node_index: Ast.NodeIndex) error{ OutOfMemory, AddedToDiagn
 
 fn pushInt(cx: *const Cx, integer: i32) !void {
     if (std.math.cast(u8, integer)) |i| {
-        try emitOpcode(cx, .@"push-u8");
+        try emitOpcode(cx, .@"push.u8");
         try cx.out.append(cx.gpa, i);
     } else if (std.math.cast(i16, integer)) |i| {
-        try emitOpcode(cx, .@"push-i16");
+        try emitOpcode(cx, .@"push.i16");
         try cx.out.writer(cx.gpa).writeInt(i16, i, .little);
     } else {
-        try emitOpcode(cx, .@"push-i32");
+        try emitOpcode(cx, .@"push.i32");
         try cx.out.writer(cx.gpa).writeInt(i32, integer, .little);
     }
 }
 
 fn pushStr(cx: *Cx, node_index: Ast.NodeIndex) !void {
-    try emitOpcode(cx, .@"push-str");
+    try emitOpcode(cx, .@"push.string");
     try emitString(cx, node_index);
     try pushInt(cx, -1);
 }
@@ -636,7 +624,7 @@ fn pushSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !void {
 }
 
 fn pushVar(cx: *const Cx, variable: lang.Variable) !void {
-    try emitOpcode(cx, .@"push-var");
+    try emitOpcode(cx, .@"push.var");
     try emitVarNumber(cx, variable);
 }
 

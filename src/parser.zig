@@ -1344,7 +1344,6 @@ pub const Precedence = enum {
     mul,
     bit,
     space,
-    field,
 
     pub fn oneLower(self: Precedence) Precedence {
         return @enumFromInt(@intFromEnum(self) - 1);
@@ -1355,25 +1354,17 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
     var cur = try parseUnit(cx, token);
     while (true) {
         const token2 = peekToken(cx);
-        switch (token2.kind) {
-            .period => {
-                if (@intFromEnum(prec) >= @intFromEnum(Precedence.field)) break;
-                _ = consumeToken(cx);
-                const field = try expectIdentifier(cx);
-                cur = try storeNode(cx, token2, .{ .field = .{ .lhs = cur, .field = field } });
-            },
-            else => if (getBinOp(token2)) |op| {
-                // If it's a binop assign like `+=`, fall back to where it's
-                // handled in `parseStatement`.
-                if (peekSecondToken(cx).kind == .eq) break;
+        if (getBinOp(token2)) |op| {
+            // If it's a binop assign like `+=`, fall back to where it's
+            // handled in `parseStatement`.
+            if (peekSecondToken(cx).kind == .eq) break;
 
-                cur = try parseBinOp(cx, cur, prec, op) orelse break;
-            } else if (isAtomToken(token2)) {
-                if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
-                const args = try parseList(cx);
-                cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
-            } else break,
-        }
+            cur = try parseBinOp(cx, cur, prec, op) orelse break;
+        } else if (isAtomToken(token2)) {
+            if (@intFromEnum(prec) >= @intFromEnum(Precedence.space)) break;
+            const args = try parseList(cx);
+            cur = try storeNode(cx, token, .{ .call = .{ .callee = cur, .args = args } });
+        } else break;
     }
     return cur;
 }

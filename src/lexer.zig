@@ -38,7 +38,6 @@ pub const Token = struct {
         eof,
         newline,
         comma,
-        period,
         colon,
         bang_eq,
         lt,
@@ -75,7 +74,6 @@ pub const Token = struct {
                 .eof => "<eof>",
                 .newline => "<newline>",
                 .comma => "','",
-                .period => "'.'",
                 .colon => "':'",
                 .bang_eq => "'!='",
                 .lt => "'<'",
@@ -148,8 +146,6 @@ pub fn run(
             try appendToken(&state, loc, .newline);
         } else if (ch == ',') {
             try appendToken(&state, loc, .comma);
-        } else if (ch == '.') {
-            try appendToken(&state, loc, .period);
         } else if (ch == ':') {
             try appendToken(&state, loc, .colon);
         } else if (ch == '!' and peekChar(&state) == '=') {
@@ -340,7 +336,7 @@ pub fn isIdentStart(ch: u8) bool {
 }
 
 pub fn isIdentContinue(ch: u8) bool {
-    return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_';
+    return isIdentStart(ch) or '0' <= ch and ch <= '9' or ch == '-' or ch == '_' or ch == '.';
 }
 
 fn isValidRawCharInString(ch: u8) bool {

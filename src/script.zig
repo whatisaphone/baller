@@ -25,14 +25,14 @@ pub const Param = union(enum) {
 };
 
 pub const Compound = enum {
-    @"sprite-select",
+    @"sprite.init",
     @"array-sort-rows",
     @"array-sort-cols",
     @"lock-and-load-script",
     @"lock-and-load-costume",
     @"lock-and-load-image",
-    @"palette-set-slot-rgb",
-    @"palette-set-slot-color",
+    @"palette.slot-rgb",
+    @"palette.slot-color",
     @"delete-one-polygon",
     @"break-until",
 };
