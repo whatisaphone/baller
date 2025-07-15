@@ -9,6 +9,9 @@ const io = @import("io.zig");
 const utils = @import("utils.zig");
 
 pub const Compression = struct {
+    pub const BMCOMP_ZIGZAG_VT8 = 38;
+    pub const BMCOMP_RMAJMIN_HT4 = 124;
+    pub const BMCOMP_RMAJMIN_HT8 = 128;
     pub const BMCOMP_NMAJMIN_H4 = 134;
     pub const BMCOMP_NMAJMIN_H5 = 135;
     pub const BMCOMP_NMAJMIN_H7 = 137;
