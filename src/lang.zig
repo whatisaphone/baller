@@ -476,9 +476,11 @@ fn buildNormalLanguage() Language {
     lang.add(0xda, "open-file", &.{});
 
     lang.addNested(0xdb, 0x05, "read-file-int16", &.{});
+    lang.addNested(0xdb, 0x06, "read-file-int32", &.{});
     lang.addNested(0xdb, 0x08, "read-file-int8", &.{.u8});
 
     lang.addNested(0xdc, 0x05, "write-file-int16", &.{});
+    lang.addNested(0xdc, 0x06, "write-file-int32", &.{});
     lang.addNested(0xdc, 0x08, "write-file-int8", &.{.u8});
 
     lang.add(0xdd, "find-all-objects2", &.{});
