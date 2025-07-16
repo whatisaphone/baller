@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const build_options = @import("build_options");
+
 const Symbols = @import("Symbols.zig");
 const akos = @import("akos.zig");
 const assemble = @import("assemble.zig");
@@ -1177,11 +1179,15 @@ fn writeIndex(
     if (games.hasIndexInib(prst.game)) {
         const inib_fixup = try beginBlock(&writer, "INIB");
         const note_fixup = try beginBlock(&writer, "NOTE");
-        const note = if (attribution)
-            "Modded with Baller <https://github.com/whatisaphone/baller>"
-        else
-            "";
-        try writeLengthPrefixedString(writer.writer(), note);
+        if (attribution) {
+            try io.xorWriter(writer.writer(), xor_key).writer().print(
+                "\r\nBuilt with Baller {s} <https://baller.whatisaph.one/>\r\n",
+                .{build_options.version},
+            );
+            try writer.writer().writeByte(0);
+        } else {
+            try writer.writer().writeInt(u16, 0, .little);
+        }
         try endBlock(&writer, &fixups, note_fixup);
         try endBlock(&writer, &fixups, inib_fixup);
     }
