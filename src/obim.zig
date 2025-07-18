@@ -16,6 +16,7 @@ pub fn extract(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
+    palette: *const [0x300]u8,
     code: *std.ArrayListUnmanaged(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -40,7 +41,7 @@ pub fn extract(
         try code.appendSlice(gpa, "    im {\n");
 
         const smap_raw = try im_blocks.expect(.SMAP).bytes();
-        try decodeSmap(gpa, imhd, im_number, smap_raw, code, out_dir, out_path);
+        try decodeSmap(gpa, imhd, im_number, smap_raw, palette, code, out_dir, out_path);
 
         if (!im_blocks.atEnd()) {
             const zp01 = try im_blocks.expect(.ZP01).bytes();
@@ -85,6 +86,7 @@ fn decodeSmap(
     imhd: *align(1) const Imhd,
     im_number: u8,
     smap_raw: []const u8,
+    palette: *const [0x300]u8,
     code: *std.ArrayListUnmanaged(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -95,7 +97,7 @@ fn decodeSmap(
 
     var bmp_writer = std.io.fixedBufferStream(bmp_raw);
     try bmp.writeHeader(bmp_writer.writer(), imhd.width, imhd.height, bmp_size);
-    try bmp.writePlaceholderPalette(bmp_writer.writer());
+    try bmp.writePalette(bmp_writer.writer(), palette);
     const bmp_pixels = bmp_raw[bmp_writer.pos..];
 
     try decodeSmapData(imhd, smap_raw, bmp_pixels);

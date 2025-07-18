@@ -1061,6 +1061,11 @@ fn extractRmda(
                 cx.room_palette.setOnce(try extractPals(pals_raw, diag, &block));
             },
             .OBIM => {
+                // The OBIM decoder uses the palette, so make sure it has
+                // already been read. If not, fail. It's not ideal to completely
+                // fail here, but this path should never be hit anyway.
+                if (pals_chunk_index == null) return error.BadData;
+
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
             .OBCD, .EXCD, .ENCD, .LSCR, .LSC2 => {
@@ -1348,7 +1353,7 @@ fn extractObim(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try obim.extract(cx.cx.gpa, diag, raw, code, cx.room_dir, cx.room_path);
+    try obim.extract(cx.cx.gpa, diag, raw, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
 }
 
 const Cdhd = extern struct {
