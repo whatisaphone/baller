@@ -567,6 +567,7 @@ fn parseObim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const Keyword = enum {
         @"raw-block",
+        smap,
     };
 
     try expect(cx, .brace_l);
@@ -580,6 +581,18 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
                     const node_index = try parseRawBlock(cx, token2);
+                    try appendNode(cx, &children, node_index);
+                },
+                .smap => {
+                    const path = try expectString(cx);
+                    try expect(cx, .bracket_l);
+                    const strip_compression = try parseIntegerList(cx);
+                    try expect(cx, .newline);
+
+                    const node_index = try storeNode(cx, token, .{ .smap = .{
+                        .path = path,
+                        .strip_compression = strip_compression,
+                    } });
                     try appendNode(cx, &children, node_index);
                 },
             },

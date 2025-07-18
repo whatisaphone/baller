@@ -119,6 +119,10 @@ pub const Node = union(enum) {
     obim_im: struct {
         children: ExtraSlice,
     },
+    smap: struct {
+        path: StringSlice,
+        strip_compression: ExtraSlice,
+    },
     sound: struct {
         block_id: BlockId,
         name: StringSlice,

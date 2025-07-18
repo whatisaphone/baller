@@ -7,6 +7,7 @@ const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
+const games = @import("games.zig");
 const io = @import("io.zig");
 const Compression = @import("rmim.zig").Compression;
 const utils = @import("utils.zig");
@@ -39,8 +40,6 @@ pub fn extract(
         try code.appendSlice(gpa, "    im {\n");
 
         const smap_raw = try im_blocks.expect(.SMAP).bytes();
-        try writeRawBlock(gpa, .SMAP, smap_raw, out_dir, out_path, 8, .{ .object_block = .{ imhd.object_number, im_block_id } }, code);
-
         try decodeSmap(gpa, imhd, im_number, smap_raw, code, out_dir, out_path);
 
         if (!im_blocks.atEnd()) {
@@ -105,7 +104,9 @@ fn decodeSmap(
     const out_name = std.fmt.bufPrintZ(&out_name_buf, "object{}_{:0>2}.bmp", .{ imhd.object_number, im_number }) catch unreachable;
     try fs.writeFileZ(out_dir, out_name, bmp_raw);
 
-    try code.writer(gpa).print("        ; smap \"{s}/{s}\"\n", .{ out_path, out_name });
+    try code.writer(gpa).print("        smap \"{s}/{s}\" [", .{ out_path, out_name });
+    try writeCompressionTypes(gpa, code, imhd, smap_raw);
+    try code.appendSlice(gpa, "]\n");
 }
 
 const strip_width = 8;
@@ -129,6 +130,24 @@ fn decodeSmapData(imhd: *align(1) const Imhd, smap_raw: []const u8, out: []u8) !
             @intCast(Block.header_size + smap_raw.len);
         const strip_raw = smap_raw[strip_offset - Block.header_size .. next_strip_offset - Block.header_size];
         try decodeStrip(imhd, strip_raw, out[strip_index * strip_width ..]);
+    }
+}
+
+fn writeCompressionTypes(
+    gpa: std.mem.Allocator,
+    code: *std.ArrayListUnmanaged(u8),
+    imhd: *align(1) const Imhd,
+    smap_raw: []const u8,
+) !void {
+    // We can skip validation because it already happened once during `decodeSmapData`
+    const num_strips = std.math.divExact(u16, imhd.width, strip_width) catch unreachable;
+    const strip_offsets_size = num_strips * @sizeOf(u32);
+    const strip_offsets = std.mem.bytesAsSlice(u32, smap_raw[0..strip_offsets_size]);
+    for (0.., strip_offsets) |strip_index, strip_offset| {
+        if (strip_index != 0)
+            try code.append(gpa, ' ');
+        const compression = smap_raw[strip_offset - Block.header_size];
+        try code.writer(gpa).print("{}", .{compression});
     }
 }
 
@@ -239,20 +258,20 @@ const MajMinCodec = struct {
             pixel.* = self.color;
 
             if (!self.repeat_mode) {
-                if (try self.in.readBitsNoEof(u1, 1) != 0) {
-                    if (try self.in.readBitsNoEof(u1, 1) != 0) {
-                        const diff = try self.in.readBitsNoEof(i4, 3) - 4;
-                        if (diff != 0) {
-                            // A color change
-                            self.color = utils.add(u8, self.color, diff) orelse return error.BadData;
-                        } else {
-                            // Color does not change, but rather identical pixels get repeated
-                            self.repeat_mode = true;
-                            self.repeat_count = try self.in.readBitsNoEof(u8, 8) - 1;
-                        }
+                if (try self.in.readBitsNoEof(u1, 1) == 0) {
+                    // color stays the same
+                } else if (try self.in.readBitsNoEof(u1, 1) != 0) {
+                    const diff = try self.in.readBitsNoEof(i4, 3) - 4;
+                    if (diff != 0) {
+                        // A color change
+                        self.color = utils.add(u8, self.color, diff) orelse return error.BadData;
                     } else {
-                        self.color = try self.in.readBitsNoEof(u8, self.shift);
+                        // Color does not change, but rather identical pixels get repeated
+                        self.repeat_mode = true;
+                        self.repeat_count = try self.in.readBitsNoEof(u8, 8) - 1;
                     }
+                } else {
+                    self.color = try self.in.readBitsNoEof(u8, self.shift);
                 }
             } else {
                 self.repeat_count -= 1;
@@ -263,3 +282,215 @@ const MajMinCodec = struct {
         }
     }
 };
+
+pub fn encodeSmap(
+    gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    target: games.Target,
+    loc: Diagnostic.Location,
+    bmp_raw: []u8,
+    strip_compression: []const u32,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const bitmap = try bmp.readHeader(bmp_raw);
+    if (bitmap.width % strip_width != 0) {
+        diagnostic.errAt(loc, "bitmap width must be a multiple of strip width", .{});
+        return error.AddedToDiagnostic;
+    }
+
+    const starting_parity = out.items.len & 1;
+
+    const strip_offset_origin = out.items.len - Block.header_size;
+
+    const num_strips = bitmap.width / strip_width;
+    const table_offset = out.items.len;
+    _ = try out.addManyAsSlice(gpa, num_strips * @sizeOf(u32));
+
+    if (strip_compression.len != num_strips) return error.BadData;
+
+    for (0..num_strips) |strip_index| {
+        const table_entry = out.items[table_offset + strip_index * 4 ..][0..4];
+        const strip_offset: u32 = @intCast(out.items.len - strip_offset_origin);
+        std.mem.writeInt(u32, table_entry, strip_offset, .little);
+
+        const x = strip_index * strip_width;
+        const comp = std.math.cast(u8, strip_compression[strip_index]) orelse return error.BadData;
+        try encodeStrip(gpa, bitmap.width, bitmap.height, bitmap.pixels[x..], comp, out);
+    }
+
+    // Older versions pad the output to an even number of bytes
+    if (target.le(.sputm99) and out.items.len & 1 != starting_parity)
+        try out.append(gpa, 0);
+}
+
+fn encodeStrip(
+    gpa: std.mem.Allocator,
+    width: u31,
+    height: u31,
+    pixels: []const u8,
+    compression: u8,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    try out.append(gpa, compression);
+    switch (compression) {
+        Compression.BMCOMP_ZIGZAG_VT8,
+        => try encodeZigZagV(gpa, width, height, pixels, compression, out),
+        Compression.BMCOMP_RMAJMIN_HT4,
+        Compression.BMCOMP_RMAJMIN_HT8,
+        => try encodeRMajMin(gpa, width, height, pixels, compression, out),
+        else => return error.BadData,
+    }
+}
+
+fn encodeZigZagV(
+    gpa: std.mem.Allocator,
+    stride: u31,
+    height: u31,
+    pixels: []const u8,
+    compression: u8,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const bpp: u4 = @intCast(compression % 10);
+
+    var encoder: ZigZagEncoder = undefined;
+    for (0..strip_width) |x| {
+        const y_start: usize = if (x == 0) blk: {
+            encoder = try .begin(out.writer(gpa), bpp, pixels[0]);
+            break :blk 1;
+        } else 0;
+        for (y_start..height) |y|
+            try encoder.write(pixels[x + y * stride]);
+    }
+
+    try encoder.finish();
+}
+
+const ZigZagEncoder = struct {
+    out: std.io.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    bpp: u4,
+
+    prev_color: u8,
+    dir: i2,
+
+    fn begin(out: std.ArrayListUnmanaged(u8).Writer, bpp: u4, initial_color: u8) !ZigZagEncoder {
+        try out.writeByte(initial_color);
+        return .{
+            .out = std.io.bitWriter(.little, out),
+            .bpp = bpp,
+            .prev_color = initial_color,
+            .dir = 1,
+        };
+    }
+
+    fn write(self: *ZigZagEncoder, color: u8) !void {
+        const diff = @as(i9, color) - self.prev_color;
+        self.prev_color = color;
+
+        if (diff == 0) {
+            try self.out.writeBits(@as(u1, 0b0), 1);
+        } else if (diff == self.dir) {
+            try self.out.writeBits(@as(u3, 0b111), 3);
+            self.dir = -self.dir;
+        } else if (diff == -self.dir) {
+            try self.out.writeBits(@as(u3, 0b011), 3);
+        } else {
+            try checkColorInRange(color, self.bpp);
+            try self.out.writeBits(@as(u2, 0b01), 2);
+            try self.out.writeBits(color, self.bpp);
+            self.dir = 1;
+        }
+    }
+
+    fn finish(self: *ZigZagEncoder) !void {
+        try self.out.flushBits();
+    }
+};
+
+fn encodeRMajMin(
+    gpa: std.mem.Allocator,
+    stride: u31,
+    height: u31,
+    pixels: []const u8,
+    compression: u8,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    const bpp: u4 = @intCast(compression % 10);
+
+    var encoder: RMajMinEncoder = try .begin(out.writer(gpa), bpp, pixels[0]);
+    try encoder.write(pixels[1..strip_width]);
+
+    var pos: usize = stride;
+    for (1..height) |_| {
+        try encoder.write(pixels[pos..][0..strip_width]);
+        pos += stride;
+    }
+    try encoder.finish();
+}
+
+const RMajMinEncoder = struct {
+    out: std.io.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    bpp: u4,
+
+    prev_color: u8,
+    repeat: u8,
+
+    fn begin(
+        writer: std.ArrayListUnmanaged(u8).Writer,
+        bpp: u4,
+        initial_color: u8,
+    ) !RMajMinEncoder {
+        try writer.writeByte(initial_color);
+        return .{
+            .out = std.io.bitWriter(.little, writer),
+            .bpp = bpp,
+            .prev_color = initial_color,
+            .repeat = 0,
+        };
+    }
+
+    fn write(self: *RMajMinEncoder, pixels: []const u8) !void {
+        for (pixels) |color| {
+            const diff = @as(i9, color) - self.prev_color;
+            self.prev_color = color;
+
+            if (diff == 0) {
+                if (self.repeat == 0xff)
+                    try self.flushRepeat();
+                self.repeat += 1;
+                continue;
+            }
+
+            try self.flushRepeat();
+
+            if (-4 <= diff and diff < 4) {
+                try self.out.writeBits(@as(u2, 0b11), 2);
+                try self.out.writeBits(diff + 4, 3);
+            } else {
+                try checkColorInRange(color, self.bpp);
+                try self.out.writeBits(@as(u2, 0b01), 2);
+                try self.out.writeBits(color, self.bpp);
+            }
+        }
+    }
+
+    fn flushRepeat(self: *RMajMinEncoder) !void {
+        if (self.repeat < 13) {
+            try self.out.writeBits(@as(u16, 0), self.repeat);
+        } else {
+            try self.out.writeBits(@as(u5, 0b10011), 5);
+            try self.out.writeBits(self.repeat, 8);
+        }
+        self.repeat = 0;
+    }
+
+    fn finish(self: *RMajMinEncoder) !void {
+        try self.flushRepeat();
+        try self.out.flushBits();
+    }
+};
+
+fn checkColorInRange(color: u8, bpp: u4) !void {
+    const palette_count = @shlExact(@as(u9, 1), bpp);
+    if (color >= palette_count)
+        return error.ColorOutOfRange;
+}

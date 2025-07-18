@@ -869,6 +869,16 @@ fn compileIm(
             .raw_block => |*n| {
                 try encodeRawBlock(cx.gpa, cx.project_dir, file, n, out);
             },
+            .smap => |*n| {
+                const path = file.ast.strings.get(n.path);
+                const bmp_raw = try fs.readFile(cx.gpa, cx.project_dir, path);
+                defer cx.gpa.free(bmp_raw);
+
+                const smap_start = try beginBlockAl(cx.gpa, out, .SMAP);
+                const strip_compression = room_file.ast.getExtraU32(n.strip_compression);
+                try obim.encodeSmap(cx.gpa, cx.diagnostic, cx.target.defined, .node(file, child_index), bmp_raw, strip_compression, out);
+                endBlockAl(out, smap_start);
+            },
             else => unreachable,
         }
     }
