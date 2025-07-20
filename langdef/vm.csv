@@ -153,7 +153,7 @@ opcode,name,operands,target_min,target_max
 61 3f,draw-object.image,,,99
 61 41,draw-object.at,,,99
 62,print-image,,,99
-63 01,array-get-dim,var,,99
+63 01,array-get-length,var,,99
 63 02,array-get-height,var,,99
 63 03,array-get-width,var,,99
 63 04,array-get-x-start,var,99,99
@@ -659,7 +659,7 @@ af,find-object,,100,
 b3 00,font-enum.init,,100,
 b3 3c,font-enum.property,,100,
 b4,free-arrays,,100,
-b5 01,array-get-dim,var,100,
+b5 01,array-get-length,var,100,
 b5 02,array-get-height,var,100,
 b5 03,array-get-width,var,100,
 b5 04,array-get-x-start,var,100,
