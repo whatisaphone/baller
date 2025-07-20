@@ -8,6 +8,7 @@ const awiz = @import("awiz.zig");
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");
 const fs = @import("fs.zig");
+const fsd = @import("fsd.zig");
 const games = @import("games.zig");
 const lexer = @import("lexer.zig");
 const parser = @import("parser.zig");
@@ -90,7 +91,7 @@ const YesNo = enum {
 pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     const project_path_opt, const project_name = fs.splitPathZ(args.project_path);
     var project_dir = if (project_path_opt) |project_path|
-        try std.fs.cwd().openDir(project_path, .{})
+        try fsd.openDir(diagnostic, std.fs.cwd(), project_path)
     else
         std.fs.cwd();
     defer if (project_path_opt) |_|
@@ -109,8 +110,8 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
         if (builtin.is_test)
             fs.assertNotExists(std.fs.cwd(), output_path);
 
-        try fs.makeDirIfNotExist(std.fs.cwd(), output_path);
-        break :output_dir try std.fs.cwd().openDir(output_path, .{});
+        try fsd.makeDirIfNotExist(diagnostic, std.fs.cwd(), output_path);
+        break :output_dir try fsd.openDir(diagnostic, std.fs.cwd(), output_path);
     } else std.fs.cwd();
     defer if (output_path_opt) |_|
         output_dir.close();
@@ -120,7 +121,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     diagnostic.trace("parsing project", .{});
 
-    const root = try addFile(gpa, diagnostic, project_dir, project_name, parser.parseProject);
+    const root = try addFile(gpa, diagnostic, null, project_dir, project_name, parser.parseProject);
     try project.files.append(gpa, root);
 
     diagnostic.trace("parsing rooms", .{});
@@ -141,13 +142,14 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 fn addFile(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    loc: ?Diagnostic.Location,
     project_dir: std.fs.Dir,
     path: []const u8,
     parseFn: anytype,
 ) !Project.SourceFile {
     const diag: Diagnostic.ForTextFile = .init(diagnostic, path);
 
-    const source = try fs.readFile(gpa, project_dir, path);
+    const source = try fsd.readFile(gpa, diagnostic, loc, project_dir, path);
     defer gpa.free(source);
 
     var lex = try lexer.run(gpa, &diag, source);
@@ -189,14 +191,16 @@ fn readRooms(
     project_file = &project.files.items[0].?; // since pointer was invalidated
 
     for (room_nodes.slice()) |room_node| {
+        const loc: Diagnostic.Location = .node(project_file, room_node);
         const room = &project_file.ast.nodes.at(room_node).disk_room;
+
         if (project.files.items[room.room_number] != null) {
-            diagnostic.errAt(.node(project_file, room_node), "duplicate room number", .{});
+            diagnostic.errAt(loc, "duplicate room number", .{});
             return error.AddedToDiagnostic;
         }
 
         const room_path = project_file.ast.strings.get(room.path);
-        const file = try addFile(gpa, diagnostic, project_dir, room_path, parser.parseRoom);
+        const file = try addFile(gpa, diagnostic, loc, project_dir, room_path, parser.parseRoom);
         project.files.items[room.room_number] = file;
     }
 }

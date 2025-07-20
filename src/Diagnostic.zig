@@ -75,9 +75,13 @@ pub fn err(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
     self.formatAndAdd(.err, fmt, args);
 }
 
-pub fn errAt(self: *Diagnostic, loc: Location, comptime fmt: []const u8, args: anytype) void {
-    const diag: ForTextFile = .init(self, loc.path);
-    diag.err(loc.loc, fmt, args);
+pub fn errAt(self: *Diagnostic, loc: ?Location, comptime fmt: []const u8, args: anytype) void {
+    if (loc) |yes_loc| {
+        const diag: ForTextFile = .init(self, yes_loc.path);
+        diag.err(yes_loc.loc, fmt, args);
+    } else {
+        self.err(fmt, args);
+    }
 }
 
 pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_err: anytype) void {

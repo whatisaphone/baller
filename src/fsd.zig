@@ -72,7 +72,7 @@ pub fn createFileZ(
 pub fn readFile(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
-    location: Diagnostic.Location,
+    location: ?Diagnostic.Location,
     dir: std.fs.Dir,
     sub_path: []const u8,
 ) ![]u8 {
