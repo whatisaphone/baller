@@ -3,6 +3,7 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
+const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
@@ -69,12 +70,24 @@ pub fn extract(
 
     for (sgens) |*sgen| {
         if (in_count.bytes_read != sgen.offset) return error.BadData;
-        const block = try song_blocks.next() orelse return error.BadData;
-        switch (block.id) {
-            .DIGI => try extractDigi(&cx, sgen, &block),
+
+        // Basketball dumps raw wav files here and they don't fit into the usual
+        // block structure, so the parsing gets a little hacky, beware.
+        const block_offset, const block_header = try song_blocks.readHeader() orelse
+            return error.BadData;
+        switch (block_header.raw[0]) {
+            BlockId.DIGI.raw() => {
+                const block = song_blocks.validate(block_offset, block_header) orelse
+                    return error.BadData;
+                song_blocks.commit(&block);
+                try extractDigi(&cx, sgen, &block);
+                try song_blocks.finish(&block);
+            },
+            std.mem.bytesToValue(u32, "RIFF") => {
+                try extractRiff(&cx, sgen, std.mem.toBytes(block_header));
+            },
             else => return error.BadData,
         }
-        try song_blocks.finish(&block);
     }
 
     try song_blocks.end();
@@ -134,6 +147,27 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     try cx.code.appendSlice(cx.gpa, "    }\n");
 }
 
+fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
+    cx.symbols.writeGlobName(.sound, entry.number, name_buf.writer()) catch unreachable;
+    const name = name_buf.slice();
+    name_buf.appendSlice(".wav\x00") catch unreachable;
+    const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
+
+    try cx.code.writer(cx.gpa).print(
+        "    riff {s}@{} \"{s}/{s}\"\n",
+        .{ name, entry.number, cx.output_path, wav_path },
+    );
+
+    const wav_file = try cx.output_dir.createFileZ(wav_path, .{});
+    defer wav_file.close();
+    try wav_file.writer().writeAll(&peeked_bytes);
+    try io.copy(
+        std.io.limitedReader(cx.in.reader(), entry.size - peeked_bytes.len),
+        wav_file.writer(),
+    );
+}
+
 fn readBlockAsValue(in: *FxbclReader, block: *const Block, T: type) !T {
     if (block.size != @sizeOf(T)) return error.BadData;
     var result: T = undefined;
@@ -184,19 +218,34 @@ pub fn build(
     var buf: std.ArrayListUnmanaged(u8) = .empty;
     defer buf.deinit(gpa);
 
-    for (file.ast.getExtra(music_node.children)) |sound_index| {
-        const sound = &file.ast.nodes.at(sound_index).sound;
-        const start = try beginBlock(&out, sound.block_id);
-        buf.clearRetainingCapacity();
-        try sounds.build(gpa, project_dir, file, sound.children, &buf);
-        try out.writer().writeAll(buf.items);
-        try endBlock(&out, &fixups, start);
+    for (file.ast.getExtra(music_node.children)) |node_index| {
+        const node = file.ast.nodes.at(node_index);
+
+        const start: u32 = @intCast(out.bytes_written);
+
+        const glob_number = glob_number: switch (node.*) {
+            .sound => |*sound| {
+                const fixup = try beginBlock(&out, sound.block_id);
+                std.debug.assert(fixup == start);
+                buf.clearRetainingCapacity();
+                try sounds.build(gpa, project_dir, file, sound.children, &buf);
+                try out.writer().writeAll(buf.items);
+                try endBlock(&out, &fixups, fixup);
+                break :glob_number sound.glob_number;
+            },
+            .riff => |*riff| {
+                try fs.readFileInto(project_dir, file.ast.strings.get(riff.path), out.writer());
+                break :glob_number riff.glob_number;
+            },
+            else => unreachable,
+        };
+
         const end: u32 = @intCast(out.bytes_written);
         const size = end - start;
 
         const sgen_start = beginBlockAl(utils.null_allocator, &sgens, .SGEN) catch unreachable;
         sgens.fixedWriter().writeAll(std.mem.asBytes(&Sgen{
-            .number = sound.glob_number,
+            .number = glob_number,
             .offset = start,
             .size = size,
             .unk_0c = 0,

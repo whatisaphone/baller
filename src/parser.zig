@@ -895,6 +895,7 @@ fn parseMusic(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
     const Keyword = enum {
         sound,
+        riff,
     };
 
     var children: std.BoundedArray(Ast.NodeIndex, 192) = .{};
@@ -906,6 +907,20 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .sound => {
                     const node_index = try parseSound(cx, token);
+                    try appendNode(cx, &children, node_index);
+                },
+                .riff => {
+                    const name = try expectIdentifier(cx);
+                    try expect(cx, .swat);
+                    const glob_number = try expectInteger(cx, u16);
+                    const path = try expectString(cx);
+                    try expect(cx, .newline);
+
+                    const node_index = try storeNode(cx, token, .{ .riff = .{
+                        .name = name,
+                        .glob_number = glob_number,
+                        .path = path,
+                    } });
                     try appendNode(cx, &children, node_index);
                 },
             },

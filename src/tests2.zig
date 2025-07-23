@@ -160,7 +160,7 @@ test "Backyard Basketball round trip raw" {
     _ = try testRoundTrip(basketball, .raw, &.{});
 }
 test "Backyard Basketball round trip decode all" {
-    const stats = try testRoundTrip(basketball, .decode_all, &.{}); // TODO: test he4
+    const stats = try testRoundTrip(basketball, .decode_all, &.{"Basketball.he4"});
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 33);
@@ -243,8 +243,7 @@ fn testRoundTrip(
             .decode_all => .{
                 .script = .decompile,
                 .annotate = false,
-                // TODO: basketball music
-                .music = !std.mem.eql(u8, game.index_name, "Basketball.he0"),
+                .music = true,
                 .rmim = .decode,
                 .scrp = .decode,
                 .encd = .decode,

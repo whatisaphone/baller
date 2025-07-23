@@ -132,6 +132,11 @@ pub const Node = union(enum) {
     sdat: struct {
         path: StringSlice,
     },
+    riff: struct {
+        name: StringSlice,
+        glob_number: u16,
+        path: StringSlice,
+    },
     awiz: struct {
         name: StringSlice,
         glob_number: u16,
