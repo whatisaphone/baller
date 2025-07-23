@@ -57,45 +57,24 @@ pub fn extract(
         try song_blocks.finish(&sgen_block);
     }
 
+    const cx: Cx = .{
+        .gpa = gpa,
+        .symbols = symbols,
+        .in = &in,
+        .diag = &diag,
+        .code = code,
+        .output_dir = output_dir,
+        .output_path = output_path,
+    };
+
     for (sgens) |*sgen| {
         if (in_count.bytes_read != sgen.offset) return error.BadData;
-        const digi_block = try song_blocks.expect(.DIGI) orelse return error.BadData;
-        if (sgen.size != digi_block.full_size()) return error.BadData;
-
-        var name_buf: std.BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
-        symbols.writeGlobName(.sound, sgen.number, name_buf.writer()) catch unreachable;
-        const name = name_buf.slice();
-        name_buf.appendSlice(".wav\x00") catch unreachable;
-        const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
-
-        try code.writer(gpa).print(
-            "    sound {} {s}@{} {{\n",
-            .{ digi_block.id, name, sgen.number },
-        );
-
-        var digi_blocks: StreamingBlockReader = .init(&in, &diag);
-
-        const hshd_block = try digi_blocks.expect(.HSHD) orelse return error.BadData;
-        const hshd = try readBlockAsValue(&in, &hshd_block, Hshd);
-        try writeRawBlock(gpa, .HSHD, &hshd, output_dir, output_path, 8, .{ .symbol_block = name }, code);
-        try digi_blocks.finish(&hshd_block);
-
-        const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
-        const wav_file = try output_dir.createFileZ(wav_path, .{});
-        defer wav_file.close();
-        var wav_out = std.io.bufferedWriter(wav_file.writer());
-        try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
-        try io.copy(in.reader(), wav_out.writer());
-        try wav_out.flush();
-        try digi_blocks.finish(&sdat_block);
-
-        try code.writer(gpa).print("        sdat \"{s}/{s}\"\n", .{ output_path, wav_path });
-
-        try digi_blocks.end();
-
-        try song_blocks.finish(&digi_block);
-
-        try code.appendSlice(gpa, "    }\n");
+        const block = try song_blocks.next() orelse return error.BadData;
+        switch (block.id) {
+            .DIGI => try extractDigi(&cx, sgen, &block),
+            else => return error.BadData,
+        }
+        try song_blocks.finish(&block);
     }
 
     try song_blocks.end();
@@ -104,6 +83,55 @@ pub fn extract(
     file_blocks.expectMismatchedEnd();
 
     try code.appendSlice(gpa, "}\n");
+}
+
+const Cx = struct {
+    gpa: std.mem.Allocator,
+    symbols: *const Symbols,
+    in: *FxbclReader,
+    diag: *const Diagnostic.ForBinaryFile,
+    code: *std.ArrayListUnmanaged(u8),
+    output_dir: std.fs.Dir,
+    output_path: []const u8,
+};
+
+fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void {
+    std.debug.assert(digi_block.id == .DIGI);
+
+    if (sgen.size != digi_block.full_size()) return error.BadData;
+
+    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
+    cx.symbols.writeGlobName(.sound, sgen.number, name_buf.writer()) catch unreachable;
+    const name = name_buf.slice();
+    name_buf.appendSlice(".wav\x00") catch unreachable;
+    const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
+
+    try cx.code.writer(cx.gpa).print(
+        "    sound {} {s}@{} {{\n",
+        .{ digi_block.id, name, sgen.number },
+    );
+
+    var digi_blocks: StreamingBlockReader = .init(cx.in, cx.diag);
+
+    const hshd_block = try digi_blocks.expect(.HSHD) orelse return error.BadData;
+    const hshd = try readBlockAsValue(cx.in, &hshd_block, Hshd);
+    try writeRawBlock(cx.gpa, .HSHD, &hshd, cx.output_dir, cx.output_path, 8, .{ .symbol_block = name }, cx.code);
+    try digi_blocks.finish(&hshd_block);
+
+    const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
+    const wav_file = try cx.output_dir.createFileZ(wav_path, .{});
+    defer wav_file.close();
+    var wav_out = std.io.bufferedWriter(wav_file.writer());
+    try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
+    try io.copy(cx.in.reader(), wav_out.writer());
+    try wav_out.flush();
+    try digi_blocks.finish(&sdat_block);
+
+    try cx.code.writer(cx.gpa).print("        sdat \"{s}/{s}\"\n", .{ cx.output_path, wav_path });
+
+    try digi_blocks.end();
+
+    try cx.code.appendSlice(cx.gpa, "    }\n");
 }
 
 fn readBlockAsValue(in: *FxbclReader, block: *const Block, T: type) !T {
