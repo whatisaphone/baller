@@ -217,6 +217,7 @@ pub fn build(
     // TODO: avoid allocating, copy streams directly
     var buf: std.ArrayListUnmanaged(u8) = .empty;
     defer buf.deinit(gpa);
+    try buf.ensureTotalCapacity(gpa, 2 << 20);
 
     for (file.ast.getExtra(music_node.children)) |node_index| {
         const node = file.ast.nodes.at(node_index);

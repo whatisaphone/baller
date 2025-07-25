@@ -244,7 +244,7 @@ fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
     var source: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, combined.len);
     errdefer source.deinit(gpa);
 
-    var message: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, combined.len);
+    var message: std.ArrayListUnmanaged(u8) = .empty;
     errdefer message.deinit(gpa);
 
     var line_number: usize = 0;

@@ -39,6 +39,7 @@ fn compressBmap(
         Compression.BMCOMP_NMAJMIN_HT4,
         Compression.BMCOMP_NMAJMIN_HT8,
         => {
+            try writer.context.self.ensureUnusedCapacity(writer.context.allocator, 32 << 10);
             try compressBmapNMajMin(header, target, compression, writer);
         },
         Compression.BMCOMP_SOLID_COLOR_FILL => {

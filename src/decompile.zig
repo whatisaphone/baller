@@ -61,6 +61,10 @@ pub fn run(
     defer dcx.stmt_ends.deinit(gpa);
     defer dcx.stmts.deinit(gpa);
     defer dcx.pending_basic_blocks.deinit(gpa);
+    try dcx.stmts.ensureTotalCapacity(gpa, bytecode.len / 8);
+    try dcx.stmt_ends.ensureTotalCapacity(gpa, bytecode.len / 8);
+    try dcx.exprs.ensureTotalCapacity(gpa, bytecode.len / 4);
+    try dcx.extra.ensureTotalCapacity(gpa, bytecode.len / 4);
 
     try decompileBasicBlocks(&dcx, bytecode);
 
@@ -73,9 +77,10 @@ pub fn run(
         .stmts = .init(dcx.stmts.items),
         .exprs = .init(dcx.exprs.items),
         .extra = .init(dcx.extra.items),
-        .types = try .initCapacity(gpa, dcx.exprs.items.len),
+        .types = .empty,
     };
     defer tcx.types.deinit(gpa);
+    try tcx.types.ensureTotalCapacityPrecise(gpa, dcx.exprs.items.len);
     recoverTypes(&tcx);
 
     peephole(&dcx);
@@ -93,9 +98,10 @@ pub fn run(
     defer if (builtin.mode == .Debug) scx.trail.deinit(gpa);
     defer scx.nodes.deinit(gpa);
     defer scx.queue.deinit(gpa);
+    try scx.nodes.ensureTotalCapacity(gpa, bytecode.len / 16);
     try structure(&scx, basic_blocks.items);
 
-    var jump_targets = try findJumpTargets(gpa, .init(scx.nodes.items));
+    var jump_targets = try findJumpTargets(gpa, scx.nodes.items);
     defer jump_targets.deinit(gpa);
 
     var ecx: EmitCx = .{
@@ -127,6 +133,7 @@ fn scanBasicBlocks(
 ) !std.ArrayListUnmanaged(BasicBlock) {
     var result: std.ArrayListUnmanaged(BasicBlock) = .empty;
     errdefer result.deinit(gpa);
+    try result.ensureTotalCapacity(gpa, bytecode.len / 16);
 
     var disasm: lang.Disasm = .init(vm, bytecode);
     while (try disasm.next()) |ins| {
@@ -2408,14 +2415,15 @@ const FindJumpTargetsCx = struct {
 
 fn findJumpTargets(
     gpa: std.mem.Allocator,
-    nodes: utils.SafeManyPointer([*]const Node),
+    nodes: []const Node,
 ) !std.ArrayListUnmanaged(u16) {
     var cx: FindJumpTargetsCx = .{
         .gpa = gpa,
-        .nodes = nodes,
+        .nodes = .init(nodes),
         .result = .empty,
     };
     errdefer cx.result.deinit(cx.gpa);
+    try cx.result.ensureTotalCapacity(gpa, nodes.len / 32);
 
     try findJumpTargetsInNodeList(&cx, root_node_index);
 

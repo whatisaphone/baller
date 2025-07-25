@@ -118,6 +118,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     var project: Project = .empty;
     defer project.deinit(gpa);
+    try project.files.ensureTotalCapacity(gpa, 32);
 
     diagnostic.trace("parsing project", .{});
 

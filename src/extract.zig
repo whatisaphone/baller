@@ -321,6 +321,7 @@ pub fn run(
 
     var code: std.ArrayListUnmanaged(u8) = .empty;
     defer code.deinit(gpa);
+    try code.ensureTotalCapacity(gpa, 8 << 10);
 
     try code.writer(gpa).print("; Extracted with Baller {s}\n\n", .{build_options.version});
 

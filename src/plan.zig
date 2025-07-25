@@ -106,6 +106,7 @@ pub fn run(
             .next_event_index = 0,
             .pending_jobs = .init(0),
         };
+        cx.project_scope.ensureTotalCapacity(cx.gpa, 4096) catch |err| break :blk err;
 
         diagnostic.trace("planning jobs", .{});
         planProject(&cx) catch |err| break :blk err;
@@ -666,6 +667,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
+    try out.ensureTotalCapacityPrecise(cx.gpa, 796);
 
     const im = &file.ast.nodes.at(rmim.im).rmim_im;
     const im_children = file.ast.getExtra(im.children);
@@ -1017,11 +1019,14 @@ fn planTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
+    try out.ensureTotalCapacityPrecise(cx.gpa, 8 + node.text.len + 1);
 
     const text_start = try beginBlockAl(cx.gpa, &out, .TEXT);
-    try out.appendSlice(cx.gpa, file.ast.strings.get(node.text));
-    try out.append(cx.gpa, 0);
+    out.appendSliceAssumeCapacity(file.ast.strings.get(node.text));
+    out.appendAssumeCapacity(0);
     endBlockAl(&out, text_start);
+
+    std.debug.assert(out.items.len == out.capacity);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -1253,6 +1258,7 @@ fn planMaxs(cx: *Context, node_index: Ast.NodeIndex) !void {
 fn planRoomNames(cx: *Context) !void {
     var result: std.ArrayListUnmanaged(u8) = .empty;
     errdefer result.deinit(cx.gpa);
+    try result.ensureTotalCapacity(cx.gpa, 256);
 
     // Collect rooms by number
     var room_nodes: std.BoundedArray(Ast.NodeIndex.Optional, 256) = .{};

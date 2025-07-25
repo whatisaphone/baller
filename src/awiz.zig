@@ -234,8 +234,8 @@ pub fn encode(
             .awiz_wizd => |_| {
                 const fixup = try beginBlockAl(gpa, out, .WIZD);
                 switch (wizd.compression) {
-                    .none => try encodeUncompressed(header, out.writer(gpa)),
-                    .rle => try encodeRle(header, strategy, out.writer(gpa)),
+                    .none => try encodeUncompressed(gpa, header, out),
+                    .rle => try encodeRle(gpa, header, strategy, out),
                 }
                 // Pad output to a multiple of 2 bytes
                 if ((out.items.len - fixup) & 1 != 0)
@@ -267,13 +267,24 @@ pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnm
     }
 }
 
-pub fn encodeUncompressed(header: bmp.Bmp, out: anytype) !void {
+pub fn encodeUncompressed(
+    gpa: std.mem.Allocator,
+    header: bmp.Bmp,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    try out.ensureUnusedCapacity(gpa, header.width * header.height);
     var rows = header.iterRows();
     while (rows.next()) |row|
-        try out.writeAll(row);
+        out.appendSliceAssumeCapacity(row);
 }
 
-pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !void {
+pub fn encodeRle(
+    gpa: std.mem.Allocator,
+    header: bmp.Bmp,
+    strategy: EncodingStrategy,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    try out.ensureUnusedCapacity(gpa, header.width * header.height / 4);
     var rows = header.iterRows();
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
@@ -292,7 +303,7 @@ pub fn encodeRle(header: bmp.Bmp, strategy: EncodingStrategy, out: anytype) !voi
         std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
 
         // flush line to output stream
-        try out.writeAll(line_buf.slice());
+        try out.appendSlice(gpa, line_buf.constSlice());
     }
 }
 

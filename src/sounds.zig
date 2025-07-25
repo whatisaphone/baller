@@ -136,6 +136,7 @@ fn readWav(
     if (fmt.wBitsPerSample != 8) return error.BadData;
 
     const data_size = try skipToChunk(&in, std.mem.bytesToValue(u32, "data"));
+    try out.ensureUnusedCapacity(gpa, data_size);
     try io.copy(std.io.limitedReader(in.reader(), data_size), out.writer(gpa));
 }
 

@@ -43,6 +43,10 @@ pub fn parseProject(
         },
     };
     errdefer cx.result.deinit(gpa);
+    try cx.result.nodes.ensureTotalCapacity(gpa, source.len / 16);
+    try cx.result.node_tokens.ensureTotalCapacity(gpa, source.len / 16);
+    try cx.result.extra.ensureTotalCapacity(gpa, source.len / 32);
+    try cx.result.strings.buf.ensureTotalCapacity(gpa, source.len / 2);
 
     cx.result.root = try parseProjectChildren(&cx);
     return cx.result;
@@ -261,6 +265,10 @@ pub fn parseRoom(
         },
     };
     errdefer cx.result.deinit(gpa);
+    try cx.result.nodes.list.ensureTotalCapacity(gpa, source.len / 16);
+    try cx.result.node_tokens.list.ensureTotalCapacity(gpa, source.len / 16);
+    try cx.result.extra.ensureTotalCapacity(gpa, source.len / 32);
+    try cx.result.strings.buf.ensureTotalCapacity(gpa, source.len / 2);
 
     cx.result.root = try parseRoomChildren(&cx);
     return cx.result;

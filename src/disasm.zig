@@ -46,6 +46,8 @@ fn disassembleInner(
     usage: *UsageTracker,
     diagnostic: anytype,
 ) !void {
+    try out.context.self.ensureTotalCapacity(out.context.allocator, bytecode.len * 8);
+
     var warned_for_unknown_byte = false;
 
     // Lots of stuff seems to assume pc fits in u16.
@@ -125,9 +127,9 @@ fn findJumpTargets(
     vm: *const lang.Vm,
     bytecode: []const u8,
 ) !std.ArrayListUnmanaged(u16) {
-    const initial_capacity = bytecode.len / 10;
-    var targets: std.ArrayListUnmanaged(u16) = try .initCapacity(allocator, initial_capacity);
+    var targets: std.ArrayListUnmanaged(u16) = .empty;
     errdefer targets.deinit(allocator);
+    try targets.ensureUnusedCapacity(allocator, bytecode.len / 32);
 
     var dasm: lang.Disasm = .init(vm, bytecode);
     while (try dasm.next()) |ins| {

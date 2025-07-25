@@ -134,6 +134,7 @@ pub fn run(
         },
     };
     errdefer state.result.deinit(gpa);
+    try state.result.tokens.ensureTotalCapacity(gpa, source.len / 8);
 
     while (true) {
         skipWhitespace(&state);

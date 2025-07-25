@@ -22,6 +22,8 @@ pub fn compile(
     statements: Ast.ExtraSlice,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
+    try out.ensureUnusedCapacity(gpa, statements.len * 16);
+
     var cx: Cx = .{
         .gpa = gpa,
         .diag = diag,

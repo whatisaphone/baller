@@ -83,5 +83,13 @@ pub fn List(K: type, V: type) type {
             try self.list.append(gpa, value);
             return key;
         }
+
+        pub fn ensureTotalCapacity(
+            self: *Self,
+            gpa: std.mem.Allocator,
+            new_capacity: usize,
+        ) !void {
+            try self.list.ensureTotalCapacity(gpa, new_capacity);
+        }
     };
 }

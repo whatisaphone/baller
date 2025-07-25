@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Symbols = @import("Symbols.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const lang = @import("lang.zig");
 const report = @import("report.zig");
 const script = @import("script.zig");
@@ -27,11 +28,11 @@ pub fn assemble(
     var label_fixups: std.ArrayListUnmanaged(Fixup) = .empty;
     defer label_fixups.deinit(allocator);
 
-    var locals: std.ArrayListUnmanaged([]const u8) = .empty;
-    defer locals.deinit(allocator);
+    var locals: std.BoundedArray([]const u8, UsageTracker.max_local_vars) = .{};
 
-    var bytecode: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, 256);
+    var bytecode: std.ArrayListUnmanaged(u8) = .empty;
     errdefer bytecode.deinit(allocator);
+    try bytecode.ensureTotalCapacity(allocator, asm_str.len / 8);
 
     var line_number: u32 = 0;
     var lines = std.mem.splitScalar(u8, asm_str, '\n');
@@ -81,7 +82,7 @@ fn assembleLine(
     id: Symbols.ScriptId,
     label_offsets: *std.StringHashMapUnmanaged(u16),
     label_fixups: *std.ArrayListUnmanaged(Fixup),
-    locals: *std.ArrayListUnmanaged([]const u8),
+    locals: *std.BoundedArray([]const u8, UsageTracker.max_local_vars),
     line_number: u32,
     line_full: []const u8,
     bytecode: *std.ArrayListUnmanaged(u8),
@@ -120,7 +121,7 @@ fn assembleLine(
         const local_name, rest = try tokenizeKeyword(rest);
         if (rest.len != 0)
             return error.BadData;
-        try locals.append(allocator, local_name);
+        try locals.append(local_name);
         return;
     }
 
@@ -157,7 +158,7 @@ fn assembleLine(
                 _ = try bytecode.addManyAsSlice(allocator, 2);
             },
             .variable => {
-                const variable, rest = try tokenizeVariable(rest, locals.items, scopes);
+                const variable, rest = try tokenizeVariable(rest, locals.constSlice(), scopes);
                 try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
             },
             .string => {

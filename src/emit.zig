@@ -62,15 +62,15 @@ pub fn runInner(
     options: *const Options,
     receiver: *OrderedReceiver,
 ) !void {
-    var index: Index = try .init(gpa);
-    defer index.deinit(gpa);
-
     const target_message = try receiver.next(gpa);
     const target = switch (target_message) {
         .target => |t| t,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
+
+    var index: Index = try .init(gpa, target);
+    defer index.deinit(gpa);
 
     const cx: Cx = .{
         .gpa = gpa,
@@ -312,11 +312,24 @@ const Index = struct {
     rooms: std.MultiArrayList(Room),
     directories: Directories,
 
-    fn init(gpa: std.mem.Allocator) !Index {
+    fn init(gpa: std.mem.Allocator, target: games.Target) !Index {
         var index: Index = .{
             .rooms = .empty,
             .directories = .{},
         };
+        errdefer index.deinit(gpa);
+
+        try index.rooms.ensureTotalCapacity(gpa, 32);
+
+        try index.directories.room_images.ensureTotalCapacity(gpa, index.rooms.capacity);
+        try index.directories.rooms.ensureTotalCapacity(gpa, index.rooms.capacity);
+        try index.directories.scripts.ensureTotalCapacity(gpa, 128);
+        try index.directories.sounds.ensureTotalCapacity(gpa, 2048);
+        try index.directories.costumes.ensureTotalCapacity(gpa, 512);
+        try index.directories.charsets.ensureTotalCapacity(gpa, 8);
+        try index.directories.images.ensureTotalCapacity(gpa, 1024);
+        if (games.hasTalkies(target.pickAnyGame()))
+            try index.directories.talkies.ensureTotalCapacity(gpa, 2048);
 
         // Globs start at 1, so 0 doesn't exist, so SCUMM sets the sizes in the
         // 0 entries to 0xffff_ffff.

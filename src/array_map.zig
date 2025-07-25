@@ -12,12 +12,6 @@ pub fn ArrayMap(V: type) type {
             .items = .empty,
         };
 
-        pub fn initCapacity(allocator: std.mem.Allocator, capacity: usize) !Self {
-            return .{
-                .items = try .initCapacity(allocator, capacity),
-            };
-        }
-
         pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
             self.items.deinit(allocator);
         }
@@ -55,6 +49,14 @@ pub fn ArrayMap(V: type) type {
             if (ptr.* != null)
                 return error.AlreadyExists;
             ptr.* = value;
+        }
+
+        pub fn ensureTotalCapacityPrecise(
+            self: *Self,
+            allocator: std.mem.Allocator,
+            new_capacity: usize,
+        ) !void {
+            try self.items.ensureTotalCapacityPrecise(allocator, new_capacity);
         }
     };
 }

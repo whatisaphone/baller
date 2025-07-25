@@ -300,6 +300,8 @@ pub fn encodeSmap(
         return error.AddedToDiagnostic;
     }
 
+    try out.ensureUnusedCapacity(gpa, 2 << 10);
+
     const starting_parity = out.items.len & 1;
 
     const strip_offset_origin = out.items.len - Block.header_size;

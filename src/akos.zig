@@ -252,7 +252,7 @@ pub fn encode(
 
     try state.akci.ensureTotalCapacityPrecise(gpa, akcd_count);
     try state.cd_offsets.ensureTotalCapacityPrecise(gpa, akcd_count);
-    try state.akcd.ensureTotalCapacity(gpa, @as(u32, @intCast(akcd_count)) * 256);
+    try state.akcd.ensureTotalCapacity(gpa, @as(u32, @intCast(akcd_count)) * 2048);
 
     var akpl: ?std.BoundedArray(u8, 64) = null;
 
@@ -306,8 +306,8 @@ fn encodeCelBmp(
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
     (switch (codec) {
-        .byle_rle => encodeCelByleRle(&bitmap, akpl, state.akcd.writer(allocator)),
-        .trle => encodeCelTrle(&bitmap, strategy, state.akcd.writer(allocator)),
+        .byle_rle => encodeCelByleRle(allocator, &bitmap, akpl, &state.akcd),
+        .trle => encodeCelTrle(allocator, &bitmap, strategy, &state.akcd),
     }) catch |err| {
         report.fatal("error encoding {s}", .{path});
         return err;
@@ -325,7 +325,12 @@ const CelEncodeState = struct {
     color: u8,
 };
 
-fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !void {
+fn encodeCelByleRle(
+    allocator: std.mem.Allocator,
+    bitmap: *const bmp.Bmp,
+    akpl: []const u8,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
     const run_mask, const color_shift = byleParams(akpl.len) orelse return error.BadData;
 
     var state: CelEncodeState = .{
@@ -344,6 +349,8 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
             state.color_map[color] = @intCast(i);
     }
 
+    try out.ensureUnusedCapacity(allocator, bitmap.width * bitmap.height / 4);
+
     while (true) {
         const color = bitmap.getPixel(state.x, state.y);
 
@@ -353,7 +360,7 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
         } else if (color == state.color and state.run < 255) {
             state.run += 1;
         } else {
-            try flushRun(&state, out);
+            try flushRun(&state, out.writer(allocator));
             state.color = color;
             state.run = 1;
         }
@@ -366,7 +373,7 @@ fn encodeCelByleRle(bitmap: *const bmp.Bmp, akpl: []const u8, out: anytype) !voi
                 break;
         }
     }
-    try flushRun(&state, out);
+    try flushRun(&state, out.writer(allocator));
 }
 
 fn flushRun(state: *CelEncodeState, out: anytype) !void {
@@ -384,8 +391,13 @@ fn flushRun(state: *CelEncodeState, out: anytype) !void {
     }
 }
 
-fn encodeCelTrle(bitmap: *const bmp.Bmp, strategy: awiz.EncodingStrategy, out: anytype) !void {
-    try awiz.encodeRle(bitmap.*, strategy, out);
+fn encodeCelTrle(
+    allocator: std.mem.Allocator,
+    bitmap: *const bmp.Bmp,
+    strategy: awiz.EncodingStrategy,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    try awiz.encodeRle(allocator, bitmap.*, strategy, out);
 }
 
 fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: anytype) !void {
