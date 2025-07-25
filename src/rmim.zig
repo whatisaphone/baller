@@ -61,10 +61,10 @@ pub fn decode(
     // All decompressors must fully fill the buffer
     std.debug.assert(out.items.len == out.capacity);
 
-    try fs.writeFileZ(out_dir, "RMIM.bmp", out.items);
+    try fs.writeFileZ(out_dir, "room.bmp", out.items);
     try code.writer(allocator).print(
         "        bmap {} \"{s}/{s}\"\n",
-        .{ compression, out_path, "RMIM.bmp" },
+        .{ compression, out_path, "room.bmp" },
     );
 
     while (!im00_blocks.atEnd()) {
