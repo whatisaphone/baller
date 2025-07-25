@@ -1517,7 +1517,7 @@ fn extractEncdExcd(
     code: *std.ArrayListUnmanaged(u8),
     chunk_index: u16,
 ) bool {
-    const edge = EncdExcd.from(block_id);
+    const edge: EncdExcd = .from(block_id);
 
     const option = switch (edge) {
         .encd => cx.cx.options.encd,

@@ -1211,7 +1211,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 try expect(cx, .brace_l);
                 const true_stmts = try parseScriptBlock(cx);
 
-                var false_stmts = Ast.ExtraSlice.empty;
+                var false_stmts: Ast.ExtraSlice = .empty;
                 if (parseIdentifierOpt(cx, peekToken(cx), enum { @"else" })) |_| {
                     _ = consumeToken(cx);
                     if (parseIdentifierOpt(cx, peekToken(cx), enum { @"if" })) |_| {

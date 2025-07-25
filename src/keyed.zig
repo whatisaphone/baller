@@ -79,7 +79,7 @@ pub fn List(K: type, V: type) type {
         }
 
         pub fn append(self: *Self, gpa: std.mem.Allocator, value: V) !K {
-            const key = K.fromUsize(self.len());
+            const key: K = .fromUsize(self.len());
             try self.list.append(gpa, value);
             return key;
         }

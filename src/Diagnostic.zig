@@ -59,7 +59,7 @@ messages: std.SegmentedList(Message, 4),
 pub fn init(gpa: std.mem.Allocator) Diagnostic {
     return .{
         .mutex = .init,
-        .arena = std.heap.ArenaAllocator.init(gpa),
+        .arena = .init(gpa),
         .messages = .{},
     };
 }
@@ -336,7 +336,7 @@ pub const ForTextFile = struct {
             std.fmt.count("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) +
             std.fmt.count(fmt, args);
         const text = self.diagnostic.arena.allocator().alloc(u8, text_count) catch oom();
-        var fba = std.heap.FixedBufferAllocator.init(text);
+        var fba: std.heap.FixedBufferAllocator = .init(text);
         _ = std.fmt.allocPrint(
             fba.allocator(),
             "{s}:{}:{}: ",
