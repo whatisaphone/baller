@@ -506,10 +506,10 @@ fn testRoundTrip(
     try std.testing.expectEqualStrings(actual_room_scu, full_expected_room_scu);
 }
 
-fn buildDummyPals() [796]u8 {
+fn buildDummyPals() [extract.expected_pals_size]u8 {
     const na = utils.null_allocator;
 
-    var result: [796]u8 = undefined;
+    var result: [extract.expected_pals_size]u8 = undefined;
     var out: std.ArrayListUnmanaged(u8) = .initBuffer(&result);
 
     const wrap_start = beginBlockAl(na, &out, .WRAP) catch unreachable;

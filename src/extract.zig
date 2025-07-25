@@ -1092,6 +1092,8 @@ fn extractRmda(
     return .{ pals_chunk_index.?, pals_raw };
 }
 
+pub const expected_pals_size = 796;
+
 fn extractPals(
     pals_raw: []const u8,
     disk_diag: *const Diagnostic.ForBinaryFile,
@@ -1099,8 +1101,7 @@ fn extractPals(
 ) ![0x300]u8 {
     const diag = disk_diag.child(block.start, .{ .block_id = .PALS });
 
-    const expected_len = 796;
-    if (pals_raw.len != expected_len) return error.BadData;
+    if (pals_raw.len != expected_pals_size) return error.BadData;
     var pals_stream = std.io.fixedBufferStream(pals_raw);
     var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 

@@ -19,6 +19,7 @@ const bmp = @import("bmp.zig");
 const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
+const expected_pals_size = @import("extract.zig").expected_pals_size;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
 const games = @import("games.zig");
@@ -667,7 +668,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
 
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
-    try out.ensureTotalCapacityPrecise(cx.gpa, 796);
+    try out.ensureTotalCapacityPrecise(cx.gpa, expected_pals_size);
 
     const im = &file.ast.nodes.at(rmim.im).rmim_im;
     const im_children = file.ast.getExtra(im.children);
@@ -687,7 +688,9 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     );
     defer cx.gpa.free(bmp_raw);
     const bitmap = try bmp.readHeader(bmp_raw);
-    try buildPals(cx.gpa, &bitmap, &out);
+    try buildPals(&bitmap, &out);
+
+    std.debug.assert(out.items.len == out.capacity);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .PALS,
@@ -695,19 +698,17 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     } });
 }
 
-fn buildPals(
-    gpa: std.mem.Allocator,
-    bitmap: *const bmp.Bmp,
-    out: *std.ArrayListUnmanaged(u8),
-) !void {
-    const wrap_start = try beginBlockAl(gpa, out, .WRAP);
+fn buildPals(bitmap: *const bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
+    const na = utils.null_allocator;
 
-    const offs_start = try beginBlockAl(gpa, out, .OFFS);
-    try out.writer(gpa).writeInt(u32, 12, .little);
+    const wrap_start = try beginBlockAl(na, out, .WRAP);
+
+    const offs_start = try beginBlockAl(na, out, .OFFS);
+    try out.writer(na).writeInt(u32, 12, .little);
     endBlockAl(out, offs_start);
 
-    const apal_start = try beginBlockAl(gpa, out, .APAL);
-    try awiz.writeRgbs(gpa, bitmap.*, out);
+    const apal_start = try beginBlockAl(na, out, .APAL);
+    try awiz.writeRgbs(na, bitmap.*, out);
     endBlockAl(out, apal_start);
 
     endBlockAl(out, wrap_start);
