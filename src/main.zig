@@ -99,7 +99,7 @@ const usage =
     \\    <output>      Path to output directory
     \\    --symbols=
     \\    --script=disassemble|decompile
-    \\    --annotate
+    \\    --annotate=yes|no
     \\    --music=yes|no
     \\    --rmim=raw|decode
     \\    --scrp=raw|decode

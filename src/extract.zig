@@ -38,7 +38,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[:0]const u8 = null;
     var symbols_path: ?[:0]const u8 = null;
     var script: ?ScriptMode = null;
-    var annotate: ?bool = null;
+    var annotate: ?YesNo = null;
     var music_option: ?YesNo = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
@@ -65,14 +65,6 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             else
                 return arg.reportUnexpected();
         },
-        .long_flag => |flag| {
-            if (std.mem.eql(u8, flag, "annotate")) {
-                if (annotate != null) return arg.reportDuplicate();
-                annotate = true;
-            } else {
-                return arg.reportUnexpected();
-            }
-        },
         .long_option => |opt| {
             if (std.mem.eql(u8, opt.flag, "symbols")) {
                 if (symbols_path != null) return arg.reportDuplicate();
@@ -80,6 +72,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             } else if (std.mem.eql(u8, opt.flag, "script")) {
                 if (script != null) return arg.reportDuplicate();
                 script = std.meta.stringToEnum(ScriptMode, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "annotate")) {
+                if (annotate != null) return arg.reportDuplicate();
+                annotate = std.meta.stringToEnum(YesNo, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "music")) {
                 if (music_option != null) return arg.reportDuplicate();
@@ -160,7 +156,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .symbols_path = symbols_path,
         .options = .{
             .script = script orelse .decompile,
-            .annotate = annotate orelse false,
+            .annotate = (annotate orelse YesNo.no).toBool(),
             .music = (music_option orelse YesNo.yes).toBool(),
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
