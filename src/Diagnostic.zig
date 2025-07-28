@@ -325,7 +325,7 @@ pub const ForTextFile = struct {
             std.debug.dumpStackTrace(err_trace.*);
     }
 
-    pub fn formatAndAdd(
+    fn formatAndAdd(
         self: *const ForTextFile,
         level: Level,
         loc: Loc,

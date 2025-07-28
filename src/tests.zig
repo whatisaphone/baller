@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const fs = @import("fs.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
@@ -92,13 +93,17 @@ fn testRoundTripTalkies(
 
     // Build
 
+    var diagnostic: Diagnostic = .init(std.testing.allocator);
+    defer diagnostic.deinit();
+
     const manifest_path = try concatZ(allocator, &.{ extract_dir, "/talkies.txt" });
     defer allocator.free(manifest_path);
 
-    try talkie_build.run(allocator, &.{
+    try talkie_build.run(allocator, &diagnostic, &.{
         .manifest_path = manifest_path,
         .output_path = output_path,
     });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 
     // Ensure the output file matches
 

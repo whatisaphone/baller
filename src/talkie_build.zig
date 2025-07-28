@@ -1,6 +1,7 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
@@ -9,7 +10,6 @@ const writeFixups = @import("block_writer.zig").writeFixups;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const pathf = @import("pathf.zig");
-const report = @import("report.zig");
 const wav = @import("wav.zig");
 
 pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
@@ -19,10 +19,17 @@ pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
     const manifest_path = args[0];
     const output_path = args[1];
 
-    try run(allocator, &.{
+    var diagnostic: Diagnostic = .init(allocator);
+    defer diagnostic.deinit();
+
+    run(allocator, &diagnostic, &.{
         .manifest_path = manifest_path,
         .output_path = output_path,
-    });
+    }) catch |err| {
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
+    };
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 
 const Build = struct {
@@ -30,7 +37,7 @@ const Build = struct {
     output_path: [:0]const u8,
 };
 
-pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
+pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const Build) !void {
     const manifest_file = try std.fs.cwd().openFileZ(args.manifest_path, .{});
     defer manifest_file.close();
     var manifest_reader = std.io.bufferedReader(manifest_file.reader());
@@ -46,6 +53,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
     var output_writer = std.io.countingWriter(output_buf.writer());
 
     var state: State = .{
+        .diagnostic = diagnostic,
         .manifest_reader = &manifest_reader,
         .line_buf = &line_buf,
         .cur_path = &cur_path,
@@ -80,6 +88,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Build) !void {
 }
 
 const State = struct {
+    diagnostic: *Diagnostic,
     manifest_reader: *std.io.BufferedReader(4096, std.fs.File.Reader),
     line_buf: *[255]u8,
     cur_path: *pathf.Path,
@@ -192,17 +201,17 @@ fn buildTalk(state: *State) !void {
             wav_header.samples_per_sec != 11025 or
             wav_header.bits_per_sample != 8)
         {
-            report.fatal("{s} must be 11025 KHz 8-bit mono", .{wav_path.full()});
-            return error.BadData;
+            state.diagnostic.err("{s} must be 11025 KHz 8-bit mono", .{wav_path.full()});
+            return error.AddedToDiagnostic;
         }
 
         const data_size = try wav.findData(wav_reader.reader());
         if (data_size != sdat.expected_len) {
-            report.fatal(
+            state.diagnostic.err(
                 "{s} must be {} samples long",
                 .{ wav_path.full(), sdat.expected_len },
             );
-            return error.BadData;
+            return error.AddedToDiagnostic;
         }
 
         const sdat_start = try beginBlock(state.output_writer, .SDAT);

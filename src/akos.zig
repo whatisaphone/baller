@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
+const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
@@ -12,7 +13,6 @@ const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const encodeRawBlock = @import("plan.zig").encodeRawBlock;
-const report = @import("report.zig");
 const utils = @import("utils.zig");
 
 const Akhd = extern struct {
@@ -229,6 +229,7 @@ const EncodeState = struct {
 
 pub fn encode(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project: *const Project,
     project_dir: std.fs.Dir,
     awiz_strategy: awiz.EncodingStrategy,
@@ -277,7 +278,8 @@ pub fn encode(
             },
             .akcd => |*n| {
                 if (akpl == null) return error.BadData;
-                try encodeCelBmp(gpa, akpl.?.slice(), file.ast.strings.get(n.path), &state, n.compression, awiz_strategy);
+                const loc: Diagnostic.Location = .node(file, node_index);
+                try encodeCelBmp(gpa, diagnostic, loc, akpl.?.slice(), file.ast.strings.get(n.path), &state, n.compression, awiz_strategy);
             },
             else => unreachable,
         }
@@ -288,6 +290,8 @@ pub fn encode(
 
 fn encodeCelBmp(
     allocator: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     akpl: []const u8,
     path: []const u8,
     state: *EncodeState,
@@ -306,15 +310,18 @@ fn encodeCelBmp(
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
     (switch (codec) {
-        .byle_rle => encodeCelByleRle(allocator, &bitmap, akpl, &state.akcd),
+        .byle_rle => encodeCelByleRle(allocator, diagnostic, loc, &bitmap, akpl, &state.akcd),
         .trle => encodeCelTrle(allocator, &bitmap, strategy, &state.akcd),
     }) catch |err| {
-        report.fatal("error encoding {s}", .{path});
-        return err;
+        if (err != error.AddedToDiagnostic)
+            diagnostic.zigErr("unexpected error: {s}", .{}, err);
+        return error.AddedToDiagnostic;
     };
 }
 
 const CelEncodeState = struct {
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     run_mask: u8,
     color_shift: u3,
     color_map: [256]u8,
@@ -327,6 +334,8 @@ const CelEncodeState = struct {
 
 fn encodeCelByleRle(
     allocator: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     bitmap: *const bmp.Bmp,
     akpl: []const u8,
     out: *std.ArrayListUnmanaged(u8),
@@ -334,6 +343,8 @@ fn encodeCelByleRle(
     const run_mask, const color_shift = byleParams(akpl.len) orelse return error.BadData;
 
     var state: CelEncodeState = .{
+        .diagnostic = diagnostic,
+        .loc = loc,
         .run_mask = run_mask,
         .color_shift = color_shift,
         .color_map = @splat(0xff),
@@ -379,8 +390,12 @@ fn encodeCelByleRle(
 fn flushRun(state: *CelEncodeState, out: anytype) !void {
     const index = state.color_map[state.color];
     if (index == 0xff) {
-        report.fatal("color index {} found in image but not in AKPL", .{state.color});
-        return error.BadData;
+        state.diagnostic.errAt(
+            state.loc,
+            "color index {} found in image but not in AKPL",
+            .{state.color},
+        );
+        return error.AddedToDiagnostic;
     }
 
     if (state.run == state.run & state.run_mask) {

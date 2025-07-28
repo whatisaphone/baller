@@ -2,7 +2,6 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
-const report = @import("report.zig");
 
 pub const Game = enum {
     baseball_1997,

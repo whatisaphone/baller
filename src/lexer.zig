@@ -23,6 +23,14 @@ pub const Loc = struct {
         .line = 1,
         .column = 1,
     };
+
+    pub fn fakeJustLine(line: u32) Loc {
+        return .{
+            .offset = 0,
+            .line = line,
+            .column = 0,
+        };
+    }
 };
 
 pub const Span = struct {

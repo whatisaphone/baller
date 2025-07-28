@@ -1,9 +1,8 @@
 const std = @import("std");
 
-const Symbols = @import("Symbols.zig");
+const Diagnostic = @import("Diagnostic.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const lang = @import("lang.zig");
-const report = @import("report.zig");
 const script = @import("script.zig");
 
 const horizontal_whitespace = " \t\r";
@@ -15,11 +14,12 @@ const Scopes = struct {
 
 pub fn assemble(
     allocator: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    path: []const u8,
     vm: *const lang.Vm,
     asm_str: []const u8,
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
-    id: Symbols.ScriptId,
 ) !std.ArrayListUnmanaged(u8) {
     // map from label name to offset
     var label_offsets: std.StringHashMapUnmanaged(u16) = .empty;
@@ -41,9 +41,10 @@ pub fn assemble(
 
         assembleLine(
             allocator,
+            diagnostic,
+            path,
             vm,
             .{ .project = project_scope, .room = room_scope },
-            id,
             &label_offsets,
             &label_fixups,
             &locals,
@@ -51,21 +52,20 @@ pub fn assemble(
             line,
             &bytecode,
         ) catch |err| {
-            if (err != error.Reported)
-                report.fatal("{}: error", .{
-                    FormatLoc{ .id = id, .line_number = line_number },
-                });
-            return error.Reported;
+            if (err != error.AddedToDiagnostic)
+                diagnostic.errAt(loc(path, line_number), "error", .{});
+            return error.AddedToDiagnostic;
         };
     }
 
     for (label_fixups.items) |fixup| {
         const label_offset = label_offsets.get(fixup.label_name) orelse {
-            report.fatal("{}: label not found: \"{s}\"", .{
-                FormatScriptId{ .id = id },
-                fixup.label_name,
-            });
-            return error.Reported;
+            diagnostic.errAt(
+                locUnknownLine(path),
+                "label not found: \"{s}\"",
+                .{fixup.label_name},
+            );
+            return error.AddedToDiagnostic;
         };
         const rel32 = @as(i32, @intCast(label_offset)) - @as(i32, @intCast(fixup.offset)) - 2;
         const rel = std.math.cast(i16, rel32) orelse return error.BadData;
@@ -77,9 +77,10 @@ pub fn assemble(
 
 fn assembleLine(
     allocator: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    path: []const u8,
     vm: *const lang.Vm,
     scopes: Scopes,
-    id: Symbols.ScriptId,
     label_offsets: *std.StringHashMapUnmanaged(u16),
     label_fixups: *std.ArrayListUnmanaged(Fixup),
     locals: *std.BoundedArray([]const u8, UsageTracker.max_local_vars),
@@ -101,11 +102,12 @@ fn assembleLine(
         const label_name = line[0 .. line.len - 1];
         const entry = try label_offsets.getOrPut(allocator, label_name);
         if (entry.found_existing) {
-            report.fatal("{}: duplicate label: \"{s}\"", .{
-                FormatLoc{ .id = id, .line_number = line_number },
-                label_name,
-            });
-            return error.Reported;
+            diagnostic.errAt(
+                loc(path, line_number),
+                "duplicate label: \"{s}\"",
+                .{label_name},
+            );
+            return error.AddedToDiagnostic;
         }
         entry.value_ptr.* = @intCast(bytecode.items.len);
         return;
@@ -126,11 +128,12 @@ fn assembleLine(
     }
 
     const ins = lang.lookup(vm, ins_name) orelse {
-        report.fatal("{}: unknown instruction: \"{s}\"", .{
-            FormatLoc{ .id = id, .line_number = line_number },
-            ins_name,
-        });
-        return error.Reported;
+        diagnostic.errAt(
+            loc(path, line_number),
+            "unknown instruction: \"{s}\"",
+            .{ins_name},
+        );
+        return error.AddedToDiagnostic;
     };
 
     try bytecode.appendSlice(allocator, ins.opcode.slice());
@@ -179,10 +182,8 @@ fn assembleLine(
         return;
 
     // anything else: not ok
-    report.fatal("{}: too many operands", .{
-        FormatLoc{ .id = id, .line_number = line_number },
-    });
-    return error.Reported;
+    diagnostic.errAt(loc(path, line_number), "too many operands", .{});
+    return error.AddedToDiagnostic;
 }
 
 const Fixup = struct {
@@ -244,44 +245,10 @@ fn tokenizeString(str: []const u8) !struct { []const u8, []const u8 } {
     return .{ str[1..end], str[end + 1 ..] };
 }
 
-const FormatScriptId = struct {
-    id: Symbols.ScriptId,
+fn loc(path: []const u8, line_number: u32) Diagnostic.Location {
+    return .{ .path = path, .loc = .fakeJustLine(line_number) };
+}
 
-    pub fn format(
-        self: FormatScriptId,
-        comptime fmt: []const u8,
-        options: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
-        _ = fmt;
-        _ = options;
-
-        switch (self.id) {
-            .global => |num| try writer.print("scr{}", .{num}),
-            .enter => |s| try writer.print("room{}/enter", .{s.room}),
-            .exit => |s| try writer.print("room{}/enter", .{s.room}),
-            .local => |lsc| try writer.print("room{}/lsc{}", .{ lsc.room, lsc.number }),
-            .object => |o| try writer.print("obj{}/verb{}", .{ o.number, o.verb }),
-        }
-    }
-};
-
-const FormatLoc = struct {
-    id: Symbols.ScriptId,
-    line_number: u32,
-
-    pub fn format(
-        self: FormatLoc,
-        comptime fmt: []const u8,
-        options: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
-        _ = fmt;
-        _ = options;
-
-        try writer.print("{}:{}", .{
-            FormatScriptId{ .id = self.id },
-            self.line_number,
-        });
-    }
-};
+fn locUnknownLine(path: []const u8) Diagnostic.Location {
+    return .{ .path = path, .loc = .fakeJustLine(0) };
+}

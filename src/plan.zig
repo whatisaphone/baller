@@ -638,15 +638,16 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
                 try encodeRawBlock(cx.gpa, cx.project_dir, file, n, &out);
             },
             .bmap => |*n| {
+                const loc: Diagnostic.Location = .node(file, child_index);
                 const bmp_raw = try fsd.readFile(
                     cx.gpa,
                     cx.diagnostic,
-                    .node(file, child_index),
+                    loc,
                     cx.project_dir,
                     file.ast.strings.get(n.path),
                 );
                 defer cx.gpa.free(bmp_raw);
-                try rmim_encode.encode(cx.gpa, cx.target.defined, n.compression, bmp_raw, &out);
+                try rmim_encode.encode(cx.gpa, cx.diagnostic, loc, cx.target.defined, n.compression, bmp_raw, &out);
             },
             else => unreachable,
         }
@@ -718,17 +719,25 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     const file = &cx.project.files.items[room_number].?;
     const scr = &file.ast.nodes.at(node_index).scr;
 
+    const path = file.ast.strings.get(scr.path);
     const in = try fsd.readFile(
         cx.gpa,
         cx.diagnostic,
         .node(file, node_index),
         cx.project_dir,
-        file.ast.strings.get(scr.path),
+        path,
     );
     defer cx.gpa.free(in);
 
-    const id: Symbols.ScriptId = .{ .global = scr.glob_number };
-    const result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    const result = try assemble.assemble(
+        cx.gpa,
+        cx.diagnostic,
+        path,
+        &cx.vm.defined,
+        in,
+        &cx.project_scope,
+        &cx.room_scopes[room_number],
+    );
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -741,26 +750,31 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
 fn planEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const node = file.ast.nodes.at(node_index);
-    const edge: enum { encd, excd }, const path = switch (node.*) {
+    const edge: enum { encd, excd }, const path_slice = switch (node.*) {
         .encd => |*n| .{ .encd, n.path },
         .excd => |*n| .{ .excd, n.path },
         else => unreachable,
     };
 
+    const path = file.ast.strings.get(path_slice);
     const in = try fsd.readFile(
         cx.gpa,
         cx.diagnostic,
         .node(file, node_index),
         cx.project_dir,
-        file.ast.strings.get(path),
+        path,
     );
     defer cx.gpa.free(in);
 
-    const id: Symbols.ScriptId = switch (edge) {
-        .encd => .{ .enter = .{ .room = room_number } },
-        .excd => .{ .exit = .{ .room = room_number } },
-    };
-    var result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var result = try assemble.assemble(
+        cx.gpa,
+        cx.diagnostic,
+        path,
+        &cx.vm.defined,
+        in,
+        &cx.project_scope,
+        &cx.room_scopes[room_number],
+    );
     errdefer result.deinit(cx.gpa);
 
     const block_id: BlockId = switch (edge) {
@@ -777,20 +791,25 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     const file = &cx.project.files.items[room_number].?;
     const lsc = &file.ast.nodes.at(node_index).lsc;
 
+    const path = file.ast.strings.get(lsc.path);
     const in = try fsd.readFile(
         cx.gpa,
         cx.diagnostic,
         .node(file, node_index),
         cx.project_dir,
-        file.ast.strings.get(lsc.path),
+        path,
     );
     defer cx.gpa.free(in);
 
-    const id: Symbols.ScriptId = .{ .local = .{
-        .room = room_number,
-        .number = lsc.script_number,
-    } };
-    var bytecode = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+    var bytecode = try assemble.assemble(
+        cx.gpa,
+        cx.diagnostic,
+        path,
+        &cx.vm.defined,
+        in,
+        &cx.project_scope,
+        &cx.room_scopes[room_number],
+    );
     defer bytecode.deinit(cx.gpa);
 
     const block_type = cx.room_lsc_types[room_number].defined;
@@ -1004,7 +1023,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try akos.encode(cx.gpa, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
+    try akos.encode(cx.gpa, cx.diagnostic, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -1165,22 +1184,26 @@ fn planObjectInner(
                 };
 
                 switch (verb.body) {
-                    .assembly => |path| {
+                    .assembly => |path_slice| {
+                        const path = room_file.ast.strings.get(path_slice);
                         const in = try fsd.readFile(
                             cx.gpa,
                             cx.diagnostic,
                             .node(room_file, child_index),
                             cx.project_dir,
-                            room_file.ast.strings.get(path),
+                            path,
                         );
                         defer cx.gpa.free(in);
 
-                        const id: Symbols.ScriptId = .{ .object = .{
-                            .room = room_number,
-                            .number = object.number,
-                            .verb = verb.number,
-                        } };
-                        var result = try assemble.assemble(cx.gpa, &cx.vm.defined, in, &cx.project_scope, &cx.room_scopes[room_number], id);
+                        var result = try assemble.assemble(
+                            cx.gpa,
+                            cx.diagnostic,
+                            path,
+                            &cx.vm.defined,
+                            in,
+                            &cx.project_scope,
+                            &cx.room_scopes[room_number],
+                        );
                         defer result.deinit(cx.gpa);
 
                         try out.appendSlice(cx.gpa, result.items); // TODO: avoid this memcpy
