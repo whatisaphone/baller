@@ -1,8 +1,0 @@
-; LSC2 40 2086
-
-if (global680) {
-    return global680[18]
-} else {
-    return 0
-}
-free-script

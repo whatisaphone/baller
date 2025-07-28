@@ -1,6 +1,0 @@
-; LSC2 27 2312 FreePalettes
-
-run-script FreePalette [room25]
-run-script 2064 []
-run-script 2080 []
-free-script

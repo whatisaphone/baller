@@ -1,5 +1,0 @@
-; LSC2 7 2048
-
-g_some_palette_654 = call-script AllocPalette []
-g_some_palette_655 = call-script AllocPalette []
-free-script

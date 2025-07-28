@@ -1,9 +1,0 @@
-; LSC2 7 2101
-
-room0 = call-script 2052 []
-polygon-xf7 10000 10033
-run-script 2085 []
-run-script 2087 []
-run-script 2072 []
-run-script 2086 []
-free-script

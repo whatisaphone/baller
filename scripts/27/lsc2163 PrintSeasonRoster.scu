@@ -1,9 +1,0 @@
-; LSC2 27 2163 PrintSeasonRoster
-
-local variable local0
-
-for local0 = 0 to 23 ++ {
-    xb6-xfe
-    xb6-xc2 "Roster %d players: %d %d %d %d %d %d %d %d %d" local0 [gSeasonRosterArray[local0][0], gSeasonRosterArray[local0][1], gSeasonRosterArray[local0][2], gSeasonRosterArray[local0][3], gSeasonRosterArray[local0][4], gSeasonRosterArray[local0][5], gSeasonRosterArray[local0][6], gSeasonRosterArray[local0][7], gSeasonRosterArray[local0][8]]
-}
-free-script

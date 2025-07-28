@@ -1,8 +1,0 @@
-; SCRP 67
-
-local variable local0
-
-global603[global604] = local0
-++global604
-global605[local0] = 0
-free-script

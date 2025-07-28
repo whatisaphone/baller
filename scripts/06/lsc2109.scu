@@ -1,6 +1,0 @@
-; LSC2 6 2109
-
-free-array room26
-run-script ReleaseSprite [room33]
-run-script ReleaseSprite [room34]
-free-script

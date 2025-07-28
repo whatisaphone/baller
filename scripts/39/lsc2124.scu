@@ -1,8 +1,0 @@
-; LSC2 39 2124
-
-if ((read-ini-int room35 "_General" "_News") == (read-ini-int room36 gNetUsername "_News")) {
-    return 0
-} else {
-    return 1
-}
-free-script

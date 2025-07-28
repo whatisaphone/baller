@@ -1,0 +1,6350 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 138 "helogo/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0200`
+}
+
+script Boot@1 _ {
+    var i window_title ini_name
+
+    cursor-off
+    userput-off
+    assign-string gBuildVersion "Build version 05/04/00B"
+    assign-string window_title "Backyard Baseball, 2001 Edition"
+    title-bar window_title
+    undim window_title
+    global212 = 0
+    gCursorImage = 1
+    global247 = 0
+    global51 = 2
+    gSoundChannel = 1
+    global245 = 3
+    global76 = 1
+    global44 = 27
+    global42 = 322
+    global43 = 32
+    global45 = 46
+    load-charset charset2
+    charset charset2
+    global103 = 2
+    global104 = 3
+    lock-and-load-script CursorLoop
+    lock-and-load-script DefaultHandleInput
+    lock-and-load-script scr19
+    lock-and-load-script DefaultHandleKey
+    lock-and-load-script DefaultHandleMouse
+    lock-and-load-script scr18
+    lock-and-load-script OnRoomEnter
+    lock-and-load-script OnRoomEnter2
+    lock-and-load-script OnRoomExit
+    lock-and-load-script FindFreeActor
+    lock-and-load-script ReleaseActor
+    lock-and-load-script FindFreeSprite
+    lock-and-load-script ReleaseSprite
+    gRoomEnterScript = OnRoomEnter
+    gRoomEnterScript2 = OnRoomEnter2
+    gRoomExitScript = OnRoomExit
+    gEngineSpecialScript18 = scr18
+    gInputHandlerScript = DefaultHandleInput
+    gKeyHandlerScript = DefaultHandleKey
+    gMouseHandlerScript = DefaultHandleMouse
+    global41 = 16
+    global38 = 0
+    global39 = 0
+    global102 = 0
+    global40 = 0
+    gMaxActor = 60
+    gActorPoolMin = 24
+    gActorPoolMax = 60
+    dim-array-range.i16 gActorCursorTargets 0 60 1 4 2
+    gMaxSprite = 250
+    gSpriteStackMin = 50
+    gSpriteStackMax = 250
+    dim-array-range.i16 gSpriteCursorTargets 0 250 1 4 2
+    for i = gSpriteStackMin to gSpriteStackMax + {
+        sprite.init i
+        sprite.class [147]
+    }
+    gMaxSpriteGroup = 50
+    gSpriteGroupStackMin_unused = 20
+    dim-array-range.u8 gSpriteGroupStack_unused gSpriteGroupStackMin_unused gMaxSpriteGroup 0 0 1
+    for i = gSpriteGroupStackMin_unused to gMaxSpriteGroup + {
+        gSpriteGroupStack_unused[i] = i
+    }
+    gSpriteGroupStackPointer_unused = gSpriteGroupStackMin_unused
+    global210 = 6
+    global48 = 9 - global210
+    fades 0
+    gMinJiffies = 6
+    current-room 0
+    g_maybe_selected_actor = 1
+    get-time-date
+    for i = 1 to (gNowHour + gNowMinute + gNowDay) + {
+        temp = random 1
+    }
+    assign-string gCD_unused "CD"
+    if (g_maybe_operating_system == 2) {
+        if (not global91) {
+            gNoPrinting = 1
+        } else {
+            gNoPrinting = 0
+        }
+    }
+    if (read-system-ini.i32 "NoPrinting") {
+        gNoPrinting = 1
+    }
+    gNoMusic = read-system-ini.i32 "NoMusic"
+    gNoBackgroundSound = read-system-ini.i32 "NoBackgroundSound"
+    gMouseOverride = read-system-ini.i32 "MouseOverride"
+    gNoCommentary = read-system-ini.i32 "CommentaryOff"
+    if (read-system-ini.i32 "BlackAndWhiteCursors") {
+        gBlackAndWhiteCursors = 1
+    }
+    if (gWindowsVersion == 31) {
+        gBlackAndWhiteCursors = 1
+    }
+    if (gDebug != 90996) {
+        gDebug = 0
+    }
+    if (gDebug == 0) {
+        gDebug = read-system-ini.i32 "Slugger"
+    }
+    if gDebug {
+        if (read-system-ini.i32 "FixSeasonScores") {
+            gFixSeasonScores = 1
+        }
+    }
+    gVectorScaleNum = read-system-ini.i32 "vector-scale-num"
+    gVectorScaleDen = read-system-ini.i32 "vector-scale-den"
+    if (gVectorScaleNum < 1 || gVectorScaleDen < 1) {
+        gVectorScaleNum = 1
+        gVectorScaleDen = 4
+    }
+    gOutfieldDelay = read-system-ini.i32 "outfield-delay"
+    if (gOutfieldDelay < 10 || gOutfieldDelay > 50) {
+        gOutfieldDelay = 40
+    }
+    gMaxTurnCount = read-system-ini.i32 "max-turn-count"
+    if (gMaxTurnCount < 1) {
+        gMaxTurnCount = 4
+    }
+    temp = 0
+    temp = read-system-ini.string "ForceMachineSpeed"
+    if temp[0] {
+        case temp[0] {
+            [115 83] {
+                gMachineSpeed = SLOW-MACHINE
+                print-debug.start
+                print-debug.string "Forced machine-speed = SLOW-MACHINE"
+            }
+            [109 77] {
+                gMachineSpeed = MED-MACHINE
+                print-debug.start
+                print-debug.string "Forced machine-speed = MED-MACHINE"
+            }
+            [102 70] {
+                gMachineSpeed = FAST-MACHINE
+                print-debug.start
+                print-debug.string "Forced machine-speed = FAST-MACHINE"
+            }
+            else {
+                print-debug.start
+                print-debug.string "Forced machine-speed = ##unknown##"
+            }
+        }
+    } else {
+        gMachineSpeed = FAST-MACHINE
+    }
+    undim temp
+    assign-string gUserInfo "                    "
+    case gMachineSpeed {
+        FAST-MACHINE {
+            gUserInfo[0] = 'F'
+        }
+        MED-MACHINE {
+            gUserInfo[0] = 'M'
+        }
+        SLOW-MACHINE {
+            gUserInfo[0] = 'S'
+        }
+        else {
+        }
+    }
+    gUserInfo[1] = '-'
+    if (gMachineSpeed == SLOW-MACHINE || gWindowsVersion == 31) {
+        gEnableHumongousVision = 0
+    } else {
+        gEnableHumongousVision = read-system-ini.i32 "NoHumongousVision"
+        if (gEnableHumongousVision == 0) {
+            gEnableHumongousVision = 2
+            if (gMachineSpeed == FAST-MACHINE) {
+                gEnableReplays = 1
+            } else {
+                gEnableReplays = 0
+            }
+        } else {
+            gEnableHumongousVision = 0
+        }
+    }
+    if gEnableHumongousVision {
+        gEnableReplays = read-system-ini.i32 "NoReplays"
+        if (not gEnableReplays) {
+            gEnableReplays = 1
+        } else {
+            gEnableReplays = 0
+        }
+    }
+    start-script InitPaletteStack
+    start-script InitSpriteGroupStack
+    start-script InitSpriteStack
+    start-script InitScratchStack
+    start-script InitKidData
+    start-script InitSaveGamePath
+    if (g_maybe_operating_system == 2) {
+        sprintf gINIPath "%sBaseball2001 Preferences" gSaveGamePath
+    } else {
+        assign-string ini_name "baseball2001"
+        sprintf gINIPath "%s%s.ini" gSaveGamePath ini_name
+        undim ini_name
+    }
+    start-script maybe_net_init_or_create_lobby
+    start-script scr317 1
+    gNetworkAuditTrail = read-system-ini.i32 "NetworkAuditTrail"
+    if gNetworkAuditTrail {
+        print-debug.start
+        print-debug.string "*** AUDIT TRAIL ON ***"
+    }
+    gLowBandwidthTest = read-system-ini.i32 "LowBandwidthTest"
+    if gLowBandwidthTest {
+        print-debug.start
+        print-debug.string "*** LOW BANDWIDTH TEST ON ***"
+    }
+    if (read-system-ini.i32 "printscummtime") {
+        gDebugPrintScript = PrintSCUMMTime
+    }
+    if (read-system-ini.i32 "printnetworktime") {
+        gDebugPrintScript = PrintNetworkTime
+    }
+    if (read-system-ini.i32 "DisableReliable") {
+        gDisableReliable = 1
+    }
+    gTestThis = read-system-ini.i32 "TestThis"
+    sprite.init-range 1 1
+    sprite-restart
+    gUIInputDevice = INPUT-DEVICE-MOUSE
+    gGamePadInputHandlerScript = DefaultHandleInput
+    gGameInputDevice = INPUT-DEVICE-MOUSE
+    if (read-system-ini.i32 "EnterRoomOnStartup") {
+        current-room netlogon
+    } else {
+        gLogoCutsceneInProgress = 1
+        current-room helogo
+        break-until (not gLogoCutsceneInProgress)
+        current-room baseball
+    }
+}
+
+script SetMusicEnabled@2 arg0 {
+    if (arg0 == 0) {
+        gNoMusic = 1
+        stop-sound 10000
+    } else {
+        gNoMusic = 0
+    }
+}
+
+script PlayMusic@3 music arg1 {
+    if gNoMusic {
+        stop-script 0
+    }
+    if (not arg1) {
+        stop-script PlayMusicPool
+    }
+    if (music == 1) {
+        print-system.start
+        print-system.string "Tried to play song 1"
+        stop-script 0
+    }
+    if (music == 0) {
+        sound.start gCurrentMusic
+        sound.channel 0
+        sound.end
+    } else {
+        sound.start music
+        sound.channel 0
+        sound.end
+        gCurrentMusic = music
+    }
+}
+
+script PlayMusicPool@4 arg0 arg1 {
+    var local2
+
+    if (arg0 == 0) {
+        stop-sound 10000
+        stop-script 0
+    }
+    if gNoMusic {
+        stop-script 0
+    }
+    if (gMusicPool == 0) {
+        dim-array.i16 gMusicPool 100
+        gMusicPool[0] = 0
+    }
+    if global46 {
+        wait-for-message
+    }
+    if (arg0 == -1) {
+        jump L0090
+    }
+    if (arg0 != 1) {
+        start-script PlayMusic arg0 1
+    }
+    do {
+        break-here
+        break-here
+        break-here.multi 10
+        break-until (not (sound-running 10000))
+        if arg1 {
+            start-script PlayMusic arg1 1
+            arg1 = 0
+            break-here
+            break-here
+            break-here.multi 10
+            break-until (not (sound-running 10000))
+        }
+        L0090:
+        if (global240 && random 100 <= global241) {
+            local2 = global240[random-between 1 global240[0]]
+            if (global240[0] != 1) {
+                while (local2 == gCurrentMusic) {
+                    local2 = global240[random-between 1 global240[0]]
+                }
+            }
+        } else {
+            if (gMusicPool[0] == 0) {
+                stop-script 0
+            }
+            local2 = gMusicPool[random-between 1 gMusicPool[0]]
+            if (gMusicPool[0] != 1) {
+                while (local2 == gCurrentMusic) {
+                    local2 = gMusicPool[random-between 1 gMusicPool[0]]
+                }
+            }
+        }
+        start-script PlayMusic local2 1
+    }
+}
+
+script AddSongsToPool@5 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 {
+    if (arg0 == 0) {
+        stop-script 0
+    }
+    if (gMusicPool == 0) {
+        dim-array.i16 gMusicPool 100
+        gMusicPool[0] = 0
+    }
+    if (arg0 == -1) {
+        gMusicPool[0] = 0
+    }
+    start-script AddSongToPool arg0 1
+    start-script AddSongToPool arg1 1
+    start-script AddSongToPool arg2 1
+    start-script AddSongToPool arg3 1
+    start-script AddSongToPool arg4 1
+    start-script AddSongToPool arg5 1
+    start-script AddSongToPool arg6 1
+    start-script AddSongToPool arg7 1
+    start-script AddSongToPool arg8 1
+    start-script AddSongToPool arg9 1
+}
+
+script AddSongToPool@6 arg0 arg1 {
+    var local2
+
+    if (arg0 == 0) {
+        stop-script 0
+    }
+    if (arg0 < 8000) {
+        stop-script 0
+    }
+    if (gMusicPool == 0) {
+        dim-array.i16 gMusicPool 100
+        gMusicPool[0] = 0
+    }
+    if gMusicPool[0] {
+        for local2 = 1 to gMusicPool[0] + {
+            if (arg0 == gMusicPool[local2]) {
+                stop-script 0
+            }
+        }
+    }
+    if (arg1 == 0) {
+        arg1 = 1
+    }
+    for local2 = 1 to arg1 + {
+        gMusicPool[0] = gMusicPool[0] + 1
+        if (gMusicPool[0] >= 100) {
+            stop-script 0
+        }
+        gMusicPool[gMusicPool[0]] = arg0
+    }
+}
+
+script SetAmbientSound@7 {
+    var local0 local1 _ _ local4 local5 local6
+
+    debug-string 0 "no trace"
+    if (local0 < 1) {
+        if gAmbientSound {
+            stop-sound gAmbientSound
+        }
+        stop-script 0
+    }
+    if (local0 == 1) {
+        if (not gAmbientSound) {
+            stop-script 0
+        }
+    } else {
+        gAmbientSound = local0
+    }
+    if gNoBackgroundSound {
+        stop-script 0
+    }
+    local4 = sound-size gAmbientSound
+    local1 = local4 / 4
+    local6 = random-between 0 local1
+    sound.start gAmbientSound
+    sound.at local6
+    sound.soft
+    sound.channel 3
+    sound.end
+    do {
+        local5 = random-between 70 90 * (local4 - local6) / 100
+        break-until (sound-position gAmbientSound > local5 || not (sound-running gAmbientSound))
+        local6 = random-between 0 local1
+        sound.start gAmbientSound
+        sound.at local6
+        sound.soft
+        sound.channel 3
+        sound.end
+        break-here
+    }
+    debug-string 0 "trace on"
+}
+
+script PlaySoundOnChannel@8 arg0 arg1 arg2 {
+    case arg1 {
+        4 {
+            if gPlayingSound1 {
+                stop-sound gPlayingSound1
+            }
+            gPlayingSound1 = arg0
+            if arg2 {
+                sound.start arg0
+                sound.channel arg1
+                sound.soft
+                sound.end
+            } else {
+                sound.start arg0
+                sound.channel arg1
+                sound.end
+            }
+            break-here
+            break-until (not (sound-running arg0))
+            if (gPlayingSound1 == arg0) {
+                gPlayingSound1 = 0
+            }
+        }
+        5 {
+            if gPlayingSound2 {
+                stop-sound gPlayingSound2
+            }
+            gPlayingSound2 = arg0
+            if arg2 {
+                sound.start arg0
+                sound.channel arg1
+                sound.soft
+                sound.end
+            } else {
+                sound.start arg0
+                sound.channel arg1
+                sound.end
+            }
+            break-here
+            break-until (not (sound-running arg0))
+            if (gPlayingSound2 == arg0) {
+                gPlayingSound2 = 0
+            }
+        }
+        6 {
+            if gPlayingSound3 {
+                stop-sound gPlayingSound3
+            }
+            gPlayingSound3 = arg0
+            if arg2 {
+                sound.start arg0
+                sound.channel arg1
+                sound.soft
+                sound.end
+            } else {
+                sound.start arg0
+                sound.channel arg1
+                sound.end
+            }
+            break-here
+            break-until (not (sound-running arg0))
+            if (gPlayingSound3 == arg0) {
+                gPlayingSound3 = 0
+            }
+        }
+        7 {
+            if gPlayingSound4 {
+                stop-sound gPlayingSound4
+            }
+            gPlayingSound4 = arg0
+            if arg2 {
+                sound.start arg0
+                sound.channel arg1
+                sound.soft
+                sound.end
+            } else {
+                sound.start arg0
+                sound.channel arg1
+                sound.end
+            }
+            break-here
+            break-until (not (sound-running arg0))
+            if (gPlayingSound4 == arg0) {
+                gPlayingSound4 = 0
+            }
+        }
+        else {
+        }
+    }
+}
+
+script PlaySoundClobberEndingSoonest@9 arg0 arg1 {
+    var _ local3 local4 local5
+
+    local3 = 4
+    local4 = sound-size gPlayingSound1 - sound-position gPlayingSound1
+    local5 = sound-size gPlayingSound2 - sound-position gPlayingSound2
+    if (local5 < local4) {
+        local4 = local5
+        local3 = 5
+    }
+    local5 = sound-size gPlayingSound3 - sound-position gPlayingSound3
+    if (local5 < local4) {
+        local4 = local5
+        local3 = 6
+    }
+    local5 = sound-size gPlayingSound4 - sound-position gPlayingSound4
+    if (local5 < local4) {
+        local4 = local5
+        local3 = 7
+    }
+    start-script.rec PlaySoundOnChannel arg0 local3 arg1
+}
+
+script PlaySound@10 arg0 arg1 arg2 {
+    if gPlayingSound1 {
+        if gPlayingSound2 {
+            if gPlayingSound3 {
+                if (gPlayingSound4 && arg2) {
+                    start-script.rec PlaySoundClobberEndingSoonest arg0 arg1
+                } else {
+                    start-script.rec PlaySoundOnChannel arg0 7 arg1
+                }
+            } else {
+                start-script.rec PlaySoundOnChannel arg0 6 arg1
+            }
+        } else {
+            start-script.rec PlaySoundOnChannel arg0 5 arg1
+        }
+    } else {
+        start-script.rec PlaySoundOnChannel arg0 4 arg1
+    }
+}
+
+script PlayKidMusic@11 kid arg1 {
+    var local2
+
+    if gNoMusic {
+        stop-script 0
+    }
+    if (arg1 == 1) {
+        case kid {
+            ACHMED-KHAN {
+                local2 = 8000
+            }
+            DMITRI-PETROVICH {
+                local2 = 8004
+            }
+            MARKY-DUBOIS {
+                local2 = 8007
+            }
+            KIESHA-PHILLIPS {
+                local2 = 8010
+            }
+            STEPHANIE-MORGAN {
+                local2 = 8013
+            }
+            ASHLEY-WEBBER {
+                local2 = 8016
+            }
+            SIDNEY-WEBBER {
+                local2 = 8019
+            }
+            PABLO-SANCHEZ {
+                local2 = 8022
+            }
+            PETE-WHEELER {
+                local2 = 8025
+            }
+            AMIR-KHAN {
+                local2 = 8028
+            }
+            LUANNE-LUI {
+                local2 = 8031
+            }
+            MARIA-LUNA {
+                local2 = 8034
+            }
+            TONY-DELVECCHIO {
+                local2 = 8037
+            }
+            JOCINDA-SMITH {
+                local2 = 8040
+            }
+            LISA-CROCKET {
+                local2 = 8043
+            }
+            VICKI-KAWAGUCHI {
+                local2 = 8046
+            }
+            ANGELA-DELVECCHIO {
+                local2 = 8049
+            }
+            KENNY-KAWAGUCHI {
+                local2 = 8052
+            }
+            REESE-WORTHINGTON {
+                local2 = 8055
+            }
+            JORGE-GARCIA {
+                local2 = 8058
+            }
+            BILLY-JEAN-BLACKWOOD {
+                local2 = 8061
+            }
+            RONNY-DOBBS {
+                local2 = 8064
+            }
+            DANTE-ROBINSON {
+                local2 = 8067
+            }
+            ANNIE-FRAZIER {
+                local2 = 8071
+            }
+            KIMMY-ECKMAN {
+                local2 = 8075
+            }
+            ERNIE-STEELE {
+                local2 = 8079
+            }
+            GRETCHEN-HASSELHOFF {
+                local2 = 8082
+            }
+            RICKY-JOHNSON {
+                local2 = 8085
+            }
+            MIKEY-THOMAS {
+                local2 = 8093
+            }
+            SALLY-DOBBS {
+                local2 = 8101
+            }
+            else {
+                local2 = random (10 - 1) * 3 + 8107
+            }
+        }
+    } else if (arg1 == 2) {
+        case kid {
+            ACHMED-KHAN {
+                local2 = 8002
+            }
+            DMITRI-PETROVICH {
+                local2 = 8006
+            }
+            MARKY-DUBOIS {
+                local2 = 8009
+            }
+            KIESHA-PHILLIPS {
+                local2 = 8012
+            }
+            STEPHANIE-MORGAN {
+                local2 = 8015
+            }
+            ASHLEY-WEBBER {
+                local2 = 8018
+            }
+            SIDNEY-WEBBER {
+                local2 = 8021
+            }
+            PABLO-SANCHEZ {
+                local2 = 8024
+            }
+            PETE-WHEELER {
+                local2 = 8027
+            }
+            AMIR-KHAN {
+                local2 = 8030
+            }
+            LUANNE-LUI {
+                local2 = 8033
+            }
+            MARIA-LUNA {
+                local2 = 8036
+            }
+            TONY-DELVECCHIO {
+                local2 = 8039
+            }
+            JOCINDA-SMITH {
+                local2 = 8042
+            }
+            LISA-CROCKET {
+                local2 = 8045
+            }
+            VICKI-KAWAGUCHI {
+                local2 = 8048
+            }
+            ANGELA-DELVECCHIO {
+                local2 = 8051
+            }
+            KENNY-KAWAGUCHI {
+                local2 = 8054
+            }
+            REESE-WORTHINGTON {
+                local2 = 8057
+            }
+            JORGE-GARCIA {
+                local2 = 8060
+            }
+            BILLY-JEAN-BLACKWOOD {
+                local2 = 8063
+            }
+            RONNY-DOBBS {
+                local2 = 8066
+            }
+            DANTE-ROBINSON {
+                local2 = 8069
+            }
+            ANNIE-FRAZIER {
+                local2 = 8073
+            }
+            KIMMY-ECKMAN {
+                local2 = 8077
+            }
+            ERNIE-STEELE {
+                local2 = 8081
+            }
+            GRETCHEN-HASSELHOFF {
+                local2 = 8084
+            }
+            RICKY-JOHNSON {
+                local2 = 8087
+            }
+            MIKEY-THOMAS {
+                local2 = 8095
+            }
+            SALLY-DOBBS {
+                local2 = 8103
+            }
+            else {
+                if (kid >= MO-VAUGHN && kid <= ALEX-RODRIGUEZ) {
+                    if global641 {
+                        local2 = global641 + 2
+                        global641 = 0
+                    } else {
+                        local2 = random (10 - 1) * 3 + 8108
+                    }
+                } else {
+                    local2 = 8003
+                }
+            }
+        }
+    } else {
+        case kid {
+            ACHMED-KHAN {
+                local2 = 8001
+            }
+            DMITRI-PETROVICH {
+                local2 = 8005
+            }
+            MARKY-DUBOIS {
+                local2 = 8008
+            }
+            KIESHA-PHILLIPS {
+                local2 = 8011
+            }
+            STEPHANIE-MORGAN {
+                local2 = 8014
+            }
+            ASHLEY-WEBBER {
+                local2 = 8017
+            }
+            SIDNEY-WEBBER {
+                local2 = 8020
+            }
+            PABLO-SANCHEZ {
+                local2 = 8023
+            }
+            PETE-WHEELER {
+                local2 = 8026
+            }
+            AMIR-KHAN {
+                local2 = 8029
+            }
+            LUANNE-LUI {
+                local2 = 8032
+            }
+            MARIA-LUNA {
+                local2 = 8035
+            }
+            TONY-DELVECCHIO {
+                local2 = 8038
+            }
+            JOCINDA-SMITH {
+                local2 = 8041
+            }
+            LISA-CROCKET {
+                local2 = 8044
+            }
+            VICKI-KAWAGUCHI {
+                local2 = 8047
+            }
+            ANGELA-DELVECCHIO {
+                local2 = 8050
+            }
+            KENNY-KAWAGUCHI {
+                local2 = 8053
+            }
+            REESE-WORTHINGTON {
+                local2 = 8056
+            }
+            JORGE-GARCIA {
+                local2 = 8059
+            }
+            BILLY-JEAN-BLACKWOOD {
+                local2 = 8062
+            }
+            RONNY-DOBBS {
+                local2 = 8065
+            }
+            DANTE-ROBINSON {
+                local2 = 8068
+            }
+            ANNIE-FRAZIER {
+                local2 = 8072
+            }
+            KIMMY-ECKMAN {
+                local2 = 8076
+            }
+            ERNIE-STEELE {
+                local2 = 8080
+            }
+            GRETCHEN-HASSELHOFF {
+                local2 = 8083
+            }
+            RICKY-JOHNSON {
+                local2 = 8086
+            }
+            MIKEY-THOMAS {
+                local2 = 8094
+            }
+            SALLY-DOBBS {
+                local2 = 8102
+            }
+            else {
+                if (kid >= MO-VAUGHN && kid <= ALEX-RODRIGUEZ) {
+                    if (global660 == 0) {
+                        dim-array.i32 global660 10
+                        array-assign-range global660 0 0 1 10 1 10
+                        shuffle global660 1 10
+                        global660[0] = 1
+                    } else {
+                        global660[0] += 1
+                        if (global660[0] > 10) {
+                            shuffle global660 1 10
+                            global660[0] = 1
+                        }
+                    }
+                    local2 = (global660[0] - 1) * 3 + 8106
+                    global641 = local2
+                }
+            }
+        }
+    }
+    sound.start local2
+    sound.channel 0
+    sound.end
+}
+
+script PlayBounceSound@12 base {
+    if (not base) {
+        base = 2022
+    }
+    case 1 {
+        (abs gBallVelPhysX + abs gBallVelPhysY + abs gBallVelPhysZ > 160000) {
+        }
+        (abs gBallVelPhysX + abs gBallVelPhysY + abs gBallVelPhysZ > 90000) {
+            base += 1
+        }
+        (abs gBallVelPhysX + abs gBallVelPhysY + abs gBallVelPhysZ > 40000) {
+            base += 2
+        }
+        else {
+            stop-script 0
+        }
+    }
+    if (not (sound-running base)) {
+        start-script PlaySound base
+    }
+}
+
+script PlayClickySound@13 {
+    var local0
+
+    local0 = pick-random global455 [1996 1706 1423 1427 1428 1429 1430]
+    start-script PlaySound local0
+    break-until (not (sound-running local0))
+}
+
+script maybe_play_generic_music@14 arg0 {
+    var local1
+
+    if gNoMusic {
+        stop-script 0
+    }
+    if arg0 {
+        local1 = pick-random global483 [8096 8097 8098 8099 8100]
+    } else {
+        local1 = pick-random global482 [8088 8089 8090 8091 8092]
+    }
+    sound.start local1
+    sound.channel 0
+    sound.end
+}
+
+script scr15@15 {
+    return ((gCursorImage - 1) / 3 * 3 + 1)
+}
+
+script scr16@16 {
+    var local0 local1 local2
+
+    case local1 {
+        1 {
+            if local0 {
+                return gNoMusic
+                stop-script 0
+            } else if local2 {
+                start-script SetMusicEnabled 0
+                gNoMusic = 1
+                write-system-ini.i32 "NoMusic" 1
+            } else {
+                start-script SetMusicEnabled 1
+                gNoMusic = 0
+                write-system-ini.string "NoMusic" ""
+            }
+            start-script PlayMusicPool -1
+        }
+        2 {
+            if local0 {
+                return gNoCommentary
+                stop-script 0
+            } else if local2 {
+                write-system-ini.i32 "CommentaryOff" 1
+                gNoCommentary = true
+            } else {
+                write-system-ini.i32 "CommentaryOff" 0
+                gNoCommentary = false
+            }
+        }
+        3 {
+            if local0 {
+                return gNoBackgroundSound
+            } else if local2 {
+                gNoBackgroundSound = 1
+                write-system-ini.i32 "NoBackgroundSound" 1
+                start-script SetAmbientSound 0
+            } else {
+                gNoBackgroundSound = 0
+                write-system-ini.string "NoBackgroundSound" ""
+                start-script SetAmbientSound 1
+            }
+        }
+        4 {
+            if local0 {
+                return gNoPrinting
+            } else if local2 {
+                gNoPrinting = 1
+                write-system-ini.i32 "NoPrinting" 1
+            } else {
+                gNoPrinting = 0
+                write-system-ini.string "NoPrinting" ""
+            }
+        }
+        5 {
+            if local0 {
+                return (not gEnableReplays)
+            } else if local2 {
+                gEnableReplays = 0
+                write-system-ini.i32 "NoReplays" 1
+            } else {
+                gEnableReplays = 1
+                write-system-ini.string "NoReplays" ""
+            }
+        }
+        else {
+        }
+    }
+    if gOptionChangedScript {
+        chain-script gOptionChangedScript local0 local1 local2
+    }
+}
+
+script CursorLoop@17 {
+    var x y id type cursor_image local5 flags last_flags local8 local9 local10
+
+    do {
+        if (gCursorVisible > 0 || gGamePadCursorSprite) {
+            if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+                x = gGamePadX
+                y = gGamePadY
+            } else {
+                x = gMouseX
+                y = gMouseY
+            }
+            id = 0
+            type = 0
+            flags = 0
+            if (not gAlternateInput_always_false) {
+                id = find-sprite x y 0 0 [18 32]
+                if id {
+                    if (gSpriteCursorTargets[id][TARGET-CLICK-SCRIPT] || gSpriteCursorTargets[id][TARGET-HOVER-SCRIPT]) {
+                        flags = sprite-get-class id []
+                        type = 2
+                        flags = bor flags 132
+                    } else {
+                        id = 0
+                    }
+                }
+                if (not type) {
+                    id = find-actor x y
+                    if id {
+                        if (gActorCursorTargets[id][TARGET-CLICK-SCRIPT] || gActorCursorTargets[id][TARGET-HOVER-SCRIPT]) {
+                            flags = object-get-class id []
+                            type = 1
+                            flags = bor flags 132
+                        } else {
+                            id = 0
+                            flags = 0
+                        }
+                    }
+                }
+                if (not type) {
+                    id = find-object x y
+                    if id {
+                        if (valid-verb id 1 || valid-verb id 3) {
+                            type = 3
+                            flags = object-get-class id []
+                            flags = bor flags 132
+                        } else {
+                            id = 0
+                            flags = 0
+                        }
+                    }
+                }
+                if gMouseHookScript {
+                    local10 = call-script gMouseHookScript type id
+                    if local10 {
+                        id = local10
+                        type = 6
+                        flags = gMouseHookFlags
+                    }
+                }
+                if (type != gLastHoverType || id != gLastHoverNumber) {
+                    if (type && id && gHoverScript) {
+                        start-script gHoverScript id type
+                    }
+                    case type {
+                        2 {
+                            local8 = gSpriteCursorTargets[id][TARGET-HOVER-DELAY]
+                        }
+                        1 {
+                            local8 = gActorCursorTargets[id][TARGET-HOVER-DELAY]
+                        }
+                        3 {
+                            local8 = 0
+                        }
+                        else {
+                            local8 = 0
+                        }
+                    }
+                    if (id != 0 && flags != last_flags) {
+                        cursor_image = 0
+                        if (band flags 131072) {
+                            cursor_image = 1
+                        } else {
+                            if (band flags 524288) {
+                                local5 = 31 - 7
+                            } else if (band flags 1048576) {
+                                local5 = 55 - 7
+                            } else {
+                                local5 = 0
+                            }
+                            case 1 {
+                                (band flags 256 > 0) {
+                                    cursor_image = 7 + local5
+                                }
+                                (band flags 512 > 0) {
+                                    cursor_image = 10 + local5
+                                }
+                                (band flags 1024 > 0) {
+                                    cursor_image = 13 + local5
+                                }
+                                (band flags 2048 > 0) {
+                                    cursor_image = 16 + local5
+                                }
+                                (band flags 4096 > 0) {
+                                    cursor_image = 19 + local5
+                                }
+                                (band flags 8192 > 0) {
+                                    cursor_image = 22 + local5
+                                }
+                                (band flags 16384 > 0) {
+                                    cursor_image = 25 + local5
+                                }
+                                (band flags 32768 > 0) {
+                                    cursor_image = 28 + local5
+                                }
+                                (band flags 32 > 0) {
+                                    cursor_image = 4
+                                }
+                                else {
+                                    cursor_image = 4
+                                    if (band flags 134217728) {
+                                        cursor_image = 1
+                                    }
+                                }
+                            }
+                        }
+                        if (cursor_image != gCursorImage) {
+                            if (g_maybe_operating_system == 2) {
+                                cursor-color-image (cursor_image + 2)
+                                gCursorImage = cursor_image + 2
+                            } else if (cursor_image <= 76 || in cursor_image [82 85 91 88 79 95]) {
+                                cursor-image (cursor_image + 1)
+                                gCursorImage = cursor_image + 1
+                            } else if (gBlackAndWhiteCursors || cursor_image == 1) {
+                                cursor-image (cursor_image + 1)
+                                gCursorImage = cursor_image + 1
+                            } else {
+                                cursor-color-image cursor_image
+                                gCursorImage = cursor_image
+                            }
+                        }
+                    } else if (id == 0) {
+                        if (1 != gCursorImage) {
+                            if (g_maybe_operating_system == 2) {
+                                cursor-color-image (1 + 2)
+                                gCursorImage = 1 + 2
+                            } else if (1 <= 76 || in 1 [82 85 91 88 79 95]) {
+                                cursor-image (1 + 1)
+                                gCursorImage = 1 + 1
+                            } else if (gBlackAndWhiteCursors || 1 == 1) {
+                                cursor-image (1 + 1)
+                                gCursorImage = 1 + 1
+                            } else {
+                                cursor-color-image 1
+                                gCursorImage = 1
+                            }
+                            start-script maybe_HideNavHoverText
+                        }
+                    }
+                    gLastHoverNumber = id
+                    gLastHoverType = type
+                    last_flags = flags
+                } else {
+                    if (local8 > 0) {
+                        dec local8
+                    }
+                    if (local8 == 0) {
+                        case type {
+                            2 {
+                                local9 = gSpriteCursorTargets[id][TARGET-HOVER-SCRIPT]
+                            }
+                            1 {
+                                local9 = gActorCursorTargets[id][TARGET-HOVER-SCRIPT]
+                            }
+                            3 {
+                                local9 = 0
+                            }
+                            else {
+                                local9 = 0
+                            }
+                        }
+                        if local9 {
+                            local8 = -1
+                            start-script.rec local9 id
+                        }
+                    }
+                }
+            } else if (gCursorImage != 1) {
+                if (g_maybe_operating_system == 2) {
+                    cursor-color-image (1 + 2)
+                    gCursorImage = 1 + 2
+                } else if (1 <= 76 || in 1 [82 85 91 88 79 95]) {
+                    cursor-image (1 + 1)
+                    gCursorImage = 1 + 1
+                } else if (gBlackAndWhiteCursors || 1 == 1) {
+                    cursor-image (1 + 1)
+                    gCursorImage = 1 + 1
+                } else {
+                    cursor-color-image 1
+                    gCursorImage = 1
+                }
+                start-script maybe_HideNavHoverText
+            }
+        } else {
+            last_flags = -1
+        }
+        temp = random 1
+        break-here
+    }
+}
+
+script scr18@18 {
+    var local0 local1 local2
+
+    if (not local1) {
+        stop-script 0
+    }
+    case local0 {
+        1 {
+            if (object-get-class local1 [18]) {
+                if (valid-verb local1 1) {
+                    if (object-get-class local1 [135]) {
+                        start-object.rec local1 local0 local2 local0
+                    } else {
+                        start-object local1 local0 local2 local0
+                    }
+                }
+            }
+        }
+        2 {
+            if (valid-verb local1 2) {
+                if local2 {
+                    if (object-get-class local2 [18]) {
+                        if (object-get-class local1 [135]) {
+                            start-object.rec local1 local0 local2 local0
+                        } else {
+                            start-object local1 local0 local2 local0
+                        }
+                    } else {
+                        start-object local1 9 local2 9
+                    }
+                } else if (object-get-class local1 [18]) {
+                    if (object-get-class local1 [135]) {
+                        start-object.rec local1 local0 0 local0
+                    } else {
+                        start-object local1 local0 0 local0
+                    }
+                }
+            }
+        }
+        else {
+        }
+    }
+}
+
+script scr19@19 {
+    var local0 local1 local2 local3 local4
+
+    if (local1 == 3) {
+        if (local2 == -100 && local3 == -100) {
+            local4 = local0
+        } else {
+            local4 = find-object local2 local3
+        }
+        if local4 {
+            if (not gAlternateInput_always_false) {
+                start-script.rec gEngineSpecialScript18 1 local4 0
+            } else if (valid-verb local4 2) {
+                start-script gEngineSpecialScript18 2 local4 gAlternateInput_always_false
+                gLastHoverNumber = -1
+            } else if gAlternateInput_always_false {
+            }
+        } else {
+        }
+    }
+}
+
+script DefaultHandleKey@20 key {
+    var local1 local2 local3 local4
+
+    if (not gDebugMode) {
+    } else {
+        case key {
+            'f' {
+                if gScratchStack {
+                    print-debug.start
+                    print-debug.printf "SCRATCH STACK STATUS: %d free out of %d" (call-script GetScratchStackPointer) (array-get-length gScratchStack)
+                    print-debug.start
+                    print-debug.printf "PALETTE STACK STATUS: %d free out of %d" (call-script GetPaletteStackPointer) (array-get-length gPaletteStack)
+                    print-debug.start
+                    print-debug.printf "SPRITE  STACK STATUS: %d free out of %d" (call-script GetSpriteStackPointer) (array-get-length gSpriteStack)
+                }
+                print-debug.start
+                print-debug.printf "FREE ARRAYS: %d" (free-arrays)
+            }
+            '*' {
+                start-script DebugShowPalette
+            }
+            '3' {
+                gMachineSpeed += 1
+                if (gMachineSpeed > FAST-MACHINE) {
+                    gMachineSpeed = SLOW-MACHINE
+                }
+                case gMachineSpeed {
+                    SLOW-MACHINE {
+                        print-system.start
+                        print-system.string "Now set to Slow speed machine."
+                    }
+                    MED-MACHINE {
+                        print-system.start
+                        print-system.string "Now set to Medium speed machine."
+                    }
+                    FAST-MACHINE {
+                        print-system.start
+                        print-system.string "Now set to Fast speed machine."
+                    }
+                    else {
+                    }
+                }
+            }
+            '6' {
+                local1 = g_maybe_selected_actor + 1
+                if (local1 > gActorPoolMax) {
+                    local1 = gActorPoolMin
+                }
+                do {
+                    if (actor-get-room local1 == gCurrentRoom) {
+                        g_maybe_selected_actor = local1
+                        print-debug.start
+                        print-debug.printf "Selected actor is %d" g_maybe_selected_actor
+                    } else {
+                        inc local1
+                    }
+                } until (local1 == g_maybe_selected_actor || local1 > gActorPoolMax)
+            }
+            'T' {
+                if (gDebug == 13) {
+                    case (random 2) {
+                        0 {
+                            assign-string local2 "Testing 1 2 3 4"
+                        }
+                        1 {
+                            assign-string local2 "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site?"
+                        }
+                        2 {
+                            assign-string local2 "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site? Fatal Initialization Error - (Too Many Auto Restarts) "
+                        }
+                        else {
+                        }
+                    }
+                    temp = random 1
+                    start-script smth_message_popup local2 temp 0
+                    break-until (not (script-running smth_message_popup))
+                }
+            }
+            '+' {
+                start-script PlayMusicPool (iif (gCurrentMusic + 1 <= 8137) (gCurrentMusic + 1) 8000)
+            }
+            '-' {
+                start-script PlayMusicPool (iif (gCurrentMusic - 1 >= 8000) (gCurrentMusic - 1) 8137)
+            }
+            'K' {
+                stop-sound 10000
+            }
+            'P' {
+                for local4 = 0 to 479 + {
+                    for local3 = 0 to 639 + {
+                        if (find-polygon local3 local4) {
+                        }
+                        draw-box local3 local4 local3 local4 32769
+                    }
+                }
+            }
+            'M' {
+                start-script SetMusicEnabled gNoMusic
+            }
+            '^' {
+                start-script PlayMusicPool -1
+            }
+            else {
+            }
+        }
+    }
+    case key {
+        27 {
+            print-debug.start
+            print-debug.string "Hit Esc with no override set. Do a Stop-line"
+            stop-line
+        }
+        else {
+        }
+    }
+}
+
+script DefaultHandleMouse@21 arg0 x y arg3 {
+    var _ local5 local6
+
+    if (gUIInputDevice == INPUT-DEVICE-GAME-PAD && global75) {
+        gUIInputDevice = INPUT-DEVICE-MOUSE
+        start-script HideGamePadCursor
+    } else {
+        if (x == -1 && y == -1) {
+            x = gMouseX
+            y = gMouseY
+        }
+        gLastMouseX = x
+        gLastMouseY = y
+        if (arg3 == 10) {
+            local6 = arg0
+        } else {
+            local6 = find-sprite x y 0 0 [32 18]
+        }
+        if local6 {
+            if (gSpriteCursorTargets[local6][TARGET-ALTERNATE-CLICK-SCRIPT_unused] && gAlternateInput_always_false && sprite-get-class local6 [18 32]) {
+                stop-line
+                chain-script.rec gSpriteCursorTargets[local6][TARGET-ALTERNATE-CLICK-SCRIPT_unused] local6
+            } else {
+                if gAlternateInput_always_false {
+                    stop-line
+                }
+                if (gSpriteCursorTargets[local6][TARGET-CLICK-SCRIPT] && sprite-get-class local6 [18 32]) {
+                    stop-line
+                    chain-script.rec gSpriteCursorTargets[local6][TARGET-CLICK-SCRIPT] local6
+                } else {
+                    arg0 = 0
+                }
+            }
+        }
+        if (arg0 > 0 && arg0 <= 60) {
+            local5 = arg0
+        } else {
+            local5 = find-actor x y
+        }
+        if local5 {
+            if (gActorCursorTargets[local5][TARGET-ALTERNATE-CLICK-SCRIPT_unused] && gAlternateInput_always_false && object-get-class local5 [18]) {
+                stop-line
+                chain-script gActorCursorTargets[local5][TARGET-ALTERNATE-CLICK-SCRIPT_unused] local5
+            } else if (gActorCursorTargets[local5][TARGET-CLICK-SCRIPT] && object-get-class local5 [18]) {
+                stop-line
+                if gAlternateInput_always_false {
+                }
+                chain-script gActorCursorTargets[local5][TARGET-CLICK-SCRIPT] local5
+            }
+        }
+        start-script scr19 arg0 3 x y
+    }
+}
+
+script DefaultHandleInput@22 type key arg2 x y {
+    if (type == INPUT-TYPE-KEYBOARD) {
+        if (not gKeyHandlerScript) {
+            debug 0
+        } else if (gKeyHandlerScript != 0) {
+            start-script gKeyHandlerScript key
+        }
+    } else if (not gMouseHandlerScript) {
+        debug 0
+    } else if (gMouseHandlerScript != 0) {
+        start-script gMouseHandlerScript key x y arg2
+    }
+}
+
+script OnRoomEnter@23 {
+    var local0 local1
+
+    global259 = 0
+    local1 = find-all-objects-of-class gCurrentRoom [146]
+    if local1 {
+        for local0 = 1 to local1[0] + {
+            object.class local1[local0] [18]
+        }
+    }
+    undim local1
+    gAlternateInput_always_false = 0
+    global212 = 0
+    gCursorImage = 1
+    if (g_maybe_operating_system == 2) {
+        cursor-color-image (gCursorImage + 2)
+        gCursorImage += 2
+    } else if (gCursorImage <= 76 || in gCursorImage [82 85 91 88 79 95]) {
+        cursor-image (gCursorImage + 1)
+        gCursorImage += 1
+    } else if (gBlackAndWhiteCursors || gCursorImage == 1) {
+        cursor-image (gCursorImage + 1)
+        gCursorImage += 1
+    } else {
+        cursor-color-image gCursorImage
+        gCursorImage = gCursorImage
+    }
+    for local0 = gActorPoolMax to gActorPoolMin - {
+        start-script ReleaseActor local0
+    }
+    for local0 = 2 to gActorPoolMin + {
+        start-script ReleaseActor local0
+    }
+    if global240 {
+        undim global240
+    }
+    if (not (script-running CursorLoop)) {
+        start-script CursorLoop
+    }
+    gHoverScript = 0
+    g_maybe_net_yell_sound = 0
+}
+
+script OnRoomEnter2@24 {
+    stop-sentence
+}
+
+script OnRoomExit@25 {
+    gPreviousRoom = gCurrentRoom
+    gKeyHandlerScript = DefaultHandleKey
+    gMouseHandlerScript = DefaultHandleMouse
+    gInputHandlerScript = DefaultHandleInput
+    gGamePadInputHandlerScript = gInputHandlerScript
+    gCurrentSpeechScript = 0
+    gCurrentMatchupCastScript = 0
+    if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+        gUIInputDevice = INPUT-DEVICE-MOUSE
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    }
+    gCursorLoopScript = CursorLoop
+    gMouseHookScript = 0
+    gMinJiffies = 6
+}
+
+script FindFreeActor@26 {
+    var local0
+
+    for local0 = gActorPoolMin to gActorPoolMax + {
+        if (actor-get-room local0 == 0) {
+            actor.init local0
+            actor.new
+            actor.costume 0
+            put-actor local0 320 240 gCurrentRoom
+            return local0
+        }
+    }
+    return 0
+}
+
+script ReleaseActor@27 arg0 {
+    if (arg0 == 0) {
+        print-debug.start
+        print-debug.string "** Error in put-in-void-actor:  Actor number is 0!"
+    } else {
+        array-assign-list gActorCursorTargets arg0 arg0 1 4 [0]
+        put-actor arg0 0 0 0
+    }
+}
+
+script FindFreeGroup_unused@28 {
+    var local0
+
+    if (gSpriteGroupStackPointer_unused <= gMaxSpriteGroup) {
+        local0 = gSpriteGroupStack_unused[gSpriteGroupStackPointer_unused]
+        inc gSpriteGroupStackPointer_unused
+    } else {
+        print-debug.start
+        print-debug.printf "Error in find-free-group! Sprite Group stack %d is empty! Pointer = %d" gSpriteGroupStack_unused gSpriteGroupStackPointer_unused
+        local0 = -1
+    }
+    if (local0 < gSpriteGroupStackMin_unused) {
+        dec gSpriteGroupStackPointer_unused
+        print-debug.start
+        print-debug.printf "failed to find a free sprite group (%d), pointer %d " local0 gSpriteGroupStackPointer_unused
+        if (local0 == gSpriteGroupStackMin_unused - 1) {
+            local0 = gSpriteGroupStackMin_unused
+        }
+    }
+    return local0
+}
+
+script ReleaseGroup_unused@29 arg0 {
+    if (arg0 < gSpriteGroupStackMin_unused) {
+        print-debug.start
+        print-debug.printf "Error! Tried to put group %d onto stack (minimum is 1)!!" arg0
+        debug 0
+        stop-script 0
+    }
+    if (gSpriteGroupStackPointer_unused <= gSpriteGroupStackMin_unused) {
+        print-debug.start
+        print-debug.printf "Error! Tried to put group %d onto full stack - pointer= %d!!" arg0 gSpriteGroupStackPointer_unused
+        stop-script 0
+    }
+    if (gSpriteGroupStackPointer_unused <= gMaxSpriteGroup + 1) {
+        dec gSpriteGroupStackPointer_unused
+        gSpriteGroupStack_unused[gSpriteGroupStackPointer_unused] = arg0
+    } else {
+        print-debug.start
+        print-debug.printf "Error! Group stack pointer is %d (limit is 1 to %d)" gSpriteGroupStackPointer_unused gMaxSpriteGroup
+    }
+    group.init arg0
+    group.new
+}
+
+script FindFreeSprite@30 {
+    return (call-script AllocSprite)
+}
+
+script ReleaseSprite@31 arg0 {
+    if (arg0 < 1) {
+    } else {
+        start-script FreeSprite arg0
+        array-assign-list gSpriteCursorTargets arg0 arg0 1 4 [0]
+    }
+}
+
+script PadString@32 string width pad_char right {
+    var local4 local5 local6 _ local8
+
+    local6 = array-get-length string
+    if (not pad_char) {
+        pad_char = ' '
+    }
+    dim-array.u8 local4 width
+    if right {
+        for local5 = (width - 1) to 0 - {
+            local8 = local6 - 1 - (width - 1 - local5) - 1
+            if (local8 >= 0) {
+                local4[local5] = string[local8]
+            } else {
+                local4[local5] = pad_char
+            }
+        }
+    } else {
+        for local5 = 0 to (width - 1) + {
+            if (local5 < local6 - 1) {
+                local4[local5] = string[local5]
+            } else {
+                local4[local5] = pad_char
+            }
+        }
+    }
+    return local4
+}
+
+script GamePadCursorLoop@33 {
+    do {
+        gGamePadX = min (max gGamePadX 0) 632
+        gGamePadY = min (max gGamePadY 0) 472
+        sprite.init gGamePadCursorSprite
+        sprite.image gCursorImage
+        sprite.at gGamePadX gGamePadY
+        sprite.animation-type 0
+        sprite.order 21000
+        break-here
+    }
+}
+
+script ShowGamePadCursor@34 {
+    if (not gGamePadCursorSprite) {
+        gGamePadCursorSprite = call-script FindFreeSprite
+        sprite.init gGamePadCursorSprite
+        sprite.new
+        sprite.image gCursorImage
+        sprite.at gGamePadX gGamePadY
+        sprite.order 21000
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.class [160]
+        cursor-off
+        start-script GamePadCursorLoop
+    }
+}
+
+script HideGamePadCursor@35 {
+    stop-script GamePadCursorLoop
+    start-script ReleaseSprite gGamePadCursorSprite
+    gGamePadCursorSprite = 0
+    cursor-on
+}
+
+script GamePadInputLoop@36 {
+    var _ _ local2 local3 local4 local5 local6 local7
+
+    local7 = 96
+    do {
+        if (INPUT-DEVICE-GAME-PAD == gGameInputDevice) {
+            local5 = band global122 15
+            local6 = band global123 15
+            if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+                if (in local5 [8 4 1 2 (bor 1 4) (bor 1 8) (bor 2 4) (bor 2 8)]) {
+                    inc local4
+                    global529 = min (local4 * 2) local7
+                } else {
+                    local4 = 0
+                    global529 = 4
+                }
+                if (gMinJiffies < 6) {
+                    local7 = (6 - gMinJiffies) * gMinJiffies
+                } else {
+                    local7 = 36
+                }
+                case local5 {
+                    1 {
+                        gGamePadX -= global529
+                    }
+                    2 {
+                        gGamePadX += global529
+                    }
+                    4 {
+                        gGamePadY -= global529
+                    }
+                    8 {
+                        gGamePadY += global529
+                    }
+                    (bor 1 4) {
+                        gGamePadX -= global529
+                        gGamePadY -= global529
+                    }
+                    (bor 1 8) {
+                        gGamePadX -= global529
+                        gGamePadY += global529
+                    }
+                    (bor 2 4) {
+                        gGamePadX += global529
+                        gGamePadY -= global529
+                    }
+                    (bor 2 8) {
+                        gGamePadX += global529
+                        gGamePadY += global529
+                    }
+                    else {
+                    }
+                }
+                if (in local6 [1 2 4 8] && local2 != global123) {
+                    if gGamePadInputHandlerScript {
+                        start-script gGamePadInputHandlerScript 0 0 global123 gGamePadX gGamePadY
+                    } else {
+                        start-script DefaultHandleInput 0 0 global123 gGamePadX gGamePadY
+                    }
+                }
+                if (global527 - gMouseX || global528 - gMouseY) {
+                    gUIInputDevice = INPUT-DEVICE-MOUSE
+                    start-script HideGamePadCursor
+                }
+            } else if (in local5 [8 4 1 2 (bor 1 4) (bor 1 8) (bor 2 4) (bor 2 8)] || in local6 [1 2 4 8]) {
+                gUIInputDevice = INPUT-DEVICE-GAME-PAD
+                gGamePadX = gMouseX
+                gGamePadY = gMouseY
+                if (in local6 [1 2 4 8]) {
+                    if gGamePadInputHandlerScript {
+                        start-script gGamePadInputHandlerScript 0 0 global123 gGamePadX gGamePadY
+                    } else {
+                        start-script DefaultHandleInput 0 0 global123 gGamePadX gGamePadY
+                    }
+                }
+                start-script ShowGamePadCursor
+            }
+        }
+        global527 = gMouseX
+        global528 = gMouseY
+        local3 = global122
+        local2 = global123
+        break-here
+    }
+}
+
+script smth_vector_math_gravity_angle@37 x1 z1 x2 z2 {
+    var local4 local5 local6 local7
+
+    local5 = line-length.2d x1 z1 x2 z2 * (384000 * gGravity / 60 / 100) / 10
+    local6 = local4 * local4 * 2
+    if (local5 > local6) {
+        local7 = 45
+    } else {
+        local7 = angle-from-delta local6 local5
+    }
+    return local7
+}
+
+script IsFoulTerritory@38 x z {
+    var local2 local3
+
+    if gBallWasHit {
+        if (z < gWorld[HOME-PLATE-BACK-CORNER][Z]) {
+            return 1
+        } else {
+            local2 = abs (x - gWorld[HOME-PLATE-BACK-CORNER][X])
+            local3 = abs (z - gWorld[HOME-PLATE-BACK-CORNER][Z])
+            if (local3 < local2) {
+                return 1
+            } else {
+                return 0
+            }
+        }
+    } else {
+        return 0
+    }
+}
+
+script AddBounceRandomness@39 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10
+
+    if gNetplayActive {
+        stop-script 0
+    }
+    if (gBallVelPhysX + gBallVelPhysY + gBallVelPhysZ == 0) {
+        stop-script 0
+    }
+    local5 = gBallVelPhysX / 100
+    local6 = gBallVelPhysY / 100
+    local7 = gBallVelPhysZ / 100
+    local0 = line-length.2d 0 0 local5 local7
+    local1 = angle-from-line 0 0 local0 local6
+    local2 = angle-from-line 0 0 local5 local7
+    if global406 {
+        if (gCurrentRoom == 4) {
+            local8 = random-between 0 20
+            global405[global406] = local8
+        } else {
+            local8 = global405[global406]
+        }
+    } else {
+        local8 = random-between 0 20
+    }
+    if (global406 > 0) {
+        if (global406 == 20) {
+            global406 = 0
+        } else if (global405[0] == global406) {
+            global406 = 0
+        } else {
+            inc global406
+        }
+    }
+    case gField {
+        [DIRT-YARDS SANDY-FLATS] {
+            if (local8 == 9) {
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local9 = random-between -12 12
+                        global405[global406] = local9
+                    } else {
+                        local9 = global405[global406]
+                    }
+                } else {
+                    local9 = random-between -12 12
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local10 = random-between -25 25
+                        global405[global406] = local10
+                    } else {
+                        local10 = global405[global406]
+                    }
+                } else {
+                    local10 = random-between -25 25
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+            } else {
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local9 = random-between -5 5
+                        global405[global406] = local9
+                    } else {
+                        local9 = global405[global406]
+                    }
+                } else {
+                    local9 = random-between -5 5
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local10 = random-between -15 15
+                        global405[global406] = local10
+                    } else {
+                        local10 = global405[global406]
+                    }
+                } else {
+                    local10 = random-between -15 15
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+            }
+        }
+        [PLAYGROUND-COMMONS BIG-CITY-STADIUM PARKS-DEPARTMENT] {
+            if (local8 == 9) {
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local9 = random-between -5 5
+                        global405[global406] = local9
+                    } else {
+                        local9 = global405[global406]
+                    }
+                } else {
+                    local9 = random-between -5 5
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local10 = random-between -15 15
+                        global405[global406] = local10
+                    } else {
+                        local10 = global405[global406]
+                    }
+                } else {
+                    local10 = random-between -15 15
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+            } else {
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local9 = random-between -2 3
+                        global405[global406] = local9
+                    } else {
+                        local9 = global405[global406]
+                    }
+                } else {
+                    local9 = random-between -2 3
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local10 = random-between -8 8
+                        global405[global406] = local10
+                    } else {
+                        local10 = global405[global406]
+                    }
+                } else {
+                    local10 = random-between -8 8
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+            }
+        }
+        [CEMENT-GARDENS TIN-CAN-ALLEY] {
+            if (local8 == 9) {
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local9 = random-between -7 2
+                        global405[global406] = local9
+                    } else {
+                        local9 = global405[global406]
+                    }
+                } else {
+                    local9 = random-between -7 2
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+                if global406 {
+                    if (gCurrentRoom == 4) {
+                        local10 = random-between -2 2
+                        global405[global406] = local10
+                    } else {
+                        local10 = global405[global406]
+                    }
+                } else {
+                    local10 = random-between -2 2
+                }
+                if (global406 > 0) {
+                    if (global406 == 20) {
+                        global406 = 0
+                    } else if (global405[0] == global406) {
+                        global406 = 0
+                    } else {
+                        inc global406
+                    }
+                }
+            }
+        }
+        else {
+        }
+    }
+    local1 += local9
+    local2 += local10
+    if (local1 < 1) {
+        local1 = 1
+    }
+    if (local1 > 80) {
+        local1 = 80
+    }
+    local3 = line-length.3d 0 0 0 local5 local6 local7
+    local6 = sin local1 * local3 / 1000
+    local4 = cos local1 * local3 / 100000
+    local5 = cos local2 * local4 / 1000
+    local7 = sin local2 * local4 / 1000
+    gBallVelPhysX = local5
+    gBallVelPhysY = local6
+    gBallVelPhysZ = local7
+}
+
+script SetFieldVars@40 {
+    case gField {
+        CEMENT-GARDENS {
+            gFieldVerticalBounciness = 75
+            gFieldHorizontalBounciness = 80
+            gBounceSoundSoft = 2022
+            gBounceSoundMed = 2023
+            gBounceSoundLoud = 2024
+            gAmbientSound = 1433
+        }
+        DIRT-YARDS {
+            gFieldVerticalBounciness = 62
+            gFieldHorizontalBounciness = 70
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1435
+        }
+        PLAYGROUND-COMMONS {
+            gFieldVerticalBounciness = 57
+            gFieldHorizontalBounciness = 73
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1434
+        }
+        ECKMAN-ACRES {
+            gFieldVerticalBounciness = 55
+            gFieldHorizontalBounciness = 60
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1434
+        }
+        SANDY-FLATS {
+            gFieldVerticalBounciness = 42
+            gFieldHorizontalBounciness = 42
+            gBounceSoundSoft = 2093
+            gBounceSoundMed = 2094
+            gBounceSoundLoud = 2095
+            gAmbientSound = 2096
+        }
+        BIG-CITY-STADIUM {
+            gFieldVerticalBounciness = 59
+            gFieldHorizontalBounciness = 75
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1522
+        }
+        SUPER-COLOSSAL-DOME {
+            gFieldVerticalBounciness = 57
+            gFieldHorizontalBounciness = 73
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1529
+        }
+        STEELE-STADIUM {
+            gFieldVerticalBounciness = 57
+            gFieldHorizontalBounciness = 72
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1434
+        }
+        PARKS-DEPARTMENT {
+            gFieldVerticalBounciness = 57
+            gFieldHorizontalBounciness = 73
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1515
+        }
+        TIN-CAN-ALLEY {
+            gFieldVerticalBounciness = 75
+            gFieldHorizontalBounciness = 80
+            gBounceSoundSoft = 2022
+            gBounceSoundMed = 2023
+            gBounceSoundLoud = 2024
+            gAmbientSound = 2097
+        }
+        else {
+            gFieldVerticalBounciness = 57
+            gFieldHorizontalBounciness = 70
+            gBounceSoundSoft = 1999
+            gBounceSoundMed = 2000
+            gBounceSoundLoud = 2001
+            gAmbientSound = 1434
+        }
+    }
+    global423 = 257
+    global424 = 257
+    global425 = 257
+}
+
+script CollideEndPlay@41 {
+    if (gPlayEndedReason != 0) {
+        stop-script 0
+    }
+    if gBallIsFoul {
+        stop-script 0
+    }
+    if (gBallHasBounced == 1) {
+        if (g_maybe_last_fielder_to_touch_ball != 0) {
+            gPlayEndedReason = PE-OUT-OF-PLAY
+            g_maybe_smth_play_is_alive = 0
+        } else if (call-script IsFoulTerritory gBallPosX gBallPosZ && not gBallIsFair) {
+            gBallIsFoul = true
+        } else {
+            gPlayEndedReason = PE-GROUND-RULE-DOUBLE
+            gBallIsFair = true
+        }
+    } else if (g_maybe_last_fielder_to_touch_ball != 0 || gStealing) {
+        if (call-script IsFoulTerritory gBallPosX gBallPosZ || gStealing) {
+            gPlayEndedReason = PE-OUT-OF-PLAY
+            g_maybe_smth_play_is_alive = 0
+        } else {
+            gPlayEndedReason = PE-HOME-RUN
+            gBallIsFair = true
+        }
+    } else if (call-script IsFoulTerritory gBallPosX gBallPosZ && not gBallIsFair) {
+        gBallIsFoul = true
+    } else {
+        gPlayEndedReason = PE-HOME-RUN
+        gBallIsFair = true
+    }
+}
+
+script SetBallAnimation@42 actor angle speed arg3 {
+    var local4 local5
+
+    if (angle == -1) {
+        angle = random-between 1 359
+    }
+    if (speed == -1) {
+        speed = random-between 1 3 * 75000
+    }
+    local4 = angle / 15
+    if (local4 != arg3 && speed > 10) {
+        case local4 {
+            [0 11 12 23] {
+                do-animation actor 6
+            }
+            [2 3 14 15] {
+                do-animation actor 7
+            }
+            [5 6 17 18] {
+                do-animation actor 8
+            }
+            [8 9 20 21] {
+                do-animation actor 9
+            }
+            else {
+                do-animation actor 10
+            }
+        }
+        arg3 = local4
+    }
+    if (local4 > 9) {
+        local5 = -1
+    } else {
+        local5 = 1
+    }
+    case 1 {
+        (speed > 150000) {
+            actor.init actor
+            actor.variable 7 (3 * local5)
+        }
+        (speed > 75000) {
+            actor.init actor
+            actor.variable 7 (2 * local5)
+        }
+        (speed > 5000) {
+            actor.init actor
+            actor.variable 7 (1 * local5)
+        }
+        else {
+            actor.init actor
+            actor.variable 7 0
+        }
+    }
+    return arg3
+}
+
+script maybe_score_check@43 arg0 arg1 {
+    var local2 local3 local4
+
+    local2 = 0
+    case arg0 {
+        630 {
+            if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-BAT-SWING]
+            }
+            if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-ARM]
+            }
+            if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-COORDINATION]
+            }
+        }
+        638 {
+            if (gBackupKidData[arg1][KD-SPEED] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-SPEED]
+            }
+            if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-EYE]
+            }
+            if (gBackupKidData[arg1][KD-INTELLIGENCE] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-INTELLIGENCE]
+            }
+        }
+        636 {
+            if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                local2 += 2 * gBackupKidData[arg1][KD-BAT-SWING]
+            }
+            if (gBackupKidData[arg1][KD-BAT-HITTING] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-BAT-HITTING]
+            }
+        }
+        637 {
+            for local3 = 14 to 25 + {
+                if (gBackupKidData[arg1][local3] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][local3]
+                }
+            }
+            local2 /= 6
+        }
+        631 {
+            if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-COORDINATION]
+            }
+            if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-EYE]
+            }
+            if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-ARM]
+            }
+            if (gBackupKidData[arg1][KD-THROWING] > g_smth_score_check_minimum) {
+                local2 += gBackupKidData[arg1][KD-THROWING]
+            }
+        }
+        633 {
+            if (gBackupKidData[arg1][KD-HEIGHT] < 3) {
+                if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-BAT-SWING]
+                }
+                if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-ARM]
+                }
+                if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-COORDINATION]
+                }
+                local4 = local2 * 3
+                local2 = 0
+                for local3 = 14 to 25 + {
+                    if (gBackupKidData[arg1][local3] > g_smth_score_check_minimum) {
+                        local2 += gBackupKidData[arg1][local3]
+                    }
+                }
+                local2 /= 6
+                local4 += local2 * 2
+                local2 = 0
+                if (gBackupKidData[arg1][KD-SPEED] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-SPEED]
+                }
+                if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-EYE]
+                }
+                if (gBackupKidData[arg1][KD-INTELLIGENCE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-INTELLIGENCE]
+                }
+                local4 += local2 * 2
+                local4 -= 25 * gBackupKidData[arg1][KD-HEIGHT]
+                local2 = local4
+            }
+        }
+        635 {
+            if (gBackupKidData[arg1][KD-HEIGHT] > 2) {
+                if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-BAT-SWING]
+                }
+                if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-ARM]
+                }
+                if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-COORDINATION]
+                }
+                local4 = local2 * 3
+                local2 = 0
+                for local3 = 14 to 25 + {
+                    if (gBackupKidData[arg1][local3] > g_smth_score_check_minimum) {
+                        local2 += gBackupKidData[arg1][local3]
+                    }
+                }
+                local2 /= 6
+                local4 += local2 * 2
+                local2 = 0
+                if (gBackupKidData[arg1][KD-SPEED] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-SPEED]
+                }
+                if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-EYE]
+                }
+                if (gBackupKidData[arg1][KD-INTELLIGENCE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-INTELLIGENCE]
+                }
+                local4 += local2 * 2
+                local4 += 25 * gBackupKidData[arg1][KD-HEIGHT]
+                local2 = local4
+            }
+        }
+        632 {
+            if (arg1 < 16) {
+                if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-BAT-SWING]
+                }
+                if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-ARM]
+                }
+                if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-COORDINATION]
+                }
+                local4 = local2 * 3
+                local2 = 0
+                for local3 = 14 to 25 + {
+                    if (gBackupKidData[arg1][local3] > g_smth_score_check_minimum) {
+                        local2 += gBackupKidData[arg1][local3]
+                    }
+                }
+                local2 /= 6
+                local4 += local2 * 2
+                local2 = 0
+                if (gBackupKidData[arg1][KD-SPEED] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-SPEED]
+                }
+                if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-EYE]
+                }
+                if (gBackupKidData[arg1][KD-INTELLIGENCE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-INTELLIGENCE]
+                }
+                local4 += local2 * 2
+                local2 = local4
+            }
+        }
+        634 {
+            if (gBackupKidData[arg1][KD-INTELLIGENCE] > 50) {
+                if (gBackupKidData[arg1][KD-BAT-SWING] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-BAT-SWING]
+                }
+                if (gBackupKidData[arg1][KD-ARM] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-ARM]
+                }
+                if (gBackupKidData[arg1][KD-COORDINATION] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-COORDINATION]
+                }
+                local4 = local2 * 3
+                local2 = 0
+                for local3 = 14 to 25 + {
+                    if (gBackupKidData[arg1][local3] > g_smth_score_check_minimum) {
+                        local2 += gBackupKidData[arg1][local3]
+                    }
+                }
+                local2 /= 6
+                local4 += local2 * 2
+                local2 = 0
+                if (gBackupKidData[arg1][KD-SPEED] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-SPEED]
+                }
+                if (gBackupKidData[arg1][KD-EYE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-EYE]
+                }
+                if (gBackupKidData[arg1][KD-INTELLIGENCE] > g_smth_score_check_minimum) {
+                    local2 += gBackupKidData[arg1][KD-INTELLIGENCE]
+                }
+                local4 += local2 * 2
+                local4 += 2 * gBackupKidData[arg1][KD-INTELLIGENCE]
+                local2 = local4
+            }
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error!  Invalid score check %d!" arg0
+            debug 0
+        }
+    }
+    return local2
+}
+
+script GetInputButtons@44 device {
+    var local1
+
+    local1 = 0
+    if (device == BUTTONS-KEYBOARD) {
+        if (band 1 gKeyState) {
+            local1 = bor local1 1
+        }
+        if (band 2 gKeyState) {
+            local1 = bor local1 2
+        }
+        if (band 4 gKeyState) {
+            local1 = bor local1 4
+        }
+        if (band 8 gKeyState) {
+            local1 = bor local1 8
+        }
+        if (band 32 gKeyState) {
+            local1 = bor local1 16
+        }
+        if (band 16 gKeyState) {
+            local1 = bor local1 32
+        }
+    }
+    if (device == BUTTONS-GAME-PAD) {
+        if (band (1 << global522) global124) {
+            if (band (1 << global522) global122) {
+                local1 = bor local1 1
+            }
+            if (band (2 << global522) global122) {
+                local1 = bor local1 2
+            }
+            if (band (4 << global522) global122) {
+                local1 = bor local1 4
+            }
+            if (band (8 << global522) global122) {
+                local1 = bor local1 8
+            }
+            if (band (1 << global522) global123) {
+                local1 = bor local1 16
+            }
+            if (band (2 << global522) global123) {
+                local1 = bor local1 32
+            }
+            if (band (4 << global522) global123) {
+                local1 = bor local1 64
+            }
+            if (band (8 << global522) global123) {
+                local1 = bor local1 128
+            }
+        }
+    }
+    return local1
+}
+
+script maybe_draw_text_to_image@45 text font dest palette arg4 arg5 {
+    var _ local7 _ local9 local10 local11 local12 local13 local14 local15 local16
+
+    if (not palette) {
+        palette = 1
+    }
+    local9 = 0
+    local12 = string-length text - 1
+    local13 = max 1 (image-get-height font 0)
+    local14 = max 1 (image-get-width font (iif arg5 arg5 87))
+    local10 = max 1 (local13 * 2)
+    local11 = max 1 (local14 * local12 + arg4 * local12 + local14)
+    image.init dest
+    image.new
+    image.width local11
+    image.height local10
+    image.end
+    local15 = palette-get-color 1 5
+    image.init dest
+    image.draw-box 0 0 local11 local10 local15
+    image.end
+    if (local12 >= 0) {
+        for local7 = 0 to local12 + {
+            if arg5 {
+                local16 = (local14 - image-get-width font text[local7]) / 2
+            }
+            image.init font
+            image.state text[local7]
+            image.at (local9 + local16) (local13 - (image-get-object-y font text[local7] - local13 / 3) + 2)
+            image.render-target dest
+            image.palette palette
+            image.draw
+            image.end
+            if arg5 {
+                local9 += local14 + arg4
+            } else {
+                local9 = iif (text[local7] == 32) (local9 + local14 / 3) (local9 + image-get-width font text[local7] + arg4)
+                if (in text[local7] [87]) {
+                    local9 -= 1
+                }
+            }
+        }
+    }
+    return local9
+}
+
+script scr46@46 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 _ local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19 local20
+
+    if (not local5) {
+        local5 = 1
+    }
+    local11 = string-length local0
+    local15 = 1
+    local17 = max 1 (image-get-height local1 0)
+    local16 = max 1 (image-get-width local1 0)
+    local9 = max 1 ((local17 + local4) * (local11 / local3 * 3))
+    local10 = max 1 (local16 * local3 + 2 * local3 + local16)
+    local19 = palette-get-color 1 5
+    image.init local2
+    image.new
+    image.width local10
+    image.height local9
+    image.end
+    image.init local2
+    image.draw-box 0 0 local10 local9 local19
+    image.end
+    if (local11 > local3) {
+        local20 = call-script AllocScratchImage
+        while (local7 < local11) {
+            local7 = iif (local3 + local14 > local11) local11 (local3 + local14)
+            do {
+                local13 = local0[local7]
+                dec local7
+            } until (local13 == 32)
+            inc local15
+            if (local3 + local14 > local11) {
+                local7 = local11
+            }
+            local12 = string-substr local0 local14 local7
+            local18 = call-script maybe_draw_text_to_image local12 local1 local20 local5 local6
+            image.init local20
+            image.at 0 ((local17 + local17 / 2 + local4) * (local15 - 2))
+            image.render-target local2
+            image.draw
+            image.end
+            undim local12
+            local14 = local7 + 2
+        }
+        start-script FreeScratchImage local20
+    } else {
+        local18 = call-script maybe_draw_text_to_image local0 local1 local2 local5
+    }
+    return local18
+}
+
+script scr47@47 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15
+
+    if (not local0) {
+        stop-script 0
+    }
+    dim-array.string local8 (local5 - 1)
+    local7 = string-length local0
+    do {
+        local12 = string-width local0 local6 local7
+        if (local12 > local3) {
+            local13 = string-margin local0 local6 local3
+            local14 = string-search local0 (local13 + 1) local6 32
+            if (local14 > -1) {
+                local13 = local14
+                local11 = 2
+            } else {
+                local11 = 1
+            }
+        } else {
+            local13 = local7
+        }
+        local10 = string-substr local0 local6 local13
+        sprintf local8 "%s%s" local8 local10
+        undim local10
+        if local11 {
+            if (local11 == 1) {
+                assign-string local10 "-^"
+            } else {
+                assign-string local10 "^"
+            }
+            sprintf local8 "%s%s" local8 local10
+            undim local10
+            local11 = 0
+        }
+        inc local9
+        local6 = local13 + 1
+    } until (local6 >= local7)
+    local6 = 0
+    local7 = string-length local8
+    do {
+        local15 = string-search local8 local6 local7 94
+        if (local15 == -1) {
+            local15 = local7
+        } else {
+            dec local15
+        }
+        local10 = string-substr local8 local6 local15
+        print-text.start
+        print-text.at local1 local2
+        print-text.printf "%s" local10
+        undim local10
+        local2 += local4
+        local6 = local15 + 2
+        dec local9
+    } until (local6 >= local7)
+    undim local8
+}
+
+script DrawString@48 string font_image render_into {
+    var local3 local4 local5 local6 local7 local8 local9 local10 local11 local12
+
+    local7 = string-length string - 1
+    local8 = max 1 (image-get-height font_image 87)
+    local9 = max 1 (image-get-width font_image 87)
+    local5 = max 1 (local8 * 2)
+    local6 = max 1 (local9 * local7 + 2 * local7 + local9)
+    local10 = local5 * 2 / 3
+    local12 = palette-get-color 1 5
+    image.init render_into
+    image.new
+    image.width local6
+    image.height local5
+    image.hotspot 0 local10
+    image.end
+    image.init render_into
+    image.draw-box 0 0 local6 local5 local12
+    image.end
+    if (local7 >= 0) {
+        for local3 = 0 to local7 + {
+            local11 = image-get-object-y font_image string[local3]
+            image.init font_image
+            image.state string[local3]
+            image.at local4 (local10 - local11)
+            image.render-target render_into
+            image.draw
+            image.end
+            local4 = iif (string[local3] == ' ') (local4 + local9 / 2) (local4 + image-get-width font_image string[local3] + 2)
+        }
+    }
+    return local4
+}
+
+script smth_string@49 arg0 arg1 arg2 arg3 {
+    var local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14
+
+    local7 = string-length arg0
+    if local7 {
+        if local4 {
+            for local5 = 0 to local7 + {
+                if (arg0[local5] == arg1) {
+                    inc local14
+                }
+            }
+        }
+        for local5 = 0 to local7 + {
+            if (arg0[local5] == arg1) {
+                if (local6 == arg2 - 1) {
+                    local9 = local5 - 1
+                }
+                inc local6
+            }
+        }
+        local6 = 0
+        if (arg2 - 1) {
+            for local5 = 0 to local7 + {
+                if (arg0[local5] == arg1) {
+                    if (local6 == arg2 - 2) {
+                        local8 = local5 + 1
+                    }
+                    inc local6
+                }
+            }
+        }
+        if local4 {
+            local11 = string-substr arg0 0 (max 0 (local8 - 1))
+            local12 = string-substr arg0 (local9 + 1) local7
+            case 1 {
+                (arg2 == 1) {
+                    if (local14 > 1) {
+                        local10 = string-substr local12 1 (string-length local12)
+                    } else {
+                        sprintf local10 "%s" local12
+                    }
+                }
+                (arg2 == local14 && local14 > 1) {
+                    local10 = string-substr local11 0 (string-length local11 - 1)
+                }
+                else {
+                    local13 = string-substr local12 1 (string-length local12)
+                    sprintf local10 "%s%s" local11 local13
+                    undim local13
+                }
+            }
+            undim local11
+            undim local12
+        } else {
+            local10 = string-substr arg0 local8 local9
+        }
+        if arg3 {
+            return local10
+        } else {
+            local6 = string-number local10
+            undim local10
+            return local6
+        }
+    } else if arg3 {
+        assign-string local10 "error"
+        return local10
+    } else {
+        return -1
+    }
+}
+
+script smth_draw_text_image@50 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 {
+    var local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19 local20 local21 local22 local23
+
+    dim-array-2d.i16 local18 100 1
+    if (not arg7) {
+        arg7 = 1
+    }
+    dec arg3
+    dec arg4
+    local10 = string-length arg0 - 1
+    local14 = max 1 (image-get-height arg1 (87 - 1))
+    local13 = max 1 (image-get-width arg1 (87 - 1))
+    local16 = 0
+    local17 = 0
+    local9 = 0
+    do {
+        if (local9 <= local10) {
+            local15 = iif (arg0[local9] == 32) (local15 + local13 / 2) (local15 + image-get-width arg1 arg0[local9] + arg8)
+        } else {
+            local17 = local10
+            local15 = arg3 + 1
+        }
+        if (local15 > arg3) {
+            inc local12
+            if (local16 == local17) {
+                local17 = local9 - 1
+            }
+            dim-array.u8 local11 (local17 - local16 + 1)
+            array-assign-slice local11 arg0 0 0 0 (local17 - local16) 0 0 local16 local17
+            local22 = call-script AllocScratchImage
+            local23 = call-script maybe_draw_text_to_image local11 arg1 local22 arg7 arg8
+            if (local23 > arg3) {
+            }
+            local18[local12][0] = local22
+            local18[local12][1] = local23
+            undim local11
+            local16 = local17 + 1
+            temp = 0
+            do {
+                if (local16 < local10) {
+                    if (arg0[local16] == 32) {
+                        inc local16
+                    } else {
+                        temp = 1
+                    }
+                } else {
+                    temp = 1
+                }
+            } until temp
+            local17 = local16
+            local9 = local16
+            local15 = 0
+        } else {
+            if (arg0[local9] == 32) {
+                local17 = local9
+                temp = 0
+                do {
+                    if (local17 > 0) {
+                        if (arg0[local17] == 32) {
+                            dec local17
+                        } else {
+                            temp = 1
+                        }
+                    } else {
+                        temp = 1
+                    }
+                } until temp
+            }
+            inc local9
+        }
+    } until (local16 > local10)
+    image.init arg2
+    image.new
+    image.width arg3
+    image.height arg4
+    image.end
+    image.init arg2
+    image.draw-box 0 0 arg3 arg4 (palette-get-color 1 5)
+    image.end
+    local21 = (arg4 - (local14 * local12 + arg5 * (local12 - 1))) / 2 - 1
+    if (local21 < 0) {
+    }
+    local20 = local21
+    for local9 = 1 to local12 + {
+        case arg6 {
+            0 {
+                local19 = (arg3 - local18[local9][1]) / 2
+            }
+            1 {
+                local19 = 0
+            }
+            2 {
+                local19 = arg3 - local18[local9][1]
+            }
+            else {
+            }
+        }
+        image.init local18[local9][0]
+        image.at local19 local20
+        image.render-target arg2
+        image.draw
+        image.end
+        local20 += local14 + arg5
+    }
+    for local9 = 1 to local12 + {
+        start-script FreeScratchImage local18[local9][0]
+    }
+    undim local18
+    return local12
+}
+
+script scr51@51 {
+    var local0 local1 local2 local3 local4 local5 local6 _ local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19 local20 local21 local22 local23
+
+    dim-array-2d.i16 local19 100 1
+    if (not local5) {
+        local5 = 1
+    }
+    if (not local6) {
+        local6 = 5
+    }
+    local10 = string-length local0 - 1
+    local14 = max 1 (image-get-height local1 (87 - 1))
+    local13 = max 1 (image-get-width local1 (87 - 1))
+    local16 = 0
+    local17 = 0
+    local9 = 0
+    do {
+        if (local9 <= local10) {
+            local15 = iif (local0[local9] == 32) (local15 + local13 / 2) (local15 + image-get-width local1 local0[local9] + local4)
+        } else {
+            local17 = local10
+            local15 = local3 + 1
+        }
+        if (local15 > local3) {
+            inc local12
+            if (local16 == local17) {
+                local17 = local9 - 1
+            }
+            dim-array.u8 local11 (local17 - local16 + 1)
+            array-assign-slice local11 local0 0 0 0 (local17 - local16) 0 0 local16 local17
+            local19[local12][0] = call-script AllocScratchImage
+            local19[local12][1] = call-script maybe_draw_text_to_image local11 local1 local19[local12][0] local5 local4
+            if (local19[local12][1] > local3) {
+            }
+            undim local11
+            local16 = local17 + 1
+            temp = 0
+            do {
+                if (local16 < local10) {
+                    if (local0[local16] == 32) {
+                        inc local16
+                    } else {
+                        temp = 1
+                    }
+                } else {
+                    temp = 1
+                }
+            } until temp
+            local17 = local16
+            local9 = local16
+            local15 = 0
+        } else {
+            if (local0[local9] == 32) {
+                local17 = local9
+                temp = 0
+                do {
+                    if (local17 > 0) {
+                        if (local0[local17] == 32) {
+                            dec local17
+                        } else {
+                            temp = 1
+                        }
+                    } else {
+                        temp = 1
+                    }
+                } until temp
+            }
+            inc local9
+        }
+    } until (local16 > local10)
+    local18 = local14 + (local12 + 0) * local14 + local4 * local12
+    image.init local2
+    image.new
+    image.width local3
+    image.height local18
+    image.end
+    image.init local2
+    image.draw-box 0 0 local3 local18 (palette-get-color 1 local6)
+    image.end
+    if local6 {
+        local22 = 4
+    } else {
+        local22 = (local18 - (local14 * local12 + local4 * (local12 - 1))) / 2 - 1
+    }
+    if (local22 < 0) {
+    }
+    if local8 {
+        local23 = iif (local12 <= local8) 1 (local12 - local8 + 1)
+        for local9 = local23 to local12 + {
+            local20 = 0
+            local21 = local22 + (local9 - local23) * local14
+            if (local9 - local23 > 0) {
+                local21 += (local9 - local23) * local4
+            }
+            image.init local19[local9][0]
+            image.at local20 local21
+            image.render-target local2
+            image.draw
+            image.end
+        }
+    } else {
+        for local9 = 1 to local12 + {
+            local20 = 0
+            local21 = local22 + (local9 - 1) * local14
+            if (local9 > 1) {
+                local21 += (local9 - 1) * local4
+            }
+            image.init local19[local9][0]
+            image.at local20 local21
+            image.render-target local2
+            image.draw
+            image.end
+        }
+    }
+    for local9 = 1 to local12 + {
+        start-script FreeScratchImage local19[local9][0]
+    }
+    temp = local19[local12][1]
+    if (local8 && local12 > local8) {
+        local12 = local8
+    }
+    undim local19
+    return (local12 << 16 + temp)
+}
+
+script scr52@52 {
+    var local0 local1
+
+    if (local0[0] > 0) {
+        local1 = local0[local0[0]]
+        dec-array-item local0 0
+    } else {
+        local1 = -1616928865
+    }
+    return local1
+}
+
+script scr53@53 {
+    var local0 local1
+
+    if (local0[0] >= array-get-length local0 - 1) {
+        stop-script 0
+    } else {
+        inc-array-item local0 0
+        local0[local0[0]] = local1
+    }
+}
+
+script scr54@54 {
+    var local0 local1 local2 local3
+
+    dim-array.i32 local3 local0
+    if (local1 > 0 || local2 > 0) {
+        array-assign-range local3 0 0 1 local0 local1 local2
+        local3[0] = local0
+    } else {
+        local3[0] = 0
+    }
+    return local3
+}
+
+script scr55@55 {
+    var local0
+
+    undim local0
+}
+
+script GetSpriteStackPointer@57 {
+    return gSpriteStackPointer
+}
+
+script AllocSprite@58 {
+    if gSpriteStackPointer {
+        dec gSpriteStackPointer
+        return gSpriteStack[gSpriteStackPointer]
+    } else {
+        return 0
+    }
+}
+
+script FreeSprite@59 arg0 {
+    gSpriteStack[gSpriteStackPointer] = arg0
+    inc gSpriteStackPointer
+    sprite.init arg0
+    sprite.new
+}
+
+script InitSpriteStack@60 {
+    var local0
+
+    local0 = abs (gSpriteStackMax - 1 - gSpriteStackMin)
+    gSpriteStackPointer = local0 + 1
+    dim-array.i32 gSpriteStack local0
+    array-assign-range gSpriteStack 0 0 0 local0 gSpriteStackMin (gSpriteStackMax - 1)
+}
+
+script GetSpriteGroupStackPointer@61 {
+    return gSpriteGroupStackPointer
+}
+
+script AllocSpriteGroup@62 {
+    if gSpriteGroupStackPointer {
+        dec gSpriteGroupStackPointer
+        return gSpriteGroupStack[gSpriteGroupStackPointer]
+    } else {
+        return 0
+    }
+}
+
+script FreeSpriteGroup@63 arg0 {
+    gSpriteGroupStack[gSpriteGroupStackPointer] = arg0
+    inc gSpriteGroupStackPointer
+    group.init arg0
+    group.new
+}
+
+script InitSpriteGroupStack@64 {
+    var local0
+
+    local0 = abs (gMaxSpriteGroup - 1 - 1)
+    gSpriteGroupStackPointer = local0 + 1
+    dim-array.i32 gSpriteGroupStack local0
+    array-assign-range gSpriteGroupStack 0 0 0 local0 1 (gMaxSpriteGroup - 1)
+}
+
+script scr65@65 {
+    return global604
+}
+
+script scr66@66 {
+    if global604 {
+        dec global604
+        return global603[global604]
+    } else {
+        return 0
+    }
+}
+
+script scr67@67 {
+    var local0
+
+    global603[global604] = local0
+    inc global604
+    global605[local0] = 0
+}
+
+script scr68@68 {
+    var local0 local1 local2 local3 local4
+
+    if (not local0) {
+        local0 = 16
+    }
+    if local1 {
+        local2 = local1
+    } else {
+        local2 = random-between 0 9 * 100000 + 1000000
+    }
+    local3 = local2 + (local0 - 1)
+    local4 = abs (local3 - local2)
+    global604 = local4 + 1
+    dim-array.i32 global603 local4
+    array-assign-range global603 0 0 0 local4 local2 local3
+    dim-array-range.u8 global605 0 0 local2 local3 2
+}
+
+script scr69@69 {
+    return global607
+}
+
+script scr70@70 {
+    if global607 {
+        dec global607
+        return global606[global607]
+    } else {
+        return 0
+    }
+}
+
+script scr71@71 {
+    var local0
+
+    global606[global607] = local0
+    inc global607
+    window.init local0
+    window.new
+    window.end
+}
+
+script scr72@72 {
+    var local0
+
+    local0 = abs (global131 - 1 - 1)
+    global607 = local0 + 1
+    dim-array.i32 global606 local0
+    array-assign-range global606 0 0 0 local0 1 (global131 - 1)
+}
+
+script InitScratchStack@73 {
+    var local0 local1 local2 local3
+
+    local1 = 70 - 1
+    gScratchStackPointer = local1 + 1
+    dim-array.i32 gScratchStack local1
+    local2 = 559
+    local3 = 1
+    for local0 = 0 to local1 + {
+        gScratchStack[local0] = local2
+        local2 += local3
+    }
+}
+
+script GetScratchStackPointer@74 {
+    return gScratchStackPointer
+}
+
+script AllocScratchImage@75 {
+    var local0
+
+    if gScratchStackPointer {
+        dec gScratchStackPointer
+        local0 = gScratchStack[gScratchStackPointer]
+        kludge 714 19 local0 1
+    } else {
+        print-system.start
+        print-system.string "ERROR: Scratch Image stack is Empty"
+        debug 0
+    }
+    return local0
+}
+
+script FreeScratchImage@76 arg0 {
+    kludge 714 19 arg0 0
+    nuke-image arg0
+    gScratchStack[gScratchStackPointer] = arg0
+    inc gScratchStackPointer
+}
+
+script GetPaletteStackPointer@77 {
+    return gPaletteStackPointer
+}
+
+script AllocPalette@78 {
+    if gPaletteStackPointer {
+        dec gPaletteStackPointer
+        return gPaletteStack[gPaletteStackPointer]
+    } else {
+        return 0
+    }
+}
+
+script FreePalette@79 arg0 {
+    gPaletteStack[gPaletteStackPointer] = arg0
+    inc gPaletteStackPointer
+    palette.init arg0
+    palette.new
+    palette.end
+}
+
+script InitPaletteStack@80 {
+    var local0
+
+    local0 = abs (gNumPalettes - 3)
+    gPaletteStackPointer = local0 + 1
+    dim-array.i32 gPaletteStack local0
+    array-assign-range gPaletteStack 0 0 0 local0 3 gNumPalettes
+}
+
+script scr81@81 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    local3 = group-get-array local0
+    if local3 {
+        local5 = local3[0]
+        for local4 = 1 to local5 + {
+            local6 = sprite-get-image local3[local4]
+            start-script FreeSprite local3[local4]
+            if (local1 && local6) {
+                nuke-image local6
+            }
+        }
+        undim local3
+    }
+    if (not local2) {
+        start-script FreeSpriteGroup local0
+    }
+}
+
+script HandleNavButtonClick@82 arg0 {
+    var local1 local2 local3 local4 local5
+
+    local1 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+    local2 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+    if (gNavButtons[6][0] == 2) {
+        local5 = 18
+    } else {
+        local5 = 7
+    }
+    local1 -= 320 - image-get-object-x image642 local5
+    local2 -= 240 - image-get-object-y image642 local5
+    local3 = image-get-color-at image642 local5 local1 local2
+    if (local3 != 5) {
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        start-script PlayClickySound
+        local4 = sprite-get-state arg0
+        sprite.init arg0
+        sprite.state (local4 + 1)
+        break-here.multi 2
+        sprite.init arg0
+        sprite.state local4
+        break-here.multi 2
+        break-until (not (script-running PlayClickySound))
+        if gNavButtons[1][1] {
+            start-script gNavButtons[1][1] local3
+        }
+    }
+}
+
+script HandleNavButtonHover@83 arg0 {
+    var local1
+
+    local1 = sprite-get-image arg0
+    if gNavButtons[1][2] {
+        start-script gNavButtons[1][2] arg0 1
+    }
+    while (gLastHoverNumber == arg0 && gLastHoverType == 2) {
+        break-here
+    }
+    if gNavButtons[1][2] {
+        start-script gNavButtons[1][2] arg0 2
+    }
+}
+
+script FreeNavButtons@84 {
+    stop-script HandleNavButtonHover
+    if (not gNavButtons) {
+        stop-script 0
+    }
+    if gNavButtons[5][0] {
+        gMouseHookScript = gNavButtons[5][0]
+    }
+    if gNavButtons[5][1] {
+        gInputHandlerScript = gNavButtons[5][1]
+    }
+    stop-script scr88
+    stop-script scr89
+    stop-script smth_nav407
+    stop-script smth_nav408
+    if gNavButtons[0][0] {
+        start-script ReleaseSprite gNavButtons[0][0]
+        gNavButtons[0][0] = 0
+        start-script ReleaseSprite gNavButtons[1][0]
+        gNavButtons[1][0] = 0
+        start-script ReleaseSprite gNavButtons[2][0]
+        gNavButtons[2][0] = 0
+        start-script ReleaseSprite gNavButtons[3][0]
+        gNavButtons[3][0] = 0
+        start-script ReleaseSprite gNavButtons[4][0]
+        gNavButtons[4][0] = 0
+    }
+    undim gNavButtons
+}
+
+script SetNavButtons@85 click_script hover_script arg2 arg3 {
+    var local4
+
+    if gNavButtons {
+        start-script FreeNavButtons
+    }
+    dim-array-2d.i16 gNavButtons 6 2
+    gNavButtons[0][0] = call-script FindFreeSprite
+    gNavButtons[1][0] = call-script FindFreeSprite
+    gNavButtons[2][0] = call-script FindFreeSprite
+    gNavButtons[3][0] = call-script FindFreeSprite
+    gNavButtons[4][0] = call-script FindFreeSprite
+    palette.init 2
+    palette.from-image 1416 0
+    palette.end
+    gNavButtons[6][0] = arg3
+    case arg3 {
+        2 {
+            local4 = 11
+        }
+        1 {
+            local4 = 10
+        }
+        else {
+            local4 = 0
+        }
+    }
+    sprite.init gNavButtons[0][0]
+    sprite.new
+    sprite.image image642
+    sprite.state local4
+    sprite.animation-type 0
+    sprite.order 1800
+    sprite.group 13
+    sprite.update-type 2
+    sprite.palette 2
+    sprite.at 320 240
+    sprite.init gNavButtons[1][0]
+    sprite.new
+    sprite.image image642
+    sprite.state 3
+    sprite.animation-type 0
+    sprite.order 1900
+    sprite.group 13
+    sprite.update-type 2
+    sprite.palette 2
+    sprite.at 320 240
+    gSpriteCursorTargets[gNavButtons[1][0]][TARGET-CLICK-SCRIPT] = HandleNavButtonClick
+    gSpriteCursorTargets[gNavButtons[1][0]][TARGET-HOVER-SCRIPT] = HandleNavButtonHover
+    sprite.init gNavButtons[3][0]
+    sprite.new
+    sprite.image image642
+    sprite.state 1
+    sprite.animation-type 0
+    sprite.order 1900
+    sprite.group 13
+    sprite.update-type 2
+    sprite.palette 2
+    sprite.at 320 240
+    gSpriteCursorTargets[gNavButtons[3][0]][TARGET-CLICK-SCRIPT] = HandleNavButtonClick
+    gSpriteCursorTargets[gNavButtons[3][0]][TARGET-HOVER-SCRIPT] = HandleNavButtonHover
+    if (gNavButtons[6][0] != 0) {
+        sprite.init gNavButtons[3][0]
+        sprite.at -500 -500
+    }
+    sprite.init gNavButtons[2][0]
+    sprite.new
+    sprite.image image642
+    sprite.state 5
+    sprite.animation-type 0
+    sprite.order 1950
+    sprite.group 13
+    sprite.update-type 2
+    sprite.palette 2
+    sprite.at 320 (240 + image-get-height image642 5)
+    gSpriteCursorTargets[gNavButtons[2][0]][TARGET-CLICK-SCRIPT] = HandleNavButtonClick
+    gSpriteCursorTargets[gNavButtons[2][0]][TARGET-HOVER-SCRIPT] = HandleNavButtonHover
+    gNavButtons[0][1] = 0
+    gNavButtons[1][1] = click_script
+    gNavButtons[2][1] = click_script
+    gNavButtons[3][1] = click_script
+    gNavButtons[0][2] = 0
+    gNavButtons[1][2] = hover_script
+    gNavButtons[2][2] = hover_script
+    gNavButtons[3][2] = hover_script
+    gNavButtons[4][1] = arg2
+    gNavButtons[4][2] = arg2
+}
+
+script UpdateNavText@86 arg0 arg1 {
+    var _ local3 local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19
+
+    local4 = palette-get-color 1 5
+    if (gNavButtons == 0) {
+        stop-script 0
+    }
+    case gNavButtons[6][0] {
+        1 {
+            local16 = 534
+            local17 = 58
+            local18 = 94
+            local19 = 414
+        }
+        2 {
+            local16 = 242
+            if gNavButtons[6][1] {
+                local16 -= 74
+            }
+            local17 = 62
+            local18 = 386
+            local19 = 410
+        }
+        else {
+            local16 = 452
+            local17 = 58
+            local18 = 94
+            local19 = 414
+        }
+    }
+    image.init image634
+    image.new
+    image.width local16
+    image.height local17
+    image.end
+    image.init image634
+    image.draw-box 0 0 local16 local17 local4
+    image.end
+    local7 = call-script AllocScratchImage
+    local8 = call-script AllocScratchImage
+    if arg0 {
+        case arg0[0] {
+            38 {
+                sprintf local11 "%c" arg0[1]
+                local10 = string-number local11
+                undim local11
+                arg0[0] = 48
+                arg0[1] = 48
+                local9 = string-number arg0
+                start-script scr90 local9 local10 local7
+                arg0 = 0
+            }
+            else {
+                temp2 = string-length arg0 - 1
+                for temp = 0 to temp2 + {
+                    if (arg0[temp] >= 97 && arg0[temp] <= 122) {
+                        arg0[temp] -= 32
+                    }
+                }
+                local3 = call-script maybe_draw_text_to_image arg0 632 local7 2 1
+                local12 = (local16 - local3) / 2
+                if gNavButtons[5][2] {
+                    local12 += 74 / 2
+                }
+                local14 = 16
+            }
+        }
+    }
+    if arg1 {
+        temp2 = string-length arg1 - 1
+        for temp = 0 to temp2 + {
+            if (arg1[temp] >= 97 && arg1[temp] <= 122) {
+                arg1[temp] -= 32
+            }
+        }
+        if gNavButtons[5][2] {
+            local15 = local16 - 74
+        } else {
+            local15 = local16
+        }
+        local6 = call-script smth_draw_text_image arg1 633 local8 local15 local17 0 0 2 1
+        local14 += 16 * local6
+        if gNavButtons[5][2] {
+            local13 = 74
+        } else {
+            local13 = 0
+        }
+    }
+    if (arg1 && arg0) {
+        local5 = (local17 - local14) / 3
+    } else {
+        local5 = (local17 - local14) / 2
+    }
+    if arg0 {
+        image.init local7
+        image.at local12 local5
+        image.render-target image634
+        image.draw
+        image.end
+    }
+    if arg1 {
+        if (not arg0) {
+            local5 = 0
+        } else {
+            local5 = 10
+        }
+        image.init local8
+        image.at local13 local5
+        image.render-target image634
+        image.draw
+        image.end
+    }
+    sprite.init gNavButtons[4][0]
+    sprite.image image634
+    sprite.order (1900 - 1)
+    sprite.group 13
+    sprite.at local18 local19
+    start-script FreeScratchImage local7
+    start-script FreeScratchImage local8
+}
+
+script maybe_HideNavHoverText@87 {
+    if (not gNavButtons) {
+        stop-script 0
+    }
+    sprite.init gNavButtons[4][0]
+    sprite.image 0
+}
+
+script scr88@88 {
+    var local0 local1 local2
+
+    if gNoPrinting {
+        stop-script 0
+    }
+    gLastHoverNumber = 0
+    stop-script scr89
+    gNavButtons[5][2] = 1
+    if (sprite-get-object-y gNavButtons[2][0] == 240) {
+        stop-script 0
+    }
+    if (not local0) {
+        break-here
+        local2 = 0 - image-get-height image642 5 / 5
+        for local1 = 1 to 5 + {
+            sprite.init gNavButtons[2][0]
+            sprite.move 0 local2
+            if (sprite-get-object-y gNavButtons[2][0] + local2 <= 240) {
+                local1 = 999
+            }
+            break-here
+        }
+    }
+    sprite.init gNavButtons[2][0]
+    sprite.at 320 240
+}
+
+script scr89@89 {
+    var local0 local1 local2
+
+    if (not gNavButtons) {
+        stop-script 0
+    }
+    gLastHoverNumber = 0
+    stop-script scr88
+    gNavButtons[5][2] = 0
+    if (sprite-get-object-y gNavButtons[2][0] == 240 + image-get-height image642 5) {
+        stop-script 0
+    }
+    if (not local0) {
+        break-here
+        local2 = image-get-height image642 5 / 5
+        for local1 = 1 to 5 + {
+            sprite.init gNavButtons[2][0]
+            sprite.move 0 local2
+            if (sprite-get-object-y gNavButtons[2][0] + local2 >= 240 + image-get-height image642 5) {
+                local1 = 999
+            }
+            break-here
+        }
+    }
+    sprite.init gNavButtons[2][0]
+    sprite.at 320 (240 + image-get-height image642 5)
+}
+
+script scr90@90 {
+    var local0 local1 local2 _ _ local5 local6 local7 local8 local9 local10 local11 local12 local13 local14
+
+    image.init image1416
+    image.state 0
+    image.palette 2
+    image.at (0 - image-get-object-x image1416 0) (0 - image-get-object-y image1416 0 + 2)
+    image.render-target image634
+    image.draw
+    image.end
+    if (local1 <= 8) {
+        image.init image1415
+        image.state local1
+        image.palette 2
+        image.at (0 - image-get-object-x image1415 local1 + 2) (0 - image-get-object-y image1415 local1 + 2)
+        image.render-target image634
+        image.draw
+        image.end
+    }
+    start-script GetKidName local0 1
+    temp2 = string-length gKidName - 1
+    for temp = 0 to temp2 + {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] -= 32
+        }
+    }
+    local11 = call-script maybe_draw_text_to_image gKidName 633 local2 2 1
+    image.init local2
+    image.at 0 0
+    image.render-target image634
+    image.at (50 - local11 / 2) 0
+    image.draw
+    image.end
+    start-script GetKidName local0 2
+    temp2 = string-length gKidName - 1
+    for temp = 0 to temp2 + {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] -= 32
+        }
+    }
+    local11 = call-script maybe_draw_text_to_image gKidName 633 local2 2 1
+    image.init local2
+    image.at 0 0
+    image.render-target image634
+    image.at (50 - local11 / 2) 15
+    image.draw
+    image.end
+    local7 = 1
+    for local5 = {local14}[243 244 245 246] {
+        local8 = call-script local5 local0 0
+        local9 = call-script local5 local0 1
+        local13 = max local9 local8
+        for local6 = 1 to local13 + {
+            if (local6 > local9) {
+                local12 = 8
+            } else if (local6 > local8) {
+                local12 = 4
+            } else {
+                local12 = 0
+            }
+            local10 = (local6 - 1) * 26
+            image.init image1416
+            image.state (local7 + local12)
+            image.palette 2
+            image.at (0 - image-get-object-x image1416 local7 + local10) (0 - image-get-object-y image1416 local7 + 2)
+            image.render-target image634
+            image.draw
+            image.end
+        }
+        inc local7
+    }
+}
+
+script smth_find_playoff_team@91 arg0 {
+    var local1 local2
+
+    local1 = -1
+    for local2 = 0 to 7 + {
+        if (gPlayoffTeamsArray[local2] == arg0) {
+            local1 = local2
+        }
+    }
+    return local1
+}
+
+script smth_find_playoffs@92 arg0 {
+    var local1 local2
+
+    local2 = call-script ReadSeasonTeams arg0
+    local1 = call-script smth_find_playoff_team local2
+    return local1
+}
+
+script smth_find_playoffs_cur_division@93 {
+    var local0
+
+    local0 = call-script smth_find_playoffs gSeasonDivision
+    return local0
+}
+
+script ResetPlayoffRosterArray@94 {
+    if gPlayoffRosterArray {
+        undim gPlayoffRosterArray
+    }
+    dim-array-2d.i16 gPlayoffRosterArray 7 (16 + 8)
+}
+
+script ResetPlayoffTeamsArray@95 {
+    if gPlayoffTeamsArray {
+        undim gPlayoffTeamsArray
+    }
+    dim-array.u8 gPlayoffTeamsArray 7
+}
+
+script ResetPlayoffScheduleArray@96 {
+    if gPlayoffScheduleArray {
+        undim gPlayoffScheduleArray
+    }
+    dim-array-2d.u8 gPlayoffScheduleArray 7 (11 * 7)
+}
+
+script ReadPlayoffSchedule@97 arg0 arg1 arg2 {
+    var local3
+
+    local3 = arg1 - 14
+    return gPlayoffScheduleArray[arg0][local3 * 7 + arg2]
+}
+
+script WritePlayoffSchedule@98 arg0 arg1 arg2 arg3 {
+    var local4
+
+    local4 = arg1 - 14
+    gPlayoffScheduleArray[arg0][local4 * 7 + arg2] = arg3
+}
+
+script fillInPlayoffRosterArray@99 {
+    var local0 local1 _ local3 local4
+
+    local3 = array-get-width gPlayoffRosterArray
+    for local0 = 0 to 7 + {
+        local1 = gPlayoffTeamsArray[local0]
+        local4 = call-script smth_find_season_team local1
+        array-assign-slice gPlayoffRosterArray gSeasonRosterArray local0 local0 0 (local3 - 1) local4 local4 0 (local3 - 1)
+        gPlayoffRosterArray[local0][14] = 0
+        gPlayoffRosterArray[local0][15] = 0
+    }
+    print-debug.start
+    print-debug.string "done with fillInPlayoffRosterArray -- here's part of the new array"
+    for temp = 0 to (local3 - 1) + {
+        print-debug.start
+        print-debug.printf "%d" gPlayoffRosterArray[0][temp]
+    }
+}
+
+script scr100@100 {
+    var local0 local1 local2 local3 local4
+
+    array-assign local2 [0 1 2 3 4 5] 0
+    array-assign local3 [0 1 2 3 4 5] 0
+    for local4 = 0 to 5 + {
+        local1 = 0
+        while (0 == gPlayoffTeamsArray[local4]) {
+            if (local3[local4] == call-script scr133 local0[local1][0]) {
+                gPlayoffTeamsArray[local2[local4]] = call-script ReadSeasonTeams local0[local1][0]
+            }
+            inc local1
+        }
+    }
+    undim local2
+    undim local3
+}
+
+script scr101@101 {
+    var local0 local1 _ local3 local4 local5 local6 local7 local8 local9 local10 local11
+
+    dim-array-2d.u8 local7 23 1
+    for local0 = 0 to 23 + {
+        local7[local0][0] = local0
+        local7[local0][1] = gSeasonRosterArray[local0][14]
+    }
+    array-sort-rows local7 -1 -1 1 1
+    for local1 = 0 to 23 + {
+        if (local7[local1][0] == gSeasonDivision) {
+            local3 = 1
+            while local3 {
+                for local4 = 0 to local1 + {
+                    if (local7[local4][1] == local7[local1][1]) {
+                        local8 = local7[local4][0]
+                        local7[local4][0] = local7[local1][0]
+                        local7[local1][0] = local8
+                        local3 = 0
+                    }
+                }
+            }
+        }
+    }
+    start-script ResetPlayoffTeamsArray
+    start-script scr100 local7
+    local4 = 0
+    while (local9 < 2) {
+        local10 = call-script ReadSeasonTeams local7[local4][0]
+        if (not (call-script scr127 gPlayoffTeamsArray local10 6)) {
+            if (0 == local9) {
+                gPlayoffTeamsArray[6] = local10
+                local11 = local7[local4][0]
+                inc local9
+            } else if (local11 <= 11 && local7[local4][0] > 11 || (local11 > 11 && local7[local4][0] <= 11)) {
+                gPlayoffTeamsArray[7] = local10
+                inc local9
+            }
+        }
+        inc local4
+    }
+    print-debug.start
+    print-debug.string "Best teams of divisions:"
+    for local0 = 0 to 7 + {
+        temp = call-script GetTeamNameString gPlayoffTeamsArray[local0]
+        print-debug.start
+        print-debug.printf "Division %d, Team %s" local0 temp
+        undim temp
+    }
+    local5 = 1
+    for local6 = 0 to 7 + {
+        if (gSeasonDivision == call-script smth_find_season_team gPlayoffTeamsArray[local6]) {
+            local5 = 0
+        }
+    }
+    if local5 {
+        gSeasonOver = 1
+    }
+}
+
+script scr102@102 {
+    var local0 local1 local2
+
+    start-script WritePlayoffSchedule local0 local2 0 gPlayoffTeamsArray[local1]
+    start-script WritePlayoffSchedule local0 (local2 + 1) 0 gPlayoffTeamsArray[local1]
+    start-script WritePlayoffSchedule local0 (local2 + 2) 0 gPlayoffTeamsArray[local1]
+    start-script WritePlayoffSchedule local1 local2 0 gPlayoffTeamsArray[local0]
+    start-script WritePlayoffSchedule local1 (local2 + 1) 0 gPlayoffTeamsArray[local0]
+    start-script WritePlayoffSchedule local1 (local2 + 2) 0 gPlayoffTeamsArray[local0]
+    start-script WritePlayoffSchedule local0 local2 6 0
+    start-script WritePlayoffSchedule local0 (local2 + 1) 6 1
+    start-script WritePlayoffSchedule local0 (local2 + 2) 6 0
+    start-script WritePlayoffSchedule local1 local2 6 1
+    start-script WritePlayoffSchedule local1 (local2 + 1) 6 0
+    start-script WritePlayoffSchedule local1 (local2 + 2) 6 1
+}
+
+script createFirstPlayoffsSchedule@103 {
+    var local0 local1 local2 local3 local4 local5
+
+    print-debug.start
+    print-debug.string "in createFirstPlayoffsSchedule"
+    start-script ResetPlayoffRosterArray
+    start-script ResetPlayoffScheduleArray
+    start-script fillInPlayoffRosterArray
+    if (call-script smth_find_season_team gPlayoffTeamsArray[6] < 11) {
+        local4 = 6
+        local5 = 7
+    } else {
+        local4 = 7
+        local5 = 6
+    }
+    for local2 = 0 to 2 + {
+        local3 = call-script smth_find_season_team gPlayoffTeamsArray[local2]
+        if (gSeasonRosterArray[local3][14] >= local0) {
+            local0 = gSeasonRosterArray[local3][14]
+            local1 = local2
+        }
+    }
+    start-script scr102 local1 local4 14
+    case local1 {
+        0 {
+            start-script scr102 1 2 14
+        }
+        1 {
+            start-script scr102 0 2 14
+        }
+        2 {
+            start-script scr102 0 1 14
+        }
+        else {
+            print-debug.start
+            print-debug.printf "error: createFirstPlayoffsSchedule found unexpected team with most wins: %d" local1
+            debug 0
+        }
+    }
+    local0 = 0
+    for local2 = 3 to 5 + {
+        local3 = call-script smth_find_season_team gPlayoffTeamsArray[local2]
+        if (gSeasonRosterArray[local3][14] >= local0) {
+            local0 = gSeasonRosterArray[local3][14]
+            local1 = local2
+        }
+    }
+    start-script scr102 local1 local5 14
+    case local1 {
+        3 {
+            start-script scr102 4 5 14
+        }
+        4 {
+            start-script scr102 3 5 14
+        }
+        5 {
+            start-script scr102 3 4 14
+        }
+        else {
+            print-debug.start
+            print-debug.printf "error: createFirstPlayoffsSchedule found unexpected team with most wins: %d" local1
+            debug 0
+        }
+    }
+}
+
+script scr104@104 {
+    var local0 local1 _ local3 local4
+
+    dim-array.u8 local0 1
+    for local4 = 0 to 7 + {
+        if (4 <= gPlayoffRosterArray[local4][14]) {
+            local0[local1] = local4
+            inc local1
+        }
+    }
+    if (gPlayoffTeamsArray[local0[1]] == call-script ReadSeasonTeams gSeasonDivision) {
+        local3 = local0[0]
+        local0[0] = local0[1]
+        local0[1] = local3
+    }
+    start-script scr102 local0[0] local0[1] 20
+    start-script WritePlayoffSchedule local0[0] 23 0 gPlayoffTeamsArray[local0[1]]
+    start-script WritePlayoffSchedule local0[0] 24 0 gPlayoffTeamsArray[local0[1]]
+    start-script WritePlayoffSchedule local0[1] 23 0 gPlayoffTeamsArray[local0[0]]
+    start-script WritePlayoffSchedule local0[1] 24 0 gPlayoffTeamsArray[local0[0]]
+    start-script WritePlayoffSchedule local0[0] 23 6 0
+    start-script WritePlayoffSchedule local0[0] 24 6 1
+    start-script WritePlayoffSchedule local0[1] 23 6 1
+    start-script WritePlayoffSchedule local0[1] 24 6 0
+    undim local0
+}
+
+script scr105@105 {
+    var local0 _ local2 local3 local4 local5 _ _ local8 local9 local10 local11
+
+    local4 = (7 - 0 + 1) / 2
+    dim-array.u8 local0 (local4 - 1)
+    local9 = 0
+    local10 = 2
+    for local2 = 0 to 7 + {
+        local8 = gPlayoffRosterArray[local2][14]
+        if (2 <= local8) {
+            local3 = gPlayoffTeamsArray[local2]
+            local11 = call-script smth_find_season_team local3
+            if (local11 <= 11) {
+                local0[local9] = call-script smth_find_playoff_team local3
+                inc local9
+            } else {
+                local0[local10] = call-script smth_find_playoff_team local3
+                inc local10
+            }
+        }
+    }
+    while (local5 < local4) {
+        if (gPlayoffRosterArray[local0[local5]][14] > gPlayoffRosterArray[local0[local5 + 1]][14]) {
+            start-script scr102 local0[local5] local0[local5 + 1] 17
+        } else if (gPlayoffRosterArray[local0[local5]][14] == gPlayoffRosterArray[local0[local5 + 1]][14] && call-script smth_find_playoffs_cur_division == local0[local5]) {
+            start-script scr102 local0[local5] local0[local5 + 1] 17
+        } else {
+            start-script scr102 local0[local5 + 1] local0[local5] 17
+        }
+        local5 += 2
+    }
+    undim local0
+}
+
+script scr106@106 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    local7 = array-get-length local0
+    local8 = local7 * 2
+    dim-array.u8 local1 local8
+    for local2 = 0 to (local7 - 1) + {
+        local6 = local0[local2]
+        local4 = local6 / 16 + 65
+        local5 = band local6 15 + 65
+        local1[local3] = local4
+        local1[local3 + 1] = local5
+        local3 += 2
+    }
+    local1[local3] = 0
+    return local1
+}
+
+script scr107@107 {
+    var local0 local1 _ local3 local4 local5 local6 local7 local8
+
+    local8 = array-get-length local0 / 2 - 1
+    for local3 = 0 to local8 + {
+        local7 = local0[local4]
+        local5 = (local7 - 65) * 16
+        local7 = local0[local4 + 1]
+        local6 = local7 - 65
+        local1[local3] = local5 + local6
+        local4 += 2
+    }
+}
+
+script SaveCoachINIArray@108 arg0 arg1 arg2 {
+    var local3 local4 local5 local6 local7 local8 local9
+
+    local5 = array-get-height arg0
+    local6 = array-get-width arg0
+    dim-array.i16 local3 (local6 - 1)
+    for local7 = 0 to (local5 - 1) + {
+        for local8 = 0 to (local6 - 1) + {
+            local3[local8] = arg0[local7][local8]
+        }
+        local9 = call-script scr106 local3
+        sprintf local4 "%s%d" arg1 local7
+        write-ini.string gCoachINIPath arg2 local4 local9
+        undim local9
+        undim local4
+    }
+    undim local3
+}
+
+script AddAllTimeStats@109 {
+    var _ local1 local2 local3
+
+    local2 = read-ini.i32 gCoachINIPath "AllTime" "Streak"
+    if gWonLastGame {
+        local1 = read-ini.i32 gCoachINIPath "AllTime" "Wins"
+        inc local1
+        write-ini.i32 gCoachINIPath "AllTime" "Wins" local1
+        if (local2 > 0) {
+            inc local2
+            local3 = read-ini.i32 gCoachINIPath "AllTime" "WinStreak"
+            if (local2 > local3) {
+                write-ini.i32 gCoachINIPath "AllTime" "WinStreak" local2
+            }
+        } else {
+            local2 = 1
+        }
+    } else {
+        local1 = read-ini.i32 gCoachINIPath "AllTime" "Losses"
+        inc local1
+        write-ini.i32 gCoachINIPath "AllTime" "Losses" local1
+        if (local2 < 0) {
+            dec local2
+        } else {
+            local2 = -1
+        }
+    }
+    write-ini.i32 gCoachINIPath "AllTime" "Streak" local2
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "Runs"
+    local1 += gLastGameTotals[0]
+    write-ini.i32 gCoachINIPath "AllTime" "Runs" local1
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "RunsAgainst"
+    local1 += gLastGameTotals[1]
+    write-ini.i32 gCoachINIPath "AllTime" "RunsAgainst" local1
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostHits"
+    if (local1 < gLastGameTotals[2]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostHits" gLastGameTotals[2]
+    }
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostHomers"
+    if (local1 < gLastGameTotals[3]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostHomers" gLastGameTotals[3]
+    }
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostRuns"
+    if (local1 < gLastGameTotals[0]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostRuns" gLastGameTotals[0]
+    }
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostIndividualHomeRuns"
+    if (local1 < gLastGameTotals[4]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostIndividualHomeRuns" gLastGameTotals[4]
+        write-ini.i32 gCoachINIPath "AllTime" "MostIndividualHomeRunKid" gLastGameTotals[5]
+    }
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostStrikeOuts"
+    if (local1 < gLastGameTotals[6]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostStrikeOuts" gLastGameTotals[6]
+        write-ini.i32 gCoachINIPath "AllTime" "MostStrikeOutKid" gLastGameTotals[7]
+    }
+    local1 = read-ini.i32 gCoachINIPath "AllTime" "MostRBIs"
+    if (local1 < gLastGameTotals[8]) {
+        write-ini.i32 gCoachINIPath "AllTime" "MostRBIs" gLastGameTotals[8]
+        write-ini.i32 gCoachINIPath "AllTime" "MostRBIKid" gLastGameTotals[9]
+    }
+}
+
+script SaveCoach@110 {
+    var _ _ local2 _ _ local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15
+
+    write-ini.i32 gCoachINIPath "general" "test-data" 999
+    if (read-ini.i32 gCoachINIPath "general" "test-data" != 999) {
+        print-debug.start
+        print-debug.string "Couldn't create INI file!!"
+        stop-script 0
+    }
+    write-ini.string gCoachINIPath "general" "test-data" ""
+    write-ini.i32 gCoachINIPath "general" "complete" 0
+    write-ini.i32 gCoachINIPath "general" "game" gSeasonGameNumber
+    write-ini.i32 gCoachINIPath "general" "field" gCoachHomeField
+    write-ini.i32 gCoachINIPath "general" "innings" gGameLength
+    write-ini.i32 gCoachINIPath "general" "ID" gCoachID
+    write-ini.i32 gCoachINIPath "general" "skill" gDifficulty
+    write-ini.i32 gCoachINIPath "general" "nobatcircle" gNoBatCircle
+    write-ini.i32 gCoachINIPath "general" "pitchx" gPitchBallIndicator
+    write-ini.i32 gCoachINIPath "general" "noerrors" gNoErrors
+    write-ini.string gCoachINIPath "general" "coach" gCoachName
+    start-script DeleteSavedGame gCoachName
+    write-ini.string gCoachINIPath "general" "SavedGameVersion" ""
+    if (gSeasonOver == 1) {
+        write-ini.i32 gCoachINIPath "general" "over" 1
+    } else {
+        write-ini.i32 gCoachINIPath "general" "over" 0
+    }
+    if (gGloriousVictory == 1) {
+        write-ini.i32 gCoachINIPath "general" "gloriousvictory" 1
+    } else {
+        write-ini.i32 gCoachINIPath "general" "gloriousvictory" 0
+    }
+    write-ini.i32 gCoachINIPath "player" "DIVISION" gSeasonDivision
+    write-ini.i32 gCoachINIPath "player" "TEAM-NAME-1" gSeasonRosterArray[gSeasonDivision][10]
+    write-ini.i32 gCoachINIPath "player" "TEAM-NAME-2" gSeasonRosterArray[gSeasonDivision][11]
+    write-ini.i32 gCoachINIPath "player" "TEAM-COLOR-1" gSeasonRosterArray[gSeasonDivision][12]
+    write-ini.i32 gCoachINIPath "player" "TEAM-COLOR-2" gSeasonRosterArray[gSeasonDivision][13]
+    assign-string local10 "schedule"
+    assign-string local11 "season"
+    start-script SaveCoachINIArray gSeasonScheduleArray local10 local11
+    undim local10
+    undim local11
+    assign-string local10 "roster"
+    assign-string local11 "season"
+    start-script SaveCoachINIArray gSeasonRosterArray local10 local11
+    undim local10
+    undim local11
+    assign-string local10 "teams"
+    assign-string local11 "season"
+    start-script SaveCoachINIArray gSeasonTeamsArray local10 local11
+    undim local10
+    undim local11
+    assign-string local10 "names"
+    assign-string local11 "custom"
+    if 1 {
+        dim-array-2d.u8 local7 0 20
+        array-assign-slice local7 gCustomKidNames 0 0 0 20 1 1 0 20
+        start-script SaveCoachINIArray local7 local10 local11
+    } else {
+        start-script SaveCoachINIArray gCustomKidNames local10 local11
+    }
+    undim local10
+    undim local11
+    if local7 {
+        undim local7
+    }
+    if 1 {
+        dim-array-2d.u8 local13 0 36
+        array-assign-slice local13 gBackupKidData 0 0 0 36 264 264 0 36
+    } else {
+        dim-array-2d.u8 local13 (10 - 1) 36
+        array-assign-slice local13 gBackupKidData 0 (10 - 1) 0 36 264 (264 + 10 - 1) 0 36
+    }
+    assign-string local10 "backupstats"
+    assign-string local11 "custom"
+    start-script SaveCoachINIArray local13 local10 local11
+    undim local10
+    undim local11
+    undim local13
+    if (gSeasonGameNumber >= 14) {
+        assign-string local10 "teams"
+        assign-string local11 "playoffs"
+        start-script SaveCoachINIArray gPlayoffTeamsArray local10 local11
+        undim local10
+        undim local11
+        assign-string local10 "schedule"
+        assign-string local11 "playoffs"
+        start-script SaveCoachINIArray gPlayoffScheduleArray local10 local11
+        undim local10
+        undim local11
+        assign-string local10 "roster"
+        assign-string local11 "playoffs"
+        start-script SaveCoachINIArray gPlayoffRosterArray local10 local11
+        undim local10
+        undim local11
+    }
+    write-ini.i32 gCoachINIPath "general" "complete" 1
+    temp = string-length gCoachINIPath
+    local15 = string-substr gCoachINIPath (temp - 2) temp
+    assign-string local14 "baseball2001"
+    sprintf local5 "%s%s.t%s" gSaveGamePath local14 local15
+    undim local15
+    undim local14
+    local12 = open-file local5 FOR-WRITE
+    if (local12 != -1) {
+        temp = array-get-height gGameStats * array-get-width gGameStats + array-get-height gSeasonStats * array-get-width gSeasonStats + array-get-height gPlayoffStats * array-get-width gPlayoffStats
+        dim-array.i16 local6 (temp - 1)
+        local2 = 0
+        for local8 = 0 to (array-get-height gGameStats - 1) + {
+            for local9 = 0 to (array-get-width gGameStats - 1) + {
+                local6[local2] = gGameStats[local8][local9]
+                local2 += 1
+            }
+        }
+        for local8 = 0 to (array-get-height gSeasonStats - 1) + {
+            for local9 = 0 to (array-get-width gSeasonStats - 1) + {
+                local6[local2] = gSeasonStats[local8][local9]
+                local2 += 1
+            }
+        }
+        for local8 = 0 to (array-get-height gPlayoffStats - 1) + {
+            for local9 = 0 to (array-get-width gPlayoffStats - 1) + {
+                local6[local2] = gPlayoffStats[local8][local9]
+                local2 += 1
+            }
+        }
+        redim-array.u8 local6 0 (temp * 2 - 1)
+        write-file.array.u8 local12 local6
+        undim local6
+        close-file local12
+    } else {
+        print-debug.start
+        print-debug.string "Can't write stats!"
+    }
+    undim local5
+    if gGameEnded {
+        start-script AddAllTimeStats
+    }
+}
+
+script LoadCoachINIOptions@111 {
+    var local0 local1
+
+    local0 = read-ini.i32 gCoachINIPath "general" "options"
+    gNoCommentary = band local0 1
+    gNoGooch = band (local0 >> 1) 1
+    gNoMusic = band (local0 >> 2) 1
+    gNoBackgroundSound = band (local0 >> 3) 1
+    gNoPlayerTalking = band (local0 >> 4) 1
+    gNoPlayerChatter = band (local0 >> 5) 1
+    local1 = band (local0 >> 6) 1
+    if local1 {
+        gGameInputDevice = INPUT-DEVICE-GAME-PAD
+    } else {
+        gGameInputDevice = INPUT-DEVICE-MOUSE
+    }
+}
+
+script LoadCoachINIArray@112 arg0 arg1 arg2 {
+    var local3 local4 local5 local6 local7 local8 local9
+
+    local3 = array-get-height arg0
+    local4 = array-get-width arg0
+    dim-array.i16 local8 (local4 - 1)
+    for local5 = 0 to (local3 - 1) + {
+        sprintf local9 "%s%d" arg1 local5
+        local7 = read-ini.string gCoachINIPath arg2 local9
+        start-script scr107 local7 local8
+        for local6 = 0 to (local4 - 1) + {
+            arg0[local5][local6] = local8[local6]
+        }
+        undim local7
+        undim local9
+    }
+    undim local8
+}
+
+script LoadCoach@113 {
+    var _ _ local2 local3 local4 _ _ _ local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19
+
+    if (not gCoachINIPath) {
+        jump L002c
+    }
+    if (not (read-ini.i32 gCoachINIPath "general" "complete")) {
+        L002c:
+        print-debug.start
+        print-debug.string "No/Invalid INI file!!!"
+        print-system.start
+        print-system.string "Sorry, but the coach file you selected is missing data, and cannot be used. Please erase it in the sign-in screen."
+        gSeasonGameNumber = 0
+        if gSeasonScheduleArray {
+            undim gSeasonScheduleArray
+        }
+        if gSeasonRosterArray {
+            undim gSeasonRosterArray
+        }
+        if gSeasonTeamsArray {
+            undim gSeasonTeamsArray
+        }
+        if gPlayoffScheduleArray {
+            undim gPlayoffScheduleArray
+        }
+        if gPlayoffRosterArray {
+            undim gPlayoffRosterArray
+        }
+        if gPlayoffTeamsArray {
+            undim gPlayoffTeamsArray
+        }
+        return 0
+        stop-script 0
+    }
+    gSeasonGameNumber = read-ini.i32 gCoachINIPath "general" "game"
+    start-script LoadCoachINIOptions
+    if (read-ini.i32 gCoachINIPath "general" "over" == 1) {
+        gSeasonOver = 1
+    }
+    if (read-ini.i32 gCoachINIPath "general" "gloriousvictory" == 1) {
+        gGloriousVictory = 1
+    }
+    if (gSeasonGameNumber > 24 || gSeasonOver == 1) {
+        global485 = 1
+        if (gGloriousVictory == 1) {
+            gSeasonOver = 1
+        } else {
+            gSeasonOver = 1
+        }
+    }
+    gCoachHomeField = read-ini.i32 gCoachINIPath "general" "field"
+    gField = gCoachHomeField
+    gGameLength = read-ini.i32 gCoachINIPath "general" "innings"
+    gCoachID = read-ini.i32 gCoachINIPath "general" "ID"
+    gDifficulty = read-ini.i32 gCoachINIPath "general" "skill"
+    gNoBatCircle = read-ini.i32 gCoachINIPath "general" "nobatcircle"
+    gPitchBallIndicator = read-ini.i32 gCoachINIPath "general" "pitchx"
+    gNoErrors = read-ini.i32 gCoachINIPath "general" "noerrors"
+    local8 = read-ini.string gCoachINIPath "general" "coach"
+    if gCoachName {
+        undim gCoachName
+    }
+    if local8 {
+        gCoachName = string-substr local8 0 (min 15 (string-length local8 - 1))
+        undim local8
+    }
+    if gCustomKidNames {
+        undim gCustomKidNames
+    }
+    dim-array-range.u8 gCustomKidNames 0 10 0 20 2
+    assign-string local11 "names"
+    assign-string local12 "custom"
+    if 1 {
+        dim-array.u8 local16 20
+        start-script LoadCoachINIArray local16 local11 local12
+        array-assign-slice gCustomKidNames local16 1 1 0 20 0 0 0 20
+        undim local16
+    } else {
+        start-script LoadCoachINIArray gCustomKidNames local11 local12
+    }
+    undim local11
+    undim local12
+    if 1 {
+        local17 = 0
+    } else {
+        local17 = 10 - 1
+    }
+    dim-array-2d.u8 local15 local17 36
+    assign-string local11 "backupstats"
+    assign-string local12 "custom"
+    start-script LoadCoachINIArray local15 local11 local12
+    array-assign-slice gBackupKidData local15 264 (264 + local17) 0 36 0 local17 0 36
+    undim local11
+    undim local12
+    undim local15
+    array-assign-slice gKidData gBackupKidData 264 (264 + local17) 0 36 264 (264 + local17) 0 36
+    gSeasonDivision = read-ini.i32 gCoachINIPath "player" "DIVISION"
+    start-script ResetSeasonRosterArray
+    gSeasonRosterArray[gSeasonDivision][10] = read-ini.i32 gCoachINIPath "player" "TEAM-NAME-1"
+    gSeasonRosterArray[gSeasonDivision][11] = read-ini.i32 gCoachINIPath "player" "TEAM-NAME-2"
+    gSeasonRosterArray[gSeasonDivision][12] = read-ini.i32 gCoachINIPath "player" "TEAM-COLOR-1"
+    gSeasonRosterArray[gSeasonDivision][13] = read-ini.i32 gCoachINIPath "player" "TEAM-COLOR-2"
+    start-script ResetSeasonScheduleArray
+    assign-string local11 "schedule"
+    assign-string local12 "season"
+    start-script LoadCoachINIArray gSeasonScheduleArray local11 local12
+    undim local11
+    undim local12
+    assign-string local11 "roster"
+    assign-string local12 "season"
+    start-script LoadCoachINIArray gSeasonRosterArray local11 local12
+    undim local11
+    undim local12
+    start-script ResetSeasonTeamsArray
+    assign-string local11 "teams"
+    assign-string local12 "season"
+    start-script LoadCoachINIArray gSeasonTeamsArray local11 local12
+    undim local11
+    undim local12
+    if (gSeasonGameNumber >= 14) {
+        start-script ResetPlayoffTeamsArray
+        assign-string local11 "teams"
+        assign-string local12 "playoffs"
+        start-script LoadCoachINIArray gPlayoffTeamsArray local11 local12
+        undim local11
+        undim local12
+        start-script ResetPlayoffScheduleArray
+        assign-string local11 "schedule"
+        assign-string local12 "playoffs"
+        start-script LoadCoachINIArray gPlayoffScheduleArray local11 local12
+        undim local11
+        undim local12
+        start-script ResetPlayoffRosterArray
+        assign-string local11 "roster"
+        assign-string local12 "playoffs"
+        start-script LoadCoachINIArray gPlayoffRosterArray local11 local12
+        undim local11
+        undim local12
+    }
+    local14 = call-script IsSeasonRosterValid
+    temp = string-length gCoachINIPath
+    local19 = string-substr gCoachINIPath (temp - 2) temp
+    assign-string local18 "baseball2001"
+    sprintf local10 "%s%s.t%s" gSaveGamePath local18 local19
+    undim local19
+    undim local18
+    local13 = open-file local10 FOR-READ
+    if (local13 != -1) {
+        temp = array-get-height gGameStats * array-get-width gGameStats + array-get-height gSeasonStats * array-get-width gSeasonStats + array-get-height gPlayoffStats * array-get-width gPlayoffStats
+        local9 = read-file.array.u8 local13 (temp * 2 - 1)
+        close-file local13
+        redim-array.i16 local9 0 (temp - 1)
+        local4 = 0
+        for local2 = 0 to (array-get-height gGameStats - 1) + {
+            for local3 = 0 to (array-get-width gGameStats - 1) + {
+                gGameStats[local2][local3] = local9[local4]
+                local4 += 1
+            }
+        }
+        for local2 = 0 to (array-get-height gSeasonStats - 1) + {
+            for local3 = 0 to (array-get-width gSeasonStats - 1) + {
+                gSeasonStats[local2][local3] = local9[local4]
+                local4 += 1
+            }
+        }
+        for local2 = 0 to (array-get-height gPlayoffStats - 1) + {
+            for local3 = 0 to (array-get-width gPlayoffStats - 1) + {
+                gPlayoffStats[local2][local3] = local9[local4]
+                local4 += 1
+            }
+        }
+        undim local9
+    } else {
+        print-debug.start
+        print-debug.string "No Stats!!"
+    }
+    undim local10
+    if (gDebug == 101) {
+        start-script DumpSeasonRosterFile
+        start-script DumpSeasonScheduleFile
+    }
+    return local14
+}
+
+script DumpSeasonScheduleFile@114 arg0 arg1 {
+    var local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12
+
+    if arg1 {
+        global656 = 0
+    }
+    if (not arg0) {
+        arg0 = 13
+    }
+    sprintf local2 "c:\\Windows\\Desktop\\seasonrosterfolder\\SeasonSchedule%d.txt" global656
+    inc global656
+    local3 = open-file local2 FOR-WRITE
+    if (not local3) {
+        print-debug.start
+        print-debug.printf "Error %d in opening file %s" gIOError local2
+        debug 0
+    }
+    assign-string local4 "These are the teams this season:"
+    sprintf local5 "%c%c" 13 10
+    write-file.array.u8 local3 local4
+    for local6 = 0 to 23 + {
+        if (local6 % 4 == 0) {
+            write-file.array.u8 local3 local5
+        }
+        local12 = call-script ReadSeasonTeams local6
+        local10 = call-script GetTeamNameString local12
+        write-file.array.u8 local3 local10
+        undim local10
+    }
+    undim local4
+    assign-string local4 "This file contains the contents of the gSeasonScheduleArray:"
+    write-file.array.u8 local3 local5
+    write-file.array.u8 local3 local4
+    write-file.array.u8 local3 local5
+    for local6 = 0 to 23 + {
+        local10 = call-script GetTeamPrefixString gSeasonRosterArray[local6][10]
+        local11 = call-script GetTeamNameString gSeasonTeamsArray[local6 / 4][local6 % 4]
+        write-file.array.u8 local3 local10
+        write-file.array.u8 local3 local11
+        write-file.array.u8 local3 local5
+        undim local10
+        undim local11
+        for local7 = 0 to arg0 + {
+            local10 = call-script GetTeamNameString (call-script ReadSeasonSchedule local6 local7 0)
+            case (call-script ReadSeasonSchedule local6 local7 SS-STATUS) {
+                0 {
+                    assign-string local8 "NotPlayed"
+                }
+                1 {
+                    assign-string local8 "Finished"
+                }
+                2 {
+                    assign-string local8 "Current"
+                }
+                3 {
+                    assign-string local8 "FinishedUnplayed"
+                }
+                else {
+                    print-debug.start
+                    print-debug.printf "Bad SS-STATUS value for division %d, round %d" local6 local7
+                    debug 0
+                }
+            }
+            case (call-script ReadSeasonSchedule local6 local7 SS-HOME-OR-AWAY) {
+                0 {
+                    assign-string local11 "Home"
+                }
+                1 {
+                    assign-string local11 "Away"
+                }
+                else {
+                    print-debug.start
+                    print-debug.printf "bad SS-HOME-OR-AWAY slot for div %d, round %d" local6 local7
+                    debug 0
+                }
+            }
+            sprintf local9 "Round %d, Opponent: %s   Status: %s  Myscore: %d  TheirScore: %d  %s" local7 local10 local8 (call-script ReadSeasonSchedule local6 local7 3) (call-script ReadSeasonSchedule local6 local7 4) local11
+            write-file.array.u8 local3 local9
+            write-file.array.u8 local3 local5
+            undim local8
+            undim local10
+            undim local11
+            undim local9
+        }
+        write-file.array.u8 local3 local5
+        write-file.array.u8 local3 local5
+    }
+    close-file local3
+    undim local2
+    undim local4
+    undim local5
+    print-debug.start
+    print-debug.printf "Created file SeasonSchedule%d.txt" (global656 - 1)
+}
+
+script DumpPlayoffScheduleFile@115 arg0 arg1 {
+    var local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12
+
+    if arg1 {
+        global656 = 0
+    }
+    if (not arg0) {
+        arg0 = 24
+    }
+    sprintf local2 "c:\\Windows\\Desktop\\seasonrosterfolder\\PlayoffSchedule%d.txt" global656
+    inc global656
+    local3 = open-file local2 FOR-WRITE
+    if (not local3) {
+        print-debug.start
+        print-debug.printf "Error %d in opening file %s" gIOError local2
+        debug 0
+    }
+    assign-string local4 "These are the teams in the playoffs:"
+    sprintf local5 "%c%c" 13 10
+    write-file.array.u8 local3 local4
+    for local6 = 0 to 7 + {
+        if (local6 % 4 == 0) {
+            write-file.array.u8 local3 local5
+        }
+        local12 = call-script ReadSeasonTeams local6
+        local10 = call-script GetTeamNameString local12
+        write-file.array.u8 local3 local10
+        undim local10
+    }
+    undim local4
+    assign-string local4 "This file contains the contents of the gPlayoffScheduleArray:"
+    write-file.array.u8 local3 local5
+    write-file.array.u8 local3 local4
+    write-file.array.u8 local3 local5
+    for local6 = 0 to 7 + {
+        local10 = call-script GetTeamPrefixString gPlayoffRosterArray[local6][10]
+        local11 = call-script GetTeamNameString gPlayoffTeamsArray[local6]
+        write-file.array.u8 local3 local10
+        write-file.array.u8 local3 local11
+        write-file.array.u8 local3 local5
+        undim local10
+        undim local11
+        for local7 = 14 to arg0 + {
+            local10 = call-script GetTeamNameString (call-script ReadPlayoffSchedule local6 local7 0)
+            case (call-script ReadPlayoffSchedule local6 local7 2) {
+                0 {
+                    assign-string local8 "NotPlayed"
+                }
+                1 {
+                    assign-string local8 "Finished"
+                }
+                2 {
+                    assign-string local8 "Current"
+                }
+                3 {
+                    assign-string local8 "FinishedUnplayed"
+                }
+                else {
+                    print-debug.start
+                    print-debug.printf "Bad SS-STATUS value for playoff-category team %d, round %d" local6 local7
+                    debug 0
+                }
+            }
+            case (call-script ReadPlayoffSchedule local6 local7 6) {
+                0 {
+                    assign-string local11 "Home"
+                }
+                1 {
+                    assign-string local11 "Away"
+                }
+                else {
+                    print-debug.start
+                    print-debug.printf "bad SS-HOME-OR-AWAY slot for div %d, round %d" local6 local7
+                    debug 0
+                }
+            }
+            sprintf local9 "Round %d, Opponent: %s   Status: %s  Myscore: %d  TheirScore: %d  %s" local7 local10 local8 (call-script ReadPlayoffSchedule local6 local7 3) (call-script ReadPlayoffSchedule local6 local7 4) local11
+            write-file.array.u8 local3 local9
+            write-file.array.u8 local3 local5
+            undim local8
+            undim local10
+            undim local11
+            undim local9
+        }
+        write-file.array.u8 local3 local5
+        write-file.array.u8 local3 local5
+    }
+    close-file local3
+    undim local2
+    undim local4
+    undim local5
+    print-debug.start
+    print-debug.printf "Created file PlayoffSchedule%d.txt" (global656 - 1)
+}
+
+script DumpPlayoffRosterFile@116 arg0 {
+    var local1 local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19
+
+    if arg0 {
+        global656 = 0
+    }
+    sprintf local2 "c:\\Windows\\Desktop\\seasonrosterfolder\\PlayoffRoster%d.txt" global656
+    inc global656
+    local3 = open-file local2 FOR-WRITE
+    if (not local3) {
+        print-debug.start
+        print-debug.printf "Error %d in opening file %s" gIOError local2
+        debug 0
+    }
+    assign-string local4 "This file contains the contents of the gPlayoffRosterArray:"
+    sprintf local5 "%c%c" 13 10
+    write-file.array.u8 local3 local4
+    write-file.array.u8 local3 local5
+    for local1 = 0 to 7 + {
+        local18 = call-script GetTeamPrefixString gPlayoffRosterArray[local1][10]
+        local19 = call-script GetTeamNameString gPlayoffRosterArray[local1][11]
+        write-file.array.u8 local3 local18
+        write-file.array.u8 local3 local19
+        write-file.array.u8 local3 local5
+        start-script GetKidName gPlayoffRosterArray[local1][0]
+        local6 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][1]
+        local7 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][2]
+        local8 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][3]
+        local9 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][4]
+        local10 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][5]
+        local11 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][6]
+        local12 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][7]
+        local13 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][8]
+        local14 = string-copy gKidName
+        sprintf local15 "     kids: %s %s %s %s %s %s %s %s %s" local6 local7 local8 local9 local10 local11 local12 local13 local14
+        write-file.array.u8 local3 local15
+        write-file.array.u8 local3 local5
+        sprintf local16 "     colors: %d %d     wins: %d  losses: %d   Coach: %d" gPlayoffRosterArray[local1][12] gPlayoffRosterArray[local1][13] gPlayoffRosterArray[local1][14] gPlayoffRosterArray[local1][15] gPlayoffRosterArray[local1][9]
+        write-file.array.u8 local3 local16
+        write-file.array.u8 local3 local5
+        undim local6
+        undim local7
+        undim local8
+        undim local9
+        undim local10
+        undim local11
+        undim local12
+        undim local13
+        undim local14
+        start-script GetKidName gPlayoffRosterArray[local1][0 + 16]
+        local6 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][1 + 16]
+        local7 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][2 + 16]
+        local8 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][3 + 16]
+        local9 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][4 + 16]
+        local10 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][5 + 16]
+        local11 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][6 + 16]
+        local12 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][7 + 16]
+        local13 = string-copy gKidName
+        start-script GetKidName gPlayoffRosterArray[local1][8 + 16]
+        local14 = string-copy gKidName
+        sprintf local17 "     bat-order: %s %s %s %s %s %s %s %s %s" local6 local7 local8 local9 local10 local11 local12 local13 local14
+        write-file.array.u8 local3 local17
+        write-file.array.u8 local3 local5
+        write-file.array.u8 local3 local5
+        undim local18
+        undim local19
+        undim local15
+        undim local16
+        undim local17
+        undim local6
+        undim local7
+        undim local8
+        undim local9
+        undim local10
+        undim local11
+        undim local12
+        undim local13
+        undim local14
+    }
+    close-file local3
+    undim local2
+    undim local4
+    undim local5
+    print-debug.start
+    print-debug.printf "Created file PlayoffRoster%d.txt" (global656 - 1)
+}
+
+script DumpSeasonRosterFile@117 arg0 {
+    var local1 local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19
+
+    if arg0 {
+        global656 = 0
+    }
+    sprintf local2 "c:\\Windows\\Desktop\\seasonrosterfolder\\SeasonRoster%d.txt" global656
+    inc global656
+    local3 = open-file local2 FOR-WRITE
+    if (not local3) {
+        print-debug.start
+        print-debug.printf "Error %d in opening file %s" gIOError local2
+        debug 0
+    }
+    assign-string local4 "This file contains the contents of the gSeasonRosterArray:"
+    sprintf local5 "%c%c" 13 10
+    write-file.array.u8 local3 local4
+    write-file.array.u8 local3 local5
+    for local1 = 0 to 23 + {
+        local18 = call-script GetTeamPrefixString gSeasonRosterArray[local1][10]
+        local19 = call-script GetTeamNameString gSeasonRosterArray[local1][11]
+        write-file.array.u8 local3 local18
+        write-file.array.u8 local3 local19
+        write-file.array.u8 local3 local5
+        start-script GetKidName gSeasonRosterArray[local1][0]
+        local6 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][1]
+        local7 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][2]
+        local8 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][3]
+        local9 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][4]
+        local10 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][5]
+        local11 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][6]
+        local12 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][7]
+        local13 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][8]
+        local14 = string-copy gKidName
+        sprintf local15 "     kids: %s %s %s %s %s %s %s %s %s" local6 local7 local8 local9 local10 local11 local12 local13 local14
+        write-file.array.u8 local3 local15
+        write-file.array.u8 local3 local5
+        sprintf local16 "     colors: %d %d     wins: %d  losses: %d   Coach: %d" gSeasonRosterArray[local1][12] gSeasonRosterArray[local1][13] gSeasonRosterArray[local1][14] gSeasonRosterArray[local1][15] gSeasonRosterArray[local1][9]
+        write-file.array.u8 local3 local16
+        write-file.array.u8 local3 local5
+        undim local6
+        undim local7
+        undim local8
+        undim local9
+        undim local10
+        undim local11
+        undim local12
+        undim local13
+        undim local14
+        start-script GetKidName gSeasonRosterArray[local1][0 + 16]
+        local6 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][1 + 16]
+        local7 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][2 + 16]
+        local8 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][3 + 16]
+        local9 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][4 + 16]
+        local10 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][5 + 16]
+        local11 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][6 + 16]
+        local12 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][7 + 16]
+        local13 = string-copy gKidName
+        start-script GetKidName gSeasonRosterArray[local1][8 + 16]
+        local14 = string-copy gKidName
+        sprintf local17 "     bat-order: %s %s %s %s %s %s %s %s %s" local6 local7 local8 local9 local10 local11 local12 local13 local14
+        write-file.array.u8 local3 local17
+        write-file.array.u8 local3 local5
+        write-file.array.u8 local3 local5
+        undim local18
+        undim local19
+        undim local15
+        undim local16
+        undim local17
+        undim local6
+        undim local7
+        undim local8
+        undim local9
+        undim local10
+        undim local11
+        undim local12
+        undim local13
+        undim local14
+    }
+    close-file local3
+    undim local2
+    undim local4
+    undim local5
+    print-debug.start
+    print-debug.printf "Created file SeasonRoster%d.txt" (global656 - 1)
+}
+
+script ResetSeasonRosterArray@118 {
+    if gSeasonRosterArray {
+        undim gSeasonRosterArray
+    }
+    dim-array-2d.i16 gSeasonRosterArray 23 (16 + 9 - 1)
+}
+
+script ResetSeasonScheduleArray@119 {
+    if gSeasonScheduleArray {
+        undim gSeasonScheduleArray
+    }
+    dim-array-2d.u8 gSeasonScheduleArray 24 (15 * 7)
+}
+
+script ResetSeasonTeamsArray@120 {
+    if gSeasonTeamsArray {
+        undim gSeasonTeamsArray
+    }
+    dim-array-2d.u8 gSeasonTeamsArray 5 3
+}
+
+script ReadSeasonSchedule@121 arg0 arg1 field {
+    return gSeasonScheduleArray[arg0][arg1 * 7 + field]
+}
+
+script WriteSeasonSchedule@122 arg0 arg1 field arg3 {
+    gSeasonScheduleArray[arg0][arg1 * 7 + field] = arg3
+}
+
+script WriteActiveSchedule@123 arg0 arg1 field arg3 {
+    var local4
+
+    if (arg1 >= 14) {
+        local4 = call-script smth_find_playoffs arg0
+        start-script WritePlayoffSchedule local4 arg1 field arg3
+    } else {
+        start-script WriteSeasonSchedule arg0 arg1 field arg3
+    }
+}
+
+script ReadActiveSchedule@124 arg0 arg1 arg2 {
+    var local3 local4
+
+    if (arg1 >= 14) {
+        local3 = call-script smth_find_playoffs arg0
+        local4 = call-script ReadPlayoffSchedule local3 arg1 arg2
+    } else {
+        local4 = call-script ReadSeasonSchedule arg0 arg1 arg2
+    }
+    return local4
+}
+
+script scr125@125 {
+    var local0 local1 local2 local3
+
+    if (gSeasonGameNumber >= 14) {
+        local3 = call-script smth_find_playoffs local0
+        gPlayoffRosterArray[local3][local1] = local2
+    } else {
+        gSeasonRosterArray[local0][local1] = local2
+    }
+}
+
+script ReadActiveRoster@126 arg0 arg1 arg2 {
+    var local3
+
+    if (gSeasonGameNumber >= 14) {
+        arg2 = call-script smth_find_playoffs arg0
+        local3 = gPlayoffRosterArray[arg2][arg1]
+    } else {
+        local3 = gSeasonRosterArray[arg0][arg1]
+    }
+    return local3
+}
+
+script scr127@127 {
+    var local0 local1 local2 local3 local4
+
+    if (0 == local2 || local2 >= array-get-length local0) {
+        local2 = array-get-length local0 - 1
+    }
+    local3 = 0
+    while (local4 <= local2 && local3 == 0) {
+        if (local1 == local0[local4]) {
+            local3 = 1
+        }
+        inc local4
+    }
+    return local3
+}
+
+script ReadSeasonTeams@128 arg0 arg1 arg2 {
+    arg1 = arg0 / 4
+    arg2 = arg0 % 4
+    return gSeasonTeamsArray[arg1][arg2]
+}
+
+script scr129@129 {
+    var local0 local1
+
+    if (local0 >= 122 && local0 <= 151) {
+        local1 = 1
+    }
+    return local1
+}
+
+script scr130@130 {
+    var local0 local1 local2
+
+    local2 = call-script ReadSeasonTeams local0
+    local1 = call-script scr129 local2
+    return local1
+}
+
+script smth_find_season_team@131 arg0 {
+    var local1 local2 local3 local4
+
+    local2 = 0
+    while (not local4) {
+        for local3 = 0 to 3 + {
+            if (gSeasonTeamsArray[local2][local3] == arg0) {
+                local1 = local2 * 4 + local3
+                local4 = 1
+            }
+        }
+        inc local2
+    }
+    return local1
+}
+
+script scr132@132 {
+    var local0 local1 local2
+
+    local2 = call-script smth_find_season_team local0
+    case 1 {
+        (local2 < 4) {
+            local1 = 0
+        }
+        (local2 < 8) {
+            local1 = 1
+        }
+        (local2 < 12) {
+            local1 = 2
+        }
+        (local2 < 16) {
+            local1 = 3
+        }
+        (local2 < 20) {
+            local1 = 4
+        }
+        else {
+            local1 = 5
+        }
+    }
+    return local1
+}
+
+script scr133@133 {
+    var local0 local1
+
+    case 1 {
+        (local0 < 4) {
+            local1 = 0
+        }
+        (local0 < 8) {
+            local1 = 1
+        }
+        (local0 < 12) {
+            local1 = 2
+        }
+        (local0 < 16) {
+            local1 = 3
+        }
+        (local0 < 20) {
+            local1 = 4
+        }
+        else {
+            local1 = 5
+        }
+    }
+    return local1
+}
+
+script scr134@134 {
+    return gTeamInfo[0][TI-TEAM-NOUN]
+}
+
+script GetSeasonDivision@135 {
+    return gSeasonDivision
+}
+
+script SetFieldForSeasonGame@136 {
+    var local0 local1 local2
+
+    case gSeasonGameNumber {
+        [17 18 19] {
+            gField = BIG-CITY-STADIUM
+        }
+        [20 21 22 23 24] {
+            gField = SUPER-COLOSSAL-DOME
+        }
+        else {
+            if (call-script ReadActiveSchedule gSeasonDivision gSeasonGameNumber 6 == 1) {
+                local1 = call-script ReadActiveSchedule gSeasonDivision gSeasonGameNumber 0
+                local0 = call-script smth_find_season_team local1
+                local2 = local0 % 8
+                gField = pick local2 [6 7 9 2 3 1 6 3 1]
+                if (gField == gCoachHomeField) {
+                    gField = DIRT-YARDS
+                }
+            } else {
+                gField = gCoachHomeField
+            }
+        }
+    }
+}
+
+script RefreshTeams@137 {
+    var local0 _ ai_pos user_pos _ local5 local6 local7
+
+    if (gSeasonOver && gSeasonGameNumber == 14) {
+        gSeasonGameNumber = 14 - 1
+    }
+    if (gSeasonGameNumber > 24) {
+        gSeasonGameNumber = 24
+    }
+    local5 = call-script ReadActiveSchedule gSeasonDivision gSeasonGameNumber 6
+    if (0 == local5) {
+        gVisitorInfoIndex = 1
+        ai_pos = gVisitorInfoIndex
+        gHomeInfoIndex = 0
+        user_pos = gHomeInfoIndex
+    } else {
+        gHomeInfoIndex = 1
+        ai_pos = gHomeInfoIndex
+        gVisitorInfoIndex = 0
+        user_pos = gVisitorInfoIndex
+    }
+    gTeamInfo[user_pos][TI-CONTROLLED-BY] = CB-USER
+    gTeamInfo[user_pos][TI-BATTING-POSITION] = 1
+    gTeamInfo[user_pos][TI-RUNS] = 0
+    gTeamInfo[user_pos][TI-TEAM-ADJECTIVE] = call-script ReadActiveRoster gSeasonDivision 10
+    gTeamInfo[user_pos][TI-TEAM-NOUN] = call-script ReadActiveRoster gSeasonDivision 11
+    gTeamInfo[user_pos][TI-PRIMARY-COLOR] = call-script ReadActiveRoster gSeasonDivision 12
+    gTeamInfo[user_pos][TI-SECONDARY-COLOR] = call-script ReadActiveRoster gSeasonDivision 13
+    gTeamInfo[user_pos][TI-FIELDING-ORDER] = gPickOrder1
+    gTeamInfo[user_pos][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+    for local0 = 0 to (9 - 1) + {
+        gPickOrder1[local0] = call-script ReadActiveRoster gSeasonDivision local0
+        gBattingOrder1[local0] = call-script ReadActiveRoster gSeasonDivision (local0 + 16)
+    }
+    gTeamInfo[ai_pos][TI-CONTROLLED-BY] = CB-COMPUTER
+    gTeamInfo[ai_pos][TI-BATTING-POSITION] = 1
+    gTeamInfo[ai_pos][TI-RUNS] = 0
+    local7 = call-script ReadActiveSchedule gSeasonDivision gSeasonGameNumber 0
+    if local7 {
+        local6 = call-script smth_find_season_team local7
+        gTeamInfo[ai_pos][TI-TEAM-ADJECTIVE] = call-script ReadActiveRoster local6 10
+        gTeamInfo[ai_pos][TI-TEAM-NOUN] = call-script ReadActiveRoster local6 11
+        gTeamInfo[ai_pos][TI-PRIMARY-COLOR] = call-script ReadActiveRoster local6 12
+        gTeamInfo[ai_pos][TI-SECONDARY-COLOR] = call-script ReadActiveRoster local6 13
+        gTeamInfo[ai_pos][TI-FIELDING-ORDER] = gPickOrder2
+        gTeamInfo[ai_pos][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+        for local0 = 0 to (9 - 1) + {
+            gPickOrder2[local0] = call-script ReadActiveRoster local6 local0
+            gBattingOrder2[local0] = call-script ReadActiveRoster local6 (local0 + 16)
+        }
+        start-script SetFieldForSeasonGame
+    } else {
+        print-debug.start
+        print-debug.string "RefreshTeams found no T2 -- didn't fill in opponent info"
+    }
+}
+
+script teamPlaysThisPlayoffRound@138 arg0 arg1 {
+    var local2
+
+    if (0 == arg1) {
+        arg1 = gSeasonGameNumber
+    }
+    if (arg1 == gSeasonGameNumber) {
+        if (1 == call-script ReadPlayoffSchedule arg0 arg1 2) {
+            return 0
+        }
+    }
+    case arg1 {
+        [14 15] {
+            local2 = 1
+        }
+        16 {
+            if (gPlayoffRosterArray[arg0][14] == 1 && gPlayoffRosterArray[arg0][15] == 1) {
+                local2 = 1
+            }
+        }
+        [17 18] {
+            if (gPlayoffRosterArray[arg0][14] >= 2) {
+                local2 = 1
+            }
+        }
+        19 {
+            if (gPlayoffRosterArray[arg0][14] == 3) {
+                local2 = 1
+            }
+        }
+        [20 21 22] {
+            if (gPlayoffRosterArray[arg0][14] >= 4) {
+                local2 = 1
+            }
+        }
+        23 {
+            if (gPlayoffRosterArray[arg0][14] >= 5 && gPlayoffRosterArray[arg0][14] <= 7) {
+                local2 = 1
+            }
+        }
+        24 {
+            if (gPlayoffRosterArray[arg0][14] == 6 && gPlayoffRosterArray[arg0][14] == 7) {
+                local2 = 1
+            }
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error: bad round for teamPlaysThisPlayoffRound: %d" arg1
+            debug 0
+        }
+    }
+    return local2
+}
+
+script DebugShowPalette@139 {
+    var local0 local1 local2 local3 local4 local5 local6 local7
+
+    if (not global613) {
+        dim-array.i16 global613 5
+        global613[0] = 2
+        global613[1] = 256
+        global613[2] = 256
+        global613[3] = 1
+        global613[4] = 0
+        global613[5] = 0
+    }
+    image.init image98
+    image.new
+    image.width global613[2]
+    image.height global613[1]
+    image.end
+    image.init image98
+    image.draw-box 0 0 global613[2] global613[1] 0
+    image.end
+    local6 = global613[2] / 16
+    local7 = global613[1] / 16
+    for local0 = 0 to 15 + {
+        for local1 = 0 to 15 + {
+            local2 = local0 * local6
+            local3 = local1 * local7
+            local4 = palette-get-color global613[3] (local0 * 16 + local1)
+            image.init image98
+            image.draw-box local2 local3 (local2 + local6) (local3 + local7) local4
+            image.end
+        }
+    }
+    window.init global613[0]
+    window.image 98
+    window.end
+    sprintf local5 "Showing palette %d" global613[3]
+    window.init global613[0]
+    window.title-bar local5
+    window.end
+    window.init global613[0]
+    window.script 140
+    window.end
+    undim local5
+}
+
+script DebugPaletteStuff@140 _ arg1 arg2 arg3 {
+    var _ _ _ _ _ _ local10 local11 local12 local13 local14 local15 local16
+
+    case arg1 {
+        101 {
+            local10 = global613[2] / 16
+            local11 = global613[1] / 16
+            local12 = arg2 / local10 * 16 + arg3 / local11
+            local13 = palette-get-color global613[3] local12
+            sprintf local14 "Palette %d slot %d color %d" global613[3] local12 local13
+            window.init global613[0]
+            window.title-bar local14
+            window.end
+            undim local14
+        }
+        106 {
+            window.init global613[0]
+            window.image 0
+            window.end
+        }
+        107 {
+            case arg2 {
+                43 {
+                    inc-array-item global613 3
+                    if (global613[3] > gNumPalettes) {
+                        global613[3] = 1
+                    }
+                    start-script DebugShowPalette
+                }
+                45 {
+                    dec-array-item global613 3
+                    if (global613[3] < 1) {
+                        global613[3] = gNumPalettes
+                    }
+                    start-script DebugShowPalette
+                }
+                112 {
+                    local15 = debug-input "Enter palette number to display"
+                    local16 = string-number local15
+                    undim local15
+                    if (local16 >= 1 && local16 <= gNumPalettes) {
+                        global613[3] = local16
+                        start-script DebugShowPalette
+                    }
+                }
+                113 {
+                    window.init global613[0]
+                    window.image 0
+                    window.end
+                }
+                114 {
+                    start-script DebugShowPalette
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+}
+
+script PrintSCUMMTime@141 {
+    var local0 local1
+
+    local0 = gMaxCharset
+    charset charset6
+    local1 = rgb 255 255 255
+    draw-box (320 - 24) 0 (320 + 24) 16 (local1 + 32768)
+    print-text.start
+    print-text.at (320 - 24) 4
+    print-text.printf " %d : %d" global97 global96
+}
+
+script PrintNetworkTime@142 {
+    var local0
+
+    local0 = gMaxCharset
+    charset charset6
+    draw-box (320 - 50) 0 (320 + 50) 16 (15 + 32768)
+    print-text.start
+    print-text.center
+    print-text.at 320 4
+    print-text.printf " %d " global136
+    if local0 {
+        charset local0
+    }
+}
+
+script VerifyArray8Bit@404 arg0 {
+    var local1
+
+    if (not arg0) {
+        print-debug.start
+        print-debug.string "Tried to verify 8-bit status of non-existant array."
+        stop-script 0
+    }
+    local1 = arg0[0]
+    arg0[0] = 257
+    if (257 == arg0[0]) {
+        print-debug.start
+        print-debug.printf "Erro: Array %d is not 8-bit!" arg0
+        debug 0
+    }
+    arg0[0] = local1
+}
+
+script IsSeasonRosterValid@405 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10
+
+    dim-array.u8 local0 273
+    for local1 = 0 to 23 + {
+        for local3 = 0 to (9 - 1) + {
+            local2 = gSeasonRosterArray[local1][local3]
+            case 1 {
+                (local2 < 1) {
+                    print-debug.start
+                    print-debug.printf "Oh no!  Bad kid picked! %d" local2
+                    debug 0
+                }
+                (local2 <= 30) {
+                    inc local8
+                }
+                (local2 <= 61) {
+                    inc local7
+                }
+                (local2 <= 231) {
+                    inc local9
+                }
+                (local2 <= 262) {
+                    inc local10
+                }
+                (local2 <= 273) {
+                    inc local6
+                }
+                else {
+                    print-debug.start
+                    print-debug.string "Kid not BY, MLB, Clone, or Mirror!"
+                    debug 0
+                }
+            }
+            local0[local2] = local0[local2] + 1
+        }
+    }
+    for local5 = 1 to 273 + {
+        if (local0[local5] > 1) {
+            inc local4
+            print-debug.start
+            print-debug.printf "Oh no!  Kid %d picked %d times!" local5 local0[local5]
+        }
+    }
+    undim local0
+    if local4 {
+        print-debug.start
+        print-debug.printf "There were %d errors in the team Rosters." local4
+        return 0
+    } else {
+        return 1
+    }
+}
+
+script smth_nav407@407 arg0 {
+    var local1 local2
+
+    if (sprite-get-object-y gNavButtons[2][0] == 240) {
+        stop-script 0
+    }
+    if global596 {
+        stop-script 0
+    }
+    gLastHoverNumber = 0
+    sprite.init gNavButtons[2][0]
+    sprite.state 8
+    gSpriteCursorTargets[gNavButtons[2][0]][TARGET-CLICK-SCRIPT] = scr409
+    gNavButtons[5][0] = gMouseHookScript
+    gMouseHookScript = maybe_NavMouseHookHandler
+    gNavButtons[5][1] = gInputHandlerScript
+    gInputHandlerScript = maybe_NavInputHandler
+    if (not arg0) {
+        break-here
+        local2 = 0 - image-get-height image642 8 / 5
+        for local1 = 1 to 5 + {
+            sprite.init gNavButtons[2][0]
+            sprite.move 0 local2
+            break-here
+        }
+    }
+    sprite.init gNavButtons[2][0]
+    sprite.at 320 240
+}
+
+script smth_nav408@408 arg0 {
+    var local1 local2
+
+    if (not gNavButtons) {
+        stop-script 0
+    }
+    if (sprite-get-object-y gNavButtons[2][0] != 240) {
+        stop-script 0
+    }
+    gLastHoverNumber = 0
+    if (not arg0) {
+        break-here
+        local2 = image-get-height image642 8 / 5
+        for local1 = 1 to 5 + {
+            sprite.init gNavButtons[2][0]
+            sprite.move 0 local2
+            break-here
+        }
+    }
+    sprite.init gNavButtons[2][0]
+    sprite.state 5
+    gSpriteCursorTargets[gNavButtons[2][0]][TARGET-CLICK-SCRIPT] = HandleNavButtonClick
+    sprite.init gNavButtons[2][0]
+    sprite.at 320 (240 + image-get-height image642 8)
+    gMouseHookScript = gNavButtons[5][0]
+    if gNavButtons[5][1] {
+        gInputHandlerScript = gNavButtons[5][1]
+    }
+}
+
+script scr409@409 {
+    var local0
+
+    if (g_maybe_net_yell_sound == 0) {
+        local0 = random 7
+        start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 6 local0
+    } else {
+    }
+}
+
+script maybe_NavMouseHookHandler@410 arg0 arg1 {
+    if (arg0 == 2) {
+        if (arg1 == gNavButtons[2][0]) {
+            gMouseHookFlags = 8
+            return arg1
+        }
+    }
+    gMouseHookFlags = 134217728
+    return -1
+}
+
+script maybe_NavInputHandler@411 {
+    var local0 local1 local2
+
+    local0 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+    local1 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadY gMouseY
+    local2 = find-sprite local0 local1 0 0 [32 18]
+    if local2 {
+        if (local2 == gNavButtons[2][0]) {
+            start-script gSpriteCursorTargets[gNavButtons[2][0]][TARGET-CLICK-SCRIPT]
+        }
+    }
+}
+
+script CalcStringPixelWidth@416 string arg1 arg2 arg3 {
+    var local4 result local6 local7 local8
+
+    result = 0
+    local6 = string-length string - 1
+    local7 = max 1 (image-get-width arg1 (iif arg3 arg3 87))
+    if (local6 >= 0) {
+        for local4 = 0 to local6 + {
+            if arg3 {
+                local8 = (local7 - image-get-width arg1 string[local4]) / 2
+            }
+            if arg3 {
+                result += local7 + arg2
+            } else {
+                result = iif (string[local4] == ' ') (result + local7 / 3) (result + image-get-width arg1 string[local4] + arg2)
+                if (in string[local4] ['W']) {
+                    result -= 1
+                }
+            }
+        }
+    }
+    return result
+}
+
+script scr424@424 {
+    var local0 local1 local2 local3
+
+    if (sprite-get-object-y gNavButtons[3][0] == 240) {
+        stop-script 0
+    }
+    gLastHoverNumber = 0
+    gNavButtons[6][1] = local0
+    sprite.init gNavButtons[3][0]
+    sprite.state local0
+    sprite.at 320 (240 + image-get-height image642 local0)
+    if (not local1) {
+        break-here
+        local3 = 0 - image-get-height image642 local0 / 5
+        for local2 = 1 to 5 + {
+            sprite.init gNavButtons[3][0]
+            sprite.move 0 local3
+            break-here
+        }
+    }
+    sprite.init gNavButtons[3][0]
+    sprite.at 320 240
+}
+
+script scr425@425 {
+    var local0 local1 local2 local3
+
+    if (not gNavButtons) {
+        stop-script 0
+    }
+    local3 = gNavButtons[6][1]
+    gLastHoverNumber = 0
+    if (sprite-get-object-y gNavButtons[3][0] != 240) {
+        stop-script 0
+    }
+    if (not local0) {
+        break-here
+        local2 = image-get-height image642 local3 / 5
+        for local1 = 1 to 5 + {
+            sprite.init gNavButtons[3][0]
+            sprite.move 0 local2
+            break-here
+        }
+    }
+    sprite.init gNavButtons[3][0]
+    sprite.at 320 (240 + image-get-height image642 local3)
+    gNavButtons[6][1] = 0
+}
+
+local-script lsc2048@2048 {
+}
+
+local-script PlayLogoCutscene@2049 {
+    var palette
+
+    preload-room baseball
+    override L0081
+    if 1751 {
+        sound.start sound1751
+        sound.end
+    }
+    break-until (not (sound-running sound1751))
+    if 1750 {
+        sound.start sound1750
+        sound.end
+    }
+    image.init image94
+    image.at 0 0
+    image.flags 1
+    image.draw
+    image.end
+    global257 = 1
+    break-until (not (sound-running sound1750))
+    palette = call-script AllocPalette
+    palette.init palette
+    palette.from-image 99 0
+    palette.end
+    image.init image99
+    image.at 0 0
+    image.palette palette
+    image.draw
+    image.end
+    global257 = 1
+    break-here.multi 20
+    L0081:
+    if (not g_maybe_skipped_cutscene) {
+        override-off
+    } else {
+        stop-sound 10001
+    }
+    if palette {
+        start-script FreePalette palette
+    }
+    gLogoCutsceneInProgress = 0
+}
+
+enter {
+    start-script PlayLogoCutscene
+}
+
+exit {
+}
+
+awiz image1@1 {
+    raw-block CNVS `e001000078000000`
+    raw-block SPOT `0600000005000000`
+    raw-block RELO `c001000058000000`
+    wizh
+    wizd 1 "helogo/image1.bmp"
+}
+awiz image2@2 {
+    raw-block CNVS `e0010000a0000000`
+    raw-block SPOT `0600000005000000`
+    raw-block RELO `c001000080000000`
+    wizh
+    wizd 1 "helogo/image2.bmp"
+}
+awiz image3@3 {
+    raw-block CNVS `3803000030000000`
+    raw-block SPOT `0200000002000000`
+    raw-block RELO `2803000020000000`
+    wizh
+    wizd 1 "helogo/image3.bmp"
+}
+awiz image4@4 {
+    raw-block CNVS `0802000078000000`
+    raw-block SPOT `0600000005000000`
+    raw-block RELO `e801000058000000`
+    wizh
+    wizd 1 "helogo/image4.bmp"
+}
+awiz image5@5 {
+    raw-block CNVS `08020000a0000000`
+    raw-block SPOT `0600000005000000`
+    raw-block RELO `e801000080000000`
+    wizh
+    wizd 1 "helogo/image5.bmp"
+}
+awiz image6@6 {
+    raw-block CNVS `5003000030000000`
+    raw-block SPOT `0200000002000000`
+    raw-block RELO `4003000020000000`
+    wizh
+    wizd 1 "helogo/image6.bmp"
+}
+awiz image7@7 {
+    raw-block CNVS `2800000028000000`
+    raw-block SPOT `1000000001000000`
+    raw-block RELO `0800000008000000`
+    wizh
+    wizd 1 "helogo/image7.bmp"
+}
+awiz image8@8 {
+    raw-block CNVS `2800000050000000`
+    raw-block SPOT `1000000001000000`
+    raw-block RELO `0800000030000000`
+    wizh
+    wizd 1 "helogo/image8.bmp"
+}
+awiz image9@9 {
+    raw-block CNVS `3002000018000000`
+    raw-block SPOT `0800000000000000`
+    raw-block RELO `2002000008000000`
+    wizh
+    wizd 1 "helogo/image9.bmp"
+}
+awiz image10@10 {
+    raw-block CNVS `5000000028000000`
+    raw-block SPOT `1c00000003000000`
+    raw-block RELO `3000000008000000`
+    wizh
+    wizd 1 "helogo/image10.bmp"
+}
+awiz image11@11 {
+    raw-block CNVS `5000000050000000`
+    raw-block SPOT `1c00000003000000`
+    raw-block RELO `3000000030000000`
+    wizh
+    wizd 1 "helogo/image11.bmp"
+}
+awiz image12@12 {
+    raw-block CNVS `4802000018000000`
+    raw-block SPOT `0e00000001000000`
+    raw-block RELO `3802000008000000`
+    wizh
+    wizd 1 "helogo/image12.bmp"
+}
+awiz image13@13 {
+    raw-block CNVS `7800000028000000`
+    raw-block SPOT `1f0000000f000000`
+    raw-block RELO `5800000008000000`
+    wizh
+    wizd 1 "helogo/image13.bmp"
+}
+awiz image14@14 {
+    raw-block CNVS `7800000050000000`
+    raw-block SPOT `1f0000000f000000`
+    raw-block RELO `5800000030000000`
+    wizh
+    wizd 1 "helogo/image14.bmp"
+}
+awiz image15@15 {
+    raw-block CNVS `6002000018000000`
+    raw-block SPOT `1000000008000000`
+    raw-block RELO `5002000008000000`
+    wizh
+    wizd 1 "helogo/image15.bmp"
+}
+awiz image16@16 {
+    raw-block CNVS `a000000028000000`
+    raw-block SPOT `1e0000001d000000`
+    raw-block RELO `8000000008000000`
+    wizh
+    wizd 1 "helogo/image16.bmp"
+}
+awiz image17@17 {
+    raw-block CNVS `a000000050000000`
+    raw-block SPOT `1e0000001d000000`
+    raw-block RELO `8000000030000000`
+    wizh
+    wizd 1 "helogo/image17.bmp"
+}
+awiz image18@18 {
+    raw-block CNVS `7802000018000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `6802000008000000`
+    wizh
+    wizd 1 "helogo/image18.bmp"
+}
+awiz image19@19 {
+    raw-block CNVS `c800000028000000`
+    raw-block SPOT `0f0000001f000000`
+    raw-block RELO `a800000008000000`
+    wizh
+    wizd 1 "helogo/image19.bmp"
+}
+awiz image20@20 {
+    raw-block CNVS `c800000050000000`
+    raw-block SPOT `0f0000001f000000`
+    raw-block RELO `a800000030000000`
+    wizh
+    wizd 1 "helogo/image20.bmp"
+}
+awiz image21@21 {
+    raw-block CNVS `9002000018000000`
+    raw-block SPOT `0800000010000000`
+    raw-block RELO `8002000008000000`
+    wizh
+    wizd 1 "helogo/image21.bmp"
+}
+awiz image22@22 {
+    raw-block CNVS `f000000028000000`
+    raw-block SPOT `030000001d000000`
+    raw-block RELO `d000000008000000`
+    wizh
+    wizd 1 "helogo/image22.bmp"
+}
+awiz image23@23 {
+    raw-block CNVS `f000000050000000`
+    raw-block SPOT `030000001d000000`
+    raw-block RELO `d000000030000000`
+    wizh
+    wizd 1 "helogo/image23.bmp"
+}
+awiz image24@24 {
+    raw-block CNVS `a802000018000000`
+    raw-block SPOT `020000000e000000`
+    raw-block RELO `9802000008000000`
+    wizh
+    wizd 1 "helogo/image24.bmp"
+}
+awiz image25@25 {
+    raw-block CNVS `1801000028000000`
+    raw-block SPOT `010000000f000000`
+    raw-block RELO `f800000008000000`
+    wizh
+    wizd 1 "helogo/image25.bmp"
+}
+awiz image26@26 {
+    raw-block CNVS `1801000050000000`
+    raw-block SPOT `010000000f000000`
+    raw-block RELO `f800000030000000`
+    wizh
+    wizd 1 "helogo/image26.bmp"
+}
+awiz image27@27 {
+    raw-block CNVS `c002000018000000`
+    raw-block SPOT `0000000008000000`
+    raw-block RELO `b002000008000000`
+    wizh
+    wizd 1 "helogo/image27.bmp"
+}
+awiz image28@28 {
+    raw-block CNVS `4001000028000000`
+    raw-block SPOT `0400000002000000`
+    raw-block RELO `2001000008000000`
+    wizh
+    wizd 1 "helogo/image28.bmp"
+}
+awiz image29@29 {
+    raw-block CNVS `4001000050000000`
+    raw-block SPOT `0400000002000000`
+    raw-block RELO `2001000030000000`
+    wizh
+    wizd 1 "helogo/image29.bmp"
+}
+awiz image30@30 {
+    raw-block CNVS `d802000018000000`
+    raw-block SPOT `0200000002000000`
+    raw-block RELO `c802000008000000`
+    wizh
+    wizd 1 "helogo/image30.bmp"
+}
+awiz image31@31 {
+    raw-block CNVS `6801000028000000`
+    raw-block SPOT `0f00000002000000`
+    raw-block RELO `4801000008000000`
+    wizh
+    wizd 1 "helogo/image31.bmp"
+}
+awiz image32@32 {
+    raw-block CNVS `6801000050000000`
+    raw-block SPOT `0f00000002000000`
+    raw-block RELO `4801000030000000`
+    wizh
+    wizd 1 "helogo/image32.bmp"
+}
+awiz image33@33 {
+    raw-block CNVS `f002000018000000`
+    raw-block SPOT `0800000000000000`
+    raw-block RELO `e002000008000000`
+    wizh
+    wizd 1 "helogo/image33.bmp"
+}
+awiz image34@34 {
+    raw-block CNVS `9001000028000000`
+    raw-block SPOT `1a00000004000000`
+    raw-block RELO `7001000008000000`
+    wizh
+    wizd 1 "helogo/image34.bmp"
+}
+awiz image35@35 {
+    raw-block CNVS `9001000050000000`
+    raw-block SPOT `1a00000004000000`
+    raw-block RELO `7001000030000000`
+    wizh
+    wizd 1 "helogo/image35.bmp"
+}
+awiz image36@36 {
+    raw-block CNVS `0803000018000000`
+    raw-block SPOT `0e00000002000000`
+    raw-block RELO `f802000008000000`
+    wizh
+    wizd 1 "helogo/image36.bmp"
+}
+awiz image37@37 {
+    raw-block CNVS `b801000028000000`
+    raw-block SPOT `1e0000000f000000`
+    raw-block RELO `9801000008000000`
+    wizh
+    wizd 1 "helogo/image37.bmp"
+}
+awiz image38@38 {
+    raw-block CNVS `b801000050000000`
+    raw-block SPOT `1e0000000f000000`
+    raw-block RELO `9801000030000000`
+    wizh
+    wizd 1 "helogo/image38.bmp"
+}
+awiz image39@39 {
+    raw-block CNVS `2003000018000000`
+    raw-block SPOT `1000000008000000`
+    raw-block RELO `1003000008000000`
+    wizh
+    wizd 1 "helogo/image39.bmp"
+}
+awiz image40@40 {
+    raw-block CNVS `e001000028000000`
+    raw-block SPOT `1c0000001a000000`
+    raw-block RELO `c001000008000000`
+    wizh
+    wizd 1 "helogo/image40.bmp"
+}
+awiz image41@41 {
+    raw-block CNVS `e001000050000000`
+    raw-block SPOT `1c0000001a000000`
+    raw-block RELO `c001000030000000`
+    wizh
+    wizd 1 "helogo/image41.bmp"
+}
+awiz image42@42 {
+    raw-block CNVS `3803000018000000`
+    raw-block SPOT `0e0000000e000000`
+    raw-block RELO `2803000008000000`
+    wizh
+    wizd 1 "helogo/image42.bmp"
+}
+awiz image43@43 {
+    raw-block CNVS `0802000028000000`
+    raw-block SPOT `0f0000001e000000`
+    raw-block RELO `e801000008000000`
+    wizh
+    wizd 1 "helogo/image43.bmp"
+}
+awiz image44@44 {
+    raw-block CNVS `0802000050000000`
+    raw-block SPOT `0f0000001e000000`
+    raw-block RELO `e801000030000000`
+    wizh
+    wizd 1 "helogo/image44.bmp"
+}
+awiz image45@45 {
+    raw-block CNVS `5003000018000000`
+    raw-block SPOT `0800000010000000`
+    raw-block RELO `4003000008000000`
+    wizh
+    wizd 1 "helogo/image45.bmp"
+}
+awiz image46@46 {
+    raw-block CNVS `2800000078000000`
+    raw-block SPOT `040000001b000000`
+    raw-block RELO `0800000058000000`
+    wizh
+    wizd 1 "helogo/image46.bmp"
+}
+awiz image47@47 {
+    raw-block CNVS `28000000a0000000`
+    raw-block SPOT `040000001b000000`
+    raw-block RELO `0800000080000000`
+    wizh
+    wizd 1 "helogo/image47.bmp"
+}
+awiz image48@48 {
+    raw-block CNVS `3002000030000000`
+    raw-block SPOT `020000000e000000`
+    raw-block RELO `2002000020000000`
+    wizh
+    wizd 1 "helogo/image48.bmp"
+}
+awiz image49@49 {
+    raw-block CNVS `5000000078000000`
+    raw-block SPOT `010000000f000000`
+    raw-block RELO `3000000058000000`
+    wizh
+    wizd 1 "helogo/image49.bmp"
+}
+awiz image50@50 {
+    raw-block CNVS `50000000a0000000`
+    raw-block SPOT `010000000f000000`
+    raw-block RELO `3000000080000000`
+    wizh
+    wizd 1 "helogo/image50.bmp"
+}
+awiz image51@51 {
+    raw-block CNVS `4802000030000000`
+    raw-block SPOT `0000000008000000`
+    raw-block RELO `3802000020000000`
+    wizh
+    wizd 1 "helogo/image51.bmp"
+}
+awiz image52@52 {
+    raw-block CNVS `7800000078000000`
+    raw-block SPOT `0500000004000000`
+    raw-block RELO `5800000058000000`
+    wizh
+    wizd 1 "helogo/image52.bmp"
+}
+awiz image53@53 {
+    raw-block CNVS `78000000a0000000`
+    raw-block SPOT `0500000004000000`
+    raw-block RELO `5800000080000000`
+    wizh
+    wizd 1 "helogo/image53.bmp"
+}
+awiz image54@54 {
+    raw-block CNVS `6002000030000000`
+    raw-block SPOT `0200000002000000`
+    raw-block RELO `5002000020000000`
+    wizh
+    wizd 1 "helogo/image54.bmp"
+}
+awiz image55@55 {
+    raw-block CNVS `a000000078000000`
+    raw-block SPOT `1000000001000000`
+    raw-block RELO `8000000058000000`
+    wizh
+    wizd 1 "helogo/image55.bmp"
+}
+awiz image56@56 {
+    raw-block CNVS `a0000000a0000000`
+    raw-block SPOT `1000000001000000`
+    raw-block RELO `8000000080000000`
+    wizh
+    wizd 1 "helogo/image56.bmp"
+}
+awiz image57@57 {
+    raw-block CNVS `7802000030000000`
+    raw-block SPOT `08000000ffffffff`
+    raw-block RELO `6802000020000000`
+    wizh
+    wizd 1 "helogo/image57.bmp"
+}
+awiz image58@58 {
+    raw-block CNVS `c800000078000000`
+    raw-block SPOT `1b00000006000000`
+    raw-block RELO `a800000058000000`
+    wizh
+    wizd 1 "helogo/image58.bmp"
+}
+awiz image59@59 {
+    raw-block CNVS `c8000000a0000000`
+    raw-block SPOT `1b00000006000000`
+    raw-block RELO `a800000080000000`
+    wizh
+    wizd 1 "helogo/image59.bmp"
+}
+awiz image60@60 {
+    raw-block CNVS `9002000030000000`
+    raw-block SPOT `0e00000002000000`
+    raw-block RELO `8002000020000000`
+    wizh
+    wizd 1 "helogo/image60.bmp"
+}
+awiz image61@61 {
+    raw-block CNVS `f000000078000000`
+    raw-block SPOT `1c0000000f000000`
+    raw-block RELO `d000000058000000`
+    wizh
+    wizd 1 "helogo/image61.bmp"
+}
+awiz image62@62 {
+    raw-block CNVS `f0000000a0000000`
+    raw-block SPOT `1c0000000f000000`
+    raw-block RELO `d000000080000000`
+    wizh
+    wizd 1 "helogo/image62.bmp"
+}
+awiz image63@63 {
+    raw-block CNVS `a802000030000000`
+    raw-block SPOT `0f00000008000000`
+    raw-block RELO `9802000020000000`
+    wizh
+    wizd 1 "helogo/image63.bmp"
+}
+awiz image64@64 {
+    raw-block CNVS `1801000078000000`
+    raw-block SPOT `1a0000001b000000`
+    raw-block RELO `f800000058000000`
+    wizh
+    wizd 1 "helogo/image64.bmp"
+}
+awiz image65@65 {
+    raw-block CNVS `18010000a0000000`
+    raw-block SPOT `1a0000001b000000`
+    raw-block RELO `f800000080000000`
+    wizh
+    wizd 1 "helogo/image65.bmp"
+}
+awiz image66@66 {
+    raw-block CNVS `c002000030000000`
+    raw-block SPOT `0e0000000e000000`
+    raw-block RELO `b002000020000000`
+    wizh
+    wizd 1 "helogo/image66.bmp"
+}
+awiz image67@67 {
+    raw-block CNVS `4001000078000000`
+    raw-block SPOT `100000001e000000`
+    raw-block RELO `2001000058000000`
+    wizh
+    wizd 1 "helogo/image67.bmp"
+}
+awiz image68@68 {
+    raw-block CNVS `40010000a0000000`
+    raw-block SPOT `100000001e000000`
+    raw-block RELO `2001000080000000`
+    wizh
+    wizd 1 "helogo/image68.bmp"
+}
+awiz image69@69 {
+    raw-block CNVS `d802000030000000`
+    raw-block SPOT `080000000e000000`
+    raw-block RELO `c802000020000000`
+    wizh
+    wizd 1 "helogo/image69.bmp"
+}
+awiz image70@70 {
+    raw-block CNVS `6801000078000000`
+    raw-block SPOT `050000001b000000`
+    raw-block RELO `4801000058000000`
+    wizh
+    wizd 1 "helogo/image70.bmp"
+}
+awiz image71@71 {
+    raw-block CNVS `68010000a0000000`
+    raw-block SPOT `050000001b000000`
+    raw-block RELO `4801000080000000`
+    wizh
+    wizd 1 "helogo/image71.bmp"
+}
+awiz image72@72 {
+    raw-block CNVS `f002000030000000`
+    raw-block SPOT `010000000d000000`
+    raw-block RELO `e002000020000000`
+    wizh
+    wizd 1 "helogo/image72.bmp"
+}
+awiz image73@73 {
+    raw-block CNVS `9001000078000000`
+    raw-block SPOT `0200000010000000`
+    raw-block RELO `7001000058000000`
+    wizh
+    wizd 1 "helogo/image73.bmp"
+}
+awiz image74@74 {
+    raw-block CNVS `90010000a0000000`
+    raw-block SPOT `0200000010000000`
+    raw-block RELO `7001000080000000`
+    wizh
+    wizd 1 "helogo/image74.bmp"
+}
+awiz image75@75 {
+    raw-block CNVS `0803000030000000`
+    raw-block SPOT `ffffffff08000000`
+    raw-block RELO `f802000020000000`
+    wizh
+    wizd 1 "helogo/image75.bmp"
+}
+awiz image76@76 {
+    raw-block CNVS `b801000078000000`
+    raw-block SPOT `0500000006000000`
+    raw-block RELO `9801000058000000`
+    wizh
+    wizd 1 "helogo/image76.bmp"
+}
+awiz image77@77 {
+    raw-block CNVS `b8010000a0000000`
+    raw-block SPOT `0500000006000000`
+    raw-block RELO `9801000080000000`
+    wizh
+    wizd 1 "helogo/image77.bmp"
+}
+awiz image78@78 {
+    raw-block CNVS `2003000030000000`
+    raw-block SPOT `0200000002000000`
+    raw-block RELO `1003000020000000`
+    wizh
+    wizd 1 "helogo/image78.bmp"
+}
+awiz image79@79 {
+    raw-block CNVS `08020000f0000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `e8010000d0000000`
+    wizh
+    wizd 1 "helogo/image79.bmp"
+}
+awiz image80@80 {
+    raw-block CNVS `08020000f0000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `e8010000d0000000`
+    wizh
+    wizd 1 "helogo/image80.bmp"
+}
+awiz image81@81 {
+    raw-block CNVS `0803000078000000`
+    raw-block SPOT `0800000008000000`
+    raw-block RELO `f802000068000000`
+    wizh
+    wizd 1 "helogo/image81.bmp"
+}
+awiz image82@82 {
+    raw-block CNVS `4001000068010000`
+    raw-block SPOT `0000000001000000`
+    raw-block RELO `2001000048010000`
+    wizh
+    wizd 1 "helogo/image82.bmp"
+}
+awiz image83@83 {
+    raw-block CNVS `4001000090010000`
+    raw-block SPOT `0000000001000000`
+    raw-block RELO `2001000070010000`
+    wizh
+    wizd 1 "helogo/image83.bmp"
+}
+awiz image84@84 {
+    raw-block CNVS `9002000048000000`
+    raw-block RELO `8002000038000000`
+    wizh
+    wizd 1 "helogo/image84.bmp"
+}
+awiz image85@85 {
+    raw-block CNVS `6801000068010000`
+    raw-block SPOT `1f00000001000000`
+    raw-block RELO `4801000048010000`
+    wizh
+    wizd 1 "helogo/image85.bmp"
+}
+awiz image86@86 {
+    raw-block CNVS `6801000090010000`
+    raw-block SPOT `1f00000001000000`
+    raw-block RELO `4801000070010000`
+    wizh
+    wizd 1 "helogo/image86.bmp"
+}
+awiz image87@87 {
+    raw-block CNVS `a802000048000000`
+    raw-block SPOT `0f00000000000000`
+    raw-block RELO `9802000038000000`
+    wizh
+    wizd 1 "helogo/image87.bmp"
+}
+awiz image88@88 {
+    raw-block CNVS `9001000068010000`
+    raw-block SPOT `1f0000001d000000`
+    raw-block RELO `7001000048010000`
+    wizh
+    wizd 1 "helogo/image88.bmp"
+}
+awiz image89@89 {
+    raw-block CNVS `9001000090010000`
+    raw-block SPOT `1f0000001d000000`
+    raw-block RELO `7001000070010000`
+    wizh
+    wizd 1 "helogo/image89.bmp"
+}
+awiz image90@90 {
+    raw-block CNVS `c002000048000000`
+    raw-block SPOT `0f0000000f000000`
+    raw-block RELO `b002000038000000`
+    wizh
+    wizd 1 "helogo/image90.bmp"
+}
+awiz image91@91 {
+    raw-block CNVS `b801000068010000`
+    raw-block SPOT `000000001c000000`
+    raw-block RELO `9801000048010000`
+    wizh
+    wizd 1 "helogo/image91.bmp"
+}
+awiz image92@92 {
+    raw-block CNVS `b801000090010000`
+    raw-block SPOT `000000001c000000`
+    raw-block RELO `9801000070010000`
+    wizh
+    wizd 1 "helogo/image92.bmp"
+}
+awiz image93@93 {
+    raw-block CNVS `d802000048000000`
+    raw-block SPOT `000000000f000000`
+    raw-block RELO `c802000038000000`
+    wizh
+    wizd 1 "helogo/image93.bmp"
+}
+awiz image94@94 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "helogo/image94.bmp"
+}
+awiz image95@95 {
+    raw-block CNVS `e0010000f0000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `c0010000d0000000`
+    wizh
+    wizd 1 "helogo/image95.bmp"
+}
+awiz image96@96 {
+    raw-block CNVS `e0010000f0000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `c0010000d0000000`
+    wizh
+    wizd 1 "helogo/image96.bmp"
+}
+awiz image97@97 {
+    raw-block CNVS `f002000078000000`
+    raw-block SPOT `0800000008000000`
+    raw-block RELO `e002000068000000`
+    wizh
+    wizd 1 "helogo/image97.bmp"
+}
+awiz image98@98 {
+    raw-block CNVS `6801000078000000`
+    raw-block SPOT `050000001b000000`
+    raw-block RELO `4801000058000000`
+    wizh
+    wizd 1 "helogo/image98.bmp"
+}
+awiz image99@99 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "helogo/image99.bmp"
+}
+awiz image100@100 {
+    raw-block CNVS `50000000c8000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `30000000a8000000`
+    wizh
+    wizd 1 "helogo/image100.bmp"
+}
+awiz image101@101 {
+    raw-block CNVS `78000000f0000000`
+    raw-block SPOT `1000000010000000`
+    raw-block RELO `58000000d0000000`
+    wizh
+    wizd 1 "helogo/image101.bmp"
+}
+awiz image102@102 {
+    raw-block CNVS `3002000078000000`
+    raw-block SPOT `0800000008000000`
+    raw-block RELO `2002000068000000`
+    wizh
+    wizd 1 "helogo/image102.bmp"
+}

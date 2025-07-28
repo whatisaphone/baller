@@ -1,0 +1,1013 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "hall-res/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `010001000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+    debug 0
+}
+
+exit {
+}
+
+sound DIGI sound4261@4261 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4261.wav"
+}
+sound DIGI sound4260@4260 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4260.wav"
+}
+sound DIGI sound4259@4259 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4259.wav"
+}
+sound DIGI sound4262@4262 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4262.wav"
+}
+sound DIGI sound4263@4263 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4263.wav"
+}
+sound DIGI sound4264@4264 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4264.wav"
+}
+sound DIGI sound4265@4265 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4265.wav"
+}
+sound DIGI sound4266@4266 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4266.wav"
+}
+sound DIGI sound4267@4267 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4267.wav"
+}
+sound DIGI sound4268@4268 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4268.wav"
+}
+sound DIGI sound4269@4269 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4269.wav"
+}
+sound DIGI sound4270@4270 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "hall-res/sound4270.wav"
+}
+akos costume1@1 {
+    raw-block AKHD `0100008008002c0001001000`
+    akpl "hall-res/costume1/AKPL.bin"
+    raw-block RGBS "hall-res/costume1/RGBS.bin"
+    raw-block AKSQ "hall-res/costume1/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume1/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0018_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0019_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0020_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0021_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0022_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0023_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0024_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0025_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0026_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0027_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0028_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0029_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0030_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0031_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0032_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0033_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0034_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0035_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0036_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0037_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0038_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0039_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0040_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0041_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0042_AKCD.bmp"
+    akcd byle "hall-res/costume1/cel_0043_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume2@2 {
+    raw-block AKHD `010000800800300001001000`
+    akpl "hall-res/costume2/AKPL.bin"
+    raw-block RGBS "hall-res/costume2/RGBS.bin"
+    raw-block AKSQ "hall-res/costume2/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume2/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0018_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0019_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0020_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0021_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0022_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0023_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0024_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0025_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0026_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0027_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0028_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0029_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0030_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0031_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0032_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0033_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0034_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0035_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0036_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0037_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0038_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0039_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0040_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0041_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0042_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0043_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0044_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0045_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0046_AKCD.bmp"
+    akcd byle "hall-res/costume2/cel_0047_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume3@3 {
+    raw-block AKHD `010000800800280001001000`
+    akpl "hall-res/costume3/AKPL.bin"
+    raw-block RGBS "hall-res/costume3/RGBS.bin"
+    raw-block AKSQ "hall-res/costume3/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume3/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0018_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0019_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0020_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0021_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0022_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0023_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0024_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0025_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0026_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0027_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0028_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0029_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0030_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0031_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0032_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0033_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0034_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0035_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0036_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0037_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0038_AKCD.bmp"
+    akcd byle "hall-res/costume3/cel_0039_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume648@648 {
+    raw-block AKHD `0100008008000d0001001000`
+    akpl "hall-res/costume648/AKPL.bin"
+    raw-block RGBS "hall-res/costume648/RGBS.bin"
+    raw-block AKSQ "hall-res/costume648/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume648/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume648/cel_0012_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume4@4 {
+    raw-block AKHD `010000800800130001001000`
+    akpl "hall-res/costume4/AKPL.bin"
+    raw-block RGBS "hall-res/costume4/RGBS.bin"
+    raw-block AKSQ "hall-res/costume4/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume4/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume4/cel_0018_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume649@649 {
+    raw-block AKHD `0100008008002c0001001000`
+    akpl "hall-res/costume649/AKPL.bin"
+    raw-block RGBS "hall-res/costume649/RGBS.bin"
+    raw-block AKSQ "hall-res/costume649/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume649/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0018_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0019_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0020_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0021_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0022_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0023_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0024_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0025_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0026_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0027_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0028_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0029_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0030_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0031_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0032_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0033_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0034_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0035_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0036_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0037_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0038_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0039_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0040_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0041_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0042_AKCD.bmp"
+    akcd byle "hall-res/costume649/cel_0043_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume650@650 {
+    raw-block AKHD `010000800800130001001000`
+    akpl "hall-res/costume650/AKPL.bin"
+    raw-block RGBS "hall-res/costume650/RGBS.bin"
+    raw-block AKSQ "hall-res/costume650/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume650/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume650/cel_0018_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume5@5 {
+    raw-block AKHD `0100008008000a0001001000`
+    akpl "hall-res/costume5/AKPL.bin"
+    raw-block RGBS "hall-res/costume5/RGBS.bin"
+    raw-block AKSQ "hall-res/costume5/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume5/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume5/cel_0009_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume6@6 {
+    raw-block AKHD `010000800800070001001000`
+    akpl "hall-res/costume6/AKPL.bin"
+    raw-block RGBS "hall-res/costume6/RGBS.bin"
+    raw-block AKSQ "hall-res/costume6/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume6/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume6/cel_0006_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume7@7 {
+    raw-block AKHD `010000800800080001001000`
+    akpl "hall-res/costume7/AKPL.bin"
+    raw-block RGBS "hall-res/costume7/RGBS.bin"
+    raw-block AKSQ "hall-res/costume7/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume7/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume7/cel_0007_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume8@8 {
+    raw-block AKHD `0100008008000d0001001000`
+    akpl "hall-res/costume8/AKPL.bin"
+    raw-block RGBS "hall-res/costume8/RGBS.bin"
+    raw-block AKSQ "hall-res/costume8/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume8/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume8/cel_0012_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume651@651 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "hall-res/costume651/AKPL.bin"
+    raw-block RGBS "hall-res/costume651/RGBS.bin"
+    raw-block AKSQ "hall-res/costume651/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume651/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume651/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume651/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume651/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume651/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume9@9 {
+    raw-block AKHD `010000800800260001001000`
+    akpl "hall-res/costume9/AKPL.bin"
+    raw-block RGBS "hall-res/costume9/RGBS.bin"
+    raw-block AKSQ "hall-res/costume9/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "hall-res/costume9/cel_0000_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0001_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0002_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0003_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0004_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0005_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0006_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0007_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0008_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0009_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0010_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0011_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0012_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0013_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0014_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0015_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0016_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0017_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0018_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0019_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0020_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0021_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0022_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0023_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0024_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0025_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0026_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0027_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0028_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0029_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0030_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0031_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0032_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0033_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0034_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0035_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0036_AKCD.bmp"
+    akcd byle "hall-res/costume9/cel_0037_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+mult image402@402 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image402/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e900000080ffffff`
+        wizd 1 "hall-res/image402/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e900000080ffffff`
+        wizd 1 "hall-res/image402/0001.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "hall-res/image402/0002.bmp"
+    }
+    indices [0 1 2]
+}
+mult image1422@1422 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image1422/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `28010000d1ffffff`
+        wizd 1 "hall-res/image1422/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `28010000d1ffffff`
+        wizd 1 "hall-res/image1422/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72000000d1ffffff`
+        wizd 1 "hall-res/image1422/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72000000d1ffffff`
+        wizd 1 "hall-res/image1422/0003.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "hall-res/image1422/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image1423@1423 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image1423/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `28010000a3ffffff`
+        wizd 1 "hall-res/image1423/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `28010000a3ffffff`
+        wizd 1 "hall-res/image1423/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72000000a3ffffff`
+        wizd 1 "hall-res/image1423/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72000000a3ffffff`
+        wizd 1 "hall-res/image1423/0003.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "hall-res/image1423/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image403@403 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image403/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2b01000070000000`
+        wizd 1 "hall-res/image403/0000.bmp"
+    }
+    indices [0]
+}
+mult image404@404 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image404/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "hall-res/image404/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "hall-res/image404/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image405@405 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image405/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `aeffffff99000000`
+        wizd 1 "hall-res/image405/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67ffffff99000000`
+        wizd 1 "hall-res/image405/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image406@406 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image406/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `aeffffff99000000`
+        wizd 1 "hall-res/image406/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67ffffff99000000`
+        wizd 1 "hall-res/image406/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image407@407 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image407/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "hall-res/image407/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "hall-res/image407/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1424@1424 {
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "hall-res/image1424/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "hall-res/image1424/0001.bmp"
+    }
+    indices [0 1]
+}
+awiz image1523@1523 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image1523.bmp"
+}
+awiz image103@103 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image103.bmp"
+}
+awiz image104@104 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image104.bmp"
+}
+awiz image105@105 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image105.bmp"
+}
+awiz image106@106 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image106.bmp"
+}
+awiz image107@107 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image107.bmp"
+}
+mult image108@108 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image108/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `35010000d2000000`
+        wizd 1 "hall-res/image108/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `53000000feffffff`
+        wizd 1 "hall-res/image108/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `59000000b6000000`
+        wizd 1 "hall-res/image108/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `81ffffffcfffffff`
+        wizd 1 "hall-res/image108/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `baffffffef000000`
+        wizd 1 "hall-res/image108/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image109@109 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image109/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `48ffffffa0ffffff`
+        wizd 1 "hall-res/image109/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `400100009bffffff`
+        wizd 1 "hall-res/image109/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f5000000f0000000`
+        wizd 1 "hall-res/image109/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `40010000dc000000`
+        wizd 1 "hall-res/image109/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e0ffffff90000000`
+        wizd 1 "hall-res/image109/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff98ffffff`
+        wizd 1 "hall-res/image109/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `97000000e0ffffff`
+        wizd 1 "hall-res/image109/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72000000f0000000`
+        wizd 1 "hall-res/image109/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `40010000f0000000`
+        wizd 1 "hall-res/image109/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5fffffff4e000000`
+        wizd 1 "hall-res/image109/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d30000008dffffff`
+        wizd 1 "hall-res/image109/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ee00000068000000`
+        wizd 1 "hall-res/image109/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b0ffffff26000000`
+        wizd 1 "hall-res/image109/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `7a00000086000000`
+        wizd 1 "hall-res/image109/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `72ffffff94000000`
+        wizd 1 "hall-res/image109/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `64fffffff0000000`
+        wizd 1 "hall-res/image109/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ff00000001000000`
+        wizd 1 "hall-res/image109/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `52ffffff0b000000`
+        wizd 1 "hall-res/image109/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4400000093ffffff`
+        wizd 1 "hall-res/image109/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `bf000000bc000000`
+        wizd 1 "hall-res/image109/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1c000000e3ffffff`
+        wizd 1 "hall-res/image109/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `40010000e6ffffff`
+        wizd 1 "hall-res/image109/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `94ffffffc1ffffff`
+        wizd 1 "hall-res/image109/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `27000000c0000000`
+        wizd 1 "hall-res/image109/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8900000033000000`
+        wizd 1 "hall-res/image109/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38010000a7000000`
+        wizd 1 "hall-res/image109/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffff0000000`
+        wizd 1 "hall-res/image109/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `40ffffffd9000000`
+        wizd 1 "hall-res/image109/0027.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
+}
+mult image110@110 {
+    raw-block DEFA {
+        raw-block RGBS "hall-res/image110/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `23ffffff8bffffff`
+        wizd 1 "hall-res/image110/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2301000076ffffff`
+        wizd 1 "hall-res/image110/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d8000000ed000000`
+        wizd 1 "hall-res/image110/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32010000b6000000`
+        wizd 1 "hall-res/image110/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `bfffffff6c000000`
+        wizd 1 "hall-res/image110/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b2ffffff78ffffff`
+        wizd 1 "hall-res/image110/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6e000000bbffffff`
+        wizd 1 "hall-res/image110/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4f000000e1000000`
+        wizd 1 "hall-res/image110/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34010000dd000000`
+        wizd 1 "hall-res/image110/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `46ffffff12000000`
+        wizd 1 "hall-res/image110/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b400000062ffffff`
+        wizd 1 "hall-res/image110/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `c60000003f000000`
+        wizd 1 "hall-res/image110/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `87ffffff0a000000`
+        wizd 1 "hall-res/image110/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5200000063000000`
+        wizd 1 "hall-res/image110/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `57ffffff70000000`
+        wizd 1 "hall-res/image110/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4bffffffeb000000`
+        wizd 1 "hall-res/image110/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `de000000dbffffff`
+        wizd 1 "hall-res/image110/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2bffffffe4ffffff`
+        wizd 1 "hall-res/image110/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2e00000065ffffff`
+        wizd 1 "hall-res/image110/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a700000097000000`
+        wizd 1 "hall-res/image110/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0f000000b9ffffff`
+        wizd 1 "hall-res/image110/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `39010000c7ffffff`
+        wizd 1 "hall-res/image110/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6effffff9affffff`
+        wizd 1 "hall-res/image110/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0b00000099000000`
+        wizd 1 "hall-res/image110/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `790000000a000000`
+        wizd 1 "hall-res/image110/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1d01000088000000`
+        wizd 1 "hall-res/image110/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d2ffffffeb000000`
+        wizd 1 "hall-res/image110/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `12ffffffad000000`
+        wizd 1 "hall-res/image110/0027.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
+}
+awiz image1457@1457 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "hall-res/image1457.bmp"
+}

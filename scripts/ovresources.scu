@@ -1,0 +1,1986 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "ovresources/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+}
+
+exit {
+}
+
+sound DIGI sound1994@1994 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1994.wav"
+}
+sound DIGI sound1995@1995 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1995.wav"
+}
+sound DIGI sound1996@1996 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1996.wav"
+}
+sound DIGI sound1997@1997 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1997.wav"
+}
+sound DIGI sound1998@1998 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1998.wav"
+}
+sound DIGI sound1999@1999 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound1999.wav"
+}
+sound DIGI sound2000@2000 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2000.wav"
+}
+sound DIGI sound2001@2001 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2001.wav"
+}
+sound DIGI sound2002@2002 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2002.wav"
+}
+sound DIGI sound2003@2003 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2003.wav"
+}
+sound DIGI sound2004@2004 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2004.wav"
+}
+sound DIGI sound2005@2005 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2005.wav"
+}
+sound DIGI sound2006@2006 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2006.wav"
+}
+sound DIGI sound2007@2007 {
+    raw-block HSHD `00003232ffff112b0000000000000000`
+    sdat "ovresources/sound2007.wav"
+}
+sound DIGI sound2008@2008 {
+    raw-block HSHD `00003232ffff112b0000000000000000`
+    sdat "ovresources/sound2008.wav"
+}
+sound DIGI sound2009@2009 {
+    raw-block HSHD `00003232ffff112b0000000000000000`
+    sdat "ovresources/sound2009.wav"
+}
+sound DIGI sound2010@2010 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2010.wav"
+}
+sound DIGI sound2011@2011 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2011.wav"
+}
+sound DIGI sound2012@2012 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2012.wav"
+}
+sound DIGI sound2013@2013 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2013.wav"
+}
+sound DIGI sound2014@2014 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2014.wav"
+}
+sound DIGI sound2015@2015 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2015.wav"
+}
+sound DIGI sound2016@2016 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2016.wav"
+}
+sound DIGI sound2017@2017 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2017.wav"
+}
+sound DIGI sound2018@2018 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2018.wav"
+}
+sound DIGI sound2019@2019 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2019.wav"
+}
+sound DIGI sound2020@2020 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2020.wav"
+}
+sound DIGI sound2021@2021 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2021.wav"
+}
+sound DIGI sound2022@2022 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2022.wav"
+}
+sound DIGI sound2023@2023 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2023.wav"
+}
+sound DIGI sound2024@2024 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2024.wav"
+}
+sound DIGI sound2025@2025 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2025.wav"
+}
+sound DIGI sound2026@2026 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2026.wav"
+}
+sound DIGI sound2027@2027 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2027.wav"
+}
+sound DIGI sound2028@2028 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2028.wav"
+}
+sound DIGI sound2029@2029 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2029.wav"
+}
+sound DIGI sound2030@2030 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2030.wav"
+}
+sound DIGI sound2031@2031 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2031.wav"
+}
+sound DIGI sound2032@2032 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2032.wav"
+}
+sound DIGI sound2033@2033 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2033.wav"
+}
+sound DIGI sound2034@2034 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2034.wav"
+}
+sound DIGI sound2035@2035 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2035.wav"
+}
+sound DIGI sound2036@2036 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2036.wav"
+}
+sound DIGI sound2037@2037 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2037.wav"
+}
+sound DIGI sound2038@2038 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2038.wav"
+}
+sound DIGI sound2039@2039 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2039.wav"
+}
+sound DIGI sound2040@2040 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2040.wav"
+}
+sound DIGI sound2041@2041 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2041.wav"
+}
+sound DIGI sound2042@2042 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2042.wav"
+}
+sound DIGI sound2043@2043 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2043.wav"
+}
+sound DIGI sound2044@2044 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2044.wav"
+}
+sound DIGI sound2045@2045 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2045.wav"
+}
+sound DIGI sound2046@2046 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2046.wav"
+}
+sound DIGI sound2047@2047 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2047.wav"
+}
+sound DIGI sound2048@2048 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2048.wav"
+}
+sound DIGI sound2049@2049 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2049.wav"
+}
+sound DIGI sound2050@2050 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2050.wav"
+}
+sound DIGI sound2051@2051 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2051.wav"
+}
+sound DIGI sound2052@2052 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2052.wav"
+}
+sound DIGI sound2053@2053 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2053.wav"
+}
+sound DIGI sound2054@2054 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2054.wav"
+}
+sound DIGI sound2055@2055 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2055.wav"
+}
+sound DIGI sound2056@2056 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2056.wav"
+}
+sound DIGI sound2057@2057 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2057.wav"
+}
+sound DIGI sound2058@2058 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2058.wav"
+}
+sound DIGI sound2059@2059 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2059.wav"
+}
+sound DIGI sound2060@2060 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2060.wav"
+}
+sound DIGI sound2061@2061 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2061.wav"
+}
+sound DIGI sound2062@2062 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2062.wav"
+}
+sound DIGI sound2063@2063 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2063.wav"
+}
+sound DIGI sound2064@2064 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2064.wav"
+}
+sound DIGI sound2065@2065 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2065.wav"
+}
+sound DIGI sound2066@2066 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2066.wav"
+}
+sound DIGI sound2067@2067 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2067.wav"
+}
+sound DIGI sound2068@2068 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2068.wav"
+}
+sound DIGI sound2069@2069 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2069.wav"
+}
+sound DIGI sound2070@2070 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2070.wav"
+}
+sound DIGI sound2071@2071 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2071.wav"
+}
+sound DIGI sound2072@2072 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2072.wav"
+}
+sound DIGI sound2073@2073 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2073.wav"
+}
+sound DIGI sound2074@2074 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2074.wav"
+}
+sound DIGI sound2075@2075 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2075.wav"
+}
+sound DIGI sound2076@2076 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2076.wav"
+}
+sound DIGI sound2077@2077 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2077.wav"
+}
+sound DIGI sound2078@2078 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2078.wav"
+}
+sound DIGI sound2079@2079 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2079.wav"
+}
+sound DIGI sound2080@2080 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2080.wav"
+}
+sound DIGI sound2081@2081 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2081.wav"
+}
+sound DIGI sound2082@2082 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2082.wav"
+}
+sound DIGI sound2083@2083 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2083.wav"
+}
+sound DIGI sound2084@2084 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2084.wav"
+}
+sound DIGI sound2085@2085 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2085.wav"
+}
+sound DIGI sound2086@2086 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2086.wav"
+}
+sound DIGI sound2087@2087 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2087.wav"
+}
+sound DIGI sound2088@2088 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2088.wav"
+}
+sound DIGI sound2089@2089 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2089.wav"
+}
+sound DIGI sound2090@2090 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2090.wav"
+}
+sound DIGI sound2091@2091 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2091.wav"
+}
+sound DIGI sound2092@2092 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2092.wav"
+}
+sound DIGI sound2093@2093 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2093.wav"
+}
+sound DIGI sound2094@2094 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2094.wav"
+}
+sound DIGI sound2095@2095 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2095.wav"
+}
+sound DIGI sound2096@2096 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2096.wav"
+}
+sound DIGI sound2097@2097 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2097.wav"
+}
+sound DIGI sound2098@2098 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "ovresources/sound2098.wav"
+}
+akos costume560@560 {
+    raw-block AKHD `0100008030000c0001001000`
+    akpl "ovresources/costume560/AKPL.bin"
+    raw-block RGBS "ovresources/costume560/RGBS.bin"
+    raw-block AKSQ "ovresources/costume560/AKSQ.bin"
+    raw-block AKCH "ovresources/costume560/AKCH.bin"
+    akcd byle "ovresources/costume560/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0001_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0002_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0003_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0004_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0005_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0006_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0007_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0008_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0009_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0010_AKCD.bmp"
+    akcd byle "ovresources/costume560/cel_0011_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000034020000800000003b04000000010000`
+    raw-block AKCT "ovresources/costume560/AKCT.bin"
+    raw-block SP2C "ovresources/costume560/SP2C.bin"
+    raw-block SPLF "ovresources/costume560/SPLF.bin"
+    raw-block CLRS "ovresources/costume560/CLRS.bin"
+    raw-block IMGL "ovresources/costume560/IMGL.bin"
+    raw-block AKFO "ovresources/costume560/AKFO.bin"
+    raw-block SQDB "ovresources/costume560/SQDB.bin"
+}
+akos costume561@561 {
+    raw-block AKHD `0100008030000a0001001000`
+    akpl "ovresources/costume561/AKPL.bin"
+    raw-block RGBS "ovresources/costume561/RGBS.bin"
+    raw-block AKSQ "ovresources/costume561/AKSQ.bin"
+    raw-block AKCH "ovresources/costume561/AKCH.bin"
+    akcd byle "ovresources/costume561/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0001_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0002_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0003_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0004_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0005_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0006_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0007_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0008_AKCD.bmp"
+    akcd byle "ovresources/costume561/cel_0009_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block SP2C "ovresources/costume561/SP2C.bin"
+    raw-block SPLF "ovresources/costume561/SPLF.bin"
+    raw-block CLRS "ovresources/costume561/CLRS.bin"
+    raw-block IMGL "ovresources/costume561/IMGL.bin"
+    raw-block AKFO "ovresources/costume561/AKFO.bin"
+    raw-block SQDB "ovresources/costume561/SQDB.bin"
+}
+akos costume562@562 {
+    raw-block AKHD `010000802400090001001000`
+    akpl "ovresources/costume562/AKPL.bin"
+    raw-block RGBS "ovresources/costume562/RGBS.bin"
+    raw-block AKSQ "ovresources/costume562/AKSQ.bin"
+    raw-block AKCH "ovresources/costume562/AKCH.bin"
+    akcd byle "ovresources/costume562/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0001_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0002_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0003_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0004_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0005_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0006_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0007_AKCD.bmp"
+    akcd byle "ovresources/costume562/cel_0008_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000015000000800000006100000000010000`
+    raw-block AKCT "ovresources/costume562/AKCT.bin"
+}
+akos costume563@563 {
+    raw-block AKHD `010000801c00010001001000`
+    akpl "ovresources/costume563/AKPL.bin"
+    raw-block RGBS "ovresources/costume563/RGBS.bin"
+    raw-block AKSQ `c02001c0fe94ff00c010010000c0300000c0ff`
+    raw-block AKCH "ovresources/costume563/AKCH.bin"
+    akcd byle "ovresources/costume563/cel_0000_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block SP2C "ovresources/costume563/SP2C.bin"
+    raw-block SPLF "ovresources/costume563/SPLF.bin"
+    raw-block CLRS "ovresources/costume563/CLRS.bin"
+    raw-block IMGL `07000000`
+    raw-block AKFO `010001001100`
+    raw-block SQDB "ovresources/costume563/SQDB.bin"
+}
+akos costume564@564 {
+    raw-block AKHD `010000801c00030001001000`
+    akpl "ovresources/costume564/AKPL.bin"
+    raw-block RGBS "ovresources/costume564/RGBS.bin"
+    raw-block AKSQ "ovresources/costume564/AKSQ.bin"
+    raw-block AKCH "ovresources/costume564/AKCH.bin"
+    akcd byle "ovresources/costume564/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume564/cel_0001_AKCD.bmp"
+    akcd byle "ovresources/costume564/cel_0002_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block SP2C "ovresources/costume564/SP2C.bin"
+    raw-block SPLF "ovresources/costume564/SPLF.bin"
+    raw-block CLRS "ovresources/costume564/CLRS.bin"
+    raw-block IMGL `290000001a0000002c000000`
+    raw-block AKFO "ovresources/costume564/AKFO.bin"
+    raw-block SQDB "ovresources/costume564/SQDB.bin"
+}
+akos costume565@565 {
+    raw-block AKHD `0100008054001a0001001000`
+    akpl "ovresources/costume565/AKPL.bin"
+    raw-block RGBS "ovresources/costume565/RGBS.bin"
+    raw-block AKSQ "ovresources/costume565/AKSQ.bin"
+    raw-block AKCH "ovresources/costume565/AKCH.bin"
+    akcd byle "ovresources/costume565/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0001_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0002_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0003_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0004_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0005_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0006_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0007_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0008_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0009_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0010_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0011_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0012_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0013_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0014_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0015_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0016_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0017_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0018_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0019_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0020_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0021_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0022_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0023_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0024_AKCD.bmp"
+    akcd byle "ovresources/costume565/cel_0025_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST "ovresources/costume565/AKST.bin"
+    raw-block AKCT "ovresources/costume565/AKCT.bin"
+}
+akos costume652@652 {
+    raw-block AKHD `010000800800020001001000`
+    akpl "ovresources/costume652/AKPL.bin"
+    raw-block RGBS "ovresources/costume652/RGBS.bin"
+    raw-block AKSQ `c0211102010202f9ff000000fafff7ff01c0300000c0ff`
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "ovresources/costume652/cel_0000_AKCD.bmp"
+    akcd byle "ovresources/costume652/cel_0001_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "ovresources/costume652/AKCT.bin"
+}
+awiz image452@452 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image452.bmp"
+}
+awiz image453@453 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image453.bmp"
+}
+mult image454@454 {
+    raw-block DEFA {
+        raw-block RGBS "ovresources/image454/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38000000f0000000`
+        wizd 1 "ovresources/image454/0018.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
+}
+mult image455@455 {
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2f000000f0000000`
+        wizd 1 "ovresources/image455/0018.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
+}
+mult image456@456 {
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `32000000f0000000`
+        wizd 1 "ovresources/image456/0018.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18]
+}
+awiz image457@457 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image457.bmp"
+}
+awiz image458@458 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image458.bmp"
+}
+awiz image459@459 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image459.bmp"
+}
+awiz image460@460 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image460.bmp"
+}
+awiz image461@461 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image461.bmp"
+}
+awiz image462@462 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image462.bmp"
+}
+awiz image463@463 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image463.bmp"
+}
+awiz image464@464 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image464.bmp"
+}
+awiz image465@465 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image465.bmp"
+}
+awiz image466@466 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image466.bmp"
+}
+awiz image467@467 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image467.bmp"
+}
+awiz image468@468 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image468.bmp"
+}
+awiz image469@469 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image469.bmp"
+}
+awiz image470@470 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image470.bmp"
+}
+awiz image471@471 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image471.bmp"
+}
+awiz image472@472 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image472.bmp"
+}
+awiz image473@473 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image473.bmp"
+}
+awiz image474@474 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image474.bmp"
+}
+awiz image475@475 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image475.bmp"
+}
+awiz image476@476 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image476.bmp"
+}
+awiz image477@477 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image477.bmp"
+}
+awiz image478@478 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image478.bmp"
+}
+awiz image479@479 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image479.bmp"
+}
+awiz image480@480 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image480.bmp"
+}
+awiz image481@481 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image481.bmp"
+}
+mult image482@482 {
+    raw-block DEFA {
+        raw-block CNVS `cc04000095010000`
+    }
+    awiz {
+        raw-block RELO `fb030000cc000000`
+        wizh
+        wizd 1 "ovresources/image482/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `fb03000034010000`
+        wizh
+        wizd 1 "ovresources/image482/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `6b040000cc000000`
+        wizh
+        wizd 1 "ovresources/image482/0002.bmp"
+    }
+    indices [0 1 2]
+}
+awiz image483@483 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image483.bmp"
+}
+awiz image485@485 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image485.bmp"
+}
+awiz image486@486 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image486.bmp"
+}
+awiz image487@487 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image487.bmp"
+}
+awiz image488@488 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image488.bmp"
+}
+awiz image489@489 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image489.bmp"
+}
+awiz image490@490 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image490.bmp"
+}
+awiz image491@491 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image491.bmp"
+}
+awiz image492@492 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image492.bmp"
+}
+awiz image493@493 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image493.bmp"
+}
+awiz image494@494 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "ovresources/image494.bmp"
+}
+awiz image495@495 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image495.bmp"
+}
+awiz image496@496 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image496.bmp"
+}
+awiz image497@497 {
+    raw-block CNVS `1102000070010000`
+    raw-block RELO `7001000020010000`
+    wizh
+    wizd 1 "ovresources/image497.bmp"
+}
+awiz image498@498 {
+    raw-block CNVS `5901000070010000`
+    raw-block RELO `b800000020010000`
+    wizh
+    wizd 1 "ovresources/image498.bmp"
+}
+awiz image499@499 {
+    raw-block CNVS `59010000c0000000`
+    raw-block RELO `b800000070000000`
+    wizh
+    wizd 1 "ovresources/image499.bmp"
+}
+awiz image500@500 {
+    raw-block CNVS `5901000018010000`
+    raw-block RELO `b8000000c8000000`
+    wizh
+    wizd 1 "ovresources/image500.bmp"
+}
+awiz image501@501 {
+    raw-block CNVS `1102000018010000`
+    raw-block RELO `70010000c8000000`
+    wizh
+    wizd 1 "ovresources/image501.bmp"
+}
+awiz image502@502 {
+    raw-block CNVS `9802000010000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image502.bmp"
+}
+awiz image503@503 {
+    raw-block CNVS `19010000a3010000`
+    raw-block SPOT `0000000060000000`
+    raw-block RELO `b8000000d1000000`
+    wizh
+    wizd 1 "ovresources/image503.bmp"
+}
+awiz image504@504 {
+    raw-block CNVS `8002000068010000`
+    raw-block SPOT `3800000000000000`
+    raw-block RELO `70010000c8000000`
+    wizh
+    wizd 1 "ovresources/image504.bmp"
+}
+awiz image505@505 {
+    raw-block CNVS `3f0400008e010000`
+    raw-block SPOT `0e01000000000000`
+    raw-block RELO `cd020000d8000000`
+    wizh
+    wizd 1 "ovresources/image505.bmp"
+}
+awiz image506@506 {
+    raw-block CNVS `8000000038010000`
+    raw-block RELO `00000000d0000000`
+    wizh
+    wizd 1 "ovresources/image506.bmp"
+}
+awiz image507@507 {
+    raw-block CNVS `40060000e0000000`
+    raw-block SPOT `e001000000000000`
+    raw-block RELO `a005000040000000`
+    wizh
+    wizd 1 "ovresources/image507.bmp"
+}
+awiz image508@508 {
+    raw-block CNVS `8807000097010000`
+    raw-block SPOT `8d010000e4000000`
+    raw-block RELO `950600009b000000`
+    wizh
+    wizd 1 "ovresources/image508.bmp"
+}
+awiz image509@509 {
+    raw-block CNVS `40060000e0010000`
+    raw-block SPOT `0001000000000000`
+    raw-block RELO `c004000008010000`
+    wizh
+    wizd 1 "ovresources/image509.bmp"
+}
+awiz image510@510 {
+    raw-block CNVS `3d0800009b010000`
+    raw-block SPOT `0000000080000000`
+    raw-block RELO `e0070000aa000000`
+    wizh
+    wizd 1 "ovresources/image510.bmp"
+}
+awiz image511@511 {
+    raw-block CNVS `69020000a8000000`
+    wizh
+    wizd 1 "ovresources/image511.bmp"
+}
+awiz image512@512 {
+    raw-block CNVS `7f02000093010000`
+    raw-block SPOT `0f02000048000000`
+    raw-block RELO `0e0200003b010000`
+    wizh
+    wizd 1 "ovresources/image512.bmp"
+}
+awiz image513@513 {
+    raw-block CNVS `e300000091010000`
+    raw-block SPOT `7800000000000000`
+    raw-block RELO `1200000040010000`
+    wizh
+    wizd 1 "ovresources/image513.bmp"
+}
+awiz image514@514 {
+    raw-block CNVS `a8030000e0000000`
+    raw-block SPOT `0000000000010000`
+    raw-block RELO `c002000000000000`
+    wizh
+    wizd 1 "ovresources/image514.bmp"
+}
+awiz image515@515 {
+    raw-block CNVS `10040000c8010000`
+    raw-block SPOT `0000000010000000`
+    raw-block RELO `c002000030010000`
+    wizh
+    wizd 1 "ovresources/image515.bmp"
+}
+awiz image516@516 {
+    raw-block CNVS `f8060000af010000`
+    raw-block SPOT `cb00000008000000`
+    raw-block RELO `4305000010010000`
+    wizh
+    wizd 1 "ovresources/image516.bmp"
+}
+awiz image517@517 {
+    raw-block CNVS `d80400005b000000`
+    raw-block SPOT `dc01000000000000`
+    raw-block RELO `3404000000000000`
+    wizh
+    wizd 1 "ovresources/image517.bmp"
+}
+awiz image518@518 {
+    raw-block CNVS `f70900008f010000`
+    raw-block SPOT `a801000000010000`
+    raw-block RELO `20090000b0000000`
+    wizh
+    wizd 1 "ovresources/image518.bmp"
+}
+awiz image519@519 {
+    raw-block CNVS `8f060000de000000`
+    raw-block SPOT `2000000000000000`
+    raw-block RELO `0005000000000000`
+    wizh
+    wizd 1 "ovresources/image519.bmp"
+}
+awiz image520@520 {
+    raw-block CNVS `41070000e1000000`
+    raw-block SPOT `d000000000000000`
+    raw-block RELO `b005000000000000`
+    wizh
+    wizd 1 "ovresources/image520.bmp"
+}
+mult image521@521 {
+    raw-block DEFA {
+        raw-block CNVS `80020000e0010000`
+    }
+    awiz {
+        raw-block RELO `6001000010010000`
+        wizh
+        wizd 1 "ovresources/image521/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `7801000018000000`
+        wizh
+        wizd 1 "ovresources/image521/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `7000000018000000`
+        wizh
+        wizd 1 "ovresources/image521/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `10000000c0000000`
+        wizh
+        wizd 1 "ovresources/image521/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+awiz image522@522 {
+    raw-block CNVS `0005000068010000`
+    raw-block SPOT `9000000000000000`
+    raw-block RELO `4004000038010000`
+    wizh
+    wizd 1 "ovresources/image522.bmp"
+}
+awiz image523@523 {
+    raw-block CNVS `4d00000058000000`
+    raw-block SPOT `0800000070000000`
+    raw-block RELO `1800000026000000`
+    wizh
+    wizd 1 "ovresources/image523.bmp"
+}
+awiz image524@524 {
+    raw-block CNVS `e00000006d000000`
+    raw-block SPOT `2f02000050000000`
+    raw-block RELO `8f0000002b000000`
+    wizh
+    wizd 1 "ovresources/image524.bmp"
+}
+awiz image525@525 {
+    raw-block CNVS `600100006e000000`
+    raw-block SPOT `5402000018010000`
+    raw-block RELO `3401000022000000`
+    wizh
+    wizd 1 "ovresources/image525.bmp"
+}
+awiz image526@526 {
+    raw-block CNVS `dd0200008f000000`
+    raw-block SPOT `0000000018000000`
+    raw-block RELO `900100000a000000`
+    wizh
+    wizd 1 "ovresources/image526.bmp"
+}
+awiz image527@527 {
+    raw-block CNVS `2804000081000000`
+    raw-block SPOT `4e01000018000000`
+    raw-block RELO `f602000006000000`
+    wizh
+    wizd 1 "ovresources/image527.bmp"
+}
+awiz image528@528 {
+    raw-block CNVS `9707000042000000`
+    raw-block SPOT `5001000000000000`
+    raw-block RELO `1007000020000000`
+    wizh
+    wizd 1 "ovresources/image528.bmp"
+}
+awiz image529@529 {
+    raw-block CNVS `e806000060000000`
+    raw-block SPOT `7800000000000000`
+    raw-block RELO `7006000008000000`
+    wizh
+    wizd 1 "ovresources/image529.bmp"
+}
+awiz image530@530 {
+    raw-block CNVS `0f050000be000000`
+    raw-block SPOT `a000000000000000`
+    raw-block RELO `6004000088000000`
+    wizh
+    wizd 1 "ovresources/image530.bmp"
+}
+awiz image531@531 {
+    raw-block CNVS `9004000069000000`
+    raw-block SPOT `3000000030000000`
+    raw-block RELO `5804000040000000`
+    wizh
+    wizd 1 "ovresources/image531.bmp"
+}
+awiz image532@532 {
+    raw-block CNVS `0309000090010000`
+    raw-block SPOT `e3010000f8000000`
+    raw-block RELO `66080000a8000000`
+    wizh
+    wizd 1 "ovresources/image532.bmp"
+}
+awiz image533@533 {
+    raw-block CNVS `8704000027000000`
+    raw-block SPOT `6002000010000000`
+    raw-block RELO `7004000010000000`
+    wizh
+    wizd 1 "ovresources/image533.bmp"
+}
+awiz image534@534 {
+    raw-block CNVS `61070000ab000000`
+    raw-block SPOT `0000000030000000`
+    raw-block RELO `e005000018000000`
+    wizh
+    wizd 1 "ovresources/image534.bmp"
+}
+awiz image535@535 {
+    raw-block CNVS `60080000a4000000`
+    raw-block SPOT `0001000030000000`
+    raw-block RELO `e006000018000000`
+    wizh
+    wizd 1 "ovresources/image535.bmp"
+}
+awiz image536@536 {
+    raw-block CNVS `c404000096000000`
+    raw-block RELO `f003000008000000`
+    wizh
+    wizd 1 "ovresources/image536.bmp"
+}
+awiz image537@537 {
+    raw-block CNVS `c804000041010000`
+    raw-block SPOT `ad01000000000000`
+    raw-block RELO `f5030000b0000000`
+    wizh
+    wizd 1 "ovresources/image537.bmp"
+}
+awiz image538@538 {
+    raw-block CNVS `b105000098010000`
+    raw-block SPOT `000000002f010000`
+    raw-block RELO `28050000e7000000`
+    wizh
+    wizd 1 "ovresources/image538.bmp"
+}
+awiz image539@539 {
+    raw-block CNVS `b0050000b8000000`
+    raw-block SPOT `f60100002f010000`
+    raw-block RELO `2605000007000000`
+    wizh
+    wizd 1 "ovresources/image539.bmp"
+}
+awiz image540@540 {
+    raw-block CNVS `71000000c7000000`
+    wizh
+    wizd 1 "ovresources/image540.bmp"
+}
+awiz image541@541 {
+    raw-block CNVS `c100000080000000`
+    raw-block SPOT `4000000040000000`
+    raw-block RELO `4000000040000000`
+    wizh
+    wizd 1 "ovresources/image541.bmp"
+}
+awiz image542@542 {
+    raw-block CNVS `81020000c8000000`
+    raw-block SPOT `7000000000000000`
+    raw-block RELO `7000000000000000`
+    wizh
+    wizd 1 "ovresources/image542.bmp"
+}
+awiz image543@543 {
+    raw-block CNVS `d6000000e0010000`
+    raw-block SPOT `0000000013010000`
+    raw-block RELO `0000000013010000`
+    wizh
+    wizd 1 "ovresources/image543.bmp"
+}
+awiz image544@544 {
+    raw-block CNVS `80020000e0010000`
+    raw-block SPOT `b001000017010000`
+    raw-block RELO `b001000017010000`
+    wizh
+    wizd 1 "ovresources/image544.bmp"
+}
+awiz image545@545 {
+    raw-block CNVS `2d0300007e000000`
+    raw-block RELO `9002000008000000`
+    wizh
+    wizd 1 "ovresources/image545.bmp"
+}
+awiz image546@546 {
+    raw-block CNVS `e003000080000000`
+    raw-block SPOT `1002000000000000`
+    raw-block RELO `7003000008000000`
+    wizh
+    wizd 1 "ovresources/image546.bmp"
+}
+awiz image547@547 {
+    raw-block CNVS `e8080000d8010000`
+    raw-block SPOT `0000000058010000`
+    raw-block RELO `3008000050010000`
+    wizh
+    wizd 1 "ovresources/image547.bmp"
+}
+awiz image548@548 {
+    raw-block CNVS `f3070000d0010000`
+    raw-block SPOT `c001000030010000`
+    raw-block RELO `3807000020010000`
+    wizh
+    wizd 1 "ovresources/image548.bmp"
+}
+mult image1550@1550 {
+    raw-block DEFA {
+        raw-block RGBS "ovresources/image1550/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b00000098000000`
+        wizd 1 "ovresources/image1550/0000.bmp"
+    }
+    indices [0]
+}
+mult image1551@1551 {
+    raw-block DEFA {
+        raw-block RGBS "ovresources/image1551/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1a00000073000000`
+        wizd 1 "ovresources/image1551/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2600000077000000`
+        wizd 1 "ovresources/image1551/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2e00000079000000`
+        wizd 1 "ovresources/image1551/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340000007b000000`
+        wizd 1 "ovresources/image1551/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `360000007b000000`
+        wizd 1 "ovresources/image1551/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a0000007b000000`
+        wizd 1 "ovresources/image1551/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000007b000000`
+        wizd 1 "ovresources/image1551/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a0000007b000000`
+        wizd 1 "ovresources/image1551/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000007b000000`
+        wizd 1 "ovresources/image1551/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000007b000000`
+        wizd 1 "ovresources/image1551/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000007d000000`
+        wizd 1 "ovresources/image1551/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000081000000`
+        wizd 1 "ovresources/image1551/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000081000000`
+        wizd 1 "ovresources/image1551/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a00000085000000`
+        wizd 1 "ovresources/image1551/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a00000089000000`
+        wizd 1 "ovresources/image1551/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0030.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3600000089000000`
+        wizd 1 "ovresources/image1551/0031.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a00000089000000`
+        wizd 1 "ovresources/image1551/0032.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0033.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0034.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0035.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0036.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a00000089000000`
+        wizd 1 "ovresources/image1551/0037.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0038.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0039.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0040.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0041.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3a0000008b000000`
+        wizd 1 "ovresources/image1551/0042.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0043.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2400000089000000`
+        wizd 1 "ovresources/image1551/0044.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `280000008b000000`
+        wizd 1 "ovresources/image1551/0045.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2c00000089000000`
+        wizd 1 "ovresources/image1551/0046.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3000000089000000`
+        wizd 1 "ovresources/image1551/0047.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340000008b000000`
+        wizd 1 "ovresources/image1551/0048.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3800000089000000`
+        wizd 1 "ovresources/image1551/0049.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0050.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0051.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0052.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0053.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000008b000000`
+        wizd 1 "ovresources/image1551/0054.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0055.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000089000000`
+        wizd 1 "ovresources/image1551/0056.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000085000000`
+        wizd 1 "ovresources/image1551/0057.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000007d000000`
+        wizd 1 "ovresources/image1551/0058.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c00000077000000`
+        wizd 1 "ovresources/image1551/0059.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image1551/0060.bmp"
+    }
+    indices [0 1 2 3 3 3 4 3 4 3 4 3 4 3 3 3 3 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48]
+}
+mult image1552@1552 {
+    raw-block DEFA {
+        raw-block RGBS "ovresources/image1552/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `53000000e5ffffff`
+        wizd 1 "ovresources/image1552/0000.bmp"
+    }
+    indices [0]
+}
+mult image549@549 {
+    raw-block DEFA {
+        raw-block CNVS `b003000038010000`
+    }
+    awiz {
+        raw-block RELO `2003000010000000`
+        wizh
+        wizd 1 "ovresources/image549/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `28030000e0000000`
+        wizh
+        wizd 1 "ovresources/image549/0001.bmp"
+    }
+    indices [0 1]
+}
+awiz image550@550 {
+    raw-block CNVS `70030000a8000000`
+    raw-block RELO `5003000098000000`
+    wizh
+    wizd 1 "ovresources/image550.bmp"
+}
+awiz image551@551 {
+    raw-block CNVS `540300005c000000`
+    raw-block RELO `4b0300003e000000`
+    wizh
+    wizd 1 "ovresources/image551.bmp"
+}
+mult image552@552 {
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0000.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0001.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0002.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0003.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0004.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0005.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0006.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff00000000`
+        wizd 1 "ovresources/image552/0008.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0009.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0010.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0011.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0012.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0013.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0014.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0015.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0016.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0017.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0018.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0019.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0020.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0021.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0022.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0023.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0024.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0025.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff00000000`
+        wizd 1 "ovresources/image552/0027.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0028.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0029.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0030.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0031.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0032.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0033.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0034.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0035.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffbffffff`
+        wizd 1 "ovresources/image552/0036.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffcffffff`
+        wizd 1 "ovresources/image552/0037.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff00000000`
+        wizd 1 "ovresources/image552/0038.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "ovresources/image552/0039.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39]
+}

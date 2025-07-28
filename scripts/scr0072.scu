@@ -1,9 +1,0 @@
-; SCRP 72
-
-local variable local0
-
-local0 = abs (global131 - 1 - 1)
-global607 = local0 + 1
-dim array global606 i32[0...0][0...local0] swap=2
-array-fill-values global606 0 0 0 local0 1 (global131 - 1)
-free-script

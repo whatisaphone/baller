@@ -1,9 +1,0 @@
-; SCRP 58 AllocSprite
-
-if (gSpriteStackPointer) {
-    --gSpriteStackPointer
-    return gSpriteStack[gSpriteStackPointer]
-} else {
-    return 0
-}
-free-script

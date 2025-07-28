@@ -1,0 +1,421 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "netcards/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+script scr383@383 {
+    var local0 local1 local2
+
+    local2 = band local2 31
+    case local1 {
+        1 {
+            return (band 1073741823 local0 + local2 << 30)
+        }
+        2 {
+            return (band -50331649 local0 + local2 << 24)
+        }
+        3 {
+            return (band -2031617 local0 + local2 << 16)
+        }
+        4 {
+            return (band -7937 local0 + local2 << 8)
+        }
+        5 {
+            return (band -32 local0 + local2)
+        }
+        6 {
+            return (band -1006632961 local0 + (local2 - 1) << 26)
+        }
+        else {
+            return local0
+        }
+    }
+}
+
+script scr384@384 {
+    var local0 local1 local2
+
+    local2 = band local2 7
+    case local1 {
+        3 {
+            return (band -14680065 local0 + local2 << 21)
+        }
+        4 {
+            return (band -57345 local0 + local2 << 13)
+        }
+        5 {
+            return (band -225 local0 + local2 << 5)
+        }
+        else {
+            return local0
+        }
+    }
+}
+
+script scr385@385 {
+    var local0 local1
+
+    case local1 {
+        1 {
+            return (band (band (band (local0 >> 30) 3) 255) 31)
+        }
+        2 {
+            return (band (band (band (local0 >> 24) 3) 255) 31)
+        }
+        3 {
+            return (band (band (local0 >> 16) 255) 31)
+        }
+        4 {
+            return (band (band (local0 >> 8) 255) 31)
+        }
+        5 {
+            return (band (band local0 255) 31)
+        }
+        6 {
+            return (band (local0 >> 26) 15 + 1)
+        }
+        else {
+            return local0
+        }
+    }
+}
+
+script scr386@386 {
+    var local0 local1 local2 local3
+
+    case local1 {
+        3 {
+            local2 = band (local0 >> 16) 255
+        }
+        4 {
+            local2 = band (local0 >> 8) 255
+        }
+        5 {
+            local2 = band local0 255
+        }
+        else {
+        }
+    }
+    local3 = local2 >> 5
+    return local3
+}
+
+script scr387@387 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12
+
+    image.init local4
+    image.new
+    image.width 120
+    image.height 160
+    image.end
+    image.init local4
+    image.draw-box 0 0 120 160 (iif local5 53 5)
+    image.end
+    if local6 {
+        palette.init local6
+        palette.from-image 710 0
+        palette.end
+    } else {
+        local6 = 1
+    }
+    local8 = 709
+    local12 = band (local0 >> 30) 3 * 4 + band (local0 >> 24) 3
+    image.init local8
+    image.at (320 - image-get-object-x local8 local12 - 146) (240 - image-get-object-y local8 local12 - 181)
+    image.state local12
+    image.render-target local4
+    image.palette local6
+    image.draw
+    image.end
+    local10 = call-script scr391 local0 3 0
+    local8 = band (local0 >> 30) 3 * 3 + local10
+    local9 = band (band (local0 >> 16) 255) 31
+    image.init local8
+    image.at (320 - image-get-object-x local8 local9 - 146) (240 - image-get-object-y local8 local9 - 181)
+    image.state local9
+    image.render-target local4
+    image.palette local6
+    image.draw
+    image.end
+    local10 = call-script scr391 local0 5 0
+    local8 = band (local0 >> 30) 3 * 3 + local10
+    local9 = band local0 31
+    image.init local8
+    image.at (320 - image-get-object-x local8 local9 - 146) (240 - image-get-object-y local8 local9 - 181)
+    image.state local9
+    image.render-target local4
+    image.palette local6
+    image.draw
+    image.end
+    local10 = call-script scr391 local0 4 0
+    local8 = band (local0 >> 30) 3 * 3 + local10
+    local9 = band (band (local0 >> 8) 255) 31
+    image.init local8
+    image.at (320 - image-get-object-x local8 local9 - 146) (240 - image-get-object-y local8 local9 - 181)
+    image.state local9
+    image.render-target local4
+    image.palette local6
+    image.draw
+    image.end
+    local11 = local7 + 1580
+    image.init local11
+    image.at (320 - image-get-object-x local11 local12 - 146) (240 - image-get-object-y local11 local12 - 181)
+    image.state local12
+    image.render-target local4
+    image.palette local6
+    image.draw
+    image.end
+    if (not local5) {
+        sprite.init local3
+        sprite.new
+        sprite.image local4
+        sprite.palette local6
+        sprite.at local1 local2
+        sprite.order 4999
+        sprite.animation-type 0
+        sprite.update-type 0
+    }
+}
+
+script maybe_smth_net_yell_ui@388 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 {
+    var local9 local10 local11 _ _ local14
+
+    if (not arg5) {
+        arg5 = 53
+    }
+    if (arg5 < 0) {
+        arg5 = 5
+    }
+    if (not arg6) {
+        arg6 = 4999
+    }
+    arg5 = palette-get-color 1 arg5
+    image.init arg4
+    image.new
+    image.width 40
+    image.height 48
+    image.end
+    image.init arg4
+    image.draw-box 0 0 40 48 arg5
+    image.end
+    if (not (in gCurrentRoom [40 39])) {
+        local9 = 855
+    } else {
+        local9 = 782
+    }
+    local14 = call-script AllocPalette
+    palette.init local14
+    palette.from-image local9 0
+    palette.end
+    local10 = band (arg0 >> 30) 3 * 4 + band (arg0 >> 24) 3
+    image.init local9
+    image.at (20 - image-get-object-x local9 local10) (24 - image-get-object-y local9 local10)
+    image.state local10
+    image.render-target arg4
+    image.palette local14
+    image.draw
+    image.end
+    local11 = call-script scr391 arg0 3 1
+    local9 = band (arg0 >> 30) 3 * 3 + local11
+    local10 = band (band (arg0 >> 16) 255) 31
+    image.init local9
+    image.at (20 - image-get-object-x local9 local10) (24 - image-get-object-y local9 local10)
+    image.state local10
+    image.render-target arg4
+    image.palette local14
+    image.draw
+    image.end
+    nuke-image local9
+    local11 = call-script scr391 arg0 5 1
+    local9 = band (arg0 >> 30) 3 * 3 + local11
+    local10 = band arg0 31
+    image.init local9
+    image.at (20 - image-get-object-x local9 local10) (24 - image-get-object-y local9 local10)
+    image.state local10
+    image.render-target arg4
+    image.palette local14
+    image.draw
+    image.end
+    nuke-image local9
+    local11 = call-script scr391 arg0 4 1
+    local9 = band (arg0 >> 30) 3 * 3 + local11
+    local10 = band (band (arg0 >> 8) 255) 31
+    image.init local9
+    image.at (20 - image-get-object-x local9 local10) (24 - image-get-object-y local9 local10)
+    image.state local10
+    image.render-target arg4
+    image.palette local14
+    image.draw
+    image.end
+    nuke-image local9
+    if (not arg7) {
+        arg1 -= 20
+        arg2 -= 24
+    }
+    sprite.init arg3
+    sprite.new
+    sprite.image arg4
+    sprite.at arg1 arg2
+    sprite.order arg6
+    sprite.animation-type 0
+    sprite.update-type 0
+    if arg8 {
+        sprite.init arg3
+        sprite.group arg8
+    }
+    start-script FreePalette local14
+}
+
+script scr389@389 {
+    var local0 local1 local2
+
+    if (not local0) {
+        local0 = 940
+    }
+    if (not local1) {
+        local1 = 40
+    }
+    if (not local2) {
+        local2 = 48
+    }
+    image.init local0
+    image.new
+    image.width local1
+    image.height local2
+    image.end
+    image.init local0
+    image.draw-box 0 0 local1 local2 5
+    image.end
+    return 1
+}
+
+script LoadFaceImages@390 arg0 arg1 arg2 arg3 {
+    var _ local5 local6 local7 local8 local9 local10
+
+    local8 = call-script scr385 arg0 1
+    print-debug.start
+    print-debug.printf "ID BEFORE %d" arg0
+    case arg1 {
+        3 {
+            assign-string local7 "HAIR.wiz"
+            local10 = 710 + 3 * local8
+        }
+        4 {
+            local8 += 3
+            assign-string local7 "EYES.wiz"
+            local10 = 709 + 3 * local8
+        }
+        5 {
+            local8 += 6
+            assign-string local7 "MOUTHS.wiz"
+            local10 = 712 + 3 * local8
+        }
+        else {
+        }
+    }
+    local5 = arg2[local8][1] + arg3
+    local6 = arg2[local8][0]
+    if (not local6) {
+        undim local7
+        return arg0
+    }
+    if (local5 < 0) {
+        local5 = local6
+    }
+    if (local5 > local6) {
+        local5 = 0
+    }
+    arg2[local8][1] = local5
+    arg0 = call-script scr384 arg0 arg1 local5
+    sprintf local9 "%sdownloads\\H%dV%d%s" gSaveGamePath local8 local5 local7
+    image.init local10
+    image.load local9
+    image.end
+    if gIOError {
+        nuke-image local10
+        arg0 = call-script scr384 arg0 arg1 0
+    }
+    print-debug.start
+    print-debug.printf "FileNum After %d" (call-script scr386 arg0 arg1 local5)
+    undim local9
+    undim local7
+    return arg0
+}
+
+script scr391@391 {
+    var local0 local1 local2 local3 local4 local5
+
+    if (not (in gCurrentRoom [40 39])) {
+        local5 = 856 - 710
+    } else {
+        local5 = 783 - 710
+    }
+    local3 = call-script scr386 local0 local1
+    case local1 {
+        3 {
+            case local3 {
+                0 {
+                    local4 = 710
+                }
+                1 {
+                    local4 = 719
+                }
+                else {
+                    local4 = 710
+                }
+            }
+        }
+        4 {
+            case local3 {
+                0 {
+                    local4 = 711
+                }
+                1 {
+                    local4 = 720
+                }
+                else {
+                    local4 = 711
+                }
+            }
+        }
+        5 {
+            case local3 {
+                0 {
+                    local4 = 712
+                }
+                1 {
+                    local4 = 721
+                }
+                else {
+                    local4 = 712
+                }
+            }
+        }
+        else {
+        }
+    }
+    case local2 {
+        0 {
+        }
+        1 {
+            local4 += local5
+        }
+        else {
+        }
+    }
+    return local4
+}
+
+enter {
+}
+
+exit {
+}

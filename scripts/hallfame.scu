@@ -1,0 +1,4567 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "hallfame/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `5c00`
+}
+
+var room0@0
+var room1@1
+var room2@2
+var room3@3
+var room4@4
+var room5@5
+var room6@6
+var room7@7
+var room8@8
+var room9@9
+var room10@10
+var room11@11
+var room12@12
+var room13@13
+var room14@14
+var room15@15
+var room16@16
+var room17@17
+var room18@18
+var room19@19
+var room20@20
+var room21@21
+var room22@22
+var room23@23
+var room24@24
+var room25@25
+var room26@26
+var room27@27
+var room28@28
+var room29@29
+var room30@30
+var room31@31
+var room32@32
+var room33@33
+var room34@34
+var room35@35
+var room36@36
+var room37@37
+var room38@38
+var room39@39
+var room40@40
+var room41@41
+var room42@42
+var room43@43
+var room44@44
+var room45@45
+var room46@46
+var room47@47
+var room48@48
+var room49@49
+var room50@50
+var room51@51
+var room52@52
+var room53@53
+var room54@54
+var smth_stats@55
+var room56@56
+var room57@57
+var room58@58
+var room59@59
+var room60@60
+var room61@61
+var room62@62
+var room63@63
+var room64@64
+
+script smth_write_hall_of_fame@375 arg0 {
+    var local1 local2 local3 local4 local5 local6 local7 local8
+
+    dim-array.u8 local5 (33 - 1)
+    start-script scr397 local5 arg0
+    assign-string local6 "baseball2001"
+    sprintf local1 "%s%s.hof" gSaveGamePath local6
+    local2 = open-file local1 FOR-APPEND
+    if (local2 == -1) {
+        print-debug.start
+        print-debug.string "Couldn't write Hall of Fame file!"
+    } else {
+        local3 = file-size local1
+        local4 = local3 / 33
+        if (local4 >= 254) {
+            close-file local2
+            start-script smth_write_hall_of_fame_entries
+            break-until (not (script-running smth_write_hall_of_fame_entries))
+            local2 = open-file local1 FOR-APPEND
+        }
+        write-file.array.u8 local2 local5
+    }
+    close-file local2
+    local8 = local5[4] * 10000 + local5[2] * 100 + local5[3]
+    sprintf local7 "trophy%d" arg0
+    write-ini.i32 gCoachINIPath "trophyDate" local7 local8
+    undim local7
+    undim local1
+    undim local5
+    undim local6
+}
+
+script scr397@397 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    dim-array.i16 local3 (16 + 8)
+    if gPlayoffRosterArray {
+        local4 = call-script smth_find_playoffs_cur_division
+        local8 = gPlayoffRosterArray
+    } else {
+        local4 = gSeasonDivision
+        local8 = gSeasonRosterArray
+    }
+    array-assign-slice local3 local8 0 0 0 (16 + 8) local4 local4 0 (16 + 8)
+    get-time-date
+    local7 = array-get-length gCoachName
+    local0[0] = local1
+    local0[1] = gCoachHomeField
+    local0[2] = gNowMonth
+    local0[3] = gNowDay
+    local0[4] = gNowYear
+    for local2 = 0 to (local7 - 1) + {
+        local0[5 + local2] = gCoachName[local2]
+    }
+    local0[20] = local3[12]
+    local0[21] = local3[13]
+    local0[22] = local3[10]
+    local0[23] = local3[11]
+    for local6 = 0 to (9 - 1) + {
+        local5 = local3[local6]
+        if (local5 > 61) {
+            local5 = 61 + gKidData[local5][KD-APPEARANCE]
+        }
+        local0[24 + local6] = local5
+    }
+    undim local3
+}
+
+script smth_write_hall_of_fame_entries@422 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    assign-string local0 "baseball2001"
+    sprintf local1 "%s%s.hof" gSaveGamePath local0
+    local2 = open-file local1 FOR-READ
+    local3 = file-size local1
+    local4 = local3 / 33
+    dim-array-2d.u8 local6 (local4 - 1) (33 - 1)
+    for local5 = 0 to (local4 - 1) + {
+        local2 = call-script scr423 local2 local6 local5
+    }
+    close-file local2
+    local2 = open-file local1 FOR-WRITE
+    if (local2 != -1) {
+        for local8 = 0 to (local4 - 1) + {
+            if (local8 >= 10) {
+                dim-array.u8 local7 (33 - 1)
+                array-assign-slice local7 local6 0 0 0 (33 - 1) local8 local8 0 (33 - 1)
+                write-file.array.u8 local2 local7
+                undim local7
+            }
+        }
+    }
+    close-file local2
+    undim local0
+    undim local1
+    undim local6
+}
+
+script scr423@423 {
+    var local0 local1 local2 local3
+
+    if (local0 != -1) {
+        local3 = read-file.array.u8 local0 (33 - 1)
+    } else {
+        debug 0
+    }
+    array-assign-slice local1 local3 local2 local2 0 (33 - 1) 0 0 0 (33 - 1)
+    undim local3
+    return local0
+}
+
+local-script lsc2048@2048 {
+    sprite.init room25
+    sprite.new
+    sprite.image image1422
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -200
+    sprite.palette room30
+    sprite.state 0
+    sprite.at 320 240
+    gSpriteCursorTargets[room25][TARGET-CLICK-SCRIPT] = lsc2127
+    sprite.init room27
+    sprite.new
+    sprite.image image1423
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -200
+    sprite.palette room30
+    sprite.state 0
+    sprite.at 320 240
+    gSpriteCursorTargets[room27][TARGET-CLICK-SCRIPT] = lsc2129
+    sprite.init room26
+    sprite.new
+    sprite.image image1422
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -200
+    sprite.palette room30
+    sprite.state 2
+    sprite.at 320 240
+    gSpriteCursorTargets[room26][TARGET-CLICK-SCRIPT] = lsc2128
+    sprite.init room28
+    sprite.new
+    sprite.image image1423
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -200
+    sprite.palette room30
+    sprite.state 2
+    sprite.at 320 240
+    gSpriteCursorTargets[room28][TARGET-CLICK-SCRIPT] = lsc2130
+    sprite.init room29
+    sprite.new
+    sprite.image image402
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -200
+    sprite.palette room30
+    sprite.state 0
+    sprite.at 320 240
+    gSpriteCursorTargets[room29][TARGET-CLICK-SCRIPT] = lsc2131
+}
+
+local-script lsc2049@2049 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    if (in local0 [23 24]) {
+        local4 = 1
+        inc local2
+        local5 = local1 / 1000
+        local1 %= 1000
+        case 1 {
+            (local1 < 10) {
+                sprintf local3 ".00%d" local1
+            }
+            (local1 < 100) {
+                sprintf local3 ".0%d" local1
+            }
+            (local1 < 1000) {
+                sprintf local3 ".%d" local1
+            }
+            else {
+            }
+        }
+    } else if (local0 == 26) {
+        if (local1 == 9999) {
+            assign-string local3 "N/A"
+        } else {
+            inc local2
+            local4 = 1
+            local5 = local1 / 100
+            local1 %= 100
+            case 1 {
+                (local1 < 10) {
+                    sprintf local3 ".0%d" local1
+                }
+                (local1 < 100) {
+                    sprintf local3 ".%d" local1
+                }
+                else {
+                }
+            }
+        }
+    } else {
+        sprintf local3 "%d" local1
+    }
+    if local5 {
+        sprintf local6 "%d%s" local5 local3
+    } else {
+        sprintf local6 "%s" local3
+    }
+    undim local3
+    while (string-length local6 > local2) {
+        local6[string-length local6 - 1] = 0
+    }
+    return local6
+}
+
+local-script lsc2050@2050 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9
+
+    start-script AddSongsToPool -1
+    start-script AddSongsToPool 8105
+    start-script PlayMusicPool 8105
+    gMinJiffies = 4
+    room42 = call-script AllocScratchImage
+    room40 = call-script AllocScratchImage
+    room39 = call-script FindFreeSprite
+    room43 = call-script FindFreeSprite
+    room44 = call-script AllocScratchImage
+    local2 = image-get-width image1121 0
+    local3 = image-get-height image1121 0 + 1
+    local4 = image-get-height image632 30
+    local5 = local3 / (local4 + 5)
+    sprite.init room39
+    sprite.new
+    image.init room40
+    image.new
+    image.width local2
+    image.height local3
+    image.palette room41
+    image.end
+    image.init room44
+    image.new
+    image.width local2
+    image.height local3
+    image.palette room22
+    image.end
+    image.init room44
+    image.draw-box 0 0 local2 local3 (rgb 0 70 0)
+    image.end
+    sprite.init room43
+    sprite.new
+    sprite.image room44
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order (-825 - 1)
+    sprite.shadow global652
+    sprite.at (240 + 17) (148 + 11)
+    L00f7:
+    for local0 = 0 to (317 - local5) + {
+        local6 = 0
+        while (local6 <= local4 + 5) {
+            if room46 {
+                local7 = local5
+                local6 = local4 + 5 + 1
+                local0 = 317 - local5
+            } else {
+                image.init room40
+                image.draw-box 0 0 local2 local3 5
+                image.end
+                for local7 = 0 to local5 + {
+                    local1 = call-script getCreditsString (local0 + local7)
+                    if room45 {
+                        local8 = 633
+                    } else {
+                        local8 = 632
+                    }
+                    local9 = call-script maybe_draw_text_to_image local1 local8 room42 room41
+                    image.init room42
+                    image.at ((local2 - local9) / 2) (local7 * (local4 + 5) - local6)
+                    image.render-target room40
+                    image.palette room41
+                    image.draw
+                    image.end
+                    undim local1
+                }
+                local6 += 3
+                sprite.init room39
+                sprite.image room40
+                sprite.animation-type 0
+                sprite.update-type 2
+                sprite.order -825
+                sprite.at (240 + 17) (148 + 11)
+                break-here
+            }
+        }
+    }
+    if (not room46) {
+        jump L00f7
+    }
+    start-script lsc2051
+}
+
+local-script lsc2051@2051 {
+    if room42 {
+        start-script FreeScratchImage room42
+        start-script FreeScratchImage room40
+        start-script FreeScratchImage room44
+        start-script ReleaseSprite room39
+        room39 = 0
+        start-script ReleaseSprite room43
+        room43 = 0
+    }
+    gMinJiffies = room47
+    start-script AddSongsToPool -1
+    start-script AddSongsToPool 8078
+    start-script PlayMusicPool 8078
+}
+
+local-script lsc2052@2052 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10 local11 local12 local13 local14 local15
+
+    assign-string local6 "baseball2001"
+    sprintf local0 "%s%s.hof" gSaveGamePath local6
+    undim local6
+    local1 = open-file local0 FOR-READ
+    if (local1 != -1) {
+        local2 = file-size local0
+        local3 = local2 / 33
+    } else {
+        local3 = 0
+    }
+    if (0 == local3) {
+        start-script lsc2107
+    } else {
+        dim-array-2d.u8 local5 (local3 - 1) 33
+        for local4 = 0 to (local3 - 1) + {
+            local13 = read-file.array.u8 local1 (33 - 1)
+            if (32 == local13[0]) {
+                local13[0] = 0
+            }
+            for local14 = 5 to (5 + 15 - 1) + {
+            }
+            local11 = call-script lsc2105 local13
+            if local11 {
+                inc local12
+            } else {
+                array-assign-slice local5 local13 local15 local15 0 (33 - 1) 0 0 0 (33 - 1)
+                case local5[local15][0] {
+                    0 {
+                        inc local7
+                    }
+                    1 {
+                        inc local8
+                    }
+                    2 {
+                        inc local9
+                    }
+                    3 {
+                        inc local10
+                    }
+                    else {
+                    }
+                }
+                inc local15
+            }
+            undim local13
+        }
+        if (local12 > 0) {
+            close-file local1
+            local1 = open-file local0 FOR-WRITE
+            if (local1 != -1) {
+                dim-array.u8 local13 (33 - 1)
+                for local14 = 0 to (local3 - local12 - 1) + {
+                    array-assign-slice local13 local5 0 0 0 (33 - 1) local14 local14 0 (33 - 1)
+                    write-file.array.u8 local1 local13
+                }
+                undim local13
+                close-file local1
+                undim local5
+                undim local0
+                start-script lsc2052
+                stop-script 0
+            } else {
+                start-script lsc2109 local5 local7 local8 local9 local10
+            }
+        } else {
+            start-script lsc2109 local5 local7 local8 local9 local10
+        }
+        undim local5
+    }
+    close-file local1
+    undim local0
+}
+
+local-script lsc2053@2053 {
+    var local0
+
+    start-script PlayClickySound
+    case local0 {
+        room48 {
+            dec room54
+            if (room54 < 0) {
+                room54 = 12 - 1
+                room53 = abs (room53 - 1)
+                sprite.init room50
+                sprite.image (iif room53 1246 1247)
+                sprite.animation-type 0
+            }
+            sprite.init room63
+            sprite.state room54
+            start-script.rec lsc2073 room48 0
+            start-script lsc2086
+        }
+        room49 {
+            inc room54
+            if (room54 == 12) {
+                room54 = 0
+                room53 = abs (room53 - 1)
+                sprite.init room50
+                sprite.image (iif room53 1246 1247)
+                sprite.animation-type 0
+            }
+            sprite.init room63
+            sprite.state room54
+            start-script.rec lsc2073 room49 2
+            start-script lsc2086
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2054@2054 {
+    var local0
+
+    start-script PlayClickySound
+    case local0 {
+        room48 {
+            dec room54
+            if (room54 < 0) {
+                room54 = 12 - 1
+            }
+            sprite.init room63
+            sprite.state room54
+            start-script.rec lsc2073 room48 0
+            start-script lsc2085
+        }
+        room49 {
+            inc room54
+            if (room54 == 12) {
+                room54 = 0
+            }
+            sprite.init room63
+            sprite.state room54
+            start-script.rec lsc2073 room49 2
+            start-script lsc2085
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2055@2055 {
+    g_some_palette_654 = call-script AllocPalette
+    g_some_palette_655 = call-script AllocPalette
+}
+
+local-script lsc2056@2056 {
+    start-script FreePalette g_some_palette_654
+    g_some_palette_654 = 0
+    start-script FreePalette g_some_palette_655
+    g_some_palette_655 = 0
+}
+
+local-script lsc2057@2057 {
+    if global423 {
+        global652 = global423
+    } else {
+        global652 = 257
+    }
+}
+
+local-script lsc2058@2058 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif gTeamInfo[0][TI-CONTROLLED-BY] gPickOrder1 gPickOrder2)
+    } else {
+        return gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER]
+    }
+}
+
+local-script lsc2059@2059 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif (CB-USER == gTeamInfo[0][TI-CONTROLLED-BY]) 0 1)
+    } else {
+        return gHomeInfoIndex
+    }
+}
+
+local-script lsc2060@2060 {
+    var local0
+
+    return (local0 * 2 + 1073 - 2)
+}
+
+local-script lsc2061@2061 {
+    var local0 local1 local2 local3 local4
+
+    local3 = call-script lsc2060 local0
+    local4 = local3 + 1
+    case local1 {
+        101 {
+            local2 = 0
+        }
+        102 {
+            local2 = 1
+        }
+        103 {
+            local2 = 2
+        }
+        104 {
+            local2 = 3
+        }
+        105 {
+            local2 = 4
+        }
+        106 {
+            local2 = 6
+        }
+        else {
+            local2 = 3
+        }
+    }
+    sprite.init global648
+    sprite.new
+    sprite.image image1072
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image local4
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1071
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image local3
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+}
+
+local-script lsc2062@2062 {
+    var local0 _ local2
+
+    local2 = local0 - 22
+    sprite.init global648
+    sprite.new
+    sprite.image image1068
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image image1070
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1067
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image image1069
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+}
+
+local-script lsc2063@2063 {
+    var local0 _ local2
+
+    sprite.init global648
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 0 0
+    sprite.init global646
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state (local2 + 1)
+    sprite.palette g_some_palette_654
+    sprite.at 0 0
+}
+
+local-script lsc2064@2064 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local1 {
+        local3 = local1
+        local4 = 0
+        local5 = 2063
+    } else {
+        local3 = gTeamInfo[local0][TI-TEAM-ADJECTIVE]
+        local4 = gTeamInfo[local0][TI-TEAM-NOUN]
+        local5 = iif (local3 <= 10) 2061 2062
+    }
+    start-script local5 local3 local4 local2
+}
+
+local-script lsc2065@2065 {
+    if global648 {
+        start-script ReleaseSprite global648
+        global648 = 0
+        start-script ReleaseSprite global649
+        global649 = 0
+        start-script ReleaseSprite global646
+        global646 = 0
+        start-script ReleaseSprite global647
+        global647 = 0
+    }
+}
+
+local-script lsc2066@2066 {
+    start-script lsc2065
+    start-script scr281
+    if global653 {
+        start-script ReleaseSprite global653
+        global653 = 0
+    }
+    if global671 {
+        start-script ReleaseSprite global671
+        global671 = 0
+        start-script ReleaseSprite global672
+        global672 = 0
+        start-script FreeScratchImage global673
+    }
+}
+
+local-script lsc2067@2067 {
+    var local0 local1 local2
+
+    if (local0 < 0) {
+        local2 = 240
+        case local0 {
+            -1 {
+                local1 = 162
+                local2 = 235
+            }
+            -2 {
+                local1 = 160
+            }
+            -3 {
+                local1 = 161
+            }
+            else {
+            }
+        }
+        start-script scr283 global651 global650 local1 0 0 g_some_palette_655 320 local2
+    } else {
+        start-script scr283 global651 global650 gTeamInfo[local0][TI-TEAM-NOUN] gTeamInfo[local0][TI-PRIMARY-COLOR] gTeamInfo[local0][TI-SECONDARY-COLOR] g_some_palette_655
+    }
+}
+
+local-script lsc2068@2068 {
+    var local0 local1 local2 local3
+
+    if (local0 == 0) {
+        sprite.init global672
+        sprite.new
+        sprite.image image1252
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.order -1450
+        sprite.palette g_some_palette_654
+        sprite.group 17
+        sprite.at 320 240
+        local1 = 204
+        local2 = 52
+        sprintf local3 "%s" gCoachName
+    } else {
+        sprintf local3 "%s" local0
+        local1 = 115
+        local2 = 52
+    }
+    temp2 = string-length local3 - 1
+    for temp = 0 to temp2 + {
+        if (local3[temp] >= 97 && local3[temp] <= 122) {
+            local3[temp] -= 32
+        }
+    }
+    temp = call-script maybe_draw_text_to_image local3 1251 global673 g_some_palette_654 1
+    undim local3
+    sprite.init global671
+    sprite.new
+    sprite.image global673
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at local1 local2
+}
+
+local-script lsc2069@2069 {
+    if (not global646) {
+        global646 = call-script FindFreeSprite
+        global647 = call-script FindFreeSprite
+        global648 = call-script FindFreeSprite
+        global649 = call-script FindFreeSprite
+        global671 = call-script FindFreeSprite
+        global672 = call-script FindFreeSprite
+        global673 = call-script AllocScratchImage
+    }
+    if (not global651) {
+        global651 = call-script FindFreeSprite
+        global650 = call-script FindFreeSprite
+    }
+}
+
+local-script lsc2070@2070 {
+    var local0 local1
+
+    local1 = sprite-get-state-count global653
+    local0 = sprite-get-state global653
+    if (local1 - 1 == local0) {
+        local0 = 0
+    } else {
+        inc local0
+    }
+    while (local0 < local1) {
+        sprite.init global653
+        sprite.state local0
+        sprite.at 320 240
+        inc local0
+        break-here
+    }
+}
+
+local-script getTeamBackground@2071 arg0 {
+    var local1 local2 local3
+
+    if (call-script scr129 gTeamInfo[arg0][TI-TEAM-NOUN]) {
+        local2 = gTeamInfo[arg0][TI-TEAM-NOUN]
+        local3 = gMLBTeamData[local2][3]
+    } else {
+        local3 = gTeamInfo[arg0][TI-PRIMARY-COLOR]
+    }
+    case local3 {
+        1 {
+            local1 = 1103
+        }
+        2 {
+            local1 = 1104
+        }
+        3 {
+            local1 = 1105
+        }
+        4 {
+            local1 = 1106
+        }
+        5 {
+            local1 = 1107
+        }
+        6 {
+            local1 = 1108
+        }
+        7 {
+            local1 = 1109
+        }
+        8 {
+            local1 = 1110
+        }
+        9 {
+            local1 = 1111
+        }
+        10 {
+            local1 = 1112
+        }
+        11 {
+            local1 = 1115
+        }
+        12 {
+            local1 = 1113
+        }
+        13 {
+            local1 = 1114
+        }
+        14 {
+            local1 = 1116
+        }
+        15 {
+            local1 = 1117
+        }
+        16 {
+            local1 = 1118
+        }
+        17 {
+            local1 = 1119
+        }
+        18 {
+            local1 = 1120
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error! Bad color for getTeamBackground: %d" local3
+            debug 0
+            local1 = 1119
+        }
+    }
+    return local1
+}
+
+local-script lsc2072@2072 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    if (local0 < 0) {
+        local5 = local0
+        local6 = local2
+    } else {
+        local5 = call-script lsc2059
+        if local0 {
+            local5 = iif local5 0 1
+        }
+        local6 = call-script getTeamBackground local5
+    }
+    palette.init g_some_palette_654
+    palette.from-image local6 0
+    palette.end
+    image.init local6
+    image.palette g_some_palette_654
+    image.draw
+    image.end
+    start-script scr280 local6 g_some_palette_654
+    if (not global653) {
+        global653 = call-script FindFreeSprite
+    }
+    sprite.init global653
+    sprite.new
+    sprite.image image1035
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1500
+    sprite.palette 2
+    start-script lsc2070
+    start-script lsc2069
+    start-script lsc2067 local5
+    start-script lsc2064 local5 local1 local3
+    if (MODE-SEASON == gGameMode && local0 >= 0 || local4) {
+        start-script lsc2068 local4
+    }
+}
+
+local-script lsc2073@2073 {
+    var local0 local1
+
+    sprite.init local0
+    sprite.state (local1 + 1)
+    break-here.multi 2
+    sprite.init local0
+    sprite.state local1
+}
+
+local-script lsc2074@2074 {
+    var local0 local1 local2 local3
+
+    case local1 {
+        2 {
+            case local0 {
+                [room48 room49] {
+                    assign-string local2 "Scroll through categories"
+                    if (gCurrentRoom == 14) {
+                        assign-string local3 "Click here to scroll through the record book categories."
+                    } else {
+                        assign-string local3 "Click here to scroll through the League leader categories."
+                    }
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local2 local3
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+    } else if room64 {
+        start-script room64 local0 local1
+    }
+}
+
+local-script lsc2075@2075 {
+    var local0 local1 local2 local3
+
+    local3 = 49 * local1
+    local2[0] = gRecordBook[local0][local3 + 0]
+    local2[1] = gRecordBook[local0][local3 + 1]
+    local2[2] = gRecordBook[local0][local3 + 2]
+    local2[3] = gRecordBook[local0][local3 + 3]
+}
+
+local-script lsc2076@2076 {
+    var local0 local1 local2 local3 local4
+
+    local3 = 25
+    local4 = 49 * local1
+    while (gRecordBook[local0][local4 + local3] == 32 && local3 > 4) {
+        local2[local3 - 4] = 0
+        dec local3
+    }
+    for local3 = local3 to 4 - {
+        local2[local3 - 4] = gRecordBook[local0][local4 + local3]
+    }
+}
+
+local-script lsc2077@2077 {
+    var local0 local1 _ local3
+
+    local3 = 49 * local1
+    return gRecordBook[local0][local3 + 42]
+}
+
+local-script lsc2078@2078 {
+    var local0 local1 local2 local3 local4
+
+    local3 = 40
+    local4 = 49 * local1
+    while (gRecordBook[local0][local4 + local3] == 32 && local3 > 26) {
+        local2[local3 - 26] = 0
+        dec local3
+    }
+    for local3 = local3 to 26 - {
+        local2[local3 - 26] = gRecordBook[local0][local4 + local3]
+    }
+}
+
+local-script lsc2079@2079 {
+    var local0 local1 local2 local3 local4
+
+    local4 = 49 * local1
+    local3 = gRecordBook[local0][local4 + 43]
+    inc local3
+    local2[0] = iif (local3 < 10) 32 49
+    local2[1] = local3 % 10 + 48
+}
+
+local-script lsc2080@2080 {
+    var local0 local1 local2 local3 local4
+
+    local4 = 49 * local1
+    local3 = gRecordBook[local0][local4 + 44]
+    local2[3] = local3 / 10 + 48
+    local2[4] = local3 % 10 + 48
+}
+
+local-script lsc2081@2081 {
+    var local0 local1 local2 local3
+
+    local3 = 49 * local1
+    local2[6] = gRecordBook[local0][local3 + 47]
+    local2[7] = gRecordBook[local0][local3 + 48]
+}
+
+local-script lsc2082@2082 {
+    var local0 local1
+
+    for local1 = 0 to 8 + {
+        if (gPickOrder1[local1] == local0) {
+            return 3
+        }
+    }
+    if (local0 <= 61 || local0 >= 263) {
+        return 1
+    }
+    return 0
+}
+
+local-script lsc2083@2083 {
+    var local0 local1 local2 local3 local4 local5 local6 local7
+
+    for local1 = 0 to 23 + {
+        for local2 = 0 to 8 + {
+            if (local0 == gSeasonRosterArray[local1][local2]) {
+                local3 = gSeasonRosterArray[local1][10]
+                local4 = gSeasonRosterArray[local1][11]
+                local1 = 23
+                local2 = 8
+            }
+        }
+    }
+    local5 = call-script GetTeamPrefixString local3
+    local6 = call-script GetTeamNameString local4
+    sprintf local7 "%s %s" local5 local6
+    undim local5
+    undim local6
+    return local7
+}
+
+local-script lsc2084@2084 {
+    var local0
+
+    case room54 {
+        0 {
+            local0 = 10
+        }
+        1 {
+            local0 = 1
+        }
+        2 {
+            local0 = 8
+        }
+        3 {
+            local0 = 9
+        }
+        4 {
+            local0 = 15
+        }
+        5 {
+            local0 = 12
+        }
+        6 {
+            local0 = 23
+        }
+        7 {
+            local0 = 24
+        }
+        8 {
+            local0 = 11
+        }
+        9 {
+            local0 = 17
+        }
+        10 {
+            local0 = 26
+        }
+        11 {
+            local0 = 14
+        }
+        else {
+            local0 = 10
+        }
+    }
+    return local0
+}
+
+local-script lsc2085@2085 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    dim-array-2d.i32 local6 273 (30 + 1)
+    array-assign-slice local6 smth_stats 0 273 0 (30 + 1) 0 273 0 (30 + 1)
+    local7 = call-script lsc2084
+    if (local7 == 26) {
+        array-sort-rows local6 -1 -1 local7 -1
+    } else {
+        array-sort-rows local6 -1 -1 local7 1
+    }
+    kludge 1969 room62 0
+    for local0 = 1 to 10 + {
+        local3 = 169 + 21 * local0
+        local8 = local0 - 1
+        local5 = local6[local8][local7]
+        if (in (local5 % 10) [3 7 -3]) {
+            actor.init room62
+            actor.condition [(128 + local0)]
+        }
+        local1 = call-script lsc2049 local7 ((local5 + 3) / 10) 3
+        local5 = iif (local0 % 2) 1029 1031
+        local4 = call-script maybe_draw_text_to_image local1 local5 room57[local0][1] (iif (local0 % 2) room60 room59) -2 2
+        undim local1
+        local2 = 0 - 144 - local4 / 2
+        sprite.init room56[local0][1]
+        sprite.image room57[local0][1]
+        sprite.at local2 local3
+        local5 = local6[local8][30 + 1]
+        start-script GetKidName local5
+        temp2 = string-length gKidName - 1
+        for temp = 0 to temp2 + {
+            if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+                gKidName[temp] -= 32
+            }
+        }
+        local4 = call-script maybe_draw_text_to_image gKidName 1239 room57[local0][2] room58 1
+        local2 = 0 - local4 / 2
+        sprite.init room56[local0][2]
+        sprite.image room57[local0][2]
+        sprite.at local2 local3
+        local5 = local6[local8][30 + 1]
+        local1 = call-script lsc2083 local5
+        temp2 = string-length local1 - 1
+        for temp = 0 to temp2 + {
+            if (local1[temp] >= 97 && local1[temp] <= 122) {
+                local1[temp] -= 32
+            }
+        }
+        local4 = call-script maybe_draw_text_to_image local1 1239 room57[local0][3] room58 1
+        undim local1
+        local2 = 0 + 0 - local4 / 2
+        sprite.init room56[local0][3]
+        sprite.image room57[local0][3]
+        sprite.at local2 local3
+    }
+    undim local6
+}
+
+local-script lsc2086@2086 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9
+
+    assign-string local1 "    "
+    assign-string local2 "                      "
+    assign-string local3 "               "
+    for local0 = 1 to 10 + {
+        local9 = room54 + iif room53 12 0
+        local5 = 169 + 21 * local0
+        start-script lsc2075 local9 (local0 - 1) local1
+        local7 = string-number local1
+        local8 = call-script lsc2049 (call-script lsc2084) local7 3
+        local7 = iif (local0 % 2) 1029 1031
+        local6 = call-script maybe_draw_text_to_image local8 local7 room57[local0][1] (iif (local0 % 2) room60 room59) -2 2
+        undim local8
+        local4 = 68 - local6 / 2
+        sprite.init room56[local0][1]
+        sprite.image room57[local0][1]
+        sprite.at local4 local5
+        start-script lsc2076 local9 (local0 - 1) local2
+        local6 = call-script maybe_draw_text_to_image local2 1239 room57[local0][2] room58 1
+        undim local2
+        assign-string local2 "                      "
+        local4 = 171 - local6 / 2
+        sprite.init room56[local0][2]
+        sprite.image room57[local0][2]
+        sprite.at local4 local5
+        local7 = call-script lsc2077 local9 (local0 - 1)
+        local8 = call-script GetTeamNameString local7
+        temp2 = string-length local8 - 1
+        for temp = 0 to temp2 + {
+            if (local8[temp] >= 97 && local8[temp] <= 122) {
+                local8[temp] -= 32
+            }
+        }
+        local6 = call-script maybe_draw_text_to_image local8 1239 room57[local0][3] room58 1
+        undim local8
+        local4 = 301 - local6 / 2
+        sprite.init room56[local0][3]
+        sprite.image room57[local0][3]
+        sprite.at local4 local5
+        start-script lsc2078 local9 (local0 - 1) local3
+        local6 = call-script maybe_draw_text_to_image local3 1239 room57[local0][4] room58 1
+        undim local3
+        assign-string local3 "               "
+        local4 = 455 - local6 / 2
+        sprite.init room56[local0][4]
+        sprite.image room57[local0][4]
+        sprite.at local4 local5
+        assign-string local8 "mm dd yy"
+        start-script lsc2079 local9 (local0 - 1) local8
+        start-script lsc2080 local9 (local0 - 1) local8
+        start-script lsc2081 local9 (local0 - 1) local8
+        local6 = call-script maybe_draw_text_to_image local8 1239 room57[local0][5] room58 1 48
+        undim local8
+        local4 = 597 - local6 / 2
+        sprite.init room56[local0][5]
+        sprite.image room57[local0][5]
+        sprite.at local4 local5
+    }
+    undim local1
+    undim local2
+    undim local3
+}
+
+local-script lsc2087@2087 {
+    var local0 local1 local2
+
+    local2 = iif room61 5 3
+    for local0 = 1 to local2 + {
+        for local1 = 1 to 10 + {
+            start-script ReleaseSprite room56[local1][local0]
+            start-script FreeScratchImage room57[local1][local0]
+            room56[local1][local0] = 0
+            room57[local1][local0] = 0
+        }
+    }
+    undim smth_stats
+    undim room56
+    undim room57
+    start-script FreePalette room58
+    room58 = 0
+    start-script FreePalette room59
+    room59 = 0
+    start-script FreePalette room60
+    room60 = 0
+}
+
+local-script lsc2088@2088 {
+    gHoverScript = room64
+    start-script ReleaseActor room62
+    start-script ReleaseSprite room48
+    start-script ReleaseSprite room49
+    start-script ReleaseSprite room50
+    start-script ReleaseSprite room63
+    start-script FreePalette room51
+    start-script FreePalette room52
+    start-script lsc2087
+    start-script scr89
+}
+
+local-script smth_init_ui_and_stats@2089 {
+    var stats kid local2 _ _ local5 local6
+
+    local5 = iif room61 5 3
+    dim-array-range.i16 room56 1 10 1 local5 2
+    dim-array-range.i16 room57 1 10 1 local5 2
+    room58 = call-script AllocPalette
+    room59 = call-script AllocPalette
+    room60 = call-script AllocPalette
+    palette.init room58
+    palette.from-image 1239 0
+    palette.end
+    palette.init room59
+    palette.from-image 1031 0
+    palette.end
+    palette.init room60
+    palette.from-image 1029 0
+    palette.end
+    for kid = KIMMY-ECKMAN to local5 + {
+        for local2 = 1 to 10 + {
+            room56[local2][kid] = call-script FindFreeSprite
+            room57[local2][kid] = call-script AllocScratchImage
+            sprite.init room56[local2][kid]
+            sprite.new
+            sprite.image 0
+            sprite.order (-800 + 1)
+            sprite.palette 0
+            sprite.update-type 2
+            sprite.animation-type 0
+        }
+    }
+    if room61 {
+        start-script lsc2086
+    } else {
+        stats = gSeasonStats
+        dim-array-2d.i32 smth_stats 273 (30 + 1)
+        array-assign-slice smth_stats stats 0 273 0 30 0 273 0 30
+        for kid = 0 to CUSTOM-KID-9 + {
+            local6 = call-script lsc2082 kid
+            smth_stats[kid][STAT-ERA] = call-script maybe_calculate_era kid
+            smth_stats[kid][STAT-BATTING-AVERAGE] = call-script CalculateBattingStat kid STAT-BATTING-AVERAGE
+            smth_stats[kid][STAT-SLUGGING-PERCENTAGE] = call-script CalculateBattingStat kid STAT-SLUGGING-PERCENTAGE
+            for local5 = 0 to 30 + {
+                smth_stats[kid][local5] *= 10
+                smth_stats[kid][local5] += local6
+            }
+            smth_stats[kid][STAT-ERA] -= local6 * 2
+            smth_stats[kid][30 + 1] = kid
+        }
+        start-script lsc2085
+    }
+}
+
+local-script lsc2090@2090 {
+    if (gCurrentRoom == 14) {
+        room61 = 1
+        room53 = 1
+    } else {
+        room61 = 0
+        room53 = gGameLength == 12
+    }
+    room64 = gHoverScript
+    gHoverScript = lsc2074
+    room62 = call-script FindFreeActor
+    room48 = call-script FindFreeSprite
+    room49 = call-script FindFreeSprite
+    room50 = call-script FindFreeSprite
+    room63 = call-script FindFreeSprite
+    room51 = call-script AllocPalette
+    room52 = call-script AllocPalette
+    palette.init room51
+    palette.from-image 1248 0
+    palette.end
+    palette.init room52
+    palette.from-image (iif room61 1246 1249) 0
+    palette.end
+    sprite.init room63
+    sprite.new
+    sprite.at 320 240
+    sprite.image 0
+    sprite.order -800
+    sprite.palette room52
+    sprite.update-type 2
+    sprite.animation-type 0
+    sprite.init room50
+    sprite.new
+    sprite.at 320 240
+    sprite.image 0
+    sprite.order -800
+    sprite.palette room52
+    sprite.update-type 2
+    sprite.animation-type 0
+    if room61 {
+        sprite.init room50
+        sprite.image image1246
+        sprite.animation-type 0
+        sprite.init room63
+        sprite.image image1570
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.state room54
+    } else {
+        sprite.init room50
+        sprite.image (iif room53 1249 1250)
+        sprite.animation-type 0
+        sprite.init room63
+        sprite.image image1569
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.state room54
+    }
+    sprite.init room48
+    sprite.new
+    sprite.at 320 240
+    sprite.image image1248
+    sprite.order (-800 + 1)
+    sprite.palette room51
+    sprite.state 0
+    sprite.update-type 2
+    sprite.animation-type 0
+    gSpriteCursorTargets[room48][TARGET-CLICK-SCRIPT] = iif room61 2053 2054
+    sprite.init room49
+    sprite.new
+    sprite.at 320 240
+    sprite.image image1248
+    sprite.order (-800 + 1)
+    sprite.palette room51
+    sprite.state 2
+    sprite.update-type 2
+    sprite.animation-type 0
+    gSpriteCursorTargets[room49][TARGET-CLICK-SCRIPT] = iif room61 2053 2054
+    actor.init room62
+    actor.new
+    actor.at 320 240
+    actor.costume costume647
+    actor.order 10
+    start-script smth_init_ui_and_stats
+    start-script scr88
+}
+
+local-script lsc2091@2091 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10
+
+    if (gCurrentRoom == 14) {
+        local10 = local0 - 61
+    } else {
+        local10 = gBackupKidData[local0][KD-APPEARANCE]
+    }
+    case local10 {
+        [1 2 7 8 10] {
+            local2 = 18
+            local3 = 17
+            local4 = 16
+        }
+        [3 4 9] {
+            local2 = 21
+            local3 = 20
+            local4 = 19
+        }
+        [5 6 11 12] {
+            local2 = 24
+            local3 = 23
+            local4 = 22
+        }
+        else {
+            local2 = 12
+            local3 = 12
+            local4 = 12
+        }
+    }
+    case local10 {
+        [1 2 7 8] {
+            local5 = 34
+            local6 = 33
+            local7 = 32
+        }
+        [3 4 9] {
+            local5 = 37
+            local6 = 36
+            local7 = 35
+        }
+        [5 6 11 12] {
+            local5 = 40
+            local6 = 39
+            local7 = 38
+        }
+        [10] {
+            local5 = 43
+            local6 = 42
+            local7 = 41
+        }
+        else {
+            local5 = 12
+            local6 = 12
+            local7 = 12
+        }
+    }
+    local9 = call-script AllocPalette
+    palette.init local9
+    palette.from-image 1508 0
+    palette.end
+    palette.init global692
+    palette.from-palette local1
+    palette.end
+    local8 = palette-get-color local9 local2
+    palette.init global692
+    palette.slot-color 187 local8
+    palette.end
+    local8 = palette-get-color local9 local3
+    palette.init global692
+    palette.slot-color 186 local8
+    palette.end
+    local8 = palette-get-color local9 local4
+    palette.init global692
+    palette.slot-color 185 local8
+    palette.end
+    local8 = palette-get-color local9 local5
+    palette.init global692
+    palette.slot-color 230 local8
+    palette.end
+    local8 = palette-get-color local9 local6
+    palette.init global692
+    palette.slot-color 229 local8
+    palette.end
+    local8 = palette-get-color local9 local7
+    palette.init global692
+    palette.slot-color 228 local8
+    palette.end
+    start-script FreePalette local9
+}
+
+local-script findFieldBgAndSetPalette@2092 arg0 {
+    var local1 local2
+
+    if (not arg0) {
+        if (MODE-SEASON == gGameMode) {
+            local1 = gCoachHomeField
+        } else if (gField == -1) {
+            print-debug.start
+            print-debug.string "findFieldBgAndSetPalette has no field!  Using random one."
+            debug 0
+            local1 = random-between 0 9
+        } else {
+            local1 = gField
+        }
+    }
+    case local1 {
+        0 {
+            local2 = 1121
+        }
+        1 {
+            local2 = 1122
+        }
+        2 {
+            local2 = 1123
+        }
+        3 {
+            local2 = 1124
+        }
+        4 {
+            local2 = 1125
+        }
+        5 {
+            local2 = 1126
+        }
+        6 {
+            local2 = 1127
+        }
+        7 {
+            local2 = 1128
+        }
+        8 {
+            local2 = 1129
+        }
+        9 {
+            local2 = 1130
+        }
+        else {
+        }
+    }
+    start-script smth_load_palette local2
+    return local2
+}
+
+local-script smth_kid_team_photo@2093 arg0 {
+    var local1 local2
+
+    case arg0 {
+        26 {
+            local2 = 1142
+        }
+        3 {
+            local2 = 1143
+        }
+        21 {
+            local2 = 1144
+        }
+        4 {
+            local2 = 1145
+        }
+        18 {
+            local2 = 1146
+        }
+        30 {
+            local2 = 1147
+        }
+        24 {
+            local2 = 1148
+        }
+        12 {
+            local2 = 1149
+        }
+        5 {
+            local2 = 1150
+        }
+        19 {
+            local2 = 1151
+        }
+        6 {
+            local2 = 1152
+        }
+        10 {
+            local2 = 1153
+        }
+        27 {
+            local2 = 1154
+        }
+        16 {
+            local2 = 1155
+        }
+        15 {
+            local2 = 1156
+        }
+        9 {
+            local2 = 1157
+        }
+        8 {
+            local2 = 1158
+        }
+        23 {
+            local2 = 1159
+        }
+        11 {
+            local2 = 1160
+        }
+        13 {
+            local2 = 1161
+        }
+        1 {
+            local2 = 1162
+        }
+        22 {
+            local2 = 1163
+        }
+        28 {
+            local2 = 1164
+        }
+        29 {
+            local2 = 1165
+        }
+        25 {
+            local2 = 1166
+        }
+        7 {
+            local2 = 1167
+        }
+        17 {
+            local2 = 1168
+        }
+        14 {
+            local2 = 1169
+        }
+        2 {
+            local2 = 1170
+        }
+        20 {
+            local2 = 1171
+        }
+        263 {
+            local2 = 1172
+        }
+        59 {
+            local2 = 1232
+        }
+        44 {
+            local2 = 1217
+        }
+        33 {
+            local2 = 1206
+        }
+        56 {
+            local2 = 1229
+        }
+        45 {
+            local2 = 1218
+        }
+        50 {
+            local2 = 1223
+        }
+        43 {
+            local2 = 1216
+        }
+        54 {
+            local2 = 1227
+        }
+        51 {
+            local2 = 1224
+        }
+        42 {
+            local2 = 1215
+        }
+        35 {
+            local2 = 1208
+        }
+        52 {
+            local2 = 1225
+        }
+        40 {
+            local2 = 1213
+        }
+        36 {
+            local2 = 1209
+        }
+        34 {
+            local2 = 1207
+        }
+        47 {
+            local2 = 1220
+        }
+        49 {
+            local2 = 1222
+        }
+        38 {
+            local2 = 1211
+        }
+        53 {
+            local2 = 1226
+        }
+        55 {
+            local2 = 1228
+        }
+        46 {
+            local2 = 1219
+        }
+        41 {
+            local2 = 1214
+        }
+        39 {
+            local2 = 1212
+        }
+        60 {
+            local2 = 1233
+        }
+        48 {
+            local2 = 1221
+        }
+        31 {
+            local2 = 1204
+        }
+        32 {
+            local2 = 1205
+        }
+        37 {
+            local2 = 1210
+        }
+        58 {
+            local2 = 1231
+        }
+        57 {
+            local2 = 1230
+        }
+        61 {
+            local2 = 1234
+        }
+        [264 265 266 267 268 269 270 271 272 273] {
+            case gBackupKidData[arg0][KD-APPEARANCE] {
+                [1 3 5] {
+                    local2 = 1511
+                }
+                [2 4 6] {
+                    local2 = 1509
+                }
+                [7 9 11] {
+                    local2 = 1512
+                }
+                [8 10 12] {
+                    local2 = 1510
+                }
+                else {
+                    print-debug.start
+                    print-debug.string "Error: bad kid type for custom kid in team photo.  Using default."
+                    debug 0
+                    local2 = 1511
+                }
+            }
+        }
+        else {
+            if (14 == gCurrentRoom) {
+                local1 = arg0 - 61
+                case local1 {
+                    [1 3 5] {
+                        local2 = 1511
+                    }
+                    [2 4 6] {
+                        local2 = 1509
+                    }
+                    [7 9 11] {
+                        local2 = 1512
+                    }
+                    [8 10 12] {
+                        local2 = 1510
+                    }
+                    else {
+                        print-debug.start
+                        print-debug.string "Error: bad kid type for custom kid in team photo.  Using default."
+                        debug 0
+                        local2 = 1511
+                    }
+                }
+            } else {
+                print-debug.start
+                print-debug.printf "Warning!  No team photo image for kid %d !" arg0
+                local2 = 1142
+            }
+        }
+    }
+    return local2
+}
+
+local-script smth_kid_team_photo_shadow@2094 arg0 {
+    var local1 local2
+
+    case arg0 {
+        26 {
+            local2 = 1173
+        }
+        3 {
+            local2 = 1174
+        }
+        21 {
+            local2 = 1175
+        }
+        4 {
+            local2 = 1176
+        }
+        18 {
+            local2 = 1177
+        }
+        30 {
+            local2 = 1178
+        }
+        24 {
+            local2 = 1179
+        }
+        12 {
+            local2 = 1180
+        }
+        5 {
+            local2 = 1181
+        }
+        19 {
+            local2 = 1182
+        }
+        6 {
+            local2 = 1183
+        }
+        10 {
+            local2 = 1184
+        }
+        27 {
+            local2 = 1185
+        }
+        16 {
+            local2 = 1186
+        }
+        15 {
+            local2 = 1187
+        }
+        9 {
+            local2 = 1188
+        }
+        8 {
+            local2 = 1189
+        }
+        23 {
+            local2 = 1190
+        }
+        11 {
+            local2 = 1191
+        }
+        13 {
+            local2 = 1192
+        }
+        1 {
+            local2 = 1193
+        }
+        22 {
+            local2 = 1194
+        }
+        28 {
+            local2 = 1195
+        }
+        29 {
+            local2 = 1196
+        }
+        25 {
+            local2 = 1197
+        }
+        7 {
+            local2 = 1198
+        }
+        17 {
+            local2 = 1199
+        }
+        14 {
+            local2 = 1200
+        }
+        2 {
+            local2 = 1201
+        }
+        20 {
+            local2 = 1202
+        }
+        263 {
+            local2 = 1203
+        }
+        31 {
+            local2 = 1426
+        }
+        32 {
+            local2 = 1427
+        }
+        33 {
+            local2 = 1428
+        }
+        34 {
+            local2 = 1429
+        }
+        35 {
+            local2 = 1430
+        }
+        36 {
+            local2 = 1431
+        }
+        37 {
+            local2 = 1432
+        }
+        38 {
+            local2 = 1433
+        }
+        39 {
+            local2 = 1434
+        }
+        40 {
+            local2 = 1435
+        }
+        41 {
+            local2 = 1436
+        }
+        42 {
+            local2 = 1437
+        }
+        43 {
+            local2 = 1438
+        }
+        44 {
+            local2 = 1439
+        }
+        45 {
+            local2 = 1440
+        }
+        46 {
+            local2 = 1441
+        }
+        47 {
+            local2 = 1442
+        }
+        48 {
+            local2 = 1443
+        }
+        49 {
+            local2 = 1444
+        }
+        50 {
+            local2 = 1445
+        }
+        51 {
+            local2 = 1446
+        }
+        52 {
+            local2 = 1447
+        }
+        53 {
+            local2 = 1448
+        }
+        54 {
+            local2 = 1449
+        }
+        55 {
+            local2 = 1450
+        }
+        56 {
+            local2 = 1451
+        }
+        57 {
+            local2 = 1452
+        }
+        58 {
+            local2 = 1453
+        }
+        59 {
+            local2 = 1454
+        }
+        60 {
+            local2 = 1455
+        }
+        61 {
+            local2 = 1456
+        }
+        [264 265 266 267 268 269 270 271 272 273] {
+            case gBackupKidData[arg0][KD-APPEARANCE] {
+                [1 3 5] {
+                    local2 = 1515
+                }
+                [2 4 6] {
+                    local2 = 1513
+                }
+                [7 9 11] {
+                    local2 = 1516
+                }
+                [8 10 12] {
+                    local2 = 1514
+                }
+                else {
+                    print-debug.start
+                    print-debug.string "Error: bad kid type for custom kid in team photo.  Using default."
+                    debug 0
+                    local2 = 1515
+                }
+            }
+        }
+        else {
+            if (14 == gCurrentRoom) {
+                local1 = arg0 - 61
+                case local1 {
+                    [1 3 5] {
+                        local2 = 1515
+                    }
+                    [2 4 6] {
+                        local2 = 1513
+                    }
+                    [7 9 11] {
+                        local2 = 1516
+                    }
+                    [8 10 12] {
+                        local2 = 1514
+                    }
+                    else {
+                        print-debug.start
+                        print-debug.string "Error: bad kid type for custom kid in team photo.  Using default."
+                        debug 0
+                        local2 = 1515
+                    }
+                }
+            } else {
+                print-debug.start
+                print-debug.printf "Warning!  No team photo shadow image for kid %d !" arg0
+                local2 = 1445
+            }
+        }
+    }
+    return local2
+}
+
+local-script smth_kid_bigness@2095 arg0 {
+    var local1
+
+    case arg0 {
+        26 {
+            local1 = 1 + 10
+        }
+        3 {
+            local1 = 2
+        }
+        21 {
+            local1 = 3
+        }
+        4 {
+            local1 = 3
+        }
+        18 {
+            local1 = 1
+        }
+        30 {
+            local1 = 2
+        }
+        24 {
+            local1 = 1
+        }
+        12 {
+            local1 = 2
+        }
+        5 {
+            local1 = 5
+        }
+        19 {
+            local1 = 0
+        }
+        6 {
+            local1 = 3 + 10
+        }
+        10 {
+            local1 = 6 + 10
+        }
+        27 {
+            local1 = 3 + 10
+        }
+        16 {
+            local1 = 3
+        }
+        15 {
+            local1 = 1 + 10
+        }
+        9 {
+            local1 = 2 + 10
+        }
+        8 {
+            local1 = 2 + 10
+        }
+        23 {
+            local1 = 4 + 10
+        }
+        11 {
+            local1 = 2
+        }
+        13 {
+            local1 = 7
+        }
+        1 {
+            local1 = 5 + 10
+        }
+        22 {
+            local1 = 4 + 10
+        }
+        28 {
+            local1 = 6
+        }
+        29 {
+            local1 = 1 + 10
+        }
+        25 {
+            local1 = 1
+        }
+        7 {
+            local1 = 9 + 10
+        }
+        17 {
+            local1 = 3
+        }
+        14 {
+            local1 = 2 + 10
+        }
+        2 {
+            local1 = 9
+        }
+        20 {
+            local1 = 1
+        }
+        263 {
+            local1 = 2 + 10
+        }
+        59 {
+            local1 = 2
+        }
+        [44 33 56 45 50 43 54 51] {
+            local1 = 3
+        }
+        [42 35 52 40 36 34 47 61] {
+            local1 = 7
+        }
+        [49 38 53 55 46 41 39 60 48 31] {
+            local1 = 6 + 10
+        }
+        [32 37 58 57] {
+            local1 = 10 + 10
+        }
+        [264 265 266 267 268 269 270 271 272 273] {
+            if (14 == gCurrentRoom) {
+                local1 = 5
+            } else {
+                local1 = gKidData[arg0][KD-HEIGHT]
+            }
+        }
+        else {
+            print-debug.start
+            print-debug.printf "No bigness for player %d!  Using default." arg0
+            local1 = 5
+        }
+    }
+    return local1
+}
+
+local-script lsc2096@2096 {
+    var local0 local1 local2 local3
+
+    if (14 == gCurrentRoom) {
+        local2 = 240
+        local3 = 148
+    } else {
+        local2 = 228
+        local3 = 132
+    }
+    case local1 {
+        1 {
+            sprite.init local0
+            sprite.at (local2 + 44 + 5) (local3 + 160)
+        }
+        3 {
+            sprite.init local0
+            sprite.at (local2 + 120 + 5) (local3 + 160)
+        }
+        0 {
+            sprite.init local0
+            sprite.at (local2 + 196 + 5) (local3 + 160)
+        }
+        4 {
+            sprite.init local0
+            sprite.at (local2 + 272 + 5) (local3 + 160)
+        }
+        2 {
+            sprite.init local0
+            sprite.at (local2 + 354 + 5) (local3 + 160)
+        }
+        7 {
+            sprite.init local0
+            sprite.at (136 + local2 + 5) (local3 + 170)
+        }
+        5 {
+            sprite.init local0
+            sprite.at (216 + local2 + 5) (local3 + 170)
+        }
+        8 {
+            sprite.init local0
+            sprite.at (304 + local2 + 5) (local3 + 170)
+        }
+        6 {
+            sprite.init local0
+            sprite.at (384 + local2 + 5) (local3 + 170)
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2097@2097 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 _ _ _ local12
+
+    local5 = call-script AllocPalette
+    for local12 = 1 to 3 + {
+        case local12 {
+            1 {
+                local6 = local2
+                local7 = 32
+            }
+            2 {
+                local6 = local3
+                local7 = 40
+            }
+            3 {
+                local6 = local4
+                local7 = 36
+            }
+            else {
+            }
+        }
+        local8 = call-script BBALLMISC_SetTeamPalette local6
+        if (local8 > 1000) {
+            palette.init local5
+            palette.from-image 636 0
+            palette.end
+            local8 -= 1000
+        } else {
+            palette.init local5
+            palette.from-image 635 0
+            palette.end
+        }
+        start-script scr278 local0 local5 local7 local8 4
+        start-script scr278 local1 local5 local7 local8 4
+    }
+    palette.init local0
+    palette.slot-rgb 240 0 0 0
+    palette.end
+    palette.init local1
+    palette.slot-rgb 231 0 0 0
+    palette.end
+    start-script FreePalette local5
+}
+
+local-script lsc2098@2098 {
+    var local0 local1 local2
+
+    if (14 == gCurrentRoom) {
+        local1 = 240
+        local2 = 148
+    } else {
+        local1 = 228
+        local2 = 132
+    }
+    group.init 16
+    group.new
+    group.clip (16 + local1) (11 + local2) (15 + local1 + image-get-width local0 0) (10 + local2 + image-get-height local0 0)
+}
+
+local-script smth_do_sprite@2099 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 {
+    sprite.init arg0
+    sprite.new
+    sprite.image arg2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.group 16
+    sprite.state arg4
+    sprite.palette arg5
+    sprite.order (-850 + arg6 + arg7)
+    sprite.init arg1
+    sprite.new
+    sprite.image arg3
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.group 16
+    sprite.state arg4
+    sprite.palette arg5
+    sprite.order -900
+    sprite.shadow global652
+}
+
+local-script lsc2100@2100 {
+    var local0 local1
+
+    if (not global692) {
+        global692 = call-script AllocPalette
+    }
+    start-script lsc2091 local0 local1
+}
+
+local-script smth_put_kid_team_photo@2101 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 {
+    var local8 local9 local10 local11 local12 local13 local14 local15 local16 local17 local18 local19 local20 local21 local22 local23
+
+    if (14 != gCurrentRoom) {
+        local21 = arg5
+        local22 = arg6
+        local23 = arg7
+    }
+    dim-array-2d.u8 local10 8 1
+    dim-array.u8 local11 8
+    for local8 = 0 to (9 - 1) + {
+        local12 = call-script smth_kid_bigness arg0[local8]
+        local10[local8][0] = local12
+        local10[local8][1] = local8
+    }
+    local13 = 0
+    for local8 = 20 to 0 - {
+        if (local13 < 9) {
+            for local9 = 0 to (9 - 1) + {
+                if (local10[local9][0] == local8) {
+                    local11[local13] = local10[local9][1]
+                    inc local13
+                }
+            }
+        }
+    }
+    if (14 != gCurrentRoom) {
+        if (MODE-SEASON == gGameMode) {
+            temp = call-script ReadActiveRoster gSeasonDivision 11
+            if (temp >= 122 && temp <= 151) {
+                arg5 = gMLBTeamData[temp][7]
+                arg6 = gMLBTeamData[temp][8]
+                arg7 = gMLBTeamData[temp][9]
+            } else {
+                arg5 = call-script ReadActiveRoster gSeasonDivision 12
+                arg6 = call-script ReadActiveRoster gSeasonDivision 13
+                arg7 = call-script ReadActiveRoster gSeasonDivision 12
+            }
+        } else {
+            temp2 = call-script lsc2059
+            temp = gTeamInfo[temp2][TI-TEAM-NOUN]
+            if (temp >= 122 && temp <= 151) {
+                arg5 = gMLBTeamData[temp][7]
+                arg6 = gMLBTeamData[temp][8]
+                arg7 = gMLBTeamData[temp][9]
+            } else {
+                arg5 = gTeamInfo[temp2][TI-PRIMARY-COLOR]
+                arg6 = gTeamInfo[temp2][TI-SECONDARY-COLOR]
+                arg7 = gTeamInfo[temp2][TI-PRIMARY-COLOR]
+            }
+        }
+    }
+    start-script lsc2097 arg3 arg4 arg5 arg6 arg7
+    for local8 = 0 to (9 - 1) + {
+        if (local8 < 5) {
+            local16 = 1
+            local17 = 0
+        } else {
+            local16 = 0
+            local17 = 10
+        }
+        inc local18
+        local14 = arg0[local11[local8]]
+        local15 = call-script smth_kid_team_photo local14
+        case 1 {
+            (local14 <= 30 || local14 == 263) {
+                local20 = arg3
+            }
+            (local14 >= 264 && local14 <= 273) {
+                start-script lsc2100 local14 arg3
+                local20 = global692
+            }
+            (local14 >= 31 && local14 <= 61) {
+                local20 = arg4
+            }
+            else {
+                if (14 == gCurrentRoom) {
+                    start-script lsc2100 local14 arg3
+                    local20 = global692
+                } else {
+                    print-debug.start
+                    print-debug.printf "Error: Trying to put invalid kid %d into team photo... confused about palette!" local14
+                    debug 0
+                    local20 = arg3
+                }
+            }
+        }
+        local19 = call-script smth_kid_team_photo_shadow arg0[local11[local8]]
+        start-script smth_do_sprite arg1[local8] arg2[local8] local15 local19 local16 local20 local17 local18
+        if (gCurrentRoom != 14) {
+            gSpriteCursorTargets[arg1[local8]][TARGET-CLICK-SCRIPT] = local22
+            gSpriteCursorTargets[arg1[local8]][TARGET-HOVER-SCRIPT] = local23
+            local21[local11[local8]] = arg1[local8]
+        }
+        start-script lsc2096 arg1[local8] local8
+        start-script lsc2096 arg2[local8] local8
+    }
+    undim local10
+    undim local11
+}
+
+local-script getCreditsString@2102 arg0 {
+    var local1
+
+    room45 = 0
+    case arg0 {
+        0 {
+            assign-string local1 " "
+        }
+        1 {
+            assign-string local1 " "
+        }
+        2 {
+            assign-string local1 " "
+        }
+        3 {
+            assign-string local1 " "
+        }
+        4 {
+            assign-string local1 " "
+        }
+        5 {
+            assign-string local1 " "
+        }
+        6 {
+            assign-string local1 " "
+        }
+        7 {
+            assign-string local1 " "
+        }
+        8 {
+            assign-string local1 " "
+        }
+        9 {
+            assign-string local1 " "
+        }
+        10 {
+            assign-string local1 " "
+        }
+        11 {
+            assign-string local1 " "
+        }
+        12 {
+            assign-string local1 "BACKYARD BASEBALL 2001"
+        }
+        13 {
+            assign-string local1 " "
+        }
+        14 {
+            assign-string local1 "INTERACTIVE GAME DESIGN"
+            room45 = 1
+        }
+        15 {
+            assign-string local1 "RICHARD MOE"
+        }
+        16 {
+            assign-string local1 "NICK MIRKOVICH"
+        }
+        17 {
+            assign-string local1 " "
+        }
+        18 {
+            assign-string local1 "PROJECT LEAD - ART"
+            room45 = 1
+        }
+        19 {
+            assign-string local1 "NICK MIRKOVICH"
+        }
+        20 {
+            assign-string local1 " "
+        }
+        21 {
+            assign-string local1 "PROJECT LEAD - PROGRAMMING"
+            room45 = 1
+        }
+        22 {
+            assign-string local1 "RICHARD MOE"
+        }
+        23 {
+            assign-string local1 " "
+        }
+        24 {
+            assign-string local1 "PRODUCER"
+            room45 = 1
+        }
+        25 {
+            assign-string local1 "AIMEE PAGANINI"
+        }
+        26 {
+            assign-string local1 " "
+        }
+        27 {
+            assign-string local1 "PROGRAMMING"
+            room45 = 1
+        }
+        28 {
+            assign-string local1 "PAUL OSSORIO"
+        }
+        29 {
+            assign-string local1 "BENJAMIN YOUNG"
+        }
+        30 {
+            assign-string local1 "MICHAEL STEPHAN"
+        }
+        31 {
+            assign-string local1 " "
+        }
+        32 {
+            assign-string local1 "INTERFACE DESIGN LEAD"
+            room45 = 1
+        }
+        33 {
+            assign-string local1 "ERIK HALDI"
+        }
+        34 {
+            assign-string local1 " "
+        }
+        35 {
+            assign-string local1 "INTERFACE ART"
+            room45 = 1
+        }
+        36 {
+            assign-string local1 "CHRISTOPHER MILLER"
+        }
+        37 {
+            assign-string local1 "CISCO MARTINEZ"
+        }
+        38 {
+            assign-string local1 "MARK PEYSER"
+        }
+        39 {
+            assign-string local1 " "
+        }
+        40 {
+            assign-string local1 "3D CHARACTER ANIMATION LEAD"
+            room45 = 1
+        }
+        41 {
+            assign-string local1 "RYAN TOUCHON"
+        }
+        42 {
+            assign-string local1 " "
+        }
+        43 {
+            assign-string local1 "3D CHARACTER ANIMATION"
+            room45 = 1
+        }
+        44 {
+            assign-string local1 "ROBERT SANCHEZ"
+        }
+        45 {
+            assign-string local1 "MARCUS LEE HOWELL"
+        }
+        46 {
+            assign-string local1 "JEREMY PALMEN"
+        }
+        47 {
+            assign-string local1 "DAN THOMPSON"
+        }
+        48 {
+            assign-string local1 "MARK BANATE"
+        }
+        49 {
+            assign-string local1 "MATT KUPHALDT"
+        }
+        50 {
+            assign-string local1 "BRIAN DECKER"
+        }
+        51 {
+            assign-string local1 "STEVEN SPRUNGER"
+        }
+        52 {
+            assign-string local1 "CORY BAKER"
+        }
+        53 {
+            assign-string local1 "CASEY BURPEE"
+        }
+        54 {
+            assign-string local1 " "
+        }
+        55 {
+            assign-string local1 "TRADITIONAL ANIMATION"
+            room45 = 1
+        }
+        56 {
+            assign-string local1 "JORDAN RENNICK"
+        }
+        57 {
+            assign-string local1 "MICHAEL BARAN"
+        }
+        58 {
+            assign-string local1 "TOM VERRE"
+        }
+        59 {
+            assign-string local1 "LARA SCHNEIDER"
+        }
+        60 {
+            assign-string local1 "KEN CAMPANA"
+        }
+        61 {
+            assign-string local1 "MATT HAWK"
+        }
+        62 {
+            assign-string local1 "JAY PROCHASKA"
+        }
+        63 {
+            assign-string local1 "RHONDA CONLEY"
+        }
+        64 {
+            assign-string local1 "SCOTT BROTHERS"
+        }
+        65 {
+            assign-string local1 "SANDY SPANGLER"
+        }
+        66 {
+            assign-string local1 " "
+        }
+        67 {
+            assign-string local1 "DIGITAL INK AND PAINT LEAD"
+            room45 = 1
+        }
+        68 {
+            assign-string local1 "JENNIFER DAWKINS"
+        }
+        69 {
+            assign-string local1 " "
+        }
+        70 {
+            assign-string local1 "DIGITAL INK AND PAINT"
+            room45 = 1
+        }
+        71 {
+            assign-string local1 "BRIAN BURTON"
+        }
+        72 {
+            assign-string local1 "ADAM LINSTAD"
+        }
+        73 {
+            assign-string local1 "RYAN GEHLERT"
+        }
+        74 {
+            assign-string local1 "JOY WORTHEN"
+        }
+        75 {
+            assign-string local1 "GREG BRENNAN"
+        }
+        76 {
+            assign-string local1 "KATY RIZZUTI"
+        }
+        77 {
+            assign-string local1 "BECKY SOMMERS"
+        }
+        78 {
+            assign-string local1 "GREG GRIFFITH"
+        }
+        79 {
+            assign-string local1 " "
+        }
+        80 {
+            assign-string local1 "DIALOG WRITTEN BY"
+            room45 = 1
+        }
+        81 {
+            assign-string local1 "PAUL DOUGLAS MERRILL"
+        }
+        82 {
+            assign-string local1 " "
+        }
+        83 {
+            assign-string local1 "ADDITIONAL DIALOG BY"
+            room45 = 1
+        }
+        84 {
+            assign-string local1 "RICHARD MOE"
+        }
+        85 {
+            assign-string local1 " "
+        }
+        86 {
+            assign-string local1 "MUSIC COMPOSED BY"
+            room45 = 1
+        }
+        87 {
+            assign-string local1 "TOM MCGURK, FLOPSY MUSIC"
+        }
+        88 {
+            assign-string local1 " "
+        }
+        89 {
+            assign-string local1 "PRODUCTION LEAD"
+            room45 = 1
+        }
+        90 {
+            assign-string local1 "DJ MATTERN"
+        }
+        91 {
+            assign-string local1 " "
+        }
+        92 {
+            assign-string local1 "PRODUCTION ASSISTANTS"
+            room45 = 1
+        }
+        93 {
+            assign-string local1 "PATRICK THANGSOMBAT"
+        }
+        94 {
+            assign-string local1 "BOB LENTH"
+        }
+        95 {
+            assign-string local1 "NATHAN HALL"
+        }
+        96 {
+            assign-string local1 "DIRK HUNTER"
+        }
+        97 {
+            assign-string local1 " "
+        }
+        98 {
+            assign-string local1 "ADDITIONAL PRODUCTION ASSISTANCE"
+            room45 = 1
+        }
+        99 {
+            assign-string local1 "STEVE KUO"
+        }
+        100 {
+            assign-string local1 " "
+        }
+        101 {
+            assign-string local1 "QA TEST LEAD"
+            room45 = 1
+        }
+        102 {
+            assign-string local1 "ERIC SNYDER"
+        }
+        103 {
+            assign-string local1 " "
+        }
+        104 {
+            assign-string local1 "QA TESTING"
+            room45 = 1
+        }
+        105 {
+            assign-string local1 "DARYL SEAGER"
+        }
+        106 {
+            assign-string local1 "KYLE CASPERSON"
+        }
+        107 {
+            assign-string local1 "BRIAN MOORE"
+        }
+        108 {
+            assign-string local1 "MARCUS KING"
+        }
+        109 {
+            assign-string local1 "GREG HERTAGER"
+        }
+        110 {
+            assign-string local1 "BRYAN MACDONALD"
+        }
+        111 {
+            assign-string local1 "ROBERT OCHS"
+        }
+        112 {
+            assign-string local1 "PATRICK HOYNES"
+        }
+        113 {
+            assign-string local1 "STEPHANIE LOPES"
+        }
+        114 {
+            assign-string local1 "RANDY OCHS"
+        }
+        115 {
+            assign-string local1 " "
+        }
+        116 {
+            assign-string local1 "ONLINE QA TESTING"
+            room45 = 1
+        }
+        117 {
+            assign-string local1 "CHAD VERRALL"
+        }
+        118 {
+            assign-string local1 "DARBY MCDEVITT"
+        }
+        119 {
+            assign-string local1 " "
+        }
+        120 {
+            assign-string local1 "SYSTEM PROGRAMMING"
+            room45 = 1
+        }
+        121 {
+            assign-string local1 "BRAD P. TAYLOR "
+        }
+        122 {
+            assign-string local1 "CHRIS BLACKWELL"
+        }
+        123 {
+            assign-string local1 "STEPHEN JOHNSON"
+        }
+        124 {
+            assign-string local1 "STEPHEN MAGLADRY"
+        }
+        125 {
+            assign-string local1 " "
+        }
+        126 {
+            assign-string local1 "ONLINE PROGRAMMING"
+            room45 = 1
+        }
+        127 {
+            assign-string local1 "RICK LAMBRIGHT "
+        }
+        128 {
+            assign-string local1 "DAVID SATNIK"
+        }
+        129 {
+            assign-string local1 "TIM ROYAL"
+        }
+        130 {
+            assign-string local1 "ANDREW BERG"
+        }
+        131 {
+            assign-string local1 "JAY PATTERSON"
+        }
+        132 {
+            assign-string local1 " "
+        }
+        133 {
+            assign-string local1 "HELP FILE"
+            room45 = 1
+        }
+        134 {
+            assign-string local1 "CAROLINE J. SHERLEY "
+        }
+        135 {
+            assign-string local1 " "
+        }
+        136 {
+            assign-string local1 "FEATURING VOICES OF"
+            room45 = 1
+        }
+        137 {
+            assign-string local1 "JEN TAYLOR AS SUNNY DAY"
+        }
+        138 {
+            assign-string local1 "DOLORES ROGERS AS VINNIE THE GOOCH"
+        }
+        139 {
+            assign-string local1 " "
+        }
+        140 {
+            assign-string local1 "ADDITIONAL VOICE TALENT"
+            room45 = 1
+        }
+        141 {
+            assign-string local1 "DOLORES ROGERS"
+        }
+        142 {
+            assign-string local1 "JEN TAYLOR"
+        }
+        143 {
+            assign-string local1 "DEX MANLEY"
+        }
+        144 {
+            assign-string local1 "KATHY HENSON"
+        }
+        145 {
+            assign-string local1 "CATHY FAULKNER"
+        }
+        146 {
+            assign-string local1 "NICK AUSTRIA"
+        }
+        147 {
+            assign-string local1 "MARK LUND"
+        }
+        148 {
+            assign-string local1 "SALLY LINDBERG"
+        }
+        149 {
+            assign-string local1 "KIAMALISE BUDAK"
+        }
+        150 {
+            assign-string local1 "SHELLY REYNOLDS"
+        }
+        151 {
+            assign-string local1 "AARON ROSENFIELD"
+        }
+        152 {
+            assign-string local1 "NOAH FRAM"
+        }
+        153 {
+            assign-string local1 "STEFAN MITCHELL"
+        }
+        154 {
+            assign-string local1 "KATE FLEMING"
+        }
+        155 {
+            assign-string local1 "JOSE ABAOAG"
+        }
+        156 {
+            assign-string local1 "STEPHANIE DIAZ"
+        }
+        157 {
+            assign-string local1 "BOBBI KOTULA"
+        }
+        158 {
+            assign-string local1 "KATHRYN LUSTER"
+        }
+        159 {
+            assign-string local1 "GRACE BENNETT"
+        }
+        160 {
+            assign-string local1 "KYLE MCCARTHY"
+        }
+        161 {
+            assign-string local1 "ORSON OSSMAN"
+        }
+        162 {
+            assign-string local1 "BILL DUFRIS"
+        }
+        163 {
+            assign-string local1 " "
+        }
+        164 {
+            assign-string local1 " "
+        }
+        165 {
+            assign-string local1 "RECORDING ENGINEER"
+            room45 = 1
+        }
+        166 {
+            assign-string local1 "GEOFF VANDERHYDE"
+        }
+        167 {
+            assign-string local1 " "
+        }
+        168 {
+            assign-string local1 "RECORDED AT BAD ANIMALS - SEATTLE, WA"
+            room45 = 1
+        }
+        169 {
+            assign-string local1 " "
+        }
+        170 {
+            assign-string local1 " "
+        }
+        171 {
+            assign-string local1 " "
+        }
+        172 {
+            assign-string local1 " "
+        }
+        173 {
+            assign-string local1 "ORIGINAL BACKYARD BASEBALL TEAM"
+        }
+        174 {
+            assign-string local1 " "
+        }
+        175 {
+            assign-string local1 "GAME DESIGN"
+            room45 = 1
+        }
+        176 {
+            assign-string local1 "MARK PEYSER"
+        }
+        177 {
+            assign-string local1 "RICHARD MOE"
+        }
+        178 {
+            assign-string local1 "NICK MIRKOVICH"
+        }
+        179 {
+            assign-string local1 "RHETT MATHIS"
+        }
+        180 {
+            assign-string local1 "RAFAEL CALONZO JR."
+        }
+        181 {
+            assign-string local1 " "
+        }
+        182 {
+            assign-string local1 "CREATIVE DIRECTOR"
+            room45 = 1
+        }
+        183 {
+            assign-string local1 "RON GILBERT"
+        }
+        184 {
+            assign-string local1 " "
+        }
+        185 {
+            assign-string local1 "PROJECT LEAD - ART"
+            room45 = 1
+        }
+        186 {
+            assign-string local1 "MARK PEYSER"
+        }
+        187 {
+            assign-string local1 " "
+        }
+        188 {
+            assign-string local1 "PROJECT LEAD - PROGRAMMING"
+            room45 = 1
+        }
+        189 {
+            assign-string local1 "RICHARD MOE"
+        }
+        190 {
+            assign-string local1 " "
+        }
+        191 {
+            assign-string local1 "PROJECT COORDINATOR"
+            room45 = 1
+        }
+        192 {
+            assign-string local1 "MARIANNA HYMAN"
+        }
+        193 {
+            assign-string local1 " "
+        }
+        194 {
+            assign-string local1 "PROGRAMMING"
+            room45 = 1
+        }
+        195 {
+            assign-string local1 "PETER CRAYNE"
+        }
+        196 {
+            assign-string local1 "RHETT MATHIS"
+        }
+        197 {
+            assign-string local1 "E. ANDRES MENDEZ"
+        }
+        198 {
+            assign-string local1 "MATT MAHON"
+        }
+        199 {
+            assign-string local1 " "
+        }
+        200 {
+            assign-string local1 "LEAD SYSTEM PROGRAMMER"
+            room45 = 1
+        }
+        201 {
+            assign-string local1 "BRAD P. TAYLOR"
+        }
+        202 {
+            assign-string local1 " "
+        }
+        203 {
+            assign-string local1 "TRADITIONAL ANIMATION"
+            room45 = 1
+        }
+        204 {
+            assign-string local1 "MICHAEL BARAN"
+        }
+        205 {
+            assign-string local1 "JORDAN RENNICK"
+        }
+        206 {
+            assign-string local1 "RAFAEL CALONZO JR."
+        }
+        207 {
+            assign-string local1 "NICK MIRKOVICH"
+        }
+        208 {
+            assign-string local1 "TODD RIVERS"
+        }
+        209 {
+            assign-string local1 "LARA SCHNEIDER"
+        }
+        210 {
+            assign-string local1 "JOHN MICHAUD"
+        }
+        211 {
+            assign-string local1 " "
+        }
+        212 {
+            assign-string local1 "BACKGROUND LAYOUTS"
+            room45 = 1
+        }
+        213 {
+            assign-string local1 "PAUL GRUWELL"
+        }
+        214 {
+            assign-string local1 " "
+        }
+        215 {
+            assign-string local1 "BACKGROUND ART"
+            room45 = 1
+        }
+        216 {
+            assign-string local1 "DALE RUTTER"
+        }
+        217 {
+            assign-string local1 ""
+        }
+        218 {
+            assign-string local1 "DIALOG WRITTEN BY"
+            room45 = 1
+        }
+        219 {
+            assign-string local1 "MARIANNA HYMAN"
+        }
+        220 {
+            assign-string local1 "RICHARD MOE"
+        }
+        221 {
+            assign-string local1 " "
+        }
+        222 {
+            assign-string local1 "MUSIC COMPOSED BY"
+            room45 = 1
+        }
+        223 {
+            assign-string local1 "RHETT MATHIS"
+        }
+        224 {
+            assign-string local1 " "
+        }
+        225 {
+            assign-string local1 "SOUND EFFECTS PROGRAMMING"
+            room45 = 1
+        }
+        226 {
+            assign-string local1 "RHETT MATHIS"
+        }
+        227 {
+            assign-string local1 " "
+        }
+        228 {
+            assign-string local1 "LEAD DIGITAL INK AND PAINT"
+            room45 = 1
+        }
+        229 {
+            assign-string local1 "RICK ALTERGOTT"
+        }
+        230 {
+            assign-string local1 " "
+        }
+        231 {
+            assign-string local1 "DIGITAL INK AND PAINT"
+            room45 = 1
+        }
+        232 {
+            assign-string local1 "BRANDY LATTA"
+        }
+        233 {
+            assign-string local1 "GINGER LEE MCCURTAIN"
+        }
+        234 {
+            assign-string local1 "DAN SCHLITZKUS"
+        }
+        235 {
+            assign-string local1 "LAURIE JOHNSON"
+        }
+        236 {
+            assign-string local1 "DEBBIE J. FERGUSON"
+        }
+        237 {
+            assign-string local1 "ROBERT BELLM"
+        }
+        238 {
+            assign-string local1 "CHRISTOPHER PROUDFOOT"
+        }
+        239 {
+            assign-string local1 "MEMO DIAZ"
+        }
+        240 {
+            assign-string local1 "SEAN GRIFFIN"
+        }
+        241 {
+            assign-string local1 " "
+        }
+        242 {
+            assign-string local1 "DIALOG EDITING"
+            room45 = 1
+        }
+        243 {
+            assign-string local1 "RACHEL FROST"
+        }
+        244 {
+            assign-string local1 "OANH PHAM"
+        }
+        245 {
+            assign-string local1 "ALBERT C. CLEMENTI"
+        }
+        246 {
+            assign-string local1 "D.J. MATTERN"
+        }
+        247 {
+            assign-string local1 "ANDREW BRINKWORTH"
+        }
+        248 {
+            assign-string local1 "STEVE ROWSE"
+        }
+        249 {
+            assign-string local1 "MARY ANNE AVERY"
+        }
+        250 {
+            assign-string local1 "ERIC OLSON"
+        }
+        251 {
+            assign-string local1 " "
+        }
+        252 {
+            assign-string local1 "AUDIO ENGINEERS"
+            room45 = 1
+        }
+        253 {
+            assign-string local1 "GARY LITTELL"
+        }
+        254 {
+            assign-string local1 "MIKE MCAULIFFE"
+        }
+        255 {
+            assign-string local1 "SUZIE BRUTKE"
+        }
+        256 {
+            assign-string local1 " "
+        }
+        257 {
+            assign-string local1 "QA TEST LEAD"
+            room45 = 1
+        }
+        258 {
+            assign-string local1 "ZENON THORNTON"
+        }
+        259 {
+            assign-string local1 " "
+        }
+        260 {
+            assign-string local1 "QA TESTING"
+            room45 = 1
+        }
+        261 {
+            assign-string local1 "MICHAEL M. GILBROUGH"
+        }
+        262 {
+            assign-string local1 "BOB LENTH"
+        }
+        263 {
+            assign-string local1 "BRIAN MOORE"
+        }
+        264 {
+            assign-string local1 "PHILIP M. NELSON"
+        }
+        265 {
+            assign-string local1 "SHANE HENDRIX"
+        }
+        266 {
+            assign-string local1 "RON LENCIONI"
+        }
+        267 {
+            assign-string local1 "MARCUS KING"
+        }
+        268 {
+            assign-string local1 " "
+        }
+        269 {
+            assign-string local1 "LEAD PRODUCTION ASSISTANT"
+            room45 = 1
+        }
+        270 {
+            assign-string local1 "D. J. MATTERN"
+        }
+        271 {
+            assign-string local1 " "
+        }
+        272 {
+            assign-string local1 "PRODUCTION ASSISTANTS"
+            room45 = 1
+        }
+        273 {
+            assign-string local1 "ALBERT C. CLEMENTI"
+        }
+        274 {
+            assign-string local1 "ANDREW BRINKWORTH"
+        }
+        275 {
+            assign-string local1 "STEVE ROWSE"
+        }
+        276 {
+            assign-string local1 "MARY ANNE AVERY"
+        }
+        277 {
+            assign-string local1 "RACHEL FROST"
+        }
+        278 {
+            assign-string local1 "OANH PHAM"
+        }
+        279 {
+            assign-string local1 "ERIC OLSON"
+        }
+        280 {
+            assign-string local1 " "
+        }
+        281 {
+            assign-string local1 " "
+        }
+        282 {
+            assign-string local1 " "
+        }
+        283 {
+            assign-string local1 " "
+        }
+        284 {
+            assign-string local1 " "
+        }
+        285 {
+            assign-string local1 " "
+        }
+        286 {
+            assign-string local1 "MAJOR LEAGUE BASEBALL TRADEMARKS ARE USED WITH"
+            room45 = 1
+        }
+        287 {
+            assign-string local1 "PERMISSION OF MAJOR LEAGUE BASEBALL PROPERTIES, INC."
+            room45 = 1
+        }
+        288 {
+            assign-string local1 "cMLBPA.  OFFICIAL LICENSEE-MAJOR LEAGUE"
+            room45 = 1
+        }
+        289 {
+            assign-string local1 "BASEBALL PLAYER'S ASSOCIATION."
+            room45 = 1
+        }
+        290 {
+            assign-string local1 ""
+        }
+        291 {
+            assign-string local1 "BACKYARD BASEBALL 2001"
+        }
+        292 {
+            assign-string local1 ""
+        }
+        293 {
+            assign-string local1 "COPYRIGHT 2000 HUMONGOUS ENTERTAINMENT, INC."
+        }
+        294 {
+            assign-string local1 "ALL RIGHTS RESERVED."
+        }
+        295 {
+            assign-string local1 " "
+        }
+        296 {
+            assign-string local1 " "
+        }
+        297 {
+            assign-string local1 " "
+        }
+        298 {
+            assign-string local1 " "
+        }
+        299 {
+            assign-string local1 " "
+        }
+        300 {
+            assign-string local1 " "
+        }
+        301 {
+            assign-string local1 " "
+        }
+        302 {
+            assign-string local1 " "
+        }
+        303 {
+            assign-string local1 "MR. CLANKY WANTS TO PLAY TOO."
+        }
+        304 {
+            assign-string local1 " "
+        }
+        305 {
+            assign-string local1 " "
+        }
+        306 {
+            assign-string local1 " "
+        }
+        307 {
+            assign-string local1 " "
+        }
+        308 {
+            assign-string local1 " "
+        }
+        309 {
+            assign-string local1 " "
+        }
+        310 {
+            assign-string local1 " "
+        }
+        311 {
+            assign-string local1 " "
+        }
+        312 {
+            assign-string local1 " "
+        }
+        313 {
+            assign-string local1 " "
+        }
+        314 {
+            assign-string local1 " "
+        }
+        315 {
+            assign-string local1 " "
+        }
+        316 {
+            assign-string local1 " "
+        }
+        317 {
+            assign-string local1 " "
+        }
+        else {
+            print-debug.start
+            print-debug.string "Error: bad number %d to getCreditsString!"
+            debug 0
+            assign-string local1 " "
+        }
+    }
+    return local1
+}
+
+local-script lsc2103@2103 {
+    var local0 local1 local2 local3
+
+    case local1 {
+        2 {
+            case local0 {
+                [gNavButtons[1][0] gNavButtons[3][0]] {
+                    assign-string local2 "The club house"
+                    assign-string local3 "click here to return to THE CLUB HOUSE."
+                }
+                gNavButtons[2][0] {
+                    assign-string local2 "Print"
+                    assign-string local3 "Click here to print the current screen."
+                }
+                [room26 room25] {
+                    assign-string local2 "Scroll trophies"
+                    assign-string local3 "Click here to scroll through the different types of trophies."
+                }
+                [room27 room28] {
+                    assign-string local2 "Scroll Winners"
+                    assign-string local3 "Click here to scroll through all the winners of this trophy."
+                }
+                room29 {
+                    if (random 1) {
+                        assign-string local2 "The REAL hall of fame"
+                    } else {
+                        assign-string local2 "Credits"
+                    }
+                    if (script-running lsc2050) {
+                        case (random 2) {
+                            0 {
+                                assign-string local3 "Enough already, I have already seen my name.  Or I've seen my relative's name.  Or I'm bored.  Whatever."
+                            }
+                            else {
+                                assign-string local3 "Stop the credits.  I'm not sure why you'd want to, but you're the boss."
+                            }
+                        }
+                    } else {
+                        case (random 2) {
+                            0 {
+                                assign-string local3 "Click here to see the names of all the wonderful people who brought you this game."
+                            }
+                            1 {
+                                assign-string local3 "Click here to listen to the awesome credits song.  Oh and to see the smarty pants who made this game."
+                            }
+                            2 {
+                                assign-string local3 "If you're looking for someone to blame, here are all the folks who made this game."
+                            }
+                            else {
+                            }
+                        }
+                    }
+                }
+                room1 {
+                    assign-string local2 "The HALL of FAME"
+                    case (random 3) {
+                        0 {
+                            assign-string local3 "You're name could be here, if you win a season or two."
+                        }
+                        1 {
+                            assign-string local3 "The exclusive club for winners."
+                        }
+                        2 {
+                            assign-string local3 "See all the winners of BBL seasons past."
+                        }
+                        3 {
+                            assign-string local3 "A permanent record of your past accomplishments."
+                        }
+                        else {
+                        }
+                    }
+                }
+                room2 {
+                    assign-string local2 "THE RECORD BOOK"
+                    case (random 2) {
+                        0 {
+                            assign-string local3 "Current BBL season record holders."
+                        }
+                        1 {
+                            assign-string local3 "Practice hard and you too can break records.  You can do it!"
+                        }
+                        2 {
+                            assign-string local3 "Season record holders, their coach, and their team."
+                        }
+                        else {
+                        }
+                    }
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local2 local3
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+    }
+}
+
+local-script smth_hall_of_fame_trophy@2104 arg0 arg1 {
+    print-debug.start
+    print-debug.printf "Trophy %d in the array" arg1
+    print-debug.start
+    print-debug.printf "HALL_FAME_TROPHY  \x09\x09= %d" arg0[arg1][0]
+    print-debug.start
+    print-debug.printf "HALL_FAME_FIELD\x09\x09\x09= %d" arg0[arg1][1]
+    print-debug.start
+    print-debug.printf "HALL_FAME_DATE_MONTH \x09= %d" arg0[arg1][2]
+    print-debug.start
+    print-debug.printf "HALL_FAME_DATE_DAY \x09\x09= %d" arg0[arg1][3]
+    print-debug.start
+    print-debug.printf "HALL_FAME_DATE_YEAR \x09= %d" arg0[arg1][4]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][5]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][6]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][7]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][8]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][9]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][10]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][11]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][12]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][13]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][14]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][15]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][16]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][17]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][18]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COACH_NAME \x09= %c" arg0[arg1][19]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COLOR_1\x09 \x09= %d" arg0[arg1][20]
+    print-debug.start
+    print-debug.printf "HALL_FAME_COLOR_2 \x09\x09= %d" arg0[arg1][21]
+    print-debug.start
+    print-debug.printf "HALL_FAME_T1_NAME \x09\x09= %d" arg0[arg1][22]
+    print-debug.start
+    print-debug.printf "HALL_FAME_T2_NAME \x09\x09= %d" arg0[arg1][23]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][24]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][25]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][26]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][27]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][28]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][29]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][30]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][31]
+    print-debug.start
+    print-debug.printf "HALL_FAME_ROSTER  \x09\x09= %d" arg0[arg1][32]
+    print-debug.start
+    print-debug.empty
+}
+
+local-script lsc2105@2105 {
+    var local0 local1 local2
+
+    if (local0[0] < 0 || local0[0] > 3 && local0[0] != 32) {
+        local1 = 1
+    }
+    if (local0[1] < 0 || local0[1] > 9) {
+        local1 = 1
+    }
+    if (local0[2] < 0 || local0[2] > 11) {
+        local1 = 1
+    }
+    if (local0[3] < 1 || local0[3] > 31) {
+        local1 = 1
+    }
+    if (local0[4] < 0) {
+        local1 = 1
+    }
+    if (local0[20] < 1 || local0[20] > 56) {
+        local1 = 1
+    }
+    if (local0[21] < 1 || local0[21] > 56) {
+        local1 = 1
+    }
+    if (local0[22] < 1 || (local0[22] > 10 && local0[22] < 22) || local0[22] > 51) {
+        local1 = 1
+    }
+    if (local0[23] < 101 || (local0[23] > 106 && local0[23] < 122) || local0[23] > 151) {
+        local1 = 1
+    }
+    for local2 = 24 to (24 + 9 - 1) + {
+        if (local0[local2] < 1 || local0[local2] > 61 + 12) {
+            local1 = 1
+        }
+    }
+    if local1 {
+        start-script smth_hall_of_fame_trophy local0
+        debug 0
+    }
+    return local1
+}
+
+local-script lsc2106@2106 {
+    var local0 local1 local2 local3 local4 _ _ _ _ _ _ local11 local12
+
+    dim-array.u8 local12 61
+    for local2 = 0 to (9 - 1) + {
+        do {
+            local4 = random-between 1 61
+        } until (0 == local12[local4])
+        local12[local4] = 1
+        local0[1][24 + local2] = local4
+    }
+    local3 = call-script scr267 (random 29 + 1)
+    local11 = array-get-length local3 - 1
+    local0[0][0] = 1
+    for local2 = 0 to local11 + {
+        local0[1][5 + local2] = local3[local2]
+    }
+    undim local3
+    get-time-date
+    local0[1][0] = local1
+    local0[1][1] = random-between 0 9
+    local0[1][2] = gNowMonth
+    local0[1][3] = gNowDay
+    local0[1][4] = gNowYear
+    local0[1][20] = random-between 1 9
+    local0[1][21] = random-between 1 9
+    local0[1][22] = random-between 1 10
+    local0[1][23] = random-between 101 106
+    undim local12
+}
+
+local-script lsc2107@2107 {
+    dim-array-2d.u8 room31 1 (33 - 1)
+    dim-array-2d.u8 room32 1 (33 - 1)
+    dim-array-2d.u8 room33 1 (33 - 1)
+    dim-array-2d.u8 room34 1 (33 - 1)
+    start-script lsc2106 room31 0
+    start-script lsc2106 room32 1
+    start-script lsc2106 room33 2
+    start-script lsc2106 room34 3
+}
+
+local-script lsc2108@2108 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9
+
+    dim-array-2d.i32 local5 (local3 - 1) 1
+    for local6 = 0 to local4 + {
+        if (local2 == local0[local6][0]) {
+            local7 = local0[local6][4] * 10000 + local0[local6][2] * 100 + local0[local6][3]
+            local5[local8][0] = local6
+            local5[local8][1] = local7
+            inc local8
+        }
+    }
+    array-sort-rows local5 -1 -1 1 1
+    for local6 = 0 to (local3 - 1) + {
+        local9 = local5[local6][0]
+        array-assign-slice local1 local0 (local6 + 1) (local6 + 1) 0 (33 - 1) local9 local9 0 (33 - 1)
+    }
+    local1[0][0] = local3
+    undim local5
+}
+
+local-script lsc2109@2109 {
+    var local0 local1 local2 local3 local4 local5
+
+    local5 = local1 + local2 + local3 + local4
+    if (0 == local1) {
+        dim-array-2d.u8 room31 1 (33 - 1)
+        start-script lsc2106 room31 0
+    } else {
+        dim-array-2d.u8 room31 local1 (33 - 1)
+        start-script lsc2108 local0 room31 0 local1 (local5 - 1)
+    }
+    if (0 == local2) {
+        dim-array-2d.u8 room32 1 (33 - 1)
+        start-script lsc2106 room32 1
+    } else {
+        dim-array-2d.u8 room32 local2 (33 - 1)
+        start-script lsc2108 local0 room32 1 local2 (local5 - 1)
+    }
+    if (0 == local3) {
+        dim-array-2d.u8 room33 1 (33 - 1)
+        start-script lsc2106 room33 2
+    } else {
+        dim-array-2d.u8 room33 local3 (33 - 1)
+        start-script lsc2108 local0 room33 2 local3 (local5 - 1)
+    }
+    if (0 == local4) {
+        dim-array-2d.u8 room34 1 (33 - 1)
+        start-script lsc2106 room34 3
+    } else {
+        dim-array-2d.u8 room34 local4 (33 - 1)
+        start-script lsc2108 local0 room34 3 local4 (local5 - 1)
+    }
+}
+
+local-script HandleNavClick@2110 arg0 {
+    case arg0 {
+        193 {
+            current-room baseball
+        }
+        192 {
+            current-room baseball
+        }
+        194 {
+            start-script scr374 -1
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2111@2111 {
+    var local0
+
+    assign-string local0 "The Best of the Show"
+    start-script lsc2072 -1 1424 1104 0 local0
+    undim local0
+}
+
+local-script lsc2112@2112 {
+    room15 = call-script AllocScratchImage
+    room19 = call-script AllocScratchImage
+    room38 = call-script AllocScratchImage
+}
+
+local-script lsc2113@2113 {
+    room13 = call-script AllocPalette
+    room10 = call-script AllocPalette
+    room11 = call-script AllocPalette
+    g_some_palette_3 = call-script AllocPalette
+    room16 = call-script AllocPalette
+    room17 = call-script AllocPalette
+    room22 = call-script AllocPalette
+    room23 = call-script AllocPalette
+    room41 = call-script AllocPalette
+    room30 = call-script AllocPalette
+    palette.init room10
+    palette.from-image 1141 0
+    palette.end
+    palette.init room11
+    palette.from-image 1209 0
+    palette.end
+    palette.init room16
+    palette.from-image 1240 0
+    palette.end
+    palette.init room17
+    palette.from-image 1239 0
+    palette.end
+    palette.init room22
+    palette.from-image 1378 0
+    palette.end
+    palette.init room23
+    palette.from-image 1377 0
+    palette.end
+    palette.init room41
+    palette.from-image 632 0
+    palette.end
+    palette.init room30
+    palette.from-image 402 0
+    palette.end
+}
+
+local-script lsc2114@2114 {
+    var local0
+
+    if (not room3) {
+        room3 = call-script FindFreeSprite
+        room9 = call-script FindFreeSprite
+        room12 = call-script FindFreeSprite
+        room14 = call-script FindFreeSprite
+        room18 = call-script FindFreeSprite
+        room20 = call-script FindFreeSprite
+        room24 = call-script FindFreeSprite
+        room25 = call-script FindFreeSprite
+        room26 = call-script FindFreeSprite
+        room27 = call-script FindFreeSprite
+        room28 = call-script FindFreeSprite
+        room29 = call-script FindFreeSprite
+        room37 = call-script FindFreeSprite
+        dim-array.i16 room7 (9 - 1)
+        dim-array.i16 room8 (9 - 1)
+        for local0 = 0 to (9 - 1) + {
+            room7[local0] = call-script FindFreeSprite
+            room8[local0] = call-script FindFreeSprite
+        }
+    }
+}
+
+local-script lsc2115@2115 {
+    var local0 local1
+
+    for local0 = {local1}[room10 room11 room13 g_some_palette_3 room16 room17 room22 room23 room41 room30] {
+        start-script FreePalette local0
+    }
+    room10 = 0
+    room11 = 0
+    room13 = 0
+    g_some_palette_3 = 0
+    room16 = 0
+    room17 = 0
+    room22 = 0
+    room23 = 0
+    room41 = 0
+    room30 = 0
+}
+
+local-script lsc2116@2116 {
+    start-script ReleaseSprite room1
+    room1 = 0
+    start-script ReleaseSprite room2
+    room2 = 0
+    start-script ReleaseSprite room6
+    room6 = 0
+    start-script FreePalette room4
+    start-script FreePalette room5
+    room4 = 0
+    room5 = 0
+    undim room31
+    undim room32
+    undim room33
+    undim room34
+}
+
+local-script lsc2117@2117 {
+    start-script FreeScratchImage room15
+    start-script FreeScratchImage room19
+    start-script FreeScratchImage room38
+    room15 = 0
+    room19 = 0
+    room38 = 0
+    if room21 {
+        start-script FreeScratchImage room21
+        room21 = 0
+    }
+}
+
+local-script lsc2118@2118 {
+    var local0
+
+    if room3 {
+        start-script ReleaseSprite room3
+        room3 = 0
+        start-script ReleaseSprite room9
+        room9 = 0
+        start-script ReleaseSprite room12
+        room12 = 0
+        start-script ReleaseSprite room14
+        room14 = 0
+        start-script ReleaseSprite room18
+        room18 = 0
+        start-script ReleaseSprite room20
+        room20 = 0
+        start-script ReleaseSprite room24
+        room24 = 0
+        start-script ReleaseSprite room25
+        room25 = 0
+        start-script ReleaseSprite room26
+        room26 = 0
+        start-script ReleaseSprite room27
+        room27 = 0
+        start-script ReleaseSprite room28
+        room28 = 0
+        start-script ReleaseSprite room29
+        room29 = 0
+        start-script ReleaseSprite room37
+        room37 = 0
+        for local0 = 0 to (9 - 1) + {
+            start-script ReleaseSprite room7[local0]
+            room7[local0] = 0
+            start-script ReleaseSprite room8[local0]
+            room8[local0] = 0
+        }
+    }
+}
+
+local-script lsc2119@2119 {
+    if (script-running lsc2050) {
+        stop-script lsc2050
+        start-script lsc2051
+        room46 = 1
+    }
+    start-script lsc2118
+    start-script lsc2115
+    start-script lsc2117
+    undim room7
+    undim room8
+    actor-default-clipped 0 0 639 479
+}
+
+local-script lsc2120@2120 {
+    var local0 local1
+
+    start-script scr282 room12 room13 local0[local1][0] 360 237
+    start-script scr401 room24 room5 local0[local1][0] 360 (237 + 3)
+    start-script scr418 local0[local1][3] (local0[local1][2] + 1) (local0[local1][4] + 1900) room37 room38 1239 room17 60 333
+}
+
+local-script lsc2121@2121 {
+    var local0 local1 local2 local3
+
+    if room21 {
+        start-script FreeScratchImage room21
+        room21 = 0
+    }
+    room21 = call-script scr269 local0 local1 local2
+    if (local0 > 106) {
+        local3 = room23
+    } else {
+        local3 = room22
+    }
+    sprite.init room20
+    sprite.new
+    sprite.image room21
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -650
+    sprite.palette local3
+    sprite.at 333 374
+}
+
+local-script lsc2122@2122 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9
+
+    dim-array.u8 local3 15
+    for local7 = 0 to (15 - 1) + {
+        local3[local7] = local0[local1][5 + local7]
+    }
+    local3[15] = 0
+    local7 = 15 - 1
+    do {
+        if (local3[local7] == 32) {
+            local3[local7] = 0
+            dec local7
+        } else {
+            local7 = 0
+        }
+    } until (local7 == 0)
+    sprintf local2 "COACH %s" local3
+    local8 = local0[local1][22]
+    local9 = local0[local1][23]
+    local4 = call-script GetTeamPrefixString local8 1
+    local5 = call-script GetTeamNameString local9 1
+    sprintf local6 "%s %s" local4 local5
+    temp = call-script smth_draw_text_image local6 1240 room15 186 23 0 0 room16
+    sprite.init room14
+    sprite.new
+    sprite.image room15
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -650
+    sprite.palette room16
+    sprite.at 371 375
+    temp = call-script smth_draw_text_image local2 1239 room19 186 23 0 0 room17
+    sprite.init room18
+    sprite.new
+    sprite.image room19
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -650
+    sprite.palette room17
+    sprite.at 353 128
+    undim local4
+    undim local5
+    undim local6
+    undim local2
+    undim local3
+}
+
+local-script lsc2123@2123 {
+    var local0 local1 local2 local3 local4 local5
+
+    dim-array.i16 local2 (9 - 1)
+    local3 = local0[local1][20]
+    local4 = local0[local1][21]
+    for local5 = 24 to (24 + 9 - 1) + {
+        local2[local5 - 24] = local0[local1][local5]
+    }
+    start-script smth_put_kid_team_photo local2 room7 room8 room10 room11 local3 local4 local3
+    start-script lsc2120 local0 local1
+    start-script lsc2121 local0[local1][23] local4 local4
+    start-script lsc2122 local0 local1
+    start-script lsc2048
+    undim local2
+}
+
+local-script lsc2124@2124 {
+    var local0
+
+    room36 = room31
+    room35 = 1
+    start-script lsc2112
+    start-script lsc2114
+    start-script lsc2113
+    sprite.init room3
+    sprite.new
+    sprite.image image403
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -700
+    sprite.palette room5
+    sprite.at 320 240
+    local0 = call-script findFieldBgAndSetPalette 1 room36[room35][1]
+    sprite.init room9
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -905
+    sprite.palette g_some_palette_3
+    sprite.at 257 159
+    start-script lsc2098 local0
+    start-script lsc2123 room36 room35
+}
+
+local-script lsc2125@2125 {
+    var local0 local1 local2 local3 local4
+
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if (2 == local0) {
+        local1 = 1
+        local2 = 0
+        local3 = room25
+        case room36 {
+            room32 {
+                local4 = room31
+            }
+            room33 {
+                local4 = room32
+            }
+            room34 {
+                local4 = room33
+            }
+            else {
+                local4 = room34
+            }
+        }
+    } else {
+        local1 = 3
+        local2 = 2
+        local3 = room26
+        case room36 {
+            room34 {
+                local4 = room31
+            }
+            room31 {
+                local4 = room32
+            }
+            room32 {
+                local4 = room33
+            }
+            else {
+                local4 = room34
+            }
+        }
+    }
+    start-script PlayClickySound
+    sprite.init local3
+    sprite.state local1
+    break-here.multi 2
+    room36 = local4
+    sprite.init local3
+    sprite.state local2
+    break-here.multi 2
+    start-script lsc2123 room36 1
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2126@2126 {
+    var local0 local1 local2 local3
+
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if (2 == local0) {
+        local1 = 1
+        local2 = 0
+        local3 = room27
+        dec room35
+        if (room35 < 1) {
+            room35 = room36[0][0]
+        }
+    } else {
+        local1 = 3
+        local2 = 2
+        local3 = room28
+        inc room35
+        if (room35 > room36[0][0]) {
+            room35 = 1
+        }
+    }
+    start-script PlayClickySound
+    sprite.init local3
+    sprite.state local1
+    break-here.multi 2
+    sprite.init local3
+    sprite.state local2
+    break-here.multi 2
+    start-script lsc2123 room36 room35
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2127@2127 {
+    start-script lsc2125 2
+}
+
+local-script lsc2128@2128 {
+    start-script lsc2125 1
+}
+
+local-script lsc2129@2129 {
+    start-script lsc2126 2
+}
+
+local-script lsc2130@2130 {
+    start-script lsc2126 1
+}
+
+local-script lsc2131@2131 {
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    start-script PlayClickySound
+    sprite.init room29
+    sprite.state 1
+    break-here.multi 2
+    if (script-running lsc2050) {
+        room46 = 1
+    } else {
+        room46 = 0
+        start-script lsc2050
+    }
+    sprite.init room29
+    sprite.state 0
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2132@2132 {
+    var local0
+
+    if (0 == local0) {
+        start-script lsc2119
+    } else {
+        start-script lsc2088
+    }
+}
+
+local-script lsc2133@2133 {
+    var local0
+
+    sprite.init room6
+    sprite.image image407
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -910
+    sprite.state local0
+    sprite.palette room4
+    sprite.at 320 240
+}
+
+local-script lsc2134@2134 {
+    var local0 _ local2 local3 local4
+
+    if (0 == local0) {
+        local2 = room1
+        local3 = room2
+        local4 = 1
+    } else {
+        local2 = room2
+        local3 = room1
+        local4 = 0
+    }
+    sprite.init local3
+    sprite.image image405
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1300
+    sprite.group 14
+    sprite.state local4
+    sprite.palette room4
+    sprite.at 320 240
+    sprite.init local2
+    sprite.image image404
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.palette room4
+    sprite.group 14
+    sprite.state local0
+    sprite.order -1000
+    sprite.at 320 240
+    start-script lsc2133 local0
+    sprite.init local3
+    sprite.mask-image 405
+    sprite.state local4
+    sprite.init local2
+    sprite.mask-image 405
+    sprite.state local0
+}
+
+local-script lsc2135@2135 {
+    var local0
+
+    if (room0 >= 0) {
+        start-script lsc2132 room0
+    }
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    start-script lsc2134 local0
+    start-script lsc2070
+    if (0 == local0) {
+        start-script lsc2124
+    } else {
+        start-script lsc2090
+    }
+    room0 = local0
+    start-script scr88
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2136@2136 {
+    var local0 local1
+
+    local1 = sprite-get-state local0
+    if (room0 == local1) {
+        stop-script 0
+    } else {
+        start-script PlayClickySound
+        start-script lsc2135 local1
+    }
+}
+
+local-script lsc2137@2137 {
+    var local0 local1
+
+    local1 = sprite-get-state local0
+    if (sprite-get-image local0 == 404) {
+        stop-script 0
+    }
+    do {
+        if (405 == sprite-get-image local0) {
+            sprite.init local0
+            sprite.image image406
+            sprite.animation-type 0
+            sprite.update-type 2
+            sprite.state local1
+            sprite.order -1200
+        }
+        break-here
+    } until (local0 != gLastHoverNumber || gLastHoverType != 2)
+    if (sprite-get-image local0 != 404) {
+        sprite.init local0
+        sprite.image image405
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.state local1
+        sprite.order -1300
+        sprite.group 14
+    }
+}
+
+local-script lsc2138@2138 {
+    sprite.init room1
+    sprite.new
+    sprite.image image404
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1000
+    sprite.group 14
+    sprite.state 0
+    sprite.palette room4
+    sprite.at 320 240
+    gSpriteCursorTargets[room1][TARGET-CLICK-SCRIPT] = lsc2136
+    gSpriteCursorTargets[room1][TARGET-HOVER-SCRIPT] = lsc2137
+    gSpriteCursorTargets[room1][TARGET-HOVER-DELAY] = 0
+    sprite.init room2
+    sprite.new
+    sprite.image image405
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1300
+    sprite.group 14
+    sprite.state 1
+    sprite.palette room4
+    sprite.at 320 240
+    gSpriteCursorTargets[room2][TARGET-CLICK-SCRIPT] = lsc2136
+    gSpriteCursorTargets[room2][TARGET-HOVER-SCRIPT] = lsc2137
+    gSpriteCursorTargets[room2][TARGET-HOVER-DELAY] = 0
+    sprite.init room1
+    sprite.mask-image 405
+    sprite.state 0
+    sprite.init room2
+    sprite.mask-image 405
+    sprite.state 1
+    start-script lsc2133 0
+    room0 = 0
+}
+
+local-script lsc2139@2139 {
+    if (not room1) {
+        room1 = call-script FindFreeSprite
+        room2 = call-script FindFreeSprite
+        room6 = call-script FindFreeSprite
+    }
+    start-script lsc2055
+    room4 = call-script AllocPalette
+    palette.init room4
+    palette.from-image 405 0
+    palette.end
+    room5 = call-script AllocPalette
+    palette.init room5
+    palette.from-image 403 0
+    palette.end
+}
+
+enter {
+    room0 = -1
+    room47 = gMinJiffies
+    start-script lsc2057
+    start-script lsc2139
+    start-script SetNavButtons HandleNavClick 0 0
+    start-script lsc2111
+    start-script lsc2052
+    start-script lsc2135 0
+    start-script lsc2138
+    if (not (sound-running 8078)) {
+        start-script AddSongsToPool -1
+        start-script AddSongsToPool 8078
+        start-script PlayMusicPool 8078
+    }
+    gHoverScript = lsc2103
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+exit {
+    start-script lsc2132 room0
+    start-script lsc2116
+    start-script lsc2066
+    start-script lsc2056
+    start-script FreeNavButtons
+    if global692 {
+        start-script FreePalette global692
+        global692 = 0
+    }
+}

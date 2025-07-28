@@ -1,0 +1,6091 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "proovtlk/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+}
+
+exit {
+}
+
+sound DIGI sound2635@2635 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2635.wav"
+}
+sound DIGI sound2636@2636 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2636.wav"
+}
+sound DIGI sound2637@2637 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2637.wav"
+}
+sound DIGI sound2638@2638 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2638.wav"
+}
+sound DIGI sound2639@2639 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2639.wav"
+}
+sound DIGI sound2640@2640 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2640.wav"
+}
+sound DIGI sound2641@2641 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2641.wav"
+}
+sound DIGI sound2642@2642 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2642.wav"
+}
+sound DIGI sound2643@2643 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2643.wav"
+}
+sound DIGI sound2644@2644 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2644.wav"
+}
+sound DIGI sound2645@2645 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2645.wav"
+}
+sound DIGI sound2646@2646 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2646.wav"
+}
+sound DIGI sound2647@2647 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2647.wav"
+}
+sound DIGI sound2648@2648 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2648.wav"
+}
+sound DIGI sound2649@2649 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2649.wav"
+}
+sound DIGI sound2650@2650 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2650.wav"
+}
+sound DIGI sound2651@2651 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2651.wav"
+}
+sound DIGI sound2652@2652 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2652.wav"
+}
+sound DIGI sound2653@2653 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2653.wav"
+}
+sound DIGI sound2654@2654 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2654.wav"
+}
+sound DIGI sound2655@2655 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2655.wav"
+}
+sound DIGI sound2656@2656 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2656.wav"
+}
+sound DIGI sound2657@2657 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2657.wav"
+}
+sound DIGI sound2658@2658 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2658.wav"
+}
+sound DIGI sound2659@2659 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2659.wav"
+}
+sound DIGI sound2660@2660 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2660.wav"
+}
+sound DIGI sound2661@2661 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2661.wav"
+}
+sound DIGI sound2662@2662 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2662.wav"
+}
+sound DIGI sound2663@2663 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2663.wav"
+}
+sound DIGI sound2664@2664 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2664.wav"
+}
+sound DIGI sound2665@2665 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2665.wav"
+}
+sound DIGI sound2666@2666 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2666.wav"
+}
+sound DIGI sound2667@2667 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2667.wav"
+}
+sound DIGI sound2668@2668 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2668.wav"
+}
+sound DIGI sound2669@2669 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2669.wav"
+}
+sound DIGI sound2670@2670 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2670.wav"
+}
+sound DIGI sound2671@2671 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2671.wav"
+}
+sound DIGI sound2672@2672 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2672.wav"
+}
+sound DIGI sound2673@2673 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2673.wav"
+}
+sound DIGI sound2674@2674 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2674.wav"
+}
+sound DIGI sound2675@2675 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2675.wav"
+}
+sound DIGI sound2676@2676 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2676.wav"
+}
+sound DIGI sound2677@2677 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2677.wav"
+}
+sound DIGI sound2678@2678 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2678.wav"
+}
+sound DIGI sound2679@2679 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2679.wav"
+}
+sound DIGI sound2680@2680 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2680.wav"
+}
+sound DIGI sound2681@2681 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2681.wav"
+}
+sound DIGI sound2682@2682 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2682.wav"
+}
+sound DIGI sound2683@2683 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2683.wav"
+}
+sound DIGI sound2684@2684 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2684.wav"
+}
+sound DIGI sound2685@2685 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2685.wav"
+}
+sound DIGI sound2686@2686 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2686.wav"
+}
+sound DIGI sound2687@2687 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2687.wav"
+}
+sound DIGI sound2688@2688 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2688.wav"
+}
+sound DIGI sound2689@2689 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2689.wav"
+}
+sound DIGI sound2690@2690 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2690.wav"
+}
+sound DIGI sound2691@2691 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2691.wav"
+}
+sound DIGI sound2692@2692 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2692.wav"
+}
+sound DIGI sound2693@2693 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2693.wav"
+}
+sound DIGI sound2694@2694 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2694.wav"
+}
+sound DIGI sound2695@2695 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2695.wav"
+}
+sound DIGI sound2696@2696 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2696.wav"
+}
+sound DIGI sound2697@2697 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2697.wav"
+}
+sound DIGI sound2698@2698 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2698.wav"
+}
+sound DIGI sound2699@2699 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2699.wav"
+}
+sound DIGI sound2700@2700 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2700.wav"
+}
+sound DIGI sound2701@2701 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2701.wav"
+}
+sound DIGI sound2702@2702 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2702.wav"
+}
+sound DIGI sound2703@2703 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2703.wav"
+}
+sound DIGI sound2704@2704 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2704.wav"
+}
+sound DIGI sound2705@2705 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2705.wav"
+}
+sound DIGI sound2706@2706 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2706.wav"
+}
+sound DIGI sound2707@2707 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2707.wav"
+}
+sound DIGI sound2708@2708 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2708.wav"
+}
+sound DIGI sound2709@2709 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2709.wav"
+}
+sound DIGI sound2710@2710 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2710.wav"
+}
+sound DIGI sound2711@2711 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2711.wav"
+}
+sound DIGI sound2712@2712 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2712.wav"
+}
+sound DIGI sound2713@2713 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2713.wav"
+}
+sound DIGI sound2714@2714 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2714.wav"
+}
+sound DIGI sound2715@2715 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2715.wav"
+}
+sound DIGI sound2716@2716 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2716.wav"
+}
+sound DIGI sound2717@2717 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2717.wav"
+}
+sound DIGI sound2718@2718 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2718.wav"
+}
+sound DIGI sound2719@2719 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2719.wav"
+}
+sound DIGI sound2720@2720 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2720.wav"
+}
+sound DIGI sound2721@2721 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2721.wav"
+}
+sound DIGI sound2722@2722 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2722.wav"
+}
+sound DIGI sound2723@2723 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2723.wav"
+}
+sound DIGI sound2724@2724 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2724.wav"
+}
+sound DIGI sound2725@2725 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2725.wav"
+}
+sound DIGI sound2726@2726 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2726.wav"
+}
+sound DIGI sound2727@2727 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2727.wav"
+}
+sound DIGI sound2728@2728 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2728.wav"
+}
+sound DIGI sound2729@2729 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2729.wav"
+}
+sound DIGI sound2730@2730 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2730.wav"
+}
+sound DIGI sound2731@2731 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2731.wav"
+}
+sound DIGI sound2732@2732 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2732.wav"
+}
+sound DIGI sound2733@2733 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2733.wav"
+}
+sound DIGI sound2734@2734 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2734.wav"
+}
+sound DIGI sound2735@2735 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2735.wav"
+}
+sound DIGI sound2736@2736 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2736.wav"
+}
+sound DIGI sound2737@2737 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2737.wav"
+}
+sound DIGI sound2738@2738 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2738.wav"
+}
+sound DIGI sound2739@2739 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2739.wav"
+}
+sound DIGI sound2740@2740 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2740.wav"
+}
+sound DIGI sound2741@2741 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2741.wav"
+}
+sound DIGI sound2742@2742 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2742.wav"
+}
+sound DIGI sound2743@2743 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2743.wav"
+}
+sound DIGI sound2744@2744 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2744.wav"
+}
+sound DIGI sound2745@2745 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2745.wav"
+}
+sound DIGI sound2746@2746 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2746.wav"
+}
+sound DIGI sound2747@2747 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2747.wav"
+}
+sound DIGI sound2748@2748 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2748.wav"
+}
+sound DIGI sound2749@2749 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2749.wav"
+}
+sound DIGI sound2750@2750 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2750.wav"
+}
+sound DIGI sound2751@2751 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2751.wav"
+}
+sound DIGI sound2752@2752 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2752.wav"
+}
+sound DIGI sound2753@2753 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2753.wav"
+}
+sound DIGI sound2754@2754 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2754.wav"
+}
+sound DIGI sound2755@2755 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2755.wav"
+}
+sound DIGI sound2756@2756 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2756.wav"
+}
+sound DIGI sound2757@2757 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2757.wav"
+}
+sound DIGI sound2758@2758 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2758.wav"
+}
+sound DIGI sound2759@2759 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2759.wav"
+}
+sound DIGI sound2760@2760 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2760.wav"
+}
+sound DIGI sound2761@2761 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2761.wav"
+}
+sound DIGI sound2762@2762 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2762.wav"
+}
+sound DIGI sound2763@2763 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2763.wav"
+}
+sound DIGI sound2764@2764 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2764.wav"
+}
+sound DIGI sound2765@2765 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2765.wav"
+}
+sound DIGI sound2766@2766 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2766.wav"
+}
+sound DIGI sound2767@2767 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2767.wav"
+}
+sound DIGI sound2768@2768 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2768.wav"
+}
+sound DIGI sound2769@2769 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2769.wav"
+}
+sound DIGI sound2770@2770 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2770.wav"
+}
+sound DIGI sound2771@2771 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2771.wav"
+}
+sound DIGI sound2772@2772 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2772.wav"
+}
+sound DIGI sound2773@2773 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2773.wav"
+}
+sound DIGI sound2774@2774 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2774.wav"
+}
+sound DIGI sound2775@2775 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2775.wav"
+}
+sound DIGI sound2776@2776 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2776.wav"
+}
+sound DIGI sound2777@2777 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2777.wav"
+}
+sound DIGI sound2778@2778 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2778.wav"
+}
+sound DIGI sound2779@2779 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2779.wav"
+}
+sound DIGI sound2780@2780 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2780.wav"
+}
+sound DIGI sound2781@2781 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2781.wav"
+}
+sound DIGI sound2782@2782 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2782.wav"
+}
+sound DIGI sound2783@2783 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2783.wav"
+}
+sound DIGI sound2784@2784 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2784.wav"
+}
+sound DIGI sound2785@2785 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2785.wav"
+}
+sound DIGI sound2786@2786 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2786.wav"
+}
+sound DIGI sound2787@2787 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2787.wav"
+}
+sound DIGI sound2788@2788 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2788.wav"
+}
+sound DIGI sound2789@2789 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2789.wav"
+}
+sound DIGI sound2790@2790 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2790.wav"
+}
+sound DIGI sound2791@2791 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2791.wav"
+}
+sound DIGI sound2792@2792 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2792.wav"
+}
+sound DIGI sound2793@2793 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2793.wav"
+}
+sound DIGI sound2794@2794 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2794.wav"
+}
+sound DIGI sound2795@2795 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2795.wav"
+}
+sound DIGI sound2796@2796 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2796.wav"
+}
+sound DIGI sound2797@2797 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2797.wav"
+}
+sound DIGI sound2798@2798 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2798.wav"
+}
+sound DIGI sound2799@2799 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2799.wav"
+}
+sound DIGI sound2800@2800 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2800.wav"
+}
+sound DIGI sound2801@2801 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2801.wav"
+}
+sound DIGI sound2802@2802 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2802.wav"
+}
+sound DIGI sound2803@2803 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2803.wav"
+}
+sound DIGI sound2804@2804 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2804.wav"
+}
+sound DIGI sound2805@2805 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2805.wav"
+}
+sound DIGI sound2806@2806 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2806.wav"
+}
+sound DIGI sound2807@2807 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2807.wav"
+}
+sound DIGI sound2808@2808 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2808.wav"
+}
+sound DIGI sound2809@2809 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2809.wav"
+}
+sound DIGI sound2810@2810 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2810.wav"
+}
+sound DIGI sound2811@2811 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2811.wav"
+}
+sound DIGI sound2812@2812 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2812.wav"
+}
+sound DIGI sound2813@2813 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2813.wav"
+}
+sound DIGI sound2814@2814 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2814.wav"
+}
+sound DIGI sound2815@2815 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2815.wav"
+}
+sound DIGI sound2816@2816 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2816.wav"
+}
+sound DIGI sound2817@2817 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2817.wav"
+}
+sound DIGI sound2818@2818 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2818.wav"
+}
+sound DIGI sound2819@2819 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2819.wav"
+}
+sound DIGI sound2820@2820 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2820.wav"
+}
+sound DIGI sound2821@2821 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2821.wav"
+}
+sound DIGI sound2822@2822 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2822.wav"
+}
+sound DIGI sound2823@2823 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2823.wav"
+}
+sound DIGI sound2824@2824 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2824.wav"
+}
+sound DIGI sound2825@2825 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2825.wav"
+}
+sound DIGI sound2826@2826 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2826.wav"
+}
+sound DIGI sound2827@2827 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2827.wav"
+}
+sound DIGI sound2828@2828 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2828.wav"
+}
+sound DIGI sound2829@2829 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2829.wav"
+}
+sound DIGI sound2830@2830 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2830.wav"
+}
+sound DIGI sound2831@2831 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2831.wav"
+}
+sound DIGI sound2832@2832 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2832.wav"
+}
+sound DIGI sound2833@2833 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2833.wav"
+}
+sound DIGI sound2834@2834 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2834.wav"
+}
+sound DIGI sound2835@2835 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2835.wav"
+}
+sound DIGI sound2836@2836 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2836.wav"
+}
+sound DIGI sound2837@2837 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2837.wav"
+}
+sound DIGI sound2838@2838 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2838.wav"
+}
+sound DIGI sound2839@2839 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2839.wav"
+}
+sound DIGI sound2840@2840 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2840.wav"
+}
+sound DIGI sound2841@2841 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2841.wav"
+}
+sound DIGI sound2842@2842 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2842.wav"
+}
+sound DIGI sound2843@2843 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2843.wav"
+}
+sound DIGI sound2844@2844 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2844.wav"
+}
+sound DIGI sound2845@2845 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2845.wav"
+}
+sound DIGI sound2846@2846 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2846.wav"
+}
+sound DIGI sound2847@2847 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2847.wav"
+}
+sound DIGI sound2848@2848 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2848.wav"
+}
+sound DIGI sound2849@2849 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2849.wav"
+}
+sound DIGI sound2850@2850 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2850.wav"
+}
+sound DIGI sound2851@2851 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2851.wav"
+}
+sound DIGI sound2852@2852 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2852.wav"
+}
+sound DIGI sound2853@2853 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2853.wav"
+}
+sound DIGI sound2854@2854 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2854.wav"
+}
+sound DIGI sound2855@2855 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2855.wav"
+}
+sound DIGI sound2856@2856 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2856.wav"
+}
+sound DIGI sound2857@2857 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2857.wav"
+}
+sound DIGI sound2858@2858 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2858.wav"
+}
+sound DIGI sound2859@2859 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2859.wav"
+}
+sound DIGI sound2860@2860 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2860.wav"
+}
+sound DIGI sound2861@2861 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2861.wav"
+}
+sound DIGI sound2862@2862 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2862.wav"
+}
+sound DIGI sound2863@2863 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2863.wav"
+}
+sound DIGI sound2864@2864 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2864.wav"
+}
+sound DIGI sound2865@2865 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2865.wav"
+}
+sound DIGI sound2866@2866 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2866.wav"
+}
+sound DIGI sound2867@2867 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2867.wav"
+}
+sound DIGI sound2868@2868 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2868.wav"
+}
+sound DIGI sound2869@2869 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2869.wav"
+}
+sound DIGI sound2870@2870 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2870.wav"
+}
+sound DIGI sound2871@2871 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2871.wav"
+}
+sound DIGI sound2872@2872 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2872.wav"
+}
+sound DIGI sound2873@2873 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2873.wav"
+}
+sound DIGI sound2874@2874 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2874.wav"
+}
+sound DIGI sound2875@2875 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2875.wav"
+}
+sound DIGI sound2876@2876 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2876.wav"
+}
+sound DIGI sound2877@2877 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2877.wav"
+}
+sound DIGI sound2878@2878 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2878.wav"
+}
+sound DIGI sound2879@2879 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2879.wav"
+}
+sound DIGI sound2880@2880 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2880.wav"
+}
+sound DIGI sound2881@2881 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2881.wav"
+}
+sound DIGI sound2882@2882 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2882.wav"
+}
+sound DIGI sound2883@2883 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2883.wav"
+}
+sound DIGI sound2884@2884 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2884.wav"
+}
+sound DIGI sound2885@2885 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2885.wav"
+}
+sound DIGI sound2886@2886 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2886.wav"
+}
+sound DIGI sound2887@2887 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2887.wav"
+}
+sound DIGI sound2888@2888 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2888.wav"
+}
+sound DIGI sound2889@2889 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2889.wav"
+}
+sound DIGI sound2890@2890 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2890.wav"
+}
+sound DIGI sound2891@2891 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2891.wav"
+}
+sound DIGI sound2892@2892 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2892.wav"
+}
+sound DIGI sound2893@2893 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2893.wav"
+}
+sound DIGI sound2894@2894 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2894.wav"
+}
+sound DIGI sound2895@2895 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2895.wav"
+}
+sound DIGI sound2896@2896 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2896.wav"
+}
+sound DIGI sound2897@2897 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2897.wav"
+}
+sound DIGI sound2898@2898 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2898.wav"
+}
+sound DIGI sound2899@2899 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2899.wav"
+}
+sound DIGI sound2900@2900 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2900.wav"
+}
+sound DIGI sound2901@2901 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2901.wav"
+}
+sound DIGI sound2902@2902 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2902.wav"
+}
+sound DIGI sound2903@2903 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2903.wav"
+}
+sound DIGI sound2904@2904 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2904.wav"
+}
+sound DIGI sound2905@2905 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2905.wav"
+}
+sound DIGI sound2906@2906 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2906.wav"
+}
+sound DIGI sound2907@2907 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2907.wav"
+}
+sound DIGI sound2908@2908 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2908.wav"
+}
+sound DIGI sound2909@2909 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2909.wav"
+}
+sound DIGI sound2910@2910 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2910.wav"
+}
+sound DIGI sound2911@2911 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2911.wav"
+}
+sound DIGI sound2912@2912 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2912.wav"
+}
+sound DIGI sound2913@2913 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2913.wav"
+}
+sound DIGI sound2914@2914 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2914.wav"
+}
+sound DIGI sound2915@2915 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2915.wav"
+}
+sound DIGI sound2916@2916 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2916.wav"
+}
+sound DIGI sound2917@2917 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2917.wav"
+}
+sound DIGI sound2918@2918 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2918.wav"
+}
+sound DIGI sound2919@2919 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2919.wav"
+}
+sound DIGI sound2920@2920 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2920.wav"
+}
+sound DIGI sound2921@2921 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2921.wav"
+}
+sound DIGI sound2922@2922 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2922.wav"
+}
+sound DIGI sound2923@2923 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2923.wav"
+}
+sound DIGI sound2924@2924 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2924.wav"
+}
+sound DIGI sound2925@2925 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2925.wav"
+}
+sound DIGI sound2926@2926 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2926.wav"
+}
+sound DIGI sound2927@2927 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2927.wav"
+}
+sound DIGI sound2928@2928 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2928.wav"
+}
+sound DIGI sound2929@2929 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2929.wav"
+}
+sound DIGI sound2930@2930 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2930.wav"
+}
+sound DIGI sound2931@2931 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2931.wav"
+}
+sound DIGI sound2932@2932 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2932.wav"
+}
+sound DIGI sound2933@2933 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2933.wav"
+}
+sound DIGI sound2934@2934 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2934.wav"
+}
+sound DIGI sound2935@2935 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2935.wav"
+}
+sound DIGI sound2936@2936 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2936.wav"
+}
+sound DIGI sound2937@2937 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2937.wav"
+}
+sound DIGI sound2938@2938 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2938.wav"
+}
+sound DIGI sound2939@2939 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2939.wav"
+}
+sound DIGI sound2940@2940 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2940.wav"
+}
+sound DIGI sound2941@2941 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2941.wav"
+}
+sound DIGI sound2942@2942 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2942.wav"
+}
+sound DIGI sound2943@2943 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2943.wav"
+}
+sound DIGI sound2944@2944 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2944.wav"
+}
+sound DIGI sound2945@2945 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2945.wav"
+}
+sound DIGI sound2946@2946 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2946.wav"
+}
+sound DIGI sound2947@2947 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2947.wav"
+}
+sound DIGI sound2948@2948 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2948.wav"
+}
+sound DIGI sound2949@2949 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2949.wav"
+}
+sound DIGI sound2950@2950 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2950.wav"
+}
+sound DIGI sound2951@2951 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2951.wav"
+}
+sound DIGI sound2952@2952 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2952.wav"
+}
+sound DIGI sound2953@2953 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2953.wav"
+}
+sound DIGI sound2954@2954 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2954.wav"
+}
+sound DIGI sound2955@2955 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2955.wav"
+}
+sound DIGI sound2956@2956 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2956.wav"
+}
+sound DIGI sound2957@2957 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2957.wav"
+}
+sound DIGI sound2958@2958 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2958.wav"
+}
+sound DIGI sound2959@2959 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2959.wav"
+}
+sound DIGI sound2960@2960 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2960.wav"
+}
+sound DIGI sound2961@2961 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2961.wav"
+}
+sound DIGI sound2962@2962 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2962.wav"
+}
+sound DIGI sound2963@2963 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2963.wav"
+}
+sound DIGI sound2964@2964 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2964.wav"
+}
+sound DIGI sound2965@2965 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2965.wav"
+}
+sound DIGI sound2966@2966 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2966.wav"
+}
+sound DIGI sound2967@2967 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2967.wav"
+}
+sound DIGI sound2968@2968 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2968.wav"
+}
+sound DIGI sound2969@2969 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2969.wav"
+}
+sound DIGI sound2970@2970 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2970.wav"
+}
+sound DIGI sound2971@2971 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2971.wav"
+}
+sound DIGI sound2972@2972 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2972.wav"
+}
+sound DIGI sound2973@2973 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2973.wav"
+}
+sound DIGI sound2974@2974 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2974.wav"
+}
+sound DIGI sound2975@2975 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2975.wav"
+}
+sound DIGI sound2976@2976 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2976.wav"
+}
+sound DIGI sound2977@2977 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2977.wav"
+}
+sound DIGI sound2978@2978 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2978.wav"
+}
+sound DIGI sound2979@2979 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2979.wav"
+}
+sound DIGI sound2980@2980 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2980.wav"
+}
+sound DIGI sound2981@2981 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2981.wav"
+}
+sound DIGI sound2982@2982 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2982.wav"
+}
+sound DIGI sound2983@2983 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2983.wav"
+}
+sound DIGI sound2984@2984 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2984.wav"
+}
+sound DIGI sound2985@2985 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2985.wav"
+}
+sound DIGI sound2986@2986 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2986.wav"
+}
+sound DIGI sound2987@2987 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2987.wav"
+}
+sound DIGI sound2988@2988 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2988.wav"
+}
+sound DIGI sound2989@2989 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2989.wav"
+}
+sound DIGI sound2990@2990 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2990.wav"
+}
+sound DIGI sound2991@2991 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2991.wav"
+}
+sound DIGI sound2992@2992 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2992.wav"
+}
+sound DIGI sound2993@2993 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2993.wav"
+}
+sound DIGI sound2994@2994 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2994.wav"
+}
+sound DIGI sound2995@2995 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2995.wav"
+}
+sound DIGI sound2996@2996 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2996.wav"
+}
+sound DIGI sound2997@2997 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2997.wav"
+}
+sound DIGI sound2998@2998 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2998.wav"
+}
+sound DIGI sound2999@2999 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound2999.wav"
+}
+sound DIGI sound3000@3000 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3000.wav"
+}
+sound DIGI sound3001@3001 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3001.wav"
+}
+sound DIGI sound3002@3002 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3002.wav"
+}
+sound DIGI sound3003@3003 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3003.wav"
+}
+sound DIGI sound3004@3004 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3004.wav"
+}
+sound DIGI sound3005@3005 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3005.wav"
+}
+sound DIGI sound3006@3006 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3006.wav"
+}
+sound DIGI sound3007@3007 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3007.wav"
+}
+sound DIGI sound3008@3008 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3008.wav"
+}
+sound DIGI sound3009@3009 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3009.wav"
+}
+sound DIGI sound3010@3010 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3010.wav"
+}
+sound DIGI sound3011@3011 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3011.wav"
+}
+sound DIGI sound3012@3012 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3012.wav"
+}
+sound DIGI sound3013@3013 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3013.wav"
+}
+sound DIGI sound3014@3014 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3014.wav"
+}
+sound DIGI sound3015@3015 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3015.wav"
+}
+sound DIGI sound3016@3016 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3016.wav"
+}
+sound DIGI sound3017@3017 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3017.wav"
+}
+sound DIGI sound3018@3018 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3018.wav"
+}
+sound DIGI sound3019@3019 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3019.wav"
+}
+sound DIGI sound3020@3020 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3020.wav"
+}
+sound DIGI sound3021@3021 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3021.wav"
+}
+sound DIGI sound3022@3022 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3022.wav"
+}
+sound DIGI sound3023@3023 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3023.wav"
+}
+sound DIGI sound3024@3024 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3024.wav"
+}
+sound DIGI sound3025@3025 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3025.wav"
+}
+sound DIGI sound3026@3026 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3026.wav"
+}
+sound DIGI sound3027@3027 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3027.wav"
+}
+sound DIGI sound3028@3028 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3028.wav"
+}
+sound DIGI sound3029@3029 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3029.wav"
+}
+sound DIGI sound3030@3030 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3030.wav"
+}
+sound DIGI sound3031@3031 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3031.wav"
+}
+sound DIGI sound3032@3032 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3032.wav"
+}
+sound DIGI sound3033@3033 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3033.wav"
+}
+sound DIGI sound3034@3034 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3034.wav"
+}
+sound DIGI sound3035@3035 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3035.wav"
+}
+sound DIGI sound3036@3036 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3036.wav"
+}
+sound DIGI sound3037@3037 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3037.wav"
+}
+sound DIGI sound3038@3038 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3038.wav"
+}
+sound DIGI sound3039@3039 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3039.wav"
+}
+sound DIGI sound3040@3040 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3040.wav"
+}
+sound DIGI sound3041@3041 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3041.wav"
+}
+sound DIGI sound3042@3042 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3042.wav"
+}
+sound DIGI sound3043@3043 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3043.wav"
+}
+sound DIGI sound3044@3044 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3044.wav"
+}
+sound DIGI sound3045@3045 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3045.wav"
+}
+sound DIGI sound3046@3046 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3046.wav"
+}
+sound DIGI sound3047@3047 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3047.wav"
+}
+sound DIGI sound3048@3048 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3048.wav"
+}
+sound DIGI sound3049@3049 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3049.wav"
+}
+sound DIGI sound3050@3050 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3050.wav"
+}
+sound DIGI sound3051@3051 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3051.wav"
+}
+sound DIGI sound3052@3052 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3052.wav"
+}
+sound DIGI sound3053@3053 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3053.wav"
+}
+sound DIGI sound3054@3054 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3054.wav"
+}
+sound DIGI sound3055@3055 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3055.wav"
+}
+sound DIGI sound3056@3056 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3056.wav"
+}
+sound DIGI sound3057@3057 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3057.wav"
+}
+sound DIGI sound3058@3058 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3058.wav"
+}
+sound DIGI sound3059@3059 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3059.wav"
+}
+sound DIGI sound3060@3060 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3060.wav"
+}
+sound DIGI sound3061@3061 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3061.wav"
+}
+sound DIGI sound3062@3062 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3062.wav"
+}
+sound DIGI sound3063@3063 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3063.wav"
+}
+sound DIGI sound3064@3064 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3064.wav"
+}
+sound DIGI sound3065@3065 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3065.wav"
+}
+sound DIGI sound3066@3066 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3066.wav"
+}
+sound DIGI sound3067@3067 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3067.wav"
+}
+sound DIGI sound3068@3068 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3068.wav"
+}
+sound DIGI sound3069@3069 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3069.wav"
+}
+sound DIGI sound3070@3070 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3070.wav"
+}
+sound DIGI sound3071@3071 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3071.wav"
+}
+sound DIGI sound3072@3072 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3072.wav"
+}
+sound DIGI sound3073@3073 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3073.wav"
+}
+sound DIGI sound3074@3074 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3074.wav"
+}
+sound DIGI sound3075@3075 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3075.wav"
+}
+sound DIGI sound3076@3076 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3076.wav"
+}
+sound DIGI sound3077@3077 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3077.wav"
+}
+sound DIGI sound3078@3078 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3078.wav"
+}
+sound DIGI sound3079@3079 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3079.wav"
+}
+sound DIGI sound3080@3080 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3080.wav"
+}
+sound DIGI sound3081@3081 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3081.wav"
+}
+sound DIGI sound3082@3082 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3082.wav"
+}
+sound DIGI sound3083@3083 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3083.wav"
+}
+sound DIGI sound3084@3084 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3084.wav"
+}
+sound DIGI sound3085@3085 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3085.wav"
+}
+sound DIGI sound3086@3086 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3086.wav"
+}
+sound DIGI sound3087@3087 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3087.wav"
+}
+sound DIGI sound3088@3088 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3088.wav"
+}
+sound DIGI sound3089@3089 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3089.wav"
+}
+sound DIGI sound3090@3090 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3090.wav"
+}
+sound DIGI sound3091@3091 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3091.wav"
+}
+sound DIGI sound3092@3092 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3092.wav"
+}
+sound DIGI sound3093@3093 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3093.wav"
+}
+sound DIGI sound3094@3094 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3094.wav"
+}
+sound DIGI sound3095@3095 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3095.wav"
+}
+sound DIGI sound3096@3096 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3096.wav"
+}
+sound DIGI sound3097@3097 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3097.wav"
+}
+sound DIGI sound3098@3098 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3098.wav"
+}
+sound DIGI sound3099@3099 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3099.wav"
+}
+sound DIGI sound3100@3100 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3100.wav"
+}
+sound DIGI sound3101@3101 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3101.wav"
+}
+sound DIGI sound3102@3102 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3102.wav"
+}
+sound DIGI sound3103@3103 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3103.wav"
+}
+sound DIGI sound3104@3104 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3104.wav"
+}
+sound DIGI sound3105@3105 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3105.wav"
+}
+sound DIGI sound3106@3106 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3106.wav"
+}
+sound DIGI sound3107@3107 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3107.wav"
+}
+sound DIGI sound3108@3108 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3108.wav"
+}
+sound DIGI sound3109@3109 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3109.wav"
+}
+sound DIGI sound3110@3110 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3110.wav"
+}
+sound DIGI sound3111@3111 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3111.wav"
+}
+sound DIGI sound3112@3112 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3112.wav"
+}
+sound DIGI sound3113@3113 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3113.wav"
+}
+sound DIGI sound3114@3114 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3114.wav"
+}
+sound DIGI sound3115@3115 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3115.wav"
+}
+sound DIGI sound3116@3116 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3116.wav"
+}
+sound DIGI sound3117@3117 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3117.wav"
+}
+sound DIGI sound3118@3118 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3118.wav"
+}
+sound DIGI sound3119@3119 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3119.wav"
+}
+sound DIGI sound3120@3120 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3120.wav"
+}
+sound DIGI sound3121@3121 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3121.wav"
+}
+sound DIGI sound3122@3122 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3122.wav"
+}
+sound DIGI sound3123@3123 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3123.wav"
+}
+sound DIGI sound3124@3124 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3124.wav"
+}
+sound DIGI sound3125@3125 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3125.wav"
+}
+sound DIGI sound3126@3126 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3126.wav"
+}
+sound DIGI sound3127@3127 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3127.wav"
+}
+sound DIGI sound3128@3128 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3128.wav"
+}
+sound DIGI sound3129@3129 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3129.wav"
+}
+sound DIGI sound3130@3130 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3130.wav"
+}
+sound DIGI sound3131@3131 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3131.wav"
+}
+sound DIGI sound3132@3132 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3132.wav"
+}
+sound DIGI sound3133@3133 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3133.wav"
+}
+sound DIGI sound3134@3134 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3134.wav"
+}
+sound DIGI sound3135@3135 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3135.wav"
+}
+sound DIGI sound3136@3136 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3136.wav"
+}
+sound DIGI sound3137@3137 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3137.wav"
+}
+sound DIGI sound3138@3138 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3138.wav"
+}
+sound DIGI sound3139@3139 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3139.wav"
+}
+sound DIGI sound3140@3140 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3140.wav"
+}
+sound DIGI sound3141@3141 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3141.wav"
+}
+sound DIGI sound3142@3142 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3142.wav"
+}
+sound DIGI sound3143@3143 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3143.wav"
+}
+sound DIGI sound3144@3144 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3144.wav"
+}
+sound DIGI sound3145@3145 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3145.wav"
+}
+sound DIGI sound3146@3146 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3146.wav"
+}
+sound DIGI sound3147@3147 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3147.wav"
+}
+sound DIGI sound3148@3148 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3148.wav"
+}
+sound DIGI sound3149@3149 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3149.wav"
+}
+sound DIGI sound3150@3150 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3150.wav"
+}
+sound DIGI sound3151@3151 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3151.wav"
+}
+sound DIGI sound3152@3152 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3152.wav"
+}
+sound DIGI sound3153@3153 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3153.wav"
+}
+sound DIGI sound3154@3154 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3154.wav"
+}
+sound DIGI sound3155@3155 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3155.wav"
+}
+sound DIGI sound3156@3156 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3156.wav"
+}
+sound DIGI sound3157@3157 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3157.wav"
+}
+sound DIGI sound3158@3158 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3158.wav"
+}
+sound DIGI sound3159@3159 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3159.wav"
+}
+sound DIGI sound3160@3160 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3160.wav"
+}
+sound DIGI sound3161@3161 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3161.wav"
+}
+sound DIGI sound3162@3162 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3162.wav"
+}
+sound DIGI sound3163@3163 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3163.wav"
+}
+sound DIGI sound3164@3164 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3164.wav"
+}
+sound DIGI sound3165@3165 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3165.wav"
+}
+sound DIGI sound3166@3166 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3166.wav"
+}
+sound DIGI sound3167@3167 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3167.wav"
+}
+sound DIGI sound3168@3168 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3168.wav"
+}
+sound DIGI sound3169@3169 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3169.wav"
+}
+sound DIGI sound3170@3170 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3170.wav"
+}
+sound DIGI sound3171@3171 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3171.wav"
+}
+sound DIGI sound3172@3172 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3172.wav"
+}
+sound DIGI sound3173@3173 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3173.wav"
+}
+sound DIGI sound3174@3174 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3174.wav"
+}
+sound DIGI sound3175@3175 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3175.wav"
+}
+sound DIGI sound3176@3176 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3176.wav"
+}
+sound DIGI sound3177@3177 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3177.wav"
+}
+sound DIGI sound3178@3178 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3178.wav"
+}
+sound DIGI sound3179@3179 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3179.wav"
+}
+sound DIGI sound3180@3180 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3180.wav"
+}
+sound DIGI sound3181@3181 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3181.wav"
+}
+sound DIGI sound3182@3182 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3182.wav"
+}
+sound DIGI sound3183@3183 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3183.wav"
+}
+sound DIGI sound3184@3184 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3184.wav"
+}
+sound DIGI sound3185@3185 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3185.wav"
+}
+sound DIGI sound3186@3186 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3186.wav"
+}
+sound DIGI sound3187@3187 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3187.wav"
+}
+sound DIGI sound3188@3188 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3188.wav"
+}
+sound DIGI sound3189@3189 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3189.wav"
+}
+sound DIGI sound3190@3190 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3190.wav"
+}
+sound DIGI sound3191@3191 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3191.wav"
+}
+sound DIGI sound3192@3192 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3192.wav"
+}
+sound DIGI sound3193@3193 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3193.wav"
+}
+sound DIGI sound3194@3194 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3194.wav"
+}
+sound DIGI sound3195@3195 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3195.wav"
+}
+sound DIGI sound3196@3196 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3196.wav"
+}
+sound DIGI sound3197@3197 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3197.wav"
+}
+sound DIGI sound3198@3198 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3198.wav"
+}
+sound DIGI sound3199@3199 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3199.wav"
+}
+sound DIGI sound3200@3200 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3200.wav"
+}
+sound DIGI sound3201@3201 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3201.wav"
+}
+sound DIGI sound3202@3202 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3202.wav"
+}
+sound DIGI sound3203@3203 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3203.wav"
+}
+sound DIGI sound3204@3204 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3204.wav"
+}
+sound DIGI sound3205@3205 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3205.wav"
+}
+sound DIGI sound3206@3206 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3206.wav"
+}
+sound DIGI sound3207@3207 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3207.wav"
+}
+sound DIGI sound3208@3208 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3208.wav"
+}
+sound DIGI sound3209@3209 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3209.wav"
+}
+sound DIGI sound3210@3210 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3210.wav"
+}
+sound DIGI sound3211@3211 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3211.wav"
+}
+sound DIGI sound3212@3212 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3212.wav"
+}
+sound DIGI sound3213@3213 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3213.wav"
+}
+sound DIGI sound3214@3214 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3214.wav"
+}
+sound DIGI sound3215@3215 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3215.wav"
+}
+sound DIGI sound3216@3216 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3216.wav"
+}
+sound DIGI sound3217@3217 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3217.wav"
+}
+sound DIGI sound3218@3218 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3218.wav"
+}
+sound DIGI sound3219@3219 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3219.wav"
+}
+sound DIGI sound3220@3220 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3220.wav"
+}
+sound DIGI sound3221@3221 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3221.wav"
+}
+sound DIGI sound3222@3222 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3222.wav"
+}
+sound DIGI sound3223@3223 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3223.wav"
+}
+sound DIGI sound3224@3224 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3224.wav"
+}
+sound DIGI sound3225@3225 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3225.wav"
+}
+sound DIGI sound3226@3226 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3226.wav"
+}
+sound DIGI sound3227@3227 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3227.wav"
+}
+sound DIGI sound3228@3228 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3228.wav"
+}
+sound DIGI sound3229@3229 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3229.wav"
+}
+sound DIGI sound3230@3230 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3230.wav"
+}
+sound DIGI sound3231@3231 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3231.wav"
+}
+sound DIGI sound3232@3232 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3232.wav"
+}
+sound DIGI sound3233@3233 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3233.wav"
+}
+sound DIGI sound3234@3234 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3234.wav"
+}
+sound DIGI sound3235@3235 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3235.wav"
+}
+sound DIGI sound3236@3236 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3236.wav"
+}
+sound DIGI sound3237@3237 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3237.wav"
+}
+sound DIGI sound3238@3238 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3238.wav"
+}
+sound DIGI sound3239@3239 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3239.wav"
+}
+sound DIGI sound3240@3240 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3240.wav"
+}
+sound DIGI sound3241@3241 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3241.wav"
+}
+sound DIGI sound3242@3242 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3242.wav"
+}
+sound DIGI sound3243@3243 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3243.wav"
+}
+sound DIGI sound3244@3244 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3244.wav"
+}
+sound DIGI sound3245@3245 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3245.wav"
+}
+sound DIGI sound3246@3246 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3246.wav"
+}
+sound DIGI sound3247@3247 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3247.wav"
+}
+sound DIGI sound3248@3248 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3248.wav"
+}
+sound DIGI sound3249@3249 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3249.wav"
+}
+sound DIGI sound3250@3250 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3250.wav"
+}
+sound DIGI sound3251@3251 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3251.wav"
+}
+sound DIGI sound3252@3252 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3252.wav"
+}
+sound DIGI sound3253@3253 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3253.wav"
+}
+sound DIGI sound3254@3254 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3254.wav"
+}
+sound DIGI sound3255@3255 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3255.wav"
+}
+sound DIGI sound3256@3256 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3256.wav"
+}
+sound DIGI sound3257@3257 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3257.wav"
+}
+sound DIGI sound3258@3258 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3258.wav"
+}
+sound DIGI sound3259@3259 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3259.wav"
+}
+sound DIGI sound3260@3260 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3260.wav"
+}
+sound DIGI sound3261@3261 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3261.wav"
+}
+sound DIGI sound3262@3262 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3262.wav"
+}
+sound DIGI sound3263@3263 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3263.wav"
+}
+sound DIGI sound3264@3264 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3264.wav"
+}
+sound DIGI sound3265@3265 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3265.wav"
+}
+sound DIGI sound3266@3266 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3266.wav"
+}
+sound DIGI sound3267@3267 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3267.wav"
+}
+sound DIGI sound3268@3268 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3268.wav"
+}
+sound DIGI sound3269@3269 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3269.wav"
+}
+sound DIGI sound3270@3270 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3270.wav"
+}
+sound DIGI sound3271@3271 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3271.wav"
+}
+sound DIGI sound3272@3272 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3272.wav"
+}
+sound DIGI sound3273@3273 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3273.wav"
+}
+sound DIGI sound3274@3274 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3274.wav"
+}
+sound DIGI sound3275@3275 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3275.wav"
+}
+sound DIGI sound3276@3276 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3276.wav"
+}
+sound DIGI sound3277@3277 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3277.wav"
+}
+sound DIGI sound3278@3278 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3278.wav"
+}
+sound DIGI sound3279@3279 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3279.wav"
+}
+sound DIGI sound3280@3280 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3280.wav"
+}
+sound DIGI sound3281@3281 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3281.wav"
+}
+sound DIGI sound3282@3282 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3282.wav"
+}
+sound DIGI sound3283@3283 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3283.wav"
+}
+sound DIGI sound3284@3284 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3284.wav"
+}
+sound DIGI sound3285@3285 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3285.wav"
+}
+sound DIGI sound3286@3286 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3286.wav"
+}
+sound DIGI sound3287@3287 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3287.wav"
+}
+sound DIGI sound3288@3288 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3288.wav"
+}
+sound DIGI sound3289@3289 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3289.wav"
+}
+sound DIGI sound3290@3290 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3290.wav"
+}
+sound DIGI sound3291@3291 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3291.wav"
+}
+sound DIGI sound3292@3292 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3292.wav"
+}
+sound DIGI sound3293@3293 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3293.wav"
+}
+sound DIGI sound3294@3294 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3294.wav"
+}
+sound DIGI sound3295@3295 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3295.wav"
+}
+sound DIGI sound3296@3296 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3296.wav"
+}
+sound DIGI sound3297@3297 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3297.wav"
+}
+sound DIGI sound3298@3298 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3298.wav"
+}
+sound DIGI sound3299@3299 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3299.wav"
+}
+sound DIGI sound3300@3300 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3300.wav"
+}
+sound DIGI sound3301@3301 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3301.wav"
+}
+sound DIGI sound3302@3302 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3302.wav"
+}
+sound DIGI sound3303@3303 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3303.wav"
+}
+sound DIGI sound3304@3304 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3304.wav"
+}
+sound DIGI sound3305@3305 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3305.wav"
+}
+sound DIGI sound3306@3306 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3306.wav"
+}
+sound DIGI sound3307@3307 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3307.wav"
+}
+sound DIGI sound3308@3308 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3308.wav"
+}
+sound DIGI sound3309@3309 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3309.wav"
+}
+sound DIGI sound3310@3310 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3310.wav"
+}
+sound DIGI sound3311@3311 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3311.wav"
+}
+sound DIGI sound3312@3312 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3312.wav"
+}
+sound DIGI sound3313@3313 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3313.wav"
+}
+sound DIGI sound3314@3314 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3314.wav"
+}
+sound DIGI sound3315@3315 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3315.wav"
+}
+sound DIGI sound3316@3316 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3316.wav"
+}
+sound DIGI sound3317@3317 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3317.wav"
+}
+sound DIGI sound3318@3318 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3318.wav"
+}
+sound DIGI sound3319@3319 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3319.wav"
+}
+sound DIGI sound3320@3320 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3320.wav"
+}
+sound DIGI sound3321@3321 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3321.wav"
+}
+sound DIGI sound3322@3322 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3322.wav"
+}
+sound DIGI sound3323@3323 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3323.wav"
+}
+sound DIGI sound3324@3324 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3324.wav"
+}
+sound DIGI sound3325@3325 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3325.wav"
+}
+sound DIGI sound3326@3326 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3326.wav"
+}
+sound DIGI sound3327@3327 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3327.wav"
+}
+sound DIGI sound3328@3328 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3328.wav"
+}
+sound DIGI sound3329@3329 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3329.wav"
+}
+sound DIGI sound3330@3330 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3330.wav"
+}
+sound DIGI sound3331@3331 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3331.wav"
+}
+sound DIGI sound3332@3332 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3332.wav"
+}
+sound DIGI sound3333@3333 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3333.wav"
+}
+sound DIGI sound3334@3334 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3334.wav"
+}
+sound DIGI sound3335@3335 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3335.wav"
+}
+sound DIGI sound3336@3336 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3336.wav"
+}
+sound DIGI sound3337@3337 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3337.wav"
+}
+sound DIGI sound3338@3338 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3338.wav"
+}
+sound DIGI sound3339@3339 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3339.wav"
+}
+sound DIGI sound3340@3340 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3340.wav"
+}
+sound DIGI sound3341@3341 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3341.wav"
+}
+sound DIGI sound3342@3342 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3342.wav"
+}
+sound DIGI sound3343@3343 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3343.wav"
+}
+sound DIGI sound3344@3344 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3344.wav"
+}
+sound DIGI sound3345@3345 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3345.wav"
+}
+sound DIGI sound3346@3346 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3346.wav"
+}
+sound DIGI sound3347@3347 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3347.wav"
+}
+sound DIGI sound3348@3348 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3348.wav"
+}
+sound DIGI sound3349@3349 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3349.wav"
+}
+sound DIGI sound3350@3350 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3350.wav"
+}
+sound DIGI sound3351@3351 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3351.wav"
+}
+sound DIGI sound3352@3352 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3352.wav"
+}
+sound DIGI sound3353@3353 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3353.wav"
+}
+sound DIGI sound3354@3354 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3354.wav"
+}
+sound DIGI sound3355@3355 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3355.wav"
+}
+sound DIGI sound3356@3356 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3356.wav"
+}
+sound DIGI sound3357@3357 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3357.wav"
+}
+sound DIGI sound3358@3358 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3358.wav"
+}
+sound DIGI sound3359@3359 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3359.wav"
+}
+sound DIGI sound3360@3360 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3360.wav"
+}
+sound DIGI sound3361@3361 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3361.wav"
+}
+sound DIGI sound3362@3362 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3362.wav"
+}
+sound DIGI sound3363@3363 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3363.wav"
+}
+sound DIGI sound3364@3364 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3364.wav"
+}
+sound DIGI sound3365@3365 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3365.wav"
+}
+sound DIGI sound3366@3366 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3366.wav"
+}
+sound DIGI sound3367@3367 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3367.wav"
+}
+sound DIGI sound3368@3368 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3368.wav"
+}
+sound DIGI sound3369@3369 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3369.wav"
+}
+sound DIGI sound3370@3370 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3370.wav"
+}
+sound DIGI sound3371@3371 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3371.wav"
+}
+sound DIGI sound3372@3372 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3372.wav"
+}
+sound DIGI sound3373@3373 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3373.wav"
+}
+sound DIGI sound3374@3374 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3374.wav"
+}
+sound DIGI sound3375@3375 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3375.wav"
+}
+sound DIGI sound3376@3376 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3376.wav"
+}
+sound DIGI sound3377@3377 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3377.wav"
+}
+sound DIGI sound3378@3378 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3378.wav"
+}
+sound DIGI sound3379@3379 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3379.wav"
+}
+sound DIGI sound3380@3380 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3380.wav"
+}
+sound DIGI sound3381@3381 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3381.wav"
+}
+sound DIGI sound3382@3382 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3382.wav"
+}
+sound DIGI sound3383@3383 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3383.wav"
+}
+sound DIGI sound3384@3384 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3384.wav"
+}
+sound DIGI sound3385@3385 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3385.wav"
+}
+sound DIGI sound3386@3386 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3386.wav"
+}
+sound DIGI sound3387@3387 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3387.wav"
+}
+sound DIGI sound3388@3388 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3388.wav"
+}
+sound DIGI sound3389@3389 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3389.wav"
+}
+sound DIGI sound3390@3390 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3390.wav"
+}
+sound DIGI sound3391@3391 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3391.wav"
+}
+sound DIGI sound3392@3392 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3392.wav"
+}
+sound DIGI sound3393@3393 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3393.wav"
+}
+sound DIGI sound3394@3394 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3394.wav"
+}
+sound DIGI sound3395@3395 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3395.wav"
+}
+sound DIGI sound3396@3396 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3396.wav"
+}
+sound DIGI sound3397@3397 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3397.wav"
+}
+sound DIGI sound3398@3398 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3398.wav"
+}
+sound DIGI sound3399@3399 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3399.wav"
+}
+sound DIGI sound3400@3400 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3400.wav"
+}
+sound DIGI sound3401@3401 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3401.wav"
+}
+sound DIGI sound3402@3402 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3402.wav"
+}
+sound DIGI sound3403@3403 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3403.wav"
+}
+sound DIGI sound3404@3404 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3404.wav"
+}
+sound DIGI sound3405@3405 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3405.wav"
+}
+sound DIGI sound3406@3406 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3406.wav"
+}
+sound DIGI sound3407@3407 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3407.wav"
+}
+sound DIGI sound3408@3408 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3408.wav"
+}
+sound DIGI sound3409@3409 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3409.wav"
+}
+sound DIGI sound3410@3410 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3410.wav"
+}
+sound DIGI sound3411@3411 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3411.wav"
+}
+sound DIGI sound3412@3412 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3412.wav"
+}
+sound DIGI sound3413@3413 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3413.wav"
+}
+sound DIGI sound3414@3414 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3414.wav"
+}
+sound DIGI sound3415@3415 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3415.wav"
+}
+sound DIGI sound3416@3416 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3416.wav"
+}
+sound DIGI sound3417@3417 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3417.wav"
+}
+sound DIGI sound3418@3418 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3418.wav"
+}
+sound DIGI sound3419@3419 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3419.wav"
+}
+sound DIGI sound3420@3420 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3420.wav"
+}
+sound DIGI sound3421@3421 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3421.wav"
+}
+sound DIGI sound3422@3422 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3422.wav"
+}
+sound DIGI sound3423@3423 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3423.wav"
+}
+sound DIGI sound3424@3424 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3424.wav"
+}
+sound DIGI sound3425@3425 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3425.wav"
+}
+sound DIGI sound3426@3426 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3426.wav"
+}
+sound DIGI sound3427@3427 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3427.wav"
+}
+sound DIGI sound3428@3428 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3428.wav"
+}
+sound DIGI sound3429@3429 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3429.wav"
+}
+sound DIGI sound3430@3430 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3430.wav"
+}
+sound DIGI sound3431@3431 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3431.wav"
+}
+sound DIGI sound3432@3432 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3432.wav"
+}
+sound DIGI sound3433@3433 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3433.wav"
+}
+sound DIGI sound3434@3434 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3434.wav"
+}
+sound DIGI sound3435@3435 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3435.wav"
+}
+sound DIGI sound3436@3436 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3436.wav"
+}
+sound DIGI sound3437@3437 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3437.wav"
+}
+sound DIGI sound3438@3438 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3438.wav"
+}
+sound DIGI sound3439@3439 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3439.wav"
+}
+sound DIGI sound3440@3440 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3440.wav"
+}
+sound DIGI sound3441@3441 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3441.wav"
+}
+sound DIGI sound3442@3442 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3442.wav"
+}
+sound DIGI sound3443@3443 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3443.wav"
+}
+sound DIGI sound3444@3444 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3444.wav"
+}
+sound DIGI sound3445@3445 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3445.wav"
+}
+sound DIGI sound3446@3446 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3446.wav"
+}
+sound DIGI sound3447@3447 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3447.wav"
+}
+sound DIGI sound3448@3448 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3448.wav"
+}
+sound DIGI sound3449@3449 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3449.wav"
+}
+sound DIGI sound3450@3450 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3450.wav"
+}
+sound DIGI sound3451@3451 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3451.wav"
+}
+sound DIGI sound3452@3452 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3452.wav"
+}
+sound DIGI sound3453@3453 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3453.wav"
+}
+sound DIGI sound3454@3454 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3454.wav"
+}
+sound DIGI sound3455@3455 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3455.wav"
+}
+sound DIGI sound3456@3456 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3456.wav"
+}
+sound DIGI sound3457@3457 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3457.wav"
+}
+sound DIGI sound3458@3458 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3458.wav"
+}
+sound DIGI sound3459@3459 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3459.wav"
+}
+sound DIGI sound3460@3460 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3460.wav"
+}
+sound DIGI sound3461@3461 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3461.wav"
+}
+sound DIGI sound3462@3462 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3462.wav"
+}
+sound DIGI sound3463@3463 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3463.wav"
+}
+sound DIGI sound3464@3464 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3464.wav"
+}
+sound DIGI sound3465@3465 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3465.wav"
+}
+sound DIGI sound3466@3466 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3466.wav"
+}
+sound DIGI sound3467@3467 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3467.wav"
+}
+sound DIGI sound3468@3468 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3468.wav"
+}
+sound DIGI sound3469@3469 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3469.wav"
+}
+sound DIGI sound3470@3470 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3470.wav"
+}
+sound DIGI sound3471@3471 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3471.wav"
+}
+sound DIGI sound3472@3472 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3472.wav"
+}
+sound DIGI sound3473@3473 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3473.wav"
+}
+sound DIGI sound3474@3474 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3474.wav"
+}
+sound DIGI sound3475@3475 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3475.wav"
+}
+sound DIGI sound3476@3476 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3476.wav"
+}
+sound DIGI sound3477@3477 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3477.wav"
+}
+sound DIGI sound3478@3478 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3478.wav"
+}
+sound DIGI sound3479@3479 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3479.wav"
+}
+sound DIGI sound3480@3480 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3480.wav"
+}
+sound DIGI sound3481@3481 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3481.wav"
+}
+sound DIGI sound3482@3482 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3482.wav"
+}
+sound DIGI sound3483@3483 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3483.wav"
+}
+sound DIGI sound3484@3484 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3484.wav"
+}
+sound DIGI sound3485@3485 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3485.wav"
+}
+sound DIGI sound3486@3486 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3486.wav"
+}
+sound DIGI sound3487@3487 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3487.wav"
+}
+sound DIGI sound3488@3488 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3488.wav"
+}
+sound DIGI sound3489@3489 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3489.wav"
+}
+sound DIGI sound3490@3490 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3490.wav"
+}
+sound DIGI sound3491@3491 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3491.wav"
+}
+sound DIGI sound3492@3492 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3492.wav"
+}
+sound DIGI sound3493@3493 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3493.wav"
+}
+sound DIGI sound3494@3494 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3494.wav"
+}
+sound DIGI sound3495@3495 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3495.wav"
+}
+sound DIGI sound3496@3496 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3496.wav"
+}
+sound DIGI sound3497@3497 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3497.wav"
+}
+sound DIGI sound3498@3498 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3498.wav"
+}
+sound DIGI sound3499@3499 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3499.wav"
+}
+sound DIGI sound3500@3500 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3500.wav"
+}
+sound DIGI sound3501@3501 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3501.wav"
+}
+sound DIGI sound3502@3502 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3502.wav"
+}
+sound DIGI sound3503@3503 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3503.wav"
+}
+sound DIGI sound3504@3504 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3504.wav"
+}
+sound DIGI sound3505@3505 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3505.wav"
+}
+sound DIGI sound3506@3506 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3506.wav"
+}
+sound DIGI sound3507@3507 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3507.wav"
+}
+sound DIGI sound3508@3508 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3508.wav"
+}
+sound DIGI sound3509@3509 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3509.wav"
+}
+sound DIGI sound3510@3510 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3510.wav"
+}
+sound DIGI sound3511@3511 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3511.wav"
+}
+sound DIGI sound3512@3512 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3512.wav"
+}
+sound DIGI sound3513@3513 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3513.wav"
+}
+sound DIGI sound3514@3514 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3514.wav"
+}
+sound DIGI sound3515@3515 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3515.wav"
+}
+sound DIGI sound3516@3516 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3516.wav"
+}
+sound DIGI sound3517@3517 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3517.wav"
+}
+sound DIGI sound3518@3518 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3518.wav"
+}
+sound DIGI sound3519@3519 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3519.wav"
+}
+sound DIGI sound3520@3520 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3520.wav"
+}
+sound DIGI sound3521@3521 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3521.wav"
+}
+sound DIGI sound3522@3522 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3522.wav"
+}
+sound DIGI sound3523@3523 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3523.wav"
+}
+sound DIGI sound3524@3524 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3524.wav"
+}
+sound DIGI sound3525@3525 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3525.wav"
+}
+sound DIGI sound3526@3526 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3526.wav"
+}
+sound DIGI sound3527@3527 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3527.wav"
+}
+sound DIGI sound3528@3528 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3528.wav"
+}
+sound DIGI sound3529@3529 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3529.wav"
+}
+sound DIGI sound3530@3530 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3530.wav"
+}
+sound DIGI sound3531@3531 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3531.wav"
+}
+sound DIGI sound3532@3532 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3532.wav"
+}
+sound DIGI sound3533@3533 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3533.wav"
+}
+sound DIGI sound3534@3534 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3534.wav"
+}
+sound DIGI sound3535@3535 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3535.wav"
+}
+sound DIGI sound3536@3536 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3536.wav"
+}
+sound DIGI sound3537@3537 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3537.wav"
+}
+sound DIGI sound3538@3538 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3538.wav"
+}
+sound DIGI sound3539@3539 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3539.wav"
+}
+sound DIGI sound3540@3540 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3540.wav"
+}
+sound DIGI sound3541@3541 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3541.wav"
+}
+sound DIGI sound3542@3542 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3542.wav"
+}
+sound DIGI sound3543@3543 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3543.wav"
+}
+sound DIGI sound3544@3544 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3544.wav"
+}
+sound DIGI sound3545@3545 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3545.wav"
+}
+sound DIGI sound3546@3546 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3546.wav"
+}
+sound DIGI sound3547@3547 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3547.wav"
+}
+sound DIGI sound3548@3548 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3548.wav"
+}
+sound DIGI sound3549@3549 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3549.wav"
+}
+sound DIGI sound3550@3550 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3550.wav"
+}
+sound DIGI sound3551@3551 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3551.wav"
+}
+sound DIGI sound3552@3552 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3552.wav"
+}
+sound DIGI sound3553@3553 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3553.wav"
+}
+sound DIGI sound3554@3554 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3554.wav"
+}
+sound DIGI sound3555@3555 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3555.wav"
+}
+sound DIGI sound3556@3556 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3556.wav"
+}
+sound DIGI sound3557@3557 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3557.wav"
+}
+sound DIGI sound3558@3558 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3558.wav"
+}
+sound DIGI sound3559@3559 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3559.wav"
+}
+sound DIGI sound3560@3560 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3560.wav"
+}
+sound DIGI sound3561@3561 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3561.wav"
+}
+sound DIGI sound3562@3562 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3562.wav"
+}
+sound DIGI sound3563@3563 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3563.wav"
+}
+sound DIGI sound3564@3564 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3564.wav"
+}
+sound DIGI sound3565@3565 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3565.wav"
+}
+sound DIGI sound3566@3566 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3566.wav"
+}
+sound DIGI sound3567@3567 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3567.wav"
+}
+sound DIGI sound3568@3568 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3568.wav"
+}
+sound DIGI sound3569@3569 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3569.wav"
+}
+sound DIGI sound3570@3570 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3570.wav"
+}
+sound DIGI sound3571@3571 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3571.wav"
+}
+sound DIGI sound3572@3572 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3572.wav"
+}
+sound DIGI sound3573@3573 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3573.wav"
+}
+sound DIGI sound3574@3574 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3574.wav"
+}
+sound DIGI sound3575@3575 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3575.wav"
+}
+sound DIGI sound3576@3576 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3576.wav"
+}
+sound DIGI sound3577@3577 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3577.wav"
+}
+sound DIGI sound3578@3578 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3578.wav"
+}
+sound DIGI sound3579@3579 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3579.wav"
+}
+sound DIGI sound3580@3580 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3580.wav"
+}
+sound DIGI sound3581@3581 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3581.wav"
+}
+sound DIGI sound3582@3582 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3582.wav"
+}
+sound DIGI sound3583@3583 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3583.wav"
+}
+sound DIGI sound3584@3584 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3584.wav"
+}
+sound DIGI sound3585@3585 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3585.wav"
+}
+sound DIGI sound3586@3586 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3586.wav"
+}
+sound DIGI sound3587@3587 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3587.wav"
+}
+sound DIGI sound3588@3588 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3588.wav"
+}
+sound DIGI sound3589@3589 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3589.wav"
+}
+sound DIGI sound3590@3590 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3590.wav"
+}
+sound DIGI sound3591@3591 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3591.wav"
+}
+sound DIGI sound3592@3592 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3592.wav"
+}
+sound DIGI sound3593@3593 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3593.wav"
+}
+sound DIGI sound3594@3594 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3594.wav"
+}
+sound DIGI sound3595@3595 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3595.wav"
+}
+sound DIGI sound3596@3596 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3596.wav"
+}
+sound DIGI sound3597@3597 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3597.wav"
+}
+sound DIGI sound3598@3598 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3598.wav"
+}
+sound DIGI sound3599@3599 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3599.wav"
+}
+sound DIGI sound3600@3600 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3600.wav"
+}
+sound DIGI sound3601@3601 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3601.wav"
+}
+sound DIGI sound3602@3602 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3602.wav"
+}
+sound DIGI sound3603@3603 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3603.wav"
+}
+sound DIGI sound3604@3604 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3604.wav"
+}
+sound DIGI sound3605@3605 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3605.wav"
+}
+sound DIGI sound3606@3606 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3606.wav"
+}
+sound DIGI sound3607@3607 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3607.wav"
+}
+sound DIGI sound3608@3608 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3608.wav"
+}
+sound DIGI sound3609@3609 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3609.wav"
+}
+sound DIGI sound3610@3610 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3610.wav"
+}
+sound DIGI sound3611@3611 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3611.wav"
+}
+sound DIGI sound3612@3612 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3612.wav"
+}
+sound DIGI sound3613@3613 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3613.wav"
+}
+sound DIGI sound3614@3614 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3614.wav"
+}
+sound DIGI sound3615@3615 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3615.wav"
+}
+sound DIGI sound3616@3616 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3616.wav"
+}
+sound DIGI sound3617@3617 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3617.wav"
+}
+sound DIGI sound3618@3618 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3618.wav"
+}
+sound DIGI sound3619@3619 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3619.wav"
+}
+sound DIGI sound3620@3620 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3620.wav"
+}
+sound DIGI sound3621@3621 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3621.wav"
+}
+sound DIGI sound3622@3622 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3622.wav"
+}
+sound DIGI sound3623@3623 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3623.wav"
+}
+sound DIGI sound3624@3624 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3624.wav"
+}
+sound DIGI sound3625@3625 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3625.wav"
+}
+sound DIGI sound3626@3626 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3626.wav"
+}
+sound DIGI sound3627@3627 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3627.wav"
+}
+sound DIGI sound3628@3628 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3628.wav"
+}
+sound DIGI sound3629@3629 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3629.wav"
+}
+sound DIGI sound3630@3630 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3630.wav"
+}
+sound DIGI sound3631@3631 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3631.wav"
+}
+sound DIGI sound3632@3632 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3632.wav"
+}
+sound DIGI sound3633@3633 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3633.wav"
+}
+sound DIGI sound3634@3634 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3634.wav"
+}
+sound DIGI sound3635@3635 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3635.wav"
+}
+sound DIGI sound3636@3636 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3636.wav"
+}
+sound DIGI sound3637@3637 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3637.wav"
+}
+sound DIGI sound3638@3638 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3638.wav"
+}
+sound DIGI sound3639@3639 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3639.wav"
+}
+sound DIGI sound3640@3640 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3640.wav"
+}
+sound DIGI sound3641@3641 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3641.wav"
+}
+sound DIGI sound3642@3642 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3642.wav"
+}
+sound DIGI sound3643@3643 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3643.wav"
+}
+sound DIGI sound3644@3644 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3644.wav"
+}
+sound DIGI sound3645@3645 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3645.wav"
+}
+sound DIGI sound3646@3646 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3646.wav"
+}
+sound DIGI sound3647@3647 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3647.wav"
+}
+sound DIGI sound3648@3648 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3648.wav"
+}
+sound DIGI sound3649@3649 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3649.wav"
+}
+sound DIGI sound3650@3650 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3650.wav"
+}
+sound DIGI sound3651@3651 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3651.wav"
+}
+sound DIGI sound3652@3652 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3652.wav"
+}
+sound DIGI sound3653@3653 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3653.wav"
+}
+sound DIGI sound3654@3654 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3654.wav"
+}
+sound DIGI sound3655@3655 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3655.wav"
+}
+sound DIGI sound3656@3656 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3656.wav"
+}
+sound DIGI sound3657@3657 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3657.wav"
+}
+sound DIGI sound3658@3658 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3658.wav"
+}
+sound DIGI sound3659@3659 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3659.wav"
+}
+sound DIGI sound3660@3660 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3660.wav"
+}
+sound DIGI sound3661@3661 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3661.wav"
+}
+sound DIGI sound3662@3662 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3662.wav"
+}
+sound DIGI sound3663@3663 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3663.wav"
+}
+sound DIGI sound3664@3664 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3664.wav"
+}
+sound DIGI sound3665@3665 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3665.wav"
+}
+sound DIGI sound3666@3666 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3666.wav"
+}
+sound DIGI sound3667@3667 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3667.wav"
+}
+sound DIGI sound3668@3668 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3668.wav"
+}
+sound DIGI sound3669@3669 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3669.wav"
+}
+sound DIGI sound3670@3670 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3670.wav"
+}
+sound DIGI sound3671@3671 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3671.wav"
+}
+sound DIGI sound3672@3672 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3672.wav"
+}
+sound DIGI sound3673@3673 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3673.wav"
+}
+sound DIGI sound3674@3674 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3674.wav"
+}
+sound DIGI sound3675@3675 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3675.wav"
+}
+sound DIGI sound3676@3676 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3676.wav"
+}
+sound DIGI sound3677@3677 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3677.wav"
+}
+sound DIGI sound3678@3678 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3678.wav"
+}
+sound DIGI sound3679@3679 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3679.wav"
+}
+sound DIGI sound3680@3680 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3680.wav"
+}
+sound DIGI sound3681@3681 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3681.wav"
+}
+sound DIGI sound3682@3682 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3682.wav"
+}
+sound DIGI sound3683@3683 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3683.wav"
+}
+sound DIGI sound3684@3684 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3684.wav"
+}
+sound DIGI sound3685@3685 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3685.wav"
+}
+sound DIGI sound3686@3686 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3686.wav"
+}
+sound DIGI sound3687@3687 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3687.wav"
+}
+sound DIGI sound3688@3688 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3688.wav"
+}
+sound DIGI sound3689@3689 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3689.wav"
+}
+sound DIGI sound3690@3690 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3690.wav"
+}
+sound DIGI sound3691@3691 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3691.wav"
+}
+sound DIGI sound3692@3692 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3692.wav"
+}
+sound DIGI sound3693@3693 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3693.wav"
+}
+sound DIGI sound3694@3694 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3694.wav"
+}
+sound DIGI sound3695@3695 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3695.wav"
+}
+sound DIGI sound3696@3696 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3696.wav"
+}
+sound DIGI sound3697@3697 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3697.wav"
+}
+sound DIGI sound3698@3698 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3698.wav"
+}
+sound DIGI sound3699@3699 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3699.wav"
+}
+sound DIGI sound3700@3700 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3700.wav"
+}
+sound DIGI sound3701@3701 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3701.wav"
+}
+sound DIGI sound3702@3702 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3702.wav"
+}
+sound DIGI sound3703@3703 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3703.wav"
+}
+sound DIGI sound3704@3704 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3704.wav"
+}
+sound DIGI sound3705@3705 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3705.wav"
+}
+sound DIGI sound3706@3706 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3706.wav"
+}
+sound DIGI sound3707@3707 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3707.wav"
+}
+sound DIGI sound3708@3708 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3708.wav"
+}
+sound DIGI sound3709@3709 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3709.wav"
+}
+sound DIGI sound3710@3710 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3710.wav"
+}
+sound DIGI sound3711@3711 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3711.wav"
+}
+sound DIGI sound3712@3712 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3712.wav"
+}
+sound DIGI sound3713@3713 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3713.wav"
+}
+sound DIGI sound3714@3714 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3714.wav"
+}
+sound DIGI sound3715@3715 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3715.wav"
+}
+sound DIGI sound3716@3716 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3716.wav"
+}
+sound DIGI sound3717@3717 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3717.wav"
+}
+sound DIGI sound3718@3718 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3718.wav"
+}
+sound DIGI sound3719@3719 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3719.wav"
+}
+sound DIGI sound3720@3720 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3720.wav"
+}
+sound DIGI sound3721@3721 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3721.wav"
+}
+sound DIGI sound3722@3722 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3722.wav"
+}
+sound DIGI sound3723@3723 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3723.wav"
+}
+sound DIGI sound3724@3724 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3724.wav"
+}
+sound DIGI sound3725@3725 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3725.wav"
+}
+sound DIGI sound3726@3726 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3726.wav"
+}
+sound DIGI sound3727@3727 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3727.wav"
+}
+sound DIGI sound3728@3728 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3728.wav"
+}
+sound DIGI sound3729@3729 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3729.wav"
+}
+sound DIGI sound3730@3730 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3730.wav"
+}
+sound DIGI sound3731@3731 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3731.wav"
+}
+sound DIGI sound3732@3732 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3732.wav"
+}
+sound DIGI sound3733@3733 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3733.wav"
+}
+sound DIGI sound3734@3734 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3734.wav"
+}
+sound DIGI sound3735@3735 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3735.wav"
+}
+sound DIGI sound3736@3736 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3736.wav"
+}
+sound DIGI sound3737@3737 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3737.wav"
+}
+sound DIGI sound3738@3738 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3738.wav"
+}
+sound DIGI sound3739@3739 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3739.wav"
+}
+sound DIGI sound3740@3740 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3740.wav"
+}
+sound DIGI sound3741@3741 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3741.wav"
+}
+sound DIGI sound3742@3742 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3742.wav"
+}
+sound DIGI sound3743@3743 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3743.wav"
+}
+sound DIGI sound3744@3744 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3744.wav"
+}
+sound DIGI sound3745@3745 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3745.wav"
+}
+sound DIGI sound3746@3746 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3746.wav"
+}
+sound DIGI sound3747@3747 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3747.wav"
+}
+sound DIGI sound3748@3748 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3748.wav"
+}
+sound DIGI sound3749@3749 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3749.wav"
+}
+sound DIGI sound3750@3750 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3750.wav"
+}
+sound DIGI sound3751@3751 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3751.wav"
+}
+sound DIGI sound3752@3752 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3752.wav"
+}
+sound DIGI sound3753@3753 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3753.wav"
+}
+sound DIGI sound3754@3754 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3754.wav"
+}
+sound DIGI sound3755@3755 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3755.wav"
+}
+sound DIGI sound3756@3756 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3756.wav"
+}
+sound DIGI sound3757@3757 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3757.wav"
+}
+sound DIGI sound3758@3758 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3758.wav"
+}
+sound DIGI sound3759@3759 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3759.wav"
+}
+sound DIGI sound3760@3760 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3760.wav"
+}
+sound DIGI sound3761@3761 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3761.wav"
+}
+sound DIGI sound3762@3762 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3762.wav"
+}
+sound DIGI sound3763@3763 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3763.wav"
+}
+sound DIGI sound3764@3764 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3764.wav"
+}
+sound DIGI sound3765@3765 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3765.wav"
+}
+sound DIGI sound3766@3766 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3766.wav"
+}
+sound DIGI sound3767@3767 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3767.wav"
+}
+sound DIGI sound3768@3768 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3768.wav"
+}
+sound DIGI sound3769@3769 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3769.wav"
+}
+sound DIGI sound3770@3770 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3770.wav"
+}
+sound DIGI sound3771@3771 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3771.wav"
+}
+sound DIGI sound3772@3772 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3772.wav"
+}
+sound DIGI sound3773@3773 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3773.wav"
+}
+sound DIGI sound3774@3774 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3774.wav"
+}
+sound DIGI sound3775@3775 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3775.wav"
+}
+sound DIGI sound3776@3776 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3776.wav"
+}
+sound DIGI sound3777@3777 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3777.wav"
+}
+sound DIGI sound3778@3778 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3778.wav"
+}
+sound DIGI sound3779@3779 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3779.wav"
+}
+sound DIGI sound3780@3780 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3780.wav"
+}
+sound DIGI sound3781@3781 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3781.wav"
+}
+sound DIGI sound3782@3782 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3782.wav"
+}
+sound DIGI sound3783@3783 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3783.wav"
+}
+sound DIGI sound3784@3784 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3784.wav"
+}
+sound DIGI sound3785@3785 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3785.wav"
+}
+sound DIGI sound3786@3786 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3786.wav"
+}
+sound DIGI sound3787@3787 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3787.wav"
+}
+sound DIGI sound3788@3788 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3788.wav"
+}
+sound DIGI sound3789@3789 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3789.wav"
+}
+sound DIGI sound3790@3790 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3790.wav"
+}
+sound DIGI sound3791@3791 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3791.wav"
+}
+sound DIGI sound3792@3792 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3792.wav"
+}
+sound DIGI sound3793@3793 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3793.wav"
+}
+sound DIGI sound3794@3794 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3794.wav"
+}
+sound DIGI sound3795@3795 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3795.wav"
+}
+sound DIGI sound3796@3796 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3796.wav"
+}
+sound DIGI sound3797@3797 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3797.wav"
+}
+sound DIGI sound3798@3798 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3798.wav"
+}
+sound DIGI sound3799@3799 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3799.wav"
+}
+sound DIGI sound3800@3800 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3800.wav"
+}
+sound DIGI sound3801@3801 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3801.wav"
+}
+sound DIGI sound3802@3802 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3802.wav"
+}
+sound DIGI sound3803@3803 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3803.wav"
+}
+sound DIGI sound3804@3804 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3804.wav"
+}
+sound DIGI sound3805@3805 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3805.wav"
+}
+sound DIGI sound3806@3806 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3806.wav"
+}
+sound DIGI sound3807@3807 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3807.wav"
+}
+sound DIGI sound3808@3808 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3808.wav"
+}
+sound DIGI sound3809@3809 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3809.wav"
+}
+sound DIGI sound3810@3810 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3810.wav"
+}
+sound DIGI sound3811@3811 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3811.wav"
+}
+sound DIGI sound3812@3812 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3812.wav"
+}
+sound DIGI sound3813@3813 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3813.wav"
+}
+sound DIGI sound3814@3814 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3814.wav"
+}
+sound DIGI sound3815@3815 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3815.wav"
+}
+sound DIGI sound3816@3816 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3816.wav"
+}
+sound DIGI sound3817@3817 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3817.wav"
+}
+sound DIGI sound3818@3818 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3818.wav"
+}
+sound DIGI sound3819@3819 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3819.wav"
+}
+sound DIGI sound3820@3820 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3820.wav"
+}
+sound DIGI sound3821@3821 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3821.wav"
+}
+sound DIGI sound3822@3822 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3822.wav"
+}
+sound DIGI sound3823@3823 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3823.wav"
+}
+sound DIGI sound3824@3824 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3824.wav"
+}
+sound DIGI sound3825@3825 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3825.wav"
+}
+sound DIGI sound3826@3826 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3826.wav"
+}
+sound DIGI sound3827@3827 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3827.wav"
+}
+sound DIGI sound3828@3828 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3828.wav"
+}
+sound DIGI sound3829@3829 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3829.wav"
+}
+sound DIGI sound3830@3830 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3830.wav"
+}
+sound DIGI sound3831@3831 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3831.wav"
+}
+sound DIGI sound3832@3832 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3832.wav"
+}
+sound DIGI sound3833@3833 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3833.wav"
+}
+sound DIGI sound3834@3834 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3834.wav"
+}
+sound DIGI sound3835@3835 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3835.wav"
+}
+sound DIGI sound3836@3836 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3836.wav"
+}
+sound DIGI sound3837@3837 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3837.wav"
+}
+sound DIGI sound3838@3838 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3838.wav"
+}
+sound DIGI sound3839@3839 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3839.wav"
+}
+sound DIGI sound3840@3840 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3840.wav"
+}
+sound DIGI sound3841@3841 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3841.wav"
+}
+sound DIGI sound3842@3842 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3842.wav"
+}
+sound DIGI sound3843@3843 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3843.wav"
+}
+sound DIGI sound3844@3844 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3844.wav"
+}
+sound DIGI sound3845@3845 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3845.wav"
+}
+sound DIGI sound3846@3846 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3846.wav"
+}
+sound DIGI sound3847@3847 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3847.wav"
+}
+sound DIGI sound3848@3848 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3848.wav"
+}
+sound DIGI sound3849@3849 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3849.wav"
+}
+sound DIGI sound3850@3850 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3850.wav"
+}
+sound DIGI sound3851@3851 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3851.wav"
+}
+sound DIGI sound3852@3852 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3852.wav"
+}
+sound DIGI sound3853@3853 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3853.wav"
+}
+sound DIGI sound3854@3854 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3854.wav"
+}
+sound DIGI sound3855@3855 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3855.wav"
+}
+sound DIGI sound3856@3856 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3856.wav"
+}
+sound DIGI sound3857@3857 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3857.wav"
+}
+sound DIGI sound3858@3858 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3858.wav"
+}
+sound DIGI sound3859@3859 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3859.wav"
+}
+sound DIGI sound3860@3860 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3860.wav"
+}
+sound DIGI sound3861@3861 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3861.wav"
+}
+sound DIGI sound3862@3862 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3862.wav"
+}
+sound DIGI sound3863@3863 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3863.wav"
+}
+sound DIGI sound3864@3864 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3864.wav"
+}
+sound DIGI sound3865@3865 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3865.wav"
+}
+sound DIGI sound3866@3866 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3866.wav"
+}
+sound DIGI sound3867@3867 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3867.wav"
+}
+sound DIGI sound3868@3868 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3868.wav"
+}
+sound DIGI sound3869@3869 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3869.wav"
+}
+sound DIGI sound3870@3870 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3870.wav"
+}
+sound DIGI sound3871@3871 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3871.wav"
+}
+sound DIGI sound3872@3872 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3872.wav"
+}
+sound DIGI sound3873@3873 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3873.wav"
+}
+sound DIGI sound3874@3874 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3874.wav"
+}
+sound DIGI sound3875@3875 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3875.wav"
+}
+sound DIGI sound3876@3876 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3876.wav"
+}
+sound DIGI sound3877@3877 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3877.wav"
+}
+sound DIGI sound3878@3878 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3878.wav"
+}
+sound DIGI sound3879@3879 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3879.wav"
+}
+sound DIGI sound3880@3880 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3880.wav"
+}
+sound DIGI sound3881@3881 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3881.wav"
+}
+sound DIGI sound3882@3882 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3882.wav"
+}
+sound DIGI sound3883@3883 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3883.wav"
+}
+sound DIGI sound3884@3884 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3884.wav"
+}
+sound DIGI sound3885@3885 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3885.wav"
+}
+sound DIGI sound3886@3886 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3886.wav"
+}
+sound DIGI sound3887@3887 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3887.wav"
+}
+sound DIGI sound3888@3888 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3888.wav"
+}
+sound DIGI sound3889@3889 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3889.wav"
+}
+sound DIGI sound3890@3890 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3890.wav"
+}
+sound DIGI sound3891@3891 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3891.wav"
+}
+sound DIGI sound3892@3892 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3892.wav"
+}
+sound DIGI sound3893@3893 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3893.wav"
+}
+sound DIGI sound3894@3894 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3894.wav"
+}
+sound DIGI sound3895@3895 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3895.wav"
+}
+sound DIGI sound3896@3896 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3896.wav"
+}
+sound DIGI sound3897@3897 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3897.wav"
+}
+sound DIGI sound3898@3898 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3898.wav"
+}
+sound DIGI sound3899@3899 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3899.wav"
+}
+sound DIGI sound3900@3900 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3900.wav"
+}
+sound DIGI sound3901@3901 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3901.wav"
+}
+sound DIGI sound3902@3902 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3902.wav"
+}
+sound DIGI sound3903@3903 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3903.wav"
+}
+sound DIGI sound3904@3904 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3904.wav"
+}
+sound DIGI sound3905@3905 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3905.wav"
+}
+sound DIGI sound3906@3906 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3906.wav"
+}
+sound DIGI sound3907@3907 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3907.wav"
+}
+sound DIGI sound3908@3908 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3908.wav"
+}
+sound DIGI sound3909@3909 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3909.wav"
+}
+sound DIGI sound3910@3910 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3910.wav"
+}
+sound DIGI sound3911@3911 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3911.wav"
+}
+sound DIGI sound3912@3912 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3912.wav"
+}
+sound DIGI sound3913@3913 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3913.wav"
+}
+sound DIGI sound3914@3914 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3914.wav"
+}
+sound DIGI sound3915@3915 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3915.wav"
+}
+sound DIGI sound3916@3916 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3916.wav"
+}
+sound DIGI sound3917@3917 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3917.wav"
+}
+sound DIGI sound3918@3918 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3918.wav"
+}
+sound DIGI sound3919@3919 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3919.wav"
+}
+sound DIGI sound3920@3920 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3920.wav"
+}
+sound DIGI sound3921@3921 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3921.wav"
+}
+sound DIGI sound3922@3922 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3922.wav"
+}
+sound DIGI sound3923@3923 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3923.wav"
+}
+sound DIGI sound3924@3924 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3924.wav"
+}
+sound DIGI sound3925@3925 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3925.wav"
+}
+sound DIGI sound3926@3926 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3926.wav"
+}
+sound DIGI sound3927@3927 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3927.wav"
+}
+sound DIGI sound3928@3928 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3928.wav"
+}
+sound DIGI sound3929@3929 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3929.wav"
+}
+sound DIGI sound3930@3930 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3930.wav"
+}
+sound DIGI sound3931@3931 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3931.wav"
+}
+sound DIGI sound3932@3932 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3932.wav"
+}
+sound DIGI sound3933@3933 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3933.wav"
+}
+sound DIGI sound3934@3934 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3934.wav"
+}
+sound DIGI sound3935@3935 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3935.wav"
+}
+sound DIGI sound3936@3936 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3936.wav"
+}
+sound DIGI sound3937@3937 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3937.wav"
+}
+sound DIGI sound3938@3938 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3938.wav"
+}
+sound DIGI sound3939@3939 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3939.wav"
+}
+sound DIGI sound3940@3940 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3940.wav"
+}
+sound DIGI sound3941@3941 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3941.wav"
+}
+sound DIGI sound3942@3942 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3942.wav"
+}
+sound DIGI sound3943@3943 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3943.wav"
+}
+sound DIGI sound3944@3944 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3944.wav"
+}
+sound DIGI sound3945@3945 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3945.wav"
+}
+sound DIGI sound3946@3946 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3946.wav"
+}
+sound DIGI sound3947@3947 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3947.wav"
+}
+sound DIGI sound3948@3948 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3948.wav"
+}
+sound DIGI sound3949@3949 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3949.wav"
+}
+sound DIGI sound3950@3950 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3950.wav"
+}
+sound DIGI sound3951@3951 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3951.wav"
+}
+sound DIGI sound3952@3952 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3952.wav"
+}
+sound DIGI sound3953@3953 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3953.wav"
+}
+sound DIGI sound3954@3954 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3954.wav"
+}
+sound DIGI sound3955@3955 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3955.wav"
+}
+sound DIGI sound3956@3956 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3956.wav"
+}
+sound DIGI sound3957@3957 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3957.wav"
+}
+sound DIGI sound3958@3958 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3958.wav"
+}
+sound DIGI sound3959@3959 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3959.wav"
+}
+sound DIGI sound3960@3960 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3960.wav"
+}
+sound DIGI sound3961@3961 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3961.wav"
+}
+sound DIGI sound3962@3962 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3962.wav"
+}
+sound DIGI sound3963@3963 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3963.wav"
+}
+sound DIGI sound3964@3964 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3964.wav"
+}
+sound DIGI sound3965@3965 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3965.wav"
+}
+sound DIGI sound3966@3966 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3966.wav"
+}
+sound DIGI sound3967@3967 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3967.wav"
+}
+sound DIGI sound3968@3968 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3968.wav"
+}
+sound DIGI sound3969@3969 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3969.wav"
+}
+sound DIGI sound3970@3970 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3970.wav"
+}
+sound DIGI sound3971@3971 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3971.wav"
+}
+sound DIGI sound3972@3972 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3972.wav"
+}
+sound DIGI sound3973@3973 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3973.wav"
+}
+sound DIGI sound3974@3974 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3974.wav"
+}
+sound DIGI sound3975@3975 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3975.wav"
+}
+sound DIGI sound3976@3976 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3976.wav"
+}
+sound DIGI sound3977@3977 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3977.wav"
+}
+sound DIGI sound3978@3978 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3978.wav"
+}
+sound DIGI sound3979@3979 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3979.wav"
+}
+sound DIGI sound3980@3980 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3980.wav"
+}
+sound DIGI sound3981@3981 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3981.wav"
+}
+sound DIGI sound3982@3982 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3982.wav"
+}
+sound DIGI sound3983@3983 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3983.wav"
+}
+sound DIGI sound3984@3984 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3984.wav"
+}
+sound DIGI sound3985@3985 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3985.wav"
+}
+sound DIGI sound3986@3986 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3986.wav"
+}
+sound DIGI sound3987@3987 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3987.wav"
+}
+sound DIGI sound3988@3988 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3988.wav"
+}
+sound DIGI sound3989@3989 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3989.wav"
+}
+sound DIGI sound3990@3990 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3990.wav"
+}
+sound DIGI sound3991@3991 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3991.wav"
+}
+sound DIGI sound3992@3992 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3992.wav"
+}
+sound DIGI sound3993@3993 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3993.wav"
+}
+sound DIGI sound3994@3994 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3994.wav"
+}
+sound DIGI sound3995@3995 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3995.wav"
+}
+sound DIGI sound3996@3996 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3996.wav"
+}
+sound DIGI sound3997@3997 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3997.wav"
+}
+sound DIGI sound3998@3998 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3998.wav"
+}
+sound DIGI sound3999@3999 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound3999.wav"
+}
+sound DIGI sound4000@4000 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4000.wav"
+}
+sound DIGI sound4001@4001 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4001.wav"
+}
+sound DIGI sound4002@4002 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4002.wav"
+}
+sound DIGI sound4003@4003 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4003.wav"
+}
+sound DIGI sound4004@4004 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4004.wav"
+}
+sound DIGI sound4005@4005 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4005.wav"
+}
+sound DIGI sound4006@4006 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4006.wav"
+}
+sound DIGI sound4007@4007 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4007.wav"
+}
+sound DIGI sound4008@4008 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4008.wav"
+}
+sound DIGI sound4009@4009 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4009.wav"
+}
+sound DIGI sound4010@4010 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4010.wav"
+}
+sound DIGI sound4011@4011 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4011.wav"
+}
+sound DIGI sound4012@4012 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4012.wav"
+}
+sound DIGI sound4013@4013 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4013.wav"
+}
+sound DIGI sound4014@4014 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4014.wav"
+}
+sound DIGI sound4015@4015 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4015.wav"
+}
+sound DIGI sound4016@4016 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4016.wav"
+}
+sound DIGI sound4017@4017 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4017.wav"
+}
+sound DIGI sound4018@4018 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4018.wav"
+}
+sound DIGI sound4019@4019 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4019.wav"
+}
+sound DIGI sound4020@4020 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4020.wav"
+}
+sound DIGI sound4021@4021 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4021.wav"
+}
+sound DIGI sound4022@4022 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4022.wav"
+}
+sound DIGI sound4023@4023 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4023.wav"
+}
+sound DIGI sound4024@4024 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4024.wav"
+}
+sound DIGI sound4025@4025 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4025.wav"
+}
+sound DIGI sound4026@4026 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4026.wav"
+}
+sound DIGI sound4027@4027 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4027.wav"
+}
+sound DIGI sound4028@4028 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4028.wav"
+}
+sound DIGI sound4029@4029 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4029.wav"
+}
+sound DIGI sound4030@4030 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4030.wav"
+}
+sound DIGI sound4031@4031 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4031.wav"
+}
+sound DIGI sound4032@4032 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4032.wav"
+}
+sound DIGI sound4033@4033 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4033.wav"
+}
+sound DIGI sound4034@4034 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4034.wav"
+}
+sound DIGI sound4035@4035 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4035.wav"
+}
+sound DIGI sound4036@4036 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4036.wav"
+}
+sound DIGI sound4037@4037 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4037.wav"
+}
+sound DIGI sound4038@4038 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4038.wav"
+}
+sound DIGI sound4039@4039 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4039.wav"
+}
+sound DIGI sound4040@4040 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4040.wav"
+}
+sound DIGI sound4041@4041 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4041.wav"
+}
+sound DIGI sound4042@4042 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4042.wav"
+}
+sound DIGI sound4043@4043 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4043.wav"
+}
+sound DIGI sound4044@4044 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4044.wav"
+}
+sound DIGI sound4045@4045 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4045.wav"
+}
+sound DIGI sound4046@4046 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4046.wav"
+}
+sound DIGI sound4047@4047 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4047.wav"
+}
+sound DIGI sound4048@4048 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4048.wav"
+}
+sound DIGI sound4049@4049 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4049.wav"
+}
+sound DIGI sound4050@4050 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4050.wav"
+}
+sound DIGI sound4051@4051 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4051.wav"
+}
+sound DIGI sound4052@4052 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4052.wav"
+}
+sound DIGI sound4053@4053 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4053.wav"
+}
+sound DIGI sound4054@4054 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4054.wav"
+}
+sound DIGI sound4055@4055 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4055.wav"
+}
+sound DIGI sound4056@4056 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4056.wav"
+}
+sound DIGI sound4057@4057 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4057.wav"
+}
+sound DIGI sound4058@4058 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4058.wav"
+}
+sound DIGI sound4059@4059 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4059.wav"
+}
+sound DIGI sound4060@4060 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4060.wav"
+}
+sound DIGI sound4061@4061 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4061.wav"
+}
+sound DIGI sound4062@4062 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4062.wav"
+}
+sound DIGI sound4063@4063 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4063.wav"
+}
+sound DIGI sound4064@4064 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4064.wav"
+}
+sound DIGI sound4065@4065 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4065.wav"
+}
+sound DIGI sound4066@4066 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4066.wav"
+}
+sound DIGI sound4067@4067 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4067.wav"
+}
+sound DIGI sound4068@4068 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4068.wav"
+}
+sound DIGI sound4069@4069 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4069.wav"
+}
+sound DIGI sound4070@4070 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4070.wav"
+}
+sound DIGI sound4071@4071 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4071.wav"
+}
+sound DIGI sound4072@4072 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4072.wav"
+}
+sound DIGI sound4073@4073 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4073.wav"
+}
+sound DIGI sound4074@4074 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4074.wav"
+}
+sound DIGI sound4075@4075 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4075.wav"
+}
+sound DIGI sound4076@4076 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4076.wav"
+}
+sound DIGI sound4077@4077 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4077.wav"
+}
+sound DIGI sound4078@4078 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4078.wav"
+}
+sound DIGI sound4079@4079 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4079.wav"
+}
+sound DIGI sound4080@4080 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4080.wav"
+}
+sound DIGI sound4081@4081 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4081.wav"
+}
+sound DIGI sound4082@4082 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4082.wav"
+}
+sound DIGI sound4083@4083 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4083.wav"
+}
+sound DIGI sound4084@4084 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4084.wav"
+}
+sound DIGI sound4085@4085 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4085.wav"
+}
+sound DIGI sound4086@4086 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4086.wav"
+}
+sound DIGI sound4087@4087 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4087.wav"
+}
+sound DIGI sound4088@4088 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4088.wav"
+}
+sound DIGI sound4089@4089 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4089.wav"
+}
+sound DIGI sound4090@4090 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4090.wav"
+}
+sound DIGI sound4091@4091 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4091.wav"
+}
+sound DIGI sound4092@4092 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4092.wav"
+}
+sound DIGI sound4093@4093 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4093.wav"
+}
+sound DIGI sound4094@4094 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4094.wav"
+}
+sound DIGI sound4095@4095 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4095.wav"
+}
+sound DIGI sound4096@4096 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4096.wav"
+}
+sound DIGI sound4097@4097 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4097.wav"
+}
+sound DIGI sound4098@4098 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4098.wav"
+}
+sound DIGI sound4099@4099 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4099.wav"
+}
+sound DIGI sound4100@4100 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4100.wav"
+}
+sound DIGI sound4101@4101 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4101.wav"
+}
+sound DIGI sound4102@4102 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4102.wav"
+}
+sound DIGI sound4103@4103 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4103.wav"
+}
+sound DIGI sound4104@4104 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4104.wav"
+}
+sound DIGI sound4105@4105 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4105.wav"
+}
+sound DIGI sound4106@4106 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4106.wav"
+}
+sound DIGI sound4107@4107 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4107.wav"
+}
+sound DIGI sound4108@4108 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4108.wav"
+}
+sound DIGI sound4109@4109 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4109.wav"
+}
+sound DIGI sound4110@4110 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4110.wav"
+}
+sound DIGI sound4111@4111 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4111.wav"
+}
+sound DIGI sound4112@4112 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4112.wav"
+}
+sound DIGI sound4113@4113 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4113.wav"
+}
+sound DIGI sound4114@4114 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4114.wav"
+}
+sound DIGI sound4115@4115 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4115.wav"
+}
+sound DIGI sound4116@4116 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4116.wav"
+}
+sound DIGI sound4117@4117 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4117.wav"
+}
+sound DIGI sound4118@4118 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4118.wav"
+}
+sound DIGI sound4119@4119 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4119.wav"
+}
+sound DIGI sound4120@4120 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4120.wav"
+}
+sound DIGI sound4121@4121 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4121.wav"
+}
+sound DIGI sound4122@4122 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4122.wav"
+}
+sound DIGI sound4123@4123 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4123.wav"
+}
+sound DIGI sound4124@4124 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4124.wav"
+}
+sound DIGI sound4125@4125 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4125.wav"
+}
+sound DIGI sound4126@4126 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4126.wav"
+}
+sound DIGI sound4127@4127 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4127.wav"
+}
+sound DIGI sound4128@4128 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4128.wav"
+}
+sound DIGI sound4129@4129 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4129.wav"
+}
+sound DIGI sound4130@4130 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4130.wav"
+}
+sound DIGI sound4131@4131 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4131.wav"
+}
+sound DIGI sound4132@4132 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4132.wav"
+}
+sound DIGI sound4133@4133 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4133.wav"
+}
+sound DIGI sound4134@4134 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4134.wav"
+}
+sound DIGI sound4135@4135 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4135.wav"
+}
+sound DIGI sound4136@4136 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4136.wav"
+}
+sound DIGI sound4137@4137 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4137.wav"
+}
+sound DIGI sound4138@4138 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4138.wav"
+}
+sound DIGI sound4139@4139 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4139.wav"
+}
+sound DIGI sound4140@4140 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4140.wav"
+}
+sound DIGI sound4141@4141 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4141.wav"
+}
+sound DIGI sound4142@4142 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4142.wav"
+}
+sound DIGI sound4143@4143 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4143.wav"
+}
+sound DIGI sound4144@4144 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4144.wav"
+}
+sound DIGI sound4145@4145 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4145.wav"
+}
+sound DIGI sound4146@4146 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4146.wav"
+}
+sound DIGI sound4147@4147 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4147.wav"
+}
+sound DIGI sound4148@4148 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4148.wav"
+}
+sound DIGI sound4149@4149 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4149.wav"
+}
+sound DIGI sound4150@4150 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4150.wav"
+}
+sound DIGI sound4151@4151 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4151.wav"
+}
+sound DIGI sound4152@4152 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "proovtlk/sound4152.wav"
+}

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cd -- "$(dirname "$0")"
+
+baller_repo=../baller
+mise exec --cd="${baller_repo}" -- zig build
+
+rm -r scripts
+"${baller_repo}"/zig-out/bin/baller extract \
+    --symbols=symbols.ini \
+    "${baller_repo}/src/fixtures/baseball2001/baseball 2001.he0" \
+    scripts
+
+# Leave behind only *.scu
+rm -r scripts/{*.bin,*/}

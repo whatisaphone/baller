@@ -1,0 +1,3877 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "miscres2/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+
+
+sound DIGI sound4235@4235 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "miscres2/sound4235.wav"
+}
+sound DIGI sound4236@4236 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "miscres2/sound4236.wav"
+}
+sound DIGI sound4237@4237 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "miscres2/sound4237.wav"
+}
+sound DIGI sound4238@4238 {
+    raw-block HSHD `00008080fffff82a0000000000000000`
+    sdat "miscres2/sound4238.wav"
+}
+akos costume568@568 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume568/AKPL.bin"
+    raw-block RGBS "miscres2/costume568/RGBS.bin"
+    raw-block AKSQ "miscres2/costume568/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume568/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume568/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume568/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume568/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume568/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume568/AKCT.bin"
+}
+akos costume569@569 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume569/AKPL.bin"
+    raw-block RGBS "miscres2/costume569/RGBS.bin"
+    raw-block AKSQ "miscres2/costume569/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume569/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume569/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume569/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume569/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume569/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume569/AKCT.bin"
+}
+akos costume570@570 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume570/AKPL.bin"
+    raw-block RGBS "miscres2/costume570/RGBS.bin"
+    raw-block AKSQ "miscres2/costume570/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume570/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume570/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume570/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume570/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume570/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume570/AKCT.bin"
+}
+akos costume571@571 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume571/AKPL.bin"
+    raw-block RGBS "miscres2/costume571/RGBS.bin"
+    raw-block AKSQ "miscres2/costume571/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume571/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume571/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume571/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume571/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume571/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume571/AKCT.bin"
+}
+akos costume572@572 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume572/AKPL.bin"
+    raw-block RGBS "miscres2/costume572/RGBS.bin"
+    raw-block AKSQ "miscres2/costume572/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume572/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume572/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume572/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume572/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume572/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume572/AKCT.bin"
+}
+akos costume573@573 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume573/AKPL.bin"
+    raw-block RGBS "miscres2/costume573/RGBS.bin"
+    raw-block AKSQ "miscres2/costume573/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume573/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume573/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume573/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume573/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume573/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume573/AKCT.bin"
+}
+akos costume574@574 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume574/AKPL.bin"
+    raw-block RGBS "miscres2/costume574/RGBS.bin"
+    raw-block AKSQ "miscres2/costume574/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume574/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume574/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume574/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume574/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume574/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume574/AKCT.bin"
+}
+akos costume575@575 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume575/AKPL.bin"
+    raw-block RGBS "miscres2/costume575/RGBS.bin"
+    raw-block AKSQ "miscres2/costume575/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume575/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume575/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume575/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume575/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume575/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume575/AKCT.bin"
+}
+akos costume576@576 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume576/AKPL.bin"
+    raw-block RGBS "miscres2/costume576/RGBS.bin"
+    raw-block AKSQ "miscres2/costume576/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume576/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume576/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume576/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume576/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume576/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume576/AKCT.bin"
+}
+akos costume577@577 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume577/AKPL.bin"
+    raw-block RGBS "miscres2/costume577/RGBS.bin"
+    raw-block AKSQ "miscres2/costume577/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume577/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume577/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume577/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume577/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume577/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume577/AKCT.bin"
+}
+akos costume578@578 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume578/AKPL.bin"
+    raw-block RGBS "miscres2/costume578/RGBS.bin"
+    raw-block AKSQ "miscres2/costume578/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume578/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume578/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume578/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume578/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume578/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume578/AKCT.bin"
+}
+akos costume579@579 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume579/AKPL.bin"
+    raw-block RGBS "miscres2/costume579/RGBS.bin"
+    raw-block AKSQ "miscres2/costume579/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume579/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume579/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume579/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume579/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume579/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume579/AKCT.bin"
+}
+akos costume580@580 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume580/AKPL.bin"
+    raw-block RGBS "miscres2/costume580/RGBS.bin"
+    raw-block AKSQ "miscres2/costume580/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume580/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume580/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume580/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume580/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume580/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume580/AKCT.bin"
+}
+akos costume581@581 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume581/AKPL.bin"
+    raw-block RGBS "miscres2/costume581/RGBS.bin"
+    raw-block AKSQ "miscres2/costume581/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume581/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume581/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume581/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume581/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume581/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume581/AKCT.bin"
+}
+akos costume582@582 {
+    raw-block AKHD `010000800800060001001000`
+    akpl "miscres2/costume582/AKPL.bin"
+    raw-block RGBS "miscres2/costume582/RGBS.bin"
+    raw-block AKSQ "miscres2/costume582/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume582/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume582/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume582/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume582/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume582/cel_0004_AKCD.bmp"
+    akcd byle "miscres2/costume582/cel_0005_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume582/AKCT.bin"
+}
+akos costume583@583 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume583/AKPL.bin"
+    raw-block RGBS "miscres2/costume583/RGBS.bin"
+    raw-block AKSQ "miscres2/costume583/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume583/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume583/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume583/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume583/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume583/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume583/AKCT.bin"
+}
+akos costume584@584 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume584/AKPL.bin"
+    raw-block RGBS "miscres2/costume584/RGBS.bin"
+    raw-block AKSQ "miscres2/costume584/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume584/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume584/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume584/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume584/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume584/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume584/AKCT.bin"
+}
+akos costume585@585 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume585/AKPL.bin"
+    raw-block RGBS "miscres2/costume585/RGBS.bin"
+    raw-block AKSQ "miscres2/costume585/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume585/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume585/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume585/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume585/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume585/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume585/AKCT.bin"
+}
+akos costume586@586 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume586/AKPL.bin"
+    raw-block RGBS "miscres2/costume586/RGBS.bin"
+    raw-block AKSQ "miscres2/costume586/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume586/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume586/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume586/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume586/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume586/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume586/AKCT.bin"
+}
+akos costume587@587 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume587/AKPL.bin"
+    raw-block RGBS "miscres2/costume587/RGBS.bin"
+    raw-block AKSQ "miscres2/costume587/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume587/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume587/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume587/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume587/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume587/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume587/AKCT.bin"
+}
+akos costume588@588 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume588/AKPL.bin"
+    raw-block RGBS "miscres2/costume588/RGBS.bin"
+    raw-block AKSQ "miscres2/costume588/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume588/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume588/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume588/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume588/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume588/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume588/AKCT.bin"
+}
+akos costume589@589 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume589/AKPL.bin"
+    raw-block RGBS "miscres2/costume589/RGBS.bin"
+    raw-block AKSQ "miscres2/costume589/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume589/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume589/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume589/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume589/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume589/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume589/AKCT.bin"
+}
+akos costume590@590 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume590/AKPL.bin"
+    raw-block RGBS "miscres2/costume590/RGBS.bin"
+    raw-block AKSQ "miscres2/costume590/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume590/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume590/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume590/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume590/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume590/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume590/AKCT.bin"
+}
+akos costume591@591 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume591/AKPL.bin"
+    raw-block RGBS "miscres2/costume591/RGBS.bin"
+    raw-block AKSQ "miscres2/costume591/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume591/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume591/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume591/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume591/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume591/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume591/AKCT.bin"
+}
+akos costume592@592 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume592/AKPL.bin"
+    raw-block RGBS "miscres2/costume592/RGBS.bin"
+    raw-block AKSQ "miscres2/costume592/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume592/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume592/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume592/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume592/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume592/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume592/AKCT.bin"
+}
+akos costume593@593 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume593/AKPL.bin"
+    raw-block RGBS "miscres2/costume593/RGBS.bin"
+    raw-block AKSQ "miscres2/costume593/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume593/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume593/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume593/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume593/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume593/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume593/AKCT.bin"
+}
+akos costume594@594 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume594/AKPL.bin"
+    raw-block RGBS "miscres2/costume594/RGBS.bin"
+    raw-block AKSQ "miscres2/costume594/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume594/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume594/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume594/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume594/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume594/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume594/AKCT.bin"
+}
+akos costume595@595 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume595/AKPL.bin"
+    raw-block RGBS "miscres2/costume595/RGBS.bin"
+    raw-block AKSQ "miscres2/costume595/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume595/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume595/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume595/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume595/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume595/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume595/AKCT.bin"
+}
+akos costume596@596 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume596/AKPL.bin"
+    raw-block RGBS "miscres2/costume596/RGBS.bin"
+    raw-block AKSQ "miscres2/costume596/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume596/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume596/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume596/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume596/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume596/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume596/AKCT.bin"
+}
+akos costume597@597 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume597/AKPL.bin"
+    raw-block RGBS "miscres2/costume597/RGBS.bin"
+    raw-block AKSQ "miscres2/costume597/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume597/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume597/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume597/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume597/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume597/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume597/AKCT.bin"
+}
+akos costume598@598 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume598/AKPL.bin"
+    raw-block RGBS "miscres2/costume598/RGBS.bin"
+    raw-block AKSQ "miscres2/costume598/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume598/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume598/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume598/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume598/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume598/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume598/AKCT.bin"
+}
+akos costume599@599 {
+    raw-block AKHD `010000801400040001001000`
+    akpl "miscres2/costume599/AKPL.bin"
+    raw-block RGBS "miscres2/costume599/RGBS.bin"
+    raw-block AKSQ "miscres2/costume599/AKSQ.bin"
+    raw-block AKCH "miscres2/costume599/AKCH.bin"
+    akcd byle "miscres2/costume599/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume599/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume599/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume599/cel_0003_AKCD.bmp"
+    raw-block AKLC `20000000`
+}
+akos costume604@604 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume604/AKPL.bin"
+    raw-block RGBS "miscres2/costume604/RGBS.bin"
+    raw-block AKSQ "miscres2/costume604/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume604/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume604/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume604/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume604/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume604/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume604/AKCT.bin"
+}
+akos costume605@605 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume605/AKPL.bin"
+    raw-block RGBS "miscres2/costume605/RGBS.bin"
+    raw-block AKSQ "miscres2/costume605/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume605/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume605/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume605/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume605/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume605/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume605/AKCT.bin"
+}
+akos costume606@606 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume606/AKPL.bin"
+    raw-block RGBS "miscres2/costume606/RGBS.bin"
+    raw-block AKSQ "miscres2/costume606/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume606/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume606/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume606/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume606/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume606/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume606/AKCT.bin"
+}
+akos costume607@607 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume607/AKPL.bin"
+    raw-block RGBS "miscres2/costume607/RGBS.bin"
+    raw-block AKSQ "miscres2/costume607/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume607/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume607/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume607/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume607/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume607/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume607/AKCT.bin"
+}
+akos costume608@608 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume608/AKPL.bin"
+    raw-block RGBS "miscres2/costume608/RGBS.bin"
+    raw-block AKSQ "miscres2/costume608/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume608/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume608/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume608/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume608/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume608/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume608/AKCT.bin"
+}
+akos costume609@609 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume609/AKPL.bin"
+    raw-block RGBS "miscres2/costume609/RGBS.bin"
+    raw-block AKSQ "miscres2/costume609/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume609/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume609/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume609/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume609/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume609/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume609/AKCT.bin"
+}
+akos costume610@610 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume610/AKPL.bin"
+    raw-block RGBS "miscres2/costume610/RGBS.bin"
+    raw-block AKSQ "miscres2/costume610/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume610/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume610/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume610/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume610/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume610/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume610/AKCT.bin"
+}
+akos costume611@611 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume611/AKPL.bin"
+    raw-block RGBS "miscres2/costume611/RGBS.bin"
+    raw-block AKSQ "miscres2/costume611/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume611/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume611/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume611/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume611/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume611/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume611/AKCT.bin"
+}
+akos costume612@612 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume612/AKPL.bin"
+    raw-block RGBS "miscres2/costume612/RGBS.bin"
+    raw-block AKSQ "miscres2/costume612/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume612/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume612/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume612/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume612/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume612/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume612/AKCT.bin"
+}
+akos costume613@613 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume613/AKPL.bin"
+    raw-block RGBS "miscres2/costume613/RGBS.bin"
+    raw-block AKSQ "miscres2/costume613/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume613/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume613/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume613/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume613/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume613/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume613/AKCT.bin"
+}
+akos costume614@614 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume614/AKPL.bin"
+    raw-block RGBS "miscres2/costume614/RGBS.bin"
+    raw-block AKSQ "miscres2/costume614/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume614/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume614/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume614/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume614/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume614/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume614/AKCT.bin"
+}
+akos costume615@615 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume615/AKPL.bin"
+    raw-block RGBS "miscres2/costume615/RGBS.bin"
+    raw-block AKSQ "miscres2/costume615/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume615/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume615/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume615/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume615/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume615/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume615/AKCT.bin"
+}
+akos costume616@616 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume616/AKPL.bin"
+    raw-block RGBS "miscres2/costume616/RGBS.bin"
+    raw-block AKSQ "miscres2/costume616/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume616/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume616/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume616/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume616/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume616/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume616/AKCT.bin"
+}
+akos costume617@617 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume617/AKPL.bin"
+    raw-block RGBS "miscres2/costume617/RGBS.bin"
+    raw-block AKSQ "miscres2/costume617/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume617/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume617/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume617/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume617/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume617/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume617/AKCT.bin"
+}
+akos costume618@618 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume618/AKPL.bin"
+    raw-block RGBS "miscres2/costume618/RGBS.bin"
+    raw-block AKSQ "miscres2/costume618/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume618/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume618/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume618/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume618/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume618/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume618/AKCT.bin"
+}
+akos costume619@619 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume619/AKPL.bin"
+    raw-block RGBS "miscres2/costume619/RGBS.bin"
+    raw-block AKSQ "miscres2/costume619/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume619/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume619/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume619/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume619/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume619/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume619/AKCT.bin"
+}
+akos costume620@620 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume620/AKPL.bin"
+    raw-block RGBS "miscres2/costume620/RGBS.bin"
+    raw-block AKSQ "miscres2/costume620/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume620/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume620/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume620/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume620/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume620/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume620/AKCT.bin"
+}
+akos costume621@621 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume621/AKPL.bin"
+    raw-block RGBS "miscres2/costume621/RGBS.bin"
+    raw-block AKSQ "miscres2/costume621/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume621/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume621/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume621/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume621/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume621/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume621/AKCT.bin"
+}
+akos costume622@622 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume622/AKPL.bin"
+    raw-block RGBS "miscres2/costume622/RGBS.bin"
+    raw-block AKSQ "miscres2/costume622/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume622/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume622/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume622/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume622/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume622/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume622/AKCT.bin"
+}
+akos costume623@623 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume623/AKPL.bin"
+    raw-block RGBS "miscres2/costume623/RGBS.bin"
+    raw-block AKSQ "miscres2/costume623/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume623/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume623/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume623/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume623/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume623/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume623/AKCT.bin"
+}
+akos costume624@624 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume624/AKPL.bin"
+    raw-block RGBS "miscres2/costume624/RGBS.bin"
+    raw-block AKSQ "miscres2/costume624/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume624/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume624/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume624/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume624/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume624/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume624/AKCT.bin"
+}
+akos costume625@625 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume625/AKPL.bin"
+    raw-block RGBS "miscres2/costume625/RGBS.bin"
+    raw-block AKSQ "miscres2/costume625/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume625/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume625/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume625/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume625/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume625/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume625/AKCT.bin"
+}
+akos costume626@626 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume626/AKPL.bin"
+    raw-block RGBS "miscres2/costume626/RGBS.bin"
+    raw-block AKSQ "miscres2/costume626/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume626/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume626/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume626/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume626/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume626/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume626/AKCT.bin"
+}
+akos costume627@627 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume627/AKPL.bin"
+    raw-block RGBS "miscres2/costume627/RGBS.bin"
+    raw-block AKSQ "miscres2/costume627/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume627/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume627/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume627/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume627/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume627/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume627/AKCT.bin"
+}
+akos costume628@628 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume628/AKPL.bin"
+    raw-block RGBS "miscres2/costume628/RGBS.bin"
+    raw-block AKSQ "miscres2/costume628/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume628/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume628/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume628/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume628/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume628/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume628/AKCT.bin"
+}
+akos costume629@629 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume629/AKPL.bin"
+    raw-block RGBS "miscres2/costume629/RGBS.bin"
+    raw-block AKSQ "miscres2/costume629/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume629/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume629/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume629/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume629/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume629/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume629/AKCT.bin"
+}
+akos costume630@630 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume630/AKPL.bin"
+    raw-block RGBS "miscres2/costume630/RGBS.bin"
+    raw-block AKSQ "miscres2/costume630/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume630/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume630/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume630/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume630/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume630/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume630/AKCT.bin"
+}
+akos costume631@631 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume631/AKPL.bin"
+    raw-block RGBS "miscres2/costume631/RGBS.bin"
+    raw-block AKSQ "miscres2/costume631/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume631/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume631/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume631/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume631/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume631/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume631/AKCT.bin"
+}
+akos costume632@632 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume632/AKPL.bin"
+    raw-block RGBS "miscres2/costume632/RGBS.bin"
+    raw-block AKSQ "miscres2/costume632/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume632/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume632/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume632/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume632/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume632/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume632/AKCT.bin"
+}
+akos costume633@633 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume633/AKPL.bin"
+    raw-block RGBS "miscres2/costume633/RGBS.bin"
+    raw-block AKSQ "miscres2/costume633/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume633/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume633/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume633/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume633/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume633/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume633/AKCT.bin"
+}
+akos costume634@634 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume634/AKPL.bin"
+    raw-block RGBS "miscres2/costume634/RGBS.bin"
+    raw-block AKSQ "miscres2/costume634/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume634/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume634/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume634/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume634/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume634/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume634/AKCT.bin"
+}
+akos costume635@635 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume635/AKPL.bin"
+    raw-block RGBS "miscres2/costume635/RGBS.bin"
+    raw-block AKSQ "miscres2/costume635/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume635/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume635/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume635/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume635/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume635/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume635/AKCT.bin"
+}
+akos costume636@636 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume636/AKPL.bin"
+    raw-block RGBS "miscres2/costume636/RGBS.bin"
+    raw-block AKSQ "miscres2/costume636/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume636/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume636/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume636/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume636/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume636/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume636/AKCT.bin"
+}
+akos costume637@637 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume637/AKPL.bin"
+    raw-block RGBS "miscres2/costume637/RGBS.bin"
+    raw-block AKSQ "miscres2/costume637/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume637/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume637/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume637/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume637/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume637/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume637/AKCT.bin"
+}
+akos costume638@638 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume638/AKPL.bin"
+    raw-block RGBS "miscres2/costume638/RGBS.bin"
+    raw-block AKSQ "miscres2/costume638/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume638/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume638/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume638/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume638/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume638/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume638/AKCT.bin"
+}
+akos costume639@639 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume639/AKPL.bin"
+    raw-block RGBS "miscres2/costume639/RGBS.bin"
+    raw-block AKSQ "miscres2/costume639/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume639/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume639/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume639/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume639/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume639/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume639/AKCT.bin"
+}
+akos costume640@640 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume640/AKPL.bin"
+    raw-block RGBS "miscres2/costume640/RGBS.bin"
+    raw-block AKSQ "miscres2/costume640/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume640/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume640/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume640/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume640/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume640/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume640/AKCT.bin"
+}
+akos costume641@641 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume641/AKPL.bin"
+    raw-block RGBS "miscres2/costume641/RGBS.bin"
+    raw-block AKSQ "miscres2/costume641/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume641/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume641/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume641/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume641/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume641/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume641/AKCT.bin"
+}
+akos costume642@642 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume642/AKPL.bin"
+    raw-block RGBS "miscres2/costume642/RGBS.bin"
+    raw-block AKSQ "miscres2/costume642/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume642/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume642/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume642/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume642/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume642/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume642/AKCT.bin"
+}
+akos costume643@643 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume643/AKPL.bin"
+    raw-block RGBS "miscres2/costume643/RGBS.bin"
+    raw-block AKSQ "miscres2/costume643/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume643/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume643/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume643/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume643/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume643/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume643/AKCT.bin"
+}
+akos costume644@644 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume644/AKPL.bin"
+    raw-block RGBS "miscres2/costume644/RGBS.bin"
+    raw-block AKSQ "miscres2/costume644/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume644/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume644/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume644/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume644/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume644/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume644/AKCT.bin"
+}
+akos costume645@645 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume645/AKPL.bin"
+    raw-block RGBS "miscres2/costume645/RGBS.bin"
+    raw-block AKSQ "miscres2/costume645/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume645/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume645/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume645/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume645/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume645/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume645/AKCT.bin"
+}
+akos costume646@646 {
+    raw-block AKHD `010000800800050001001000`
+    akpl "miscres2/costume646/AKPL.bin"
+    raw-block RGBS "miscres2/costume646/RGBS.bin"
+    raw-block AKSQ "miscres2/costume646/AKSQ.bin"
+    raw-block AKCH `0000000000000000100010001000100000800600000000`
+    akcd byle "miscres2/costume646/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume646/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume646/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume646/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume646/cel_0004_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `0000000000000000`
+    raw-block AKCT "miscres2/costume646/AKCT.bin"
+}
+akos costume567@567 {
+    raw-block AKHD `010000801000120001001000`
+    akpl "miscres2/costume567/AKPL.bin"
+    raw-block RGBS "miscres2/costume567/RGBS.bin"
+    raw-block AKSQ "miscres2/costume567/AKSQ.bin"
+    raw-block AKCH "miscres2/costume567/AKCH.bin"
+    akcd byle "miscres2/costume567/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0004_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0005_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0006_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0007_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0008_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0009_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0010_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0011_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0012_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0013_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0014_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0015_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0016_AKCD.bmp"
+    akcd byle "miscres2/costume567/cel_0017_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000037000000800000007400000000010000`
+    raw-block AKCT "miscres2/costume567/AKCT.bin"
+}
+akos costume601@601 {
+    raw-block AKHD `010000801000130001001000`
+    akpl "miscres2/costume601/AKPL.bin"
+    raw-block RGBS "miscres2/costume601/RGBS.bin"
+    raw-block AKSQ "miscres2/costume601/AKSQ.bin"
+    raw-block AKCH "miscres2/costume601/AKCH.bin"
+    akcd byle "miscres2/costume601/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0004_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0005_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0006_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0007_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0008_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0009_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0010_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0011_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0012_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0013_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0014_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0015_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0016_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0017_AKCD.bmp"
+    akcd byle "miscres2/costume601/cel_0018_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000046000000800000008300000000010000`
+    raw-block AKCT "miscres2/costume601/AKCT.bin"
+}
+akos costume602@602 {
+    raw-block AKHD `010000801000120001001000`
+    akpl "miscres2/costume602/AKPL.bin"
+    raw-block RGBS "miscres2/costume602/RGBS.bin"
+    raw-block AKSQ "miscres2/costume602/AKSQ.bin"
+    raw-block AKCH "miscres2/costume602/AKCH.bin"
+    akcd byle "miscres2/costume602/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0004_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0005_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0006_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0007_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0008_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0009_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0010_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0011_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0012_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0013_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0014_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0015_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0016_AKCD.bmp"
+    akcd byle "miscres2/costume602/cel_0017_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000037000000800000007400000000010000`
+    raw-block AKCT "miscres2/costume602/AKCT.bin"
+}
+akos costume603@603 {
+    raw-block AKHD `010000801000120001001000`
+    akpl "miscres2/costume603/AKPL.bin"
+    raw-block RGBS "miscres2/costume603/RGBS.bin"
+    raw-block AKSQ "miscres2/costume603/AKSQ.bin"
+    raw-block AKCH "miscres2/costume603/AKCH.bin"
+    akcd byle "miscres2/costume603/cel_0000_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0001_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0002_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0003_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0004_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0005_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0006_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0007_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0008_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0009_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0010_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0011_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0012_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0013_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0014_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0015_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0016_AKCD.bmp"
+    akcd byle "miscres2/costume603/cel_0017_AKCD.bmp"
+    raw-block AKLC `20000000`
+    raw-block AKST `000000000000000037000000800000007400000000010000`
+    raw-block AKCT "miscres2/costume603/AKCT.bin"
+}
+mult image1373@1373 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1373/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "miscres2/image1373/0000.bmp"
+    }
+    indices [0]
+}
+mult image1374@1374 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1374/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100004a000000`
+        wizd 1 "miscres2/image1374/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100004a000000`
+        wizd 1 "miscres2/image1374/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100001b000000`
+        wizd 1 "miscres2/image1374/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e10000002a000000`
+        wizd 1 "miscres2/image1374/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e10000002a000000`
+        wizd 1 "miscres2/image1374/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e10000007bffffff`
+        wizd 1 "miscres2/image1374/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100004a000000`
+        wizd 1 "miscres2/image1374/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100004a000000`
+        wizd 1 "miscres2/image1374/0007.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 2]
+}
+mult image1375@1375 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1375/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a0100006f000000`
+        wizd 1 "miscres2/image1375/0000.bmp"
+    }
+    indices [0]
+}
+mult image1376@1376 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1376/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `df0000002a000000`
+        wizd 1 "miscres2/image1376/0000.bmp"
+    }
+    indices [0]
+}
+mult image1377@1377 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1377/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0030.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1377/0031.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31]
+}
+mult image1378@1378 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1378/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1378/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff00000000`
+        wizd 1 "miscres2/image1378/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1378/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1378/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1378/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff00000000`
+        wizd 1 "miscres2/image1378/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image1379@1379 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1379/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9200000050000000`
+        wizd 1 "miscres2/image1379/0000.bmp"
+    }
+    indices [0]
+}
+mult image1380@1380 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1380/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `69000000e4ffffff`
+        wizd 1 "miscres2/image1380/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `69000000e4ffffff`
+        wizd 1 "miscres2/image1380/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f8ffffffe4ffffff`
+        wizd 1 "miscres2/image1380/0002.bmp"
+    }
+    indices [0 1 2]
+}
+awiz image1381@1381 {
+    raw-block CNVS `b005000048000000`
+    raw-block RELO `8005000018000000`
+    wizh
+    wizd 1 "miscres2/image1381.bmp"
+}
+awiz image1382@1382 {
+    raw-block CNVS `70060000b8000000`
+    raw-block RELO `4006000088000000`
+    wizh
+    wizd 1 "miscres2/image1382.bmp"
+}
+awiz image1383@1383 {
+    raw-block CNVS `50050000f0000000`
+    raw-block RELO `20050000c0000000`
+    wizh
+    wizd 1 "miscres2/image1383.bmp"
+}
+awiz image1384@1384 {
+    raw-block CNVS `d006000080000000`
+    raw-block RELO `a006000050000000`
+    wizh
+    wizd 1 "miscres2/image1384.bmp"
+}
+awiz image1385@1385 {
+    raw-block CNVS `e0050000b8000000`
+    raw-block RELO `b005000088000000`
+    wizh
+    wizd 1 "miscres2/image1385.bmp"
+}
+awiz image1386@1386 {
+    raw-block CNVS `7006000080000000`
+    raw-block RELO `4006000050000000`
+    wizh
+    wizd 1 "miscres2/image1386.bmp"
+}
+awiz image1387@1387 {
+    raw-block CNVS `b0050000f0000000`
+    raw-block RELO `80050000c0000000`
+    wizh
+    wizd 1 "miscres2/image1387.bmp"
+}
+awiz image1388@1388 {
+    raw-block CNVS `4006000048000000`
+    raw-block RELO `1006000018000000`
+    wizh
+    wizd 1 "miscres2/image1388.bmp"
+}
+awiz image1389@1389 {
+    raw-block CNVS `7006000048000000`
+    raw-block RELO `4006000018000000`
+    wizh
+    wizd 1 "miscres2/image1389.bmp"
+}
+awiz image1390@1390 {
+    raw-block CNVS `e005000048000000`
+    raw-block RELO `b005000018000000`
+    wizh
+    wizd 1 "miscres2/image1390.bmp"
+}
+awiz image1391@1391 {
+    raw-block CNVS `4006000080000000`
+    raw-block RELO `1006000050000000`
+    wizh
+    wizd 1 "miscres2/image1391.bmp"
+}
+awiz image1392@1392 {
+    raw-block CNVS `b0050000b8000000`
+    raw-block RELO `8005000088000000`
+    wizh
+    wizd 1 "miscres2/image1392.bmp"
+}
+awiz image1393@1393 {
+    raw-block CNVS `8005000080000000`
+    raw-block RELO `5005000050000000`
+    wizh
+    wizd 1 "miscres2/image1393.bmp"
+}
+awiz image1394@1394 {
+    raw-block CNVS `e005000080000000`
+    raw-block RELO `b005000050000000`
+    wizh
+    wizd 1 "miscres2/image1394.bmp"
+}
+awiz image1395@1395 {
+    raw-block CNVS `d006000048000000`
+    raw-block RELO `a006000018000000`
+    wizh
+    wizd 1 "miscres2/image1395.bmp"
+}
+awiz image1396@1396 {
+    raw-block CNVS `80050000b8000000`
+    raw-block RELO `5005000088000000`
+    wizh
+    wizd 1 "miscres2/image1396.bmp"
+}
+awiz image1397@1397 {
+    raw-block CNVS `5005000048000000`
+    raw-block RELO `2005000018000000`
+    wizh
+    wizd 1 "miscres2/image1397.bmp"
+}
+awiz image1398@1398 {
+    raw-block CNVS `8005000048000000`
+    raw-block RELO `5005000018000000`
+    wizh
+    wizd 1 "miscres2/image1398.bmp"
+}
+awiz image1399@1399 {
+    raw-block CNVS `a006000080000000`
+    raw-block RELO `7006000050000000`
+    wizh
+    wizd 1 "miscres2/image1399.bmp"
+}
+awiz image1400@1400 {
+    raw-block CNVS `a006000048000000`
+    raw-block RELO `7006000018000000`
+    wizh
+    wizd 1 "miscres2/image1400.bmp"
+}
+awiz image1401@1401 {
+    raw-block CNVS `10060000b8000000`
+    raw-block RELO `e005000088000000`
+    wizh
+    wizd 1 "miscres2/image1401.bmp"
+}
+awiz image1402@1402 {
+    raw-block CNVS `a0060000b8000000`
+    raw-block RELO `7006000088000000`
+    wizh
+    wizd 1 "miscres2/image1402.bmp"
+}
+awiz image1403@1403 {
+    raw-block CNVS `80050000f0000000`
+    raw-block RELO `50050000c0000000`
+    wizh
+    wizd 1 "miscres2/image1403.bmp"
+}
+awiz image1404@1404 {
+    raw-block CNVS `5005000080000000`
+    raw-block RELO `2005000050000000`
+    wizh
+    wizd 1 "miscres2/image1404.bmp"
+}
+awiz image1405@1405 {
+    raw-block CNVS `b005000080000000`
+    raw-block RELO `8005000050000000`
+    wizh
+    wizd 1 "miscres2/image1405.bmp"
+}
+awiz image1406@1406 {
+    raw-block CNVS `d0060000b8000000`
+    raw-block RELO `a006000088000000`
+    wizh
+    wizd 1 "miscres2/image1406.bmp"
+}
+awiz image1407@1407 {
+    raw-block CNVS `1006000048000000`
+    raw-block RELO `e005000018000000`
+    wizh
+    wizd 1 "miscres2/image1407.bmp"
+}
+awiz image1408@1408 {
+    raw-block CNVS `40060000b8000000`
+    raw-block RELO `1006000088000000`
+    wizh
+    wizd 1 "miscres2/image1408.bmp"
+}
+awiz image1409@1409 {
+    raw-block CNVS `50050000b8000000`
+    raw-block RELO `2005000088000000`
+    wizh
+    wizd 1 "miscres2/image1409.bmp"
+}
+awiz image1410@1410 {
+    raw-block CNVS `1006000080000000`
+    raw-block RELO `e005000050000000`
+    wizh
+    wizd 1 "miscres2/image1410.bmp"
+}
+awiz image1411@1411 {
+    raw-block CNVS `b005000028010000`
+    raw-block RELO `80050000f8000000`
+    wizh
+    wizd 1 "miscres2/image1411.bmp"
+}
+awiz image1413@1413 {
+    rgbs
+    raw-block CNVS `0800000008000000`
+    wizh
+    wizd 1 "miscres2/image1413.bmp"
+}
+awiz image1414@1414 {
+    rgbs
+    raw-block CNVS `0800000008000000`
+    wizh
+    wizd 1 "miscres2/image1414.bmp"
+}
+mult image1415@1415 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1415/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffdeffffff`
+        wizd 1 "miscres2/image1415/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8]
+}
+mult image1416@1416 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1416/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `93fffffffeffffff`
+        wizd 1 "miscres2/image1416/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffffffffff`
+        wizd 1 "miscres2/image1416/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45fffffff1ffffff`
+        wizd 1 "miscres2/image1416/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffe3ffffff`
+        wizd 1 "miscres2/image1416/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffd5ffffff`
+        wizd 1 "miscres2/image1416/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffffffffff`
+        wizd 1 "miscres2/image1416/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45fffffff1ffffff`
+        wizd 1 "miscres2/image1416/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffe3ffffff`
+        wizd 1 "miscres2/image1416/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffd5ffffff`
+        wizd 1 "miscres2/image1416/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffffffffff`
+        wizd 1 "miscres2/image1416/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45fffffff1ffffff`
+        wizd 1 "miscres2/image1416/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffe3ffffff`
+        wizd 1 "miscres2/image1416/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `45ffffffd5ffffff`
+        wizd 1 "miscres2/image1416/0012.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12]
+}
+mult image132@132 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image132/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f0ffffff88ffffff`
+        wizd 1 "miscres2/image132/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ebffffff77ffffff`
+        wizd 1 "miscres2/image132/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5affffff84ffffff`
+        wizd 1 "miscres2/image132/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5affffff84ffffff`
+        wizd 1 "miscres2/image132/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4effffff7bffffff`
+        wizd 1 "miscres2/image132/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4effffff7bffffff`
+        wizd 1 "miscres2/image132/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `40ffffffaafeffff`
+        wizd 1 "miscres2/image132/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38ffffffe1feffff`
+        wizd 1 "miscres2/image132/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38ffffffa0feffff`
+        wizd 1 "miscres2/image132/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8]
+}
+mult image133@133 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image133/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `67feffff5bffffff`
+        wizd 1 "miscres2/image133/0009.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9]
+}
+mult image134@134 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image134/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffffadffffff`
+        wizd 1 "miscres2/image134/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffffadffffff`
+        wizd 1 "miscres2/image134/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffffadffffff`
+        wizd 1 "miscres2/image134/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffffadffffff`
+        wizd 1 "miscres2/image134/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffffadffffff`
+        wizd 1 "miscres2/image134/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b9feffffa9ffffff`
+        wizd 1 "miscres2/image134/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6efeffffa9ffffff`
+        wizd 1 "miscres2/image134/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25feffffa9ffffff`
+        wizd 1 "miscres2/image134/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `cdfdffffa9ffffff`
+        wizd 1 "miscres2/image134/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `cdfdffffa9ffffff`
+        wizd 1 "miscres2/image134/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b9feffffa9ffffff`
+        wizd 1 "miscres2/image134/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6efeffffa9ffffff`
+        wizd 1 "miscres2/image134/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25feffffa9ffffff`
+        wizd 1 "miscres2/image134/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `cdfdffffa9ffffff`
+        wizd 1 "miscres2/image134/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `cdfdffffa9ffffff`
+        wizd 1 "miscres2/image134/0014.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14]
+}
+mult image135@135 {
+    awiz {
+        wizh
+        raw-block SPOT `8afeffff5cffffff`
+        wizd 1 "miscres2/image135/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8afeffff5cffffff`
+        wizd 1 "miscres2/image135/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `c6fdffff5cffffff`
+        wizd 1 "miscres2/image135/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `c6fdffff5cffffff`
+        wizd 1 "miscres2/image135/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image136@136 {
+    raw-block DEFA {
+        raw-block CNVS `3a010000a6010000`
+    }
+    awiz {
+        raw-block RELO `0d0000000a000000`
+        wizh
+        wizd 1 "miscres2/image136/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000006a000000`
+        wizh
+        wizd 1 "miscres2/image136/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `0d000000ca000000`
+        wizh
+        wizd 1 "miscres2/image136/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000008a010000`
+        wizh
+        wizd 1 "miscres2/image136/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000000a000000`
+        wizh
+        wizd 1 "miscres2/image136/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image137@137 {
+    raw-block DEFA {
+        raw-block CNVS `9a00000076010000`
+    }
+    awiz {
+        raw-block RELO `0d000000fa000000`
+        wizh
+        wizd 1 "miscres2/image137/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000002a010000`
+        wizh
+        wizd 1 "miscres2/image137/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000003a000000`
+        wizh
+        wizd 1 "miscres2/image137/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000005a010000`
+        wizh
+        wizd 1 "miscres2/image137/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000009a000000`
+        wizh
+        wizd 1 "miscres2/image137/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image138@138 {
+    raw-block DEFA {
+        raw-block CNVS `3a010000a6010000`
+    }
+    awiz {
+        raw-block RELO `ad000000ca000000`
+        wizh
+        wizd 1 "miscres2/image138/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ad000000fa000000`
+        wizh
+        wizd 1 "miscres2/image138/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000002a010000`
+        wizh
+        wizd 1 "miscres2/image138/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000005a010000`
+        wizh
+        wizd 1 "miscres2/image138/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000008a010000`
+        wizh
+        wizd 1 "miscres2/image138/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image139@139 {
+    raw-block DEFA {
+        raw-block CNVS `da010000e6000000`
+    }
+    awiz {
+        raw-block RELO `4d0100000a000000`
+        wizh
+        wizd 1 "miscres2/image139/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100003a000000`
+        wizh
+        wizd 1 "miscres2/image139/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100006a000000`
+        wizh
+        wizd 1 "miscres2/image139/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100009a000000`
+        wizh
+        wizd 1 "miscres2/image139/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `4d010000ca000000`
+        wizh
+        wizd 1 "miscres2/image139/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image140@140 {
+    raw-block DEFA {
+        raw-block CNVS `da010000a6010000`
+    }
+    awiz {
+        raw-block RELO `4d010000fa000000`
+        wizh
+        wizd 1 "miscres2/image140/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100002a010000`
+        wizh
+        wizd 1 "miscres2/image140/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100005a010000`
+        wizh
+        wizd 1 "miscres2/image140/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100008a010000`
+        wizh
+        wizd 1 "miscres2/image140/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image141@141 {
+    raw-block DEFA {
+        raw-block CNVS `7a020000e6000000`
+    }
+    awiz {
+        raw-block RELO `ed0100000a000000`
+        wizh
+        wizd 1 "miscres2/image141/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100003a000000`
+        wizh
+        wizd 1 "miscres2/image141/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100006a000000`
+        wizh
+        wizd 1 "miscres2/image141/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100009a000000`
+        wizh
+        wizd 1 "miscres2/image141/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `ed010000ca000000`
+        wizh
+        wizd 1 "miscres2/image141/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image142@142 {
+    raw-block DEFA {
+        raw-block CNVS `1a030000a6010000`
+    }
+    awiz {
+        raw-block RELO `ed010000fa000000`
+        wizh
+        wizd 1 "miscres2/image142/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100002a010000`
+        wizh
+        wizd 1 "miscres2/image142/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100005a010000`
+        wizh
+        wizd 1 "miscres2/image142/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100008a010000`
+        wizh
+        wizd 1 "miscres2/image142/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `8d0200006a000000`
+        wizh
+        wizd 1 "miscres2/image142/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+mult image143@143 {
+    raw-block DEFA {
+        raw-block CNVS `1a03000046010000`
+    }
+    awiz {
+        raw-block RELO `4d0100009a000000`
+        wizh
+        wizd 1 "miscres2/image143/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `8d0200009a000000`
+        wizh
+        wizd 1 "miscres2/image143/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `8d020000ca000000`
+        wizh
+        wizd 1 "miscres2/image143/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `8d020000fa000000`
+        wizh
+        wizd 1 "miscres2/image143/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `8d0200002a010000`
+        wizh
+        wizd 1 "miscres2/image143/0004.bmp"
+    }
+    indices [0 1 2 3 4]
+}
+awiz image144@144 {
+    raw-block CNVS `1a03000076010000`
+    raw-block RELO `8d0200005a010000`
+    wizh
+    wizd 1 "miscres2/image144.bmp"
+}
+mult image145@145 {
+    raw-block DEFA {
+        raw-block CNVS `9a000000ee000000`
+    }
+    awiz {
+        raw-block RELO `0d0000000a000000`
+        wizh
+        wizd 1 "miscres2/image145/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0d000000d2000000`
+        wizh
+        wizd 1 "miscres2/image145/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `0d00000032000000`
+        wizh
+        wizd 1 "miscres2/image145/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `0d00000082000000`
+        wizh
+        wizd 1 "miscres2/image145/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `0d000000aa000000`
+        wizh
+        wizd 1 "miscres2/image145/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000005a000000`
+        wizh
+        wizd 1 "miscres2/image145/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image146@146 {
+    raw-block DEFA {
+        raw-block CNVS `3a010000be010000`
+    }
+    awiz {
+        raw-block RELO `0d000000fa000000`
+        wizh
+        wizd 1 "miscres2/image146/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0d00000022010000`
+        wizh
+        wizd 1 "miscres2/image146/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `0d0000004a010000`
+        wizh
+        wizd 1 "miscres2/image146/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `0d00000072010000`
+        wizh
+        wizd 1 "miscres2/image146/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `0d000000a2010000`
+        wizh
+        wizd 1 "miscres2/image146/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000000a000000`
+        wizh
+        wizd 1 "miscres2/image146/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image147@147 {
+    raw-block DEFA {
+        raw-block CNVS `3a01000016010000`
+    }
+    awiz {
+        raw-block RELO `ad00000032000000`
+        wizh
+        wizd 1 "miscres2/image147/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000005a000000`
+        wizh
+        wizd 1 "miscres2/image147/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `ad00000082000000`
+        wizh
+        wizd 1 "miscres2/image147/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `ad000000aa000000`
+        wizh
+        wizd 1 "miscres2/image147/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `ad000000d2000000`
+        wizh
+        wizd 1 "miscres2/image147/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `ad000000fa000000`
+        wizh
+        wizd 1 "miscres2/image147/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image148@148 {
+    raw-block DEFA {
+        raw-block CNVS `3a01000066010000`
+    }
+    awiz {
+        raw-block RELO `ad00000022010000`
+        wizh
+        wizd 1 "miscres2/image148/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ad0000004a010000`
+        wizh
+        wizd 1 "miscres2/image148/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image149@149 {
+    raw-block DEFA {
+        raw-block CNVS `da010000be010000`
+    }
+    awiz {
+        raw-block RELO `ad00000072010000`
+        wizh
+        wizd 1 "miscres2/image149/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ad000000a2010000`
+        wizh
+        wizd 1 "miscres2/image149/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100000a000000`
+        wizh
+        wizd 1 "miscres2/image149/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `4d01000032000000`
+        wizh
+        wizd 1 "miscres2/image149/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100005a000000`
+        wizh
+        wizd 1 "miscres2/image149/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `4d01000082000000`
+        wizh
+        wizd 1 "miscres2/image149/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image150@150 {
+    raw-block DEFA {
+        raw-block CNVS `da0100008e010000`
+    }
+    awiz {
+        raw-block RELO `4d010000aa000000`
+        wizh
+        wizd 1 "miscres2/image150/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `4d010000d2000000`
+        wizh
+        wizd 1 "miscres2/image150/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4d010000fa000000`
+        wizh
+        wizd 1 "miscres2/image150/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `4d01000022010000`
+        wizh
+        wizd 1 "miscres2/image150/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `4d0100004a010000`
+        wizh
+        wizd 1 "miscres2/image150/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `4d01000072010000`
+        wizh
+        wizd 1 "miscres2/image150/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image151@151 {
+    raw-block DEFA {
+        raw-block CNVS `7a020000be010000`
+    }
+    awiz {
+        raw-block RELO `4d010000a2010000`
+        wizh
+        wizd 1 "miscres2/image151/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100000a000000`
+        wizh
+        wizd 1 "miscres2/image151/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `ed01000032000000`
+        wizh
+        wizd 1 "miscres2/image151/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `ed0100005a000000`
+        wizh
+        wizd 1 "miscres2/image151/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+awiz image152@152 {
+    rgbs
+    raw-block CNVS `6002000058000000`
+    raw-block RELO `e001000018000000`
+    wizh
+    wizd 1 "miscres2/image152.bmp"
+}
+mult image153@153 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image153/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34ffffff36ffffff`
+        wizd 1 "miscres2/image153/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edfeffff36ffffff`
+        wizd 1 "miscres2/image153/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a8feffff36ffffff`
+        wizd 1 "miscres2/image153/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffeffff37ffffff`
+        wizd 1 "miscres2/image153/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18feffff36ffffff`
+        wizd 1 "miscres2/image153/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d2fdffff36ffffff`
+        wizd 1 "miscres2/image153/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image154@154 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image154/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34ffffff36ffffff`
+        wizd 1 "miscres2/image154/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edfeffff36ffffff`
+        wizd 1 "miscres2/image154/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34fffffff3feffff`
+        wizd 1 "miscres2/image154/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edfefffff3feffff`
+        wizd 1 "miscres2/image154/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6feffff36ffffff`
+        wizd 1 "miscres2/image154/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffeffff37ffffff`
+        wizd 1 "miscres2/image154/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6fefffff3feffff`
+        wizd 1 "miscres2/image154/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffefffff3feffff`
+        wizd 1 "miscres2/image154/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `81feffffb0feffff`
+        wizd 1 "miscres2/image154/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18feffff36ffffff`
+        wizd 1 "miscres2/image154/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1fdffff36ffffff`
+        wizd 1 "miscres2/image154/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18fefffff3feffff`
+        wizd 1 "miscres2/image154/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1fdfffff3feffff`
+        wizd 1 "miscres2/image154/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f3fdffffb0feffff`
+        wizd 1 "miscres2/image154/0013.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13]
+}
+mult image155@155 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image155/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34ffffff36ffffff`
+        wizd 1 "miscres2/image155/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edfeffff36ffffff`
+        wizd 1 "miscres2/image155/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `34fffffff3feffff`
+        wizd 1 "miscres2/image155/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edfefffff3feffff`
+        wizd 1 "miscres2/image155/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0fffffffb0feffff`
+        wizd 1 "miscres2/image155/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6feffff36ffffff`
+        wizd 1 "miscres2/image155/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffeffff36ffffff`
+        wizd 1 "miscres2/image155/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6fefffff3feffff`
+        wizd 1 "miscres2/image155/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffefffff3feffff`
+        wizd 1 "miscres2/image155/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6feffffb0feffff`
+        wizd 1 "miscres2/image155/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5ffeffffb0feffff`
+        wizd 1 "miscres2/image155/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18feffff36ffffff`
+        wizd 1 "miscres2/image155/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1fdffff36ffffff`
+        wizd 1 "miscres2/image155/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18fefffff3feffff`
+        wizd 1 "miscres2/image155/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1fdfffff3feffff`
+        wizd 1 "miscres2/image155/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f3fdffffb0feffff`
+        wizd 1 "miscres2/image155/0015.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15]
+}
+mult image156@156 {
+    raw-block DEFA {
+        raw-block CNVS `7002000098010000`
+    }
+    awiz {
+        raw-block RELO `0000000010010000`
+        wizh
+        wizd 1 "miscres2/image156/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `a000000010010000`
+        wizh
+        wizd 1 "miscres2/image156/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `e001000070000000`
+        wizh
+        wizd 1 "miscres2/image156/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `0000000070000000`
+        wizh
+        wizd 1 "miscres2/image156/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `a000000070000000`
+        wizh
+        wizd 1 "miscres2/image156/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `4001000070000000`
+        wizh
+        wizd 1 "miscres2/image156/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image157@157 {
+    raw-block DEFA {
+        raw-block CNVS `c8060000d0010000`
+    }
+    awiz {
+        raw-block RELO `1803000048010000`
+        wizh
+        wizd 1 "miscres2/image157/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `38060000a8000000`
+        wizh
+        wizd 1 "miscres2/image157/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `98050000a8000000`
+        wizh
+        wizd 1 "miscres2/image157/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `b803000008000000`
+        wizh
+        wizd 1 "miscres2/image157/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `a800000048010000`
+        wizh
+        wizd 1 "miscres2/image157/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `b803000048010000`
+        wizh
+        wizd 1 "miscres2/image157/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image158@158 {
+    raw-block DEFA {
+        raw-block CNVS `28060000d0010000`
+    }
+    awiz {
+        raw-block RELO `0800000048010000`
+        wizh
+        wizd 1 "miscres2/image158/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `9805000008000000`
+        wizh
+        wizd 1 "miscres2/image158/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4801000048010000`
+        wizh
+        wizd 1 "miscres2/image158/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `f8040000a8000000`
+        wizh
+        wizd 1 "miscres2/image158/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `7802000048010000`
+        wizh
+        wizd 1 "miscres2/image158/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `f804000008000000`
+        wizh
+        wizd 1 "miscres2/image158/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image159@159 {
+    raw-block DEFA {
+        raw-block CNVS `c8060000d0010000`
+    }
+    awiz {
+        raw-block RELO `5804000048010000`
+        wizh
+        wizd 1 "miscres2/image159/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `3806000008000000`
+        wizh
+        wizd 1 "miscres2/image159/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image160@160 {
+    raw-block DEFA {
+        raw-block CNVS `e8040000d0010000`
+    }
+    awiz {
+        raw-block RELO `5804000008000000`
+        wizh
+        wizd 1 "miscres2/image160/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `e801000048010000`
+        wizh
+        wizd 1 "miscres2/image160/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `08000000a8000000`
+        wizh
+        wizd 1 "miscres2/image160/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `e8010000a8000000`
+        wizh
+        wizd 1 "miscres2/image160/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `58040000a8000000`
+        wizh
+        wizd 1 "miscres2/image160/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `18030000a8000000`
+        wizh
+        wizd 1 "miscres2/image160/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image161@161 {
+    raw-block DEFA {
+        raw-block CNVS `a803000030010000`
+    }
+    awiz {
+        raw-block RELO `a800000008000000`
+        wizh
+        wizd 1 "miscres2/image161/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `1803000008000000`
+        wizh
+        wizd 1 "miscres2/image161/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `a8000000a8000000`
+        wizh
+        wizd 1 "miscres2/image161/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `78020000a8000000`
+        wizh
+        wizd 1 "miscres2/image161/0003.bmp"
+    }
+    awiz {
+        raw-block RELO `48010000a8000000`
+        wizh
+        wizd 1 "miscres2/image161/0004.bmp"
+    }
+    awiz {
+        raw-block RELO `0800000008000000`
+        wizh
+        wizd 1 "miscres2/image161/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image162@162 {
+    raw-block DEFA {
+        raw-block CNVS `4804000030010000`
+    }
+    awiz {
+        raw-block RELO `e801000008000000`
+        wizh
+        wizd 1 "miscres2/image162/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `b8030000a8000000`
+        wizh
+        wizd 1 "miscres2/image162/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `4801000008000000`
+        wizh
+        wizd 1 "miscres2/image162/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `7802000008000000`
+        wizh
+        wizd 1 "miscres2/image162/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+awiz image163@163 {
+    rgbs
+    raw-block CNVS `1100000011000000`
+    wizh
+    wizd 1 "miscres2/image163.bmp"
+}
+awiz image164@164 {
+    rgbs
+    raw-block CNVS `1100000011000000`
+    wizh
+    wizd 1 "miscres2/image164.bmp"
+}
+awiz image165@165 {
+    rgbs
+    raw-block CNVS `1100000011000000`
+    wizh
+    wizd 1 "miscres2/image165.bmp"
+}
+mult image166@166 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image166/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "miscres2/image166/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "miscres2/image166/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "miscres2/image166/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "miscres2/image166/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "miscres2/image166/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "miscres2/image166/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "miscres2/image166/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "miscres2/image166/0007.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7]
+}
+mult image167@167 {
+    awiz {
+        wizh
+        wizd 1 "miscres2/image167/0000.bmp"
+    }
+    indices [0]
+}
+mult image168@168 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image168/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f0ffffff88ffffff`
+        wizd 1 "miscres2/image168/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e6fffffff0feffff`
+        wizd 1 "miscres2/image168/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e6ffffff7fffffff`
+        wizd 1 "miscres2/image168/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e6ffffff76ffffff`
+        wizd 1 "miscres2/image168/0003.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image168/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f7feffffc6feffff`
+        wizd 1 "miscres2/image168/0005.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image168/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f3feffffc2feffff`
+        wizd 1 "miscres2/image168/0007.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7]
+}
+mult image169@169 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image169/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff63ffffff`
+        wizd 1 "miscres2/image169/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `83ffffff63ffffff`
+        wizd 1 "miscres2/image169/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `29ffffff63ffffff`
+        wizd 1 "miscres2/image169/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `daffffff15ffffff`
+        wizd 1 "miscres2/image169/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `98ffffff15ffffff`
+        wizd 1 "miscres2/image169/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `56ffffff15ffffff`
+        wizd 1 "miscres2/image169/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `14ffffff15ffffff`
+        wizd 1 "miscres2/image169/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffffd2feffff`
+        wizd 1 "miscres2/image169/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b0ffffffd2feffff`
+        wizd 1 "miscres2/image169/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6bffffffd4feffff`
+        wizd 1 "miscres2/image169/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6bffffffb5feffff`
+        wizd 1 "miscres2/image169/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff95feffff`
+        wizd 1 "miscres2/image169/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b0ffffff95feffff`
+        wizd 1 "miscres2/image169/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `74ffffff90feffff`
+        wizd 1 "miscres2/image169/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff24ffffff`
+        wizd 1 "miscres2/image169/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `83ffffff24ffffff`
+        wizd 1 "miscres2/image169/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `29ffffff24ffffff`
+        wizd 1 "miscres2/image169/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff63ffffff`
+        wizd 1 "miscres2/image169/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `83ffffff63ffffff`
+        wizd 1 "miscres2/image169/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `29ffffff63ffffff`
+        wizd 1 "miscres2/image169/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `daffffff15ffffff`
+        wizd 1 "miscres2/image169/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `98ffffff15ffffff`
+        wizd 1 "miscres2/image169/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `56ffffff15ffffff`
+        wizd 1 "miscres2/image169/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `14ffffff15ffffff`
+        wizd 1 "miscres2/image169/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffffd2feffff`
+        wizd 1 "miscres2/image169/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b0ffffffd2feffff`
+        wizd 1 "miscres2/image169/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6bffffffd4feffff`
+        wizd 1 "miscres2/image169/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6bffffffb5feffff`
+        wizd 1 "miscres2/image169/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff95feffff`
+        wizd 1 "miscres2/image169/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b0ffffff95feffff`
+        wizd 1 "miscres2/image169/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `74ffffff90feffff`
+        wizd 1 "miscres2/image169/0030.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `dcffffff24ffffff`
+        wizd 1 "miscres2/image169/0031.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `83ffffff24ffffff`
+        wizd 1 "miscres2/image169/0032.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `29ffffff24ffffff`
+        wizd 1 "miscres2/image169/0033.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33]
+}
+mult image171@171 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image171/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dfeffff9cfeffff`
+        wizd 1 "miscres2/image171/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8]
+}
+awiz image172@172 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image172.bmp"
+}
+awiz image173@173 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image173.bmp"
+}
+awiz image174@174 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image174.bmp"
+}
+awiz image175@175 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image175.bmp"
+}
+awiz image176@176 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image176.bmp"
+}
+awiz image177@177 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image177.bmp"
+}
+awiz image178@178 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image178.bmp"
+}
+awiz image179@179 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image179.bmp"
+}
+awiz image180@180 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image180.bmp"
+}
+awiz image181@181 {
+    rgbs
+    raw-block CNVS `500200005e010000`
+    raw-block RELO `55010000a2000000`
+    wizh
+    wizd 1 "miscres2/image181.bmp"
+}
+mult image976@976 {
+    awiz {
+        wizh
+        raw-block SPOT `90fffffffcffffff`
+        wizd 1 "miscres2/image976/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8ffffffffbffffff`
+        wizd 1 "miscres2/image976/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image977@977 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image977/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1a0100008dffffff`
+        wizd 1 "miscres2/image977/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1a0100008dffffff`
+        wizd 1 "miscres2/image977/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8e0000008dffffff`
+        wizd 1 "miscres2/image977/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8e0000008dffffff`
+        wizd 1 "miscres2/image977/0003.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0004.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0005.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0006.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0007.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0008.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0009.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0010.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "miscres2/image977/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000090ffffff`
+        wizd 1 "miscres2/image977/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000090ffffff`
+        wizd 1 "miscres2/image977/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3affffff90ffffff`
+        wizd 1 "miscres2/image977/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3affffff90ffffff`
+        wizd 1 "miscres2/image977/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `410000000e000000`
+        wizd 1 "miscres2/image977/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `410000000e000000`
+        wizd 1 "miscres2/image977/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0a0000000e000000`
+        wizd 1 "miscres2/image977/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0a0000000e000000`
+        wizd 1 "miscres2/image977/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `caffffff0e000000`
+        wizd 1 "miscres2/image977/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `caffffff0e000000`
+        wizd 1 "miscres2/image977/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `93ffffff0e000000`
+        wizd 1 "miscres2/image977/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `93ffffff0e000000`
+        wizd 1 "miscres2/image977/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4effffff0e000000`
+        wizd 1 "miscres2/image977/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4effffff0e000000`
+        wizd 1 "miscres2/image977/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `19ffffff0e000000`
+        wizd 1 "miscres2/image977/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `19ffffff0e000000`
+        wizd 1 "miscres2/image977/0027.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
+}
+mult image978@978 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image978/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `560000006b000000`
+        wizd 1 "miscres2/image978/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `560000006b000000`
+        wizd 1 "miscres2/image978/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image979@979 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image979/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2b0100006b000000`
+        wizd 1 "miscres2/image979/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2b0100006b000000`
+        wizd 1 "miscres2/image979/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2b0100006b000000`
+        wizd 1 "miscres2/image979/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2b0100006b000000`
+        wizd 1 "miscres2/image979/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image980@980 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image980/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `93ffffff19000000`
+        wizd 1 "miscres2/image980/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `93ffffff19000000`
+        wizd 1 "miscres2/image980/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image981@981 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image981/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `47000000acffffff`
+        wizd 1 "miscres2/image981/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `470000009cffffff`
+        wizd 1 "miscres2/image981/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `470000008cffffff`
+        wizd 1 "miscres2/image981/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `470000007cffffff`
+        wizd 1 "miscres2/image981/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image982@982 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image982/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3c0000003d000000`
+        wizd 1 "miscres2/image982/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `220000003d000000`
+        wizd 1 "miscres2/image982/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `070000003d000000`
+        wizd 1 "miscres2/image982/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `edffffff3d000000`
+        wizd 1 "miscres2/image982/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d2ffffff3d000000`
+        wizd 1 "miscres2/image982/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `b8ffffff3d000000`
+        wizd 1 "miscres2/image982/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9effffff3d000000`
+        wizd 1 "miscres2/image982/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `83ffffff3d000000`
+        wizd 1 "miscres2/image982/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `69ffffff3d000000`
+        wizd 1 "miscres2/image982/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `57ffffff3d000000`
+        wizd 1 "miscres2/image982/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3dffffff3d000000`
+        wizd 1 "miscres2/image982/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `22ffffff3d000000`
+        wizd 1 "miscres2/image982/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `08ffffff3d000000`
+        wizd 1 "miscres2/image982/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `4400000014000000`
+        wizd 1 "miscres2/image982/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2900000014000000`
+        wizd 1 "miscres2/image982/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0f00000014000000`
+        wizd 1 "miscres2/image982/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffff14000000`
+        wizd 1 "miscres2/image982/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `daffffff14000000`
+        wizd 1 "miscres2/image982/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `c0ffffff14000000`
+        wizd 1 "miscres2/image982/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a5ffffff14000000`
+        wizd 1 "miscres2/image982/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8bffffff14000000`
+        wizd 1 "miscres2/image982/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `70ffffff14000000`
+        wizd 1 "miscres2/image982/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `56ffffff14000000`
+        wizd 1 "miscres2/image982/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `33ffffff14000000`
+        wizd 1 "miscres2/image982/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `18ffffff14000000`
+        wizd 1 "miscres2/image982/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefeffff14000000`
+        wizd 1 "miscres2/image982/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e7feffff0d000000`
+        wizd 1 "miscres2/image982/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `e6ffffffefffffff`
+        wizd 1 "miscres2/image982/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `8dffffffefffffff`
+        wizd 1 "miscres2/image982/0028.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28]
+}
+mult image983@983 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image983/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0affffff3e000000`
+        wizd 1 "miscres2/image983/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0affffff5f000000`
+        wizd 1 "miscres2/image983/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1508@1508 {
+    raw-block DEFA {
+        raw-block RGBS "miscres2/image1508/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `38010000e8000000`
+        wizd 1 "miscres2/image1508/0000.bmp"
+    }
+    indices [0]
+}
+mult image1571@1571 {
+    awiz {
+        wizh
+        raw-block SPOT `2a010000ecffffff`
+        wizd 1 "miscres2/image1571/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a010000ecffffff`
+        wizd 1 "miscres2/image1571/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a010000bdffffff`
+        wizd 1 "miscres2/image1571/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2a010000bdffffff`
+        wizd 1 "miscres2/image1571/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0d00000050000000`
+        wizd 1 "miscres2/image1571/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0d00000050000000`
+        wizd 1 "miscres2/image1571/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1ffffff50000000`
+        wizd 1 "miscres2/image1571/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `d1ffffff50000000`
+        wizd 1 "miscres2/image1571/0007.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7]
+}

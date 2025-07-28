@@ -1,9 +1,0 @@
-; SCRP 59 FreeSprite
-
-parameter arg0
-
-gSpriteStack[gSpriteStackPointer] = arg0
-++gSpriteStackPointer
-sprite-set-range arg0 arg0
-sprite-clear
-free-script

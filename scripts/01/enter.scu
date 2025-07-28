@@ -1,4 +1,0 @@
-; ENCD 1
-
-run-script PlayLogoCutscene []
-finish-script

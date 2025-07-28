@@ -1,8 +1,0 @@
-; LSC2 27 2285
-
-local variable local0
-local variable local1
-
-run-script 283 [room127, room129, gPlayoffTeamsArray[local0], gPlayoffRosterArray[local0][12], gPlayoffRosterArray[local0][13], room90, 555, 418, -900]
-run-script 283 [room128, room130, gPlayoffTeamsArray[local1], gPlayoffRosterArray[local1][12], gPlayoffRosterArray[local1][13], room133, 792, 418, -900]
-free-script

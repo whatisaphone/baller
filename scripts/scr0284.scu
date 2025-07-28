@@ -1,9 +1,0 @@
-; SCRP 284
-
-local variable local0
-
-if (local0 < 100) {
-    local0 = local0 + 100
-}
-return (gMLBTeamData[local0][1] == 1)
-free-script

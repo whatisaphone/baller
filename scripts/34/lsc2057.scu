@@ -1,8 +1,0 @@
-; LSC2 34 2057
-
-if (gPitcherPitches[1 - gBattingTeamInfoIndex][1] == 0) {
-    run-script 2048 []
-}
-run-script 2056 []
-run-script 2051 [global204, global205]
-free-script

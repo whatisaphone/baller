@@ -1,8 +1,0 @@
-; LSC2 27 2347 IfAutoplayingPlayNext
-
---gAutoplaySeason
-if (gAutoplaySeason) {
-    sleep-seconds 1
-    go-to-room 7
-}
-free-script

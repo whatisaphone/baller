@@ -1,8 +1,0 @@
-; SCRP 321
-
-local variable local0
-local variable local1
-local variable local2
-
-local2 = kludge-retval [2001, 2206, local0, local1]
-free-script

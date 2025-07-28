@@ -1,9 +1,0 @@
-; SCRP 257 maybe_kid_get_costume_fielding2
-
-parameter kid: Kid
-
-local variable local1
-
-local1 = call-script maybe_kid_get_costume_fielding [kid]
-return local1
-free-script

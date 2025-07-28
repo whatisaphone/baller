@@ -1,7 +1,0 @@
-; LSC2 27 2276
-
-run-script ReleaseSprite [room139]
-room139 = 0
-run-script ReleaseSprite [room138]
-room138 = 0
-free-script

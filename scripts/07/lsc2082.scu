@@ -1,8 +1,0 @@
-; LSC2 7 2082
-
-dim array room6 i16[0...0][0...47] swap=2
-for temp = 0 to 47 ++ {
-    room6[temp] = call-script FindFreeSprite []
-}
-return 1
-free-script

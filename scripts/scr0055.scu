@@ -1,6 +1,0 @@
-; SCRP 55
-
-local variable local0
-
-free-array local0
-free-script

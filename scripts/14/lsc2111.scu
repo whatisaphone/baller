@@ -1,8 +1,0 @@
-; LSC2 14 2111
-
-local variable local0
-
-local0 = "The Best of the Show"
-run-script 2072 [-1, 1424, 1104, 0, local0]
-free-array local0
-free-script

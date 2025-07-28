@@ -1,7 +1,0 @@
-; LSC2 27 2048
-
-if (room144) {
-    free-array room144
-}
-dim array room144 i16[0...0][0...273] swap=2
-free-script

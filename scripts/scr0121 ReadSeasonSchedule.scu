@@ -1,8 +1,0 @@
-; SCRP 121 ReadSeasonSchedule
-
-parameter arg0
-parameter arg1
-parameter field: SeasonScheduleField
-
-return gSeasonScheduleArray[arg0][arg1 * 7 + field]
-free-script

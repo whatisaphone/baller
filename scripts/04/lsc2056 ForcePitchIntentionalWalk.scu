@@ -1,5 +1,0 @@
-; LSC2 4 2056 ForcePitchIntentionalWalk
-
-run-script SelectSwingOrPitch [5, 27, false]
-run-script SendBatViewMessage [MSG-CHOOSE-PITCH-LOCATION, 277, rStrikeZoneMinY]
-free-script

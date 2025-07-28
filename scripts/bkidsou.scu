@@ -1,0 +1,2403 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "bkidsou/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+}
+
+exit {
+}
+
+sound DIGI sound1540@1540 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1540.wav"
+}
+sound DIGI sound1541@1541 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1541.wav"
+}
+sound DIGI sound1542@1542 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1542.wav"
+}
+sound DIGI sound1543@1543 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1543.wav"
+}
+sound DIGI sound1544@1544 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1544.wav"
+}
+sound DIGI sound1545@1545 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1545.wav"
+}
+sound DIGI sound1546@1546 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1546.wav"
+}
+sound DIGI sound1547@1547 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1547.wav"
+}
+sound DIGI sound1548@1548 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1548.wav"
+}
+sound DIGI sound1549@1549 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1549.wav"
+}
+sound DIGI sound1550@1550 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1550.wav"
+}
+sound DIGI sound1551@1551 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1551.wav"
+}
+sound DIGI sound1552@1552 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1552.wav"
+}
+sound DIGI sound1553@1553 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1553.wav"
+}
+sound DIGI sound1554@1554 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1554.wav"
+}
+sound DIGI sound1555@1555 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1555.wav"
+}
+sound DIGI sound1556@1556 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1556.wav"
+}
+sound DIGI sound1557@1557 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1557.wav"
+}
+sound DIGI sound1558@1558 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1558.wav"
+}
+sound DIGI sound1559@1559 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1559.wav"
+}
+sound DIGI sound1560@1560 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1560.wav"
+}
+sound DIGI sound1561@1561 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1561.wav"
+}
+sound DIGI sound1562@1562 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1562.wav"
+}
+sound DIGI sound1563@1563 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1563.wav"
+}
+sound DIGI sound1564@1564 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1564.wav"
+}
+sound DIGI sound1565@1565 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1565.wav"
+}
+sound DIGI sound1566@1566 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1566.wav"
+}
+sound DIGI sound1567@1567 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1567.wav"
+}
+sound DIGI sound1568@1568 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1568.wav"
+}
+sound DIGI sound1569@1569 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1569.wav"
+}
+sound DIGI sound1570@1570 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1570.wav"
+}
+sound DIGI sound1571@1571 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1571.wav"
+}
+sound DIGI sound1572@1572 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1572.wav"
+}
+sound DIGI sound1573@1573 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1573.wav"
+}
+sound DIGI sound1574@1574 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1574.wav"
+}
+sound DIGI sound1575@1575 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1575.wav"
+}
+sound DIGI sound1576@1576 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1576.wav"
+}
+sound DIGI sound1577@1577 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1577.wav"
+}
+sound DIGI sound1578@1578 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1578.wav"
+}
+sound DIGI sound1579@1579 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1579.wav"
+}
+sound DIGI sound1580@1580 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1580.wav"
+}
+sound DIGI sound1581@1581 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1581.wav"
+}
+sound DIGI sound1582@1582 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1582.wav"
+}
+sound DIGI sound1583@1583 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1583.wav"
+}
+sound DIGI sound1584@1584 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1584.wav"
+}
+sound DIGI sound1585@1585 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1585.wav"
+}
+sound DIGI sound1586@1586 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1586.wav"
+}
+sound DIGI sound1587@1587 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1587.wav"
+}
+sound DIGI sound1588@1588 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1588.wav"
+}
+sound DIGI sound1589@1589 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1589.wav"
+}
+sound DIGI sound1590@1590 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1590.wav"
+}
+sound DIGI sound1591@1591 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1591.wav"
+}
+sound DIGI sound1592@1592 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1592.wav"
+}
+sound DIGI sound1593@1593 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1593.wav"
+}
+sound DIGI sound1594@1594 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1594.wav"
+}
+sound DIGI sound1595@1595 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1595.wav"
+}
+sound DIGI sound1596@1596 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1596.wav"
+}
+sound DIGI sound1597@1597 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1597.wav"
+}
+sound DIGI sound1598@1598 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1598.wav"
+}
+sound DIGI sound1599@1599 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1599.wav"
+}
+sound DIGI sound1600@1600 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1600.wav"
+}
+sound DIGI sound1601@1601 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1601.wav"
+}
+sound DIGI sound1602@1602 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1602.wav"
+}
+sound DIGI sound1603@1603 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1603.wav"
+}
+sound DIGI sound1604@1604 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1604.wav"
+}
+sound DIGI sound1605@1605 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1605.wav"
+}
+sound DIGI sound1606@1606 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1606.wav"
+}
+sound DIGI sound1607@1607 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1607.wav"
+}
+sound DIGI sound1608@1608 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1608.wav"
+}
+sound DIGI sound1609@1609 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1609.wav"
+}
+sound DIGI sound1610@1610 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1610.wav"
+}
+sound DIGI sound1611@1611 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1611.wav"
+}
+sound DIGI sound1612@1612 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1612.wav"
+}
+sound DIGI sound1613@1613 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1613.wav"
+}
+sound DIGI sound1614@1614 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1614.wav"
+}
+sound DIGI sound1615@1615 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1615.wav"
+}
+sound DIGI sound1616@1616 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1616.wav"
+}
+sound DIGI sound1617@1617 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1617.wav"
+}
+sound DIGI sound1618@1618 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1618.wav"
+}
+sound DIGI sound1619@1619 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1619.wav"
+}
+sound DIGI sound1620@1620 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1620.wav"
+}
+sound DIGI sound1621@1621 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1621.wav"
+}
+sound DIGI sound1622@1622 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1622.wav"
+}
+sound DIGI sound1623@1623 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1623.wav"
+}
+sound DIGI sound1624@1624 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1624.wav"
+}
+sound DIGI sound1625@1625 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1625.wav"
+}
+sound DIGI sound1626@1626 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1626.wav"
+}
+sound DIGI sound1627@1627 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1627.wav"
+}
+sound DIGI sound1628@1628 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1628.wav"
+}
+sound DIGI sound1629@1629 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1629.wav"
+}
+sound DIGI sound1630@1630 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1630.wav"
+}
+sound DIGI sound1631@1631 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1631.wav"
+}
+sound DIGI sound1632@1632 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1632.wav"
+}
+sound DIGI sound1633@1633 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1633.wav"
+}
+sound DIGI sound1634@1634 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1634.wav"
+}
+sound DIGI sound1635@1635 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1635.wav"
+}
+sound DIGI sound1636@1636 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1636.wav"
+}
+sound DIGI sound1637@1637 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1637.wav"
+}
+sound DIGI sound1638@1638 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1638.wav"
+}
+sound DIGI sound1639@1639 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1639.wav"
+}
+sound DIGI sound1640@1640 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1640.wav"
+}
+sound DIGI sound1641@1641 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1641.wav"
+}
+sound DIGI sound1642@1642 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1642.wav"
+}
+sound DIGI sound1643@1643 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1643.wav"
+}
+sound DIGI sound1644@1644 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1644.wav"
+}
+sound DIGI sound1645@1645 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1645.wav"
+}
+sound DIGI sound1646@1646 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1646.wav"
+}
+sound DIGI sound1647@1647 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1647.wav"
+}
+sound DIGI sound1648@1648 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1648.wav"
+}
+sound DIGI sound1649@1649 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1649.wav"
+}
+sound DIGI sound1650@1650 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1650.wav"
+}
+sound DIGI sound1651@1651 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1651.wav"
+}
+sound DIGI sound1652@1652 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1652.wav"
+}
+sound DIGI sound1653@1653 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1653.wav"
+}
+sound DIGI sound1654@1654 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1654.wav"
+}
+sound DIGI sound1655@1655 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1655.wav"
+}
+sound DIGI sound1656@1656 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1656.wav"
+}
+sound DIGI sound1657@1657 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1657.wav"
+}
+sound DIGI sound1658@1658 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1658.wav"
+}
+sound DIGI sound1659@1659 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1659.wav"
+}
+sound TALK sound1660@1660 {
+    raw-block HSHD `00008080ffff112b9d52560200000000`
+    sdat "bkidsou/sound1660.wav"
+}
+sound TALK sound1661@1661 {
+    raw-block HSHD `00008080ffff112b6c77560200000000`
+    sdat "bkidsou/sound1661.wav"
+}
+sound TALK sound1662@1662 {
+    raw-block HSHD `00008080ffff112b77a2560200000000`
+    sdat "bkidsou/sound1662.wav"
+}
+sound TALK sound1663@1663 {
+    raw-block HSHD `00008080ffff112b8cc0560200000000`
+    sdat "bkidsou/sound1663.wav"
+}
+sound TALK sound1664@1664 {
+    raw-block HSHD `00008080ffff112b1fdd560200000000`
+    sdat "bkidsou/sound1664.wav"
+}
+sound TALK sound1665@1665 {
+    raw-block HSHD `00008080ffff112b5008570200000000`
+    sdat "bkidsou/sound1665.wav"
+}
+sound TALK sound1666@1666 {
+    raw-block HSHD `00008080ffff112b819f570200000000`
+    sdat "bkidsou/sound1666.wav"
+}
+sound TALK sound1667@1667 {
+    raw-block HSHD `00008080ffff112bafc3570200000000`
+    sdat "bkidsou/sound1667.wav"
+}
+sound TALK sound1668@1668 {
+    raw-block HSHD `00008080ffff112b2edf570200000000`
+    sdat "bkidsou/sound1668.wav"
+}
+sound TALK sound1669@1669 {
+    raw-block HSHD `00008080ffff112bb604580200000000`
+    sdat "bkidsou/sound1669.wav"
+}
+sound TALK sound1670@1670 {
+    raw-block HSHD `00008080ffff112b572e580200000000`
+    sdat "bkidsou/sound1670.wav"
+}
+sound TALK sound1671@1671 {
+    raw-block HSHD `00008080ffff112bae50580200000000`
+    sdat "bkidsou/sound1671.wav"
+}
+sound TALK sound1672@1672 {
+    raw-block HSHD `00008080ffff112b2e70580200000000`
+    sdat "bkidsou/sound1672.wav"
+}
+sound TALK sound1673@1673 {
+    raw-block HSHD `00008080ffff112bca8d580200000000`
+    sdat "bkidsou/sound1673.wav"
+}
+sound TALK sound1674@1674 {
+    raw-block HSHD `00008080ffff112b56b7580200000000`
+    sdat "bkidsou/sound1674.wav"
+}
+sound TALK sound1675@1675 {
+    raw-block HSHD `00008080ffff112bd6d7580200000000`
+    sdat "bkidsou/sound1675.wav"
+}
+sound TALK sound1676@1676 {
+    raw-block HSHD `00008080ffff112baaf4580200000000`
+    sdat "bkidsou/sound1676.wav"
+}
+sound TALK sound1677@1677 {
+    raw-block HSHD `00008080ffff112b4e14590200000000`
+    sdat "bkidsou/sound1677.wav"
+}
+sound TALK sound1678@1678 {
+    raw-block HSHD `00008080ffff112b2e3b590200000000`
+    sdat "bkidsou/sound1678.wav"
+}
+sound TALK sound1679@1679 {
+    raw-block HSHD `00008080ffff112bba54590200000000`
+    sdat "bkidsou/sound1679.wav"
+}
+sound TALK sound1680@1680 {
+    raw-block HSHD `00008080ffff112b5374590200000000`
+    sdat "bkidsou/sound1680.wav"
+}
+sound TALK sound1681@1681 {
+    raw-block HSHD `00008080ffff112bfe9c590200000000`
+    sdat "bkidsou/sound1681.wav"
+}
+sound TALK sound1682@1682 {
+    raw-block HSHD `00008080ffff112baac8590200000000`
+    sdat "bkidsou/sound1682.wav"
+}
+sound TALK sound1683@1683 {
+    raw-block HSHD `00008080ffff112baee9590200000000`
+    sdat "bkidsou/sound1683.wav"
+}
+sound TALK sound1684@1684 {
+    raw-block HSHD `00008080ffff112bd6165a0200000000`
+    sdat "bkidsou/sound1684.wav"
+}
+sound TALK sound1685@1685 {
+    raw-block HSHD `00008080ffff112bad405a0200000000`
+    sdat "bkidsou/sound1685.wav"
+}
+sound TALK sound1686@1686 {
+    raw-block HSHD `00008080ffff112b26635a0200000000`
+    sdat "bkidsou/sound1686.wav"
+}
+sound TALK sound1687@1687 {
+    raw-block HSHD `00008080ffff112bfa985a0200000000`
+    sdat "bkidsou/sound1687.wav"
+}
+sound TALK sound1688@1688 {
+    raw-block HSHD `00008080ffff112b4ccd5a0200000000`
+    sdat "bkidsou/sound1688.wav"
+}
+sound TALK sound1689@1689 {
+    raw-block HSHD `00008080ffff112b31fa5a0200000000`
+    sdat "bkidsou/sound1689.wav"
+}
+sound TALK sound1690@1690 {
+    raw-block HSHD `00008080ffff112b40295b0200000000`
+    sdat "bkidsou/sound1690.wav"
+}
+sound TALK sound1691@1691 {
+    raw-block HSHD `00008080ffff112baf595b0200000000`
+    sdat "bkidsou/sound1691.wav"
+}
+sound TALK sound1692@1692 {
+    raw-block HSHD `00008080ffff112ba5925b0200000000`
+    sdat "bkidsou/sound1692.wav"
+}
+sound TALK sound1693@1693 {
+    raw-block HSHD `00008080ffff112bc6c05b0200000000`
+    sdat "bkidsou/sound1693.wav"
+}
+sound TALK sound1694@1694 {
+    raw-block HSHD `00008080ffff112b07d75b0200000000`
+    sdat "bkidsou/sound1694.wav"
+}
+sound TALK sound1695@1695 {
+    raw-block HSHD `00008080ffff112bb8f85b0200000000`
+    sdat "bkidsou/sound1695.wav"
+}
+sound TALK sound1696@1696 {
+    raw-block HSHD `00008080ffff112bcd245c0200000000`
+    sdat "bkidsou/sound1696.wav"
+}
+sound TALK sound1697@1697 {
+    raw-block HSHD `00008080ffff112bf5435c0200000000`
+    sdat "bkidsou/sound1697.wav"
+}
+sound TALK sound1698@1698 {
+    raw-block HSHD `00008080ffff112b19655c0200000000`
+    sdat "bkidsou/sound1698.wav"
+}
+sound TALK sound1699@1699 {
+    raw-block HSHD `00008080ffff112b978b5c0200000000`
+    sdat "bkidsou/sound1699.wav"
+}
+sound TALK sound1700@1700 {
+    raw-block HSHD `00008080ffff112b2da45c0200000000`
+    sdat "bkidsou/sound1700.wav"
+}
+sound TALK sound1701@1701 {
+    raw-block HSHD `00008080ffff112babba5c0200000000`
+    sdat "bkidsou/sound1701.wav"
+}
+sound TALK sound1702@1702 {
+    raw-block HSHD `00008080ffff112b12dd5c0200000000`
+    sdat "bkidsou/sound1702.wav"
+}
+sound TALK sound1703@1703 {
+    raw-block HSHD `00008080ffff112bbc0c5d0200000000`
+    sdat "bkidsou/sound1703.wav"
+}
+sound TALK sound1704@1704 {
+    raw-block HSHD `00008080ffff112bb32e5d0200000000`
+    sdat "bkidsou/sound1704.wav"
+}
+sound TALK sound1705@1705 {
+    raw-block HSHD `00008080ffff112bea4d5d0200000000`
+    sdat "bkidsou/sound1705.wav"
+}
+sound DIGI sound1706@1706 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1706.wav"
+}
+sound DIGI sound1707@1707 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1707.wav"
+}
+sound DIGI sound1708@1708 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1708.wav"
+}
+sound DIGI sound1709@1709 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1709.wav"
+}
+sound DIGI sound1710@1710 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1710.wav"
+}
+sound DIGI sound1711@1711 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1711.wav"
+}
+sound DIGI sound1712@1712 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1712.wav"
+}
+sound DIGI sound1713@1713 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1713.wav"
+}
+sound DIGI sound1714@1714 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1714.wav"
+}
+sound DIGI sound1715@1715 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1715.wav"
+}
+sound DIGI sound1716@1716 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1716.wav"
+}
+sound DIGI sound1717@1717 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1717.wav"
+}
+sound DIGI sound1718@1718 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1718.wav"
+}
+sound DIGI sound1719@1719 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1719.wav"
+}
+sound DIGI sound1720@1720 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1720.wav"
+}
+sound DIGI sound1721@1721 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1721.wav"
+}
+sound DIGI sound1722@1722 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1722.wav"
+}
+sound DIGI sound1723@1723 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1723.wav"
+}
+sound DIGI sound1724@1724 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1724.wav"
+}
+sound DIGI sound1725@1725 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1725.wav"
+}
+sound DIGI sound1726@1726 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1726.wav"
+}
+sound DIGI sound1727@1727 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1727.wav"
+}
+sound DIGI sound1728@1728 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1728.wav"
+}
+sound DIGI sound1729@1729 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1729.wav"
+}
+sound DIGI sound1730@1730 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1730.wav"
+}
+sound DIGI sound1731@1731 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1731.wav"
+}
+sound DIGI sound1732@1732 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1732.wav"
+}
+sound DIGI sound1733@1733 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1733.wav"
+}
+sound DIGI sound1734@1734 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1734.wav"
+}
+sound DIGI sound1735@1735 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1735.wav"
+}
+sound DIGI sound1736@1736 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1736.wav"
+}
+sound DIGI sound1737@1737 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1737.wav"
+}
+sound DIGI sound1738@1738 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1738.wav"
+}
+sound DIGI sound1739@1739 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1739.wav"
+}
+sound DIGI sound1740@1740 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1740.wav"
+}
+sound DIGI sound1741@1741 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1741.wav"
+}
+sound DIGI sound1742@1742 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1742.wav"
+}
+sound DIGI sound1743@1743 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1743.wav"
+}
+sound DIGI sound1744@1744 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1744.wav"
+}
+sound DIGI sound1745@1745 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1745.wav"
+}
+sound DIGI sound1746@1746 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1746.wav"
+}
+sound DIGI sound1747@1747 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1747.wav"
+}
+sound DIGI sound1748@1748 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1748.wav"
+}
+sound DIGI sound1749@1749 {
+    raw-block HSHD `00008080fffff82a0000000000000000`
+    sdat "bkidsou/sound1749.wav"
+}
+sound DIGI sound1750@1750 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1750.wav"
+}
+sound TALK sound1751@1751 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1751.wav"
+}
+sound DIGI sound1752@1752 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1752.wav"
+}
+sound DIGI sound1753@1753 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1753.wav"
+}
+sound DIGI sound1754@1754 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1754.wav"
+}
+sound DIGI sound1755@1755 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1755.wav"
+}
+sound DIGI sound1756@1756 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1756.wav"
+}
+sound DIGI sound1757@1757 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1757.wav"
+}
+sound DIGI sound1758@1758 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1758.wav"
+}
+sound DIGI sound1759@1759 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1759.wav"
+}
+sound DIGI sound1760@1760 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1760.wav"
+}
+sound DIGI sound1761@1761 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1761.wav"
+}
+sound DIGI sound1762@1762 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1762.wav"
+}
+sound DIGI sound1763@1763 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1763.wav"
+}
+sound DIGI sound1764@1764 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1764.wav"
+}
+sound DIGI sound1765@1765 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1765.wav"
+}
+sound DIGI sound1766@1766 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1766.wav"
+}
+sound DIGI sound1767@1767 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1767.wav"
+}
+sound DIGI sound1768@1768 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1768.wav"
+}
+sound DIGI sound1769@1769 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1769.wav"
+}
+sound DIGI sound1770@1770 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1770.wav"
+}
+sound DIGI sound1771@1771 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1771.wav"
+}
+sound DIGI sound1772@1772 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1772.wav"
+}
+sound DIGI sound1773@1773 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1773.wav"
+}
+sound DIGI sound1774@1774 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1774.wav"
+}
+sound DIGI sound1775@1775 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1775.wav"
+}
+sound DIGI sound1776@1776 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1776.wav"
+}
+sound DIGI sound1777@1777 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1777.wav"
+}
+sound DIGI sound1778@1778 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1778.wav"
+}
+sound DIGI sound1779@1779 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1779.wav"
+}
+sound DIGI sound1780@1780 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1780.wav"
+}
+sound DIGI sound1781@1781 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1781.wav"
+}
+sound DIGI sound1782@1782 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1782.wav"
+}
+sound DIGI sound1783@1783 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1783.wav"
+}
+sound DIGI sound1784@1784 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1784.wav"
+}
+sound DIGI sound1785@1785 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1785.wav"
+}
+sound DIGI sound1786@1786 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1786.wav"
+}
+sound DIGI sound1787@1787 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1787.wav"
+}
+sound DIGI sound1788@1788 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1788.wav"
+}
+sound DIGI sound1789@1789 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1789.wav"
+}
+sound DIGI sound1790@1790 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1790.wav"
+}
+sound DIGI sound1791@1791 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1791.wav"
+}
+sound DIGI sound1792@1792 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1792.wav"
+}
+sound DIGI sound1793@1793 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1793.wav"
+}
+sound DIGI sound1794@1794 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1794.wav"
+}
+sound DIGI sound1795@1795 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1795.wav"
+}
+sound DIGI sound1796@1796 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1796.wav"
+}
+sound DIGI sound1797@1797 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1797.wav"
+}
+sound DIGI sound1798@1798 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1798.wav"
+}
+sound DIGI sound1799@1799 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1799.wav"
+}
+sound DIGI sound1800@1800 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1800.wav"
+}
+sound DIGI sound1801@1801 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1801.wav"
+}
+sound DIGI sound1802@1802 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1802.wav"
+}
+sound DIGI sound1803@1803 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1803.wav"
+}
+sound DIGI sound1804@1804 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1804.wav"
+}
+sound DIGI sound1805@1805 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1805.wav"
+}
+sound DIGI sound1806@1806 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1806.wav"
+}
+sound DIGI sound1807@1807 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1807.wav"
+}
+sound DIGI sound1808@1808 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1808.wav"
+}
+sound DIGI sound1809@1809 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1809.wav"
+}
+sound DIGI sound1810@1810 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1810.wav"
+}
+sound DIGI sound1811@1811 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1811.wav"
+}
+sound DIGI sound1812@1812 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1812.wav"
+}
+sound DIGI sound1813@1813 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1813.wav"
+}
+sound DIGI sound1814@1814 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1814.wav"
+}
+sound DIGI sound1815@1815 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1815.wav"
+}
+sound DIGI sound1816@1816 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1816.wav"
+}
+sound DIGI sound1817@1817 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1817.wav"
+}
+sound DIGI sound1818@1818 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1818.wav"
+}
+sound DIGI sound1819@1819 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1819.wav"
+}
+sound DIGI sound1820@1820 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1820.wav"
+}
+sound DIGI sound1821@1821 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1821.wav"
+}
+sound DIGI sound1822@1822 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1822.wav"
+}
+sound DIGI sound1823@1823 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1823.wav"
+}
+sound DIGI sound1824@1824 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1824.wav"
+}
+sound DIGI sound1825@1825 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1825.wav"
+}
+sound DIGI sound1826@1826 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1826.wav"
+}
+sound DIGI sound1827@1827 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1827.wav"
+}
+sound DIGI sound1828@1828 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1828.wav"
+}
+sound DIGI sound1829@1829 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1829.wav"
+}
+sound DIGI sound1830@1830 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1830.wav"
+}
+sound DIGI sound1831@1831 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1831.wav"
+}
+sound DIGI sound1832@1832 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1832.wav"
+}
+sound DIGI sound1833@1833 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1833.wav"
+}
+sound DIGI sound1834@1834 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1834.wav"
+}
+sound DIGI sound1835@1835 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1835.wav"
+}
+sound DIGI sound1836@1836 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1836.wav"
+}
+sound DIGI sound1837@1837 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1837.wav"
+}
+sound DIGI sound1838@1838 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1838.wav"
+}
+sound DIGI sound1839@1839 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1839.wav"
+}
+sound DIGI sound1840@1840 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1840.wav"
+}
+sound DIGI sound1841@1841 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1841.wav"
+}
+sound DIGI sound1842@1842 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1842.wav"
+}
+sound DIGI sound1843@1843 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1843.wav"
+}
+sound DIGI sound1844@1844 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1844.wav"
+}
+sound DIGI sound1845@1845 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1845.wav"
+}
+sound DIGI sound1846@1846 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1846.wav"
+}
+sound DIGI sound1847@1847 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1847.wav"
+}
+sound DIGI sound1848@1848 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1848.wav"
+}
+sound DIGI sound1849@1849 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1849.wav"
+}
+sound DIGI sound1850@1850 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1850.wav"
+}
+sound DIGI sound1851@1851 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1851.wav"
+}
+sound DIGI sound1852@1852 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1852.wav"
+}
+sound DIGI sound1853@1853 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1853.wav"
+}
+sound DIGI sound1854@1854 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1854.wav"
+}
+sound DIGI sound1855@1855 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1855.wav"
+}
+sound DIGI sound1856@1856 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1856.wav"
+}
+sound DIGI sound1857@1857 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1857.wav"
+}
+sound DIGI sound1858@1858 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1858.wav"
+}
+sound DIGI sound1859@1859 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1859.wav"
+}
+sound DIGI sound1860@1860 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1860.wav"
+}
+sound DIGI sound1861@1861 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1861.wav"
+}
+sound DIGI sound1862@1862 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1862.wav"
+}
+sound DIGI sound1863@1863 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1863.wav"
+}
+sound DIGI sound1864@1864 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1864.wav"
+}
+sound DIGI sound1865@1865 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1865.wav"
+}
+sound DIGI sound1866@1866 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1866.wav"
+}
+sound DIGI sound1867@1867 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1867.wav"
+}
+sound DIGI sound1868@1868 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1868.wav"
+}
+sound DIGI sound1869@1869 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1869.wav"
+}
+sound DIGI sound1870@1870 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1870.wav"
+}
+sound DIGI sound1871@1871 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1871.wav"
+}
+sound DIGI sound1872@1872 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1872.wav"
+}
+sound DIGI sound1873@1873 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1873.wav"
+}
+sound DIGI sound1874@1874 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1874.wav"
+}
+sound DIGI sound1875@1875 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1875.wav"
+}
+sound DIGI sound1876@1876 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1876.wav"
+}
+sound DIGI sound1877@1877 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1877.wav"
+}
+sound DIGI sound1878@1878 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1878.wav"
+}
+sound DIGI sound1879@1879 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1879.wav"
+}
+sound DIGI sound1880@1880 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1880.wav"
+}
+sound DIGI sound1881@1881 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1881.wav"
+}
+sound DIGI sound1882@1882 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1882.wav"
+}
+sound DIGI sound1883@1883 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1883.wav"
+}
+sound DIGI sound1884@1884 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1884.wav"
+}
+sound DIGI sound1885@1885 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1885.wav"
+}
+sound DIGI sound1886@1886 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1886.wav"
+}
+sound DIGI sound1887@1887 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1887.wav"
+}
+sound DIGI sound1888@1888 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1888.wav"
+}
+sound DIGI sound1889@1889 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1889.wav"
+}
+sound DIGI sound1890@1890 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1890.wav"
+}
+sound DIGI sound1891@1891 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1891.wav"
+}
+sound DIGI sound1892@1892 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1892.wav"
+}
+sound DIGI sound1893@1893 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1893.wav"
+}
+sound DIGI sound1894@1894 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1894.wav"
+}
+sound DIGI sound1895@1895 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1895.wav"
+}
+sound DIGI sound1896@1896 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1896.wav"
+}
+sound DIGI sound1897@1897 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1897.wav"
+}
+sound DIGI sound1898@1898 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1898.wav"
+}
+sound DIGI sound1899@1899 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1899.wav"
+}
+sound DIGI sound1900@1900 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1900.wav"
+}
+sound DIGI sound1901@1901 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1901.wav"
+}
+sound DIGI sound1902@1902 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1902.wav"
+}
+sound DIGI sound1903@1903 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1903.wav"
+}
+sound DIGI sound1904@1904 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1904.wav"
+}
+sound DIGI sound1905@1905 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1905.wav"
+}
+sound DIGI sound1906@1906 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1906.wav"
+}
+sound DIGI sound1907@1907 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1907.wav"
+}
+sound DIGI sound1908@1908 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1908.wav"
+}
+sound DIGI sound1909@1909 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1909.wav"
+}
+sound DIGI sound1910@1910 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1910.wav"
+}
+sound DIGI sound1911@1911 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1911.wav"
+}
+sound DIGI sound1912@1912 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1912.wav"
+}
+sound DIGI sound1913@1913 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1913.wav"
+}
+sound DIGI sound1914@1914 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1914.wav"
+}
+sound DIGI sound1915@1915 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1915.wav"
+}
+sound DIGI sound1916@1916 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1916.wav"
+}
+sound DIGI sound1917@1917 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1917.wav"
+}
+sound DIGI sound1918@1918 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1918.wav"
+}
+sound DIGI sound1919@1919 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1919.wav"
+}
+sound DIGI sound1920@1920 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1920.wav"
+}
+sound DIGI sound1921@1921 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1921.wav"
+}
+sound DIGI sound1922@1922 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1922.wav"
+}
+sound DIGI sound1923@1923 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1923.wav"
+}
+sound DIGI sound1924@1924 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1924.wav"
+}
+sound DIGI sound1925@1925 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1925.wav"
+}
+sound DIGI sound1926@1926 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1926.wav"
+}
+sound DIGI sound1927@1927 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1927.wav"
+}
+sound DIGI sound1928@1928 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1928.wav"
+}
+sound DIGI sound1929@1929 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1929.wav"
+}
+sound DIGI sound1930@1930 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1930.wav"
+}
+sound DIGI sound1931@1931 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1931.wav"
+}
+sound DIGI sound1932@1932 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1932.wav"
+}
+sound DIGI sound1933@1933 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1933.wav"
+}
+sound DIGI sound1934@1934 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1934.wav"
+}
+sound DIGI sound1935@1935 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1935.wav"
+}
+sound DIGI sound1936@1936 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1936.wav"
+}
+sound DIGI sound1937@1937 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1937.wav"
+}
+sound DIGI sound1938@1938 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1938.wav"
+}
+sound DIGI sound1939@1939 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1939.wav"
+}
+sound DIGI sound1940@1940 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1940.wav"
+}
+sound DIGI sound1941@1941 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1941.wav"
+}
+sound DIGI sound1942@1942 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1942.wav"
+}
+sound DIGI sound1943@1943 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1943.wav"
+}
+sound DIGI sound1944@1944 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1944.wav"
+}
+sound DIGI sound1945@1945 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1945.wav"
+}
+sound DIGI sound1946@1946 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1946.wav"
+}
+sound DIGI sound1947@1947 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1947.wav"
+}
+sound DIGI sound1948@1948 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1948.wav"
+}
+sound DIGI sound1949@1949 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1949.wav"
+}
+sound DIGI sound1950@1950 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1950.wav"
+}
+sound DIGI sound1951@1951 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound1951.wav"
+}
+sound DIGI sound4153@4153 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4153.wav"
+}
+sound DIGI sound4154@4154 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4154.wav"
+}
+sound DIGI sound4155@4155 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4155.wav"
+}
+sound DIGI sound4156@4156 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4156.wav"
+}
+sound DIGI sound4157@4157 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4157.wav"
+}
+sound DIGI sound4158@4158 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4158.wav"
+}
+sound DIGI sound4159@4159 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4159.wav"
+}
+sound DIGI sound4160@4160 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4160.wav"
+}
+sound DIGI sound4161@4161 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4161.wav"
+}
+sound DIGI sound4162@4162 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4162.wav"
+}
+sound DIGI sound4163@4163 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4163.wav"
+}
+sound DIGI sound4164@4164 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4164.wav"
+}
+sound DIGI sound4165@4165 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4165.wav"
+}
+sound DIGI sound4166@4166 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4166.wav"
+}
+sound DIGI sound4167@4167 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4167.wav"
+}
+sound DIGI sound4168@4168 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4168.wav"
+}
+sound DIGI sound4169@4169 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4169.wav"
+}
+sound DIGI sound4170@4170 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4170.wav"
+}
+sound DIGI sound4171@4171 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4171.wav"
+}
+sound DIGI sound4172@4172 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4172.wav"
+}
+sound DIGI sound4173@4173 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4173.wav"
+}
+sound DIGI sound4174@4174 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4174.wav"
+}
+sound DIGI sound4175@4175 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4175.wav"
+}
+sound DIGI sound4176@4176 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4176.wav"
+}
+sound DIGI sound4177@4177 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4177.wav"
+}
+sound DIGI sound4178@4178 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4178.wav"
+}
+sound DIGI sound4179@4179 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4179.wav"
+}
+sound DIGI sound4180@4180 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4180.wav"
+}
+sound DIGI sound4181@4181 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4181.wav"
+}
+sound DIGI sound4182@4182 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4182.wav"
+}
+sound DIGI sound4183@4183 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4183.wav"
+}
+sound DIGI sound4184@4184 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4184.wav"
+}
+sound DIGI sound4185@4185 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4185.wav"
+}
+sound DIGI sound4186@4186 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4186.wav"
+}
+sound DIGI sound4187@4187 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4187.wav"
+}
+sound DIGI sound4188@4188 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4188.wav"
+}
+sound DIGI sound4189@4189 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4189.wav"
+}
+sound DIGI sound4190@4190 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4190.wav"
+}
+sound DIGI sound4191@4191 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4191.wav"
+}
+sound DIGI sound4192@4192 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4192.wav"
+}
+sound DIGI sound4193@4193 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4193.wav"
+}
+sound DIGI sound4194@4194 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4194.wav"
+}
+sound DIGI sound4195@4195 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4195.wav"
+}
+sound DIGI sound4196@4196 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4196.wav"
+}
+sound DIGI sound4197@4197 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4197.wav"
+}
+sound DIGI sound4198@4198 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4198.wav"
+}
+sound DIGI sound4199@4199 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4199.wav"
+}
+sound DIGI sound4200@4200 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4200.wav"
+}
+sound DIGI sound4201@4201 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4201.wav"
+}
+sound DIGI sound4202@4202 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4202.wav"
+}
+sound DIGI sound4203@4203 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4203.wav"
+}
+sound DIGI sound4204@4204 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4204.wav"
+}
+sound DIGI sound4205@4205 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4205.wav"
+}
+sound DIGI sound4206@4206 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4206.wav"
+}
+sound DIGI sound4207@4207 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4207.wav"
+}
+sound DIGI sound4208@4208 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4208.wav"
+}
+sound DIGI sound4209@4209 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4209.wav"
+}
+sound DIGI sound4210@4210 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4210.wav"
+}
+sound DIGI sound4211@4211 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4211.wav"
+}
+sound DIGI sound4212@4212 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4212.wav"
+}
+sound DIGI sound4213@4213 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4213.wav"
+}
+sound DIGI sound4214@4214 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4214.wav"
+}
+sound DIGI sound4215@4215 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4215.wav"
+}
+sound DIGI sound4216@4216 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4216.wav"
+}
+sound DIGI sound4217@4217 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4217.wav"
+}
+sound DIGI sound4218@4218 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4218.wav"
+}
+sound DIGI sound4219@4219 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4219.wav"
+}
+sound DIGI sound4220@4220 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4220.wav"
+}
+sound DIGI sound4221@4221 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4221.wav"
+}
+sound DIGI sound4222@4222 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4222.wav"
+}
+sound DIGI sound4223@4223 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4223.wav"
+}
+sound DIGI sound4224@4224 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4224.wav"
+}
+sound DIGI sound4225@4225 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4225.wav"
+}
+sound DIGI sound4226@4226 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4226.wav"
+}
+sound DIGI sound4227@4227 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4227.wav"
+}
+sound DIGI sound4228@4228 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4228.wav"
+}
+sound DIGI sound4229@4229 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4229.wav"
+}
+sound DIGI sound4230@4230 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4230.wav"
+}
+sound DIGI sound4231@4231 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4231.wav"
+}
+sound DIGI sound4232@4232 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4232.wav"
+}
+sound DIGI sound4233@4233 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4233.wav"
+}
+sound DIGI sound4234@4234 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "bkidsou/sound4234.wav"
+}
+talkie talkie276@276 = "\x7fT120254648,18744\x7f Whoops, I should have swung!"
+talkie talkie277@277 = "\x7fT120273392,20379\x7f I'm not sure about that one..."
+talkie talkie278@278 = "\x7fT120293771,15625\x7f  Oh no!"
+talkie talkie279@279 = "\x7fT120309396,12610\x7f  Aye yai yai!"
+talkie talkie280@280 = "\x7fT120322006,20375\x7f  No way was that a strike."
+talkie talkie281@281 = "\x7fT120342381,23499\x7f  Okay, I'll pretend that never happened."
+talkie talkie282@282 = "\x7fT120365880,13805\x7f  Darn, no fair!"
+talkie talkie283@283 = "\x7fT120379685,14461\x7f  That wasn't a strike..."
+talkie talkie284@284 = "\x7fT120394146,7777\x7f  Um, oh yeah."
+talkie talkie285@285 = "\x7fT120401923,13579\x7f  Darndarndarndarndarn!"
+talkie talkie286@286 = "\x7fT120415502,4263\x7f  Whoops!"
+talkie talkie287@287 = "\x7fT120419765,10932\x7f  Oh well!"
+talkie talkie288@288 = "\x7fT120430697,15881\x7f How rude!"
+talkie talkie289@289 = "\x7fT120446578,15196\x7f Sacre blue!"
+talkie talkie290@290 = "\x7fT120461774,12373\x7f Guess I should have swung!"
+talkie talkie291@291 = "\x7fT120474147,4859\x7f Oh well!"
+talkie talkie292@292 = "\x7fT120479006,22843\x7f Things are looking a little bleak here."
+talkie talkie293@293 = "\x7fT120501849,22623\x7f Oh, wise guy, eh?"
+talkie talkie294@294 = "\x7fT120524472,38377\x7f Okay pitcher I'll give you that one.  Next one's outa here!"
+talkie talkie295@295 = "\x7fT120562849,34209\x7f You mean that was in the strike zone?  Not the way I saw it..."
+talkie talkie296@296 = "\x7fT120597058,20436\x7fThat not fair!"
+talkie talkie297@297 = "\x7fT120617494,22208\x7fMe no like this game."
+talkie talkie298@298 = "\x7fT20071256,6819\x7f Bummer!"
+talkie talkie299@299 = "\x7fT120639702,8750\x7f Man!"
+talkie talkie300@300 = "\x7fT120648452,5217\x7f  What?"
+talkie talkie301@301 = "\x7fT120653669,8169\x7f  No way."
+talkie talkie302@302 = "\x7fT120661838,8593\x7f Whatever."
+talkie talkie303@303 = "\x7fT120670431,16088\x7f Oh just great."
+talkie talkie304@304 = "\x7fT120686519,29160\x7f  You're just pickin' on me cuz I'm a kid!"
+talkie talkie305@305 = "\x7fT120715679,14201\x7f  Gimme a break!"
+talkie talkie306@306 = "\x7fT120729880,8841\x7f  Harsh!"
+talkie talkie307@307 = "\x7fT120738721,14422\x7f  Whooaaa!"
+talkie talkie308@308 = "\x7fT120753143,9336\x7f  Harsh!"
+talkie talkie309@309 = "\x7fT120762479,13953\x7f  Whoooa!"
+talkie talkie310@310 = "\x7fT120776432,9838\x7f  Oh, man!"
+talkie talkie311@311 = "\x7fT120786270,7699\x7f  Darn!"
+talkie talkie312@312 = "\x7fT120793969,6493\x7f Huh?"
+talkie talkie313@313 = "\x7fT120800462,15209\x7f What does that mean?"
+talkie talkie314@314 = "\x7fT120815671,13326\x7f  I made an error in judgment."
+talkie talkie315@315 = "\x7fT120828997,5870\x7f  Ooops."
+talkie talkie316@316 = "\x7fT120834867,12215\x7f  Oh darn!"
+talkie talkie317@317 = "\x7fT120847082,27412\x7f  Umm, I should have swung, right?"
+talkie talkie318@318 = "\x7fT120874494,25470\x7f  Durn, my eyes must be busted."
+talkie talkie319@319 = "\x7fT120899964,21695\x7f  I shoulda swung at that one."
+talkie talkie320@320 = "\x7fT120921659,12697\x7f  That was stupid!"
+talkie talkie321@321 = "\x7fT120934356,12413\x7f  That won't happen again."
+talkie talkie322@322 = "\x7fT120946769,10088\x7f  Eso fue bola!"
+talkie talkie323@323 = "\x7fT120956857,18303\x7f  La proxima la saco del parque!"
+talkie talkie324@324 = "\x7fT120975160,22345\x7f Whoa, Tony don't like that!"
+talkie talkie325@325 = "\x7fT120997505,15447\x7f Uh, whoops."
+talkie talkie326@326 = "\x7fT121012952,31196\x7f  What is this, some kind of conspiracy?"
+talkie talkie327@327 = "\x7fT121044148,30966\x7f  No, no, no.  That won't do at all!"
+talkie talkie328@328 = "\x7fT121075114,9228\x7f  (reassuring himself)I'm OK."
+talkie talkie329@329 = "\x7fT121084342,11383\x7f  No way!"
+talkie talkie330@330 = "\x7fT121095725,13296\x7f  Aw, man!"
+talkie talkie331@331 = "\x7fT121109021,24885\x7f  Ok,ok, you got me! Huh huh"
+talkie talkie332@332 = "\x7fT121133906,8821\x7f  No way!"
+talkie talkie333@333 = "\x7fT121142727,10185\x7f  No fair!"
+talkie talkie334@334 = "\x7fT121152912,19758\x7f What are you trying to do, kill me?"
+talkie talkie335@335 = "\x7fT121172670,16319\x7f  Hey you loco!"
+talkie talkie336@336 = "\x7fT121188989,24625\x7f  That better not happen again."
+talkie talkie337@337 = "\x7fT121213614,27568\x7f  Hey pitcher, you need a new arm!"
+talkie talkie338@338 = "\x7fT121241182,8317\x7f  Hnnn!"
+talkie talkie339@339 = "\x7fT121249499,27369\x7f  These crazy kids can't throw as good as me!"
+talkie talkie340@340 = "\x7fT121276868,46248\x7f Don't be so rude!  I bet they're not that rude in Paris!"
+talkie talkie341@341 = "\x7fT121323116,20688\x7f Whoa, be careful!"
+talkie talkie342@342 = "\x7fT121343804,36535\x7f Don't make me angry.  You wouldn't like me when I'm angry."
+talkie talkie343@343 = "\x7fT121380339,31014\x7f Hey pitcher, take a little off of it if you want control!"
+talkie talkie344@344 = "\x7fT121411353,23077\x7f Hey you, don't make Teddy mad!"
+talkie talkie345@345 = "\x7fT121434430,18873\x7f Okay, try this time."
+talkie talkie346@346 = "\x7fT121453303,36690\x7f Hey pitcher, throw some good pitches for a change."
+talkie talkie347@347 = "\x7fT121489993,12483\x7f What was that?"
+talkie talkie348@348 = "\x7fT121502476,19660\x7f  Hey, watch it, you kid!"
+talkie talkie349@349 = "\x7fT121522136,12811\x7f  Whoa, dude!"
+talkie talkie350@350 = "\x7fT121534947,11719\x7f  Whoa, dude!"
+talkie talkie351@351 = "\x7fT121546666,24566\x7f  Yipes, it's getting dangerous here!"
+talkie talkie352@352 = "\x7fT121571232,35725\x7f Hey that kid tried to bean me!"
+talkie talkie353@353 = "\x7fT121606957,24507\x7f  That pitcher has very little arm control."
+talkie talkie354@354 = "\x7fT121631464,24371\x7f  Umm, be careful, okay?"
+talkie talkie355@355 = "\x7fT121655835,31135\x7f  I think that pitcher's trying to bean me!"
+talkie talkie356@356 = "\x7fT121686970,23269\x7f  I think that kid is out to get me!"
+talkie talkie357@357 = "\x7fT121710239,20740\x7f  Caramba, me vaz a matar?"
+talkie talkie358@358 = "\x7fT121730979,27540\x7f You better not make Tony mad, Slick!"
+talkie talkie359@359 = "\x7fT121758519,19915\x7f  Hey, watch it, you!"
+talkie talkie360@360 = "\x7fT121778434,21576\x7f Whoa, that was close!"
+talkie talkie361@361 = "\x7fT121800010,18239\x7f Quit joking around!"
+talkie talkie362@362 = "\x7fT121818249,11706\x7f  Hey watch it!"
+talkie talkie363@363 = "\x7fT121829955,42664\x7f\x09What was that?! We'll just call it a wild pitch."
+talkie talkie364@364 = "\x7fT121872619,24488\x7f\x09That pitch was all over the place."
+talkie talkie365@365 = "\x7fT121897107,19688\x7f\x09I don't even know what to call that pitch!"
+talkie talkie366@366 = "\x7fT121916795,15144\x7f\x09Woah.... wild one."
+talkie talkie367@367 = "\x7fT121931939,29352\x7f\x09Way, way, WAY outside!"
+talkie talkie368@368 = "\x7fT121961291,55575\x7f\x09Whatever that was meant to be, let's just call it a wild pitch and be done with it."
+talkie talkie369@369 = "\x7fT122016866,32207\x7f\x09That ball was so close, the batter got a haircut."
+talkie talkie370@370 = "\x7fT122049073,48643\x7f\x09I don't know where that pitch was supposed to go, but it ended up on the wild side."
+talkie talkie371@371 = "\x7fT122097716,32348\x7f\x09Maybe she should look into a pair of glasses."
+talkie talkie372@372 = "\x7fT122130064,115192\x7f\x09Ya know, this isn't the first wild pitch I've seen him throw... A coupla games back, his catcher almost threw her arm out of the socket trying to catch some of those babies."
+talkie talkie373@373 = "\x7fT122245256,29672\x7fWild, man, WILD!"
+talkie talkie374@374 = "\x7fT122274928,23432\x7fThat pitch looked like one of mine!"
+talkie talkie375@375 = "\x7fT122298360,9160\x7fWatch out, man."
+talkie talkie376@376 = "\x7fT122307520,7912\x7fDuck!"
+talkie talkie377@377 = "\x7fT122315432,14024\x7fWatch out!"
+talkie talkie378@378 = "\x7fT122329456,8744\x7fCarumba!"
+talkie talkie379@379 = "\x7fT122338200,14888\x7fWhoa! Watch out!"
+talkie talkie380@380 = "\x7fT122353088,5992\x7fDuck!"
+talkie talkie381@381 = "\x7fT122359080,10360\x7fHit the deck!"
+talkie talkie382@382 = "\x7fT122369440,16936\x7fWatch out!"
+talkie talkie383@383 = "\x7fT122386376,9768\x7fHeads up!"
+talkie talkie384@384 = "\x7fT122396144,13672\x7fLook out below!"
+talkie talkie385@385 = "\x7fT122409816,22408\x7fHoly cow!  Watch out!"
+talkie talkie386@386 = "\x7fT122432224,5672\x7fHeads up!"
+talkie talkie387@387 = "\x7fT122437896,19304\x7fWhoa! Watch out, there!"
+talkie talkie388@388 = "\x7fT122457200,6424\x7fDuck!"
+talkie talkie389@389 = "\x7fT122463624,18024\x7fHoly cow!  Watch out!"
+talkie talkie390@390 = "\x7fT122481648,13192\x7fAi yi yi!"
+talkie talkie391@391 = "\x7fT122494840,45736\x7fDude, like you totally almost hit me."
+talkie talkie392@392 = "\x7fT122540576,9896\x7fLook out!"
+talkie talkie393@393 = "\x7fT122550472,5512\x7fDuck!"
+talkie talkie394@394 = "\x7fT122555984,24744\x7fI could give him some lessons."
+talkie talkie395@395 = "\x7fT122580728,14728\x7fWatch out!"
+talkie talkie396@396 = "\x7fT122595456,13576\x7fHit the deck!"
+talkie talkie397@397 = "\x7fT122609032,11048\x7fWhoa! Watch out!"
+talkie talkie398@398 = "\x7fT122620080,67368\x7fSee that?  Even the ball's afraid of me!  Ha-ha-ha!"
+talkie talkie399@399 = "\x7fT122687448,6648\x7fYikes!"
+talkie talkie400@400 = "\x7fT122694096,23368\x7fWatch it!  You could hurt somebody!"
+talkie talkie401@401 = "\x7fT122717464,14376\x7fLook out below!"
+talkie talkie402@402 = "\x7fT122731840,10920\x7fWatch out!"
+talkie talkie403@403 = "\x7fT122742760,18024\x7f\x09Mayday! Mayday!"
+talkie talkie404@404 = "\x7fT122760784,8424\x7fOuch!"
+talkie talkie405@405 = "\x7fT122769208,23720\x7fI think there's a hole in my bat!"
+talkie talkie406@406 = "\x7fT122792928,17960\x7fGuess I should stick to pitching."
+talkie talkie407@407 = "\x7fT122810888,20072\x7fI'm gonna need a bigger bat."
+talkie talkie408@408 = "\x7fT122830960,17384\x7fMan oh man oh man."
+talkie talkie409@409 = "\x7fT122848344,12520\x7fWhere'd that ball go?"
+talkie talkie410@410 = "\x7fT122860864,15976\x7fWhat? Where?"
+talkie talkie411@411 = "\x7fT122876840,11304\x7fWhy you...!"
+talkie talkie412@412 = "\x7fT122888144,15496\x7fHow'd that happen?"
+talkie talkie413@413 = "\x7fT122903640,7192\x7fI can't believe it!"
+talkie talkie414@414 = "\x7fT122910832,18024\x7fNo way!"
+talkie talkie415@415 = "\x7fT122928856,20520\x7fNot again!"
+talkie talkie416@416 = "\x7fT122949376,12744\x7fI can't believe it!"
+talkie talkie417@417 = "\x7fT122962120,9288\x7fThat hurt."
+talkie talkie418@418 = "\x7fT122971408,12872\x7fNo way!"
+talkie talkie419@419 = "\x7fT122984280,12136\x7fI'm stunned!"
+talkie talkie420@420 = "\x7fT122996416,11880\x7fOh no!"
+talkie talkie421@421 = "\x7fT123008296,17320\x7fI can't believe I struck out!"
+talkie talkie422@422 = "\x7fT123025616,19144\x7fAw geez!"
+talkie talkie423@423 = "\x7fT123044760,14376\x7fI didn't even see that one!"
+talkie talkie424@424 = "\x7fT123059136,21800\x7fI didn't even see that one."
+talkie talkie425@425 = "\x7fT123080936,19432\x7fJust wait 'till next time."
+talkie talkie426@426 = "\x7fT123100368,11304\x7fOh no!"
+talkie talkie427@427 = "\x7fT123111672,5568\x7fOops!"
+talkie talkie428@428 = "\x7fT123117240,10520\x7fOh no ..."
+talkie talkie429@429 = "\x7fT123127760,23688\x7fI think I hurt myself."
+talkie talkie430@430 = "\x7fT123151448,20584\x7fWhy didn't I swing?"
+talkie talkie431@431 = "\x7fT123172032,20008\x7fI shoulda' taken that one."
+talkie talkie432@432 = "\x7fT123192040,16936\x7fNot even close!"
+talkie talkie433@433 = "\x7fT123208976,6696\x7fOuch!"
+talkie talkie434@434 = "\x7fT123215672,9352\x7fOoof!"
+talkie talkie435@435 = "\x7fT123225024,15816\x7fWhy you...!"
+talkie talkie436@436 = "\x7fT123240840,14120\x7fHow'd that happen?"
+talkie talkie437@437 = "\x7fT123254960,20776\x7fI think I hurt myself."
+talkie talkie438@438 = "\x7fT123275736,14328\x7fNo way!"
+talkie talkie439@439 = "\x7fT123290064,3752\x7fUgh!!"
+talkie talkie440@440 = "\x7fT123293816,18696\x7fMajor bummer!"
+talkie talkie441@441 = "\x7fT123312512,22824\x7fCrash and burn, man!"
+talkie talkie442@442 = "\x7fT123335336,8408\x7fUgh!"
+talkie talkie443@443 = "\x7fT123343744,13448\x7fThat's not right."
+talkie talkie444@444 = "\x7fT123357192,18152\x7fOoof!  That hurt!"
+talkie talkie445@445 = "\x7fT123375344,10920\x7fWhy you...!"
+talkie talkie446@446 = "\x7fT123386264,41512\x7fWhat did you expect?  I'm a pitcher!"
+talkie talkie447@447 = "\x7fT123427776,27432\x7fI'm gonna need a bigger bat."
+talkie talkie448@448 = "\x7fT123455208,22024\x7fI really thought I had that one."
+talkie talkie449@449 = "\x7fT123477232,13768\x7fWhere'd that ball go?"
+talkie talkie450@450 = "\x7fT123491000,21832\x7fOh no!"
+talkie talkie451@451 = "\x7fT123512832,20712\x7fThis can't be happening!"
+talkie talkie452@452 = "\x7fT123533544,8488\x7fBarry Bonds, ladies and gentlemen."
+talkie talkie453@453 = "\x7fT123542032,6344\x7fThat hurt."
+talkie talkie454@454 = "\x7fT123548376,21800\x7fOooo!  Wait 'till next time!"
+talkie talkie455@455 = "\x7fT123570176,13096\x7fBeginner's luck!"
+talkie talkie456@456 = "\x7fT123583272,10632\x7fNot again!"
+talkie talkie457@457 = "\x7fT123593904,15528\x7fI'm gonna need a bigger bat."
+talkie talkie458@458 = "\x7fT123609432,9464\x7fUgh!"
+talkie talkie459@459 = "\x7fT123618896,13416\x7fNot again!"
+talkie talkie460@460 = "\x7fT123632312,17544\x7fOh no!"
+talkie talkie461@461 = "\x7fT123649856,8328\x7fOops!"
+talkie talkie462@462 = "\x7fT123658184,36776\x7fI can't believe it.  I ...just can't believe it."
+talkie talkie463@463 = "\x7fT123694960,17736\x7fI wasn't focused."
+talkie talkie464@464 = "\x7fT123712696,6536\x7f\x09How'd that happen?!"
+talkie talkie465@465 = "\x7fT123719232,9992\x7f\x09I was robbed!"
+talkie talkie466@466 = "\x7fT123729224,23976\x7fYou didn't know I could pitch, did ya?"
+talkie talkie467@467 = "\x7fT123753200,24552\x7fHere comes trouble!"
+talkie talkie468@468 = "\x7fT123777752,41256\x7fWatch out. I've been known to be a little wild."
+talkie talkie469@469 = "\x7fT123819008,18184\x7fHere comes 'Mr. Snappy'!"
+talkie talkie470@470 = "\x7fT123837192,18952\x7fYeah, I can pitch too!"
+talkie talkie471@471 = "\x7fT123856144,12008\x7fWatch this!"
+talkie talkie472@472 = "\x7fT123868152,16808\x7fJust call me Cy!"
+talkie talkie473@473 = "\x7fT123884960,27112\x7fKeep your eyes peeled, I've got a mean arm!"
+talkie talkie474@474 = "\x7fT123912072,18376\x7fYeah, I can pitch too!  "
+talkie talkie475@475 = "\x7fT123930448,21256\x7fHere comes the deuce."
+talkie talkie476@476 = "\x7fT123951704,16840\x7fNow you're in trouble!  "
+talkie talkie477@477 = "\x7fT123968544,9224\x7fWatch out!"
+talkie talkie478@478 = "\x7fT123977768,23784\x7fHere comes 'The Big Hurt'.  "
+talkie talkie479@479 = "\x7fT124001552,44456\x7fYou thought I was good at the plate, wait 'till you see me pitch!"
+talkie talkie480@480 = "\x7fT124046008,29416\x7fThat's right...I can pitch too!  "
+talkie talkie481@481 = "\x7fT124075424,27816\x7fHere comes the Larkin Special!"
+talkie talkie482@482 = "\x7fT124103240,13736\x7fI can't believe I'm pitching!"
+talkie talkie483@483 = "\x7fT124116976,20072\x7fO.K., here comes trouble!"
+talkie talkie484@484 = "\x7fT124137048,15864\x7fI can't believe I'm pitching!"
+talkie talkie485@485 = "\x7fT124152912,29160\x7fO.K., here goes!"
+talkie talkie486@486 = "\x7fT124182072,28712\x7fI got the pitches to put you in stitches!"
+talkie talkie487@487 = "\x7fT124210784,27688\x7fStep back ... here comes the heat."
+talkie talkie488@488 = "\x7fT124238472,31464\x7fOh yeah, I'm a pitching machine!"
+talkie talkie489@489 = "\x7fT124269936,33000\x7fI got the skills that'll give you chills, baby."
+talkie talkie490@490 = "\x7fT124302936,34664\x7fWatch out for this pitch.  It's a lu-lu!"
+talkie talkie491@491 = "\x7fT124337600,24200\x7fHere come's the 'Bagwell Express'."
+talkie talkie492@492 = "\x7fT124361800,36008\x7fI got a mean arm, so watch out!"
+talkie talkie493@493 = "\x7fT124397808,29416\x7fHere comes my secret pitch."
+talkie talkie494@494 = "\x7fT124427224,20040\x7fWhy'd they make me pitch?"
+talkie talkie495@495 = "\x7fT124447264,13736\x7fHere goes nuthin'!"
+talkie talkie496@496 = "\x7fT124461000,21832\x7fThis oughta be interesting."
+talkie talkie497@497 = "\x7fT124482832,29256\x7fI've got a mean arm, watch out."
+talkie talkie498@498 = "\x7fT124512088,29544\x7fWatch out for this pitch.  It's a lu-lu!"
+talkie talkie499@499 = "\x7fT124541632,16616\x7fDon't let me catch ya lookin."
+talkie talkie500@500 = "\x7fT124558248,14152\x7fNow you're in trouble!  "
+talkie talkie501@501 = "\x7fT124572400,6472\x7fWatch out!"
+talkie talkie502@502 = "\x7fT124578872,31208\x7fLet's see what you do with this one!"
+talkie talkie503@503 = "\x7fT124610080,30696\x7fI got a mean arm, so watch out!"
+talkie talkie504@504 = "\x7fT124640776,28424\x7fI'm gonna throw my secret pitch!"
+talkie talkie505@505 = "\x7fT124669200,24072\x7fYou won't even see this pitch!"
+talkie talkie506@506 = "\x7fT124693272,16296\x7fThis should be interesting."
+talkie talkie507@507 = "\x7fT124709568,13544\x7fHere it comes!"
+talkie talkie508@508 = "\x7fT124723112,45288\x7fThis pitch is called the 'The Schilling Schlip and Schlider'."
+talkie talkie509@509 = "\x7fT124768400,34664\x7fDon't worry. I'm a professional."
+talkie talkie510@510 = "\x7fT124803064,18856\x7fYeah, I can pitch too!"
+talkie talkie511@511 = "\x7fT124821920,22792\x7fIf only I could pitch and catch at the same time!"
+talkie talkie512@512 = "\x7fT124844712,27784\x7fI can't believe I'm pitching!"
+talkie talkie513@513 = "\x7fT124872496,22664\x7fHere comes trouble!"
+talkie talkie514@514 = "\x7fT124895160,30248\x7fI can play anywhere on the field, even pitch!"
+talkie talkie515@515 = "\x7fT124925408,28584\x7fYou thought I was good at the plate, wait 'till you see me pitch!"
+talkie talkie516@516 = "\x7fT124953992,36968\x7f 'Junior's' on the mound, watch out!"
+talkie talkie517@517 = "\x7fT124990960,51688\x7fYou never thought you'd see me pitch, did ya?  (pause) Me neither!"
+talkie talkie518@518 = "\x7fT125042648,23240\x7fWatch out. I've got a serious arm."
+talkie talkie519@519 = "\x7fT125065888,37800\x7fYou think I hit the ball hard, wait 'till you see how hard I can throw it!"
+talkie talkie520@520 = "\x7fT125103688,16872\x7fNow you're in trouble!  "
+talkie talkie521@521 = "\x7fT125120560,10488\x7fWatch out!"
+talkie talkie522@522 = "\x7fT125131048,26792\x7fOh yeah, I'm a pitching machine!"
+talkie talkie523@523 = "\x7fT125157840,42408\x7fWait!  If I'm pitching, then who's catching?!"
+talkie talkie524@524 = "\x7fT125200248,20328\x7fFocus now, throw to the mitt."
+talkie talkie525@525 = "\x7fT125220576,13288\x7fO.K., here goes!"
+talkie talkie526@526 = "\x7fT125233864,24712\x7f\x09You're gonna get struck out by a shortstop!"
+talkie talkie527@527 = "\x7fT125258576,10744\x7f\x09This shouldn't take long."
+talkie talkie528@528 = "\x7fT125269320,28648\x7fYo coach!  I could use a breather."
+talkie talkie529@529 = "\x7fT125297968,18568\x7fI'm about to pass out here!"
+talkie talkie530@530 = "\x7fT125316536,23912\x7fMy arm's starting to go numb."
+talkie talkie531@531 = "\x7fT125340448,17512\x7fI'm getting tired out here."
+talkie talkie532@532 = "\x7fT125357960,16168\x7fI'm feelin' mighty low."
+talkie talkie533@533 = "\x7fT125374128,23912\x7fHey skipper, get me outta here!"
+talkie talkie534@534 = "\x7fT125398040,17384\x7fI'm all oughta gas, skipper!"
+talkie talkie535@535 = "\x7fT125415424,10632\x7fMan, I'm beat!"
+talkie talkie536@536 = "\x7fT125426056,15560\x7fHelp me out here, skipper!."
+talkie talkie537@537 = "\x7fT125441616,17640\x7fI'm soooo tired."
+talkie talkie538@538 = "\x7fT125459256,16232\x7fI'm getting tired."
+talkie talkie539@539 = "\x7fT125475488,15080\x7fI could use a nap!"
+talkie talkie540@540 = "\x7fT125490568,19048\x7fWow, I'm tired man."
+talkie talkie541@541 = "\x7fT125509616,33896\x7fI'm getting a big hurt in my arm!"
+talkie talkie542@542 = "\x7fT125543512,26600\x7fHey coach, I'm getting a little tired here."
+talkie talkie543@543 = "\x7fT125570112,19432\x7fI'm feelin' a little woozy!"
+talkie talkie544@544 = "\x7fT125589544,15240\x7fBoy, I'm beat!"
+talkie talkie545@545 = "\x7fT125604784,12168\x7fMan, am I tired! "
+talkie talkie546@546 = "\x7fT125616952,12568\x7fI'm a little tired, ay?"
+talkie talkie547@547 = "\x7fT125629520,18376\x7fI wish the coach would take me out, ay?"
+talkie talkie548@548 = "\x7fT125647896,51496\x7fHey coach, I can't feel my arm anymore.  Is that bad?"
+talkie talkie549@549 = "\x7fT125699392,20392\x7fI think I'd better sit down."
+talkie talkie550@550 = "\x7fT125719784,33384\x7fMan!  I'm tired!"
+talkie talkie551@551 = "\x7fT125753168,21448\x7fI think my arm fell asleep!"
+talkie talkie552@552 = "\x7fT125774616,18056\x7fI need a nap!"
+talkie talkie553@553 = "\x7fT125792672,23528\x7fHey coach, I'm dyin' here!"
+talkie talkie554@554 = "\x7fT125816200,25384\x7fI think my arm is shot!"
+talkie talkie555@555 = "\x7fT125841584,35304\x7fHey coach, take me out already!"
+talkie talkie556@556 = "\x7fT125876888,18248\x7fMy arm feels dead!"
+talkie talkie557@557 = "\x7fT125895136,23880\x7fYo coach, take me out!"
+talkie talkie558@558 = "\x7fT125919016,29640\x7fI'm all oughta gas, skipper!."
+talkie talkie559@559 = "\x7fT125948656,27208\x7fI am soooo tired!"
+talkie talkie560@560 = "\x7fT125975864,41384\x7fI need some water.  Somebody get me some water!"
+talkie talkie561@561 = "\x7fT126017248,30440\x7fHey coach, I'm dyin' out here!"
+talkie talkie562@562 = "\x7fT126047688,13384\x7fI'm bushed!"
+talkie talkie563@563 = "\x7fT126061072,16008\x7fI could use a nap!"
+talkie talkie564@564 = "\x7fT126077080,32680\x7fDude, I'm so tired."
+talkie talkie565@565 = "\x7fT126109760,37032\x7fMy arm is like totally wasted, dude."
+talkie talkie566@566 = "\x7fT126146792,21672\x7fOh man, am I tired!"
+talkie talkie567@567 = "\x7fT126168464,18376\x7fMy arm's going numb!"
+talkie talkie568@568 = "\x7fT126186840,18664\x7fI'm all oughta gas, skipper!."
+talkie talkie569@569 = "\x7fT126205504,25384\x7fI'm really, really, tired man."
+talkie talkie570@570 = "\x7fT126230888,30536\x7fMy arm is getting a little sore."
+talkie talkie571@571 = "\x7fT126261424,41864\x7fHey coach, it's time for my nap!"
+talkie talkie572@572 = "\x7fT126303288,37160\x7fUhhh-boy.  I'm feeling sorta woozy."
+talkie talkie573@573 = "\x7fT126340448,29928\x7fHey skipper, get me outta here!"
+talkie talkie574@574 = "\x7fT126370376,27464\x7fI am REALLY tired."
+talkie talkie575@575 = "\x7fT126397840,25864\x7fMan, am I bushed! "
+talkie talkie576@576 = "\x7fT126423704,22421\x7fHey coach, get me out of here!"
+talkie talkie577@577 = "\x7fT126446125,19400\x7fI need a break, coach!"
+talkie talkie578@578 = "\x7fT126465525,29608\x7fYo Skip!  It's time for my nap now!"
+talkie talkie579@579 = "\x7fT126495133,21736\x7fTake me out already, Skipper!"
+talkie talkie580@580 = "\x7fT126516869,14216\x7fI'm getting' tired."
+talkie talkie581@581 = "\x7fT126531085,18376\x7fI could sure use a rest."
+talkie talkie582@582 = "\x7fT126549461,19080\x7fMy arm hurts!"
+talkie talkie583@583 = "\x7fT126568541,17960\x7fI think I threw my arm out!"
+talkie talkie584@584 = "\x7fT126586501,30056\x7fI'm tired!  Can I sit down?"
+talkie talkie585@585 = "\x7fT126616557,18792\x7fI think my arm fell asleep!"
+talkie talkie586@586 = "\x7fT126635349,19752\x7fI'm a little tired."
+talkie talkie587@587 = "\x7fT126655101,23528\x7fI sure wish coach would take me out."
+talkie talkie588@588 = "\x7fT126678629,25704\x7f\x09Whew!  I'm hound-dog tired!"
+talkie talkie589@589 = "\x7fT126704333,22696\x7f\x09I need a nap. Now."
+talkie talkie590@590 = "\x7fT126727029,25512\x7fSit down!"
+talkie talkie591@591 = "\x7fT126752541,28264\x7fThat pitch was called 'The Mo Express'!"
+talkie talkie592@592 = "\x7fT126780805,24840\x7fAnother day, another 'K'."
+talkie talkie593@593 = "\x7fT126805645,11880\x7fNext!"
+talkie talkie594@594 = "\x7fT126817525,5384\x7fBoom!"
+talkie talkie595@595 = "\x7fT126822909,8904\x7fTake that!"
+talkie talkie596@596 = "\x7fT126831813,31336\x7fYeah, I got all sorts of tricks up my sleeve!"
+talkie talkie597@597 = "\x7fT126863149,10408\x7fHow do ya like that?"
+talkie talkie598@598 = "\x7fT126873557,41960\x7fIs that the first time you got struck out by a shortstop?"
+talkie talkie599@599 = "\x7fT126915517,30184\x7fSee ya, wouldn't want to be ya.  Bybye now!"
+talkie talkie600@600 = "\x7fT126945701,16104\x7fAdios!"
+talkie talkie601@601 = "\x7fT126961805,18216\x7fBueno!  Bueno!"
+talkie talkie602@602 = "\x7fT126980021,17128\x7fCha-ching!"
+talkie talkie603@603 = "\x7fT126997149,17160\x7fHurts, don't it?"
+talkie talkie604@604 = "\x7fT127014309,13672\x7fSee ya!"
+talkie talkie605@605 = "\x7fT127027981,34792\x7fWhen you get to the bench, tell 'em Barry sent ya!"
+talkie talkie606@606 = "\x7fT127062773,31432\x7fThat's right.  Kenny Lofton struck you out!"
+talkie talkie607@607 = "\x7fT127094205,11224\x7fHow ya like that?"
+talkie talkie608@608 = "\x7fT127105429,9000\x7fNice pitch, ay?"
+talkie talkie609@609 = "\x7fT127114429,10776\x7fSit down!"
+talkie talkie610@610 = "\x7fT127125205,22216\x7fDon't even try to hit that!"
+talkie talkie611@611 = "\x7fT127147421,15432\x7fHave a seat, my friend."
+talkie talkie612@612 = "\x7fT127162853,13000\x7fSit down."
+talkie talkie613@613 = "\x7fT127175853,12712\x7fThat's gotta hurt!"
+talkie talkie614@614 = "\x7fT127188565,11288\x7fScorched 'em!"
+talkie talkie615@615 = "\x7fT127199853,22344\x7f 'Bags' does it again!"
+talkie talkie616@616 = "\x7fT116635392,20200\x7fAdios, amigo!"
+talkie talkie617@617 = "\x7fT127222197,10120\x7fSee ya ...!"
+talkie talkie618@618 = "\x7fT127232317,14504\x7fBye bye!"
+talkie talkie619@619 = "\x7fT127246821,22216\x7fWoo-hoo, you're done!"
+talkie talkie620@620 = "\x7fT127269037,14904\x7fGotta love it!"
+talkie talkie621@621 = "\x7fT127283941,19592\x7fHow do ya like that?"
+talkie talkie622@622 = "\x7fT127303533,26856\x7fI can't believe you swung at that!"
+talkie talkie623@623 = "\x7fT127330389,53672\x7fViva Cordova.  That's Latin for good pitch."
+talkie talkie624@624 = "\x7fT127384061,13288\x7fToasted."
+talkie talkie625@625 = "\x7fT127397349,16600\x7fSee ya around!"
+talkie talkie626@626 = "\x7fT127413949,9432\x7fToasted!"
+talkie talkie627@627 = "\x7fT127423381,40744\x7fBetter luck next time ...HAR-HAR!"
+talkie talkie628@628 = "\x7fT127464125,5736\x7fWhiff!"
+talkie talkie629@629 = "\x7fT127469861,17832\x7fKinda embarrassing, isn't it?"
+talkie talkie630@630 = "\x7fT127487693,10280\x7fThat's some heat!"
+talkie talkie631@631 = "\x7fT127497973,13448\x7fHow do ya like that?"
+talkie talkie632@632 = "\x7fT127511421,36456\x7fAnother day, another 'K'."
+talkie talkie633@633 = "\x7fT127547877,50536\x7fI got more pitches than a used-car dealer."
+talkie talkie634@634 = "\x7fT127598413,22440\x7fCha-ching! Ring 'em up!"
+talkie talkie635@635 = "\x7fT127620853,9800\x7fTake that!"
+talkie talkie636@636 = "\x7fT127630653,58280\x7fThat's right.   You got struck out by Tony Gwynn!"
+talkie talkie637@637 = "\x7fT127688933,14408\x7fNice pitch, eh?"
+talkie talkie638@638 = "\x7fT127703341,15496\x7fCha-ching!"
+talkie talkie639@639 = "\x7fT127718837,18312\x7fOoooh yeahhhh!"
+talkie talkie640@640 = "\x7fT127737149,25096\x7fWow!  I'm better than I thought!"
+talkie talkie641@641 = "\x7fT127762245,8296\x7fNext!"
+talkie talkie642@642 = "\x7fT127770541,8920\x7fOuch!"
+talkie talkie643@643 = "\x7fT127779461,39912\x7fHope I didn't burn you with that heat.  Heh-heh-heh."
+talkie talkie644@644 = "\x7fT127819373,27432\x7fLine 'em up, and I'll knock 'em down."
+talkie talkie645@645 = "\x7fT127846805,13368\x7fBurnt toast!"
+talkie talkie646@646 = "\x7fT127860173,22536\x7fAnother 'K' for 'Pudge'."
+talkie talkie647@647 = "\x7fT127882709,12648\x7fThat's gotta hurt!"
+talkie talkie648@648 = "\x7fT127895357,29064\x7fSorry about that.  Are you gonna be O.K.?"
+talkie talkie649@649 = "\x7fT127924421,27176\x7fSorry, but it had to be done."
+talkie talkie650@650 = "\x7fT127951597,16568\x7f\x09Another 'K' for A-Rod."
+talkie talkie651@651 = "\x7fT127968165,31720\x7f\x09Thanks for playing.  We've got some nice parting gifts for you!"
+talkie talkie652@652 = "\x7fT127999885,18728\x7fBat, don't fail me now!"
+talkie talkie653@653 = "\x7fT128018613,17832\x7fWatch and learn."
+talkie talkie654@654 = "\x7fT128036445,19880\x7fThis one's goin' yard!"
+talkie talkie655@655 = "\x7fT128056325,36904\x7fI got a hankerin' for some basball spankerin'!"
+talkie talkie656@656 = "\x7fT128093229,17384\x7fI took my eye off the ball."
+talkie talkie657@657 = "\x7fT128110613,28136\x7fUgh! That was not pretty."
+talkie talkie658@658 = "\x7fT128138749,18696\x7fI can't believe I didn't swing."
+talkie talkie659@659 = "\x7fT128157445,20904\x7fI ...was ...frozen!"
+talkie talkie660@660 = "\x7fT128178349,10616\x7fWhy didn't I swing?"
+talkie talkie661@661 = "\x7fT128188965,9512\x7fNice pitch."
+talkie talkie662@662 = "\x7fT128198477,8488\x7fYikes!"
+talkie talkie663@663 = "\x7fT128206965,7720\x7fZoiks!"
+talkie talkie664@664 = "\x7fT128214685,11080\x7fRrrrrrats!"
+talkie talkie665@665 = "\x7fT128225765,14568\x7fHuh boy."
+talkie talkie666@666 = "\x7fT128240333,12584\x7fAwww nertz!"
+talkie talkie667@667 = "\x7fT128252917,16360\x7fFooey to you from me."
+talkie talkie668@668 = "\x7fT128269277,14120\x7fCustmize THIS!"
+talkie talkie669@669 = "\x7fT128283397,12712\x7fHave a nice trip!"
+talkie talkie670@670 = "\x7fT128296109,18312\x7fCustomize THIS!"
+talkie talkie671@671 = "\x7fT128314421,39656\x7fThe National Weather Service has issued a home run watch ..."
+talkie talkie672@672 = "\x7fT128354077,18760\x7fPitching is my life."
+talkie talkie673@673 = "\x7fT128372837,27816\x7fI love to pitch ... and it shows."
+talkie talkie674@674 = "\x7fT128400653,33576\x7fWatch out for my secret pitch ...it's a lu-lu!"
+talkie talkie675@675 = "\x7fT128434229,25256\x7fI see a strike out in your future."
+talkie talkie676@676 = "\x7fT128459485,20584\x7fCoach ...it's time for my nap!"
+talkie talkie677@677 = "\x7fT128480069,27240\x7fHey skip, my arm's about to fall off!"
+talkie talkie678@678 = "\x7fT128507309,25416\x7fI'm like totally tired, or something."
+talkie talkie679@679 = "\x7fT128532725,36264\x7fI...can't ...go...on..."
+talkie talkie680@680 = "\x7fT128568989,14952\x7fSit down!"
+talkie talkie681@681 = "\x7fT128583941,19432\x7fSee ya, wouldn't wanna be ya!"
+talkie talkie682@682 = "\x7fT128603373,7624\x7fTold ya!"
+talkie talkie683@683 = "\x7fT128610997,12520\x7fI'm so good at this game."

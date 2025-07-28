@@ -1,0 +1,2440 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 138 "teamname/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `4500`
+}
+
+var room0@0
+var room1@1
+var room2@2
+var room3@3
+var room4@4
+var room5@5
+var room6@6
+var room7@7
+var room8@8
+var room9@9
+var room10@10
+var room11@11
+var room12@12
+var room13@13
+var room14@14
+var room15@15
+var room16@16
+var room17@17
+var room18@18
+var room19@19
+var room20@20
+var room21@21
+var room22@22
+var room23@23
+var room24@24
+var rFieldChoice@25
+var room26@26
+var room27@27
+var room28@28
+var room29@29
+var room30@30
+var room31@31
+var room32@32
+var room33@33
+var room34@34
+var room35@35
+
+local-script lsc2048@2048 {
+    g_some_palette_654 = call-script AllocPalette
+    g_some_palette_655 = call-script AllocPalette
+}
+
+local-script lsc2049@2049 {
+    start-script FreePalette g_some_palette_654
+    g_some_palette_654 = 0
+    start-script FreePalette g_some_palette_655
+    g_some_palette_655 = 0
+}
+
+local-script lsc2050@2050 {
+    if global423 {
+        global652 = global423
+    } else {
+        global652 = 257
+    }
+}
+
+local-script lsc2051@2051 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif gTeamInfo[0][TI-CONTROLLED-BY] gPickOrder1 gPickOrder2)
+    } else {
+        return gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER]
+    }
+}
+
+local-script lsc2052@2052 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif (CB-USER == gTeamInfo[0][TI-CONTROLLED-BY]) 0 1)
+    } else {
+        return gHomeInfoIndex
+    }
+}
+
+local-script lsc2053@2053 {
+    var local0
+
+    return (local0 * 2 + 1073 - 2)
+}
+
+local-script lsc2054@2054 {
+    var local0 local1 local2 local3 local4
+
+    local3 = call-script lsc2053 local0
+    local4 = local3 + 1
+    case local1 {
+        101 {
+            local2 = 0
+        }
+        102 {
+            local2 = 1
+        }
+        103 {
+            local2 = 2
+        }
+        104 {
+            local2 = 3
+        }
+        105 {
+            local2 = 4
+        }
+        106 {
+            local2 = 6
+        }
+        else {
+            local2 = 3
+        }
+    }
+    sprite.init global648
+    sprite.new
+    sprite.image image1072
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image local4
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1071
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image local3
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+}
+
+local-script lsc2055@2055 {
+    var local0 _ local2
+
+    local2 = local0 - 22
+    sprite.init global648
+    sprite.new
+    sprite.image image1068
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image image1070
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1067
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image image1069
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+}
+
+local-script lsc2056@2056 {
+    var local0 _ local2
+
+    sprite.init global648
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 0 0
+    sprite.init global646
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state (local2 + 1)
+    sprite.palette g_some_palette_654
+    sprite.at 0 0
+}
+
+local-script lsc2057@2057 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local1 {
+        local3 = local1
+        local4 = 0
+        local5 = 2056
+    } else {
+        local3 = gTeamInfo[local0][TI-TEAM-ADJECTIVE]
+        local4 = gTeamInfo[local0][TI-TEAM-NOUN]
+        local5 = iif (local3 <= 10) 2054 2055
+    }
+    start-script local5 local3 local4 local2
+}
+
+local-script lsc2058@2058 {
+    if global648 {
+        start-script ReleaseSprite global648
+        global648 = 0
+        start-script ReleaseSprite global649
+        global649 = 0
+        start-script ReleaseSprite global646
+        global646 = 0
+        start-script ReleaseSprite global647
+        global647 = 0
+    }
+}
+
+local-script lsc2059@2059 {
+    start-script lsc2058
+    start-script scr281
+    if global653 {
+        start-script ReleaseSprite global653
+        global653 = 0
+    }
+    if global671 {
+        start-script ReleaseSprite global671
+        global671 = 0
+        start-script ReleaseSprite global672
+        global672 = 0
+        start-script FreeScratchImage global673
+    }
+}
+
+local-script lsc2060@2060 {
+    var local0 local1 local2
+
+    if (local0 < 0) {
+        local2 = 240
+        case local0 {
+            -1 {
+                local1 = 162
+                local2 = 235
+            }
+            -2 {
+                local1 = 160
+            }
+            -3 {
+                local1 = 161
+            }
+            else {
+            }
+        }
+        start-script scr283 global651 global650 local1 0 0 g_some_palette_655 320 local2
+    } else {
+        start-script scr283 global651 global650 gTeamInfo[local0][TI-TEAM-NOUN] gTeamInfo[local0][TI-PRIMARY-COLOR] gTeamInfo[local0][TI-SECONDARY-COLOR] g_some_palette_655
+    }
+}
+
+local-script lsc2061@2061 {
+    var local0 local1 local2 local3
+
+    if (local0 == 0) {
+        sprite.init global672
+        sprite.new
+        sprite.image image1252
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.order -1450
+        sprite.palette g_some_palette_654
+        sprite.group 17
+        sprite.at 320 240
+        local1 = 204
+        local2 = 52
+        sprintf local3 "%s" gCoachName
+    } else {
+        sprintf local3 "%s" local0
+        local1 = 115
+        local2 = 52
+    }
+    temp2 = string-length local3 - 1
+    for temp = 0 to temp2 + {
+        if (local3[temp] >= 97 && local3[temp] <= 122) {
+            local3[temp] -= 32
+        }
+    }
+    temp = call-script maybe_draw_text_to_image local3 1251 global673 g_some_palette_654 1
+    undim local3
+    sprite.init global671
+    sprite.new
+    sprite.image global673
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at local1 local2
+}
+
+local-script lsc2062@2062 {
+    if (not global646) {
+        global646 = call-script FindFreeSprite
+        global647 = call-script FindFreeSprite
+        global648 = call-script FindFreeSprite
+        global649 = call-script FindFreeSprite
+        global671 = call-script FindFreeSprite
+        global672 = call-script FindFreeSprite
+        global673 = call-script AllocScratchImage
+    }
+    if (not global651) {
+        global651 = call-script FindFreeSprite
+        global650 = call-script FindFreeSprite
+    }
+}
+
+local-script lsc2063@2063 {
+    var local0 local1
+
+    local1 = sprite-get-state-count global653
+    local0 = sprite-get-state global653
+    if (local1 - 1 == local0) {
+        local0 = 0
+    } else {
+        inc local0
+    }
+    while (local0 < local1) {
+        sprite.init global653
+        sprite.state local0
+        sprite.at 320 240
+        inc local0
+        break-here
+    }
+}
+
+local-script getTeamBackground@2064 arg0 {
+    var local1 local2 local3
+
+    if (call-script scr129 gTeamInfo[arg0][TI-TEAM-NOUN]) {
+        local2 = gTeamInfo[arg0][TI-TEAM-NOUN]
+        local3 = gMLBTeamData[local2][3]
+    } else {
+        local3 = gTeamInfo[arg0][TI-PRIMARY-COLOR]
+    }
+    case local3 {
+        1 {
+            local1 = 1103
+        }
+        2 {
+            local1 = 1104
+        }
+        3 {
+            local1 = 1105
+        }
+        4 {
+            local1 = 1106
+        }
+        5 {
+            local1 = 1107
+        }
+        6 {
+            local1 = 1108
+        }
+        7 {
+            local1 = 1109
+        }
+        8 {
+            local1 = 1110
+        }
+        9 {
+            local1 = 1111
+        }
+        10 {
+            local1 = 1112
+        }
+        11 {
+            local1 = 1115
+        }
+        12 {
+            local1 = 1113
+        }
+        13 {
+            local1 = 1114
+        }
+        14 {
+            local1 = 1116
+        }
+        15 {
+            local1 = 1117
+        }
+        16 {
+            local1 = 1118
+        }
+        17 {
+            local1 = 1119
+        }
+        18 {
+            local1 = 1120
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error! Bad color for getTeamBackground: %d" local3
+            debug 0
+            local1 = 1119
+        }
+    }
+    return local1
+}
+
+local-script lsc2065@2065 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    if (local0 < 0) {
+        local5 = local0
+        local6 = local2
+    } else {
+        local5 = call-script lsc2052
+        if local0 {
+            local5 = iif local5 0 1
+        }
+        local6 = call-script getTeamBackground local5
+    }
+    palette.init g_some_palette_654
+    palette.from-image local6 0
+    palette.end
+    image.init local6
+    image.palette g_some_palette_654
+    image.draw
+    image.end
+    start-script scr280 local6 g_some_palette_654
+    if (not global653) {
+        global653 = call-script FindFreeSprite
+    }
+    sprite.init global653
+    sprite.new
+    sprite.image image1035
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1500
+    sprite.palette 2
+    start-script lsc2063
+    start-script lsc2062
+    start-script lsc2060 local5
+    start-script lsc2057 local5 local1 local3
+    if (MODE-SEASON == gGameMode && local0 >= 0 || local4) {
+        start-script lsc2061 local4
+    }
+}
+
+local-script GetFieldFromChoice@2066 choice {
+    var result
+
+    case choice {
+        FC-STEELE-STADIUM {
+            result = STEELE-STADIUM
+        }
+        FC-PARKS-DEPARTMENT {
+            result = PARKS-DEPARTMENT
+        }
+        FC-TIN-CAN-ALLEY {
+            result = TIN-CAN-ALLEY
+        }
+        FC-ECKMAN-ACRES {
+            result = ECKMAN-ACRES
+        }
+        FC-CEMENT-GARDENS {
+            result = CEMENT-GARDENS
+        }
+        FC-DIRT-YARDS {
+            result = DIRT-YARDS
+        }
+        FC-PLAYGROUND-COMMONS {
+            result = PLAYGROUND-COMMONS
+        }
+        FC-SANDY-FLATS {
+            result = SANDY-FLATS
+        }
+        else {
+        }
+    }
+    return result
+}
+
+local-script lsc2067@2067 {
+    var local0 local1
+
+    case local0 {
+        6 {
+            local1 = 1
+        }
+        8 {
+            local1 = 2
+        }
+        7 {
+            local1 = 3
+        }
+        3 {
+            local1 = 4
+        }
+        2 {
+            local1 = 5
+        }
+        0 {
+            local1 = 6
+        }
+        1 {
+            local1 = 7
+        }
+        9 {
+            local1 = 8
+        }
+        else {
+        }
+    }
+    return local1
+}
+
+local-script lsc2068@2068 {
+    var local0
+
+    local0 = iif (rFieldChoice == FC-STEELE-STADIUM) 8 (rFieldChoice - 1)
+    preload-image (172 + call-script GetFieldFromChoice local0)
+    local0 = iif (rFieldChoice == FC-SANDY-FLATS) 1 (rFieldChoice + 1)
+    preload-image (172 + call-script GetFieldFromChoice local0)
+}
+
+local-script HandleNavClick@2069 arg0 {
+    case arg0 {
+        193 {
+            if gNetplayActive {
+                start-script NetPromptQuit
+            } else {
+                current-room baseball
+            }
+        }
+        192 {
+            if (not gNetplayActive) {
+                start-script lsc2110
+            }
+            case room28 {
+                1 {
+                    if (MODE-SPECTATE == gGameMode) {
+                        start-script maybe_skip_to_quick_game
+                    } else if (MODE-BATTING-PRACTICE == gGameMode) {
+                        start-script maybe_skip_to_team_selection
+                    } else {
+                        global621 = 3
+                        current-room teamname
+                    }
+                }
+                2 {
+                    global621 = 3
+                    current-room teamname
+                }
+                3 {
+                    if gNetplayActive {
+                        start-script lsc2071
+                    } else if (MODE-SPECTATE == gGameMode) {
+                        start-script maybe_skip_to_quick_game
+                    } else {
+                        start-script maybe_skip_to_team_selection
+                    }
+                }
+                else {
+                }
+            }
+        }
+        194 {
+            start-script StartQuickPickupGame (call-script GetFieldFromChoice rFieldChoice + 1)
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2070@2070 {
+    var local0 local1
+
+    case local0 {
+        1 {
+            assign-string local1 "Red"
+        }
+        2 {
+            assign-string local1 "Blue"
+        }
+        3 {
+            assign-string local1 "Yellow"
+        }
+        4 {
+            assign-string local1 "Green"
+        }
+        5 {
+            assign-string local1 "Purple"
+        }
+        6 {
+            assign-string local1 "Orange"
+        }
+        7 {
+            assign-string local1 "Pink"
+        }
+        8 {
+            assign-string local1 "White"
+        }
+        9 {
+            assign-string local1 "Black"
+        }
+        10 {
+            assign-string local1 "Dark Blue"
+        }
+        11 {
+            assign-string local1 "Navy"
+        }
+        12 {
+            assign-string local1 "Bright Orange"
+        }
+        13 {
+            assign-string local1 "Bright Red"
+        }
+        14 {
+            assign-string local1 "Forest Green"
+        }
+        15 {
+            assign-string local1 "Powder Blue"
+        }
+        16 {
+            assign-string local1 "Dark Purple"
+        }
+        17 {
+            assign-string local1 "Teal"
+        }
+        18 {
+            assign-string local1 "Brick Red"
+        }
+        else {
+            assign-string local1 "Unknown Color"
+        }
+    }
+    return local1
+}
+
+local-script lsc2071@2071 {
+    var local0 local1 local2 local3 local4 local5
+
+    global515 = room4
+    global516 = room5
+    global517 = room10
+    global678 = room8
+    start-script.rec maybe_net_send_message 30 1 52 -1
+    local1 = call-script lsc2070 room10
+    local2 = call-script lsc2070 room8
+    local3 = call-script GetTeamPrefixString room4
+    local4 = call-script GetTeamNameString room5
+    sprintf local0 "The color '%s', color '%s', name '%s', and the name '%s' are already taken. You must change them." local1 local2 local3 local4
+    undim local0
+    sprintf local0 "The name '%s' is already taken. You must change it." local4
+    if (global513 != room5) {
+        if local1 {
+            undim local1
+        }
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+        if local4 {
+            undim local4
+        }
+        if local0 {
+            undim local0
+        }
+        start-script.rec maybe_net_send_message 30 1 52 room4 room5 room10 room8
+        sprintf local0 "Waiting For Coach %s" gNetRemoteCoachName
+        start-script UpdateNavText local0
+        undim local0
+        if (g_net_smth_master == g_net_smth_me) {
+            if (read-system-ini.i32 "OverridePickteam" || gSkipPickingTeam) {
+                start-script PickRandomKids 1
+                break-until (not (script-running PickRandomKids))
+                dim-array.i16 local5 36
+                local5[0] = 991
+                for temp = 0 to 8 + {
+                    local5[temp + 1] = gPickOrder1[temp]
+                    local5[temp + 10] = gPickOrder2[temp]
+                    local5[temp + 19] = gBattingOrder1[temp]
+                    local5[temp + 28] = gBattingOrder2[temp]
+                }
+                start-script.rec maybe_smth_net_send_array 40 1 local5
+                undim local5
+            }
+        }
+        if (gNetWaitFlag == 0) {
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+            start-script smth_nav407
+        }
+        global248 = 0
+        if gNetplayActive {
+            global248 = 1
+            start-script.rec maybe_net_send_message 30 1 NET-WAITFLAG global510 global248
+            do {
+                break-here
+            } until gNetWaitFlag
+            dec gNetWaitFlag
+        }
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        gTeamInfo[0][TI-PRIMARY-COLOR] = room10
+        gTeamInfo[0][TI-SECONDARY-COLOR] = room8
+        gTeamInfo[0][TI-TEAM-ADJECTIVE] = room4
+        gTeamInfo[0][TI-TEAM-NOUN] = room5
+        gTeamInfo[1][TI-PRIMARY-COLOR] = global514
+        gTeamInfo[1][TI-SECONDARY-COLOR] = global663
+        gTeamInfo[1][TI-TEAM-ADJECTIVE] = global512
+        gTeamInfo[1][TI-TEAM-NOUN] = global513
+        if gSkipPickingTeam {
+            current-room teaminfo
+        } else {
+            current-room pickteam
+        }
+        stop-script 0
+    }
+    start-script smth_message_popup local0 0
+    break-until (not (script-running smth_message_popup))
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if local1 {
+        undim local1
+    }
+    if local2 {
+        undim local2
+    }
+    if local3 {
+        undim local3
+    }
+    if local4 {
+        undim local4
+    }
+}
+
+local-script HandleNavHover@2072 _ _ {
+}
+
+local-script maybe_skip_to_team_selection@2073 {
+    if room5 {
+        gTeamInfo[0][TI-PRIMARY-COLOR] = room10
+        gTeamInfo[0][TI-SECONDARY-COLOR] = room8
+        gTeamInfo[0][TI-TEAM-ADJECTIVE] = room4
+        gTeamInfo[0][TI-TEAM-NOUN] = room5
+    }
+    gHomeInfoIndex = 1
+    gVisitorInfoIndex = 0
+    gTeamInfo[1][TI-CONTROLLED-BY] = CB-COMPUTER
+    if (MODE-SPECTATE == gGameMode) {
+        gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+    } else {
+        gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+    }
+    gTeamInfo[1][TI-FIELDING-ORDER] = gPickOrder2
+    gTeamInfo[0][TI-FIELDING-ORDER] = gPickOrder1
+    start-script maybe_pick_random_team_names_colors
+    current-room pickteam
+}
+
+local-script maybe_skip_to_quick_game@2074 {
+    start-script StartQuickPickupGame (call-script GetFieldFromChoice rFieldChoice + 1)
+}
+
+local-script lsc2075@2075 {
+    var local0 local1
+
+    local1 = sprite-get-variable local0 1
+    if (local1 != room1) {
+        sprite.init local0
+        sprite.state (room0[local1][1] + 5)
+        while (gLastHoverNumber == local0 && gLastHoverType == 2) {
+            break-here
+        }
+        sprite.init local0
+        sprite.state room0[local1][1]
+    }
+}
+
+local-script lsc2076@2076 {
+    var local0 local1
+
+    start-script PlayClickySound
+    local1 = sprite-get-variable local0 1
+    if (script-running lsc2075) {
+        stop-script lsc2075
+    }
+    start-script lsc2094 local1
+}
+
+local-script lsc2077@2077 {
+    var local0
+
+    sprite.init local0
+    sprite.state (13 + 17)
+    break-here.multi 2
+    sprite.init local0
+    sprite.state 13
+    start-script lsc2107
+    start-script lsc2078 169 room19
+    start-script lsc2088
+}
+
+local-script lsc2078@2078 {
+    var local0 local1 local2
+
+    for local2 = 0 to 18 + {
+        if room17[room1][local2] {
+            sprite.init room17[0][local2]
+            sprite.image local0
+            sprite.palette local1
+            sprite.update-type 1
+            sprite.animation-type 0
+            sprite.state local2
+        } else {
+            sprite.init room17[0][local2]
+            sprite.image 0
+        }
+    }
+}
+
+local-script lsc2079@2079 {
+    var local0
+
+    dec local0
+    case local0 {
+        0 {
+            room26[0] = local0
+        }
+        1 {
+            room26[0] = local0
+        }
+        2 {
+            room26[0] = local0
+        }
+        3 {
+            room26[1] = local0
+        }
+        4 {
+            room26[1] = local0
+        }
+        5 {
+            room26[1] = local0
+        }
+        6 {
+            room26[1] = local0
+        }
+        11 {
+            room26[4] = local0
+        }
+        12 {
+            room26[4] = local0
+        }
+        7 {
+            room26[5] = local0
+        }
+        8 {
+            room26[5] = local0
+        }
+        14 {
+            room26[1] = local0
+        }
+        15 {
+            room26[1] = local0
+        }
+        16 {
+            room26[1] = local0
+        }
+        9 {
+            if (room26[2] == local0) {
+                room26[2] = 99
+            } else {
+                room26[2] = local0
+            }
+        }
+        10 {
+            if (room26[3] == local0) {
+                room26[3] = 99
+            } else {
+                room26[3] = local0
+            }
+        }
+        13 {
+            start-script lsc2077 room17[0][local0]
+            stop-script 0
+        }
+        else {
+        }
+    }
+    start-script lsc2078 169 room19
+    start-script lsc2088
+}
+
+local-script lsc2080@2080 {
+    var local0 local1 local2
+
+    if (in gCursorImage [1 2 3]) {
+        stop-script 0
+    }
+    local1 = sprite-get-variable local0 1
+    start-script PlayClickySound
+    if (4 == room1) {
+        local2 = room17[room1][local1]
+        if (not gNetplayActive) {
+            start-script lsc2079 local2
+        }
+    } else {
+        room5 = room17[room1][local1]
+        if (room1 == 1 || room1 == 2) {
+            room4 = room5 - 100
+            room10 = gMLBTeamData[room5][4]
+            room8 = gMLBTeamData[room5][5]
+        }
+        start-script lsc2093
+    }
+}
+
+local-script lsc2081@2081 {
+    var local0 local1 local2 local3 local4 local5
+
+    for local0 = 0 to 18 + {
+        if (room17[room1][local0] == room5) {
+            local1 = room17[0][local0]
+            local0 = 999
+        }
+    }
+    if local1 {
+        local2 = 0 - image-get-object-x (sprite-get-image local1) (sprite-get-state local1)
+        local3 = 0 - image-get-object-y (sprite-get-image local1) (sprite-get-state local1)
+        local4 = -2
+        local5 = -2
+        case room5 {
+            139 {
+                local4 = -1
+            }
+            130 {
+                local5 = -1
+            }
+            128 {
+                local5 = 0
+            }
+            151 {
+                local4 = -1
+            }
+            106 {
+                local4 = 0
+            }
+            101 {
+                local5 = -1
+            }
+            102 {
+                local4 = -1
+            }
+            else {
+            }
+        }
+        sprite.init room22
+        sprite.at (local2 + local4) (local3 + local5)
+    } else {
+        debug 0
+    }
+}
+
+local-script lsc2082@2082 {
+    var local0 local1
+
+    sprite.init local0
+    sprite.class [146]
+    if (local0 == room2) {
+        local1 = 1
+    } else {
+        local1 = 3
+    }
+    sprite.init local0
+    sprite.state local1
+    start-script PlayClickySound
+    break-here.multi 2
+    if (room1 == 3) {
+        if (local0 == room2) {
+            room4 = iif (room4 == 1) 10 (room4 - 1)
+        } else {
+            room4 = iif (room4 == 10) 1 (room4 + 1)
+        }
+        image.init image133
+        image.state (room4 - 1)
+        image.at (0 - image-get-object-x image133 (room4 - 1)) (0 - image-get-object-y image133 (room4 - 1))
+        image.palette room12
+        image.draw
+        image.end
+        start-script lsc2093
+    } else if (room1 == 4) {
+        if (local0 == room2) {
+            rFieldChoice = iif (rFieldChoice == FC-STEELE-STADIUM) 8 (rFieldChoice - 1)
+        } else {
+            rFieldChoice = iif (rFieldChoice == FC-SANDY-FLATS) 1 (rFieldChoice + 1)
+        }
+        start-script lsc2089
+        start-script lsc2068
+    } else {
+        debug 0
+    }
+    sprite.init local0
+    sprite.state (local1 - 1)
+    sprite.init local0
+    sprite.class [18]
+}
+
+local-script lsc2083@2083 {
+    var local0 local1 local2 local3
+
+    if (not room2) {
+        room2 = call-script FindFreeSprite
+    }
+    if (room1 == 3) {
+        local0 = 0
+        local1 = 0
+        local2 = 0
+        local3 = 0
+    } else if (room1 == 4) {
+        local0 = 330 - 374
+        local1 = 355 - 164
+        local2 = 571 - 570
+        local3 = 355 - 164
+    } else {
+        debug 0
+    }
+    sprite.init room2
+    sprite.image image135
+    sprite.state 0
+    sprite.update-type 1
+    sprite.animation-type 0
+    sprite.palette room13
+    sprite.at local0 local1
+    gSpriteCursorTargets[room2][TARGET-CLICK-SCRIPT] = lsc2082
+    if (not room3) {
+        room3 = call-script FindFreeSprite
+    }
+    sprite.init room3
+    sprite.image image135
+    sprite.state 2
+    sprite.update-type 1
+    sprite.animation-type 0
+    sprite.palette room13
+    sprite.at local2 local3
+    gSpriteCursorTargets[room3][TARGET-CLICK-SCRIPT] = lsc2082
+}
+
+local-script lsc2084@2084 {
+    var local0 local1 local2 local3
+
+    start-script PlayClickySound
+    if (local0 == room29) {
+        local1 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX - (0 - image-get-object-x image132 7)
+        local1 /= 47
+        local2 = 1
+    } else {
+        local1 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX - (0 - image-get-object-x image132 8)
+        local1 /= 47
+        local2 = 0
+    }
+    case local1 {
+        0 {
+            local3 = 9
+        }
+        1 {
+            local3 = 2
+        }
+        2 {
+            local3 = 4
+        }
+        3 {
+            local3 = 3
+        }
+        4 {
+            local3 = 6
+        }
+        5 {
+            local3 = 1
+        }
+        6 {
+            local3 = 5
+        }
+        7 {
+            local3 = 7
+        }
+        8 {
+            local3 = 8
+        }
+        else {
+        }
+    }
+    if local2 {
+        room10 = local3
+    } else {
+        room8 = local3
+    }
+    start-script DrawColorSelection
+    start-script lsc2093 1
+    start-script lsc2078 153 room14
+    sprite.init room17[0][0]
+    sprite.update-type 0
+    sprite.animation-type 0
+    sprite.state 0
+}
+
+local-script DrawColorSelection@2085 {
+    var local0
+
+    case room10 {
+        9 {
+            local0 = 0
+        }
+        2 {
+            local0 = 1
+        }
+        4 {
+            local0 = 2
+        }
+        3 {
+            local0 = 3
+        }
+        6 {
+            local0 = 4
+        }
+        1 {
+            local0 = 5
+        }
+        5 {
+            local0 = 6
+        }
+        7 {
+            local0 = 7
+        }
+        8 {
+            local0 = 8
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error: Bad color %d for DrawColorSelection." room10
+            local0 = 6
+        }
+    }
+    sprite.init room31
+    sprite.at (local0 * 47) -65
+    case room8 {
+        9 {
+            local0 = 0
+        }
+        2 {
+            local0 = 1
+        }
+        4 {
+            local0 = 2
+        }
+        3 {
+            local0 = 3
+        }
+        6 {
+            local0 = 4
+        }
+        1 {
+            local0 = 5
+        }
+        5 {
+            local0 = 6
+        }
+        7 {
+            local0 = 7
+        }
+        8 {
+            local0 = 8
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error: Bad color %d for DrawColorSelection." room10
+            local0 = 6
+        }
+    }
+    sprite.init room32
+    sprite.at (local0 * 47) 0
+}
+
+local-script lsc2086@2086 {
+    image.init image132
+    image.state 1
+    image.at (0 - image-get-object-x image132 1) (0 - image-get-object-y image132 1)
+    image.palette room12
+    image.draw
+    image.end
+    start-script lsc2083
+    image.init image133
+    image.state (room4 - 1)
+    image.at (0 - image-get-object-x image133 (room4 - 1)) (0 - image-get-object-y image133 (room4 - 1))
+    image.palette room12
+    image.draw
+    image.end
+    start-script lsc2078 153 room14
+    sprite.init room29
+    sprite.at 0 0
+    sprite.init room30
+    sprite.at 0 0
+    start-script lsc2093
+    start-script DrawColorSelection
+}
+
+local-script lsc2087@2087 {
+    image.init image132
+    image.state 1
+    image.at (0 - image-get-object-x image132 1) (0 - image-get-object-y image132 1)
+    image.palette room12
+    image.draw
+    image.end
+    if (room1 == 1) {
+        start-script lsc2078 154 room15
+    } else {
+        start-script lsc2078 155 room15
+    }
+    start-script lsc2093
+}
+
+local-script lsc2088@2088 {
+    var local0
+
+    for local0 = 0 to 5 + {
+        if (room26[local0] != 99) {
+            sprite.init room17[0][room26[local0]]
+            sprite.state (room26[local0] + 17)
+        }
+    }
+    if (room26[3] != 99) {
+        sprite.init room33
+        sprite.state 7
+    } else {
+        sprite.init room33
+        sprite.state 6
+    }
+    if (room26[2] != 99) {
+        sprite.init room34
+        sprite.state 5
+    } else {
+        sprite.init room34
+        sprite.state 4
+    }
+    if (room26[0] == 1) {
+        if (room26[1] == 3) {
+            start-script lsc2079 (5 + 1)
+        }
+        sprite.init room17[0][7]
+        sprite.state 7
+        sprite.init room17[0][8]
+        sprite.state 8
+        sprite.init room17[0][12]
+        sprite.state 12
+        sprite.init room17[0][11]
+        sprite.state 11
+    }
+    if (room26[1] == 3) {
+        sprite.init room17[0][9]
+        sprite.state 9
+        sprite.init room17[0][10]
+        sprite.state 10
+    }
+}
+
+local-script lsc2089@2089 {
+    var local0
+
+    image.init image171
+    image.state rFieldChoice
+    image.at (0 - image-get-object-x image171 rFieldChoice - 3) (0 - image-get-object-y image171 rFieldChoice)
+    image.palette room20
+    image.draw
+    image.end
+    local0 = 172 + call-script GetFieldFromChoice rFieldChoice
+    palette.init room21
+    palette.from-image local0 0
+    palette.end
+    image.init local0
+    image.state 0
+    image.palette room21
+    image.at 341 162
+    image.draw
+    image.end
+}
+
+local-script lsc2090@2090 {
+    image.init image168
+    image.state 1
+    image.at (0 - image-get-object-x image168 1) (0 - image-get-object-y image168 1)
+    image.palette room18
+    image.draw
+    image.end
+    if (MODE-SEASON == gGameMode) {
+        image.init image168
+        image.state 3
+        image.at (0 - image-get-object-x image168 3) (0 - image-get-object-y image168 3)
+        image.palette room18
+        image.draw
+        image.end
+    } else {
+        image.init image168
+        image.state 2
+        image.at (0 - image-get-object-x image168 2) (0 - image-get-object-y image168 2)
+        image.palette room18
+        image.draw
+        image.end
+    }
+    start-script lsc2078 169 room19
+    start-script lsc2088
+    sprite.init room34
+    sprite.at 0 0
+    sprite.init room33
+    sprite.at 0 0
+    start-script lsc2083
+    start-script lsc2089
+    if gNetplayActive {
+        sprite.init room2
+        sprite.class [146]
+        sprite.init room3
+        sprite.class [146]
+    }
+    gMouseHookScript = lsc2112
+}
+
+local-script lsc2091@2091 {
+    var local0 local1
+
+    case room1 {
+        3 {
+            local0 = 162
+            local1 = 235
+        }
+        1 {
+            local0 = 160
+            local1 = 240
+        }
+        2 {
+            local0 = 161
+            local1 = 240
+        }
+        4 {
+            if room5 {
+                local0 = room5
+                local1 = 240
+            } else {
+                local0 = 162
+                local1 = 235
+            }
+        }
+        else {
+        }
+    }
+    start-script scr283 global651 global650 local0 room10 room8 g_some_palette_655 320 local1
+}
+
+local-script lsc2092@2092 {
+    var local0
+
+    if room0[0][0] {
+        sprite.init room0[room0[0][0]][0]
+        sprite.order -30
+        sprite.state room0[room0[0][0]][1]
+    }
+    room0[0][0] = local0
+    sprite.init room0[local0][0]
+    sprite.order 50
+    sprite.state (room0[local0][1] + -5)
+}
+
+local-script lsc2093@2093 {
+    var local0 local1 local2 local3 local4
+
+    if local0 {
+        room6 = 999
+        room7 = 999
+    }
+    start-script scr279 room14 room10 room8
+    if (room4 != room6) {
+        if (room4 >= 1 && room4 <= 10) {
+            local1 = 136
+            local2 = room4 - 1
+        } else {
+            if (call-script scr284 room4) {
+                local1 = 138
+            } else {
+                local1 = 141
+            }
+            local2 = gMLBTeamData[room4 + 100][0] - 1
+        }
+        image.init (local1 + local2 / 5)
+        image.state (local2 % 5)
+        image.palette room14
+        image.at 21 282
+        image.draw
+        image.end
+        room6 = room4
+    }
+    if (room5 != room7) {
+        if (room5 >= 101 && room5 <= 106) {
+            local1 = 145
+            local3 = 156
+            local2 = room5 - 101
+            local4 = room14
+        } else {
+            if (call-script scr284 room5) {
+                local1 = 146
+                local3 = 157
+            } else {
+                local1 = 149
+                local3 = 160
+            }
+            local4 = room15
+            local2 = gMLBTeamData[room5][0] - 1
+        }
+        image.init (local1 + local2 / 6)
+        image.state (local2 % 6)
+        image.palette room14
+        image.at 21 314
+        image.draw
+        image.end
+        room7 = room5
+        image.init (local3 + local2 / 6)
+        image.state (local2 % 6)
+        image.palette local4
+        image.at 16 136
+        image.draw
+        image.end
+        start-script lsc2081
+    }
+    if (room8 != room9 || room10 != room11) {
+        room9 = room8
+        room11 = room10
+        image.init image152
+        image.palette room14
+        image.at 24 344
+        image.draw
+        image.end
+    }
+}
+
+local-script lsc2094@2094 {
+    var local0 local1
+
+    if (local0 == -1) {
+        local0 = room1
+    } else if (room1 != local0) {
+        start-script lsc2102 room1
+        room1 = local0
+    } else {
+        stop-script 0
+    }
+    start-script lsc2092 local0
+    if (local0 < 4) {
+        start-script lsc2103
+    }
+    image.init image132
+    image.state 0
+    image.at (0 - image-get-object-x image132 0) (0 - image-get-object-y image132 0)
+    image.palette room12
+    image.draw
+    image.end
+    case local0 {
+        3 {
+            image.init image132
+            image.state 2
+            image.at (0 - image-get-object-x image132 2) (0 - image-get-object-y image132 2)
+            image.palette room12
+            image.draw
+            image.end
+            start-script lsc2086
+        }
+        [2 1] {
+            image.init image132
+            image.state 3
+            image.at (0 - image-get-object-x image132 3) (0 - image-get-object-y image132 3)
+            image.palette room12
+            image.draw
+            image.end
+            if (local0 == 2) {
+                local1 = 4
+            } else {
+                local1 = 5
+            }
+            image.init image132
+            image.state local1
+            image.at (0 - image-get-object-x image132 local1) (0 - image-get-object-y image132 local1)
+            image.palette room12
+            image.draw
+            image.end
+            start-script lsc2087
+        }
+        4 {
+            start-script lsc2090
+        }
+        else {
+        }
+    }
+    start-script lsc2091
+    start-script lsc2063
+}
+
+local-script lsc2095@2095 {
+    var local0
+
+    if (MODE-SEASON == gGameMode) {
+        local0 = 4
+    } else if gNetplayActive {
+        local0 = 7
+    } else {
+        local0 = 2
+    }
+    start-script lsc2065 -1 166 1104 local0 room35
+    start-script lsc2094 -1
+}
+
+local-script lsc2096@2096 {
+    start-script lsc2048
+    room12 = call-script AllocPalette
+    palette.init room12
+    palette.from-image 132 0
+    palette.end
+    room13 = call-script AllocPalette
+    palette.init room13
+    palette.from-image 134 0
+    palette.end
+    room14 = call-script AllocPalette
+    palette.init room14
+    palette.from-image 153 0
+    palette.end
+    room15 = call-script AllocPalette
+    palette.init room15
+    palette.from-image 154 0
+    palette.end
+    room18 = call-script AllocPalette
+    palette.init room18
+    palette.from-image 168 0
+    palette.end
+    room19 = call-script AllocPalette
+    palette.init room19
+    palette.from-image 169 0
+    palette.end
+    room16 = call-script AllocPalette
+    room20 = call-script AllocPalette
+    palette.init room20
+    palette.from-image 171 0
+    palette.end
+    room21 = call-script AllocPalette
+}
+
+local-script lsc2097@2097 {
+    start-script lsc2049
+    start-script FreePalette room12
+    start-script FreePalette room13
+    start-script FreePalette room14
+    start-script FreePalette room15
+    start-script FreePalette room18
+    start-script FreePalette room19
+    start-script FreePalette room16
+    start-script FreePalette room20
+    start-script FreePalette room21
+}
+
+local-script lsc2098@2098 {
+    var local0
+
+    dim-array-2d.i16 room0 4 1
+    for local0 = 1 to 4 + {
+        if (local0 == 4) {
+            if (band room27 1 == 0) {
+                jump L00d7
+            }
+        } else if (band room27 2 == 0) {
+            jump L00d7
+        }
+        room0[local0][0] = call-script FindFreeSprite
+        room0[local0][1] = 5 + local0 - 1
+        if (local0 == 4) {
+            if (MODE-SEASON == gGameMode) {
+                room0[local0][1] = 9
+            }
+        }
+        sprite.init room0[local0][0]
+        sprite.image image134
+        sprite.order -30
+        sprite.animation-type 0
+        sprite.update-type 1
+        sprite.palette room13
+        sprite.state room0[local0][1]
+        gSpriteCursorTargets[room0[local0][0]][TARGET-HOVER-SCRIPT] = lsc2075
+        gSpriteCursorTargets[room0[local0][0]][TARGET-CLICK-SCRIPT] = lsc2076
+        sprite.init room0[local0][0]
+        sprite.variable-range 1 local0
+        L00d7:
+    }
+}
+
+local-script lsc2099@2099 {
+    var local0
+
+    for local0 = 1 to 4 + {
+        start-script ReleaseSprite room0[local0][0]
+    }
+    undim room0
+}
+
+local-script lsc2100@2100 {
+    sprite.init room2
+    sprite.at -500 -500
+    sprite.init room3
+    sprite.at -500 -500
+    sprite.init room33
+    sprite.at -500 -500
+    sprite.init room34
+    sprite.at -500 -500
+    if gNetplayActive {
+        sprite.init room2
+        sprite.class [18]
+        sprite.init room3
+        sprite.class [18]
+    }
+    gMouseHookScript = 0
+}
+
+local-script lsc2101@2101 {
+    sprite.init room2
+    sprite.at -500 -500
+    sprite.init room3
+    sprite.at -500 -500
+    sprite.init room29
+    sprite.at -500 -500
+    sprite.init room30
+    sprite.at -500 -500
+    sprite.init room31
+    sprite.at -500 -500
+    sprite.init room32
+    sprite.at -500 -500
+}
+
+local-script lsc2102@2102 {
+    var local0
+
+    if (local0 < 4) {
+        sprite.init room22
+        sprite.at -500 -500
+        room6 = 0
+        room7 = 0
+        room9 = 0
+        room11 = 0
+        if (local0 == 3) {
+            start-script lsc2101
+        }
+    } else {
+        start-script lsc2100
+    }
+}
+
+local-script lsc2103@2103 {
+    var local0
+
+    case room1 {
+        3 {
+            room4 = random-between 1 10
+            room5 = random-between 101 106
+            room10 = random-between 1 9
+            room8 = random-between 1 9
+        }
+        1 {
+            do {
+                local0 = random-between 122 151
+            } until (call-script scr284 local0)
+            room4 = local0 - 100
+            room5 = local0
+            room10 = gMLBTeamData[room5][4]
+            room8 = gMLBTeamData[room5][5]
+        }
+        2 {
+            do {
+                local0 = random-between 122 151
+            } until (not (call-script scr284 local0))
+            room4 = local0 - 100
+            room5 = local0
+            room10 = gMLBTeamData[room5][4]
+            room8 = gMLBTeamData[room5][5]
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2104@2104 {
+    var local0
+
+    dim-array-2d.u8 room17 4 18
+    for local0 = 0 to 18 + {
+        room17[0][local0] = call-script FindFreeSprite
+        sprite.init room17[0][local0]
+        sprite.animation-type 0
+        sprite.update-type 1
+        sprite.order 10
+        sprite.at 0 0
+        sprite.init room17[0][local0]
+        sprite.variable-range 1 local0
+        gSpriteCursorTargets[room17[0][local0]][TARGET-CLICK-SCRIPT] = lsc2080
+    }
+    room22 = call-script FindFreeSprite
+    sprite.init room22
+    sprite.image image167
+    sprite.animation-type 0
+    sprite.update-type 1
+    sprite.palette room13
+    sprite.order 20
+    sprite.at -500 -500
+    room23 = call-script FindFreeSprite
+    room24 = call-script FindFreeSprite
+    array-assign-row room17 3 [104 103 106 101 105 102]
+    array-assign-row room17 1 [122 147 150 142 130 128 132 135 138 125 126 140 151 149]
+    array-assign-row room17 2 [131 123 145 136 146 127 134 137 129 144 148 124 141 139 143 133]
+    array-assign-range room17 4 4 0 (17 - 1) 1 17
+    if (MODE-SEASON == gGameMode) {
+        for local0 = 1 to 7 + {
+            room17[4][local0 - 1] = 0
+        }
+    } else {
+        room17[4][15 - 1] = 0
+        room17[4][16 - 1] = 0
+        room17[4][17 - 1] = 0
+    }
+    room29 = call-script FindFreeSprite
+    sprite.init room29
+    sprite.image image132
+    sprite.update-type 2
+    sprite.animation-type 0
+    sprite.state 7
+    sprite.palette room12
+    sprite.order 10
+    sprite.at -500 -500
+    gSpriteCursorTargets[room29][TARGET-CLICK-SCRIPT] = lsc2084
+    room30 = call-script FindFreeSprite
+    sprite.init room30
+    sprite.image image132
+    sprite.update-type 2
+    sprite.animation-type 0
+    sprite.state 8
+    sprite.palette room12
+    sprite.order 10
+    sprite.at -500 -500
+    gSpriteCursorTargets[room30][TARGET-CLICK-SCRIPT] = lsc2084
+    room31 = call-script FindFreeSprite
+    sprite.init room31
+    sprite.image image132
+    sprite.update-type 2
+    sprite.animation-type 0
+    sprite.state 6
+    sprite.palette room12
+    sprite.order 20
+    sprite.at -500 -500
+    room32 = call-script FindFreeSprite
+    sprite.init room32
+    sprite.image image132
+    sprite.update-type 2
+    sprite.animation-type 0
+    sprite.state 6
+    sprite.palette room12
+    sprite.order 20
+    sprite.at -500 -500
+}
+
+local-script lsc2105@2105 {
+    var local0
+
+    for local0 = 0 to 18 + {
+        start-script ReleaseSprite room17[0][local0]
+    }
+    undim room17
+    start-script ReleaseSprite room22
+    start-script ReleaseSprite room23
+    start-script ReleaseSprite room24
+    start-script ReleaseSprite room2
+    start-script ReleaseSprite room3
+    start-script ReleaseSprite room29
+    start-script ReleaseSprite room30
+    start-script ReleaseSprite room31
+    start-script ReleaseSprite room32
+}
+
+local-script lsc2106@2106 {
+    case gGameMode {
+        MODE-PICKUP {
+            room26[0] = 0
+        }
+        MODE-BATTING-PRACTICE {
+            room26[0] = 1
+        }
+        MODE-SPECTATE {
+            room26[0] = 2
+        }
+        MODE-SEASON {
+            room26[0] = 99
+        }
+        else {
+        }
+    }
+    if (MODE-SEASON == gGameMode) {
+        case gDifficulty {
+            EASY {
+                room26[1] = 14
+            }
+            MEDIUM {
+                room26[1] = 15
+            }
+            HARD {
+                room26[1] = 16
+            }
+            else {
+            }
+        }
+    } else {
+        case gDifficulty {
+            TEE-BALL {
+                room26[1] = 3
+            }
+            EASY {
+                room26[1] = 4
+            }
+            MEDIUM {
+                room26[1] = 5
+            }
+            HARD {
+                room26[1] = 6
+            }
+            else {
+            }
+        }
+    }
+    if gNoBatCircle {
+        room26[2] = 99
+    } else {
+        room26[2] = 9
+    }
+    if gPitchBallIndicator {
+        room26[3] = 10
+    } else {
+        room26[3] = 99
+    }
+    if gNoErrors {
+        room26[4] = 12
+    } else {
+        room26[4] = 11
+    }
+    if (gGameLength == 12) {
+        room26[5] = 7
+    } else {
+        room26[5] = 8
+    }
+}
+
+local-script lsc2107@2107 {
+    if (MODE-SEASON == gGameMode) {
+        room26[0] = 99
+        room26[1] = 15
+    } else {
+        room26[0] = 0
+        room26[1] = 5
+    }
+    room26[2] = 9
+    room26[3] = 99
+    room26[4] = 11
+    room26[5] = 7
+}
+
+local-script lsc2108@2108 {
+    dim-array.u8 room26 5
+    room33 = call-script FindFreeSprite
+    sprite.init room33
+    sprite.new
+    sprite.image image168
+    sprite.state 6
+    sprite.order (10 + 1)
+    sprite.animation-type 0
+    sprite.palette room18
+    sprite.update-type 1
+    sprite.at -500 -500
+    room34 = call-script FindFreeSprite
+    sprite.init room34
+    sprite.new
+    sprite.image image168
+    sprite.state 4
+    sprite.order 10
+    sprite.animation-type 0
+    sprite.palette room18
+    sprite.update-type 1
+    sprite.at -500 -500
+    if gNetplayActive {
+        start-script lsc2106
+        rFieldChoice = call-script lsc2067 gField
+    } else if (gPreviousRoom != gCurrentRoom) {
+        start-script lsc2107
+        rFieldChoice = random-between 1 8
+    } else {
+        start-script lsc2106
+        rFieldChoice = call-script lsc2067 gField
+    }
+}
+
+local-script lsc2109@2109 {
+    undim room26
+    start-script ReleaseSprite room33
+    start-script ReleaseSprite room34
+}
+
+local-script lsc2110@2110 {
+    case room26[0] {
+        0 {
+            gGameMode = MODE-PICKUP
+        }
+        1 {
+            gGameMode = MODE-BATTING-PRACTICE
+        }
+        2 {
+            gGameMode = MODE-SPECTATE
+        }
+        99 {
+            gGameMode = MODE-SEASON
+        }
+        else {
+        }
+    }
+    case room26[1] {
+        3 {
+            gDifficulty = TEE-BALL
+        }
+        4 {
+            gDifficulty = EASY
+        }
+        5 {
+            gDifficulty = MEDIUM
+        }
+        6 {
+            gDifficulty = HARD
+        }
+        14 {
+            gDifficulty = EASY
+        }
+        15 {
+            gDifficulty = MEDIUM
+        }
+        16 {
+            gDifficulty = HARD
+        }
+        else {
+        }
+    }
+    gNoBatCircle = 1 - (room26[2] == 9)
+    gPitchBallIndicator = room26[3] == 10
+    gNoErrors = room26[4] == 12
+    gCoachHomeField = call-script GetFieldFromChoice rFieldChoice
+    gField = gCoachHomeField
+    gGameLength = iif (room26[5] == 7) 12 18
+}
+
+local-script lsc2111@2111 {
+    room27 = global621
+    if (room27 == 1) {
+        room1 = 4
+        assign-string room35 "Choose game options"
+        room28 = 1
+    } else if (room27 == 2) {
+        room1 = pick (random 2) [2 1 3]
+        assign-string room35 "Choose your team"
+        room28 = 2
+    } else {
+        room1 = pick (random 2) [2 1 3]
+        room28 = 3
+        assign-string room35 "Choose your team"
+    }
+}
+
+local-script lsc2112@2112 {
+    var local0 local1 local2 local3
+
+    if (local0 == 2) {
+        for local2 = 0 to 18 + {
+            if (local1 == room17[0][local2]) {
+                local3 = room17[room1][local2]
+                local2 = 999
+            }
+        }
+        if local3 {
+            if (room26[0] == 1) {
+                if (in local3 [4 8 9 13 12]) {
+                    gMouseHookFlags = 134217728
+                    return local3
+                }
+            }
+            if (room26[1] == 3) {
+                if (in local3 [10 11]) {
+                    gMouseHookFlags = 134217728
+                    return local3
+                }
+            }
+        }
+    } else if local0 {
+    } else if (gMouseX >= 340) {
+        if (gMouseX <= 592) {
+            if (gMouseY >= 162) {
+                if (gMouseY <= 348) {
+                    gMouseHookFlags = 134217728
+                    return 111
+                }
+            }
+        }
+    }
+    return 0
+}
+
+local-script lsc2113@2113 {
+    var local0 local1 local2 local3 local4
+
+    case local0 {
+        [room2 room3] {
+            assign-string local3 "Choose Field"
+            assign-string local4 "Click here to scroll though the list of fields"
+        }
+        else {
+            for local1 = 0 to 18 + {
+                if (local0 == room17[0][local1]) {
+                    local2 = room17[room1][local1]
+                    local1 = 999
+                }
+            }
+            if local2 {
+                case local2 {
+                    1 {
+                        assign-string local3 "Single Game"
+                        assign-string local4 "Play a pickup game against the computer."
+                    }
+                    2 {
+                        assign-string local3 "Batting Practice"
+                        assign-string local4 "Practice those hitting skills with our own lovable Mr. Clanky."
+                    }
+                    3 {
+                        assign-string local3 "Spectator Mode"
+                        assign-string local4 "Rather be a bench warmer?  Well then sit back and watch as the computer plays a game all by itself."
+                    }
+                    4 {
+                        assign-string local3 "Tee-ball Mode"
+                        assign-string local4 "Can't hit?  Let's see if you can hit a ball that doesn't move."
+                    }
+                    [5 15] {
+                        assign-string local3 "Easy Mode"
+                        assign-string local4 "The kids will take it easy on you in Easy Mode.  Plus you can swing as early as you want and you'll hit the ball."
+                    }
+                    [6 16] {
+                        assign-string local3 "Medium Mode"
+                        assign-string local4 "For novices or veterans, a good computer opponent will test your skills."
+                    }
+                    [7 17] {
+                        assign-string local3 "Hard Mode"
+                        assign-string local4 "The computer takes off the kid gloves.  It's go time!"
+                    }
+                    10 {
+                        assign-string local3 "Swing Spot"
+                        assign-string local4 "The Swing spot shows you where your batter thinks the ball will cross the plate."
+                    }
+                    11 {
+                        assign-string local3 "Pitch Locator"
+                        assign-string local4 "The Pitch Locator shows you where the ball will actually cross the plate."
+                    }
+                    12 {
+                        assign-string local3 "Errors On"
+                        assign-string local4 "Let the kids play like kids."
+                    }
+                    13 {
+                        assign-string local3 "Errors Off"
+                        assign-string local4 "Let the kids play like ... smarter kids."
+                    }
+                    8 {
+                        assign-string local3 "Six inning game"
+                        assign-string local4 "This is the way the backyard kids normally play.  The game will end after six innings."
+                    }
+                    9 {
+                        assign-string local3 "Nine inning game"
+                        assign-string local4 "Just like the pros, the game ends after nine innings."
+                    }
+                    14 {
+                        assign-string local3 "Reset Options"
+                        assign-string local4 "Change all the game options to the default settings."
+                    }
+                    else {
+                    }
+                }
+            }
+        }
+    }
+    if gNetplayActive {
+        if local3 {
+            undim local3
+        }
+        if local4 {
+            undim local4
+        }
+        assign-string local4 "Options Are Preset In A Network Game."
+    }
+    if (local3 || local4) {
+        start-script UpdateNavText local3 local4
+        if local3 {
+            undim local3
+        }
+        if local4 {
+            undim local4
+        }
+    }
+}
+
+local-script lsc2114@2114 {
+    var local0 local1 local2 local3 local4
+
+    case local0 {
+        [room2 room3] {
+            assign-string local3 "Team First Names"
+            assign-string local4 "Click here to scroll though the list of Backyard Team First Names"
+        }
+        room29 {
+            assign-string local3 "Team Colors"
+            assign-string local4 "Choose a color for your uniform and hat"
+        }
+        room30 {
+            assign-string local3 "Team Colors"
+            assign-string local4 "Choose a color for your sleeves and hat bill"
+        }
+        else {
+            for local1 = 0 to 18 + {
+                if (local0 == room17[0][local1]) {
+                    local2 = room17[room1][local1]
+                    local1 = 999
+                }
+            }
+            local3 = call-script GetTeamNameString local2
+            assign-string local4 "Backyard League"
+        }
+    }
+    if (local3 || local4) {
+        start-script UpdateNavText local3 local4
+        if local3 {
+            undim local3
+        }
+        if local4 {
+            undim local4
+        }
+    }
+}
+
+local-script lsc2115@2115 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    for local1 = 0 to 18 + {
+        if (local0 == room17[0][local1]) {
+            local2 = room17[room1][local1]
+            local1 = 999
+        }
+    }
+    if (local2 > 0) {
+        local5 = call-script GetTeamPrefixString (local2 - 100)
+        local6 = call-script GetTeamNameString local2
+        sprintf local3 "%s %s" local5 local6
+        undim local5
+        undim local6
+        if (gMLBTeamData[local2][1] == 1) {
+            assign-string local5 "American League"
+        } else {
+            assign-string local5 "National League"
+        }
+        case gMLBTeamData[local2][2] {
+            1 {
+                assign-string local6 "West"
+            }
+            2 {
+                assign-string local6 "Central"
+            }
+            3 {
+                assign-string local6 "East"
+            }
+            else {
+            }
+        }
+        sprintf local4 "%s %s" local5 local6
+        undim local5
+        undim local6
+        start-script UpdateNavText local3 local4
+        undim local3
+        undim local4
+    }
+}
+
+local-script lsc2116@2116 {
+    var local0 local1 local2 local3
+
+    case local1 {
+        2 {
+            case local0 {
+                gNavButtons[1][0] {
+                    if gNetplayActive {
+                        assign-string local2 "Quit Game"
+                        assign-string local3 "click here to quit this network game."
+                    } else {
+                        assign-string local2 "The club house"
+                        assign-string local3 "click here to return to THE CLUB HOUSE."
+                    }
+                }
+                gNavButtons[3][0] {
+                    case room28 {
+                        1 {
+                            assign-string local2 "choose your team"
+                            assign-string local3 "click here to move ahead to the team selection screen."
+                        }
+                        2 {
+                            assign-string local2 "Season Options"
+                            assign-string local3 "Click here to move ahead to the SEASON OPTIONS screen."
+                        }
+                        3 {
+                            if gSkipPickingTeam {
+                                assign-string local2 "Team page"
+                                assign-string local3 "Click here to move ahead to your team page.  The computer will pick a random team for you."
+                            } else {
+                                assign-string local2 "Pick Kids"
+                                assign-string local3 "Click here to move ahead to the bench where you can CHOOSE YOUR PLAYERS"
+                            }
+                        }
+                        else {
+                        }
+                    }
+                }
+                room0[1][0] {
+                    assign-string local2 "American League"
+                    assign-string local3 "Choose from the American League teams"
+                }
+                room0[2][0] {
+                    assign-string local2 "National League"
+                    assign-string local3 "Choose from the National League teams"
+                }
+                room0[4][0] {
+                    assign-string local2 "Game Setup"
+                    assign-string local3 "Change your game settings"
+                }
+                room0[3][0] {
+                    assign-string local2 "Create A Team"
+                    assign-string local3 "Choose from the Backyard League teams"
+                }
+                else {
+                    case room1 {
+                        4 {
+                            start-script lsc2113 local0
+                        }
+                        3 {
+                            start-script lsc2114 local0
+                        }
+                        else {
+                            start-script lsc2115 local0
+                        }
+                    }
+                    stop-script 0
+                }
+            }
+        }
+        6 {
+            if (local0 == 111) {
+                case rFieldChoice {
+                    FC-STEELE-STADIUM {
+                        assign-string local2 "Steele stadium"
+                        assign-string local3 "Ernie Steele's backyard.  A shallow center field makes this place a hitter's dream."
+                    }
+                    FC-PARKS-DEPARTMENT {
+                        assign-string local2 "Parks Department #2"
+                        assign-string local3 "A nice symmetrical field with an instant replay screen."
+                    }
+                    FC-TIN-CAN-ALLEY {
+                        assign-string local2 "Tin can alley"
+                        assign-string local3 "The ball bounces all over the place in this field."
+                    }
+                    FC-ECKMAN-ACRES {
+                        assign-string local2 "Eckman Acres"
+                        assign-string local3 "Kimmy Eckman's backyard.  Stick around after the game for Mrs. Eckman's famous chocolate chip cookies."
+                    }
+                    FC-CEMENT-GARDENS {
+                        assign-string local2 "Cement Gardens"
+                        assign-string local3 "Balls hit out of the alley in left field count as homeruns.  As do balls hit into the dumpster."
+                    }
+                    FC-DIRT-YARDS {
+                        assign-string local2 "Dirt Yards"
+                        assign-string local3 "Watch out for ground balls on this field - they take funny hops in the dirt."
+                    }
+                    FC-PLAYGROUND-COMMONS {
+                        assign-string local2 "Playground Commons"
+                        assign-string local3 "The original backyard baseball field.  See if you can hit it over that big chainlink fence in right."
+                    }
+                    FC-SANDY-FLATS {
+                        assign-string local2 "Sandy Flats"
+                        assign-string local3 "The sand is deep so the running is slow.  Balls hit past the line in deep left count as home runs."
+                    }
+                    else {
+                    }
+                }
+            } else {
+                start-script maybe_HideNavHoverText
+            }
+        }
+        else {
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local2 local3
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+    }
+}
+
+enter {
+    start-script lsc2050
+    if gNetplayActive {
+        g_maybe_net_who_picks_next = 0
+        gNetWaitFlag = 0
+        if (g_net_smth_master == g_net_smth_me) {
+            start-script.rec maybe_net_send_message 30 1 NET-SETROOM 6
+        }
+    }
+    gHoverScript = lsc2116
+    start-script lsc2111
+    start-script lsc2096
+    start-script lsc2104
+    start-script lsc2108
+    start-script lsc2098
+    start-script lsc2095
+    start-script SetNavButtons HandleNavClick HandleNavHover 0
+    if (not (sound-running 8074) && not (sound-running 8070)) {
+        start-script AddSongsToPool -1
+        start-script AddSongsToPool 8074 8070
+        start-script PlayMusicPool -1
+    }
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+exit {
+    start-script lsc2102
+    start-script lsc2097
+    start-script lsc2099
+    start-script lsc2105
+    start-script lsc2109
+    start-script FreeNavButtons
+    start-script lsc2059
+    undim room35
+    gHoverScript = 0
+}

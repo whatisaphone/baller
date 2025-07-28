@@ -1,4 +1,0 @@
-; SCRP 30 FindFreeSprite
-
-return (call-script AllocSprite [])
-free-script

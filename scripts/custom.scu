@@ -1,0 +1,1798 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "custom/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `3e00`
+}
+
+var room8@8
+var room9@9
+var room10@10
+var rAwaitingFirstInput@11
+var room12@12
+var room14@14
+var room15@15
+var room16@16
+var room17@17
+var room18@18
+var room19@19
+var rInputLen@20
+var room21@21
+var rNextKeyClearsInput@22
+var room23@23
+
+local-script lsc2048@2048 {
+    g_some_palette_654 = call-script AllocPalette
+    g_some_palette_655 = call-script AllocPalette
+}
+
+local-script lsc2049@2049 {
+    start-script FreePalette g_some_palette_654
+    g_some_palette_654 = 0
+    start-script FreePalette g_some_palette_655
+    g_some_palette_655 = 0
+}
+
+local-script lsc2050@2050 {
+    if global423 {
+        global652 = global423
+    } else {
+        global652 = 257
+    }
+}
+
+local-script lsc2051@2051 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif gTeamInfo[0][TI-CONTROLLED-BY] gPickOrder1 gPickOrder2)
+    } else {
+        return gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER]
+    }
+}
+
+local-script lsc2052@2052 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif (CB-USER == gTeamInfo[0][TI-CONTROLLED-BY]) 0 1)
+    } else {
+        return gHomeInfoIndex
+    }
+}
+
+local-script lsc2053@2053 {
+    var local0
+
+    return (local0 * 2 + 1073 - 2)
+}
+
+local-script lsc2054@2054 {
+    var local0 local1 local2 local3 local4
+
+    local3 = call-script lsc2053 local0
+    local4 = local3 + 1
+    case local1 {
+        101 {
+            local2 = 0
+        }
+        102 {
+            local2 = 1
+        }
+        103 {
+            local2 = 2
+        }
+        104 {
+            local2 = 3
+        }
+        105 {
+            local2 = 4
+        }
+        106 {
+            local2 = 6
+        }
+        else {
+            local2 = 3
+        }
+    }
+    sprite.init global648
+    sprite.new
+    sprite.image image1072
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image local4
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1071
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image local3
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+}
+
+local-script lsc2055@2055 {
+    var local0 _ local2
+
+    local2 = local0 - 22
+    sprite.init global648
+    sprite.new
+    sprite.image image1068
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image image1070
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1067
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image image1069
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+}
+
+local-script lsc2056@2056 {
+    var local0 _ local2
+
+    sprite.init global648
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 0 0
+    sprite.init global646
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state (local2 + 1)
+    sprite.palette g_some_palette_654
+    sprite.at 0 0
+}
+
+local-script lsc2057@2057 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local1 {
+        local3 = local1
+        local4 = 0
+        local5 = 2056
+    } else {
+        local3 = gTeamInfo[local0][TI-TEAM-ADJECTIVE]
+        local4 = gTeamInfo[local0][TI-TEAM-NOUN]
+        local5 = iif (local3 <= 10) 2054 2055
+    }
+    start-script local5 local3 local4 local2
+}
+
+local-script lsc2058@2058 {
+    if global648 {
+        start-script ReleaseSprite global648
+        global648 = 0
+        start-script ReleaseSprite global649
+        global649 = 0
+        start-script ReleaseSprite global646
+        global646 = 0
+        start-script ReleaseSprite global647
+        global647 = 0
+    }
+}
+
+local-script lsc2059@2059 {
+    start-script lsc2058
+    start-script scr281
+    if global653 {
+        start-script ReleaseSprite global653
+        global653 = 0
+    }
+    if global671 {
+        start-script ReleaseSprite global671
+        global671 = 0
+        start-script ReleaseSprite global672
+        global672 = 0
+        start-script FreeScratchImage global673
+    }
+}
+
+local-script lsc2060@2060 {
+    var local0 local1 local2
+
+    if (local0 < 0) {
+        local2 = 240
+        case local0 {
+            -1 {
+                local1 = 162
+                local2 = 235
+            }
+            -2 {
+                local1 = 160
+            }
+            -3 {
+                local1 = 161
+            }
+            else {
+            }
+        }
+        start-script scr283 global651 global650 local1 0 0 g_some_palette_655 320 local2
+    } else {
+        start-script scr283 global651 global650 gTeamInfo[local0][TI-TEAM-NOUN] gTeamInfo[local0][TI-PRIMARY-COLOR] gTeamInfo[local0][TI-SECONDARY-COLOR] g_some_palette_655
+    }
+}
+
+local-script lsc2061@2061 {
+    var local0 local1 local2 local3
+
+    if (local0 == 0) {
+        sprite.init global672
+        sprite.new
+        sprite.image image1252
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.order -1450
+        sprite.palette g_some_palette_654
+        sprite.group 17
+        sprite.at 320 240
+        local1 = 204
+        local2 = 52
+        sprintf local3 "%s" gCoachName
+    } else {
+        sprintf local3 "%s" local0
+        local1 = 115
+        local2 = 52
+    }
+    temp2 = string-length local3 - 1
+    for temp = 0 to temp2 + {
+        if (local3[temp] >= 97 && local3[temp] <= 122) {
+            local3[temp] -= 32
+        }
+    }
+    temp = call-script maybe_draw_text_to_image local3 1251 global673 g_some_palette_654 1
+    undim local3
+    sprite.init global671
+    sprite.new
+    sprite.image global673
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at local1 local2
+}
+
+local-script lsc2062@2062 {
+    if (not global646) {
+        global646 = call-script FindFreeSprite
+        global647 = call-script FindFreeSprite
+        global648 = call-script FindFreeSprite
+        global649 = call-script FindFreeSprite
+        global671 = call-script FindFreeSprite
+        global672 = call-script FindFreeSprite
+        global673 = call-script AllocScratchImage
+    }
+    if (not global651) {
+        global651 = call-script FindFreeSprite
+        global650 = call-script FindFreeSprite
+    }
+}
+
+local-script lsc2063@2063 {
+    var local0 local1
+
+    local1 = sprite-get-state-count global653
+    local0 = sprite-get-state global653
+    if (local1 - 1 == local0) {
+        local0 = 0
+    } else {
+        inc local0
+    }
+    while (local0 < local1) {
+        sprite.init global653
+        sprite.state local0
+        sprite.at 320 240
+        inc local0
+        break-here
+    }
+}
+
+local-script getTeamBackground@2064 arg0 {
+    var local1 local2 local3
+
+    if (call-script scr129 gTeamInfo[arg0][TI-TEAM-NOUN]) {
+        local2 = gTeamInfo[arg0][TI-TEAM-NOUN]
+        local3 = gMLBTeamData[local2][3]
+    } else {
+        local3 = gTeamInfo[arg0][TI-PRIMARY-COLOR]
+    }
+    case local3 {
+        1 {
+            local1 = 1103
+        }
+        2 {
+            local1 = 1104
+        }
+        3 {
+            local1 = 1105
+        }
+        4 {
+            local1 = 1106
+        }
+        5 {
+            local1 = 1107
+        }
+        6 {
+            local1 = 1108
+        }
+        7 {
+            local1 = 1109
+        }
+        8 {
+            local1 = 1110
+        }
+        9 {
+            local1 = 1111
+        }
+        10 {
+            local1 = 1112
+        }
+        11 {
+            local1 = 1115
+        }
+        12 {
+            local1 = 1113
+        }
+        13 {
+            local1 = 1114
+        }
+        14 {
+            local1 = 1116
+        }
+        15 {
+            local1 = 1117
+        }
+        16 {
+            local1 = 1118
+        }
+        17 {
+            local1 = 1119
+        }
+        18 {
+            local1 = 1120
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error! Bad color for getTeamBackground: %d" local3
+            debug 0
+            local1 = 1119
+        }
+    }
+    return local1
+}
+
+local-script lsc2065@2065 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    if (local0 < 0) {
+        local5 = local0
+        local6 = local2
+    } else {
+        local5 = call-script lsc2052
+        if local0 {
+            local5 = iif local5 0 1
+        }
+        local6 = call-script getTeamBackground local5
+    }
+    palette.init g_some_palette_654
+    palette.from-image local6 0
+    palette.end
+    image.init local6
+    image.palette g_some_palette_654
+    image.draw
+    image.end
+    start-script scr280 local6 g_some_palette_654
+    if (not global653) {
+        global653 = call-script FindFreeSprite
+    }
+    sprite.init global653
+    sprite.new
+    sprite.image image1035
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1500
+    sprite.palette 2
+    start-script lsc2063
+    start-script lsc2062
+    start-script lsc2060 local5
+    start-script lsc2057 local5 local1 local3
+    if (MODE-SEASON == gGameMode && local0 >= 0 || local4) {
+        start-script lsc2061 local4
+    }
+}
+
+local-script lsc2066@2066 {
+    var local0
+
+    if (not global634) {
+        dim-array.u8 global634 6
+        for local0 = 0 to 6 + {
+            global634[local0] = call-script FindFreeSprite
+        }
+        global628 = call-script AllocScratchImage
+        global629 = call-script AllocScratchImage
+        global661 = call-script AllocScratchImage
+        global631 = call-script AllocScratchImage
+    }
+}
+
+local-script lsc2067@2067 {
+    var local0
+
+    if (0 == g_some_sprite_array) {
+        dim-array.u8 g_some_sprite_array 2
+        for local0 = 0 to 2 + {
+            g_some_sprite_array[local0] = call-script FindFreeSprite
+        }
+        global638 = call-script AllocPalette
+    }
+}
+
+local-script lsc2068@2068 {
+    var local0
+
+    if g_some_sprite_array {
+        for local0 = 0 to 2 + {
+            start-script ReleaseSprite g_some_sprite_array[local0]
+            g_some_sprite_array[local0] = 0
+        }
+        undim g_some_sprite_array
+        start-script FreePalette global638
+    }
+}
+
+local-script lsc2069@2069 {
+    var local0
+
+    sprite.init local0
+    sprite.animation-speed 1
+    while (local0 == gLastHoverNumber && 2 == gLastHoverType) {
+        break-here
+    }
+    break-here.multi 6
+    sprite.init local0
+    sprite.animation-speed 2
+}
+
+local-script lsc2070@2070 {
+    g_some_palette_1 = call-script AllocPalette
+    g_some_palette_2 = call-script AllocPalette
+    g_some_palette_3 = call-script AllocPalette
+    g_some_palette_4 = call-script AllocPalette
+    palette.init g_some_palette_1
+    palette.from-image 1055 0
+    palette.end
+    palette.init g_some_palette_2
+    palette.from-image 1059 0
+    palette.end
+    palette.init g_some_palette_4
+    palette.from-image 1508 0
+    palette.end
+}
+
+local-script lsc2071@2071 {
+    var local0 local1 local2 local3
+
+    local1 = gBackupKidData[local0][KD-BIRTHDAY-DAY]
+    local2 = gBackupKidData[local0][KD-BIRTHDAY-MONTH] + 1
+    sprintf local3 "%d/%d" local2 local1
+    temp = call-script maybe_draw_text_to_image local3 1036 global629 g_some_palette_1
+    sprite.init global634[4]
+    sprite.image global629
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -900
+    sprite.palette g_some_palette_1
+    sprite.at (80 + global622) (-79 + global623)
+    undim local3
+}
+
+local-script lsc2072@2072 {
+    var local0
+
+    if global634 {
+        for local0 = 0 to 6 + {
+            start-script ReleaseSprite global634[local0]
+            global634[local0] = 0
+        }
+        undim global634
+        start-script FreeScratchImage global628
+        start-script FreeScratchImage global629
+        start-script FreeScratchImage global661
+        start-script FreeScratchImage global631
+    }
+    if global632 {
+        for local0 = 0 to (4 * 10 - 1) + {
+            start-script ReleaseSprite global632[local0]
+            global632[local0] = 0
+        }
+        undim global632
+    }
+}
+
+local-script lsc2073@2073 {
+    start-script FreePalette g_some_palette_1
+    g_some_palette_1 = 0
+    start-script FreePalette g_some_palette_2
+    g_some_palette_2 = 0
+    start-script FreePalette g_some_palette_3
+    g_some_palette_3 = 0
+    start-script FreePalette g_some_palette_4
+    g_some_palette_4 = 0
+}
+
+local-script lsc2074@2074 {
+    var local0 local1
+
+    local1 = 4 * 10 - 1
+    if (0 == global632) {
+        dim-array.i16 global632 (4 * 10 - 1)
+    } else {
+        for local0 = 0 to local1 + {
+            start-script ReleaseSprite global632[local0]
+            global632[local0] = 0
+        }
+    }
+    for local0 = 0 to local1 + {
+        do {
+            global632[local0] = call-script FindFreeSprite
+            if (not global632[local0]) {
+                break-here
+            }
+        } until global632[local0]
+    }
+}
+
+local-script DrawKidNameToImage@2075 arg0 {
+    var local1
+
+    start-script GetKidName arg0
+    temp2 = string-length gKidName - 1
+    for temp = 0 to temp2 + {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] -= 32
+        }
+    }
+    local1 = call-script maybe_draw_text_to_image gKidName 1065 global661 g_some_palette_1 1
+    return local1
+}
+
+local-script smth_kid_name_sprite@2076 arg0 arg1 {
+    var local2 local3
+
+    local2 = call-script DrawKidNameToImage arg0
+    if (MODE-maybe-cards == gGameMode) {
+        if (arg0 >= 1 && arg0 <= 30) {
+            local3 = 0
+        } else {
+            local3 = 20
+        }
+    } else {
+        local3 = 0
+    }
+    sprite.init global634[5]
+    sprite.new
+    sprite.image global661
+    sprite.order -900
+    sprite.animation-type 0
+    sprite.group arg1
+    sprite.at (193 + global622 - local2 / 2 + local3) (-158 + global623)
+}
+
+local-script lsc2077@2077 {
+    var local0 local1
+
+    if (local0 == 263) {
+        local1 = 1411
+    } else if (local0 >= 1 && local0 <= 30) {
+        local1 = 1381 + local0 - 1
+    } else {
+        local1 = 1411
+    }
+    return local1
+}
+
+local-script lsc2078@2078 {
+    var local0 local1 local2 _ local4
+
+    start-script GetKidNickname local0
+    temp2 = string-length gKidName - 1
+    for temp = 0 to temp2 + {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] -= 32
+        }
+    }
+    local2 = call-script maybe_draw_text_to_image gKidName 1066 global631 g_some_palette_1 1
+    local4 = sprite-get-object-y global634[6]
+    if (local4 == 0) {
+        local4 = -119 + global623
+    }
+    sprite.init global634[6]
+    sprite.new
+    sprite.image global631
+    sprite.order -900
+    sprite.animation-type 0
+    sprite.at (193 + global622 - local2 / 2) local4
+    sprite.group local1
+}
+
+local-script lsc2079@2079 {
+    var local0 local1
+
+    if (MODE-SEASON == gGameMode) {
+        local1 = gCoachHomeField
+    } else if (gField == -1) {
+        local1 = random-between 0 9
+    } else {
+        local1 = gField
+    }
+    case local1 {
+        0 {
+            local0 = 1131
+        }
+        1 {
+            local0 = 1132
+        }
+        2 {
+            local0 = 1133
+        }
+        3 {
+            local0 = 1134
+        }
+        4 {
+            local0 = 1135
+        }
+        5 {
+            local0 = 1136
+        }
+        6 {
+            local0 = 1137
+        }
+        7 {
+            local0 = 1138
+        }
+        8 {
+            local0 = 1139
+        }
+        9 {
+            local0 = 1140
+        }
+        else {
+        }
+    }
+    start-script smth_load_palette local0
+    return local0
+}
+
+local-script lsc2080@2080 {
+    var local0 local1 local2 local3 local4
+
+    case gBackupKidData[local0][KD-APPEARANCE] {
+        [1 2 7 8 10] {
+            local2 = 18
+            local3 = 17
+            local4 = 16
+        }
+        [3 4 9] {
+            local2 = 21
+            local3 = 20
+            local4 = 19
+        }
+        [5 6 11 12] {
+            local2 = 24
+            local3 = 23
+            local4 = 22
+        }
+        else {
+            local2 = 12
+            local3 = 12
+            local4 = 12
+        }
+    }
+    actor.init local1
+    actor.color 187 (palette-get-color g_some_palette_4 local2)
+    actor.color 186 (palette-get-color g_some_palette_4 local3)
+    actor.color 185 (palette-get-color g_some_palette_4 local4)
+}
+
+local-script lsc2081@2081 {
+    var local0 local1 local2 local3 local4
+
+    case gBackupKidData[local0][KD-APPEARANCE] {
+        [1 2 7 8] {
+            local2 = 34
+            local3 = 33
+            local4 = 32
+        }
+        [3 4 9] {
+            local2 = 37
+            local3 = 36
+            local4 = 35
+        }
+        [5 6 11 12] {
+            local2 = 40
+            local3 = 39
+            local4 = 38
+        }
+        [10] {
+            local2 = 43
+            local3 = 42
+            local4 = 41
+        }
+        else {
+            local2 = 12
+            local3 = 12
+            local4 = 12
+        }
+    }
+    actor.init local1
+    actor.color 230 (palette-get-color g_some_palette_4 local2)
+    actor.color 229 (palette-get-color g_some_palette_4 local3)
+    actor.color 228 (palette-get-color g_some_palette_4 local4)
+}
+
+local-script lsc2082@2082 {
+    var local0 local1 _ local3 local4 local5 local6 local7
+
+    start-script GetKidName local1
+    if (local1 > 263) {
+        undim gKidName
+        assign-string gKidName "Custom"
+    }
+    local5 = gKidName[0] + gKidName[2] + gColorRandom1
+    local6 = gKidName[1] + gKidName[3] + gColorRandom2
+    local7 = 9 - 1
+    if (local1 == 2) {
+        if (random 1) {
+            local3 = 7
+        }
+        if (local3 != 7) {
+            local4 = 7
+        } else {
+            local4 = local6 % local7 + 1
+        }
+    } else {
+        local3 = local5 % local7 + 1
+        local4 = local6 % local7 + 1
+    }
+    print-debug.start
+    print-debug.printf "color1: %d    color2: %d   max: %d" local3 local4 9
+    start-script smth_team_color_palette 0 local0 0 local3 local4 local3
+}
+
+local-script lsc2083@2083 {
+    var local0 local1 local2 local3 local4 local5
+
+    local1 = sprite-get-variable local0 1
+    local2 = local1 / 10
+    local3 = local1 % 10
+    local5 = local1 - local3
+    case local2 {
+        0 {
+            local4 = call-script CalcCardStatBatting CUSTOM-KID-0
+            start-script.rec lsc2094 2089 243 (local5 + (local4 - 1)) local1 local5 room16[15]
+        }
+        1 {
+            local4 = call-script CalcCardStatRunning CUSTOM-KID-0
+            start-script.rec lsc2094 2090 244 (local5 + (local4 - 1)) local1 local5 room16[16]
+        }
+        2 {
+            local4 = call-script CalcCardStatPitching CUSTOM-KID-0
+            start-script.rec lsc2094 2091 245 (local5 + (local4 - 1)) local1 local5 room16[17]
+        }
+        3 {
+            local4 = call-script CalcCardStatFielding CUSTOM-KID-0
+            start-script.rec lsc2094 2092 246 (local5 + (local4 - 1)) local1 local5 room16[18]
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2084@2084 {
+    var local0 local1 local2 local3 local4 local5
+
+    local5 = iif (gUIInputDevice == INPUT-DEVICE-GAME-PAD) gGamePadX gMouseX
+    local1 = call-script CalcCardStatBatting CUSTOM-KID-0
+    local2 = call-script CalcCardStatRunning CUSTOM-KID-0
+    local3 = call-script CalcCardStatPitching CUSTOM-KID-0
+    local4 = call-script CalcCardStatFielding CUSTOM-KID-0
+    local5 = (local5 - 367) / 25
+    local5 = max 0 local5
+    case local0 {
+        room16[15] {
+            if (local5 == 0) {
+                local5 = local1
+            }
+            start-script.rec lsc2093 2089 243 local1 local5 0 local0
+        }
+        room16[16] {
+            if (local5 == 0) {
+                local5 = local2
+            }
+            start-script.rec lsc2093 2090 244 local2 local5 10 local0
+        }
+        room16[17] {
+            if (local5 == 0) {
+                local5 = local3
+            }
+            start-script.rec lsc2093 2091 245 local3 local5 (10 * 2) local0
+        }
+        room16[18] {
+            if (local5 == 0) {
+                local5 = local4
+            }
+            start-script.rec lsc2093 2092 246 local4 local5 (10 * 3) local0
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2085@2085 {
+    sprite.init room19
+    sprite.state rAwaitingFirstInput
+    rAwaitingFirstInput = abs (rAwaitingFirstInput - 1)
+    sprite.init room15[1]
+    sprite.state rAwaitingFirstInput
+    start-script PlayClickySound
+    if rAwaitingFirstInput {
+        group.init 5
+        group.at 0 -174
+        group.init 6
+        group.at 0 0
+        group.init 15
+        group.at 0 0
+        group.init 7
+        group.at 0 1000
+        group.init 8
+        group.at 0 1
+        group.init 9
+        group.at 0 4
+        gKeyHandlerScript = room21
+        global43 = room23
+        gSpriteCursorTargets[global634[5]][TARGET-CLICK-SCRIPT] = lsc2085
+        gCustomKidNames[1][rInputLen] = 0
+        if (gCustomKidNames[1][0] == 0) {
+            gCustomKidNames[1][0] = 'C'
+            gCustomKidNames[1][1] = 'U'
+            gCustomKidNames[1][2] = 'S'
+            gCustomKidNames[1][3] = 'T'
+            gCustomKidNames[1][4] = 'O'
+            gCustomKidNames[1][5] = 'M'
+            gCustomKidNames[1][6] = 0
+        }
+        start-script smth_kid_name_sprite 264 8
+    } else {
+        group.init 5
+        group.at 0 0
+        group.init 6
+        group.at 0 1000
+        group.init 15
+        group.at 0 1000
+        group.init 7
+        group.at 0 0
+        group.init 8
+        group.at 0 145
+        group.init 9
+        group.at 0 178
+        gKeyHandlerScript = HandleKey
+        global43 = 0
+        gSpriteCursorTargets[global634[5]][TARGET-CLICK-SCRIPT] = 0
+        rNextKeyClearsInput = 1
+    }
+}
+
+local-script lsc2086@2086 {
+    array-assign-slice gKidData gBackupKidData 264 264 0 36 264 264 0 36
+}
+
+local-script lsc2087@2087 {
+    var local0 local1
+
+    case local0 {
+        [1 3 5 7 8 10 12] {
+            local1 = 31
+        }
+        2 {
+            local1 = 29
+        }
+        else {
+            local1 = 30
+        }
+    }
+    return local1
+}
+
+local-script lsc2088@2088 {
+    var local0
+
+    if (room14 + local0 > 20) {
+        return -1
+    }
+    if (room14 + local0 < 0) {
+        return -1
+    }
+    if (local0 < 0) {
+        sprite.init room16[18 + room14]
+        sprite.image 0
+    } else {
+        sprite.init room16[18 + room14 + 1]
+        sprite.image image1059
+    }
+    room14 += local0
+    return room14
+}
+
+local-script lsc2089@2089 {
+    var local0 local1
+
+    sound.start (iif (local1 > 0) 4236 4237)
+    sound.channel 2
+    sound.end
+    gBackupKidData[local0][KD-BAT-HITTING] = min (max (gBackupKidData[local0][KD-BAT-HITTING] + local1) 0) 100
+    gBackupKidData[local0][KD-BAT-SWING] = min (max (gBackupKidData[local0][KD-BAT-SWING] + local1) 0) 100
+}
+
+local-script lsc2090@2090 {
+    var local0 local1
+
+    sound.start (iif (local1 > 0) 4236 4237)
+    sound.channel 3
+    sound.end
+    gBackupKidData[local0][KD-SPEED] = min (max (gBackupKidData[local0][KD-SPEED] + local1) 0) 100
+}
+
+local-script lsc2091@2091 {
+    var local0 local1
+
+    sound.start (iif (local1 > 0) 4236 4237)
+    sound.channel 4
+    sound.end
+    gBackupKidData[local0][KD-PITCH-HEAT] = min (max (gBackupKidData[local0][KD-PITCH-HEAT] + local1) 0) 100
+    gBackupKidData[local0][KD-PITCH-SLOWBALL] = min (max (gBackupKidData[local0][KD-PITCH-SLOWBALL] + local1) 0) 100
+    gBackupKidData[local0][KD-PITCH-LEFT-HOOK] = min (max (gBackupKidData[local0][KD-PITCH-LEFT-HOOK] + local1) 0) 100
+    gBackupKidData[local0][KD-PITCH-RIGHT-HOOK] = min (max (gBackupKidData[local0][KD-PITCH-RIGHT-HOOK] + local1) 0) 100
+    gBackupKidData[local0][KD-STAMINA] = min (max (gBackupKidData[local0][KD-STAMINA] + local1) 0) 100
+}
+
+local-script lsc2092@2092 {
+    var local0 local1
+
+    sound.start (iif (local1 > 0) 4236 4237)
+    sound.channel 5
+    sound.end
+    gBackupKidData[local0][KD-COORDINATION] = min (max (gBackupKidData[local0][KD-COORDINATION] + local1) 0) 100
+    gBackupKidData[local0][KD-EYE] = min (max (gBackupKidData[local0][KD-EYE] + local1) 0) 100
+    gBackupKidData[local0][KD-ARM] = min (max (gBackupKidData[local0][KD-ARM] + local1) 0) 100
+    gBackupKidData[local0][KD-THROWING] = min (max (gBackupKidData[local0][KD-THROWING] + local1) 0) 100
+}
+
+local-script lsc2093@2093 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    case local0 {
+        2089 {
+            local8 = 7
+        }
+        2090 {
+            local8 = 10
+        }
+        2091 {
+            local8 = 5
+        }
+        2092 {
+            local8 = 6
+        }
+        else {
+        }
+    }
+    local2 += local4
+    local3 += local4
+    for local7 = (local4 + 1) to (local4 + 10 - 1) + {
+        gSpriteCursorTargets[global632[local7]][TARGET-CLICK-SCRIPT] = 0
+    }
+    gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = 0
+    print-debug.start
+    print-debug.printf "Inc stat from %d to %d" local2 local3
+    for local7 = local2 to local3 + {
+        local6 = call-script local1 264
+        if (local6 < 10) {
+            if (call-script lsc2088 -1 != -1) {
+                start-script local0 264 local8
+                sprite.init global632[local7]
+                sprite.image image1059
+            }
+        }
+        break-here
+    }
+    gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = lsc2084
+    for local7 = (local4 + 1) to (local4 + 10 - 1) + {
+        gSpriteCursorTargets[global632[local7]][TARGET-CLICK-SCRIPT] = lsc2083
+    }
+}
+
+local-script lsc2094@2094 {
+    var local0 _ local2 local3 local4 local5 local6 local7
+
+    case local0 {
+        2089 {
+            local7 = -7
+        }
+        2090 {
+            local7 = -10
+        }
+        2091 {
+            local7 = -5
+        }
+        2092 {
+            local7 = -6
+        }
+        else {
+        }
+    }
+    for local6 = (local4 + 1) to (local4 + 10 - 1) + {
+        gSpriteCursorTargets[global632[local6]][TARGET-CLICK-SCRIPT] = 0
+    }
+    gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = 0
+    for local6 = local2 to local3 - {
+        start-script local0 264 local7
+        sprite.init global632[local6]
+        sprite.image 0
+        temp = call-script lsc2088 1
+        break-here
+    }
+    gSpriteCursorTargets[local5][TARGET-CLICK-SCRIPT] = lsc2084
+    for local6 = (local4 + 1) to (local4 + 10 - 1) + {
+        gSpriteCursorTargets[global632[local6]][TARGET-CLICK-SCRIPT] = lsc2083
+    }
+}
+
+local-script lsc2095@2095 {
+    var local0 local1
+
+    break-here
+    sprite.init local0
+    sprite.state local1
+}
+
+local-script lsc2096@2096 {
+    var local0
+
+    case gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] {
+        [1 3 5] {
+            local0 = 602
+        }
+        [2 4 6] {
+            local0 = 603
+        }
+        [7 9 11] {
+            local0 = 601
+        }
+        [8 10 12] {
+            local0 = 567
+        }
+        else {
+            local0 = 362
+        }
+    }
+    actor.init room12
+    actor.costume local0
+    start-script lsc2080 264 room12
+    start-script lsc2081 264 room12
+    start-script lsc2082 room12 264
+}
+
+local-script HandleKey@2097 key {
+    var local1 local2
+
+    if (key == 13) {
+        chain-script lsc2085 room19
+    }
+    if rNextKeyClearsInput {
+        for local2 = 0 to 20 + {
+            gCustomKidNames[1][local2] = 0
+        }
+        rNextKeyClearsInput = 0
+        rInputLen = 0
+    }
+    if (key >= 'a' && key <= 'z') {
+        key = key - 97 + 65
+    }
+    if (in key [' ' '-' 8] || (key >= 'A' && key <= 'Z')) {
+        local1 = rInputLen + 1
+        if (key == 8) {
+            sound.start sound4238
+            sound.end
+            rInputLen = max 0 (rInputLen - 1)
+            gCustomKidNames[1][rInputLen] = '_'
+            gCustomKidNames[1][rInputLen + 1] = 0
+            start-script smth_kid_name_sprite 264 8
+        } else {
+            sound.start sound4235
+            sound.end
+            rInputLen = min 10 rInputLen
+            gCustomKidNames[1][rInputLen] = key
+            gCustomKidNames[1][rInputLen + 1] = iif (rInputLen >= 10) 0 95
+            start-script smth_kid_name_sprite 264 8
+            rInputLen = min 11 (rInputLen + 1)
+        }
+    } else {
+        chain-script room21
+    }
+}
+
+local-script lsc2098@2098 {
+    var local0 local1
+
+    local1 = sprite-get-variable local0 1
+    case local1 {
+        27 {
+            local1 = 8
+        }
+        26 {
+            local1 = 45
+        }
+        28 {
+            local1 = 32
+        }
+        else {
+            local1 += 65
+        }
+    }
+    chain-script HandleKey local1
+}
+
+local-script lsc2099@2099 {
+    var local0 local1
+
+    local1 = kludge-call 1969 room12
+    start-script PlayClickySound
+    case local0 {
+        room16[1] {
+            gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] - 1
+            if (gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] < 1) {
+                gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = 12
+            }
+            start-script lsc2096
+        }
+        room16[2] {
+            gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] + 1
+            if (gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] > 12) {
+                gBackupKidData[CUSTOM-KID-0][KD-APPEARANCE] = 1
+            }
+            start-script lsc2096
+        }
+        room16[7] {
+            gBackupKidData[CUSTOM-KID-0][36] = gBackupKidData[CUSTOM-KID-0][36] - 1
+            if (gBackupKidData[CUSTOM-KID-0][36] < 1) {
+                gBackupKidData[CUSTOM-KID-0][36] = 10
+            }
+            start-script lsc2078 264 9
+        }
+        room16[8] {
+            gBackupKidData[CUSTOM-KID-0][36] = gBackupKidData[CUSTOM-KID-0][36] + 1
+            if (gBackupKidData[CUSTOM-KID-0][36] > 10) {
+                gBackupKidData[CUSTOM-KID-0][36] = 1
+            }
+            start-script lsc2078 264 9
+        }
+        room16[9] {
+            gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-MONTH] = gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-MONTH] + 1
+            if (gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-MONTH] > 11) {
+                gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-MONTH] = 0
+            }
+            start-script lsc2071 264
+        }
+        room16[10] {
+            gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-DAY] = gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-DAY] + 1
+            if (gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-DAY] > call-script lsc2087 (gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-MONTH] + 1)) {
+                gBackupKidData[CUSTOM-KID-0][KD-BIRTHDAY-DAY] = 1
+            }
+            start-script lsc2071 264
+        }
+        room16[11] {
+            gBackupKidData[CUSTOM-KID-0][KD-GENDER] = BOY
+            sprite.init room17
+            sprite.state (2 - 1)
+        }
+        room16[12] {
+            gBackupKidData[CUSTOM-KID-0][KD-GENDER] = GIRL
+            sprite.init room17
+            sprite.state (1 - 1)
+        }
+        room16[13] {
+            gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] = 1
+            sprite.init room18
+            sprite.state (1 - 1)
+        }
+        room16[14] {
+            gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] = 2
+            sprite.init room18
+            sprite.state (2 - 1)
+        }
+        else {
+        }
+    }
+    local1 = band (sprite-get-variable local0 1) 31
+    sprite.init local0
+    sprite.state (local1 + 1)
+    start-script.rec lsc2095 local0 local1
+}
+
+local-script lsc2100@2100 {
+    var local0 local1 local2 local3 local4
+
+    local2 = 21 + 9
+    local3 = 132 + 9
+    local0 = 203 - 18
+    local1 = 203 - 18
+    actor-default-clipped local2 local3 (local2 + local0) (local3 + local1)
+    start-script lsc2067
+    local4 = call-script lsc2079
+    sprite.init g_some_sprite_array[0]
+    sprite.new
+    sprite.image local4
+    sprite.animation-type 0
+    sprite.order -907
+    sprite.update-type 2
+    sprite.palette g_some_palette_3
+    sprite.at (-210 + global622 + 1) (-149 + global623 + 1)
+    room12 = call-script FindFreeActor
+    actor.init room12
+    actor.new
+    actor.at 234 309
+    actor.costume 0
+    actor.order -905
+    gActorCursorTargets[room12][TARGET-CLICK-SCRIPT] = 0
+    start-script lsc2096
+}
+
+local-script lsc2101@2101 {
+    var local0 local1 local2 local3 local4
+
+    dim-array.i16 room16 38
+    room16[0] = 38
+    local1 = 0
+    while (local1 < 2) {
+        local0 = call-script FindFreeSprite
+        room16[local1 + 1] = local0
+        sprite.init local0
+        sprite.new
+        sprite.at 320 240
+        sprite.group 4
+        sprite.image image977
+        sprite.order -901
+        sprite.palette room9
+        sprite.state (local1 * 2)
+        sprite.update-type 2
+        sprite.animation-type 0
+        gSpriteCursorTargets[local0][TARGET-CLICK-SCRIPT] = lsc2099
+        sprite.init local0
+        sprite.variable-range 1 (local1 * 2)
+        inc local1
+    }
+    local1 = 6
+    while (local1 < 8) {
+        local0 = call-script FindFreeSprite
+        room16[local1 + 1] = local0
+        sprite.init local0
+        sprite.new
+        sprite.at 320 240
+        sprite.group 5
+        sprite.image image977
+        sprite.order -901
+        sprite.palette room9
+        sprite.state (local1 * 2)
+        sprite.update-type 2
+        sprite.animation-type 0
+        gSpriteCursorTargets[local0][TARGET-CLICK-SCRIPT] = lsc2099
+        sprite.init local0
+        sprite.variable-range 1 (local1 * 2)
+        inc local1
+    }
+    while (local1 < 14) {
+        local0 = call-script FindFreeSprite
+        room16[local1 + 1] = local0
+        sprite.init local0
+        sprite.new
+        sprite.at 320 240
+        sprite.group 6
+        sprite.image image977
+        sprite.order -901
+        sprite.palette room9
+        sprite.state (local1 * 2)
+        sprite.update-type 2
+        sprite.animation-type 0
+        gSpriteCursorTargets[local0][TARGET-CLICK-SCRIPT] = lsc2099
+        sprite.init local0
+        sprite.variable-range 1 (local1 * 2)
+        inc local1
+    }
+    while (local1 < 18) {
+        local0 = call-script FindFreeSprite
+        room16[local1 + 1] = local0
+        sprite.init local0
+        sprite.new
+        sprite.at 320 240
+        sprite.group 15
+        sprite.image image981
+        sprite.order -901
+        sprite.palette room8
+        sprite.state (local1 - 14)
+        sprite.update-type 2
+        sprite.animation-type 0
+        gSpriteCursorTargets[local0][TARGET-CLICK-SCRIPT] = lsc2084
+        inc local1
+    }
+    local2 = image-get-state-count image1059
+    local4 = 134 + global622 - 99
+    local3 = 40 + global623 - 43
+    while (local1 < 38) {
+        local0 = call-script FindFreeSprite
+        room16[local1 + 1] = local0
+        sprite.init local0
+        sprite.new
+        sprite.at local4 local3
+        sprite.group 15
+        sprite.image (iif (room14 <= local1 - 18) 0 1059)
+        sprite.order -901
+        sprite.palette g_some_palette_2
+        sprite.state (random local2)
+        sprite.update-type 2
+        sprite.animation-type 1
+        sprite.animation-speed 2
+        inc local1
+        local4 += 25
+        if (local1 == 28) {
+            local3 += 16 + 4
+            local4 = 134 + global622 - 99
+        }
+    }
+}
+
+local-script lsc2102@2102 {
+    var local0 local1
+
+    local1 = 319 - image-get-object-x image1047 7
+    image.init image1047
+    image.state 7
+    image.palette room10
+    image.at local1 (239 - image-get-object-y image1047 7)
+    image.draw
+    image.end
+    local1 = 319 - image-get-object-x image1048 7
+    image.init image1048
+    image.state 7
+    image.palette room10
+    image.at local1 (239 - image-get-object-y image1048 7)
+    image.draw
+    image.end
+    dim-array.i16 room15 2
+    room15[0] = 2
+    local0 = call-script FindFreeSprite
+    room15[1] = local0
+    sprite.init local0
+    sprite.new
+    sprite.at 320 240
+    sprite.group 3
+    sprite.image image978
+    sprite.order -905
+    sprite.palette room8
+    sprite.state rAwaitingFirstInput
+    sprite.update-type 2
+    sprite.animation-type 0
+    local0 = call-script FindFreeSprite
+    room15[2] = local0
+    sprite.init local0
+    sprite.new
+    sprite.at 320 240
+    sprite.group 3
+    sprite.image image979
+    sprite.order -905
+    sprite.palette room8
+    sprite.state 0
+    sprite.update-type 2
+    sprite.animation-type 0
+    room17 = call-script FindFreeSprite
+    sprite.init room17
+    sprite.new
+    sprite.at 320 240
+    sprite.group 6
+    sprite.image image980
+    sprite.order -901
+    sprite.palette room8
+    sprite.state (gBackupKidData[CUSTOM-KID-0][KD-GENDER] - 1)
+    sprite.update-type 2
+    sprite.animation-type 0
+    room18 = call-script FindFreeSprite
+    sprite.init room18
+    sprite.new
+    sprite.at (320 - 6) 240
+    sprite.group 6
+    sprite.image image1054
+    sprite.order -901
+    sprite.palette g_some_palette_1
+    sprite.state (gBackupKidData[CUSTOM-KID-0][KD-HANDEDNESS] - 1)
+    sprite.update-type 2
+    sprite.animation-type 0
+    room19 = call-script FindFreeSprite
+    sprite.init room19
+    sprite.new
+    sprite.at 320 240
+    sprite.image image983
+    sprite.order -901
+    sprite.palette room8
+    sprite.state 0
+    sprite.update-type 2
+    sprite.animation-type 0
+    gSpriteCursorTargets[room19][TARGET-CLICK-SCRIPT] = lsc2085
+}
+
+local-script lsc2103@2103 {
+    var local0 local1
+
+    for local1 = 0 to (29 - 1) + {
+        local0 = call-script FindFreeSprite
+        sprite.init local0
+        sprite.new
+        sprite.at 320 240
+        sprite.group 7
+        sprite.image image982
+        sprite.order -901
+        sprite.palette room8
+        sprite.state local1
+        sprite.update-type 2
+        sprite.animation-type 0
+        gSpriteCursorTargets[local0][TARGET-CLICK-SCRIPT] = lsc2098
+        sprite.init local0
+        sprite.variable-range 1 local1
+    }
+}
+
+local-script lsc2104@2104 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10
+
+    local0 = call-script CalcCardStatBatting CUSTOM-KID-0
+    local1 = call-script CalcCardStatRunning CUSTOM-KID-0
+    local2 = call-script CalcCardStatPitching CUSTOM-KID-0
+    local3 = call-script CalcCardStatFielding CUSTOM-KID-0
+    array-assign local10 [local0 local1 local2 local3] 0
+    localize local10
+    local5 = 134 + global622
+    local6 = 40 + global623 + 1
+    for local7 = 0 to 3 + {
+        for local4 = 0 to (10 - 1) + {
+            local8 = iif (local4 + 1 > local10[local7]) 0 1059
+            local9 = local7 * 10 + local4
+            sprite.init global632[local9]
+            sprite.new
+            sprite.image local8
+            sprite.state (random (image-get-state-count image1059))
+            sprite.animation-type 1
+            sprite.update-type 2
+            sprite.animation-speed 2
+            sprite.order -900
+            sprite.palette g_some_palette_2
+            sprite.group 15
+            sprite.at local5 local6
+            gSpriteCursorTargets[global632[local9]][TARGET-CLICK-SCRIPT] = iif (0 == local4) 0 2083
+            sprite.init global632[local9]
+            sprite.variable-range 1 local9
+            local5 += 25
+        }
+        local6 += 16
+        local5 = 134 + global622
+    }
+}
+
+local-script HandleNavClick@2105 arg0 {
+    start-script PlayClickySound
+    case arg0 {
+        193 {
+            start-script lsc2086
+            current-room pickteam
+        }
+        192 {
+            start-script lsc2086
+            current-room pickteam
+        }
+        194 {
+            current-room strategy
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2106@2106 {
+    var _ _ local2
+
+    room21 = gKeyHandlerScript
+    room23 = global43
+    group.init 9
+    group.new
+    group.init 8
+    group.new
+    group.init 3
+    group.new
+    group.init 4
+    group.new
+    group.init 5
+    group.new
+    group.init 6
+    group.new
+    group.init 7
+    group.new
+    global622 = 239
+    global623 = 290
+    start-script lsc2070
+    start-script lsc2066
+    sprite.init global634[4]
+    sprite.group 6
+    start-script lsc2074
+    start-script lsc2104
+    room14 = 24 - call-script CalcCardStatBatting CUSTOM-KID-0 - call-script CalcCardStatRunning CUSTOM-KID-0 - call-script CalcCardStatPitching CUSTOM-KID-0 - call-script CalcCardStatFielding CUSTOM-KID-0
+    rAwaitingFirstInput = 1
+    room8 = call-script AllocPalette
+    room9 = call-script AllocPalette
+    room10 = call-script AllocPalette
+    palette.init room8
+    palette.from-image 981 0
+    palette.end
+    palette.init room9
+    palette.from-image 977 0
+    palette.end
+    palette.init room10
+    palette.from-image 1047 0
+    palette.end
+    assign-string local2 "Make your own custom kid"
+    start-script SetNavButtons HandleNavClick 0 0
+    start-script lsc2050
+    start-script lsc2048
+    start-script lsc2065 0 976 0 0 local2
+    undim local2
+    start-script maybe_reset_custom_kid_data 264
+    start-script lsc2101
+    start-script lsc2102
+    start-script lsc2100
+    start-script lsc2103
+    group.init 5
+    group.at 0 -174
+    group.init 7
+    group.at 0 1000
+    start-script lsc2071 264
+    start-script smth_kid_name_sprite 264 8
+    group.init 8
+    group.at 0 1
+    gSpriteCursorTargets[global634[5]][TARGET-CLICK-SCRIPT] = lsc2085
+    start-script lsc2078 264 9
+    group.init 9
+    group.at 0 4
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2107@2107 {
+    var local0 local1 local2
+
+    local1 = group-get-array local0
+    if local1 {
+        for local2 = 1 to local1[0] + {
+            start-script ReleaseSprite local1[local2]
+            local1[local2] = 0
+        }
+        undim local1
+        group.init local0
+        group.new
+    }
+}
+
+local-script lsc2108@2108 {
+    sprite.init global634[4]
+    sprite.group 0
+    gKeyHandlerScript = room21
+    global43 = room23
+    start-script lsc2068
+    start-script ReleaseSprite room19
+    room19 = 0
+    start-script FreeNavButtons
+    start-script lsc2059
+    start-script lsc2049
+    start-script lsc2107 4
+    start-script lsc2107 5
+    start-script lsc2107 6
+    start-script lsc2107 3
+    start-script lsc2107 7
+    start-script FreePalette room9
+    start-script FreePalette room8
+    start-script FreePalette room10
+    start-script ReleaseActor room12
+    undim room15
+    undim room16
+    start-script lsc2072
+    start-script lsc2073
+    start-script lsc2107 15
+    undim global632
+    actor-default-clipped 0 0 639 479
+}
+
+local-script HandleHover@2109 arg0 arg1 {
+    var local2 local3
+
+    case arg1 {
+        2 {
+            case arg0 {
+                [gNavButtons[1][0] gNavButtons[3][0]] {
+                    assign-string local2 "Back to the Bench"
+                    assign-string local3 "Click Here to go back to the bench and finish picking players."
+                }
+                [room16[1] room16[2]] {
+                    assign-string local2 "Change Face"
+                    assign-string local3 "Click here to cycle through all the available custom faces."
+                }
+                [room16[7] room16[8]] {
+                    assign-string local2 "Change Nickname"
+                    assign-string local3 "Click here to cycle through all the available nicknames."
+                }
+                [room16[9] room16[10]] {
+                    assign-string local2 "Change Birthday"
+                    assign-string local3 "click on these buttons to change your custom player's birthday."
+                }
+                room16[11] {
+                    assign-string local2 "Boy"
+                    assign-string local3 "Click here to make your custom player a boy."
+                }
+                room16[12] {
+                    assign-string local2 "Girl"
+                    assign-string local3 "Click here to make your custom player a girl."
+                }
+                room16[13] {
+                    assign-string local2 "Right handed"
+                    assign-string local3 "Click here to make your custom player Right Handed."
+                }
+                room16[14] {
+                    assign-string local2 "Left handed"
+                    assign-string local3 "Click here to make your custom player left handed."
+                }
+                room16[15] {
+                    assign-string local2 "Hitting ability"
+                    assign-string local3 "Click here to add or subtract balls from your custom player's hitting ability."
+                }
+                room16[16] {
+                    assign-string local2 "Running ability"
+                    assign-string local3 "Click here to add or subtract balls from your custom player's running speed."
+                }
+                room16[17] {
+                    assign-string local2 "Pitching ability"
+                    assign-string local3 "Click here to add or subtract balls from your custom player's pitching ability."
+                }
+                room16[18] {
+                    assign-string local2 "Fielding abilty"
+                    assign-string local3 "Click here to add or subtract balls from your custom player's fielding ability."
+                }
+                room19 {
+                    if rAwaitingFirstInput {
+                        assign-string local2 "Name your kid"
+                        assign-string local3 "Click here to name your custom player."
+                    } else {
+                        assign-string local2 "Done"
+                        assign-string local3 "Click here when you're done naming your player."
+                    }
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local2 local3
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+    }
+}
+
+enter {
+    gHoverScript = HandleHover
+    start-script lsc2106
+}
+
+exit {
+    start-script lsc2108
+    gCustomKidNames[1][rInputLen] = 0
+    if (gCustomKidNames[1][0] == 0) {
+        gCustomKidNames[1][0] = 'C'
+        gCustomKidNames[1][1] = 'U'
+        gCustomKidNames[1][2] = 'S'
+        gCustomKidNames[1][3] = 'T'
+        gCustomKidNames[1][4] = 'O'
+        gCustomKidNames[1][5] = 'M'
+        gCustomKidNames[1][6] = 0
+    }
+}

@@ -1,9 +1,0 @@
-; LSC2 6 2068
-
-local variable local0
-
-local0 = iif (rFieldChoice == FC-STEELE-STADIUM) 8 (rFieldChoice - 1)
-queue-image (172 + (call-script GetFieldFromChoice [local0]))
-local0 = iif (rFieldChoice == FC-SANDY-FLATS) 1 (rFieldChoice + 1)
-queue-image (172 + (call-script GetFieldFromChoice [local0]))
-free-script

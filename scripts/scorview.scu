@@ -1,0 +1,519 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "scorview/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+}
+
+exit {
+}
+
+awiz image1278@1278 {
+    raw-block CNVS `760300008c000000`
+    raw-block RELO `6d0300006e000000`
+    wizh
+    wizd 1 "scorview/image1278.bmp"
+}
+awiz image1279@1279 {
+    raw-block CNVS `940200005c000000`
+    raw-block RELO `8b0200003e000000`
+    wizh
+    wizd 1 "scorview/image1279.bmp"
+}
+awiz image1280@1280 {
+    raw-block CNVS `ac0200005c000000`
+    raw-block RELO `a30200003e000000`
+    wizh
+    wizd 1 "scorview/image1280.bmp"
+}
+awiz image1281@1281 {
+    raw-block CNVS `c40200005c000000`
+    raw-block RELO `bb0200003e000000`
+    wizh
+    wizd 1 "scorview/image1281.bmp"
+}
+awiz image1282@1282 {
+    raw-block CNVS `dc0200005c000000`
+    raw-block RELO `d30200003e000000`
+    wizh
+    wizd 1 "scorview/image1282.bmp"
+}
+awiz image1283@1283 {
+    raw-block CNVS `f40200005c000000`
+    raw-block RELO `eb0200003e000000`
+    wizh
+    wizd 1 "scorview/image1283.bmp"
+}
+awiz image1284@1284 {
+    raw-block CNVS `0c0300005c000000`
+    raw-block RELO `030300003e000000`
+    wizh
+    wizd 1 "scorview/image1284.bmp"
+}
+awiz image1285@1285 {
+    raw-block CNVS `240300005c000000`
+    raw-block RELO `1b0300003e000000`
+    wizh
+    wizd 1 "scorview/image1285.bmp"
+}
+awiz image1286@1286 {
+    raw-block CNVS `3c0300005c000000`
+    raw-block RELO `330300003e000000`
+    wizh
+    wizd 1 "scorview/image1286.bmp"
+}
+awiz image1287@1287 {
+    raw-block CNVS `540300005c000000`
+    raw-block RELO `4b0300003e000000`
+    wizh
+    wizd 1 "scorview/image1287.bmp"
+}
+awiz image1288@1288 {
+    raw-block CNVS `3a030000bb000000`
+    raw-block RELO `2f0300009d000000`
+    wizh
+    wizd 1 "scorview/image1288.bmp"
+}
+awiz image1289@1289 {
+    raw-block CNVS `9a0200008b000000`
+    raw-block RELO `8f0200006d000000`
+    wizh
+    wizd 1 "scorview/image1289.bmp"
+}
+awiz image1290@1290 {
+    raw-block CNVS `c20200008b000000`
+    raw-block RELO `b70200006d000000`
+    wizh
+    wizd 1 "scorview/image1290.bmp"
+}
+awiz image1291@1291 {
+    raw-block CNVS `ea0200008b000000`
+    raw-block RELO `df0200006d000000`
+    wizh
+    wizd 1 "scorview/image1291.bmp"
+}
+awiz image1292@1292 {
+    raw-block CNVS `120300008b000000`
+    raw-block RELO `070300006d000000`
+    wizh
+    wizd 1 "scorview/image1292.bmp"
+}
+awiz image1293@1293 {
+    raw-block CNVS `3a0300008b000000`
+    raw-block RELO `2f0300006d000000`
+    wizh
+    wizd 1 "scorview/image1293.bmp"
+}
+awiz image1294@1294 {
+    raw-block CNVS `9a020000bb000000`
+    raw-block RELO `8f0200009d000000`
+    wizh
+    wizd 1 "scorview/image1294.bmp"
+}
+awiz image1295@1295 {
+    raw-block CNVS `c2020000bb000000`
+    raw-block RELO `b70200009d000000`
+    wizh
+    wizd 1 "scorview/image1295.bmp"
+}
+awiz image1296@1296 {
+    raw-block CNVS `ea020000bb000000`
+    raw-block RELO `df0200009d000000`
+    wizh
+    wizd 1 "scorview/image1296.bmp"
+}
+awiz image1297@1297 {
+    raw-block CNVS `12030000bb000000`
+    raw-block RELO `070300009d000000`
+    wizh
+    wizd 1 "scorview/image1297.bmp"
+}
+awiz image1298@1298 {
+    raw-block CNVS `5a0400004b010000`
+    raw-block RELO `4f0400002d010000`
+    wizh
+    wizd 1 "scorview/image1298.bmp"
+}
+awiz image1299@1299 {
+    raw-block CNVS `32040000bb000000`
+    raw-block RELO `270400009d000000`
+    wizh
+    wizd 1 "scorview/image1299.bmp"
+}
+awiz image1300@1300 {
+    raw-block CNVS `5a040000bb000000`
+    raw-block RELO `4f0400009d000000`
+    wizh
+    wizd 1 "scorview/image1300.bmp"
+}
+awiz image1301@1301 {
+    raw-block CNVS `82040000bb000000`
+    raw-block RELO `770400009d000000`
+    wizh
+    wizd 1 "scorview/image1301.bmp"
+}
+awiz image1302@1302 {
+    raw-block CNVS `32040000eb000000`
+    raw-block RELO `27040000cd000000`
+    wizh
+    wizd 1 "scorview/image1302.bmp"
+}
+awiz image1303@1303 {
+    raw-block CNVS `5a040000eb000000`
+    raw-block RELO `4f040000cd000000`
+    wizh
+    wizd 1 "scorview/image1303.bmp"
+}
+awiz image1304@1304 {
+    raw-block CNVS `82040000eb000000`
+    raw-block RELO `77040000cd000000`
+    wizh
+    wizd 1 "scorview/image1304.bmp"
+}
+awiz image1305@1305 {
+    raw-block CNVS `320400001b010000`
+    raw-block RELO `27040000fd000000`
+    wizh
+    wizd 1 "scorview/image1305.bmp"
+}
+awiz image1306@1306 {
+    raw-block CNVS `5a0400001b010000`
+    raw-block RELO `4f040000fd000000`
+    wizh
+    wizd 1 "scorview/image1306.bmp"
+}
+awiz image1307@1307 {
+    raw-block CNVS `820400001b010000`
+    raw-block RELO `77040000fd000000`
+    wizh
+    wizd 1 "scorview/image1307.bmp"
+}
+awiz image1308@1308 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "scorview/image1308.bmp"
+}
+awiz image1309@1309 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "scorview/image1309.bmp"
+}
+mult image1330@1330 {
+    raw-block DEFA {
+        raw-block CNVS `c003000058010000`
+    }
+    awiz {
+        raw-block RELO `9802000028010000`
+        wizh
+        wizd 1 "scorview/image1330/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `9802000048010000`
+        wizh
+        wizd 1 "scorview/image1330/0001.bmp"
+    }
+    awiz {
+        raw-block RELO `a003000028010000`
+        wizh
+        wizd 1 "scorview/image1330/0002.bmp"
+    }
+    awiz {
+        raw-block RELO `a003000048010000`
+        wizh
+        wizd 1 "scorview/image1330/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+awiz image1331@1331 {
+    raw-block CNVS `b20300006e000000`
+    raw-block RELO `a703000063000000`
+    wizh
+    wizd 1 "scorview/image1331.bmp"
+}
+awiz image1332@1332 {
+    raw-block CNVS `da0300006e000000`
+    raw-block RELO `cf03000063000000`
+    wizh
+    wizd 1 "scorview/image1332.bmp"
+}
+awiz image1333@1333 {
+    raw-block CNVS `020400006e000000`
+    raw-block RELO `f703000063000000`
+    wizh
+    wizd 1 "scorview/image1333.bmp"
+}
+awiz image1334@1334 {
+    raw-block CNVS `2a0400006e000000`
+    raw-block RELO `1f04000063000000`
+    wizh
+    wizd 1 "scorview/image1334.bmp"
+}
+awiz image1335@1335 {
+    raw-block CNVS `520400006e000000`
+    raw-block RELO `4704000063000000`
+    wizh
+    wizd 1 "scorview/image1335.bmp"
+}
+awiz image1336@1336 {
+    raw-block CNVS `b20300007e000000`
+    raw-block RELO `a603000073000000`
+    wizh
+    wizd 1 "scorview/image1336.bmp"
+}
+awiz image1337@1337 {
+    raw-block CNVS `da0300007e000000`
+    raw-block RELO `cf03000073000000`
+    wizh
+    wizd 1 "scorview/image1337.bmp"
+}
+awiz image1338@1338 {
+    raw-block CNVS `020400007e000000`
+    raw-block RELO `f703000073000000`
+    wizh
+    wizd 1 "scorview/image1338.bmp"
+}
+awiz image1339@1339 {
+    raw-block CNVS `2a0400007e000000`
+    raw-block RELO `1f04000073000000`
+    wizh
+    wizd 1 "scorview/image1339.bmp"
+}
+awiz image1340@1340 {
+    raw-block CNVS `520400007e000000`
+    raw-block RELO `4704000073000000`
+    wizh
+    wizd 1 "scorview/image1340.bmp"
+}
+mult image1341@1341 {
+    raw-block DEFA {
+        raw-block CNVS `b203000046000000`
+    }
+    awiz {
+        raw-block RELO `970300003b000000`
+        wizh
+        wizd 1 "scorview/image1341/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `970300000b000000`
+        wizh
+        wizd 1 "scorview/image1341/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1342@1342 {
+    raw-block DEFA {
+        raw-block CNVS `da03000046000000`
+    }
+    awiz {
+        raw-block RELO `bf0300003b000000`
+        wizh
+        wizd 1 "scorview/image1342/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `bf0300000b000000`
+        wizh
+        wizd 1 "scorview/image1342/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1343@1343 {
+    raw-block DEFA {
+        raw-block CNVS `0204000046000000`
+    }
+    awiz {
+        raw-block RELO `e70300003b000000`
+        wizh
+        wizd 1 "scorview/image1343/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `e70300000b000000`
+        wizh
+        wizd 1 "scorview/image1343/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1344@1344 {
+    raw-block DEFA {
+        raw-block CNVS `2a04000046000000`
+    }
+    awiz {
+        raw-block RELO `0f0400003b000000`
+        wizh
+        wizd 1 "scorview/image1344/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0f0400000b000000`
+        wizh
+        wizd 1 "scorview/image1344/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1345@1345 {
+    raw-block DEFA {
+        raw-block CNVS `5204000046000000`
+    }
+    awiz {
+        raw-block RELO `370400003b000000`
+        wizh
+        wizd 1 "scorview/image1345/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `370400000b000000`
+        wizh
+        wizd 1 "scorview/image1345/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1346@1346 {
+    raw-block DEFA {
+        raw-block CNVS `b203000056000000`
+    }
+    awiz {
+        raw-block RELO `960300004b000000`
+        wizh
+        wizd 1 "scorview/image1346/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `970300001b000000`
+        wizh
+        wizd 1 "scorview/image1346/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1347@1347 {
+    raw-block DEFA {
+        raw-block CNVS `da03000056000000`
+    }
+    awiz {
+        raw-block RELO `bf0300004b000000`
+        wizh
+        wizd 1 "scorview/image1347/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `bf0300001b000000`
+        wizh
+        wizd 1 "scorview/image1347/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1348@1348 {
+    raw-block DEFA {
+        raw-block CNVS `0204000056000000`
+    }
+    awiz {
+        raw-block RELO `e70300004b000000`
+        wizh
+        wizd 1 "scorview/image1348/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `e70300001b000000`
+        wizh
+        wizd 1 "scorview/image1348/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1349@1349 {
+    raw-block DEFA {
+        raw-block CNVS `2a04000056000000`
+    }
+    awiz {
+        raw-block RELO `0f0400004b000000`
+        wizh
+        wizd 1 "scorview/image1349/0000.bmp"
+    }
+    awiz {
+        raw-block RELO `0f0400001b000000`
+        wizh
+        wizd 1 "scorview/image1349/0001.bmp"
+    }
+    indices [0 1]
+}
+awiz image1350@1350 {
+    raw-block CNVS `65010000dc000000`
+    raw-block RELO `53010000bb000000`
+    wizh
+    wizd 1 "scorview/image1350.bmp"
+}
+awiz image1351@1351 {
+    raw-block CNVS `95020000ae000000`
+    raw-block RELO `8a020000a3000000`
+    wizh
+    wizd 1 "scorview/image1351.bmp"
+}
+awiz image1352@1352 {
+    raw-block CNVS `ad020000ae000000`
+    raw-block RELO `a2020000a3000000`
+    wizh
+    wizd 1 "scorview/image1352.bmp"
+}
+awiz image1353@1353 {
+    raw-block CNVS `c5020000ae000000`
+    raw-block RELO `ba020000a3000000`
+    wizh
+    wizd 1 "scorview/image1353.bmp"
+}
+awiz image1354@1354 {
+    raw-block CNVS `dd020000ae000000`
+    raw-block RELO `d2020000a3000000`
+    wizh
+    wizd 1 "scorview/image1354.bmp"
+}
+awiz image1355@1355 {
+    raw-block CNVS `f5020000ae000000`
+    raw-block RELO `ea020000a3000000`
+    wizh
+    wizd 1 "scorview/image1355.bmp"
+}
+awiz image1356@1356 {
+    raw-block CNVS `95020000be000000`
+    raw-block RELO `8a020000b3000000`
+    wizh
+    wizd 1 "scorview/image1356.bmp"
+}
+awiz image1357@1357 {
+    raw-block CNVS `ad020000be000000`
+    raw-block RELO `a2020000b3000000`
+    wizh
+    wizd 1 "scorview/image1357.bmp"
+}
+awiz image1358@1358 {
+    raw-block CNVS `c5020000be000000`
+    raw-block RELO `ba020000b3000000`
+    wizh
+    wizd 1 "scorview/image1358.bmp"
+}
+awiz image1359@1359 {
+    raw-block CNVS `dd020000be000000`
+    raw-block RELO `d2020000b3000000`
+    wizh
+    wizd 1 "scorview/image1359.bmp"
+}
+awiz image1360@1360 {
+    raw-block CNVS `6d03000005010000`
+    raw-block RELO `62030000fa000000`
+    wizh
+    wizd 1 "scorview/image1360.bmp"
+}
+awiz image1572@1572 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "scorview/image1572.bmp"
+}
+awiz image1573@1573 {
+    rgbs
+    raw-block CNVS `80020000e0010000`
+    wizh
+    wizd 1 "scorview/image1573.bmp"
+}

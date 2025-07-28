@@ -1,7 +1,0 @@
-; SCRP 96 ResetPlayoffScheduleArray
-
-if (gPlayoffScheduleArray) {
-    free-array gPlayoffScheduleArray
-}
-dim array gPlayoffScheduleArray byte[0...7][0...11 * 7] swap=2
-free-script

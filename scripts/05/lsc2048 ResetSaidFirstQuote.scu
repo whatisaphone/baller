@@ -1,7 +1,0 @@
-; LSC2 5 2048 ResetSaidFirstQuote
-
-if (rSaidFirstQuote) {
-    free-array rSaidFirstQuote
-}
-dim array rSaidFirstQuote i16[0...0][0...273] swap=2
-free-script

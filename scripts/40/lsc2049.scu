@@ -1,7 +1,0 @@
-; LSC2 40 2049
-
-run-script FreePalette [g_some_palette_654]
-g_some_palette_654 = 0
-run-script FreePalette [g_some_palette_655]
-g_some_palette_655 = 0
-free-script

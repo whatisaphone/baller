@@ -1,9 +1,0 @@
-; LSC2 27 2311 InitPalettes
-
-room25 = call-script AllocPalette []
-palette-select room25
-palette-load 1047 0
-palette-unselect
-run-script 2079 []
-run-script 2061 []
-free-script

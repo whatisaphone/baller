@@ -1,0 +1,2051 @@
+; Extracted with Baller dev
+
+target sputm99
+
+index {
+    maxs "index_MAXS.bin"
+    index-block DIRI
+    index-block DIRR
+    index-block DIRS
+    index-block DIRN
+    index-block DIRC
+    index-block DIRF
+    index-block DIRM
+    index-block DIRT
+    index-block DLFL
+    index-block DISK
+    index-block RNAM
+    raw-block DOBJ "index_DOBJ.bin"
+    raw-block AARY `0000`
+    raw-block INIB `4e4f54450000000a0000`
+}
+
+disk 1 {
+    room 10 "kidovtlk" "kidovtlk.scu"
+    room 11 "kidovtk2" "kidovtk2.scu"
+    room 12 "bkidcos" "bkidcos.scu"
+    room 16 "bkidsou" "bkidsou.scu"
+    room 17 "ovdialog" "ovdialog.scu"
+    room 20 "bkidcos2" "bkidcos2.scu"
+    room 21 "BKIMAGES" "BKIMAGES.scu"
+    room 23 "ovresources" "ovresources.scu"
+    room 24 "netchat" "netchat.scu"
+    room 26 "miscresources" "miscresources.scu"
+    room 28 "network-res" "network-res.scu"
+    room 30 "strat-res" "strat-res.scu"
+    room 31 "tmi-res" "tmi-res.scu"
+    room 33 "proovtlk" "proovtlk.scu"
+    room 35 "scorview" "scorview.scu"
+    room 36 "miscres2" "miscres2.scu"
+    room 38 "hall-res" "hall-res.scu"
+}
+disk 2 {
+    room 1 "helogo" "helogo.scu"
+    room 2 "baseball" "baseball.scu"
+    room 3 "overhed" "overhed.scu"
+    room 4 "batview" "batview.scu"
+    room 5 "pickteam" "pickteam.scu"
+    room 6 "teamname" "teamname.scu"
+    room 7 "strategy" "strategy.scu"
+    room 8 "matchup" "matchup.scu"
+    room 9 "netstuff" "netstuff.scu"
+    room 13 "printme" "printme.scu"
+    room 14 "hallfame" "hallfame.scu"
+    room 15 "records" "records.scu"
+    room 19 "netcards" "netcards.scu"
+    room 27 "teaminfo" "teaminfo.scu"
+    room 29 "custom" "custom.scu"
+    room 32 "coachname2" "coachname2.scu"
+    room 34 "league" "league.scu"
+    room 37 "netlogon" "netlogon.scu"
+    room 39 "netcentral" "netcentral.scu"
+    room 40 "netchatroom" "netchatroom.scu"
+}
+
+music {
+    sound DIGI sound8000@8000 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8000.wav"
+    }
+    sound DIGI sound8001@8001 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8001.wav"
+    }
+    sound DIGI sound8002@8002 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8002.wav"
+    }
+    sound DIGI sound8003@8003 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8003.wav"
+    }
+    sound DIGI sound8004@8004 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8004.wav"
+    }
+    sound DIGI sound8005@8005 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8005.wav"
+    }
+    sound DIGI sound8006@8006 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8006.wav"
+    }
+    sound DIGI sound8007@8007 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8007.wav"
+    }
+    sound DIGI sound8008@8008 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8008.wav"
+    }
+    sound DIGI sound8009@8009 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8009.wav"
+    }
+    sound DIGI sound8010@8010 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8010.wav"
+    }
+    sound DIGI sound8011@8011 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8011.wav"
+    }
+    sound DIGI sound8012@8012 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8012.wav"
+    }
+    sound DIGI sound8013@8013 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8013.wav"
+    }
+    sound DIGI sound8014@8014 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8014.wav"
+    }
+    sound DIGI sound8015@8015 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8015.wav"
+    }
+    sound DIGI sound8016@8016 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8016.wav"
+    }
+    sound DIGI sound8017@8017 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8017.wav"
+    }
+    sound DIGI sound8018@8018 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8018.wav"
+    }
+    sound DIGI sound8019@8019 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8019.wav"
+    }
+    sound DIGI sound8020@8020 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8020.wav"
+    }
+    sound DIGI sound8021@8021 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8021.wav"
+    }
+    sound DIGI sound8022@8022 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8022.wav"
+    }
+    sound DIGI sound8023@8023 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8023.wav"
+    }
+    sound DIGI sound8024@8024 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8024.wav"
+    }
+    sound DIGI sound8025@8025 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8025.wav"
+    }
+    sound DIGI sound8026@8026 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8026.wav"
+    }
+    sound DIGI sound8027@8027 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8027.wav"
+    }
+    sound DIGI sound8028@8028 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8028.wav"
+    }
+    sound DIGI sound8029@8029 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8029.wav"
+    }
+    sound DIGI sound8030@8030 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8030.wav"
+    }
+    sound DIGI sound8031@8031 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8031.wav"
+    }
+    sound DIGI sound8032@8032 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8032.wav"
+    }
+    sound DIGI sound8033@8033 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8033.wav"
+    }
+    sound DIGI sound8034@8034 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8034.wav"
+    }
+    sound DIGI sound8035@8035 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8035.wav"
+    }
+    sound DIGI sound8036@8036 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8036.wav"
+    }
+    sound DIGI sound8037@8037 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8037.wav"
+    }
+    sound DIGI sound8038@8038 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8038.wav"
+    }
+    sound DIGI sound8039@8039 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8039.wav"
+    }
+    sound DIGI sound8040@8040 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8040.wav"
+    }
+    sound DIGI sound8041@8041 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8041.wav"
+    }
+    sound DIGI sound8042@8042 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8042.wav"
+    }
+    sound DIGI sound8043@8043 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8043.wav"
+    }
+    sound DIGI sound8044@8044 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8044.wav"
+    }
+    sound DIGI sound8045@8045 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8045.wav"
+    }
+    sound DIGI sound8046@8046 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8046.wav"
+    }
+    sound DIGI sound8047@8047 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8047.wav"
+    }
+    sound DIGI sound8048@8048 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8048.wav"
+    }
+    sound DIGI sound8049@8049 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8049.wav"
+    }
+    sound DIGI sound8050@8050 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8050.wav"
+    }
+    sound DIGI sound8051@8051 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8051.wav"
+    }
+    sound DIGI sound8052@8052 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8052.wav"
+    }
+    sound DIGI sound8053@8053 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8053.wav"
+    }
+    sound DIGI sound8054@8054 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8054.wav"
+    }
+    sound DIGI sound8055@8055 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8055.wav"
+    }
+    sound DIGI sound8056@8056 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8056.wav"
+    }
+    sound DIGI sound8057@8057 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8057.wav"
+    }
+    sound DIGI sound8058@8058 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8058.wav"
+    }
+    sound DIGI sound8059@8059 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8059.wav"
+    }
+    sound DIGI sound8060@8060 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8060.wav"
+    }
+    sound DIGI sound8061@8061 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8061.wav"
+    }
+    sound DIGI sound8062@8062 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8062.wav"
+    }
+    sound DIGI sound8063@8063 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8063.wav"
+    }
+    sound DIGI sound8064@8064 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8064.wav"
+    }
+    sound DIGI sound8065@8065 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8065.wav"
+    }
+    sound DIGI sound8066@8066 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8066.wav"
+    }
+    sound DIGI sound8067@8067 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8067.wav"
+    }
+    sound DIGI sound8068@8068 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8068.wav"
+    }
+    sound DIGI sound8069@8069 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8069.wav"
+    }
+    sound DIGI sound8070@8070 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8070.wav"
+    }
+    sound DIGI sound8071@8071 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8071.wav"
+    }
+    sound DIGI sound8072@8072 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8072.wav"
+    }
+    sound DIGI sound8073@8073 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8073.wav"
+    }
+    sound DIGI sound8074@8074 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8074.wav"
+    }
+    sound DIGI sound8075@8075 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8075.wav"
+    }
+    sound DIGI sound8076@8076 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8076.wav"
+    }
+    sound DIGI sound8077@8077 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8077.wav"
+    }
+    sound DIGI sound8078@8078 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8078.wav"
+    }
+    sound DIGI sound8079@8079 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8079.wav"
+    }
+    sound DIGI sound8080@8080 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8080.wav"
+    }
+    sound DIGI sound8081@8081 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8081.wav"
+    }
+    sound DIGI sound8082@8082 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8082.wav"
+    }
+    sound DIGI sound8083@8083 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8083.wav"
+    }
+    sound DIGI sound8084@8084 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8084.wav"
+    }
+    sound DIGI sound8085@8085 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8085.wav"
+    }
+    sound DIGI sound8086@8086 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8086.wav"
+    }
+    sound DIGI sound8087@8087 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8087.wav"
+    }
+    sound DIGI sound8088@8088 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8088.wav"
+    }
+    sound DIGI sound8089@8089 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8089.wav"
+    }
+    sound DIGI sound8090@8090 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8090.wav"
+    }
+    sound DIGI sound8091@8091 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8091.wav"
+    }
+    sound DIGI sound8092@8092 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8092.wav"
+    }
+    sound DIGI sound8093@8093 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8093.wav"
+    }
+    sound DIGI sound8094@8094 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8094.wav"
+    }
+    sound DIGI sound8095@8095 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8095.wav"
+    }
+    sound DIGI sound8096@8096 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8096.wav"
+    }
+    sound DIGI sound8097@8097 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8097.wav"
+    }
+    sound DIGI sound8098@8098 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8098.wav"
+    }
+    sound DIGI sound8099@8099 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8099.wav"
+    }
+    sound DIGI sound8100@8100 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8100.wav"
+    }
+    sound DIGI sound8101@8101 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8101.wav"
+    }
+    sound DIGI sound8102@8102 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8102.wav"
+    }
+    sound DIGI sound8103@8103 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8103.wav"
+    }
+    sound DIGI sound8104@8104 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8104.wav"
+    }
+    sound DIGI sound8105@8105 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8105.wav"
+    }
+    sound DIGI sound8106@8106 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8106.wav"
+    }
+    sound DIGI sound8107@8107 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8107.wav"
+    }
+    sound DIGI sound8108@8108 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8108.wav"
+    }
+    sound DIGI sound8109@8109 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8109.wav"
+    }
+    sound DIGI sound8110@8110 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8110.wav"
+    }
+    sound DIGI sound8111@8111 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8111.wav"
+    }
+    sound DIGI sound8112@8112 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8112.wav"
+    }
+    sound DIGI sound8113@8113 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8113.wav"
+    }
+    sound DIGI sound8114@8114 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8114.wav"
+    }
+    sound DIGI sound8115@8115 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8115.wav"
+    }
+    sound DIGI sound8116@8116 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8116.wav"
+    }
+    sound DIGI sound8117@8117 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8117.wav"
+    }
+    sound DIGI sound8118@8118 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8118.wav"
+    }
+    sound DIGI sound8119@8119 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8119.wav"
+    }
+    sound DIGI sound8120@8120 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8120.wav"
+    }
+    sound DIGI sound8121@8121 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8121.wav"
+    }
+    sound DIGI sound8122@8122 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8122.wav"
+    }
+    sound DIGI sound8123@8123 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8123.wav"
+    }
+    sound DIGI sound8124@8124 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8124.wav"
+    }
+    sound DIGI sound8125@8125 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8125.wav"
+    }
+    sound DIGI sound8126@8126 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8126.wav"
+    }
+    sound DIGI sound8127@8127 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8127.wav"
+    }
+    sound DIGI sound8128@8128 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8128.wav"
+    }
+    sound DIGI sound8129@8129 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8129.wav"
+    }
+    sound DIGI sound8130@8130 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8130.wav"
+    }
+    sound DIGI sound8131@8131 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8131.wav"
+    }
+    sound DIGI sound8132@8132 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8132.wav"
+    }
+    sound DIGI sound8133@8133 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8133.wav"
+    }
+    sound DIGI sound8134@8134 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8134.wav"
+    }
+    sound DIGI sound8135@8135 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8135.wav"
+    }
+    sound DIGI sound8136@8136 {
+        raw-block HSHD `0000ffffffff112b00000000c4f46600`
+        sdat "music/sound8136.wav"
+    }
+    sound DIGI sound8137@8137 {
+        raw-block HSHD `00008080ffff112b0000000000000000`
+        sdat "music/sound8137.wav"
+    }
+}
+
+var gDebug@1
+var gMinJiffies@2
+var g_maybe_skipped_cutscene@3
+var gSaveLoadResult@8
+var g_maybe_selected_actor@9
+var gMaxActor@10
+var gMouseX@13
+var gMouseY@14
+var global17@17
+var global18@18
+var gCursorVisible@19
+var gCursorInputEnabled@20
+var gCurrentRoom@21
+var gRoomEnterScript@29
+var gRoomEnterScript2@30
+var gRoomExitScript@31
+var gInputHandlerScript@33
+var gEngineSpecialScript18@34
+var global38@38
+var global39@39
+var global40@40
+var global41@41
+var global42@42
+var global43@43
+var global44@44
+var global45@45
+var global46@46
+var global48@48
+var global51@51
+var gSoundChannel@52
+var gNextRoom@59
+var gNowHour@63
+var gNowMinute@64
+var gNowDay@65
+var gNowMonth@66
+var gNowYear@67
+var gMaxRoom@68
+var gMaxCharset@73
+var global75@75
+var global76@76
+var g_maybe_operating_system@78
+var gWindowsVersion@79
+var gCurCharset@80
+var gMouseOverride@83
+var gDebugMode@85
+var gKeyState@86
+var gUserInfo@90
+var global91@91
+var global95@95
+var global96@96
+var global97@97
+var gNetMessageHandlerScript@98
+var g_maybe_directplay_initted@100
+var gNetHandlerScript_unused@101
+var global102@102
+var global103@103
+var global104@104
+var gMaxSpriteGroup@105
+var gMaxSprite@106
+var global108@108
+var global109@109
+var global110@110
+var global111@111
+var global112@112
+var global113@113
+var global114@114
+var global115@115
+var gIOError@119
+var global122@122
+var global123@123
+var global124@124
+var global126@126
+var gDebugPrintScript@127
+var gNumPalettes@130
+var global131@131
+var global133@133
+var global134@134
+var global135@135
+var global136@136
+var gLastMouseX@200
+var gLastMouseY@201
+var temp@202
+var temp2@203
+var global204@204
+var global205@205
+var global207@207
+var gPreviousRoom@208
+var global210@210
+var global212@212
+var gCursorImage@213
+var global214@214
+var gMachineSpeed@215
+var gBuildVersion@216
+var gActorCursorTargets@218
+var gSpriteCursorTargets@219
+var gSpriteGroupStack_unused@220
+var gSpriteGroupStackPointer_unused@221
+var gNetAuditFile@223
+var gActorPoolMin@224
+var gActorPoolMax@225
+var gSpriteStackMin@226
+var gSpriteStackMax@227
+var gSpriteGroupStackMin_unused@228
+var gAlternateInput_always_false@229
+var gLastHoverNumber@230
+var gLastHoverType@231
+var global232@232
+var gKeyHandlerScript@233
+var gMouseHandlerScript@234
+var gCD_unused@235
+var gSaveGamePath@238
+var global239@239
+var global240@240
+var global241@241
+var gMusicPool@242
+var gCurrentMusic@243
+var gNoMusic@244
+var global245@245
+var gNoBackgroundSound@246
+var global247@247
+var global248@248
+var gBlackAndWhiteCursors@251
+var global257@257
+var global259@259
+var gLogoCutsceneInProgress@260
+var gKidData@261
+var gHitAngleXZ@262
+var gKidName@263
+var gPickOrder1@264
+var gPickOrder2@265
+var gWorld@266
+var gView@267
+var gScreen@268
+var g_smth_he9_unused@269
+var gCameraTransform@271
+var gHitPosPhysX@272
+var gHitPosPhysY@273
+var gHitPosPhysZ@274
+var gHitVelPhysX@275
+var gHitVelPhysY@276
+var gHitVelPhysZ@277
+var gFieldingTargetX@278
+var gFieldingTargetZ@279
+var g_maybe_smth_play_is_alive@280
+var gBallPosPhysX@281
+var gBallPosPhysY@282
+var gBallPosPhysZ@283
+var gBallVelPhysX@284
+var gBallVelPhysY@285
+var gBallVelPhysZ@286
+var gBallPath@287
+var gRanWorldTransform@288
+var gNumBalls@289
+var gNumStrikes@290
+var gNumOuts@291
+var gBatterKid@292
+var gFielderWithBall@293
+var gBattingTeamInfoIndex@294
+var gRunners@295
+var gBases@296
+var gNumRunners@297
+var gBallIsFoul@298
+var gSimFirstBounceFoul@299
+var gBallHasBounced@300
+var g_maybe_play_is_ready_to_end@301
+var gVectorScaleNum@302
+var gVectorScaleDen@303
+var g_smth_play_may_continue@304
+var gSimFirstBounceX@305
+var gSimFirstBounceZ@306
+var gUserSelectedPlay@307
+var gOutfieldDelay@308
+var gCurrentHalfInning@309
+var gTeamInfo@310
+var gNumOutsBeforePitch@311
+var gMinTransformEntity@312
+var gMaxTransformEntity@313
+var gGameStats@314
+var gSeasonStats@315
+var gGameInfo@316
+var gEnableHumongousVision@317
+var gPlayEndedReason@318
+var gPitcherPitches@319
+var gRunnerSpecialDestinations@320
+var gBattingOrder1@321
+var gBattingOrder2@322
+var gCurrentSpeechScript@323
+var gStartPos_LF_X@324
+var gStartPos_LF_Z@325
+var gStartPos_CF_X@326
+var gStartPos_CF_Z@327
+var gStartPos_RF_X@328
+var gStartPos_RF_Z@329
+var gStartPos_3B_X@330
+var gStartPos_3B_Z@331
+var gStartPos_SS_X@332
+var gStartPos_SS_Z@333
+var gStartPos_2B_X@334
+var gStartPos_2B_Z@335
+var gStartPos_1B_X@336
+var gStartPos_1B_Z@337
+var gStartPos_Catcher_X@338
+var gStartPos_Catcher_Z@339
+var gStartPos_Pitcher_X@340
+var gStartPos_Pitcher_Z@341
+var gRunnerCursorIndex@342
+var gRunnerCursorDestinationBase@343
+var gRunnersExtra@344
+var gNoCommentary@345
+var gRememberedPitches@346
+var gStealArray@347
+var global348@348
+var gCommentaryIsIdle@349
+var gCurBox@350
+var gCollideVelX@351
+var gCollideVelY@352
+var gCollideVelZ@353
+var gCollideCurPosX@354
+var gCollideCurPosY@355
+var gCollideCurPosZ@356
+var gCollideNextPosX@357
+var gCollideNextPosY@358
+var gCollideNextPosZ@359
+var gCollideIntersectX@360
+var gCollideIntersectY@361
+var gCollideIntersectZ@362
+var gCollideBoxes@363
+var gBallIsFair@364
+var gCollideIntersectValid@365
+var gCollideCellX@366
+var gCollideCellZ@367
+var gCollideCells@368
+var global369@369
+var g_he9_maybe_always_true@370
+var gCollideNumberOfBoxes@371
+var g_maybe_he9_play_could_end_soon@372
+var g_he9_play_ended@373
+var g_smth_he9_flag@374
+var global375@375
+var global376@376
+var global377@377
+var global378@378
+var global379@379
+var global380@380
+var global381@381
+var gCollideStuckBoxNumber@382
+var gCollideStuckTickCounter@383
+var global384@384
+var gCollideNumberOfObjectsWrite_unused@385
+var gHE9File@386
+var gCurrentSwing@387
+var g_maybe_batter_strikeout_costume@388
+var gUserOnOffense@389
+var gField@390
+var g_maybe_ai_draft_wanted_skill@391
+var g_smth_score_check_minimum@392
+var global393@393
+var gLastPickedKid@394
+var gINIPath@395
+var gCoachName@396
+var global397@397
+var global398@398
+var gNetplayActive@399
+var g_net_smth_me@400
+var g_net_smth_slave@401
+var g_net_smth_master@402
+var gNetStateBuffer@403
+var gFieldVerticalBounciness@404
+var global405@405
+var global406@406
+var gPlayingSound1@407
+var gPlayingSound2@408
+var gPlayingSound3@409
+var gPlayingSound4@410
+var gAmbientSound@411
+var g_maybe_last_fielder_to_touch_ball@412
+var g_maybe_powerup_state@413
+var gEnableReplays@414
+var gGivePowerup@415
+var gBallWasHit@416
+var gBounceSoundSoft@417
+var gBounceSoundMed@418
+var gBounceSoundLoud@419
+var gTeeBall@420
+var gFieldersSkew@421
+var gMaxTurnCount@422
+var global423@423
+var global424@424
+var global425@425
+var gGameMode@426
+var gStealing@427
+var gCommentaryQueuePointer@428
+var gCommentaryPlayingPointer@429
+var gGameLength@430
+var gNoErrors@431
+var gSeasonGameNumber@432
+var gSeasonRosterArray@433
+var gNoBatCircle@434
+var gNoGooch@435
+var global436@436
+var gCurrentMatchupCastScript@437
+var gCoachID@438
+var gCoachINIPath@439
+var gPitchBallIndicator@440
+var g_smth_season_mode@441
+var gOffenseControlledBy@442
+var gDefenseControlledBy@443
+var gHomeInfoIndex@444
+var gVisitorInfoIndex@445
+var global446@446
+var gBatterStance@447
+var gBatterKidHitsBeforeNow@448
+var gNoPrinting@449
+var gBattingPracticeKid@450
+var global451@451
+var gSavedGameLength@452
+var gAIGuessedPitchLocationX@453
+var gAIGuessedPitchLocationY@454
+var global455@455
+var gPlayoffStats@456
+var gBattingPracticeEnabledPitches@457
+var gBattingPracticeNumPitches@458
+var gBattingPracticeNumHits@459
+var gBackupKidData@460
+var global461@461
+var gDifficulty@462
+var gLastHomeRunDistance@463
+var gRecordBook@464
+var global465@465
+var gNoPlayerChatter@466
+var gNoPlayerTalking@467
+var gSeasonSpectatorMode@468
+var gPitchWasCasted@469
+var gGameEnded@470
+var gFixSeasonScores@471
+var global472@472
+var global473@473
+var global474@474
+var gSeasonOver@475
+var gGloriousVictory@476
+var global477@477
+var gRunnersDecimask@478
+var gCurrentLowPriCastScript@479
+var gClankyEnabled@480
+var gFieldHorizontalBounciness@481
+var global482@482
+var global483@483
+var global484@484
+var global485@485
+var gNetWaitFlag@486
+var gNetLag@487
+var g_maybe_net_who_picks_next@488
+var gBleachersLineup@489
+var gCameraAngleX@490
+var gCameraAngleY@491
+var gCameraAngleZ@492
+var gCosCameraAngleX@493
+var gCosCameraAngleY@494
+var gCosCameraAngleZ@495
+var gSinCameraAngleX@496
+var gSinCameraAngleY@497
+var gSinCameraAngleZ@498
+var gCameraPosX@499
+var gCameraPosY@500
+var gCameraPosZ@501
+var gDialogueHandlerScript@502
+var gNetOvPlayOver@503
+var global504@504
+var gBatViewCursorLoopScript@505
+var gNetTimeout@506
+var gNetworkAuditTrail@507
+var global508@508
+var global509@509
+var global510@510
+var global512@512
+var global513@513
+var global514@514
+var global515@515
+var global516@516
+var global517@517
+var gGameInputDevice@518
+var global522@522
+var gUIInputDevice@523
+var gGamePadX@524
+var gGamePadY@525
+var gGamePadCursorSprite@526
+var global527@527
+var global528@528
+var global529@529
+var gGamePadInputHandlerScript@530
+var gBallPosX@531
+var gBallPosY@532
+var gBallPosZ@533
+var global534@534
+var gLowBandwidthTest@535
+var global540@540
+var global541@541
+var global542@542
+var gNetUsername@543
+var gNetRemoteCoachName@544
+var global545@545
+var global551@551
+var global552@552
+var global553@553
+var global554@554
+var global555@555
+var global557@557
+var gNetPassword@558
+var global559@559
+var global561@561
+var global562@562
+var gObviousFoul@563
+var g_maybe_net_fielders_dirty_mask@564
+var global565@565
+var global566@566
+var global567@567
+var global568@568
+var global570@570
+var global571@571
+var g_smth_netplay_master_or_slave@572
+var gUserLongestHomeRun@573
+var gOpponentLongestHomeRun@574
+var global575@575
+var global576@576
+var global577@577
+var gCursorLoopScript@578
+var global579@579
+var gDisableReliable@580
+var gNetPitchTimer@581
+var g_maybe_net_yell_sound@582
+var gNetStats@583
+var g_smth_net_pause_flag@584
+var gMaxUniqueKid@586
+var gStealStartingPosAdjust@587
+var gCustomKidNames@588
+var gBleachersKids@589
+var gDraftRound@590
+var gBleachersEntries@591
+var gBleachersNumKids_unused@592
+var global593@593
+var gNavButtons@595
+var global596@596
+var gMLBTeamData@597
+var gSpriteStack@599
+var gSpriteStackPointer@600
+var gSpriteGroupStack@601
+var gSpriteGroupStackPointer@602
+var global603@603
+var global604@604
+var global605@605
+var global606@606
+var global607@607
+var gPaletteStack@608
+var gPaletteStackPointer@609
+var gBypassJsnMap@611
+var global612@612
+var global613@613
+var global614@614
+var gSeasonTeamsArray@619
+var gSeasonScheduleArray@620
+var global621@621
+var global622@622
+var global623@623
+var global624@624
+var global625@625
+var gScratchStack@626
+var gScratchStackPointer@627
+var global628@628
+var global629@629
+var g_maybe_kid_video_actor@630
+var global631@631
+var global632@632
+var g_some_sprite_array@633
+var global634@634
+var g_some_palette_1@635
+var g_some_palette_2@636
+var g_some_palette_3@637
+var global638@638
+var gSeasonDivision@639
+var gHoverScript@640
+var global641@641
+var g_smth_ai_bat_strategy@642
+var g_smth_ai_batting@643
+var g_maybe_ai_wanted_swing@644
+var g_smth_ai_stance@645
+var global646@646
+var global647@647
+var global648@648
+var global649@649
+var global650@650
+var global651@651
+var global652@652
+var global653@653
+var g_some_palette_654@654
+var g_some_palette_655@655
+var global656@656
+var gPlayoffTeamsArray@657
+var gPlayoffScheduleArray@658
+var gPlayoffRosterArray@659
+var global660@660
+var global661@661
+var gCoachHomeField@662
+var global663@663
+var global664@664
+var global665@665
+var global666@666
+var gWonLastGame@667
+var gLastGameTotals@668
+var gMouseHookScript@669
+var gMouseHookFlags@670
+var global671@671
+var global672@672
+var global673@673
+var global674@674
+var global675@675
+var gPopupState@676
+var gPopupResult@677
+var global678@678
+var g_maybe_who_picks_first@679
+var global680@680
+var global681@681
+var global682@682
+var gStatsAudit@683
+var gStatsAuditWindow@684
+var gStatsAuditImage@685
+var gSkipPickingTeam@686
+var gColorRandom1@687
+var gColorRandom2@688
+var g_maybe_disable_powerups@689
+var global690@690
+var g_some_palette_4@691
+var global692@692
+var gOptionChangedScript@693
+var global694@694
+var g_smth_net_game_flags@695
+var global696@696
+var global698@698
+var gGravity@699
+var gAutoplaySeason@701
+var gTestThis@702
+var global703@703
+var global705@705
+var global706@706
+
+; FileMode
+const FOR-READ = 1
+const FOR-WRITE = 2
+const FOR-APPEND = 6
+
+; SaveLoad
+const SAVE = 1
+const LOAD = 2
+
+; Actor
+const declare-actor-type = 88888
+
+; Angle
+const declare-angle-type = 88888
+
+; BallTime
+const DEAD-BALL = -666
+
+; BatViewMessage
+const MSG-TOGGLE-STANCE = 6501
+const MSG-TOGGLE-STEAL = 6505
+const MSG-FIELDERS-SKEW-CHANGED = 6508
+const MSG-CHOOSE-PITCH-LOCATION = 6510
+const MSG-TEE-SWING = 6511
+const MSG-PITCH-RESULT = 7605
+const MSG-RESET-BATTER = 7606
+const MSG-BATTER-CONTACT = 7607
+const MSG-SET-STEAL-ARRAY = 7608
+const MSG-RETURN-BALL-TO-PITCHER = 7611
+const MSG-maybe-pitcher-head-animation = 7801
+const MSG-SET-STANCE = 7802
+const MSG-SWING = 7803
+const MSG-SET-FIELDER-START-POSITIONS = 7804
+const MSG-RUN-PITCH = 8120
+
+; BattingPracticeMessage
+const BPM-NICE-HIT = 1
+const BPM-SELECT-PITCH = 2
+
+; BleachersInfo
+const BI-KID = 1
+const BI-ACTOR = 2
+const BI-X = 5
+const BI-Y = 6
+
+; ButtonsDevice
+const BUTTONS-KEYBOARD = 7777
+const BUTTONS-GAME-PAD = 8888
+
+; bool
+const false = 0
+const true = 1
+
+; CollideFace
+const FACE-FRONT = 1
+const FACE-LEFT = 2
+const FACE-RIGHT = 3
+const FACE-BACK = 4
+const FACE-TOP = 5
+
+; ControlledBy
+const CB-USER = 1
+const CB-COMPUTER = 2
+const CB-NETWORK = 3
+
+; Controlling
+const CONTROLLING-NOTHING = 0
+const CONTROLLING-PITCHER = 1
+const CONTROLLING-BATTER = 2
+
+; Dialogue
+const DIALOGUE-WHOS-BATTING = 1
+const DIALOGUE-WHOS-BATTING-LEADING-OFF = 2
+const DIALOGUE-WHOS-PITCHING = 3
+const DIALOGUE-PITCH-STRIKE = 4
+const DIALOGUE-BATTER-SWINGS = 6
+const DIALOGUE-PITCH = 8
+const DIALOGUE-RUNNERS-ON-BASE = 9
+const DIALOGUE-CURRENT-BALLS-STRIKES = 10
+const DIALOGUE-END-OF-HALF-INNING = 11
+const DIALOGUE-BAT-VIEW-BANTER = 12
+const DIALOGUE-WILD-PITCH = 13
+const DIALOGUE-FIELDER-RUNNING-TO-CATCH-FLY = 101
+const DIALOGUE-FIELDER-ABOUT-TO-CATCH = 102
+const DIALOGUE-FIELDER-DIVE = 103
+const DIALOGUE-FIELDER-UNDER-POP-FLY = 104
+const DIALOGUE-THROW = 105
+const DIALOGUE-THROW-TO-FIRST = 106
+const DIALOGUE-THROW-TO-SECOND = 107
+const DIALOGUE-THROW-TO-THIRD = 108
+const DIALOGUE-THROW-TO-HOME = 109
+const DIALOGUE-THROW-TO-PITCHER = 110
+const DIALOGUE-HIT-TO-PITCHER = 111
+const DIALOGUE-HIT-TO-SHORTSTOP = 112
+const DIALOGUE-CATCH-HIGH-HIT = 113
+const DIALOGUE-CATCH-HIGH-HIT-ERROR = 114
+const DIALOGUE-CATCH-LOW-HIT = 115
+const DIALOGUE-CATCH-LOW-HIT-ERROR = 116
+const DIALOGUE-DROP = 117
+const DIALOGUE-RUNNER-TAGGED-SAFE = 118
+const DIALOGUE-RUNNER-THROW-ERROR = 119
+const DIALOGUE-GOOD-PLAY = 120
+const DIALOGUE-BAD-PLAY = 121
+const DIALOGUE-DOUBLE-PLAY = 122
+const DIALOGUE-THIRD-OUT = 123
+const DIALOGUE-FIELDER-COLLISION = 124
+const DIALOGUE-TRIPLE-PLAY = 125
+const DIALOGUE-CATCH-GENERAL = 126
+const DIALOGUE-CATCH-GENERAL-ERROR = 127
+const DIALOGUE-POP-FLY = 150
+const DIALOGUE-HIT-TO-OUTFIELD = 151
+const DIALOGUE-HIT-LINE-DRIVE-CENTER-FIELD = 152
+const DIALOGUE-HIT-LINE-DRIVE-LEFT-FIELD = 153
+const DIALOGUE-HIT-LINE-DRIVE-RIGHT-FIELD = 154
+const DIALOGUE-HIT-LINE-DRIVE-GENERAL = 155
+const DIALOGUE-GROUNDER-RIGHT = 156
+const DIALOGUE-GROUNDER-CENTER = 157
+const DIALOGUE-GROUNDER-LEFT = 158
+const DIALOGUE-GROUNDER-SHORTSTOP = 159
+const DIALOGUE-GROUNDER-GENERAL = 160
+const DIALOGUE-LINE-DRIVE-GAP = 161
+const DIALOGUE-FOUL-OUTFIELD = 162
+const DIALOGUE-HIT-HOME-RUN = 163
+const DIALOGUE-HIT-GRAND-SLAM = 164
+const DIALOGUE-RUNNER-TAGGED-OUT = 165
+const DIALOGUE-HIT-BUNT = 167
+const DIALOGUE-RUNNER-SAFE = 168
+const DIALOGUE-RUNNER-SAFE-AT-FIRST = 169
+const DIALOGUE-RUNNER-SAFE-AT-SECOND = 170
+const DIALOGUE-RUNNER-SAFE-AT-THIRD = 171
+const DIALOGUE-RUNNER-OUT = 172
+const DIALOGUE-SCORED-RUN = 173
+const DIALOGUE-OUT-GOOCH = 174
+const DIALOGUE-HIT-FOUL = 175
+const DIALOGUE-SNOWCONE-CATCH = 176
+const DIALOGUE-BALL-OUT-OF-PLAY = 177
+const DIALOGUE-BALL-OFF-THE-WALL = 178
+const DIALOGUE-INSTANT-REPLAY = 179
+const DIALOGUE-GROUND-RULE-DOUBLE = 180
+const DIALOGUE-HIT-FOUL-OUTFIELD = 181
+const DIALOGUE-PITCH-BALL = 182
+const DIALOGUE-HIT-DOUBLE = 201
+const DIALOGUE-HIT-TRIPLE = 202
+const DIALOGUE-RUNNER-SLIDE-INTO-FIRST = 203
+const DIALOGUE-GO-FOR-ANOTHER = 204
+const DIALOGUE-RUNNER-TAGS-FIRST = 205
+const DIALOGUE-RUNNER-TAGS-SECOND = 206
+const DIALOGUE-RUNNER-TAGS-THIRD = 207
+const DIALOGUE-TRIP = 209
+const DIALOGUE-PICKLE = 210
+const DIALOGUE-RUNNER-SLIDE-INTO-SECOND = 211
+const DIALOGUE-RUNNER-SLIDE-INTO-THIRD = 212
+const DIALOGUE-RUNNER-SLIDE-INTO-HOME = 213
+const DIALOGUE-HIT-WITH-POWERUP = 250
+const DIALOGUE-INFIELD-FLY = 251
+const DIALOGUE-STEALING-BASE = 252
+const DIALOGUE-STEALING-HOME = 253
+const DIALOGUE-STOLEN-BASE = 254
+const DIALOGUE-STOLEN-HOME = 255
+const DIALOGUE-BANTER-BATTER = 1088
+const DIALOGUE-BANTER-PICTHER = 1089
+const DIALOGUE-BANTER-PITCHER-STRIKE-OUT = 1090
+const DIALOGUE-BANTER-BATTER-STRIKE-OUT = 1091
+const DIALOGUE-BANTER-PITCHER-STAMINA = 1092
+const DIALOGUE-BANTER-BATTER-SWING-MISS = 1093
+
+; Difficulty
+const EASY = 1
+const HARD = 2
+const MEDIUM = 3
+const TEE-BALL = 4
+
+; DraftChoice
+const DRAFT-REJECT = 1
+const DRAFT-PICK = 2
+
+; Emote
+const declare-emote-type = 88888
+
+; Entity
+const HOME-PLATE-BACK-CORNER = 0
+const FIRST-BASE-RIGHT-CORNER = 1
+const SECOND-BASE-CENTER = 2
+const THIRD-BASE-LEFT-CORNER = 3
+const MOUND-CENTER = 4
+const HOME-PLATE-TOP-LEFT-CORNER = 13
+const HOME-PLATE-TOP-RIGHT-CORNER = 14
+const HOME-PLATE-BOTTOM-LEFT-CORNER = 15
+const HOME-PLATE-BOTTOM-RIGHT-CORNER = 16
+const RUBBER-BOTTOM-LEFT-CORNER = 17
+const RUBBER-BOTTOM-RIGHT-CORNER = 18
+const RUBBER-TOP-LEFT-CORNER = 19
+const RUBBER-TOP-RIGHT-CORNER = 20
+const SECOND-BASE-TOP-CORNER = 21
+const SECOND-BASE-BOTTOM-CORNER = 22
+const SECOND-BASE-RIGHT-CORNER = 23
+const SECOND-BASE-LEFT-CORNER = 24
+const ORIGIN = 25
+const FIRST-BASE-LEFT-CORNER = 26
+const FIRST-BASE-TOP-CORNER = 27
+const FIRST-BASE-BOTTOM-CORNER = 28
+const THIRD-BASE-RIGHT-CORNER = 29
+const THIRD-BASE-TOP-CORNER = 30
+const THIRD-BASE-BOTTOM-CORNER = 31
+const HOME-PLATE-CENTER = 32
+const FIRST-BASE-CENTER = 33
+const THIRD-BASE-CENTER = 34
+const BALL = 35
+const BALL-SHADOW = 36
+const FIELDER-LF = 37
+const FIELDER-CF = 38
+const FIELDER-RF = 39
+const FIELDER-3B = 40
+const FIELDER-2B = 41
+const FIELDER-1B = 42
+const FIELDER-SS = 43
+const FIELDER-CACTHER = 44
+const FIELDER-PITCHER = 45
+const RUNNER-0 = 46
+const RUNNER-1 = 47
+const RUNNER-2 = 48
+const RUNNER-3 = 49
+const LANDING-CIRCLE-TOP-LEFT = 50
+const LANDING-CIRCLE-TOP-RIGHT = 51
+const LANDING-CIRCLE-BOTTOM-RIGHT = 52
+const LANDING-CIRCLE-BOTTOM-LEFT = 53
+const LAST-CLICK-FIELDING = 56
+const LAST-CLICK-RUNNING = 57
+const LAST-HOVER-FIELDING = 58
+const PREVIEW-BALL = 59
+const PREVIEW-BALL-SHADOW = 60
+const HIT-CONTACT = 61
+
+; Facing
+const declare-facing-type = 88888
+
+; Field
+const DIRT-YARDS = 0
+const PLAYGROUND-COMMONS = 1
+const CEMENT-GARDENS = 2
+const ECKMAN-ACRES = 3
+const BIG-CITY-STADIUM = 4
+const SUPER-COLOSSAL-DOME = 5
+const STEELE-STADIUM = 6
+const TIN-CAN-ALLEY = 7
+const PARKS-DEPARTMENT = 8
+const SANDY-FLATS = 9
+
+; FieldChoice
+const FC-STEELE-STADIUM = 1
+const FC-PARKS-DEPARTMENT = 2
+const FC-TIN-CAN-ALLEY = 3
+const FC-ECKMAN-ACRES = 4
+const FC-CEMENT-GARDENS = 5
+const FC-DIRT-YARDS = 6
+const FC-PLAYGROUND-COMMONS = 7
+const FC-SANDY-FLATS = 8
+
+; Fielder
+; dup const FIELDER-LF = 37
+; dup const FIELDER-CF = 38
+; dup const FIELDER-RF = 39
+; dup const FIELDER-3B = 40
+; dup const FIELDER-2B = 41
+; dup const FIELDER-1B = 42
+; dup const FIELDER-SS = 43
+; dup const FIELDER-CACTHER = 44
+; dup const FIELDER-PITCHER = 45
+
+; FieldingBase
+const F-HOME = 0
+const FIRST = 1
+const SECOND = 2
+const THIRD = 3
+const MOUND = 4
+
+; FieldingTarget
+; dup const F-HOME = 0
+; dup const FIRST = 1
+; dup const SECOND = 2
+; dup const THIRD = 3
+; dup const MOUND = 4
+; dup const BALL-SHADOW = 36
+; dup const FIELDER-LF = 37
+; dup const FIELDER-CF = 38
+; dup const FIELDER-RF = 39
+; dup const FIELDER-3B = 40
+; dup const FIELDER-2B = 41
+; dup const FIELDER-1B = 42
+; dup const FIELDER-SS = 43
+; dup const FIELDER-CACTHER = 44
+; dup const FIELDER-PITCHER = 45
+; dup const RUNNER-0 = 46
+; dup const RUNNER-1 = 47
+; dup const RUNNER-2 = 48
+; dup const RUNNER-3 = 49
+; dup const LAST-CLICK-FIELDING = 56
+const NONE = 999
+
+; GameMode
+const MODE-PICKUP = 1
+const MODE-BATTING-PRACTICE = 2
+const MODE-SPECTATE = 3
+const MODE-SEASON = 4
+const MODE-maybe-cards = 10
+
+; Gender
+const GIRL = 1
+const BOY = 2
+
+; Handedness
+const RIGHT-HANDED = 1
+const LEFT-HANDED = 2
+
+; IndexOrNone
+; dup const NONE = 999
+
+; InputDevice
+const INPUT-DEVICE-MOUSE = 1
+const INPUT-DEVICE-GAME-PAD = 3
+
+; InputType
+const INPUT-TYPE-MOUSE = 2
+const INPUT-TYPE-KEYBOARD = 4
+
+; Kid
+const KIMMY-ECKMAN = 1
+const MARIA-LUNA = 2
+const ANGELA-DELVECCHIO = 3
+const VICKI-KAWAGUCHI = 4
+const GRETCHEN-HASSELHOFF = 5
+const SALLY-DOBBS = 6
+const BILLY-JEAN-BLACKWOOD = 7
+const ASHLEY-WEBBER = 8
+const SIDNEY-WEBBER = 9
+const KIESHA-PHILLIPS = 10
+const STEPHANIE-MORGAN = 11
+const LUANNE-LUI = 12
+const ANNIE-FRAZIER = 13
+const JOCINDA-SMITH = 14
+const LISA-CROCKET = 15
+const RONNY-DOBBS = 16
+const ACHMED-KHAN = 17
+const AMIR-KHAN = 18
+const KENNY-KAWAGUCHI = 19
+const PETE-WHEELER = 20
+const DMITRI-PETROVICH = 21
+const RICKY-JOHNSON = 22
+const MARKY-DUBOIS = 23
+const REESE-WORTHINGTON = 24
+const PABLO-SANCHEZ = 25
+const TONY-DELVECCHIO = 26
+const JORGE-GARCIA = 27
+const DANTE-ROBINSON = 28
+const ERNIE-STEELE = 29
+const MIKEY-THOMAS = 30
+const MO-VAUGHN = 31
+const RANDY-JOHNSON = 32
+const CHIPPER-JONES = 33
+const CAL-RIPKEN-JR = 34
+const NOMAR-GARCIAPARRA = 35
+const SAMMY-SOSA = 36
+const FRANK-THOMAS = 37
+const BARRY-LARKIN = 38
+const KENNY-LOFTON = 39
+const LARRY-WALKER = 40
+const JUAN-GONZALEZ = 41
+const ALEX-GONZALEZ = 42
+const JEFF-BAGWELL = 43
+const CARLOS-BELTRAN = 44
+const RAUL-MONDESI = 45
+const JEROMY-BURNITZ = 46
+const MARTY-CORDOVA = 47
+const VLADIMIR-GUERRERO = 48
+const MIKE-PIAZZA = 49
+const DEREK-JETER = 50
+const JASON-GIAMBI = 51
+const CURT-SCHILLING = 52
+const JASON-KENDALL = 53
+const TONY-GWYNN = 54
+const BARRY-BONDS = 55
+const KEN-GRIFFEY-JR = 56
+const MARK-MCGWIRE = 57
+const JOSE-CANSECO = 58
+const IVAN-RODRIGUEZ = 59
+const SHAWN-GREEN = 60
+const ALEX-RODRIGUEZ = 61
+const AMY-BOSTWICK = 62
+const ARLENE-PEREZ = 63
+const BETTY-HOUSTAN = 64
+const CINDY-CHANG = 65
+const CLARICE-REID = 66
+const COLLEEN-KLINKER = 67
+const DEBBY-NAGASAWA = 68
+const DIANA-HAYES = 69
+const ESTHER-FRENCH = 70
+const FRANCIS-BLEWER = 71
+const GAIL-WEINMANN = 72
+const GRACE-TIPTON = 73
+const HANNAH-PEAVY = 74
+const HEATHER-QUINN = 75
+const HOLLY-FRANKLIN = 76
+const ISABELLE-MARELLI = 77
+const JANE-DAVIS = 78
+const JOELLA-MINOTTI = 79
+const JUDY-ABWUNZA = 80
+const JULIE-DUNKEL = 81
+const KAREN-DONATO = 82
+const KATIE-SHANKAR = 83
+const KRISSY-MULLIGAN = 84
+const LARA-NUNEZ = 85
+const LEAH-WAYNE = 86
+const LENA-NG = 87
+const LINDA-POTTER = 88
+const LIZ-KINGHORN = 89
+const MARIANNA-RAUF = 90
+const MARY-REILLY = 91
+const MICHIKO-ADACHI = 92
+const MOLLY-MAY = 93
+const NANCY-CHIN = 94
+const OLGA-TOLLEFSON = 95
+const OLIVE-HUSSEIN = 96
+const PETRA-CHEKOV = 97
+const RAMONA-BENNETT = 98
+const RANDI-UNO = 99
+const SERENA-DAMONTE = 100
+const SHEILA-BASANTI = 101
+const SONJA-HAGEN = 102
+const STACY-GORDON = 103
+const STAR-MOONBEAM = 104
+const TANYA-UCHIDA = 105
+const TIFFANY-BOSWORTH = 106
+const TINA-HERRARA = 107
+const VANNA-STEINMAN = 108
+const VERONICA-LEE = 109
+const WHITNEY-SINGH = 110
+const ZENA-FROMME = 111
+const ANDRES-IBSEN = 112
+const ARTIE-PIMBLETON = 113
+const BOBBY-BULGRIEN = 114
+const BRET-OLSON = 115
+const CARLOS-OCAMPO = 116
+const CHAD-KOPPEL = 117
+const CHICO-PAPPAS = 118
+const CHRIS-MILTON = 119
+const CHUCKY-FLINDER = 120
+const DAVY-MARIAN = 121
+const DOMINIQUE-LOWE = 122
+const EARL-ABBOT = 123
+const ERIC-LEBEAUX = 124
+const FELIX-GRANT = 125
+const FERNANDO-DIAZ = 126
+const FRANKY-HOLLY = 127
+const FRED-BENSON = 128
+const GARY-ALLEN = 129
+const GEORGE-COLEMAN = 130
+const HENRI-DESCHENES = 131
+const HORACE-YOUNG = 132
+const IBRAHIM-MOHAMED = 133
+const ISAAC-DRUMMOND = 134
+const JACK-JOSEPH = 135
+const JAY-GREEN = 136
+const JIM-KILEY = 137
+const JOHNNY-OMAR = 138
+const JORDAN-THORNER = 139
+const MICKEY-OCONNOR = 140
+const MURRAY-GOLDMAN = 141
+const NATE-KOWALSKI = 142
+const NICKY-WINSTON = 143
+const OMAR-STEPHANO = 144
+const PACO-KAUFMAN = 145
+const PJ-SHAREEF = 146
+const RAFAEL-HENDRIX = 147
+const RAY-TRAN = 148
+const ROBBY-BOCKO = 149
+const RYAN-VANDERHOEK = 150
+const SHANE-SMITH = 151
+const STAN-OLAFSON = 152
+const STEVIE-LINDT = 153
+const STUART-SULLIVAN = 154
+const TIMMY-UNGER = 155
+const TODD-XAVIER = 156
+const VIC-SOUFLE = 157
+const VLADIMIR-WOMAK = 158
+const WALLY-EVANS = 159
+const WING-KWAN = 160
+const ZENON-ESTRADA = 161
+const ALEXIS-WEIS = 162
+const ANGELIQUE-HARDING = 163
+const CATHERINE-ASHER = 164
+const CLAIR-NELSON = 165
+const COURTNEY-VALENTINO = 166
+const DANA-SEKULA = 167
+const ELLEN-MARTINEZ = 168
+const ERIN-HARRIS = 169
+const ESMARELDA-HEIMANN = 170
+const EZRA-TRAVOLTA = 171
+const FABIENNE-CALLAHAN = 172
+const FRANCESCA-WHITAKER = 173
+const GLORIA-KEITEL = 174
+const HEIDI-THURMAN = 175
+const JOAN-MAE = 176
+const JODY-PALMER = 177
+const KATELYN-CAIN = 178
+const KATHY-WOLF = 179
+const LINDSY-FELGATE = 180
+const LORELEI-IKAYE = 181
+const MAMIE-SKIUMSBY = 182
+const MANDY-COOLIDGE = 183
+const ROSANNA-PHELPS = 184
+const RUTH-PROUTT = 185
+const SAMANTHA-WINSLOW = 186
+const TATIANA-JACKSON = 187
+const TRACY-HOBAN = 188
+const UMA-MORRIS = 189
+const VANESSA-GOODMAN = 190
+const VICTORIA-SHAMBERG = 191
+const ADAM-VAN = 192
+const ALAN-HULSMAN = 193
+const BILLY-MENDELSON = 194
+const BRAD-BENDER = 195
+const BUDDY-MARTIN = 196
+const BUTCH-SHERROD = 197
+const CAMERON-HAINES = 198
+const CHANDLER-HUGGINS = 199
+const DANIEL-WILLIS = 200
+const DEREK-MCCATTERY = 201
+const DONALD-VOGEL = 202
+const GUISEPPE-PACHASA = 203
+const IVAN-KING = 204
+const JERRY-MAHONEY = 205
+const JOSE-MEISENHEIMER = 206
+const LANCE-LAMBERT = 207
+const MARSELLUS-MARX = 208
+const MATTHEW-LA = 209
+const MAYNARD-MCELROY = 210
+const MELVIN-BERGER = 211
+const PARKER-COLLUM = 212
+const PETER-LEVINE = 213
+const QUENTIN-DRIVER = 214
+const RANDOLPH-GLUECKERT = 215
+const SAMUEL-MIDDLETON = 216
+const SCOTTY-ROTH = 217
+const TERRY-VEGA = 218
+const VINCENT-SWEET = 219
+const WALTER-HALL = 220
+const WAYNE-PITMAN = 221
+const RACHEL-LA = 222
+const KENDRA-YARBROUGH = 223
+const BERIT-GREENWALT = 224
+const ROSE-FLUEGEL = 225
+const MAYA-WOODRUFF = 226
+const TRENT-SIZEMORE = 227
+const PERRY-MARX = 228
+const DOMINIC-HOSKINS = 229
+const UMBERTO-ANDERS = 230
+const THOR-HERRING = 231
+const ALICIA-BLAKELY = 232
+const AMANDA-HELLERMAN = 233
+const ANNA-GOUDREAU = 234
+const BARBARA-JONES = 235
+const BRENDA-MARKART = 236
+const CHERYL-REYNOLDS = 237
+const CHRISTINA-BEATTIE = 238
+const CLAUDIA-VILLARTA = 239
+const DAWN-COZART = 240
+const EMILY-LEWBEL = 241
+const FAY-DAWSON = 242
+const GWEN-SEARS = 243
+const HILLARY-VARGAS = 244
+const INGRID-DAHLMAN = 245
+const JESSICA-WASSERSAS = 246
+const JILLIAN-PAINE = 247
+const KRISTEN-SULLIVAN = 248
+const KAY-OTOOLE = 249
+const LIBBY-FUTTERMAN = 250
+const MARILYN-MCDONNELL = 251
+const MELISSA-WATERS = 252
+const NAN-PORTER = 253
+const PAMELA-KIRKOS = 254
+const RAQUEL-CULLEN = 255
+const SARAH-MAXWELL = 256
+const SUSAN-GORE = 257
+const SOPHIE-MEYER = 258
+const TONYA-LESCO = 259
+const WENDY-PARSONS = 260
+const YVONNE-CARTER = 261
+const ZOE-MALLORY = 262
+const MR-CLANKY = 263
+const CUSTOM-KID-0 = 264
+const CUSTOM-KID-1 = 265
+const CUSTOM-KID-2 = 266
+const CUSTOM-KID-3 = 267
+const CUSTOM-KID-4 = 268
+const CUSTOM-KID-5 = 269
+const CUSTOM-KID-6 = 270
+const CUSTOM-KID-7 = 271
+const CUSTOM-KID-8 = 272
+const CUSTOM-KID-9 = 273
+
+; MachineSpeed
+const SLOW-MACHINE = 0
+const MED-MACHINE = 1
+const FAST-MACHINE = 2
+
+; NetMessage
+const NET-DIALOGUE = 1
+const NET-SETROOM = 2
+const NET-ASK-WHO-IS-MASTER = 3
+const NET-I-AM-MASTER = 4
+const NET-YELL = 5
+const NET-WAITFLAG = 7
+const NET-TEAMS-INFO = 8
+const NET-SET-FIELDERS-SKEW = 10
+const NET-PING = 12
+const NET-PONG = 13
+const NET-RUNNER-SCORED = 14
+const NET-RUNNER-OUT = 15
+const NET-PICK-FIRST = 17
+const NET-PICKED-KID = 18
+const NET-ZPLANE-ON = 19
+const NET-RUNNER-CLICK = 20
+const NET-SET-RUNNER-VARS = 21
+const NET-BACK-FROM-TIMEOUT = 22
+const NET-CALL-TIMEOUT = 23
+const NET-SEND-STAT = 24
+const NET-OV-PLAY-OVER = 25
+const NET-OV-SFX = 26
+const NET-REDUCE-FATIGUE = 27
+const NET-SET-PLAYER-FATIGUE = 28
+const NET-DRAW-BALL-DISTANCE-DECAL = 29
+const NET-BATVIEW-MESSAGE = 30
+const NET-CHECK-TEAM-SELECTION = 34
+const NET-TEAM-INFO = 35
+const NET-YELL-THUMB = 38
+const NET-smth-pause-flag = 39
+const NET-maybe-abort-game = 42
+const NET-maybe-skip-picking-team = 53
+const NET-smth-powerup = 54
+
+; PitchKind
+const PITCH-HEAT = 14
+const PITCH-SLOWBALL = 15
+const PITCH-LEFT-HOOK = 16
+const PITCH-RIGHT-HOOK = 17
+const PITCH-CORKSCREW = 18
+const PITCH-ZIG-ZAG = 19
+const PITCH-FREEZE = 20
+const PITCH-FIREBALL = 21
+const PITCH-SPIT-BALL = 22
+const PITCH-CRAZY-BALL = 23
+const PITCH-SLOW-MO = 24
+const PITCH-ELEVATOR = 25
+const PITCH-MORE-JUICE = 26
+const PITCH-INTENTIONAL-WALK = 27
+
+; PitchResult
+const PITCH-RESULT-TAKEN-ADD-BALL = 901
+const PITCH-RESULT-FOULED-ALREADY-TWO-STRIKES = 902
+const PITCH-RESULT-FOULED-ADD-STRIKE = 903
+const PITCH-RESULT-TAKEN-ADD-STRIKE = 904
+
+; PlayEndedReason
+const PE-HOME-RUN = 1
+const PE-GROUND-RULE-DOUBLE = 2
+const PE-BASE-ON-BALLS = 3
+const PE-OUT-OF-PLAY = 5
+const PE-INFIELD-FLY = 8
+
+; Position
+const POS-LF = 0
+const POS-CF = 1
+const POS-RF = 2
+const POS-3B = 3
+const POS-2B = 4
+const POS-1B = 5
+const POS-SS = 6
+const POS-CATCHER = 7
+const POS-PITCHER = 8
+
+; Room
+const declare-room-type = 88888
+
+; RunnerDirection
+const FORWARD = 1
+const BACKWARD = 2
+
+; RunnerState
+const R-LEAVE-FIELD-WITH-OUT = 1
+const R-STEALING = 4
+const R-maybe-returning-after-foul = 5
+const R-maybe-returning-after-infield-fly = 6
+const R-maybe-returning-after-catch = 7
+const R-LEAVE-FIELD = 8
+
+; RunningBase
+; dup const FIRST = 1
+; dup const SECOND = 2
+; dup const THIRD = 3
+const R-HOME = 4
+; dup const NONE = 999
+
+; SeasonScheduleField
+const SS-STATUS = 2
+const SS-HOME-OR-AWAY = 6
+
+; Skew
+const declare-skew-type = 9999
+
+; Sound
+const SOUND-FIELDER-CATCH-SLOW = 1994
+const SOUND-FIELDER-CATCH-MED = 1995
+const SOUND-FIELDER-CATCH-FAST = 1996
+
+; Sprite
+const declare-sprite-type = 88888
+
+; Stance
+const OPEN = 1
+const SQUARE = 2
+const CLOSED = 3
+
+; Stat
+const STAT-AT-BATS = 0
+const STAT-HITS = 1
+const STAT-STRUCK-OUT = 2
+const STAT-POPPED-OUT = 3
+const STAT-FORCED-OUT = 4
+const STAT-WALKED = 5
+const STAT-HITS-ALLOWED = 6
+const STAT-SINGLES = 7
+const STAT-DOUBLES = 8
+const STAT-TRIPLES = 9
+const STAT-HOME-RUNS = 10
+const STAT-STEALS = 11
+const STAT-RUNS-SCORED = 12
+const STAT-THROWN-OUT = 13
+const STAT-ERRORS = 14
+const STAT-RBIS = 15
+const STAT-PITCHES-THROWN = 16
+const STAT-STRIKE-OUTS-PITCHED = 17
+const STAT-WALKS-ALLOWED = 18
+const STAT-STRIKES-THROWN = 19
+const STAT-BALLS-THROWN = 20
+const STAT-RUNS-AGAINST = 21
+const STAT-BATTERS-FACED = 22
+const STAT-BATTING-AVERAGE = 23
+const STAT-SLUGGING-PERCENTAGE = 24
+const STAT-INNINGS-PITCHED = 25
+const STAT-ERA = 26
+const STAT-GAMES-WON = 28
+const STAT-GAMES-LOST = 29
+
+; Swing
+const SWING-POWER = 1
+const SWING-LINE-DRIVE = 2
+const SWING-GROUNDER = 3
+const SWING-BUNT = 4
+const SWING-ALUMINUM-POWER = 5
+const SWING-SCREAMING-LINE-DRIVE = 6
+const SWING-UNDERGROUNDER = 7
+const SWING-CRAZY-BUNT = 8
+
+; Zone
+const declare-zone-type = 88888
+
+; BallPath
+
+; CollideBoxField
+const BOX-P1-X = 0
+const BOX-P1-Y = 1
+const BOX-P1-Z = 2
+const BOX-P2-X = 4
+const BOX-P2-Y = 5
+const BOX-P2-Z = 6
+const BOX-P3-X = 7
+const BOX-P3-Y = 8
+const BOX-P3-Z = 9
+const BOX-P4-X = 10
+const BOX-P4-Y = 11
+const BOX-P4-Z = 12
+const BOX-FRONT-NORMAL-X = 13
+const BOX-FRONT-NORMAL-Y = 14
+const BOX-FRONT-NORMAL-Z = 15
+const BOX-LEFT-NORMAL-X = 16
+const BOX-LEFT-NORMAL-Y = 17
+const BOX-LEFT-NORMAL-Z = 18
+const BOX-RIGHT-NORMAL-X = 19
+const BOX-RIGHT-NORMAL-Y = 20
+const BOX-RIGHT-NORMAL-Z = 21
+const BOX-BACK-NORMAL-X = 22
+const BOX-BACK-NORMAL-Y = 23
+const BOX-BACK-NORMAL-Z = 24
+const BOX-TOP-NORMAL-X = 25
+const BOX-TOP-NORMAL-Y = 26
+const BOX-TOP-NORMAL-Z = 27
+const BOX-BOUNCE = 28
+const BOX-MATERIAL = 29
+const BOX-EAT-BALL = 30
+const BOX-END-PLAY = 31
+
+; CollisionField
+const COLLISION-DISTANCE = 0
+const COLLISION-INTERSECT-X = 1
+const COLLISION-INTERSECT-Y = 2
+const COLLISION-INTERSECT-Z = 3
+const COLLISION-BOX-NUM = 4
+const COLLISION-FACE = 5
+
+; CursorTargetField
+const TARGET-CLICK-SCRIPT = 1
+const TARGET-ALTERNATE-CLICK-SCRIPT_unused = 2
+const TARGET-HOVER-SCRIPT = 3
+const TARGET-HOVER-DELAY = 4
+
+; EntityField
+const X = 0
+const Y = 1
+const Z = 2
+const TARGET-X = 3
+const TARGET = 4
+const TARGET-Z = 5
+
+; KidData
+const KD-STAMINA = 1
+const KD-INTELLIGENCE = 2
+const KD-COORDINATION = 3
+const KD-SPEED = 4
+const KD-ARM = 5
+const KD-THROWING = 6
+const KD-BAT-SWING = 7
+const KD-BAT-HITTING = 8
+const KD-EYE = 9
+const KD-ATTENTION = 10
+const KD-APPEARANCE = 11
+const KD-AGGRESSION = 12
+const KD-HANDEDNESS = 13
+const KD-PITCH-HEAT = 14
+const KD-PITCH-SLOWBALL = 15
+const KD-PITCH-LEFT-HOOK = 16
+const KD-PITCH-RIGHT-HOOK = 17
+const KD-PITCH-CORKSCREW = 18
+const KD-PITCH-ZIG-ZAG = 19
+const KD-PITCH-FREEZE = 20
+const KD-PITCH-FIREBALL = 21
+const KD-PITCH-SPIT-BALL = 22
+const KD-PITCH-CRAZY-BALL = 23
+const KD-PITCH-SLO-MO = 24
+const KD-PITCH-ELEVATOR = 25
+const KD-DEFAULT-STANCE = 26
+const KD-HEIGHT = 27
+const KD-GENDER = 28
+const KD-BIRTHDAY-MONTH = 29
+const KD-BIRTHDAY-DAY = 30
+const KD-fatigue = 31
+
+; RunnerField
+const R-CUR-BASE = 0
+const R-ENTITY = 1
+const R-SPEED = 2
+const R-DEST-X = 3
+const R-DEST-Z = 4
+const R-KID = 5
+const R-DIRECTION = 6
+const R-DEST-BASE = 7
+const R-FORCED = 8
+const R-ORDER = 9
+const R-STATE = 10
+const R-VELOCITY-X = 12
+const R-VELOCITY-Y = 13
+
+; RunnerExtra
+const RE-SPRINT = 1
+
+; TeamInfo
+const TI-CONTROLLED-BY = 0
+const TI-TEAM-ADJECTIVE = 1
+const TI-TEAM-NOUN = 2
+const TI-PRIMARY-COLOR = 3
+const TI-FIELDING-ORDER = 4
+const TI-BATTING-ORDER-KIDS = 5
+const TI-BATTING-POSITION = 6
+const TI-RUNS = 7
+const TI-SECONDARY-COLOR = 8
+
+; BaseState
+const BASE-RUNNERIDX = 0
+const BASE-TAGGED-WITH-BALL = 1

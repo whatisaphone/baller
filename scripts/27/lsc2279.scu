@@ -1,9 +1,0 @@
-; LSC2 27 2279
-
-run-script 2274 []
-run-script 2277 []
-run-script 2276 []
-run-script 2275 []
-room142 = 0
-gHoverScript = 0
-free-script

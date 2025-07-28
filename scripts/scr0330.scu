@@ -1,7 +1,0 @@
-; SCRP 330
-
-local variable local0
-
-global108 = 0
-kludge [2001, 2226, local0]
-free-script

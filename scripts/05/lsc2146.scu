@@ -1,9 +1,0 @@
-; LSC2 5 2146
-
-local variable local0
-
-if ((actor-get-property local0 0 2) / 4 == 2) {
-} else {
-    actor-do-anim local0 2
-}
-free-script

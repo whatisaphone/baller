@@ -1,4 +1,0 @@
-; SCRP 57 GetSpriteStackPointer
-
-return gSpriteStackPointer
-free-script

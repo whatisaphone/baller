@@ -1,7 +1,0 @@
-; LSC2 27 2153
-
-run-script 2146 []
-run-script 2149 []
-run-script 2150 []
-run-script CheckHomeAwayGames [13]
-free-script

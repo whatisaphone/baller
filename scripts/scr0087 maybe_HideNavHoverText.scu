@@ -1,8 +1,0 @@
-; SCRP 87 maybe_HideNavHoverText
-
-if (!gNavButtons) {
-    free-running-script 0
-}
-sprite-set-range gNavButtons[4][0] gNavButtons[4][0]
-sprite-set-image 0
-free-script

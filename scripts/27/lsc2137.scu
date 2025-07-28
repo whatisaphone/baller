@@ -1,4 +1,0 @@
-; LSC2 27 2137
-
-return gSeasonTeamsArray[3][random 3]
-free-script

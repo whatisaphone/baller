@@ -1,0 +1,4727 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 138 "netchatroom/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `6000`
+}
+
+var room1@1
+var room2@2
+var room3@3
+var room4@4
+var room5@5
+var room7@7
+var room8@8
+var room9@9
+var room10@10
+var room11@11
+var room12@12
+var room13@13
+var room14@14
+var room15@15
+var room16@16
+var room17@17
+var room18@18
+var room19@19
+var room20@20
+var room21@21
+var room22@22
+var room23@23
+var room24@24
+var room25@25
+var room26@26
+var room27@27
+var room28@28
+var room29@29
+var room30@30
+var room31@31
+var room33@33
+
+script scr393@393 {
+    var local0 local1 local2 local3
+
+    case local0 {
+        9921 {
+            start-script lsc2134
+        }
+        9924 {
+            start-script lsc2144 local1
+        }
+        9920 {
+            start-script lsc2138 local1 local2 local3
+        }
+        9923 {
+            start-script lsc2133 local1
+        }
+        9922 {
+            start-script lsc2135
+        }
+        9926 {
+            start-script lsc2140
+        }
+        9925 {
+            start-script lsc2142
+        }
+        9927 {
+            start-script lsc2136 local1
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2048@2048 {
+    g_some_palette_654 = call-script AllocPalette
+    g_some_palette_655 = call-script AllocPalette
+}
+
+local-script lsc2049@2049 {
+    start-script FreePalette g_some_palette_654
+    g_some_palette_654 = 0
+    start-script FreePalette g_some_palette_655
+    g_some_palette_655 = 0
+}
+
+local-script lsc2050@2050 {
+    if global423 {
+        global652 = global423
+    } else {
+        global652 = 257
+    }
+}
+
+local-script lsc2051@2051 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif gTeamInfo[0][TI-CONTROLLED-BY] gPickOrder1 gPickOrder2)
+    } else {
+        return gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER]
+    }
+}
+
+local-script lsc2052@2052 {
+    if (gGameMode != MODE-SPECTATE) {
+        return (iif (CB-USER == gTeamInfo[0][TI-CONTROLLED-BY]) 0 1)
+    } else {
+        return gHomeInfoIndex
+    }
+}
+
+local-script lsc2053@2053 {
+    var local0
+
+    return (local0 * 2 + 1073 - 2)
+}
+
+local-script lsc2054@2054 {
+    var local0 local1 local2 local3 local4
+
+    local3 = call-script lsc2053 local0
+    local4 = local3 + 1
+    case local1 {
+        101 {
+            local2 = 0
+        }
+        102 {
+            local2 = 1
+        }
+        103 {
+            local2 = 2
+        }
+        104 {
+            local2 = 3
+        }
+        105 {
+            local2 = 4
+        }
+        106 {
+            local2 = 6
+        }
+        else {
+            local2 = 3
+        }
+    }
+    sprite.init global648
+    sprite.new
+    sprite.image image1072
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image local4
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1071
+    sprite.state (local0 - 1)
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image local3
+    sprite.state local2
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at 320 240
+}
+
+local-script lsc2055@2055 {
+    var local0 _ local2
+
+    local2 = local0 - 22
+    sprite.init global648
+    sprite.new
+    sprite.image image1068
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global649
+    sprite.new
+    sprite.image image1070
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 320 240
+    sprite.init global646
+    sprite.new
+    sprite.image image1067
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+    sprite.init global647
+    sprite.new
+    sprite.image image1069
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.at 320 240
+}
+
+local-script lsc2056@2056 {
+    var local0 _ local2
+
+    sprite.init global648
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1475
+    sprite.group 17
+    sprite.state local2
+    sprite.palette g_some_palette_654
+    sprite.shadow global652
+    sprite.at 0 0
+    sprite.init global646
+    sprite.new
+    sprite.image local0
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.group 17
+    sprite.state (local2 + 1)
+    sprite.palette g_some_palette_654
+    sprite.at 0 0
+}
+
+local-script lsc2057@2057 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local1 {
+        local3 = local1
+        local4 = 0
+        local5 = 2056
+    } else {
+        local3 = gTeamInfo[local0][TI-TEAM-ADJECTIVE]
+        local4 = gTeamInfo[local0][TI-TEAM-NOUN]
+        local5 = iif (local3 <= 10) 2054 2055
+    }
+    start-script local5 local3 local4 local2
+}
+
+local-script lsc2058@2058 {
+    if global648 {
+        start-script ReleaseSprite global648
+        global648 = 0
+        start-script ReleaseSprite global649
+        global649 = 0
+        start-script ReleaseSprite global646
+        global646 = 0
+        start-script ReleaseSprite global647
+        global647 = 0
+    }
+}
+
+local-script lsc2059@2059 {
+    start-script lsc2058
+    start-script scr281
+    if global653 {
+        start-script ReleaseSprite global653
+        global653 = 0
+    }
+    if global671 {
+        start-script ReleaseSprite global671
+        global671 = 0
+        start-script ReleaseSprite global672
+        global672 = 0
+        start-script FreeScratchImage global673
+    }
+}
+
+local-script lsc2060@2060 {
+    var local0 local1 local2
+
+    if (local0 < 0) {
+        local2 = 240
+        case local0 {
+            -1 {
+                local1 = 162
+                local2 = 235
+            }
+            -2 {
+                local1 = 160
+            }
+            -3 {
+                local1 = 161
+            }
+            else {
+            }
+        }
+        start-script scr283 global651 global650 local1 0 0 g_some_palette_655 320 local2
+    } else {
+        start-script scr283 global651 global650 gTeamInfo[local0][TI-TEAM-NOUN] gTeamInfo[local0][TI-PRIMARY-COLOR] gTeamInfo[local0][TI-SECONDARY-COLOR] g_some_palette_655
+    }
+}
+
+local-script lsc2061@2061 {
+    var local0 local1 local2 local3
+
+    if (local0 == 0) {
+        sprite.init global672
+        sprite.new
+        sprite.image image1252
+        sprite.animation-type 0
+        sprite.update-type 2
+        sprite.order -1450
+        sprite.palette g_some_palette_654
+        sprite.group 17
+        sprite.at 320 240
+        local1 = 204
+        local2 = 52
+        sprintf local3 "%s" gCoachName
+    } else {
+        sprintf local3 "%s" local0
+        local1 = 115
+        local2 = 52
+    }
+    temp2 = string-length local3 - 1
+    for temp = 0 to temp2 + {
+        if (local3[temp] >= 97 && local3[temp] <= 122) {
+            local3[temp] -= 32
+        }
+    }
+    temp = call-script maybe_draw_text_to_image local3 1251 global673 g_some_palette_654 1
+    undim local3
+    sprite.init global671
+    sprite.new
+    sprite.image global673
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1450
+    sprite.palette g_some_palette_654
+    sprite.group 17
+    sprite.at local1 local2
+}
+
+local-script lsc2062@2062 {
+    if (not global646) {
+        global646 = call-script FindFreeSprite
+        global647 = call-script FindFreeSprite
+        global648 = call-script FindFreeSprite
+        global649 = call-script FindFreeSprite
+        global671 = call-script FindFreeSprite
+        global672 = call-script FindFreeSprite
+        global673 = call-script AllocScratchImage
+    }
+    if (not global651) {
+        global651 = call-script FindFreeSprite
+        global650 = call-script FindFreeSprite
+    }
+}
+
+local-script lsc2063@2063 {
+    var local0 local1
+
+    local1 = sprite-get-state-count global653
+    local0 = sprite-get-state global653
+    if (local1 - 1 == local0) {
+        local0 = 0
+    } else {
+        inc local0
+    }
+    while (local0 < local1) {
+        sprite.init global653
+        sprite.state local0
+        sprite.at 320 240
+        inc local0
+        break-here
+    }
+}
+
+local-script getTeamBackground@2064 arg0 {
+    var local1 local2 local3
+
+    if (call-script scr129 gTeamInfo[arg0][TI-TEAM-NOUN]) {
+        local2 = gTeamInfo[arg0][TI-TEAM-NOUN]
+        local3 = gMLBTeamData[local2][3]
+    } else {
+        local3 = gTeamInfo[arg0][TI-PRIMARY-COLOR]
+    }
+    case local3 {
+        1 {
+            local1 = 1103
+        }
+        2 {
+            local1 = 1104
+        }
+        3 {
+            local1 = 1105
+        }
+        4 {
+            local1 = 1106
+        }
+        5 {
+            local1 = 1107
+        }
+        6 {
+            local1 = 1108
+        }
+        7 {
+            local1 = 1109
+        }
+        8 {
+            local1 = 1110
+        }
+        9 {
+            local1 = 1111
+        }
+        10 {
+            local1 = 1112
+        }
+        11 {
+            local1 = 1115
+        }
+        12 {
+            local1 = 1113
+        }
+        13 {
+            local1 = 1114
+        }
+        14 {
+            local1 = 1116
+        }
+        15 {
+            local1 = 1117
+        }
+        16 {
+            local1 = 1118
+        }
+        17 {
+            local1 = 1119
+        }
+        18 {
+            local1 = 1120
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error! Bad color for getTeamBackground: %d" local3
+            debug 0
+            local1 = 1119
+        }
+    }
+    return local1
+}
+
+local-script lsc2065@2065 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    if (local0 < 0) {
+        local5 = local0
+        local6 = local2
+    } else {
+        local5 = call-script lsc2052
+        if local0 {
+            local5 = iif local5 0 1
+        }
+        local6 = call-script getTeamBackground local5
+    }
+    palette.init g_some_palette_654
+    palette.from-image local6 0
+    palette.end
+    image.init local6
+    image.palette g_some_palette_654
+    image.draw
+    image.end
+    start-script scr280 local6 g_some_palette_654
+    if (not global653) {
+        global653 = call-script FindFreeSprite
+    }
+    sprite.init global653
+    sprite.new
+    sprite.image image1035
+    sprite.animation-type 0
+    sprite.update-type 2
+    sprite.order -1500
+    sprite.palette 2
+    start-script lsc2063
+    start-script lsc2062
+    start-script lsc2060 local5
+    start-script lsc2057 local5 local1 local3
+    if (MODE-SEASON == gGameMode && local0 >= 0 || local4) {
+        start-script lsc2061 local4
+    }
+}
+
+local-script lsc2066@2066 {
+    var local0 local1 local2 local3 local4 local5 local6 local7
+
+    temp = 0
+    assign-string temp "baseball2001"
+    sprintf local4 "%s%s.net" gSaveGamePath temp
+    undim temp
+    local5 = read-ini.string local4 gNetUsername "_Friends"
+    undim local4
+    for local1 = 0 to (string-length local5) + {
+        if (local5[local1] == 59) {
+            inc local6
+        }
+    }
+    sprintf local7 "%s" local0
+    if (local6 > 0) {
+        for local1 = 1 to local6 + {
+            local2 = call-script smth_string local5 59 local1 1
+            if (not (string-compare local7 local2)) {
+                undim local7
+                undim local5
+                undim local2
+                local3 = 1
+                jump L00df
+            }
+            undim local2
+        }
+        undim local5
+    }
+    L00df:
+    if local5 {
+        undim local5
+    }
+    if local7 {
+        undim local7
+    }
+    if local2 {
+        undim local2
+    }
+    return local3
+}
+
+local-script lsc2067@2067 {
+    return global680[26]
+}
+
+local-script lsc2068@2068 {
+    var local0
+
+    if (not (in local0 [1 0])) {
+        local0 = 0
+    }
+    global680[26] = local0
+}
+
+local-script lsc2069@2069 {
+    if global680 {
+        return 1
+    } else {
+        return 0
+    }
+}
+
+local-script lsc2070@2070 {
+    var local0 local1 local2 local3 local4 local5
+
+    dim-array.i16 global680 29
+    global680[0] = sprite-get-image local0
+    global680[1] = image-get-height (sprite-get-image local0) 0
+    global680[2] = image-get-width (sprite-get-image local0) 0
+    global680[3] = sprite-get-image local2
+    global680[4] = image-get-height (sprite-get-image local2) 0
+    global680[5] = image-get-width (sprite-get-image local2) 0
+    global680[6] = local1
+    global680[7] = local3
+    global680[8] = call-script AllocScratchImage
+    global680[22] = call-script AllocScratchImage
+    global680[11] = call-script AllocScratchImage
+    global680[24] = call-script AllocScratchImage
+    global680[28] = call-script AllocScratchImage
+    global680[9] = call-script AllocPalette
+    global680[17] = call-script AllocPalette
+    global680[10] = call-script FindFreeSprite
+    global680[29] = call-script FindFreeSprite
+    global680[13] = local0
+    global680[12] = local2
+    global680[16] = 0
+    global680[23] = iif local4 local4 5
+    global680[25] = 3
+    global680[27] = local5
+    palette.init global680[9]
+    palette.from-image global680[7] 0
+    palette.end
+    palette.init global680[17]
+    palette.from-image global680[6] 0
+    palette.end
+    if global681 {
+        undim global681
+    }
+    assign-string global681 ""
+}
+
+local-script lsc2071@2071 {
+    if (not (call-script lsc2069)) {
+        stop-script 0
+    }
+    start-script lsc2072 2
+    if global680[9] {
+        start-script FreePalette global680[9]
+    }
+    if global680[17] {
+        start-script FreePalette global680[17]
+    }
+    if global680[8] {
+        start-script FreeScratchImage global680[8]
+    }
+    if global680[22] {
+        start-script FreeScratchImage global680[22]
+    }
+    if global680[11] {
+        start-script FreeScratchImage global680[11]
+    }
+    if global680[24] {
+        start-script FreeScratchImage global680[24]
+    }
+    if global680[28] {
+        start-script FreeScratchImage global680[28]
+    }
+    if global680[10] {
+        start-script ReleaseSprite global680[10]
+    }
+    if global680[29] {
+        start-script ReleaseSprite global680[29]
+    }
+    if global680 {
+        undim global680
+    }
+    if global681 {
+        undim global681
+    }
+}
+
+local-script lsc2072@2072 {
+    var local0 local1
+
+    case local0 {
+        1 {
+            start-script lsc2073 local1
+        }
+        2 {
+            start-script lsc2074 local1
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2073@2073 {
+    if (not (call-script lsc2069)) {
+        stop-script 0
+    }
+    start-script lsc2068 0
+    global680[18] = 1
+    start-script lsc2085
+    global133 = 0
+    start-script lsc2075
+    global43 = 0
+    global45 = 0
+}
+
+local-script lsc2074@2074 {
+    if (not (call-script lsc2069)) {
+        stop-script 0
+    }
+    start-script lsc2068 1
+    global680[18] = 0
+    stop-script lsc2075
+    global133 = 0
+    stop-script lsc2085
+    sprite.init global680[10]
+    sprite.new
+    sprite.property 0 2
+    if global681 {
+        undim global681
+    }
+    assign-string global681 ""
+    nuke-image global680[3]
+    nuke-image global680[0]
+    global680[16] = 0
+    global680[14] = 0
+    sprite.init global680[13]
+    sprite.property 0 2
+    global690 = 0
+    global43 = 32
+    global45 = 46
+}
+
+local-script lsc2075@2075 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    jump L000d
+    do {
+        break-until global133
+        L000d:
+        global133 = 0
+        local1 = 0
+        dec global690
+        global690 = max 0 global690
+        local0 = global690
+        image.init global680[22]
+        image.new
+        image.width global680[2]
+        image.height global680[1]
+        image.end
+        image.init global680[22]
+        image.draw-box 0 0 global680[2] global680[1] (palette-get-color 1 1)
+        image.end
+        local4 = call-script lsc2087
+        local1 = global680[1]
+        while (local0 <= local4 && local1 > 0) {
+            local3 = call-script lsc2088 local0
+            local5 = string-search local3 0 (string-length local3) 62
+            local6 = string-substr local3 1 (local5 - 1)
+            if (not (string-compare local6 gNetUsername)) {
+                palette.init global680[17]
+                palette.slot-rgb 83 124 252 248
+                palette.end
+            } else {
+                palette.init global680[17]
+                palette.slot-rgb 83 160 252 0
+                palette.end
+            }
+            undim local6
+            local2 = call-script scr51 local3 global680[6] global680[8] (global680[2] - 4) 1 global680[17] 0
+            image.init global680[8]
+            image.at 2 (local1 - image-get-height global680[8] 0)
+            image.render-target global680[22]
+            image.draw
+            image.end
+            local1 -= image-get-height global680[8] 0
+            inc local0
+            undim local3
+        }
+        image.init global680[0]
+        image.at 0 0
+        image.render-target global680[22]
+        image.draw
+        image.end
+        sprite.init global680[13]
+        sprite.image global680[22]
+    }
+}
+
+local-script lsc2076@2076 {
+    if (call-script lsc2086) {
+        if (global690 > 0) {
+            global133 = 1
+        } else {
+        }
+    }
+}
+
+local-script lsc2077@2077 {
+    if (call-script lsc2086) {
+        if (global690 < call-script lsc2087) {
+            global690 += 2
+            global133 = 1
+        } else {
+        }
+    }
+}
+
+local-script AddFriend@2078 arg0 {
+    var _ local2 local3 local4 local5 local6 local7 local8
+
+    temp = 0
+    assign-string temp "baseball2001"
+    sprintf local2 "%s%s.net" gSaveGamePath temp
+    undim temp
+    local3 = read-ini.string local2 gNetUsername "_Friends"
+    if arg0 {
+        sprintf local4 "%s" arg0
+    } else {
+        local4 = string-substr global681 5 (string-length global681)
+    }
+    for local7 = 0 to (string-length local3) + {
+        if (local3[local7] == 59) {
+            inc local5
+        }
+    }
+    if (local5 > 20) {
+        assign-string local8 "MAXIMUM FRIENDS REACHED - AGE OUT SOMEONE"
+        start-script ShowPopup local8 2 5
+        break-until gPopupResult
+    } else if (string-length local4 > 0) {
+        if local5 {
+            sprintf local6 "%s%s;" local3 local4
+        } else {
+            sprintf local6 "%s;" local4
+        }
+        print-debug.start
+        print-debug.printf "(%s)" local6
+        write-ini.string local2 gNetUsername "_Friends" local6
+        undim local6
+        sprintf local8 "%s WAS ADDED TO YOUR LIST OF FRIENDS" local4
+        start-script ShowPopup local8 2 5
+        break-until gPopupResult
+    } else {
+        assign-string local8 "NEW FRIEND MUST HAVE AT LEAST ONE LETTER"
+        start-script ShowPopup local8 2 5
+        break-until gPopupResult
+    }
+    undim local4
+    undim local3
+    undim local2
+    if arg0 {
+        stop-script 0
+    }
+    global680[16] = 0
+    undim global681
+    assign-string global681 " "
+    global680[14] = call-script maybe_draw_text_to_image global681 global680[7] global680[3] global680[9] 1
+    sprite.init global680[12]
+    sprite.image global680[3]
+    temp = sprite-get-object-draw-x global680[12] + 2
+    temp2 = sprite-get-object-draw-y global680[12]
+    sprite.init global680[10]
+    image.init global680[11]
+    image.at (temp + (global680[14] + 2)) temp2
+    image.end
+}
+
+local-script lsc2079@2079 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    temp = 0
+    assign-string temp "baseball2001"
+    sprintf local2 "%s%s.net" gSaveGamePath temp
+    undim temp
+    local4 = read-ini.string local2 gNetUsername "_Friends"
+    for local5 = 0 to (string-length local4) + {
+        if (local4[local5] == 59) {
+            inc local1
+        }
+    }
+    if local1 {
+        if local0 {
+            sprintf local7 "%s" local0
+        } else {
+            local7 = string-substr global681 5 (string-length global681)
+        }
+        for local5 = 1 to local1 + {
+            local3 = call-script smth_string local4 59 local5 1
+            if (not (string-compare local3 local7)) {
+                local8 = 1
+                local6 = call-script smth_string local4 59 local5 1 1
+                if (local6[0] == 59) {
+                    local6[0] = 92
+                }
+                write-ini.string local2 gNetUsername "_Friends" local6
+                undim local6
+                sprintf local6 "COACH (%s) WAS DELETED FROM YOUR FRIENDS LIST!" local7
+                start-script ShowPopup local6 2 5
+                break-until gPopupResult
+            }
+            undim local3
+        }
+        if (not local8) {
+            sprintf local6 "COACH (%s) WAS NOT FOUND IN YOUR LIST OF COACHES!" local7
+            start-script ShowPopup local6 2 5
+            break-until gPopupResult
+        }
+        undim local7
+    } else {
+        assign-string local6 "THERE ARE NO COACHES TO DELETE."
+        start-script ShowPopup local6 2 5
+        break-until gPopupResult
+    }
+    undim local4
+    undim local2
+    if local7 {
+        undim local7
+    }
+    if local0 {
+        stop-script 0
+    }
+    global680[16] = 0
+    undim global681
+    assign-string global681 " "
+    global680[14] = call-script maybe_draw_text_to_image global681 global680[7] global680[3] global680[9] 1
+    sprite.init global680[12]
+    sprite.image global680[3]
+    temp = sprite-get-object-draw-x global680[12] + 2
+    temp2 = sprite-get-object-draw-y global680[12]
+    sprite.init global680[10]
+    image.init global680[11]
+    image.at (temp + (global680[14] + 2)) temp2
+    image.end
+}
+
+local-script lsc2080@2080 {
+    window.init global680[25]
+    window.image 0
+    window.end
+}
+
+local-script lsc2081@2081 {
+    var local0 local1 local2 local3 local4 local5 local6 _ local8 local9 local10
+
+    image.init global680[24]
+    image.new
+    image.width 200
+    image.height 400
+    image.end
+    image.init global680[24]
+    image.draw-box 0 0 200 400 0
+    image.end
+    temp = 0
+    assign-string temp "baseball2001"
+    sprintf local8 "%s%s.net" gSaveGamePath temp
+    undim temp
+    local10 = read-ini.string local8 gNetUsername "_Friends"
+    undim local8
+    for local0 = 0 to (string-length local10) + {
+        if (local10[local0] == 59) {
+            inc local6
+        }
+    }
+    palette.init global680[17]
+    palette.slot-rgb 83 252 252 124
+    palette.end
+    dim-array.u8 local2 (string-length local10 + 5 * local6)
+    if local6 {
+        for local0 = 1 to local6 + {
+            local9 = call-script smth_string local10 59 local0 1
+            local4 = 5 * local0 + local3
+            local5 = local4 + string-length local9
+            array-assign-slice local2 local9 0 0 local4 local5 0 0 0 (string-length local9)
+            local3 += string-length local9
+            undim local9
+        }
+        local2[local3] = 92
+        for local0 = 0 to (string-length local2 - 1) + {
+            if (not local2[local0]) {
+                local2[local0] = 32
+            }
+        }
+        print-debug.start
+        print-debug.printf "Friend List %s" local2
+        local1 = call-script scr51 local2 global680[6] global680[8] 394 1 global680[17]
+        undim local10
+        undim local2
+    }
+    global680[16] = 0
+    undim global681
+    assign-string global681 " "
+    global680[14] = call-script maybe_draw_text_to_image global681 global680[7] global680[3] global680[9] 1
+    sprite.init global680[12]
+    sprite.image global680[3]
+    temp = sprite-get-object-draw-x global680[12] + 2
+    temp2 = sprite-get-object-draw-y global680[12]
+    sprite.init global680[10]
+    image.init global680[11]
+    image.at (temp + (global680[14] + 2)) temp2
+    image.end
+}
+
+local-script lsc2082@2082 {
+    var local0
+
+    start-script lsc2068 1
+    case local0 {
+        1 {
+            start-script lsc2081
+            break-until (not (script-running lsc2081))
+        }
+        2 {
+            start-script AddFriend
+            break-until (not (script-running AddFriend))
+        }
+        3 {
+            start-script lsc2079
+            break-until (not (script-running lsc2079))
+        }
+        else {
+        }
+    }
+    start-script lsc2068 0
+}
+
+local-script lsc2083@2083 {
+    var local0 local1 local2 local3 _ local5 local6
+
+    local2 = string-length global681
+    if (local2 < 3) {
+        return 0
+    }
+    local1 = string-substr global681 0 3
+    if (not (local1[1] == 47)) {
+        undim local1
+        return 0
+    }
+    assign-string local0 " /FL; /FA; /FD;"
+    for local3 = 1 to 3 + {
+        local6 = call-script smth_string local0 59 local3 1
+        if (not (string-compare local6 local1)) {
+            local5 = local3
+            jump L0083
+        }
+    }
+    L0083:
+    undim local6
+    undim local1
+    undim local0
+    return local5
+}
+
+local-script lsc2084@2084 {
+    var local0 local1 local2 local3 local4
+
+    if (not (call-script lsc2086)) {
+        stop-script 0
+    }
+    if (call-script lsc2067 == 1) {
+        stop-script 0
+    }
+    if (not global680[16] && local0 == 32) {
+        stop-script 0
+    }
+    if (not global680[16] && local0 == 8) {
+        stop-script 0
+    }
+    if (not global680[16] && local0 == 13) {
+        stop-script 0
+    }
+    if (global680[16] <= 100) {
+        global680[16] += 1
+        if (local0 == 13) {
+            if (string-length global681 > 1) {
+                start-script PlayClickySound
+                break-here
+                temp2 = string-length global681 - 1
+                for temp = 0 to temp2 + {
+                    if (global681[temp] >= 97 && global681[temp] <= 122) {
+                        global681[temp] -= 32
+                    }
+                }
+                kludge 2001 2234 global681
+                global680[16] = 0
+                undim global681
+                assign-string global681 " "
+                jump L018a
+            }
+        }
+        if (local0 == 8) {
+            start-script PlaySound 2632
+            break-here
+            local1 = string-substr global681 0 (string-length global681 - 2)
+            global680[16] -= 2
+            if (not global680[16]) {
+                undim local1
+                assign-string local1 " "
+            }
+        } else {
+            start-script PlaySound 2631
+            break-here
+            if (global680[16] < 100) {
+                sprintf local1 "%s%c" global681 local0
+            } else {
+                sprintf local1 "%s" global681
+            }
+        }
+        undim global681
+        sprintf global681 "%s" local1
+        undim local1
+        L018a:
+        temp2 = string-length global681 - 1
+        for temp = 0 to temp2 + {
+            if (global681[temp] >= 97 && global681[temp] <= 122) {
+                global681[temp] -= 32
+            }
+        }
+        local4 = call-script scr51 global681 global680[7] global680[3] global680[5] 1 global680[9] global680[23] 2 global680[27]
+        global680[14] = band local4 65535
+        global680[15] = max 0 (band (local4 >> 16) 65535 - 1)
+        sprite.init global680[12]
+        sprite.image global680[3]
+        local2 = sprite-get-object-draw-x global680[12] + 2
+        local3 = sprite-get-object-draw-y global680[12]
+        sprite.init global680[10]
+        sprite.image global680[11]
+        sprite.at (local2 + (global680[14] + 2)) (local3 + global680[15] * image-get-height global680[7] 113)
+    }
+    if (global680[16] >= 100) {
+        global680[16] = 100
+        stop-script lsc2085
+        sprite.init global680[10]
+        sprite.new
+        sprite.image global680[11]
+        sprite.property 0 2
+    }
+    if (global680[16] < 100) {
+        if (not (script-running lsc2085)) {
+            start-script lsc2085
+        }
+    }
+}
+
+local-script lsc2085@2085 {
+    var local0 local1 local2 local3 local4 local5
+
+    sprintf local1 "%c" 95
+    local0 = call-script maybe_draw_text_to_image local1 global680[7] global680[11] global680[9]
+    undim local1
+    local2 = sprite-get-order global680[12]
+    local3 = sprite-get-update-type global680[12]
+    local4 = sprite-get-object-draw-x global680[12] + 2
+    local5 = sprite-get-object-draw-y global680[12]
+    do {
+        sprite.init global680[10]
+        sprite.image global680[11]
+        sprite.at (local4 + (global680[14] + 2)) (local5 + global680[15] * image-get-height global680[7] 113)
+        sprite.order local2
+        sprite.update-type local3
+        break-here.multi 6
+        sprite.init global680[10]
+        sprite.image global680[11]
+        sprite.property 0 2
+        break-here.multi 6
+    }
+}
+
+local-script lsc2086@2086 {
+    if global680 {
+        return global680[18]
+    } else {
+        return 0
+    }
+}
+
+local-script lsc2087@2087 {
+    return (kludge-call 2001 2237)
+}
+
+local-script lsc2088@2088 {
+    var local0
+
+    return (kludge-call 2001 2235 local0)
+}
+
+local-script lsc2089@2089 {
+    var local0 local1
+
+    if room29 {
+        undim room29
+    }
+    assign-string room29 "CONNECTING"
+    sprintf local1 "%s" room29
+    start-script ShowPopup local1 3
+    local0 = -1
+    do {
+        inc local0
+        if (local0 == 10) {
+            local0 = 0
+        }
+        if (room29[local0] >= 97) {
+            room29[local0] -= 32
+        } else {
+            room29[local0] += 32
+        }
+        sprintf local1 "%s" room29
+        start-script maybe_draw_popup_text local1 0 0 1
+        break-here
+    }
+}
+
+local-script lsc2090@2090 {
+    var local0
+
+    start-script.rec lsc2112 55 local0
+}
+
+local-script lsc2091@2091 {
+    start-script scr425
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    stop-script lsc2095
+    stop-sound sound2634
+    sprite.init room1[63]
+    sprite.new
+    sprite.property 0 2
+    room12 = 1
+    room13 = 1
+    kludge 2001 2211 global553
+    start-script lsc2093
+    break-until (not (script-running lsc2093))
+    for temp = 21 to 31 + {
+        sprite.init room1[temp]
+        sprite.new
+        sprite.property 0 2
+    }
+    sprite.init room1[52]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[66]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[65]
+    sprite.new
+    sprite.property 0 2
+    stop-script lsc2102
+    sprite.init room1[53]
+    sprite.new
+    sprite.property 0 2
+    stop-script lsc2101
+    sprite.init room1[54]
+    sprite.new
+    sprite.property 0 2
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script.rec lsc2130 15 3
+    start-script lsc2090 room28
+    start-script.rec lsc2119 0
+    start-script lsc2112 58
+    start-script lsc2112 59
+    start-script maybe_net_smth_yell_sound 1 1
+    break-until (not (sound-running g_maybe_net_yell_sound))
+    start-script maybe_net_smth_yell_sound 0 2
+    break-until (not (sound-running g_maybe_net_yell_sound))
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[56] room1[56] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[57] room1[57] 1 4 [0]
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    start-script scr424 14 0
+    break-until (not (script-running scr424))
+    start-script.rec lsc2112 15 6
+}
+
+local-script HandlePhoneClick@2092 arg0 {
+    var local1 local2
+
+    local1 = sprite-get-state arg0
+    local2 = local1 + 1
+    start-script PlayClickySound
+    start-script.rec lsc2112 15 local2
+    break-here
+    case local1 {
+        2 {
+            room14 = 1
+            start-script.rec lsc2112 15 0
+            kludge 2001 2220 1
+        }
+        0 {
+            room14 = 0
+            start-script.rec lsc2112 15 2
+            kludge 2001 2220 0
+        }
+        6 {
+            if (room12 && room13) {
+                start-script lsc2139
+            } else {
+                start-script lsc2096
+            }
+            kludge 2001 2220 0
+        }
+        4 {
+            start-script.rec lsc2112 15 6
+            gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT] = 0
+            start-script lsc2091
+        }
+        else {
+        }
+    }
+    start-script HandleHover room1[15] 2
+}
+
+local-script lsc2093@2093 {
+    var local0 local1 local2
+
+    print-debug.start
+    print-debug.printf "WHICH PLAYER %d" local0
+    if local0 {
+        start-script scr322 local0
+        break-here
+        local2 = global108
+        local1 = global109
+        global553 = local2[0]
+        global552 = local2[1]
+    }
+    if global562 {
+        undim global562
+    }
+    dim-array.i32 global562 30
+    start-script scr323 global553
+    break-until (not (script-running scr323))
+    if (not local0) {
+        if (kludge-call 2001 2221 global553) {
+            local1 = global109
+            global552 = global562[0]
+        } else {
+            assign-string local1 " "
+        }
+    }
+    global554 = call-script scr385 global552 6
+    start-script scr347 1 5 0 global554
+    temp2 = string-length local1 - 1
+    for temp = 0 to temp2 + {
+        if (local1[temp] >= 97 && local1[temp] <= 122) {
+            local1[temp] -= 32
+        }
+    }
+    if gNetRemoteCoachName {
+        undim gNetRemoteCoachName
+    }
+    sprintf gNetRemoteCoachName "%s" local1
+    undim local1
+    undim local2
+}
+
+local-script lsc2094@2094 {
+    var local0 local1 local2 local3
+
+    local3 = sprite-get-variable local0 1
+    local1 = local3 + (room11 - 4)
+    for temp = 21 to 31 + {
+        sprite.init room1[temp]
+        sprite.new
+        sprite.property 0 2
+    }
+    sprite.init room1[52]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[66]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[65]
+    sprite.new
+    sprite.property 0 2
+    stop-script lsc2102
+    sprite.init room1[53]
+    sprite.new
+    sprite.property 0 2
+    stop-script lsc2101
+    sprite.init room1[54]
+    sprite.new
+    sprite.property 0 2
+    if (script-running lsc2095) {
+        stop-script lsc2095
+        stop-sound sound2634
+        sprite.init room1[63]
+        sprite.new
+        sprite.property 0 2
+        kludge 2001 2217 global553
+    }
+    room12 = 1
+    if room14 {
+        room14 = 0
+    }
+    start-script lsc2093 local1
+    break-until (not (script-running lsc2093))
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    local2 = call-script lsc2104 1
+    room31 = global553
+    kludge 2001 2229 global553
+    start-script lsc2119 0
+    start-script scr424 16 0
+}
+
+local-script lsc2095@2095 {
+    var local0
+
+    do {
+        if local0 {
+        }
+        if 2634 {
+            sound.start sound2634
+            sound.end
+        }
+        break-here.multi 30
+        break-here.multi 15
+    }
+}
+
+local-script lsc2096@2096 {
+    var local0 local1 local2
+
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script scr425
+    room20 = 0
+    room14 = 0
+    room12 = 0
+    if (not local1) {
+        room23 = 0
+        start-script lsc2119 room23
+    }
+    stop-sound sound2627
+    stop-script lsc2095
+    stop-sound sound2634
+    sprite.init room1[63]
+    sprite.new
+    sprite.property 0 2
+    if (script-running lsc2128) {
+        stop-script lsc2128
+        stop-sound sound2628
+    }
+    stop-script lsc2129
+    stop-sound sound2630
+    if local0 {
+        kludge 2001 2217 global553
+        stop-sound g_maybe_net_yell_sound
+    }
+    room13 = 0
+    global553 = 0
+    room25 = 1
+    if 0 {
+        global110 = 0
+    }
+    if (not (script-running lsc2102)) {
+        start-script lsc2102
+    }
+    if (not (script-running lsc2101)) {
+        start-script lsc2101
+    }
+    start-script lsc2123
+    start-script lsc2090 gField
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    local2 = iif room14 0 2
+    start-script.rec lsc2112 15 local2
+}
+
+local-script lsc2097@2097 {
+    do {
+        break-until global115
+        case global115 {
+            1 {
+                if (global114 == global553) {
+                    stop-script lsc2095
+                    stop-sound sound2634
+                    sprite.init room1[63]
+                    sprite.new
+                    sprite.property 0 2
+                    if (script-running lsc2128) {
+                        stop-script lsc2128
+                        stop-sound sound2628
+                    }
+                    stop-script lsc2129
+                    stop-sound sound2630
+                    start-script lsc2096
+                    break-here
+                }
+                dec room11
+                room11 = max 4 room11
+                start-script scr321 (room11 - 4) room11
+                if (room13 || room12) {
+                } else {
+                    start-script lsc2123
+                }
+            }
+            2 {
+                if (room13 || room12) {
+                } else {
+                    room11 = 4
+                    start-script lsc2123
+                }
+            }
+            3 {
+                if (room13 || room12) {
+                } else {
+                    start-script lsc2123
+                }
+            }
+            else {
+            }
+        }
+        global114 = 0
+        global115 = 0
+    }
+}
+
+local-script lsc2098@2098 {
+    var local0 local1 local2 local3 _ local5 local6 local7 local8 local9 local10 local11 local12
+
+    local2 = global108
+    local1 = global109
+    local9 = image-get-width image1567 0
+    local10 = image-get-height image1567 0
+    local3 = local0
+    temp2 = string-length local1 - 1
+    for temp = 0 to temp2 + {
+        if (local1[temp] >= 97 && local1[temp] <= 122) {
+            local1[temp] -= 32
+        }
+    }
+    if (call-script lsc2066 local1) {
+        local11 = 1
+        local12 = 1029
+    } else {
+        local11 = 0
+        local12 = 1031
+    }
+    local5 = call-script maybe_draw_text_to_image local1 1244 room2[10] room5 1
+    nuke-image room2[11]
+    image.init room2[11]
+    image.new
+    image.width local9
+    image.height local10
+    image.end
+    image.init room2[11]
+    image.draw-box 0 0 local9 local10 5
+    image.end
+    image.init image1567
+    image.state local11
+    image.at 0 0
+    image.palette room24
+    image.render-target room2[11]
+    image.draw
+    image.end
+    case local2[6] {
+        1 {
+            local6 = 5
+        }
+        2 {
+            local6 = 4
+        }
+        3 {
+            local6 = 3
+        }
+        else {
+            local6 = 4
+        }
+    }
+    case local2[5] {
+        0 {
+            local8 = 0
+        }
+        1 {
+            local8 = 1
+        }
+        2 {
+            local8 = 1
+        }
+        else {
+        }
+    }
+    image.init image1566
+    image.at 0 4
+    image.state local8
+    image.palette room24
+    image.render-target room2[11]
+    image.draw
+    image.end
+    image.init room2[10]
+    image.at 96 4
+    image.render-target room2[11]
+    image.draw
+    image.end
+    image.init image695
+    image.at 21 24
+    image.state local6
+    image.render-target room2[11]
+    image.draw
+    image.end
+    sprintf local7 "%d - %d - %d" local2[2] local2[3] local2[4]
+    local5 = call-script maybe_draw_text_to_image local7 local12 room2[10] room18 1
+    undim local7
+    image.init room2[10]
+    image.at 96 29
+    image.render-target room2[11]
+    image.draw
+    image.end
+    image.init room2[5 + local3]
+    image.new
+    image.width local9
+    image.height local10
+    image.end
+    image.init room2[5 + local3]
+    image.draw-box 0 0 local9 local10 5
+    image.end
+    image.init room2[11]
+    image.at 0 0
+    image.render-target room2[5 + local3]
+    image.draw
+    image.end
+    sprite.init room1[22 + local3]
+    sprite.new
+    sprite.image room2[5 + local3]
+    sprite.at 347 (168 + local3 * 55)
+    sprite.order (1000 + 1)
+    sprite.update-type 0
+    sprite.palette room24
+    sprite.init room1[22 + local3]
+    sprite.variable-range 1 (local3 + 1)
+    gSpriteCursorTargets[room1[22 + local3]][TARGET-CLICK-SCRIPT] = lsc2094
+    start-script.rec maybe_smth_net_yell_ui local2[1] 410 (196 + 55 * local3) room1[27 + local3] room2[12 + local3] -1 9999
+    sprite.init room1[27 + local3]
+    sprite.class [160]
+    if local1 {
+        undim local1
+    }
+    if local2 {
+        undim local2
+    }
+}
+
+local-script lsc2099@2099 {
+    var local0 local1 local2 local3
+
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    start-script PlayClickySound
+    case local0 {
+        room1[6] {
+            local3 = 1
+        }
+        room1[5] {
+            local3 = 0
+        }
+        room1[7] {
+            local3 = 2
+        }
+        else {
+        }
+    }
+    if (room23 == local3 && not local1) {
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        stop-script 0
+    }
+    local2 = sprite-get-state local0 + 1
+    if global561[30] {
+        start-script.rec lsc2112 20 local2
+    } else {
+        start-script.rec lsc2112 20 local2 1
+    }
+    break-here
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script lsc2119 local3
+}
+
+local-script HandleHover@2100 item type {
+    var local2 local3 local4
+
+    case type {
+        2 {
+            case item {
+                room1[56] {
+                    assign-string local3 "SCROLL Fields"
+                    assign-string local2 "Click here TO scroll to the PREVIOUS FIELD."
+                }
+                room1[57] {
+                    assign-string local3 "SCROLL Fields"
+                    assign-string local2 "click here TO scroll to the NEXT FIELD."
+                }
+                room1[67] {
+                    assign-string local3 "Player list"
+                    assign-string local2 "Click here TO return to THE LIST OF PLAYERS."
+                }
+                room1[44] {
+                    assign-string local3 "Add friend"
+                    sprintf local2 "Click to add %s to your friend list." gNetRemoteCoachName
+                }
+                room1[45] {
+                    assign-string local3 "remove friend"
+                    sprintf local2 "Click to remove %s from your friend list." gNetRemoteCoachName
+                }
+                room1[5] {
+                    assign-string local3 "Coach Page"
+                    assign-string local2 "Click here to see an overview of your coach."
+                }
+                room1[6] {
+                    assign-string local3 "Statistics"
+                    assign-string local2 "Click here to see your coach's statistics."
+                }
+                room1[7] {
+                    assign-string local3 "Chat mode"
+                    assign-string local2 "Click here to switch into chat mode."
+                }
+                gNavButtons[1][0] {
+                    case 1 {
+                        (room12 && not room13) {
+                            assign-string local3 "Player list"
+                            assign-string local2 "Click here TO return to THE LIST OF PLAYERS."
+                        }
+                        (room12 && room13) {
+                        }
+                        (not room12 && not room13) {
+                            assign-string local3 "Back to the map"
+                            assign-string local2 "Click here to return TO THE LAST CITY YOU WERE IN."
+                        }
+                        else {
+                        }
+                    }
+                }
+                gNavButtons[3][0] {
+                    case (sprite-get-state gNavButtons[3][0]) {
+                        12 {
+                            assign-string local3 "Change Field"
+                            assign-string local2 "Send the field change to your opponent."
+                        }
+                        16 {
+                            sprintf local3 "Call %s" gNetRemoteCoachName
+                            assign-string local2 "Call and challenge this kid to a game."
+                        }
+                        14 {
+                            assign-string local3 "Play Ball!"
+                            sprintf local2 "Accept %s's challenge and Play Ball!" gNetRemoteCoachName
+                        }
+                        else {
+                        }
+                    }
+                }
+                room1[15] {
+                    case (sprite-get-state item) {
+                        2 {
+                            assign-string local3 "PHONE IS ON"
+                            assign-string local2 "SO OTHER COACHES CAN CALL YOU."
+                        }
+                        0 {
+                            assign-string local3 "PHONE IS OFF"
+                            assign-string local2 "SO NO ONE WILL BOTHER YOU."
+                        }
+                        6 {
+                            case 1 {
+                                (room12 && not room13) {
+                                    assign-string local3 "Player list"
+                                    assign-string local2 "Click here TO return TO THE LIST OF PLAYERS."
+                                }
+                                (room12 && room13) {
+                                    assign-string local3 "HANG UP"
+                                    if gNetRemoteCoachName {
+                                        sprintf local2 "ON COACH %s." gNetRemoteCoachName
+                                    } else {
+                                        assign-string local2 "ON COACH."
+                                    }
+                                }
+                                else {
+                                }
+                            }
+                        }
+                        4 {
+                            if (not room27) {
+                                assign-string room27 "A COACH"
+                            }
+                            sprintf local3 "%s" room27
+                            assign-string local2 "IS CALLING YOU."
+                        }
+                        else {
+                        }
+                    }
+                }
+                else {
+                    for local4 = 22 to 26 + {
+                        if (item == room1[local4]) {
+                            assign-string local3 "Look at Coach"
+                            assign-string local2 "Click here to take a better look at this coach."
+                            local4 = 999
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            print-debug.start
+            print-debug.printf "type %d item %d" type item
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local3 local2
+        if local3 {
+            undim local3
+        }
+        if local2 {
+            undim local2
+        }
+    } else {
+        start-script maybe_HideNavHoverText
+    }
+}
+
+local-script lsc2101@2101 {
+    var local0 local1
+
+    do {
+        start-script scr340 global559 -1
+        break-until (not (script-running scr340))
+        sprintf local0 "%d" (global136 - 1)
+        local1 = call-script maybe_draw_text_to_image local0 1029 room2[20] room18 1
+        undim local0
+        global136 = 0
+        sprite.init room1[54]
+        sprite.new
+        sprite.image room2[20]
+        sprite.at (454 - local1 / 2) 144
+        sprite.order (1000 + 1)
+        sprite.update-type 0
+        sprite.palette room5
+    }
+}
+
+local-script lsc2102@2102 {
+    var local0 local1 local2
+
+    do {
+        sprintf local0 "%d" global110
+        local2 = global110
+        local1 = call-script maybe_draw_text_to_image local0 1029 664 room18 1
+        undim local0
+        sprite.init room1[53]
+        sprite.new
+        sprite.image image664
+        sprite.at (620 - local1 / 2) 144
+        sprite.order (1000 + 1)
+        sprite.update-type 0
+        sprite.palette room5
+        break-until (global110 != local2)
+    }
+}
+
+local-script lsc2103@2103 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9
+
+    case local0 {
+        10 {
+            if local3[8] {
+                local6 = local3[9] * 1000 / local3[8]
+                local7 = local6 / 1000
+                local6 %= 1000
+                local8 = local6 / 100
+                local6 %= 100
+                local9 = local6 / 10
+                local6 %= 10
+                sprintf local4 "%d.%d%d%d" local7 local8 local9 local6
+            } else {
+                assign-string local4 "0.000"
+            }
+        }
+        else {
+            sprintf local4 "%d" local3[local0]
+        }
+    }
+    local5 = call-script maybe_draw_text_to_image local4 1031 room2[3] room18 1
+    undim local4
+    image.init room2[3]
+    image.at (108 - local5 / 2) (39 * local2 + 14)
+    image.render-target local1
+    image.draw
+    image.end
+    return 1
+}
+
+local-script lsc2104@2104 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local0 {
+        local3 = 700
+        local4 = global562
+    } else {
+        local3 = 699
+        local4 = global561
+    }
+    case room20 {
+        0 {
+            array-assign room17 [7 8 9 10] 0
+        }
+        1 {
+            array-assign room17 [8 9 10 11] 0
+        }
+        2 {
+            array-assign room17 [9 10 11 12] 0
+        }
+        3 {
+            array-assign room17 [10 11 12 13] 0
+        }
+        4 {
+            array-assign room17 [11 12 13 14] 0
+        }
+        5 {
+            array-assign room17 [12 13 14 28] 0
+        }
+        6 {
+            array-assign room17 [13 14 28 17] 0
+        }
+        7 {
+            array-assign room17 [14 28 17 18] 0
+        }
+        8 {
+            array-assign room17 [28 17 18 16] 0
+        }
+        else {
+        }
+    }
+    image.init local3
+    image.new
+    image.width 216
+    image.height 154
+    image.end
+    image.init local3
+    image.draw-box 0 0 216 154 5
+    image.end
+    local5 = 47
+    for local2 = 0 to 3 + {
+        local1 = call-script lsc2103 room17[local2] local3 local2 local4
+        if (room12 && room23 == 1) {
+            temp = 0
+            if (global561[room17[local2]] > global562[room17[local2]]) {
+                temp = local2 + 1
+            }
+            if (global562[room17[local2]] > global561[room17[local2]]) {
+                temp = local2 + 5
+            }
+            if temp {
+                start-script.rec lsc2112 local5 temp
+            } else {
+                sprite.init room1[local5]
+                sprite.new
+                sprite.property 0 2
+            }
+            inc local5
+        }
+    }
+    return 1
+}
+
+local-script lsc2105@2105 {
+    var local0 local1
+
+    if (local0 == room1[12]) {
+        inc room20
+        if (room20 > 8) {
+            room20 = 8
+        }
+        local1 = 3
+    } else {
+        dec room20
+        if (room20 < 0) {
+            room20 = 0
+        }
+        local1 = 1
+    }
+    start-script PlayClickySound
+    start-script.rec lsc2112 42 local1
+    break-here
+    sprite.init room1[42]
+    sprite.new
+    sprite.property 0 2
+    local1 = call-script lsc2104
+    start-script.rec lsc2112 40
+    start-script.rec lsc2112 10
+    if room12 {
+        local1 = call-script lsc2104 1
+        start-script.rec lsc2112 41
+        start-script.rec lsc2112 36
+    }
+}
+
+local-script lsc2106@2106 {
+    var local0
+
+    start-script PlayClickySound
+    if (local0 == room1[57]) {
+        inc gField
+        if (gField == SUPER-COLOSSAL-DOME) {
+            inc gField
+        }
+        if (gField > SANDY-FLATS) {
+            gField = DIRT-YARDS
+        }
+        local0 = 57
+    } else {
+        dec gField
+        if (gField == SUPER-COLOSSAL-DOME) {
+            dec gField
+        }
+        if (gField < DIRT-YARDS) {
+            gField = SANDY-FLATS
+        }
+        local0 = 56
+    }
+    start-script.rec lsc2112 local0 1
+    start-script lsc2090 gField
+    if room13 {
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        start-script scr425
+        break-until (not (script-running scr425))
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        if (gField == room28) {
+            start-script scr424 14 0
+        } else {
+            start-script scr424 12 0
+        }
+    }
+    break-here
+    start-script.rec lsc2112 local0
+}
+
+local-script lsc2107@2107 {
+    var local0
+
+    if (local0 == room1[11]) {
+        start-script lsc2076
+    } else {
+        start-script lsc2077
+    }
+}
+
+local-script lsc2108@2108 {
+    var local0
+
+    for local0 = 0 to (room7 - 1) + {
+        start-script.rec lsc2112 46 local0
+        if (room23 != 0) {
+            sprite.init room1[46]
+            sprite.new
+            sprite.property 0 2
+            stop-script 0
+        }
+        break-here
+    }
+}
+
+local-script lsc2109@2109 {
+    var local0
+
+    case local0 {
+        room1[44] {
+            start-script.rec lsc2112 34 1
+            start-script.rec lsc2112 44 1
+            start-script.rec lsc2112 45
+            start-script AddFriend gNetRemoteCoachName
+            break-until (not (script-running AddFriend))
+        }
+        room1[45] {
+            start-script.rec lsc2112 34
+            start-script.rec lsc2112 44
+            start-script.rec lsc2112 45 1
+            start-script lsc2079 gNetRemoteCoachName
+            break-until (not (script-running lsc2079))
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2111@2111 {
+    var local0 local1
+
+    start-script PlayClickySound
+    local1 = sprite-get-state local0 + 1
+    sprite.init local0
+    sprite.new
+    sprite.image image1574
+    sprite.at 320 240
+    sprite.state local1
+    sprite.order 1950
+    sprite.animation-type 0
+    sprite.update-type 0
+    sprite.palette room30
+    break-here
+    sprite.init local0
+    sprite.new
+    sprite.image image1574
+    sprite.at 320 240
+    sprite.state (local1 - 1)
+    sprite.order 1950
+    sprite.animation-type 0
+    sprite.update-type 0
+    sprite.palette room30
+    if (local0 == room1[65]) {
+        if (room11 <= 4) {
+            stop-script 0
+        }
+        dec room11
+    } else {
+        if (room11 >= call-script scr320) {
+            stop-script 0
+        }
+        inc room11
+    }
+    start-script scr321 (max 1 (room11 - 4)) room11
+    break-until (not (script-running scr321))
+    start-script lsc2123
+}
+
+local-script lsc2112@2112 {
+    var local0 local1 local2 _ local4 local5
+
+    case local0 {
+        67 {
+            sprite.init room1[67]
+            sprite.new
+            sprite.image image1574
+            sprite.at 320 240
+            sprite.state 4
+            sprite.order 1950
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room30
+            gSpriteCursorTargets[room1[67]][TARGET-CLICK-SCRIPT] = lsc2143
+        }
+        65 {
+            sprite.init room1[65]
+            sprite.new
+            sprite.image image1574
+            sprite.at 320 240
+            sprite.state 0
+            sprite.order 1950
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room30
+            gSpriteCursorTargets[room1[65]][TARGET-CLICK-SCRIPT] = lsc2111
+        }
+        66 {
+            sprite.init room1[66]
+            sprite.new
+            sprite.image image1574
+            sprite.at 320 240
+            sprite.state 2
+            sprite.order 1950
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room30
+            gSpriteCursorTargets[room1[66]][TARGET-CLICK-SCRIPT] = lsc2111
+        }
+        63 {
+            sprite.init room1[63]
+            sprite.new
+            sprite.image image667
+            sprite.at 320 240
+            sprite.state 3
+            sprite.order 1950
+            sprite.animation-type 0
+            sprite.update-type 0
+        }
+        58 {
+            start-script scr387 global555 24 156 room1[8] room2[0] 0 room10 1
+        }
+        59 {
+            start-script scr387 global552 503 156 room1[32] room2[17] 0 room10 2
+        }
+        57 {
+            sprite.init room1[57]
+            sprite.image image1563
+            sprite.at 320 240
+            sprite.state (iif local1 13 12)
+            sprite.animation-type 0
+            sprite.order 1950
+            sprite.palette room22
+            gSpriteCursorTargets[room1[57]][TARGET-CLICK-SCRIPT] = lsc2106
+        }
+        56 {
+            sprite.init room1[56]
+            sprite.image image1563
+            sprite.at 320 240
+            sprite.state (iif local1 11 10)
+            sprite.animation-type 0
+            sprite.order 1950
+            sprite.palette room22
+            gSpriteCursorTargets[room1[56]][TARGET-CLICK-SCRIPT] = lsc2106
+        }
+        55 {
+            sprite.init room1[55]
+            sprite.image image1562
+            sprite.at 320 240
+            sprite.state local1
+            sprite.animation-type 0
+            sprite.order 1950
+            sprite.palette room26
+        }
+        52 {
+            sprite.init room1[52]
+            sprite.image image1565
+            sprite.at 320 240
+            sprite.animation-type 0
+            sprite.order 1000
+            sprite.palette room24
+        }
+        47 {
+            sprite.init room1[47]
+            sprite.new
+            sprite.image image1564
+            sprite.at 320 240
+            sprite.state (local1 - 1)
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+        }
+        48 {
+            sprite.init room1[48]
+            sprite.new
+            sprite.image image1564
+            sprite.at 320 240
+            sprite.state (local1 - 1)
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+        }
+        49 {
+            sprite.init room1[49]
+            sprite.new
+            sprite.image image1564
+            sprite.at 320 240
+            sprite.state (local1 - 1)
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+        }
+        50 {
+            sprite.init room1[50]
+            sprite.new
+            sprite.image image1564
+            sprite.at 320 240
+            sprite.state (local1 - 1)
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+        }
+        46 {
+            sprite.init room1[46]
+            sprite.image image1558
+            sprite.at 320 240
+            sprite.state local1
+            sprite.animation-type 0
+            sprite.order (1000 + 1)
+            sprite.palette room22
+        }
+        44 {
+            sprite.init room1[44]
+            sprite.image image1563
+            sprite.at 320 240
+            sprite.state (iif local1 7 6)
+            sprite.animation-type 0
+            sprite.order (1000 + 1)
+            sprite.palette room22
+            gSpriteCursorTargets[room1[44]][TARGET-CLICK-SCRIPT] = iif local1 0 2109
+        }
+        45 {
+            sprite.init room1[45]
+            sprite.image image1563
+            sprite.at 320 240
+            sprite.state (iif local1 9 8)
+            sprite.animation-type 0
+            sprite.order (1000 + 1)
+            sprite.palette room22
+            gSpriteCursorTargets[room1[45]][TARGET-CLICK-SCRIPT] = iif local1 0 2109
+        }
+        42 {
+            sprite.init room1[42]
+            sprite.image image1555
+            sprite.at 320 240
+            sprite.state local1
+            sprite.animation-type 0
+            sprite.order (1000 + 2)
+            sprite.palette room21
+        }
+        40 {
+            palette.init room19
+            palette.from-image 1554 0
+            palette.end
+            sprite.init room1[40]
+            sprite.new
+            sprite.image image1554
+            sprite.at 320 240
+            sprite.state room20
+            sprite.order (1000 + 1)
+            sprite.update-type 0
+            sprite.animation-type 0
+            sprite.palette room19
+        }
+        41 {
+            sprite.init room1[41]
+            sprite.new
+            sprite.image image1554
+            sprite.at 675 240
+            sprite.state room20
+            sprite.order (1000 + 1)
+            sprite.update-type 0
+            sprite.animation-type 0
+            sprite.palette room19
+        }
+        39 {
+            palette.init room16
+            palette.from-image 1542 0
+            palette.end
+            sprite.init room1[39]
+            sprite.image image1542
+            sprite.at 320 240
+            sprite.animation-type 0
+            sprite.order 1000
+            sprite.palette room16
+        }
+        51 {
+            sprite.init room1[51]
+            sprite.image image1542
+            sprite.at 675 240
+            sprite.animation-type 0
+            sprite.order 1000
+            sprite.palette room16
+        }
+        38 {
+            palette.init room16
+            palette.from-image 1557 0
+            palette.end
+            sprite.init room1[38]
+            sprite.image image1557
+            sprite.at 320 240
+            sprite.animation-type 0
+            sprite.order 1000
+            sprite.palette room16
+        }
+        20 {
+            if local2 {
+                local4 = 30
+            }
+            sprite.init room1[20]
+            sprite.new
+            sprite.image image1556
+            sprite.at (320 + local4) 240
+            sprite.state local1
+            sprite.order (1000 + 2)
+            sprite.animation-type 0
+            sprite.palette room15
+        }
+        21 {
+        }
+        15 {
+            if local2 {
+                sprite.init room1[16]
+                sprite.new
+                sprite.image image667
+                sprite.at 320 240
+                sprite.state local2
+                sprite.order 1950
+                sprite.animation-type 0
+                sprite.update-type 0
+                sprite.palette room4
+            } else {
+                sprite.init room1[16]
+                sprite.new
+                sprite.property 0 2
+            }
+            sprite.init room1[15]
+            sprite.new
+            sprite.image image1560
+            sprite.at 320 240
+            sprite.state local1
+            sprite.order 1950
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+            if (local1 != 6) {
+                gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT] = HandlePhoneClick
+                print-debug.start
+                print-debug.printf "ASSIGNING PhoneClickScript %d" gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT]
+            } else {
+                gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT] = 0
+                print-debug.start
+                print-debug.printf "NOT ASSIGNING PhoneClickScript %d" gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT]
+            }
+        }
+        11 {
+            sprite.init room1[11]
+            sprite.new
+            sprite.image image1555
+            sprite.at 320 240
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.state 0
+            sprite.palette room21
+            if local1 {
+                gSpriteCursorTargets[room1[11]][TARGET-CLICK-SCRIPT] = lsc2107
+            } else {
+                gSpriteCursorTargets[room1[11]][TARGET-CLICK-SCRIPT] = lsc2105
+            }
+        }
+        12 {
+            sprite.init room1[12]
+            sprite.new
+            sprite.image image1555
+            sprite.at 320 240
+            sprite.order (1000 + 10000)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.state 2
+            sprite.palette room21
+            if local1 {
+                gSpriteCursorTargets[room1[12]][TARGET-CLICK-SCRIPT] = lsc2107
+            } else {
+                gSpriteCursorTargets[room1[12]][TARGET-CLICK-SCRIPT] = lsc2105
+            }
+        }
+        10 {
+            sprite.init room1[10]
+            sprite.new
+            sprite.image image699
+            sprite.at 25 166
+            sprite.order (1000 + 1)
+            sprite.update-type 0
+            sprite.palette room18
+        }
+        36 {
+            sprite.init room1[36]
+            sprite.new
+            sprite.image image700
+            sprite.at 380 166
+            sprite.order (1000 + 1)
+            sprite.update-type 0
+            sprite.palette room18
+        }
+        9 {
+            sprite.init room1[9]
+            sprite.new
+            sprite.image room2[1]
+            sprite.at 30 140
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room5
+        }
+        33 {
+            sprite.init room1[33]
+            sprite.new
+            sprite.image room2[2]
+            sprite.at 386 140
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room5
+        }
+        6 {
+            if local1 {
+                local4 = 30
+            }
+            sprite.init room1[6]
+            sprite.new
+            sprite.image image1556
+            sprite.at (320 + local4) 240
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.state 2
+            sprite.update-type 0
+            sprite.palette room15
+            gSpriteCursorTargets[room1[6]][TARGET-CLICK-SCRIPT] = lsc2099
+        }
+        5 {
+            palette.init room15
+            palette.from-image 1556 0
+            palette.end
+            if local1 {
+                local4 = 30
+            }
+            sprite.init room1[5]
+            sprite.new
+            sprite.image image1556
+            sprite.at (320 + local4) 240
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.state 0
+            sprite.update-type 0
+            sprite.palette room15
+            gSpriteCursorTargets[room1[5]][TARGET-CLICK-SCRIPT] = lsc2099
+        }
+        7 {
+            if (not global561[30]) {
+                stop-script 0
+            }
+            sprite.init room1[7]
+            sprite.new
+            sprite.image image1556
+            sprite.at 320 240
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.state 4
+            sprite.update-type 0
+            sprite.palette room15
+            gSpriteCursorTargets[room1[7]][TARGET-CLICK-SCRIPT] = lsc2099
+        }
+        2 {
+            sprite.init room1[2]
+            sprite.new
+            sprite.image image1540
+            sprite.at 320 240
+            sprite.order 1000
+            sprite.animation-type 0
+            sprite.state 0
+            sprite.update-type 0
+            sprite.palette room8
+        }
+        35 {
+            sprite.init room1[35]
+            sprite.new
+            sprite.image image1559
+            sprite.at 320 240
+            sprite.order 1000
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room22
+        }
+        19 {
+            sprite.init room1[19]
+            sprite.at -148 217
+            sprite.image image1539
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 1
+            sprite.palette room9
+        }
+        34 {
+            sprite.init room1[34]
+            sprite.at 335 217
+            sprite.image (iif local1 1577 1539)
+            sprite.order (1000 + 1)
+            sprite.animation-type 0
+            sprite.update-type 1
+            sprite.palette room9
+        }
+        37 {
+            sprintf local5 "%s" gNetUsername
+            local4 = call-script maybe_draw_text_to_image local5 1244 room2[18] room5 1
+            undim local5
+            sprite.init room1[37]
+            sprite.new
+            sprite.image room2[18]
+            sprite.at (144 - local4 / 2) (iif local1 326 340)
+            sprite.order (1000 + 2)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room5
+        }
+        43 {
+            sprintf local5 "%s" gNetRemoteCoachName
+            local4 = call-script maybe_draw_text_to_image local5 1244 room2[19] room5 1
+            undim local5
+            sprite.init room1[43]
+            sprite.new
+            sprite.image room2[19]
+            sprite.at (505 - local4 / 2) (iif local1 326 340)
+            sprite.order (1000 + 2)
+            sprite.animation-type 0
+            sprite.update-type 0
+            sprite.palette room5
+        }
+        else {
+        }
+    }
+}
+
+local-script HandleNavClick@2113 arg0 {
+    var local1 local2
+
+    case arg0 {
+        193 {
+            stop-script lsc2097
+            if (room12 && room13) {
+                kludge 2001 2215 global553
+            }
+            if global561[30] {
+                start-script lsc2071
+            }
+            kludge 2001 2222
+            current-room netcentral
+        }
+        192 {
+            start-script scr425
+            local2 = kludge-call 2001 1515
+            if local2 {
+                assign-string local1 "Technical difficulties ... Please hang up try again in a few minutes."
+                start-script ShowPopup local1 2 2
+                if (sprite-get-state gNavButtons[3][0] != 16) {
+                    start-script lsc2139
+                }
+                userput-on
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-on
+                } else if (gCursorInputEnabled == 0) {
+                    stop-script GamePadCursorLoop
+                    start-script ReleaseSprite gGamePadCursorSprite
+                    gGamePadCursorSprite = 0
+                } else {
+                    start-script ShowGamePadCursor
+                }
+                break-until gPopupResult
+                stop-script 0
+            }
+            case (sprite-get-state gNavButtons[3][0]) {
+                12 {
+                    start-script lsc2132
+                }
+                16 {
+                    sprite.init room1[67]
+                    sprite.new
+                    sprite.property 0 2
+                    start-script lsc2137
+                }
+                14 {
+                    start-script lsc2141
+                }
+                else {
+                }
+            }
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2114@2114 {
+    var local0 local1
+
+    case global559 {
+        24 {
+            local1 = 0
+        }
+        26 {
+            local1 = 2
+        }
+        25 {
+            local1 = 4
+        }
+        16 {
+            local1 = 6
+        }
+        17 {
+            local1 = 8
+        }
+        18 {
+            local1 = 10
+        }
+        19 {
+            local1 = 12
+        }
+        9 {
+            local1 = 14
+        }
+        8 {
+            local1 = 16
+        }
+        else {
+        }
+    }
+    local0 = call-script smth_net_map_descriptions global559 2
+    start-script lsc2065 -1 1568 1104 local1 local0
+    undim local0
+    palette.init room3
+    palette.from-image 1561 0
+    palette.end
+    sprite.init room1[0]
+    sprite.at 320 240
+    sprite.image image1561
+    sprite.order -30
+    sprite.animation-type 0
+    sprite.update-type 1
+    sprite.palette room3
+}
+
+local-script lsc2115@2115 {
+    room3 = call-script AllocPalette
+    room5 = call-script AllocPalette
+    room10 = call-script AllocPalette
+    room4 = call-script AllocPalette
+    room8 = call-script AllocPalette
+    room9 = call-script AllocPalette
+    room15 = call-script AllocPalette
+    room16 = call-script AllocPalette
+    room19 = call-script AllocPalette
+    room21 = call-script AllocPalette
+    room18 = call-script AllocPalette
+    room22 = call-script AllocPalette
+    room24 = call-script AllocPalette
+    room26 = call-script AllocPalette
+    room30 = call-script AllocPalette
+    start-script lsc2048
+    palette.init room21
+    palette.from-image 1555 0
+    palette.end
+    palette.init room5
+    palette.from-image 1239 0
+    palette.end
+    palette.init room4
+    palette.from-image 667 0
+    palette.end
+    palette.init room8
+    palette.from-image 1540 0
+    palette.end
+    palette.init room9
+    palette.from-image 1539 0
+    palette.end
+    palette.init room18
+    palette.from-image 1031 0
+    palette.end
+    palette.init room22
+    palette.from-image 1563 0
+    palette.end
+    palette.init room24
+    palette.from-image 1565 0
+    palette.end
+    palette.init room26
+    palette.from-image 1562 0
+    palette.end
+    palette.init room30
+    palette.from-image 1574 0
+    palette.end
+    print-debug.start
+    print-debug.printf "Free Palettes %d" (call-script GetPaletteStackPointer)
+}
+
+local-script lsc2116@2116 {
+    start-script FreePalette room3
+    start-script FreePalette room5
+    start-script FreePalette room10
+    start-script FreePalette room4
+    start-script FreePalette room8
+    start-script FreePalette room9
+    start-script FreePalette room15
+    start-script FreePalette room16
+    start-script FreePalette room18
+    start-script FreePalette room19
+    start-script FreePalette room21
+    start-script FreePalette room22
+    start-script FreePalette room24
+    start-script FreePalette room26
+    start-script FreePalette room30
+    start-script lsc2049
+}
+
+local-script lsc2117@2117 {
+    var local0
+
+    dim-array.i32 room1 70
+    for local0 = 0 to 70 + {
+        room1[local0] = call-script FindFreeSprite
+    }
+    dim-array.i16 room2 20
+    for local0 = 0 to 20 + {
+        room2[local0] = call-script AllocScratchImage
+    }
+    dim-array.i16 room17 3
+}
+
+local-script lsc2118@2118 {
+    var local0
+
+    for local0 = 0 to 70 + {
+        start-script ReleaseSprite room1[local0]
+    }
+    undim room1
+    for local0 = 0 to 20 + {
+        start-script FreeScratchImage room2[local0]
+    }
+    undim room2
+    undim room17
+}
+
+local-script lsc2119@2119 {
+    var local0
+
+    if global561[30] {
+        start-script.rec lsc2112 6
+        start-script.rec lsc2112 7
+        start-script.rec lsc2112 5
+    } else {
+        start-script.rec lsc2112 6 1
+        start-script.rec lsc2112 5 1
+    }
+    room23 = local0
+    case local0 {
+        0 {
+            start-script lsc2072 2
+            start-script lsc2120
+            start-script.rec lsc2112 9
+            start-script.rec lsc2112 2
+            start-script.rec lsc2112 19
+            start-script.rec lsc2112 37
+            if room12 {
+                start-script lsc2120 1
+                start-script.rec lsc2112 33
+                start-script.rec lsc2112 35
+                start-script.rec lsc2112 43
+                start-script.rec lsc2112 67
+                if (call-script lsc2066 gNetRemoteCoachName) {
+                    start-script.rec lsc2112 44 1
+                    start-script.rec lsc2112 45
+                    start-script.rec lsc2112 34 1
+                } else {
+                    start-script.rec lsc2112 44
+                    start-script.rec lsc2112 45 1
+                    start-script.rec lsc2112 34
+                }
+                if room7 {
+                    start-script.rec lsc2112 46 room7
+                }
+            }
+        }
+        1 {
+            start-script lsc2072 2
+            temp = call-script lsc2104
+            start-script.rec lsc2112 11
+            start-script.rec lsc2112 12
+            start-script.rec lsc2112 10
+            start-script.rec lsc2112 39
+            start-script.rec lsc2112 40
+            start-script.rec lsc2112 37 1
+            if room12 {
+                start-script.rec lsc2112 36
+                start-script.rec lsc2112 41
+                start-script.rec lsc2112 43 1
+                start-script.rec lsc2112 51
+            }
+        }
+        2 {
+            if room12 {
+                start-script lsc2096 0 1
+            }
+            start-script lsc2072 1
+            start-script.rec lsc2112 11 1
+            start-script.rec lsc2112 12 1
+            start-script.rec lsc2112 38
+        }
+        else {
+        }
+    }
+    break-here
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2120@2120 {
+    var local0 local1 local2 local3 local4 local5 local6 _ local8 local9 local10 local11 local12 local13 local14 local15
+
+    local8 = palette-get-color room18 5
+    if local0 {
+        local9 = room2[2]
+        local10 = global562
+        local11 = 120
+        local12 = global562[29]
+    } else {
+        local9 = room2[1]
+        local10 = global561
+        local11 = 0
+        local12 = global576
+    }
+    image.init local9
+    image.new
+    image.width 235
+    image.height 244
+    image.end
+    image.init local9
+    image.draw-box 0 0 235 244 local8
+    image.end
+    if local0 {
+        start-script scr387 global552 503 156 room1[32] room2[17] 0 room10
+    } else {
+        start-script scr387 global555 24 156 room1[8] room2[0] 0 room10
+    }
+    sprintf local1 "W%d-L%d-D%d" local10[1] local10[2] local10[3]
+    local3 = call-script maybe_draw_text_to_image local1 1239 room2[4] room5 1
+    undim local1
+    image.init room2[4]
+    image.at (180 - local3 / 2 - local11) 36
+    image.render-target local9
+    image.draw
+    image.end
+    if (local10[4] >= 0) {
+        sprintf local1 "WON %d" local10[4]
+    } else {
+        sprintf local1 "LOST %d" (abs local10[4])
+    }
+    local3 = call-script maybe_draw_text_to_image local1 1239 room2[4] room5 1
+    undim local1
+    image.init room2[4]
+    image.at (180 - local3 / 2 - local11) (36 + 39 * 1)
+    image.render-target local9
+    image.draw
+    image.end
+    sprintf local1 "W %d  L %d" (band local10[5] 1023) (local10[5] >> 10)
+    local3 = call-script maybe_draw_text_to_image local1 1239 room2[4] room5 1
+    undim local1
+    image.init room2[4]
+    image.at (180 - local3 / 2 - local11) (36 + 39 * 2)
+    image.render-target local9
+    image.draw
+    image.end
+    sprintf local1 "%d" local10[6]
+    local3 = string-length local1
+    if (local3 > 3) {
+        local4 = string-substr local1 0 (local3 - 4)
+        local5 = string-substr local1 (local3 - 3) local3
+        undim local1
+        sprintf local1 "%s.%s" local4 local5
+        undim local4
+        undim local5
+    } else {
+        sprintf local4 "0.%s" local1
+        undim local1
+        sprintf local1 "%s" local4
+        undim local4
+    }
+    local3 = call-script maybe_draw_text_to_image local1 1239 room2[4] room5 1
+    undim local1
+    image.init room2[4]
+    image.at (180 - local3 / 2 - local11) (36 + 39 * 3)
+    image.render-target local9
+    image.draw
+    image.end
+    if global575 {
+        undim global575
+    }
+    sprintf local2 "%sdownloads\\poll.ini" gSaveGamePath
+    global575 = read-ini.string local2 "POLL" "QUES"
+    undim local2
+    if (local12 && global575) {
+        local1 = call-script smth_string global575 59 local12 1
+    } else {
+        assign-string local1 "DID NOT ANSWER POLL."
+    }
+    local3 = call-script maybe_draw_text_to_image local1 1239 room2[4] room5 1
+    undim local1
+    image.init room2[4]
+    image.at 80 (36 + (39 * 3 + 21))
+    image.render-target local9
+    image.draw
+    image.end
+    if local0 {
+        local13 = 1
+        local14 = 47
+        for local6 = {local15}[1 4 5 6] {
+            temp = 0
+            if (local6 == 5) {
+                if (band global561[local6] 1023 > band global562[local6] 1023) {
+                    temp = local13
+                }
+                if (band global562[local6] 1023 > band global561[local6] 1023) {
+                    temp = local13 + 4
+                }
+            } else {
+                if (global561[local6] > global562[local6]) {
+                    temp = local13
+                }
+                if (global562[local6] > global561[local6]) {
+                    temp = local13 + 4
+                }
+            }
+            if temp {
+                start-script.rec lsc2112 local14 temp
+            }
+            inc local13
+            inc local14
+        }
+    }
+}
+
+local-script lsc2121@2121 {
+    var _ local1 local2
+
+    local1 = 234
+    local2 = 34
+    image.init image442
+    image.new
+    image.width local1
+    image.height local2
+    image.end
+    image.init image442
+    image.draw-box 0 0 local1 local2 (palette-get-color 1 5)
+    image.end
+    local1 = 216
+    local2 = 152
+    image.init image443
+    image.new
+    image.width local1
+    image.height local2
+    image.end
+    image.init image443
+    image.draw-box 0 0 local1 local2 (palette-get-color 1 5)
+    image.end
+    sprite.init room1[14]
+    sprite.new
+    sprite.image image442
+    sprite.order 10000
+    sprite.at 30 322
+    sprite.update-type 0
+    sprite.init room1[13]
+    sprite.new
+    sprite.image image443
+    sprite.order 10000
+    sprite.at 26 164
+    sprite.update-type 0
+    start-script lsc2070 room1[13] 678 room1[14] 1244 0 2
+}
+
+local-script lsc2122@2122 {
+    var local0 _ _ _ local4
+
+    start-script SetNavButtons HandleNavClick 0 0 2
+    start-script lsc2117
+    start-script lsc2115
+    start-script lsc2126
+    start-script lsc2114
+    start-script lsc2119 0
+    gField = random-between 0 9
+    if (gField == SUPER-COLOSSAL-DOME) {
+        inc gField
+    }
+    start-script lsc2090 gField
+    if global561[30] {
+        start-script lsc2121
+    }
+    global40 = 333
+    gInputHandlerScript = lsc2124
+    start-script scr347 1 5 1 global557
+    start-script scr319 global559
+    start-script scr321 (room11 - 4) room11
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    start-script.rec lsc2112 15 2 0
+    do {
+        inc local4
+        sleep-for.seconds 1
+    } until (global133 && global134 || local4 > 5)
+    start-script lsc2123
+    start-script lsc2097
+    if 1 {
+        global110 = 0
+    }
+    if (not (script-running lsc2102)) {
+        start-script lsc2102
+    }
+    if (not (script-running lsc2101)) {
+        start-script lsc2101
+    }
+    gHoverScript = HandleHover
+    local0 = 0 + 1
+    if global561[30] {
+        start-script.rec lsc2112 20 local0
+    } else {
+        start-script.rec lsc2112 20 local0 1
+    }
+}
+
+local-script lsc2123@2123 {
+    var local0 local1 _ _ _ local5 _ local7 local8
+
+    room7 = 0
+    sprite.init room1[17]
+    sprite.new
+    sprite.property 0 2
+    for temp = 21 to 31 + {
+        sprite.init room1[temp]
+        sprite.new
+        sprite.property 0 2
+    }
+    sprite.init room1[52]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[66]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[65]
+    sprite.new
+    sprite.property 0 2
+    start-script.rec lsc2112 52
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    local0 = call-script scr320
+    if (local0 > 4) {
+        start-script.rec lsc2112 66
+        start-script.rec lsc2112 65
+    }
+    if local0 {
+        local7 = max 1 (room11 - 4 + 1)
+        local8 = iif (local0 > 4) room11 local0
+        for local1 = local7 to local8 + {
+            start-script.rec scr322 local1
+            start-script.rec lsc2098 local5
+            inc local5
+        }
+    } else {
+    }
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2124@2124 {
+    var local0 local1 local2 local3 local4
+
+    if (local0 == 4) {
+        start-script lsc2084 local1
+    } else if gMouseHandlerScript {
+        start-script gMouseHandlerScript local1 local3 local4 local2
+    }
+}
+
+local-script lsc2125@2125 {
+    if room29 {
+        undim room29
+    }
+    start-script FreePopup
+    start-script lsc2118
+    start-script FreeNavButtons
+    start-script lsc2116
+    start-script lsc2059
+    gInputHandlerScript = DefaultHandleInput
+    gGamePadInputHandlerScript = gInputHandlerScript
+}
+
+local-script lsc2126@2126 {
+    gNetplayActive = 0
+    global512 = 0
+    global513 = 0
+    global514 = 0
+    global663 = 0
+    global515 = 0
+    global516 = 0
+    global517 = 0
+    gMinJiffies = 6
+    global133 = 0
+    global134 = 0
+    room11 = 4
+    global559 = gBypassJsnMap
+    gBypassJsnMap = 0
+}
+
+local-script lsc2127@2127 {
+    var local0
+
+    room25 = 0
+    local0 = 15
+    do {
+        sleep-for.seconds 1
+        dec local0
+    } until (room25 || not local0)
+    if (not local0) {
+        kludge 2001 2217 global553
+        stop-script lsc2129
+        stop-sound sound2630
+        if (not room25) {
+            start-script.rec lsc2130 15 10
+            break-here.multi 20
+            start-script scr393 9924 1
+        }
+    }
+}
+
+local-script lsc2128@2128 {
+    do {
+        if 2628 {
+            sound.start sound2628
+            sound.end
+        }
+        break-here.multi 14
+    }
+}
+
+local-script lsc2129@2129 {
+    do {
+        if 2630 {
+            sound.start sound2630
+            sound.end
+        }
+        break-here.multi 36
+    }
+}
+
+local-script lsc2130@2130 {
+    var local0 local1 local2 local3 local4 local5 local6 local7
+
+    if (not local1) {
+        stop-script 0
+    }
+    local5 = 458
+    case local1 {
+        1 {
+            assign-string local6 "RINGING"
+            sprite.init room1[62]
+            sprite.new
+            sprite.property 0 2
+        }
+        6 {
+            if gNetRemoteCoachName {
+                sprintf local6 "DIALING %s" gNetRemoteCoachName
+            } else {
+                assign-string local6 "DIALING"
+            }
+        }
+        3 {
+            assign-string local6 "ON THE LINE"
+        }
+        2 {
+            assign-string local6 "BUSY"
+        }
+        4 {
+            assign-string local6 "CHANGE FIELD?"
+        }
+        5 {
+            assign-string local6 "FIELD CHANGED"
+        }
+        10 {
+            assign-string local6 "NOT ANSWERING"
+        }
+        11 {
+            if room27 {
+                sprintf local6 "%s" room27
+            } else {
+                assign-string local6 "UNAVAILABLE"
+            }
+        }
+        else {
+        }
+    }
+    case local0 {
+        15 {
+            local2 = 668
+            local3 = 60
+            local4 = 175
+        }
+        else {
+        }
+    }
+    local7 = call-script maybe_draw_text_to_image local6 647 local2 1
+    undim local6
+    local4 -= local7 / 2
+    sprite.init room1[local3]
+    sprite.new
+    sprite.image local2
+    sprite.at local4 local5
+    sprite.order 1950
+    sprite.animation-type 0
+    sprite.update-type 0
+}
+
+local-script lsc2131@2131 {
+    var local0
+
+    local0 = 30
+    do {
+        sleep-for.seconds 1
+        dec local0
+        print-debug.start
+        print-debug.printf "Waiting to connect - time elapsed: (%d) secs." (30 - local0)
+    } until (gNetplayActive || not local0)
+    if (not local0 || gNetplayActive == -99) {
+        stop-script lsc2095
+        stop-sound sound2634
+        sprite.init room1[63]
+        sprite.new
+        sprite.property 0 2
+        if (script-running lsc2108) {
+            stop-script lsc2108
+        }
+        sprite.init room1[2]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[8]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[9]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[10]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[11]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[12]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[19]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[37]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[39]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[38]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[40]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[60]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[67]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[33]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[35]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[34]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[36]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[32]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[41]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[43]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[44]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[45]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[46]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[47]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[48]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[49]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[50]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[51]
+        sprite.new
+        sprite.property 0 2
+        array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+        stop-script lsc2089
+        if room29 {
+            undim room29
+        }
+        start-script FreePopup
+        start-script scr425
+        room20 = 0
+        room12 = 0
+        room13 = 0
+        room23 = 0
+        start-script lsc2119 room23
+        start-script lsc2123
+        start-script lsc2097
+    }
+}
+
+local-script lsc2132@2132 {
+    stop-sound g_maybe_net_yell_sound
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[56] room1[56] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[57] room1[57] 1 4 [0]
+    start-script scr425
+    kludge 2001 2213 gField
+    start-script maybe_net_smth_yell_sound 1 5
+}
+
+local-script lsc2133@2133 {
+    var local0
+
+    start-script scr424 14 0
+    room28 = local0
+    gField = room28
+    start-script lsc2090 gField
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    stop-sound g_maybe_net_yell_sound
+    start-script maybe_net_smth_yell_sound 0 5
+}
+
+local-script lsc2134@2134 {
+    var _ local1 local2
+
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if (not room12 && not room13) {
+        kludge 2001 2217 room31
+        stop-script 0
+    }
+    room25 = 1
+    break-here
+    break-until (not (sound-running sound2627))
+    break-here
+    break-until (not (sound-running sound2629))
+    start-script.rec lsc2130 15 1
+    break-here
+    stop-script lsc2129
+    stop-sound sound2630
+    local1 = call-script scr385 global552 1
+    local2 = call-script scr385 global552 2
+    start-script lsc2112 59
+    start-script.rec lsc2130 15 3
+    start-script maybe_net_smth_yell_sound 0 1
+    break-until (not (sound-running g_maybe_net_yell_sound))
+    start-script maybe_net_smth_yell_sound 1 2
+    break-until (not (sound-running g_maybe_net_yell_sound))
+    gSpriteCursorTargets[room1[15]][TARGET-CLICK-SCRIPT] = HandlePhoneClick
+}
+
+local-script lsc2135@2135 {
+    room25 = 1
+    room13 = 0
+    break-here
+    break-until (not (sound-running sound2627))
+    break-here
+    break-until (not (sound-running sound2629))
+    start-script.rec lsc2130 15 1
+    break-here
+    break-here.multi 10
+    stop-script lsc2129
+    start-script lsc2128
+    start-script.rec lsc2130 15 2
+    break-here
+}
+
+local-script lsc2136@2136 {
+    var local0
+
+    room7 = local0
+    if (room7 < 1) {
+        room7 = 1
+    }
+    if (room7 > 10) {
+        room7 = 10
+    }
+    if (room23 == 0 && room12) {
+        break-until (not (script-running scr424))
+        start-script lsc2108
+    }
+}
+
+local-script lsc2137@2137 {
+    var _ _ _ _ local4
+
+    room13 = 1
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[56] room1[56] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[57] room1[57] 1 4 [0]
+    kludge 2001 2220 1
+    if (room23 != 0) {
+        if (script-running lsc2108) {
+            stop-script lsc2108
+        }
+        sprite.init room1[2]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[8]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[9]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[10]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[11]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[12]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[19]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[37]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[39]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[38]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[40]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[60]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[67]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[33]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[35]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[34]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[36]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[32]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[41]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[43]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[44]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[45]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[46]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[47]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[48]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[49]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[50]
+        sprite.new
+        sprite.property 0 2
+        sprite.init room1[51]
+        sprite.new
+        sprite.property 0 2
+        array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+        array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+        start-script lsc2119 0
+    }
+    start-script lsc2112 58
+    start-script.rec lsc2112 15 6
+    start-script.rec lsc2130 15 6
+    kludge 2001 2209 global553 gField
+    start-script lsc2127
+    if 2627 {
+        sound.start sound2627
+        sound.looping
+        sound.end
+    }
+    local4 = random-between 15 30
+    break-here.multi local4
+    stop-sound sound2627
+    if 2629 {
+        sound.start sound2629
+        sound.end
+    }
+    break-here
+    break-until (not (sound-running sound2627))
+    break-here
+    break-until (not (sound-running sound2629))
+    start-script.rec lsc2130 15 1
+    break-here
+    start-script lsc2129
+}
+
+local-script lsc2138@2138 {
+    var local0 local1 local2
+
+    if (room13 || room14 || script-running lsc2095) {
+        kludge 2001 2212 local0
+    } else {
+        if (not (script-running lsc2095)) {
+            start-script lsc2095 1
+        }
+        room13 = 1
+        gSpriteCursorTargets[room1[56]][TARGET-CLICK-SCRIPT] = 0
+        gSpriteCursorTargets[room1[57]][TARGET-CLICK-SCRIPT] = 0
+        start-script.rec lsc2112 15 4
+        room28 = local1
+        global553 = local0
+        if room27 {
+            undim room27
+        }
+        sprintf room27 "%s" local2
+        undim local2
+        start-script.rec lsc2130 15 11
+        kludge 2001 2220 1
+    }
+}
+
+local-script lsc2139@2139 {
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    stop-script lsc2137
+    stop-sound sound2627
+    stop-script lsc2095
+    stop-sound sound2634
+    sprite.init room1[63]
+    sprite.new
+    sprite.property 0 2
+    if (script-running lsc2128) {
+        stop-script lsc2128
+        stop-sound sound2628
+    }
+    stop-script lsc2129
+    stop-sound sound2630
+    kludge 2001 2215 global553
+    global553 = 0
+    stop-sound g_maybe_net_yell_sound
+    start-script maybe_net_smth_yell_sound 1 4
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    start-script.rec lsc2112 15 2 0
+    if 0 {
+        global110 = 0
+    }
+    if (not (script-running lsc2102)) {
+        start-script lsc2102
+    }
+    if (not (script-running lsc2101)) {
+        start-script lsc2101
+    }
+    kludge 2001 2220 0
+    start-script scr425
+    room20 = 0
+    room14 = 0
+    room12 = 0
+    room13 = 0
+    room23 = 0
+    start-script lsc2119 room23
+    start-script lsc2123
+    start-script lsc2090 gField
+    global553 = 0
+    room25 = 1
+}
+
+local-script lsc2140@2140 {
+    if (not room12) {
+        print-debug.start
+        print-debug.string "STOPPING SCRIpt"
+        stop-script 0
+    }
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if (script-running lsc2091) {
+        break-until (not (script-running lsc2091))
+    }
+    if (script-running lsc2095) {
+        stop-script lsc2095
+        stop-sound sound2634
+        sprite.init room1[63]
+        sprite.new
+        sprite.property 0 2
+    }
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    start-script.rec lsc2112 15 2 0
+    if 0 {
+        global110 = 0
+    }
+    if (not (script-running lsc2102)) {
+        start-script lsc2102
+    }
+    if (not (script-running lsc2101)) {
+        start-script lsc2101
+    }
+    kludge 2001 2220 0
+    start-script scr425
+    room20 = 0
+    room14 = 0
+    room12 = 0
+    room13 = 0
+    room23 = 0
+    start-script lsc2119 room23
+    start-script lsc2123
+    start-script lsc2090 gField
+    global553 = 0
+    room25 = 1
+}
+
+local-script lsc2141@2141 {
+    stop-sound g_maybe_net_yell_sound
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    gField = room28
+    start-script scr425
+    stop-script lsc2097
+    start-script lsc2089
+    start-script maybe_net_smth_yell_sound 1 3
+    break-here
+    kludge 2001 2216 global553
+    start-script lsc2131
+}
+
+local-script lsc2142@2142 {
+    var local0
+
+    if (room13 || global553) {
+        stop-script lsc2097
+        start-script lsc2089
+        start-script lsc2131
+        stop-sound g_maybe_net_yell_sound
+        start-script maybe_net_smth_yell_sound 0 3
+        break-here
+        global111 = 0
+        kludge 2001 2208 global553
+        break-until (global111 != 0)
+        if (global111 == 99) {
+            start-script smth_net359 0 1
+        } else {
+            assign-string local0 "Failure on hosting."
+            start-script smth_message_popup local0 0 0
+            break-until (not (script-running smth_message_popup))
+            stop-script lsc2095
+            stop-sound sound2634
+            sprite.init room1[63]
+            sprite.new
+            sprite.property 0 2
+            if (script-running lsc2108) {
+                stop-script lsc2108
+            }
+            sprite.init room1[2]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[8]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[9]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[10]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[11]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[12]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[19]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[37]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[39]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[38]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[40]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[60]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[67]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[33]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[35]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[34]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[36]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[32]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[41]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[43]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[44]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[45]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[46]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[47]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[48]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[49]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[50]
+            sprite.new
+            sprite.property 0 2
+            sprite.init room1[51]
+            sprite.new
+            sprite.property 0 2
+            array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+            array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+            array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+            array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+            array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+            stop-script lsc2089
+            if room29 {
+                undim room29
+            }
+            start-script FreePopup
+            start-script scr425
+            room20 = 0
+            room12 = 0
+            room13 = 0
+            room23 = 0
+            start-script lsc2119 room23
+            start-script lsc2123
+            start-script lsc2097
+        }
+    } else if global553 {
+        kludge 2001 2215 global553
+    }
+}
+
+local-script lsc2143@2143 {
+    start-script PlayClickySound
+    sprite.init room1[67]
+    sprite.new
+    sprite.image image1574
+    sprite.at 320 240
+    sprite.state 5
+    sprite.order 1950
+    sprite.animation-type 0
+    sprite.update-type 0
+    sprite.palette room30
+    stop-script scr424
+    start-script scr425
+    if (room12 && room13) {
+        start-script lsc2139
+    } else {
+        start-script lsc2096
+    }
+    break-here
+}
+
+local-script lsc2144@2144 {
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    stop-sound sound2627
+    stop-script lsc2095
+    stop-sound sound2634
+    sprite.init room1[63]
+    sprite.new
+    sprite.property 0 2
+    if (script-running lsc2128) {
+        stop-script lsc2128
+        stop-sound sound2628
+    }
+    stop-script lsc2129
+    stop-sound sound2630
+    room25 = 1
+    if (script-running lsc2108) {
+        stop-script lsc2108
+    }
+    sprite.init room1[2]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[8]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[9]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[10]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[11]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[12]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[19]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[37]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[39]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[38]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[40]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[60]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[67]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[33]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[35]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[34]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[36]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[32]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[41]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[43]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[44]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[45]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[46]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[47]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[48]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[49]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[50]
+    sprite.new
+    sprite.property 0 2
+    sprite.init room1[51]
+    sprite.new
+    sprite.property 0 2
+    array-assign-list gSpriteCursorTargets room1[6] room1[6] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[5] room1[5] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[7] room1[7] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[11] room1[11] 1 4 [0]
+    array-assign-list gSpriteCursorTargets room1[12] room1[12] 1 4 [0]
+    start-script.rec lsc2112 57
+    start-script.rec lsc2112 56
+    start-script.rec lsc2112 15 2 0
+    if 0 {
+        global110 = 0
+    }
+    if (not (script-running lsc2102)) {
+        start-script lsc2102
+    }
+    if (not (script-running lsc2101)) {
+        start-script lsc2101
+    }
+    stop-script lsc2089
+    if room29 {
+        undim room29
+    }
+    start-script FreePopup
+    kludge 2001 2220 0
+    start-script scr425
+    room20 = 0
+    room14 = 0
+    room12 = 0
+    room13 = 0
+    room23 = 0
+    start-script lsc2119 room23
+    start-script lsc2123
+    start-script lsc2090 gField
+    global553 = 0
+    room25 = 1
+    break-here
+}
+
+enter {
+    room33 = 4
+    gMinJiffies = 6
+    global40 = 333
+    global706 = 0
+    if (not (sound-running 8137)) {
+        start-script AddSongsToPool -1
+        start-script AddSongsToPool 8137
+        start-script PlayMusicPool -1
+    }
+    start-script lsc2050
+    start-script lsc2122
+}
+
+exit {
+    start-script lsc2125
+}

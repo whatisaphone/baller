@@ -1,9 +1,0 @@
-; LSC2 40 2068
-
-local variable local0
-
-if (!(local0 in [1, 0])) {
-    local0 = 0
-}
-global680[26] = local0
-free-script

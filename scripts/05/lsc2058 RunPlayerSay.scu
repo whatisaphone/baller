@@ -1,9 +1,0 @@
-; LSC2 5 2058 RunPlayerSay
-
-parameter arg0
-
-local variable local1
-
-local1 = actor-get-var arg0 10
-run-script PlayerSay [local1]
-free-script

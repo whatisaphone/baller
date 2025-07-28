@@ -1,0 +1,331 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "records/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+script SeasonOverCheckNewRecords@376 {
+    var local0 _ local2 _ local4 _ _ local7 local8 _ _ local11 local12 local13 local14 _ local16 local17
+
+    if (gGameLength == 12) {
+        local4 = 12
+    }
+    for local0 = 0 to 11 + {
+        local7 = local0 + local4
+        case local0 {
+            0 {
+                local8 = 10
+            }
+            1 {
+                local8 = 1
+            }
+            2 {
+                local8 = 8
+            }
+            3 {
+                local8 = 9
+            }
+            4 {
+                local8 = 15
+            }
+            5 {
+                local8 = 12
+            }
+            6 {
+                local8 = 23
+            }
+            7 {
+                local8 = 24
+            }
+            8 {
+                local8 = 11
+            }
+            9 {
+                local8 = 17
+            }
+            10 {
+                local8 = 26
+            }
+            11 {
+                local8 = 14
+            }
+            else {
+            }
+        }
+        for local2 = 0 to 23 + {
+            if (local2 != gSeasonDivision) {
+                local11 = max local11 (call-script scr406 local2 local8 local7)
+            }
+        }
+    }
+    for local0 = 0 to 11 + {
+        local7 = local0 + local4
+        case local0 {
+            0 {
+                local8 = 10
+            }
+            1 {
+                local8 = 1
+            }
+            2 {
+                local8 = 8
+            }
+            3 {
+                local8 = 9
+            }
+            4 {
+                local8 = 15
+            }
+            5 {
+                local8 = 12
+            }
+            6 {
+                local8 = 23
+            }
+            7 {
+                local8 = 24
+            }
+            8 {
+                local8 = 11
+            }
+            9 {
+                local8 = 17
+            }
+            10 {
+                local8 = 26
+            }
+            11 {
+                local8 = 14
+            }
+            else {
+            }
+        }
+        if (call-script scr406 gSeasonDivision local8 local7) {
+            local17 = bor local17 (1 << local0)
+        }
+    }
+    print-debug.start
+    print-debug.printf "Arrays before print congrats %d" (free-arrays)
+    if (local17 && gPopupState == 0) {
+        local16 = call-script BuildNewRecordsMessage local17
+        start-script ShowPopup local16 2 4 0
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+    }
+    print-debug.start
+    print-debug.printf "Arrays after print congrats %d" (free-arrays)
+    break-until (gPopupState == 0)
+    if (local11 || local17) {
+        assign-string local14 "baseball2001"
+        sprintf local12 "%s%s.rec" gSaveGamePath local14
+        undim local14
+        local13 = open-file local12 FOR-WRITE
+        write-file.array.u8 local13 gRecordBook
+        close-file local13
+        undim local12
+    }
+}
+
+script smth_record_book@377 arg0 arg1 arg2 arg3 {
+    var local4 local5 _ _ local8 local9 local10 local11 local12 local13 local14 local15 local16 local17
+
+    if (arg2 == gSeasonDivision) {
+        local17 = 1
+    }
+    local5 = 9
+    L0014:
+    dec local5
+    if (local5 < 0) {
+    } else {
+        sprintf local8 "%c%c%c%c" gRecordBook[arg0][local5 * 49] gRecordBook[arg0][local5 * 49 + 1] gRecordBook[arg0][local5 * 49 + 2] gRecordBook[arg0][local5 * 49 + 3]
+        local9 = string-number local8
+        undim local8
+        if (in arg0 [10 22]) {
+            if (arg3 - local17 < local9) {
+                jump L0014
+            }
+        } else if (arg3 + local17 > local9) {
+            jump L0014
+        }
+    }
+    inc local5
+    local4 = local5 * 49
+    if (local5 < 9) {
+        array-assign-slice gRecordBook gRecordBook arg0 arg0 (local4 + 49) (9 * 49) arg0 arg0 local4 (8 * 49)
+    }
+    sprintf local10 "%d" arg3
+    local8 = call-script PadString local10 4 '0' 1
+    undim local10
+    start-script GetKidName arg1
+    temp2 = string-length gKidName - 1
+    for temp = 0 to temp2 + {
+        if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+            gKidName[temp] -= 32
+        }
+    }
+    if (call-script CalcStringPixelWidth gKidName 1239 1 > 124) {
+        start-script GetKidName arg1 5
+        temp2 = string-length gKidName - 1
+        for temp = 0 to temp2 + {
+            if (gKidName[temp] >= 97 && gKidName[temp] <= 122) {
+                gKidName[temp] -= 32
+            }
+        }
+    }
+    local14 = call-script PadString gKidName 22 ' '
+    if (not local17) {
+        local10 = call-script scr267 gSeasonRosterArray[arg2][9]
+    } else {
+        sprintf local10 "%s" gCoachName
+    }
+    local11 = call-script PadString local10 15 ' '
+    undim local10
+    local12 = gSeasonRosterArray[arg2][10]
+    sprintf local13 "%c%c" local12 gSeasonRosterArray[arg2][11]
+    temp = gNowYear
+    temp %= 100
+    if (temp < 10) {
+        sprintf local16 "200%d" temp
+    } else {
+        sprintf local16 "20%d" temp
+    }
+    sprintf local15 "%c%c%s" gNowMonth gNowDay local16
+    undim local16
+    sprintf local10 "%s%s%s%s%s" local8 local14 local11 local13 local15
+    array-assign-slice gRecordBook local10 arg0 arg0 local4 (local4 + 49 - 1) 0 0 0 (49 - 1)
+    undim local10
+    undim local8
+    undim local14
+    undim local11
+    undim local13
+    undim local15
+}
+
+script scr406@406 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8 local9 local10
+
+    if (local0 == gSeasonDivision) {
+        local7 = 1
+    }
+    local10 = 9 * 49
+    for local6 = 0 to 8 + {
+        sprintf local9 "%c%c%c%c" gRecordBook[local2][local10] gRecordBook[local2][local10 + 1] gRecordBook[local2][local10 + 2] gRecordBook[local2][local10 + 3]
+        local8 = string-number local9
+        undim local9
+        local3 = gSeasonRosterArray[local0][local6]
+        if (local1 == 26) {
+            local4 = call-script maybe_calculate_era local3
+        } else if (in local1 [23 24]) {
+            local4 = call-script CalculateBattingStat local3 local1
+        } else {
+            local4 = gSeasonStats[local3][local1]
+        }
+        if (local1 == 26) {
+            if (local4 - local7 < local8) {
+                local5 = 1
+                start-script smth_record_book local2 local3 local0 local4
+            }
+        } else if (local4 + local7 > local8) {
+            local5 = 1
+            start-script smth_record_book local2 local3 local0 local4
+        }
+    }
+    return local5
+}
+
+script GetRecordName@426 arg0 {
+    var local1
+
+    case arg0 {
+        0 {
+            assign-string local1 "HOME RUNS"
+        }
+        1 {
+            assign-string local1 "HITS"
+        }
+        2 {
+            assign-string local1 "DOUBLES"
+        }
+        3 {
+            assign-string local1 "TRIPLES"
+        }
+        4 {
+            assign-string local1 "RBIS"
+        }
+        5 {
+            assign-string local1 "RUNS"
+        }
+        6 {
+            assign-string local1 "BATTING AVERAGE"
+        }
+        7 {
+            assign-string local1 "SLUGGING PERCENTAGE"
+        }
+        8 {
+            assign-string local1 "STEALS"
+        }
+        9 {
+            assign-string local1 "STRIKE OUTS PITCHED"
+        }
+        10 {
+            assign-string local1 "ERA"
+        }
+        11 {
+            assign-string local1 "ERRORS"
+        }
+        else {
+            debug 0
+            assign-string local1 ""
+        }
+    }
+    return local1
+}
+
+script BuildNewRecordsMessage@427 {
+    var local0 local1 local2 local3 local4 local5
+
+    assign-string local3 ""
+    for local4 = 0 to 11 + {
+        if (band local0 1 && 72 - string-length local3 >= 21) {
+            local1 = call-script GetRecordName local4
+            sprintf local2 "%s" local3
+            undim local3
+            sprintf local3 "%s, %s" local2 local1
+            undim local2
+            undim local1
+            inc local5
+        }
+        local0 >>= 1
+    }
+    local3[0] = 58
+    if (local5 > 1) {
+        assign-string local2 "s"
+    } else {
+        assign-string local2 ""
+    }
+    sprintf local1 "Congratulations!  You broke the following record%s this season%s" local2 local3
+    undim local2
+    undim local3
+    return local1
+}
+
+enter {
+}
+
+exit {
+}

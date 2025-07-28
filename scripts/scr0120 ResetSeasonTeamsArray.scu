@@ -1,7 +1,0 @@
-; SCRP 120 ResetSeasonTeamsArray
-
-if (gSeasonTeamsArray) {
-    free-array gSeasonTeamsArray
-}
-dim array gSeasonTeamsArray byte[0...5][0...3] swap=2
-free-script

@@ -1,0 +1,188 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "ovdialog/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+    global239 = 2
+}
+
+exit {
+}
+
+sound TALK sound1952@1952 {
+    raw-block HSHD `00008080ffff112b0800000000000000`
+    sdat "ovdialog/sound1952.wav"
+}
+sound TALK sound1953@1953 {
+    raw-block HSHD `00008080ffff112b1024000000000000`
+    sdat "ovdialog/sound1953.wav"
+}
+sound TALK sound1954@1954 {
+    raw-block HSHD `00008080ffff112bf843000000000000`
+    sdat "ovdialog/sound1954.wav"
+}
+sound TALK sound1955@1955 {
+    raw-block HSHD `00008080ffff112b2068000000000000`
+    sdat "ovdialog/sound1955.wav"
+}
+sound TALK sound1956@1956 {
+    raw-block HSHD `00008080ffff112b288a000000000000`
+    sdat "ovdialog/sound1956.wav"
+}
+sound TALK sound1957@1957 {
+    raw-block HSHD `00008080ffff112b70ac000000000000`
+    sdat "ovdialog/sound1957.wav"
+}
+sound TALK sound1958@1958 {
+    raw-block HSHD `00008080ffff112b78d2000000000000`
+    sdat "ovdialog/sound1958.wav"
+}
+sound TALK sound1959@1959 {
+    raw-block HSHD `00008080ffff112bc0f2000000000000`
+    sdat "ovdialog/sound1959.wav"
+}
+sound TALK sound1960@1960 {
+    raw-block HSHD `00008080ffff112bc819010000000000`
+    sdat "ovdialog/sound1960.wav"
+}
+sound TALK sound1961@1961 {
+    raw-block HSHD `00008080ffff112b304e010000000000`
+    sdat "ovdialog/sound1961.wav"
+}
+sound TALK sound1962@1962 {
+    raw-block HSHD `00008080ffff112b587a010000000000`
+    sdat "ovdialog/sound1962.wav"
+}
+sound TALK sound1963@1963 {
+    raw-block HSHD `00008080ffff112b40e0010000000000`
+    sdat "ovdialog/sound1963.wav"
+}
+sound TALK sound1964@1964 {
+    raw-block HSHD `00008080ffff112b0804020000000000`
+    sdat "ovdialog/sound1964.wav"
+}
+sound TALK sound1965@1965 {
+    raw-block HSHD `00008080ffff112b2a38020000000000`
+    sdat "ovdialog/sound1965.wav"
+}
+sound TALK sound1966@1966 {
+    raw-block HSHD `00008080ffff112b3266020000000000`
+    sdat "ovdialog/sound1966.wav"
+}
+sound TALK sound1967@1967 {
+    raw-block HSHD `00008080ffff112bfa9d020000000000`
+    sdat "ovdialog/sound1967.wav"
+}
+sound TALK sound1968@1968 {
+    raw-block HSHD `00008080ffff112b62d8020000000000`
+    sdat "ovdialog/sound1968.wav"
+}
+sound TALK sound1969@1969 {
+    raw-block HSHD `00008080ffff112b4afd020000000000`
+    sdat "ovdialog/sound1969.wav"
+}
+sound TALK sound1970@1970 {
+    raw-block HSHD `00008080ffff112b1223030000000000`
+    sdat "ovdialog/sound1970.wav"
+}
+sound TALK sound1971@1971 {
+    raw-block HSHD `00008080ffff112b1a4b030000000000`
+    sdat "ovdialog/sound1971.wav"
+}
+sound TALK sound1972@1972 {
+    raw-block HSHD `00008080ffff112b525c030000000000`
+    sdat "ovdialog/sound1972.wav"
+}
+sound TALK sound1973@1973 {
+    raw-block HSHD `00008080ffff112b9a73030000000000`
+    sdat "ovdialog/sound1973.wav"
+}
+sound TALK sound1974@1974 {
+    raw-block HSHD `00008080ffff112ba29b030000000000`
+    sdat "ovdialog/sound1974.wav"
+}
+sound TALK sound1975@1975 {
+    raw-block HSHD `00008080ffff112bc4b7030000000000`
+    sdat "ovdialog/sound1975.wav"
+}
+sound TALK sound1976@1976 {
+    raw-block HSHD `00008080ffff112b8ce0030000000000`
+    sdat "ovdialog/sound1976.wav"
+}
+sound TALK sound1977@1977 {
+    raw-block HSHD `00008080ffff112b94fc030000000000`
+    sdat "ovdialog/sound1977.wav"
+}
+sound TALK sound1978@1978 {
+    raw-block HSHD `00008080ffff112b3c20040000000000`
+    sdat "ovdialog/sound1978.wav"
+}
+sound TALK sound1979@1979 {
+    raw-block HSHD `00008080ffff112ba43f040000000000`
+    sdat "ovdialog/sound1979.wav"
+}
+sound TALK sound1980@1980 {
+    raw-block HSHD `00008080ffff112b8c79040000000000`
+    sdat "ovdialog/sound1980.wav"
+}
+sound TALK sound1981@1981 {
+    raw-block HSHD `00008080ffff112b9498040000000000`
+    sdat "ovdialog/sound1981.wav"
+}
+sound TALK sound1982@1982 {
+    raw-block HSHD `00008080ffff112b7cbd040000000000`
+    sdat "ovdialog/sound1982.wav"
+}
+sound TALK sound1983@1983 {
+    raw-block HSHD `00008080ffff112ba4e9040000000000`
+    sdat "ovdialog/sound1983.wav"
+}
+sound TALK sound1984@1984 {
+    raw-block HSHD `00008080ffff112b6c1d050000000000`
+    sdat "ovdialog/sound1984.wav"
+}
+sound TALK sound1985@1985 {
+    raw-block HSHD `00008080ffff112bb43e050000000000`
+    sdat "ovdialog/sound1985.wav"
+}
+sound TALK sound1986@1986 {
+    raw-block HSHD `00008080ffff112bdc58050000000000`
+    sdat "ovdialog/sound1986.wav"
+}
+sound TALK sound1987@1987 {
+    raw-block HSHD `00008080ffff112b84a4050000000000`
+    sdat "ovdialog/sound1987.wav"
+}
+sound TALK sound1988@1988 {
+    raw-block HSHD `00008080ffff112bcccb050000000000`
+    sdat "ovdialog/sound1988.wav"
+}
+sound TALK sound1989@1989 {
+    raw-block HSHD `00008080ffff112bf4ea050000000000`
+    sdat "ovdialog/sound1989.wav"
+}
+sound TALK sound1990@1990 {
+    raw-block HSHD `00008080ffff112b5c18060000000000`
+    sdat "ovdialog/sound1990.wav"
+}
+sound TALK sound1991@1991 {
+    raw-block HSHD `00008080ffff112bc439060000000000`
+    sdat "ovdialog/sound1991.wav"
+}
+sound TALK sound1992@1992 {
+    raw-block HSHD `00008080ffff112b4c61060000000000`
+    sdat "ovdialog/sound1992.wav"
+}
+sound TALK sound1993@1993 {
+    raw-block HSHD `00008080ffff112b748f060000000000`
+    sdat "ovdialog/sound1993.wav"
+}

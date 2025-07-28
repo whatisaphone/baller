@@ -1,0 +1,2385 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "strat-res/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+}
+
+exit {
+}
+
+mult image984@984 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image984/RGBS.bin"
+        raw-block RMAP "strat-res/image984/RMAP.bin"
+        raw-block CUSE `02a5a400`
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "strat-res/image984/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "strat-res/image984/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "strat-res/image984/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `340100009d000000`
+        wizd 1 "strat-res/image984/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image985@985 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image985/RGBS.bin"
+        raw-block RMAP "strat-res/image985/RMAP.bin"
+        raw-block CUSE "strat-res/image985/CUSE.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "strat-res/image985/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "strat-res/image985/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "strat-res/image985/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3001000099000000`
+        wizd 1 "strat-res/image985/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image986@986 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image986/RGBS.bin"
+        raw-block RMAP "strat-res/image986/RMAP.bin"
+        raw-block CUSE "strat-res/image986/CUSE.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffff99000000`
+        wizd 1 "strat-res/image986/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a9ffffff99000000`
+        wizd 1 "strat-res/image986/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `54ffffff99000000`
+        wizd 1 "strat-res/image986/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0fffffff99000000`
+        wizd 1 "strat-res/image986/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image987@987 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image987/RGBS.bin"
+        raw-block RMAP "strat-res/image987/RMAP.bin"
+        raw-block CUSE "strat-res/image987/CUSE.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f4ffffff99000000`
+        wizd 1 "strat-res/image987/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a9ffffff99000000`
+        wizd 1 "strat-res/image987/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `54ffffff99000000`
+        wizd 1 "strat-res/image987/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0fffffff99000000`
+        wizd 1 "strat-res/image987/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+mult image988@988 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image988/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2501000073000000`
+        wizd 1 "strat-res/image988/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2501000073000000`
+        wizd 1 "strat-res/image988/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image989@989 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image989/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `6b0000001e000000`
+        wizd 1 "strat-res/image989/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8]
+}
+mult image990@990 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image990/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `250100001e000000`
+        wizd 1 "strat-res/image990/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2501000009000000`
+        wizd 1 "strat-res/image990/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25010000f4ffffff`
+        wizd 1 "strat-res/image990/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25010000dfffffff`
+        wizd 1 "strat-res/image990/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25010000caffffff`
+        wizd 1 "strat-res/image990/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25010000b5ffffff`
+        wizd 1 "strat-res/image990/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `25010000a0ffffff`
+        wizd 1 "strat-res/image990/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `250100008bffffff`
+        wizd 1 "strat-res/image990/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2501000076ffffff`
+        wizd 1 "strat-res/image990/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8]
+}
+mult image991@991 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image991/RGBS.bin"
+        raw-block RMAP "strat-res/image991/RMAP.bin"
+        raw-block CUSE "strat-res/image991/CUSE.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f2ffffff99000000`
+        wizd 1 "strat-res/image991/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `a6ffffff99000000`
+        wizd 1 "strat-res/image991/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `51ffffff99000000`
+        wizd 1 "strat-res/image991/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0cffffff99000000`
+        wizd 1 "strat-res/image991/0003.bmp"
+    }
+    indices [0 1 2 3]
+}
+awiz image992@992 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image992.bmp"
+}
+awiz image993@993 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image993.bmp"
+}
+awiz image994@994 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image994.bmp"
+}
+awiz image995@995 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image995.bmp"
+}
+awiz image996@996 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image996.bmp"
+}
+awiz image997@997 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image997.bmp"
+}
+awiz image998@998 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image998.bmp"
+}
+awiz image999@999 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image999.bmp"
+}
+awiz image1000@1000 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image1000.bmp"
+}
+awiz image1001@1001 {
+    rgbs
+    raw-block CNVS `770200008b010000`
+    raw-block RELO `06010000a4000000`
+    wizh
+    wizd 1 "strat-res/image1001.bmp"
+}
+mult image1002@1002 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1002/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `80000000e5ffffff`
+        wizd 1 "strat-res/image1002/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `80000000e5ffffff`
+        wizd 1 "strat-res/image1002/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `80000000e5ffffff`
+        wizd 1 "strat-res/image1002/0002.bmp"
+    }
+    indices [0 1 2]
+}
+mult image1003@1003 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1003/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `bfffffffe5ffffff`
+        wizd 1 "strat-res/image1003/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `bfffffffe5ffffff`
+        wizd 1 "strat-res/image1003/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1004@1004 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1004/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0cffffffe5ffffff`
+        wizd 1 "strat-res/image1004/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0cffffffe5ffffff`
+        wizd 1 "strat-res/image1004/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1005@1005 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1005/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `240100006e000000`
+        wizd 1 "strat-res/image1005/0005.bmp"
+    }
+    indices [0 1 2 3 4 5]
+}
+mult image1006@1006 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1006/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9e0000006c000000`
+        wizd 1 "strat-res/image1006/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9e0000006d000000`
+        wizd 1 "strat-res/image1006/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9e0000006d000000`
+        wizd 1 "strat-res/image1006/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9e0000006d000000`
+        wizd 1 "strat-res/image1006/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006c000000`
+        wizd 1 "strat-res/image1006/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `9d0000006d000000`
+        wizd 1 "strat-res/image1006/0019.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19]
+}
+mult image1007@1007 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1007/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2c0100005a000000`
+        wizd 1 "strat-res/image1007/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `2c0100005a000000`
+        wizd 1 "strat-res/image1007/0001.bmp"
+    }
+    indices [0 1]
+}
+mult image1008@1008 {
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0030.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0031.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "strat-res/image1008/0032.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0033.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0034.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000b000000`
+        wizd 1 "strat-res/image1008/0035.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0e000000`
+        wizd 1 "strat-res/image1008/0036.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0037.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0038.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0039.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0040.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0041.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0042.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0043.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000002000000`
+        wizd 1 "strat-res/image1008/0044.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000006000000`
+        wizd 1 "strat-res/image1008/0045.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000003000000`
+        wizd 1 "strat-res/image1008/0046.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0047.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0048.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0049.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0050.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0051.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0052.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0053.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0054.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0055.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0056.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0057.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff08000000`
+        wizd 1 "strat-res/image1008/0058.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff08000000`
+        wizd 1 "strat-res/image1008/0059.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0a000000`
+        wizd 1 "strat-res/image1008/0060.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff09000000`
+        wizd 1 "strat-res/image1008/0061.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0a000000`
+        wizd 1 "strat-res/image1008/0062.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0063.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0064.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0065.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0066.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0067.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0068.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0069.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0070.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0071.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0072.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0073.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0074.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0075.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0076.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0077.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0078.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0079.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0080.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0081.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0082.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0083.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0084.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0085.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0086.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0087.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0088.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0089.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0090.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0091.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0092.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0093.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0094.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `00000000ffffffff`
+        wizd 1 "strat-res/image1008/0095.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0096.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0097.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0098.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0099.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0100.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0101.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0102.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0103.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0104.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0105.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0106.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0107.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0108.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0109.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0110.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0111.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0112.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0113.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0114.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0115.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000c000000`
+        wizd 1 "strat-res/image1008/0116.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0117.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0118.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000a000000`
+        wizd 1 "strat-res/image1008/0119.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000a000000`
+        wizd 1 "strat-res/image1008/0120.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000a000000`
+        wizd 1 "strat-res/image1008/0121.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0122.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0123.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0124.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0125.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff08000000`
+        wizd 1 "strat-res/image1008/0126.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0127.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0128.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0129.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000002000000`
+        wizd 1 "strat-res/image1008/0130.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0131.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000002000000`
+        wizd 1 "strat-res/image1008/0132.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000003000000`
+        wizd 1 "strat-res/image1008/0133.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0134.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0135.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0136.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0137.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0138.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000009000000`
+        wizd 1 "strat-res/image1008/0139.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0140.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0141.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0142.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0143.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0144.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0145.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0146.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0147.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0148.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff09000000`
+        wizd 1 "strat-res/image1008/0149.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000006000000`
+        wizd 1 "strat-res/image1008/0150.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000006000000`
+        wizd 1 "strat-res/image1008/0151.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000f000000`
+        wizd 1 "strat-res/image1008/0152.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0153.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0154.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000009000000`
+        wizd 1 "strat-res/image1008/0155.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0156.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0157.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff0a000000`
+        wizd 1 "strat-res/image1008/0158.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0159.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0b000000`
+        wizd 1 "strat-res/image1008/0161.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0162.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0163.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000009000000`
+        wizd 1 "strat-res/image1008/0164.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0165.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0166.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0167.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0168.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000b000000`
+        wizd 1 "strat-res/image1008/0169.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0170.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000009000000`
+        wizd 1 "strat-res/image1008/0171.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff09000000`
+        wizd 1 "strat-res/image1008/0172.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000006000000`
+        wizd 1 "strat-res/image1008/0173.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000c000000`
+        wizd 1 "strat-res/image1008/0174.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0175.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0176.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000c000000`
+        wizd 1 "strat-res/image1008/0177.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0178.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0179.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0e000000`
+        wizd 1 "strat-res/image1008/0180.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0181.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0182.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff08000000`
+        wizd 1 "strat-res/image1008/0183.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff00000000`
+        wizd 1 "strat-res/image1008/0184.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0185.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0186.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `feffffff09000000`
+        wizd 1 "strat-res/image1008/0187.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0188.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0189.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0190.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000b000000`
+        wizd 1 "strat-res/image1008/0191.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0192.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0193.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0194.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000011000000`
+        wizd 1 "strat-res/image1008/0195.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0196.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000011000000`
+        wizd 1 "strat-res/image1008/0197.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0198.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0199.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0200.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0201.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0202.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0203.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0204.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0205.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0206.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0207.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0208.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff11000000`
+        wizd 1 "strat-res/image1008/0209.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0210.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0211.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0212.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff11000000`
+        wizd 1 "strat-res/image1008/0213.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0214.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0a000000`
+        wizd 1 "strat-res/image1008/0215.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0216.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0217.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0218.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0219.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff10000000`
+        wizd 1 "strat-res/image1008/0220.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `0000000010000000`
+        wizd 1 "strat-res/image1008/0221.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0d000000`
+        wizd 1 "strat-res/image1008/0222.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0223.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0224.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0225.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0226.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0227.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0228.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0229.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0230.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0231.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0232.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0233.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0234.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0235.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0236.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0237.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0238.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0239.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0240.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0241.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0242.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0243.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0244.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000e000000`
+        wizd 1 "strat-res/image1008/0245.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0246.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `ffffffff0a000000`
+        wizd 1 "strat-res/image1008/0247.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000a000000`
+        wizd 1 "strat-res/image1008/0248.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0249.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0250.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0251.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0252.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0253.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `000000000d000000`
+        wizd 1 "strat-res/image1008/0254.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `010000000d000000`
+        wizd 1 "strat-res/image1008/0255.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 32 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209 210 211 212 213 214 215 216 217 218 219 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 247 248 249 250 251 252 253 254]
+}
+awiz image1009@1009 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1009.bmp"
+}
+awiz image1010@1010 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1010.bmp"
+}
+awiz image1011@1011 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1011.bmp"
+}
+awiz image1012@1012 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1012.bmp"
+}
+awiz image1013@1013 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1013.bmp"
+}
+awiz image1014@1014 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1014.bmp"
+}
+awiz image1015@1015 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1015.bmp"
+}
+awiz image1016@1016 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1016.bmp"
+}
+awiz image1017@1017 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1017.bmp"
+}
+awiz image1018@1018 {
+    raw-block CNVS `10000000d0010000`
+    raw-block RELO `08000000c8010000`
+    wizh
+    wizd 1 "strat-res/image1018.bmp"
+}
+mult image1019@1019 {
+    awiz {
+        wizh
+        raw-block SPOT `fdfffffffeffffff`
+        wizd 1 "strat-res/image1019/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffffffffffff`
+        wizd 1 "strat-res/image1019/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f7ffffffffffffff`
+        wizd 1 "strat-res/image1019/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f8ffffffffffffff`
+        wizd 1 "strat-res/image1019/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fdffffffffffffff`
+        wizd 1 "strat-res/image1019/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffffffffffff`
+        wizd 1 "strat-res/image1019/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffeffffff`
+        wizd 1 "strat-res/image1019/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffffffffffff`
+        wizd 1 "strat-res/image1019/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1019/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1019/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1019/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1019/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffffffffffff`
+        wizd 1 "strat-res/image1019/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9fffffffeffffff`
+        wizd 1 "strat-res/image1019/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1019/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcffffffffffffff`
+        wizd 1 "strat-res/image1019/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1019/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1019/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1019/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffffffffffff`
+        wizd 1 "strat-res/image1019/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcffffffffffffff`
+        wizd 1 "strat-res/image1019/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbffffffffffffff`
+        wizd 1 "strat-res/image1019/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1019/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fdfffffffeffffff`
+        wizd 1 "strat-res/image1019/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1019/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1019/0030.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30]
+}
+mult image1020@1020 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1020/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffcffffff`
+        wizd 1 "strat-res/image1020/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffaffffff`
+        wizd 1 "strat-res/image1020/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffeffffff`
+        wizd 1 "strat-res/image1020/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffbffffff`
+        wizd 1 "strat-res/image1020/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffbffffff`
+        wizd 1 "strat-res/image1020/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffeffffff`
+        wizd 1 "strat-res/image1020/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbffffffffffffff`
+        wizd 1 "strat-res/image1020/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1020/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbfffffffeffffff`
+        wizd 1 "strat-res/image1020/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffaffffff`
+        wizd 1 "strat-res/image1020/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffdffffff`
+        wizd 1 "strat-res/image1020/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffeffffff`
+        wizd 1 "strat-res/image1020/0011.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffaffffff`
+        wizd 1 "strat-res/image1020/0012.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f9ffffffffffffff`
+        wizd 1 "strat-res/image1020/0013.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fdfffffffdffffff`
+        wizd 1 "strat-res/image1020/0014.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fdfffffff6ffffff`
+        wizd 1 "strat-res/image1020/0015.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffeffffff`
+        wizd 1 "strat-res/image1020/0016.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fdfffffff8ffffff`
+        wizd 1 "strat-res/image1020/0017.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffeffffff`
+        wizd 1 "strat-res/image1020/0018.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f7fffffffeffffff`
+        wizd 1 "strat-res/image1020/0019.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffcffffff`
+        wizd 1 "strat-res/image1020/0020.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffff9ffffff`
+        wizd 1 "strat-res/image1020/0021.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffff9ffffff`
+        wizd 1 "strat-res/image1020/0022.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffeffffff`
+        wizd 1 "strat-res/image1020/0023.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffdffffff`
+        wizd 1 "strat-res/image1020/0024.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f8ffffffffffffff`
+        wizd 1 "strat-res/image1020/0025.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffff8ffffff`
+        wizd 1 "strat-res/image1020/0026.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fefffffffdffffff`
+        wizd 1 "strat-res/image1020/0027.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffcffffff`
+        wizd 1 "strat-res/image1020/0028.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffcffffff`
+        wizd 1 "strat-res/image1020/0029.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fbffffffffffffff`
+        wizd 1 "strat-res/image1020/0030.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30]
+}
+mult image1021@1021 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1021/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `f2ffffff8affffff`
+        wizd 1 "strat-res/image1021/0000.bmp"
+    }
+    indices [0]
+}
+mult image1499@1499 {
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffbffffff`
+        wizd 1 "strat-res/image1499/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffff7ffffff`
+        wizd 1 "strat-res/image1499/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffbffffff`
+        wizd 1 "strat-res/image1499/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffff7ffffff`
+        wizd 1 "strat-res/image1499/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fcfffffffbffffff`
+        wizd 1 "strat-res/image1499/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffff7ffffff`
+        wizd 1 "strat-res/image1499/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffcffffff`
+        wizd 1 "strat-res/image1499/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffdffffff`
+        wizd 1 "strat-res/image1499/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffcffffff`
+        wizd 1 "strat-res/image1499/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffdffffff`
+        wizd 1 "strat-res/image1499/0009.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fffffffffcffffff`
+        wizd 1 "strat-res/image1499/0010.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `fafffffffdffffff`
+        wizd 1 "strat-res/image1499/0011.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9 10 11]
+}
+mult image1460@1460 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1460/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0006.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0008.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `5700000049000000`
+        wizd 1 "strat-res/image1460/0009.bmp"
+    }
+    indices [0 1 2 3 4 5 6 7 8 9]
+}
+mult image1459@1459 {
+    raw-block DEFA {
+        raw-block RGBS "strat-res/image1459/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0004.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `faffffff49000000`
+        wizd 1 "strat-res/image1459/0006.bmp"
+    }
+    indices [0 1 2 3 4 5 6]
+}

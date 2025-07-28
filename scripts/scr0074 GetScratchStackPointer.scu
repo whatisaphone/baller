@@ -1,4 +1,0 @@
-; SCRP 74 GetScratchStackPointer
-
-return gScratchStackPointer
-free-script

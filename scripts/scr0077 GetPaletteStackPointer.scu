@@ -1,4 +1,0 @@
-; SCRP 77 GetPaletteStackPointer
-
-return gPaletteStackPointer
-free-script

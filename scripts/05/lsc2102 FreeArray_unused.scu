@@ -1,6 +1,0 @@
-; LSC2 5 2102 FreeArray_unused
-
-parameter arg0
-
-free-array arg0
-free-script

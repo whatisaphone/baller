@@ -1,0 +1,3045 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 138 "netstuff/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+script scr317@317 {
+    var local0
+
+    if (gNetplayActive || local0) {
+        kludge 2001 2201
+    }
+    global571 = 0
+}
+
+script NetLogin@318 username password {
+    var local2
+
+    global108 = 0
+    kludge 2001 2200
+    if (global108 != -99) {
+        kludge 2001 2202 username password
+        do {
+            break-here
+            inc local2
+        } until (global108 != 0 || local2 == 300)
+    } else {
+        local2 = global108
+    }
+    undim global568
+    if (local2 == 300) {
+        if global109 {
+            undim global109
+        }
+        assign-string global109 "Server Not Responding"
+        global108 = -99
+        start-script scr317 1
+    }
+    if (global108 == 99) {
+        global571 = 1
+    } else if (global108 == -99) {
+        if global109 {
+            sprintf global568 "%s" global109
+            undim global109
+        } else {
+            assign-string global568 "Unknown Error"
+        }
+        global571 = 0
+    }
+}
+
+script scr319@319 {
+    var local0
+
+    kludge 2001 2204 local0
+    global559 = local0
+}
+
+script scr320@320 {
+    var local0
+
+    local0 = kludge-call 2001 2205
+    return local0
+}
+
+script scr321@321 {
+    var local0 local1 local2
+
+    local2 = kludge-call 2001 2206 local0 local1
+}
+
+script scr322@322 {
+    var local0 local1
+
+    if local0 {
+        local1 = kludge-call 2001 2207 local0
+    } else {
+        local1 = kludge-call 2001 2207
+    }
+    if (not global108) {
+    } else if (not global109) {
+    }
+}
+
+script scr323@323 {
+    var local0
+
+    global111 = 0
+    if local0 {
+        kludge 2001 2214 local0
+    } else {
+        kludge 2001 2214
+    }
+    break-until (global111 != 0)
+    if (global111 == -99) {
+    } else {
+        if local0 {
+            array-assign-slice global562 global108 0 0 0 30 0 0 0 30
+        } else {
+            array-assign-slice global561 global108 0 0 0 30 0 0 0 30
+            if global561[30] {
+            } else {
+            }
+        }
+        undim global108
+    }
+}
+
+script NetHandleMessageLobby@324 arg0 arg1 arg2 arg3 arg4 arg5 arg6 arg7 _ _ _ {
+    case arg0 {
+        9919 {
+            start-script scr327
+        }
+        9920 {
+            start-script scr393 arg0 arg1 arg2 arg3 arg4
+        }
+        9921 {
+            start-script scr393 arg0 arg1 arg2 arg3 arg4
+        }
+        9922 {
+            start-script scr393 arg0 arg1 arg2 arg3 arg4
+        }
+        9923 {
+            start-script scr393 arg0 arg1
+        }
+        9924 {
+            start-script scr393 arg0 arg1 arg2 arg3 arg4
+        }
+        9925 {
+            start-script scr393 arg0 arg1 arg2 arg3 arg4
+        }
+        9926 {
+            start-script scr393 arg0 arg1
+        }
+        9911 {
+            start-script scr325 arg1 arg2
+        }
+        9927 {
+            start-script scr393 arg0 arg1
+        }
+        9928 {
+            image.init image707
+            image.capture 0 0 0 639 479
+            image.end
+            image.init image706
+            image.capture 0 410 435 (410 + 48) (435 + 18)
+            image.end
+            image.init image706
+            image.at 410 435
+            image.render-target image707
+            image.draw
+            image.end
+            arg7 = call-script AllocPalette
+            palette.init arg7
+            palette.from-image 632 0
+            palette.end
+            sprintf arg5 "PERCENT %d%" arg1
+            arg6 = call-script maybe_draw_text_to_image arg5 632 706 arg7 1
+            undim arg5
+            start-script FreePalette arg7
+            image.init image706
+            image.at 410 435
+            image.render-target image707
+            image.draw
+            image.flags 1
+            image.end
+            draw-image-at image707 0 0 0 0
+            update-screen
+        }
+        else {
+        }
+    }
+    return 1
+}
+
+script scr325@325 {
+    var local0 local1 local2 local3 local4
+
+    case local0 {
+        1 {
+            override-off-off
+            for local4 = 1 to 3000 + {
+                if (local4 != 325) {
+                    if (not (in local4 [324 352 353])) {
+                        stop-script local4
+                    }
+                }
+            }
+            start-script scr317 1
+            sprintf local3 "Critical System Alert! %s Disconnecting From JrSN." local1
+            undim local1
+            break-here
+            start-script smth_message_popup local3 0 0
+            break-until (not (script-running smth_message_popup))
+            gNetplayActive = 0
+            if gNetUsername {
+                undim gNetUsername
+            }
+            if gNetRemoteCoachName {
+                undim gNetRemoteCoachName
+            }
+            if gNetPassword {
+                undim gNetPassword
+            }
+            if global562 {
+                undim global562
+            }
+            if global566 {
+                undim global566
+            }
+            if global567 {
+                undim global567
+            }
+            userput-off
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-off
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+            break-here
+            current-room baseball
+        }
+        901 {
+            override-off-off
+            for local4 = 1 to 3000 + {
+                if (local4 != 325) {
+                    if (not (in local4 [324 352 353])) {
+                        stop-script local4
+                    }
+                }
+            }
+            if local2 {
+                sprintf local3 "%s Exiting to the clubhouse." local1
+            } else {
+                sprintf local3 "%s Exiting to the log in screen." local1
+            }
+            undim local1
+            break-here
+            start-script smth_message_popup local3 0 0
+            break-until (not (script-running smth_message_popup))
+            userput-off
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-off
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+            break-here
+            if local2 {
+                current-room baseball
+            } else {
+                current-room netlogon
+            }
+        }
+        0 {
+            sprintf local3 "%s" local1
+            undim local1
+            break-here
+            start-script smth_message_popup local3 0 0
+            break-until (not (script-running smth_message_popup))
+        }
+        2 {
+            sprintf local3 "%s" local1
+            undim local1
+            break-here
+            start-script smth_message_popup local3 0 0
+            break-until (not (script-running smth_message_popup))
+        }
+        else {
+        }
+    }
+}
+
+script NetCreateGame@326 {
+    global111 = 0
+    kludge 2001 2208
+    break-until (global111 != 0)
+    if (global111 != 99) {
+        print-system.start
+        print-system.string "Error creating a TCP/IP game - I bet you don't have DirectX 6 installed.  Please remind Rich to put a better error message here."
+    } else {
+        break-here.multi 10
+        start-script smth_net359 0 1
+    }
+}
+
+script scr327@327 {
+    var local0 local1 local2
+
+    do {
+        local0 = kludge-call 2001 1501
+        inc local1
+        break-here
+    } until (local0 || local1 == 300)
+    if local0 {
+        if (kludge-call 2001 1504 1) {
+            if (kludge-call 2001 1506 gNetUsername) {
+                start-script smth_net359 0 0
+                stop-script 0
+            }
+        }
+    }
+    sprintf local2 "Error connecting to %s.  Reconnecting to neighborhood." gNetUsername
+    start-script smth_net_connection local2
+}
+
+script NetIsRouteAvailable@328 {
+    var local0
+
+    if (read-system-ini.i32 "OverrideNoRouteAvailable") {
+        return 1
+    } else {
+        local0 = kludge-call 2001 3001
+    }
+    return local0
+}
+
+script scr329@329 {
+    var local0
+
+    local0 = kludge-call 2001 3004
+}
+
+script scr330@330 {
+    var local0
+
+    global108 = 0
+    kludge 2001 2226 local0
+}
+
+script scr331@331 {
+    var _ local1 local2
+
+    if (kludge-call 2001 3005) {
+        assign-string local1 "http://www.jrsn.com/chuck/multiplayer/patches.htm"
+        assign-string local2 "We recommend you update DirectPlay to version 6.1a to minimize in-game disconnections. Would you like to download it from www.jrsn.com?"
+        start-script smth_message_popup local2 1 0 0
+        break-until (not (script-running smth_message_popup))
+        if (global577 == 1) {
+            kludge 2001 2121 local1
+            quit-quit
+        }
+        undim local1
+    }
+}
+
+script scr332@332 {
+    var local0 local1
+
+    if local0 {
+        assign-string local1 "http://www.humongoussports.com/backyard/faq/baseball2001_faq.html"
+    } else {
+        assign-string local1 "http://www.humongoussports.com/backyard/registration/register.asp"
+    }
+    kludge 2001 2121 local1
+    undim local1
+}
+
+script scr333@333 {
+    if (gCurrentRoom == 40 || gCurrentRoom == 39) {
+        kludge 2001 2230
+    }
+}
+
+script scr334@334 {
+    var local0 local1
+
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    override-off-off
+    assign-string local1 "You have lost your connection to the internet."
+    if local0 {
+        start-script scr325 901 local1 1
+    } else {
+        start-script scr325 0 local1
+        break-until (not (script-running scr325))
+        start-script scr317 1
+        current-room baseball
+    }
+}
+
+script scr335@335 {
+    var local0 local1 local2 local3 local4
+
+    debug 0
+    stop-script 0
+    do {
+        if (gCursorVisible > 0 || gGamePadCursorSprite) {
+            if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+                local3 = gGamePadX
+                local4 = gGamePadY
+            } else {
+                local3 = gMouseX
+                local4 = gMouseY
+            }
+            if local0 {
+                local1 = 4
+            } else {
+                local1 = 1
+            }
+            if (local1 != local2) {
+                if (g_maybe_operating_system == 2) {
+                    cursor-color-image (local1 + 2)
+                    gCursorImage = local1 + 2
+                } else if (local1 <= 76 || in local1 [82 85 91 88 79 95]) {
+                    cursor-image (local1 + 1)
+                    gCursorImage = local1 + 1
+                } else if (gBlackAndWhiteCursors || local1 == 1) {
+                    cursor-image (local1 + 1)
+                    gCursorImage = local1 + 1
+                } else {
+                    cursor-color-image local1
+                    gCursorImage = local1
+                }
+                local2 = local1
+                gCursorImage = local1
+            }
+        }
+        break-here
+    }
+}
+
+script scr336@336 {
+    var local0 local1 _ _ _ local5
+
+    if (local0 != 4) {
+        local5 = iif (gUIInputDevice == INPUT-DEVICE-MOUSE) (find-polygon gMouseX gMouseY) (find-polygon gGamePadX gGamePadY)
+        case local5 {
+            9000 {
+                global577 = 1
+            }
+            9001 {
+                global577 = 1
+            }
+            9002 {
+                global577 = 2
+            }
+            else {
+            }
+        }
+    } else {
+        case 1 {
+            (local1 == 13 || local1 == 89 || local1 == 121) {
+                global577 = 1
+            }
+            (local1 == 78 || local1 == 110 || local1 == 27) {
+                global577 = 2
+            }
+            else {
+            }
+        }
+    }
+}
+
+script smth_message_popup@337 arg0 arg1 arg2 _ {
+    var _ local5 local6
+
+    if (not global596) {
+        dim-array.i32 global596 10
+    }
+    global596[6] = arg1 + 1
+    case arg1 {
+        1 {
+            local5 = 0
+        }
+        0 {
+            local5 = 2
+        }
+        2 {
+            local5 = 3
+        }
+        else {
+        }
+    }
+    start-script smth_nav408 1
+    if gPopupState {
+        start-script FreePopup
+    }
+    if (not global596[1]) {
+        global596[1] = gInputHandlerScript
+    }
+    if (not global596[2]) {
+        global596[2] = gCursorVisible
+    }
+    if (not global596[0]) {
+        global596[0] = gCursorInputEnabled
+    }
+    gInputHandlerScript = DefaultHandleInput
+    stop-script gCursorLoopScript
+    start-script CursorLoop
+    start-script ShowPopup arg0 local5 3
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    if arg2 {
+        override-off-off
+        for local6 = 1 to 3000 + {
+            if (local6 != 337) {
+                if (not (in local6 [324 352 353])) {
+                    stop-script local6
+                }
+            }
+        }
+    }
+    global577 = 0
+    do {
+        if (not global577) {
+            global577 = gPopupResult
+        } else {
+            gPopupResult = global577
+        }
+        break-here
+    } until global577
+    start-script FreePopup
+    gInputHandlerScript = global596[1]
+    if gCursorLoopScript {
+        start-script gCursorLoopScript
+    } else {
+        start-script CursorLoop
+    }
+    if global596[0] {
+        userput-on
+    } else {
+        userput-off
+    }
+    if global596[2] {
+        cursor-on
+    } else {
+        cursor-off
+    }
+    undim global596
+}
+
+script scr338@338 {
+    var local0 local1
+
+    local0 = kludge-call 2001 3000
+    if (local0 == 0) {
+        global111 = 0
+        kludge 2001 3002
+        L0023:
+        break-until global111
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        case global111 {
+            2 {
+                userput-off
+                if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                    cursor-off
+                } else if (gCursorInputEnabled == 0) {
+                    stop-script GamePadCursorLoop
+                    start-script ReleaseSprite gGamePadCursorSprite
+                    gGamePadCursorSprite = 0
+                } else {
+                    start-script ShowGamePadCursor
+                }
+            }
+            4 {
+                assign-string local1 "File Transfer Requires a Restart - Press OK To Restart"
+                start-script ShowPopup local1 2 3
+                break-until gPopupResult
+                write-system-ini.i32 "EnterRoomOnStartUp" 1
+                if (not gNetUsername && not gNetPassword) {
+                    assign-string gNetUsername "$"
+                    assign-string gNetPassword "$"
+                }
+                write-system-ini.string "Pswd" gNetPassword
+                write-system-ini.string "Name" gNetUsername
+                quit-quit
+            }
+            3 {
+                start-script scr339
+                assign-string local1 "Update failed. (Maia Error) Please note reason for error. Would you like to launch the FAQ site?"
+                start-script ShowPopup local1 0 3
+                break-until gPopupResult
+                if (gPopupResult == 1) {
+                    start-script scr332 1
+                }
+                break-here.multi 2
+                current-room baseball
+            }
+            6 {
+                if global112 {
+                    sprintf local1 "%s Continue?" global112
+                    start-script ShowPopup local1 0 3
+                    undim global112
+                    break-until gPopupResult
+                    if (gPopupResult == 1) {
+                        global111 = 0
+                        kludge 2001 3003
+                        jump L0023
+                    } else {
+                        assign-string local1 "Returning you to the clubhouse."
+                        start-script ShowPopup local1 2 3
+                        break-until gPopupResult
+                        undim gNetUsername
+                        undim global561
+                        undim gNetPassword
+                        start-script scr339
+                        start-script scr317 1
+                        current-room baseball
+                    }
+                }
+            }
+            5 {
+                sprintf local1 "I need to transfer %d bytes. Continue?" global113
+                start-script ShowPopup local1 0 3
+                break-until gPopupResult
+                if (gPopupResult == 1) {
+                    global111 = 0
+                    kludge 2001 3003
+                    jump L0023
+                } else {
+                    assign-string local1 "Returning you to the clubhouse."
+                    start-script ShowPopup local1 2 3
+                    break-until gPopupResult
+                    undim gNetUsername
+                    undim global561
+                    undim gNetPassword
+                    start-script scr339
+                    start-script scr317 1
+                    current-room baseball
+                }
+            }
+            else {
+            }
+        }
+    } else {
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        case local0 {
+            1 {
+                assign-string local1 "Fatal Initialization Error - (Maia Error) Would you like to launch the FAQ site?"
+            }
+            -1 {
+                assign-string local1 "Fatal Initialization Error - (Load Library) Would you like to launch the FAQ site?"
+            }
+            -2 {
+                assign-string local1 "Fatal Initialization Error - (Proc Address) Would you like to launch the FAQ site?"
+            }
+            -3 {
+                assign-string local1 "Fatal Initialization Error - (Version Mismatch) Would you like to launch the FAQ site?"
+            }
+            -4 {
+                assign-string local1 "Fatal Initialization Error - (Bad Argument) Would you like to launch the FAQ site?"
+            }
+            -5 {
+                assign-string local1 "Fatal Initialization Error - (Invalid State) Would you like to launch the FAQ site?"
+            }
+            -6 {
+                assign-string local1 "Fatal Initialization Error - (Restart Still Running) Would you like to launch the FAQ site?"
+            }
+            -7 {
+                assign-string local1 "Fatal Initialization Error - (Too Many Auto Restarts) Would you like to launch the FAQ site?"
+            }
+            else {
+            }
+        }
+        start-script scr339
+        start-script ShowPopup local1
+        break-until gPopupResult
+        if (gPopupResult == 1) {
+            start-script scr332 1
+        }
+        break-here.multi 2
+        current-room baseball
+    }
+}
+
+script scr339@339 {
+    var local0
+
+    local0 = kludge-call 2001 3004
+}
+
+script scr340@340 {
+    var local0 local1
+
+    global136 = 0
+    kludge 2001 2227 local0 local1
+    break-until global136
+}
+
+script smth_net_connection@341 arg0 {
+    start-script smth_net361
+    global43 = 32
+    start-script ResetEverything
+    global696 = 0
+    if (call-script NetIsRouteAvailable) {
+        if (script-running scr368) {
+            stop-script scr368
+        }
+        override-off-off
+        if (not arg0) {
+            assign-string arg0 "Attempting to reconnect to last neighborhood."
+        }
+        start-script scr325 0 arg0
+        break-until (not (script-running scr325))
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        break-here
+        gBypassJsnMap = global559
+        gNetMessageHandlerScript = NetHandleMessageLobby
+        if global561 {
+            undim global561
+        }
+        dim-array.i32 global561 30
+        start-script scr323
+        break-until (not (script-running scr323))
+        current-room netchatroom
+    } else {
+        override-off-off
+        if arg0 {
+            undim arg0
+        }
+        assign-string arg0 "You have lost your connection to the internet."
+        start-script scr325 0 arg0
+        break-until (not (script-running scr325))
+        start-script scr317 1
+        current-room baseball
+    }
+}
+
+script NetStatName@342 arg0 {
+    var local1 local2
+
+    if (arg0 == -1) {
+        arg0 = random-between 7 18
+        global614 = arg0
+        local2 = 1
+    }
+    case arg0 {
+        1 {
+            assign-string local1 "RECORD"
+        }
+        2 {
+            assign-string local1 "LOSSES"
+        }
+        3 {
+            assign-string local1 "DISCONNECTS"
+        }
+        4 {
+            assign-string local1 "STREAK"
+        }
+        5 {
+            assign-string local1 "LAST 10"
+        }
+        6 {
+            assign-string local1 "MARGIN"
+        }
+        7 {
+            assign-string local1 "CAREER GAMES"
+        }
+        8 {
+            assign-string local1 "CAREER AT BATS"
+        }
+        9 {
+            assign-string local1 "CAREER HITS"
+        }
+        10 {
+            assign-string local1 "CAREER BATTING AVERAGE"
+        }
+        11 {
+            assign-string local1 "CAREER SINGLES"
+        }
+        12 {
+            assign-string local1 "CAREER DOUBLES"
+        }
+        13 {
+            assign-string local1 "CAREER TRIPLES"
+        }
+        14 {
+            assign-string local1 "CAREER HOME RUNS"
+        }
+        15 {
+            assign-string local1 "CAREER RUNS"
+        }
+        16 {
+            assign-string local1 "CAREER STEALS"
+        }
+        17 {
+            assign-string local1 "CAREER STRIKEOUTS"
+        }
+        18 {
+            assign-string local1 "CAREER WALKS"
+        }
+        29 {
+            assign-string local1 "ANSWER TO ONLINE POLL"
+        }
+        else {
+            assign-string local1 "NO STAT TITLE"
+        }
+    }
+    return local1
+}
+
+script scr343@343 {
+    var local0 local1
+
+    if local0 {
+        if global579 {
+            for local1 = 0 to 4 + {
+                start-script ReleaseSprite global579[local1]
+            }
+            start-script FreePalette global579[5]
+            undim global579
+        }
+    } else {
+        undim global579
+        dim-array.i16 global579 5
+        global579[5] = call-script AllocPalette
+        palette.init global579[5]
+        palette.from-image 553 0
+        palette.end
+        start-script smth_actor_palette_team_color (0 - global579[5]) 0 0 1
+        start-script smth_actor_palette_team_color (0 - global579[5]) 1 16 1
+        global579[0] = call-script FindFreeSprite
+        sprite.init global579[0]
+        sprite.new
+        sprite.image image553
+        sprite.at 320 240
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.state 0
+        sprite.palette global579[5]
+        sprite.order (5000 + 0)
+        sprite.init global579[0]
+        sprite.variable-range 1 344
+        global579[1] = call-script FindFreeSprite
+        sprite.init global579[1]
+        sprite.new
+        sprite.image image553
+        sprite.at 320 240
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.state 1
+        sprite.palette global579[5]
+        sprite.order (5000 + 1)
+        sprite.init global579[1]
+        sprite.variable-range 1 344
+        global579[2] = call-script FindFreeSprite
+        sprite.init global579[2]
+        sprite.new
+        sprite.image image553
+        sprite.at 320 240
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.state 2
+        sprite.palette global579[5]
+        sprite.order (5000 + 2)
+        sprite.init global579[2]
+        sprite.variable-range 1 344
+        global579[3] = call-script FindFreeSprite
+        sprite.init global579[3]
+        sprite.new
+        sprite.image image553
+        sprite.at 320 240
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.state 3
+        sprite.palette global579[5]
+        sprite.order (5000 + 3)
+        sprite.init global579[3]
+        sprite.variable-range 1 344
+        global579[4] = call-script FindFreeSprite
+        sprite.init global579[4]
+        sprite.new
+        sprite.image image553
+        sprite.at 320 240
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.state 4
+        sprite.palette global579[5]
+        sprite.order (5000 + 4)
+        sprite.init global579[4]
+        sprite.variable-range 1 344
+    }
+}
+
+script maybe_net_send_thumbs_up_or_down@344 sprite {
+    var _ local2 local3
+
+    local2 = sprite-get-state sprite
+    if g_maybe_net_yell_sound {
+        stop-script 0
+    }
+    local3 = random 7
+    case local2 {
+        1 {
+            start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 7 local3
+        }
+        2 {
+            start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 8 local3
+        }
+        3 {
+            start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 9 local3
+        }
+        4 {
+            start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 10 local3
+        }
+        else {
+        }
+    }
+}
+
+script maybe_net_smth_yell_sound@345 arg0 arg1 arg2 {
+    var local3 local4 local5
+
+    if g_maybe_net_yell_sound {
+        stop-sound g_maybe_net_yell_sound
+    }
+    if arg0 {
+        local3 = global566
+    } else {
+        local3 = global567
+    }
+    if (not arg2) {
+        for local4 = 0 to 7 + {
+            local5 = random 7
+            if local3[arg1][local5] {
+                g_maybe_net_yell_sound = local3[arg1][local5]
+                local4 = 999
+            }
+        }
+    } else {
+        g_maybe_net_yell_sound = local3[arg1][arg2]
+    }
+    if (not g_maybe_net_yell_sound) {
+        if (random 1) {
+            for local4 = 0 to 7 + {
+                g_maybe_net_yell_sound = local3[arg1][local4]
+                if g_maybe_net_yell_sound {
+                    jump L00d9
+                }
+            }
+        } else {
+            for local4 = 7 to 0 - {
+                g_maybe_net_yell_sound = local3[arg1][local4]
+                if g_maybe_net_yell_sound {
+                    jump L00d9
+                }
+            }
+        }
+    }
+    if (not g_maybe_net_yell_sound) {
+        stop-script 0
+    }
+    L00d9:
+    start-script PlaySound g_maybe_net_yell_sound 0 0
+    break-until (not (sound-running g_maybe_net_yell_sound))
+    g_maybe_net_yell_sound = 0
+}
+
+script maybe_net_handle_yell@346 arg0 arg1 {
+    var _ local3 local4
+
+    if (not global705) {
+        dim-array.i16 global705 3
+    }
+    global705[3] = global705[3] + 1
+    local3 = 8
+    local4 = -1
+    if (not global705[1]) {
+        global705[1] = call-script AllocPalette
+    }
+    palette.init global705[1]
+    palette.from-image 553 0
+    palette.end
+    start-script smth_actor_palette_team_color (0 - global705[1]) 0 0 1
+    start-script smth_actor_palette_team_color (0 - global705[1]) 1 16 1
+    if (not global705[0]) {
+        global705[0] = call-script FindFreeSprite
+    }
+    sprite.init global705[0]
+    sprite.new
+    sprite.image image553
+    sprite.state local3
+    sprite.at 320 240
+    sprite.palette global705[1]
+    sprite.order 5000
+    sprite.animation-type 0
+    if (not global705[2]) {
+        global705[2] = call-script FindFreeSprite
+    }
+    start-script maybe_smth_net_yell_ui global552 48 102 global705[2] 935 local4 5001
+    start-script maybe_net_smth_yell_sound 0 arg0 arg1
+    break-until (not (script-running maybe_net_smth_yell_sound))
+    global705[3] = global705[3] - 1
+    if (global705[3] == 0) {
+        start-script FreePalette global705[1]
+        start-script ReleaseSprite global705[0]
+        start-script ReleaseSprite global705[2]
+        undim global705
+        global705 = 0
+    }
+}
+
+script scr347@347 {
+    var local0 local1 local2 local3 local4 local5
+
+    if local2 {
+        if (not global566) {
+            dim-array-2d.i16 global566 13 7
+        }
+        local4 = global566
+    } else {
+        if (not global567) {
+            dim-array-2d.i16 global567 13 7
+        }
+        local4 = global567
+    }
+    if (local3 <= 10) {
+        if (not local3) {
+            local3 = 1
+        }
+        case local3 {
+            1 {
+                local4[0][0] = 2099
+                local4[0][1] = 2100
+                if (local1 > 0) {
+                    local4[1][0] = 2101
+                    local4[1][1] = 2102
+                    local4[2][0] = 2103
+                    local4[2][1] = 2104
+                    local4[2][2] = 2105
+                    local4[3][0] = 2107
+                    local4[3][1] = 2108
+                    local4[4][0] = 2109
+                    local4[4][1] = 2110
+                    local4[5][0] = 2111
+                    local4[6][0] = 2112
+                    local4[6][1] = 2113
+                    local4[6][2] = 2114
+                    local4[6][3] = 2115
+                    local4[6][4] = 2116
+                    local4[7][0] = 2117
+                    local4[7][1] = 2118
+                    local4[7][2] = 2119
+                    local4[7][3] = 2120
+                    local4[7][4] = 2121
+                    local4[7][5] = 2122
+                    local4[7][6] = 2123
+                    local4[7][7] = 2124
+                    local4[8][0] = 2125
+                    local4[8][1] = 2126
+                    local4[8][2] = 2127
+                    local4[8][3] = 2128
+                    local4[8][4] = 2129
+                    local4[8][5] = 2130
+                    local4[8][6] = 2131
+                    local4[8][7] = 2132
+                    local4[9][0] = 2133
+                    local4[9][1] = 2134
+                    local4[9][2] = 2135
+                    local4[9][3] = 2136
+                    local4[9][4] = 2137
+                    local4[9][5] = 2138
+                    local4[9][6] = 2139
+                    local4[9][7] = 2140
+                    local4[10][0] = 2141
+                    local4[10][1] = 2142
+                    local4[10][2] = 2143
+                    local4[10][3] = 2144
+                    local4[10][4] = 2145
+                    local4[10][5] = 2146
+                    local4[10][6] = 2147
+                    local4[10][7] = 2148
+                    local4[11][0] = 2149
+                    local4[12][0] = 2150
+                    local4[13][0] = 2151
+                }
+            }
+            2 {
+                local4[0][0] = 2152
+                local4[0][1] = 2153
+                if (local1 > 0) {
+                    local4[1][0] = 2154
+                    local4[1][1] = 2155
+                    local4[2][0] = 2156
+                    local4[2][1] = 2157
+                    local4[2][2] = 2158
+                    local4[3][0] = 2159
+                    local4[3][1] = 2160
+                    local4[4][0] = 2161
+                    local4[4][1] = 2162
+                    local4[5][0] = 2163
+                    local4[6][0] = 2164
+                    local4[6][1] = 2165
+                    local4[6][2] = 2166
+                    local4[6][3] = 2167
+                    local4[6][4] = 2168
+                    local4[7][0] = 2169
+                    local4[7][1] = 2170
+                    local4[7][2] = 2171
+                    local4[7][3] = 2172
+                    local4[7][4] = 2173
+                    local4[7][5] = 2174
+                    local4[7][6] = 2175
+                    local4[7][7] = 2176
+                    local4[8][0] = 2177
+                    local4[8][1] = 2178
+                    local4[8][2] = 2179
+                    local4[8][3] = 2180
+                    local4[8][4] = 2181
+                    local4[8][5] = 2182
+                    local4[8][6] = 2183
+                    local4[8][7] = 2184
+                    local4[9][0] = 2185
+                    local4[9][1] = 2186
+                    local4[9][2] = 2187
+                    local4[9][3] = 2188
+                    local4[9][4] = 2189
+                    local4[9][5] = 2190
+                    local4[9][6] = 2191
+                    local4[9][7] = 2192
+                    local4[10][0] = 2193
+                    local4[10][1] = 2194
+                    local4[10][2] = 2195
+                    local4[10][3] = 2196
+                    local4[10][4] = 2197
+                    local4[10][5] = 2198
+                    local4[10][6] = 2199
+                    local4[10][7] = 2200
+                    local4[11][0] = 2201
+                    local4[12][0] = 2202
+                    local4[13][0] = 2203
+                }
+            }
+            3 {
+                local4[0][0] = 2204
+                local4[0][1] = 2205
+                if (local1 > 0) {
+                    local4[1][0] = 2206
+                    local4[1][1] = 2207
+                    local4[2][0] = 2208
+                    local4[2][1] = 2209
+                    local4[2][2] = 2210
+                    local4[3][0] = 2212
+                    local4[3][1] = 2213
+                    local4[4][0] = 2214
+                    local4[4][1] = 2215
+                    local4[5][0] = 2216
+                    local4[6][0] = 2217
+                    local4[6][1] = 2218
+                    local4[6][2] = 2219
+                    local4[6][3] = 2220
+                    local4[6][4] = 2221
+                    local4[7][0] = 2222
+                    local4[7][1] = 2223
+                    local4[7][2] = 2224
+                    local4[7][3] = 2225
+                    local4[7][4] = 2226
+                    local4[7][5] = 2227
+                    local4[7][6] = 2228
+                    local4[7][7] = 2229
+                    local4[8][0] = 2230
+                    local4[8][1] = 2231
+                    local4[8][2] = 2232
+                    local4[8][3] = 2233
+                    local4[8][4] = 2234
+                    local4[8][5] = 2235
+                    local4[8][6] = 2236
+                    local4[8][7] = 2237
+                    local4[9][0] = 2238
+                    local4[9][1] = 2239
+                    local4[9][2] = 2240
+                    local4[9][3] = 2241
+                    local4[9][4] = 2242
+                    local4[9][5] = 2243
+                    local4[9][6] = 2244
+                    local4[9][7] = 2245
+                    local4[10][0] = 2246
+                    local4[10][1] = 2247
+                    local4[10][2] = 2248
+                    local4[10][3] = 2249
+                    local4[10][4] = 2250
+                    local4[10][5] = 2251
+                    local4[10][6] = 2252
+                    local4[10][7] = 2253
+                    local4[11][0] = 2254
+                    local4[12][0] = 2255
+                    local4[13][0] = 2256
+                }
+            }
+            4 {
+                local4[0][0] = 2257
+                local4[0][1] = 2258
+                if (local1 > 0) {
+                    local4[1][0] = 2259
+                    local4[1][1] = 2260
+                    local4[2][0] = 2261
+                    local4[2][1] = 2262
+                    local4[2][2] = 2263
+                    local4[3][0] = 2265
+                    local4[3][1] = 2266
+                    local4[4][0] = 2267
+                    local4[4][1] = 2268
+                    local4[5][0] = 2269
+                    local4[6][0] = 2270
+                    local4[6][1] = 2271
+                    local4[6][2] = 2272
+                    local4[6][3] = 2273
+                    local4[6][4] = 2274
+                    local4[7][0] = 2275
+                    local4[7][1] = 2276
+                    local4[7][2] = 2277
+                    local4[7][3] = 2278
+                    local4[7][4] = 2279
+                    local4[7][5] = 2280
+                    local4[7][6] = 2281
+                    local4[7][7] = 2282
+                    local4[8][0] = 2283
+                    local4[8][1] = 2284
+                    local4[8][2] = 2285
+                    local4[8][3] = 2286
+                    local4[8][4] = 2287
+                    local4[8][5] = 2288
+                    local4[8][6] = 2289
+                    local4[8][7] = 2290
+                    local4[9][0] = 2291
+                    local4[9][1] = 2292
+                    local4[9][2] = 2293
+                    local4[9][3] = 2294
+                    local4[9][4] = 2295
+                    local4[9][5] = 2296
+                    local4[9][6] = 2297
+                    local4[9][7] = 2298
+                    local4[10][0] = 2299
+                    local4[10][1] = 2300
+                    local4[10][2] = 2301
+                    local4[10][3] = 2302
+                    local4[10][4] = 2303
+                    local4[10][5] = 2304
+                    local4[10][6] = 2305
+                    local4[10][7] = 2306
+                    local4[11][0] = 2307
+                    local4[12][0] = 2308
+                    local4[13][0] = 2309
+                }
+            }
+            5 {
+                local4[0][0] = 2310
+                local4[0][1] = 2311
+                if (local1 > 0) {
+                    local4[1][0] = 2312
+                    local4[1][1] = 2313
+                    local4[2][0] = 2314
+                    local4[2][1] = 2315
+                    local4[2][2] = 2316
+                    local4[3][0] = 2318
+                    local4[3][1] = 2319
+                    local4[4][0] = 2320
+                    local4[4][1] = 2321
+                    local4[5][0] = 2322
+                    local4[6][0] = 2323
+                    local4[6][1] = 2324
+                    local4[6][2] = 2325
+                    local4[6][3] = 2326
+                    local4[6][4] = 2327
+                    local4[7][0] = 2328
+                    local4[7][1] = 2329
+                    local4[7][2] = 2330
+                    local4[7][3] = 2331
+                    local4[7][4] = 2332
+                    local4[7][5] = 2333
+                    local4[7][6] = 2334
+                    local4[7][7] = 2335
+                    local4[8][0] = 2336
+                    local4[8][1] = 2337
+                    local4[8][2] = 2338
+                    local4[8][3] = 2339
+                    local4[8][4] = 2340
+                    local4[8][5] = 2341
+                    local4[8][6] = 2342
+                    local4[8][7] = 2343
+                    local4[9][0] = 2344
+                    local4[9][1] = 2345
+                    local4[9][2] = 2346
+                    local4[9][3] = 2347
+                    local4[9][4] = 2348
+                    local4[9][5] = 2349
+                    local4[9][6] = 2350
+                    local4[9][7] = 2351
+                    local4[10][0] = 2352
+                    local4[10][1] = 2353
+                    local4[10][2] = 2354
+                    local4[10][3] = 2355
+                    local4[10][4] = 2356
+                    local4[10][5] = 2357
+                    local4[10][6] = 2358
+                    local4[10][7] = 2359
+                    local4[11][0] = 2360
+                    local4[12][0] = 2361
+                    local4[13][0] = 2362
+                }
+            }
+            6 {
+                local4[0][0] = 2363
+                local4[0][1] = 2364
+                if (local1 > 0) {
+                    local4[1][0] = 2365
+                    local4[1][1] = 2366
+                    local4[2][0] = 2367
+                    local4[2][1] = 2368
+                    local4[2][2] = 2369
+                    local4[3][0] = 2371
+                    local4[3][1] = 2372
+                    local4[4][0] = 2373
+                    local4[4][1] = 2374
+                    local4[5][0] = 2375
+                    local4[6][0] = 2376
+                    local4[6][1] = 2377
+                    local4[6][2] = 2378
+                    local4[6][3] = 2379
+                    local4[6][4] = 2380
+                    local4[7][0] = 2381
+                    local4[7][1] = 2382
+                    local4[7][2] = 2383
+                    local4[7][3] = 2384
+                    local4[7][4] = 2385
+                    local4[7][5] = 2386
+                    local4[7][6] = 2387
+                    local4[7][7] = 2388
+                    local4[8][0] = 2389
+                    local4[8][1] = 2390
+                    local4[8][2] = 2391
+                    local4[8][3] = 2392
+                    local4[8][4] = 2393
+                    local4[8][5] = 2394
+                    local4[8][6] = 2395
+                    local4[8][7] = 2396
+                    local4[9][0] = 2397
+                    local4[9][1] = 2398
+                    local4[9][2] = 2399
+                    local4[9][3] = 2400
+                    local4[9][4] = 2401
+                    local4[9][5] = 2402
+                    local4[9][6] = 2403
+                    local4[9][7] = 2404
+                    local4[10][0] = 2405
+                    local4[10][1] = 2406
+                    local4[10][2] = 2407
+                    local4[10][3] = 2408
+                    local4[10][4] = 2409
+                    local4[10][5] = 2410
+                    local4[10][6] = 2411
+                    local4[10][7] = 2412
+                    local4[11][0] = 2413
+                    local4[12][0] = 2414
+                    local4[13][0] = 2415
+                }
+            }
+            7 {
+                local4[0][0] = 2416
+                local4[0][1] = 2417
+                if (local1 > 0) {
+                    local4[1][0] = 2418
+                    local4[1][1] = 2419
+                    local4[2][0] = 2420
+                    local4[2][1] = 2421
+                    local4[2][2] = 2422
+                    local4[3][0] = 2423
+                    local4[3][1] = 2424
+                    local4[4][0] = 2425
+                    local4[4][1] = 2426
+                    local4[5][0] = 2427
+                    local4[6][0] = 2428
+                    local4[6][1] = 2429
+                    local4[6][2] = 2430
+                    local4[6][3] = 2431
+                    local4[6][4] = 2432
+                    local4[7][0] = 2433
+                    local4[7][1] = 2434
+                    local4[7][2] = 2435
+                    local4[7][3] = 2436
+                    local4[7][4] = 2437
+                    local4[7][5] = 2438
+                    local4[7][6] = 2439
+                    local4[7][7] = 2440
+                    local4[8][0] = 2441
+                    local4[8][1] = 2442
+                    local4[8][2] = 2443
+                    local4[8][3] = 2444
+                    local4[8][4] = 2445
+                    local4[8][5] = 2446
+                    local4[8][6] = 2447
+                    local4[8][7] = 2448
+                    local4[9][0] = 2449
+                    local4[9][1] = 2450
+                    local4[9][2] = 2451
+                    local4[9][3] = 2452
+                    local4[9][4] = 2453
+                    local4[9][5] = 2454
+                    local4[9][6] = 2455
+                    local4[9][7] = 2456
+                    local4[10][0] = 2457
+                    local4[10][1] = 2458
+                    local4[10][2] = 2459
+                    local4[10][3] = 2460
+                    local4[10][4] = 2461
+                    local4[10][5] = 2462
+                    local4[10][6] = 2463
+                    local4[10][7] = 2464
+                    local4[11][0] = 2465
+                    local4[12][0] = 2466
+                    local4[13][0] = 2467
+                }
+            }
+            8 {
+                local4[0][0] = 2468
+                local4[0][1] = 2469
+                if (local1 > 0) {
+                    local4[1][0] = 2470
+                    local4[1][1] = 2471
+                    local4[2][0] = 2472
+                    local4[2][1] = 2473
+                    local4[2][2] = 2474
+                    local4[3][0] = 2476
+                    local4[3][1] = 2477
+                    local4[4][0] = 2478
+                    local4[4][1] = 2479
+                    local4[5][0] = 2480
+                    local4[6][0] = 2481
+                    local4[6][1] = 2482
+                    local4[6][2] = 2483
+                    local4[6][3] = 2484
+                    local4[6][4] = 2485
+                    local4[7][0] = 2486
+                    local4[7][1] = 2487
+                    local4[7][2] = 2488
+                    local4[7][3] = 2489
+                    local4[7][4] = 2490
+                    local4[7][5] = 2491
+                    local4[7][6] = 2492
+                    local4[7][7] = 2493
+                    local4[8][0] = 2494
+                    local4[8][1] = 2495
+                    local4[8][2] = 2496
+                    local4[8][3] = 2497
+                    local4[8][4] = 2498
+                    local4[8][5] = 2499
+                    local4[8][6] = 2500
+                    local4[8][7] = 2501
+                    local4[9][0] = 2502
+                    local4[9][1] = 2503
+                    local4[9][2] = 2504
+                    local4[9][3] = 2505
+                    local4[9][4] = 2506
+                    local4[9][5] = 2507
+                    local4[9][6] = 2508
+                    local4[9][7] = 2509
+                    local4[10][0] = 2510
+                    local4[10][1] = 2511
+                    local4[10][2] = 2512
+                    local4[10][3] = 2513
+                    local4[10][4] = 2514
+                    local4[10][5] = 2515
+                    local4[10][6] = 2516
+                    local4[10][7] = 2517
+                    local4[11][0] = 2518
+                    local4[12][0] = 2519
+                    local4[13][0] = 2520
+                }
+            }
+            9 {
+                local4[0][0] = 2521
+                local4[0][1] = 2522
+                if (local1 > 0) {
+                    local4[1][0] = 2523
+                    local4[1][1] = 2524
+                    local4[2][0] = 2525
+                    local4[2][1] = 2526
+                    local4[2][2] = 2527
+                    local4[3][0] = 2529
+                    local4[3][1] = 2530
+                    local4[4][0] = 2531
+                    local4[4][1] = 2532
+                    local4[5][0] = 2533
+                    local4[6][0] = 2534
+                    local4[6][1] = 2535
+                    local4[6][2] = 2536
+                    local4[6][3] = 2537
+                    local4[6][4] = 2538
+                    local4[7][0] = 2539
+                    local4[7][1] = 2540
+                    local4[7][2] = 2541
+                    local4[7][3] = 2542
+                    local4[7][4] = 2543
+                    local4[7][5] = 2544
+                    local4[7][6] = 2545
+                    local4[7][7] = 2546
+                    local4[8][0] = 2547
+                    local4[8][1] = 2548
+                    local4[8][2] = 2549
+                    local4[8][3] = 2550
+                    local4[8][4] = 2551
+                    local4[8][5] = 2552
+                    local4[8][6] = 2553
+                    local4[8][7] = 2554
+                    local4[9][0] = 2555
+                    local4[9][1] = 2556
+                    local4[9][2] = 2557
+                    local4[9][3] = 2558
+                    local4[9][4] = 2559
+                    local4[9][5] = 2560
+                    local4[9][6] = 2561
+                    local4[9][7] = 2562
+                    local4[10][0] = 2563
+                    local4[10][1] = 2564
+                    local4[10][2] = 2565
+                    local4[10][3] = 2566
+                    local4[10][4] = 2567
+                    local4[10][5] = 2568
+                    local4[10][6] = 2569
+                    local4[10][7] = 2570
+                    local4[11][0] = 2571
+                    local4[12][0] = 2572
+                    local4[13][0] = 2573
+                }
+            }
+            10 {
+                local4[0][0] = 2574
+                local4[0][1] = 2575
+                if (local1 > 0) {
+                    local4[1][0] = 2576
+                    local4[1][1] = 2577
+                    local4[2][0] = 2578
+                    local4[2][1] = 2579
+                    local4[2][2] = 2580
+                    local4[3][0] = 2582
+                    local4[3][1] = 2583
+                    local4[4][0] = 2584
+                    local4[4][1] = 2585
+                    local4[5][0] = 2586
+                    local4[6][0] = 2587
+                    local4[6][1] = 2588
+                    local4[6][2] = 2589
+                    local4[6][3] = 2590
+                    local4[6][4] = 2591
+                    local4[7][0] = 2592
+                    local4[7][1] = 2593
+                    local4[7][2] = 2594
+                    local4[7][3] = 2595
+                    local4[7][4] = 2596
+                    local4[7][5] = 2597
+                    local4[7][6] = 2598
+                    local4[7][7] = 2599
+                    local4[8][0] = 2600
+                    local4[8][1] = 2601
+                    local4[8][2] = 2602
+                    local4[8][3] = 2603
+                    local4[8][4] = 2604
+                    local4[8][5] = 2605
+                    local4[8][6] = 2606
+                    local4[8][7] = 2607
+                    local4[9][0] = 2608
+                    local4[9][1] = 2609
+                    local4[9][2] = 2610
+                    local4[9][3] = 2611
+                    local4[9][4] = 2612
+                    local4[9][5] = 2613
+                    local4[9][6] = 2614
+                    local4[9][7] = 2615
+                    local4[10][0] = 2616
+                    local4[10][1] = 2617
+                    local4[10][2] = 2618
+                    local4[10][3] = 2619
+                    local4[10][4] = 2620
+                    local4[10][5] = 2621
+                    local4[10][6] = 2622
+                    local4[10][7] = 2623
+                    local4[11][0] = 2624
+                    local4[12][0] = 2625
+                    local4[13][0] = 2626
+                }
+            }
+            else {
+            }
+        }
+    } else {
+        local5 = call-script ReadExternalVoice local0 local1 local2 local3
+        if (not local5) {
+            print-system.start
+            print-system.printf "Error reading external voice %d" local3
+            start-script scr347 local2 0
+        }
+    }
+}
+
+script ReadExternalVoice@348 _ _ _ _ {
+    var _ _ _ _ _ _ local10
+
+    local10 = 0
+    return local10
+}
+
+script NetPromptQuit@349 {
+    var local0
+
+    assign-string local0 "Do you want to quit this game?  Remember, you will be charged with a loss."
+    start-script smth_message_popup local0 1 0 0
+    break-until (not (script-running smth_message_popup))
+    if (global577 == 1) {
+        start-script smth_net_abort_game 46
+    } else {
+        userput-on
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-on
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+    }
+}
+
+script maybe_net_send_message@350 arg0 arg1 message arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 arg11 {
+    var local12 local13
+
+    if (not gDisableReliable) {
+        if (arg0 >= 30) {
+            local13 = 24
+        } else {
+            local13 = 4
+        }
+    } else {
+        local13 = 4
+    }
+    kludge 2001 1492 local13 0 0 message arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 arg11
+    gNetLag = global136
+    if (arg0 == 20 || arg0 == 40) {
+        if (arg1 == 2) {
+            temp = 1000 / (60 / gMinJiffies)
+            temp2 = gNetLag / temp
+            print-debug.start
+            print-debug.printf "NetLagBreak - frames: %d  net-lag (%d) ms per frame %d, " temp2 gNetLag temp
+            temp = 1000 * gNetLag / 60
+            break-here.multi (temp2 * 2)
+        }
+        local12 = call-script gNetMessageHandlerScript message arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 arg11 1
+    }
+}
+
+script maybe_smth_net_send_array@351 arg0 {
+    var _ local2 local3
+
+    if (arg0 >= 30) {
+        local3 = 14
+    } else {
+        local3 = 4
+    }
+    kludge 2001 1509 local3 0 0 local2
+}
+
+script NetHandleMessageGameplay@352 message arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9 arg10 {
+    var local11 local12
+
+    local11 = kludge-call 2001 1508
+    if (g_net_smth_master == local11) {
+        debug 0
+    }
+    if arg10 {
+        local11 = g_net_smth_master
+    } else {
+        global540 = 10
+    }
+    if gNetworkAuditTrail {
+        start-script NetWriteAudit local11 global509 message arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+    }
+    case message {
+        NET-DIALOGUE {
+            start-script CastGameplay arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+        }
+        NET-SETROOM {
+            if (arg1 == 27) {
+                override-off-off
+            }
+            current-room arg1
+        }
+        NET-ASK-WHO-IS-MASTER {
+            if (g_net_smth_me == g_net_smth_master) {
+                start-script.rec maybe_net_send_message 30 1 NET-I-AM-MASTER g_net_smth_master
+                g_net_smth_slave = arg1
+            }
+        }
+        NET-I-AM-MASTER {
+            g_net_smth_me = arg1
+        }
+        NET-BATVIEW-MESSAGE {
+            if (not arg10) {
+                if (in arg1 [7607 7606]) {
+                    if (not g_smth_net_pause_flag) {
+                        g_smth_net_pause_flag = 1
+                        start-script maybe_net_handle_batview_message message local11 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+                    }
+                    start-script.rec maybe_net_send_message 10 1 NET-smth-pause-flag
+                } else {
+                    start-script maybe_net_handle_batview_message message local11 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+                }
+            } else {
+                start-script maybe_net_handle_batview_message message local11 arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+            }
+        }
+        NET-WAITFLAG {
+            inc gNetWaitFlag
+        }
+        NET-TEAMS-INFO {
+            gTeamInfo[1][TI-PRIMARY-COLOR] = arg1
+            gTeamInfo[1][TI-SECONDARY-COLOR] = arg2
+            gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg3
+            gTeamInfo[1][TI-TEAM-NOUN] = arg4
+            gTeamInfo[0][TI-PRIMARY-COLOR] = arg5
+            gTeamInfo[0][TI-SECONDARY-COLOR] = arg6
+            gTeamInfo[0][TI-TEAM-ADJECTIVE] = arg7
+            gTeamInfo[0][TI-TEAM-NOUN] = arg8
+        }
+        NET-PING {
+            if (arg1 == 13) {
+                start-script.rec maybe_net_send_message 10 1 NET-PONG arg2
+            }
+        }
+        NET-PONG {
+            if (arg1 == 13) {
+                gNetLag = get-timer 1
+            }
+        }
+        [NET-PICK-FIRST NET-PICKED-KID] {
+            g_maybe_net_who_picks_next = arg1
+        }
+        NET-ZPLANE-ON {
+            start-script smth_he9_zplane arg1 arg2
+        }
+        [NET-RUNNER-SCORED NET-RUNNER-OUT NET-RUNNER-CLICK] {
+            start-script NetHandleRunnerMessage message arg1 arg2 arg3 arg4 arg5 arg6 arg7 arg8 arg9
+        }
+        NET-SET-RUNNER-VARS {
+            gRunnerCursorIndex = arg1
+            gRunnerCursorDestinationBase = arg2
+        }
+        NET-OV-PLAY-OVER {
+            gNetOvPlayOver = 1
+        }
+        NET-CALL-TIMEOUT {
+            gNetTimeout = 1
+        }
+        NET-BACK-FROM-TIMEOUT {
+            gNetTimeout = 0
+        }
+        NET-SEND-STAT {
+            start-script AddStat arg1 arg2 arg3 1
+        }
+        NET-CHECK-TEAM-SELECTION {
+            if (arg1 == 33) {
+                local12 = iif (arg2 == global517 || arg2 == global514) 2 1
+            }
+            if (arg1 == 31) {
+                local12 = iif (arg2 == global515 || arg2 == global512) 2 1
+            }
+            if (arg1 == 32) {
+                local12 = iif (arg2 == global516 || arg2 == global513) 2 1
+            }
+            start-script.rec maybe_net_send_message 30 1 NET-PICK-FIRST local12
+        }
+        37 {
+            if arg2 {
+                global541 = 1
+            } else {
+                start-script smth_draft_lots_of_sprite_image_actor_stuff arg1
+            }
+        }
+        NET-TEAM-INFO {
+            gTeamInfo[1][TI-PRIMARY-COLOR] = arg1
+            gTeamInfo[1][TI-TEAM-ADJECTIVE] = arg2
+            gTeamInfo[1][TI-TEAM-NOUN] = arg3
+        }
+        NET-REDUCE-FATIGUE {
+            start-script smth_reduce_fatigue arg1 arg2 1
+        }
+        NET-SET-PLAYER-FATIGUE {
+            gKidData[arg1][KD-fatigue] = arg2
+        }
+        NET-DRAW-BALL-DISTANCE-DECAL {
+            if (gCurrentRoom == 3) {
+                start-script DrawBallDistanceDecal arg1
+            }
+        }
+        NET-YELL {
+            start-script.rec maybe_net_handle_yell 6 arg1
+        }
+        NET-YELL-THUMB {
+            if (local11 != g_net_smth_master) {
+                start-script.rec maybe_net_handle_yell arg1 arg2
+            } else {
+                start-script maybe_net_smth_yell_sound (local11 == g_net_smth_master) arg1 arg2
+            }
+        }
+        9911 {
+            start-script NetHandleMessageLobby 9911 arg1 arg2
+        }
+        NET-smth-pause-flag {
+            g_smth_net_pause_flag = 1
+        }
+        NET-maybe-abort-game {
+            if (not (script-running smth_net_abort_game)) {
+                start-script smth_net_abort_game arg1
+            }
+        }
+        52 {
+            if (arg1 < 0) {
+                start-script.rec maybe_net_send_message 30 1 52 global515 global516 global517 global678
+            } else {
+                if (global512 != arg1) {
+                    global512 = arg1
+                }
+                if (global513 != arg2) {
+                    global513 = arg2
+                }
+                if (global514 != arg3) {
+                    global514 = arg3
+                }
+                if (global663 != arg4) {
+                    global663 = arg4
+                }
+            }
+        }
+        NET-maybe-skip-picking-team {
+            gSkipPickingTeam = arg1
+        }
+        NET-smth-powerup {
+            gGivePowerup = arg1
+        }
+        else {
+            print-debug.start
+            print-debug.printf "Error!  net-message-code = %d" message
+            debug 0
+        }
+    }
+    return 1
+}
+
+script NetMessageHandler_unused@353 arg0 {
+    var local1 _ local3
+
+    if (not arg0) {
+        stop-script 0
+    }
+    local3 = kludge-call 2001 1508
+    global540 = 10
+    if gNetworkAuditTrail {
+        start-script NetWriteAudit local3 global509 arg0[0][0]
+    }
+    case arg0[0][0] {
+        999 {
+            array-assign-slice gPickOrder2 arg0 0 0 0 8 0 0 1 9
+            array-assign-slice gBattingOrder2 arg0 0 0 0 8 0 0 19 27
+        }
+        991 {
+            array-assign-slice gPickOrder2 arg0 0 0 0 8 0 0 1 9
+            array-assign-slice gPickOrder1 arg0 0 0 0 8 0 0 10 18
+            array-assign-slice gBattingOrder2 arg0 0 0 0 8 0 0 19 27
+            array-assign-slice gBattingOrder1 arg0 0 0 0 8 0 0 28 36
+        }
+        998 {
+            array-assign-slice gPickOrder2 arg0 0 0 0 8 0 0 1 9
+        }
+        997 {
+            if (gBleachersLineup == 0) {
+                dim-array.i16 gBleachersLineup (61 + 2)
+            }
+            array-assign-slice gBleachersLineup arg0 0 0 0 (61 + 2) 0 0 0 (61 + 2)
+        }
+        996 {
+            undim gNetRemoteCoachName
+            assign-string gNetRemoteCoachName "                "
+            array-assign-slice gNetRemoteCoachName arg0 0 0 0 15 0 0 1 16
+        }
+        95 {
+            for local1 = 1 to gMaxUniqueKid + {
+                if arg0[local1] {
+                    gKidData[local1][KD-fatigue] = arg0[local1]
+                }
+            }
+            global698 = 1
+        }
+        994 {
+            start-script scr233 arg0
+        }
+        96 {
+            start-script scr403 arg0
+        }
+        else {
+            if (arg0[0][0] >= 9000) {
+                if (gRunners == 0) {
+                    dim-array-2d.i16 gRunners 3 20
+                }
+                array-assign-slice gRunners arg0 0 3 0 20 0 3 0 20
+                gRunners[0][R-CUR-BASE] = gRunners[0][R-CUR-BASE] - 9000
+            } else if (arg0[0][0] >= 8000) {
+                if (gBases == 0) {
+                    dim-array-2d.i16 gBases 4 2
+                }
+                array-assign-slice gBases arg0 0 4 0 2 0 4 0 2
+                gBases[0][BASE-RUNNERIDX] = gBases[0][BASE-RUNNERIDX] - 8000
+            } else {
+                global504 = 1
+                if (not gNetStateBuffer) {
+                    dim-array-2d.i16 gNetStateBuffer 21 5
+                }
+                array-assign-slice gNetStateBuffer arg0 0 21 0 5 0 21 0 5
+            }
+        }
+    }
+    undim arg0
+}
+
+script NetWriteAudit@354 arg0 arg1 message arg3 arg4 arg5 arg6 _ _ _ _ _ {
+    var local12 local13 local14 local15 local16 local17
+
+    if (gNetAuditFile == 0) {
+        assign-string local12 "netmess.out"
+        gNetAuditFile = open-file local12 FOR-WRITE
+        undim local12
+        sprintf local16 "I AM (%d)    " g_net_smth_master
+        local17 = array-get-length local16
+        local16[local17 - 2] = 13
+        local16[local17 - 1] = 10
+        write-file.array.u8 gNetAuditFile local16
+        undim local16
+    }
+    if (gNetAuditFile != -1) {
+        if (message == NET-PING) {
+            stop-script 0
+        }
+        local13 = get-timer 1
+        sprintf local14 "%d" local13
+        local15 = call-script PadString local14 8
+        undim local14
+        case message {
+            NET-DIALOGUE {
+                assign-string local14 "NET-DIALOG"
+            }
+            NET-SETROOM {
+                assign-string local14 "NET-SETROOM"
+            }
+            NET-ASK-WHO-IS-MASTER {
+                assign-string local14 "NET-ASK-WHO-IS-MASTER"
+            }
+            NET-I-AM-MASTER {
+                assign-string local14 "NET-I-AM-MASTER"
+            }
+            NET-YELL {
+                assign-string local14 "NET_YELL"
+            }
+            NET-BATVIEW-MESSAGE {
+                assign-string local14 "NET_BATVIEW_MESSAGE"
+            }
+            NET-WAITFLAG {
+                assign-string local14 "NET-WAITFLAG"
+            }
+            NET-TEAMS-INFO {
+                assign-string local14 "NET-TEAM-INFO"
+            }
+            NET-PING {
+                assign-string local14 "NET-PING"
+            }
+            NET-PONG {
+                assign-string local14 "NET-PONG"
+            }
+            NET-PICK-FIRST {
+                assign-string local14 "NET-PICK-FIRST"
+            }
+            NET-PICKED-KID {
+                assign-string local14 "NET-PICKED-KID"
+            }
+            NET-ZPLANE-ON {
+                assign-string local14 "NET-ZPLANE-ON"
+            }
+            NET-RUNNER-SCORED {
+                assign-string local14 "NET-RUNNER-SCORED"
+            }
+            NET-RUNNER-OUT {
+                assign-string local14 "NET-RUNNER-OUT"
+            }
+            NET-RUNNER-CLICK {
+                assign-string local14 "NET-RUNNER-CLICK"
+            }
+            NET-SET-RUNNER-VARS {
+                assign-string local14 "NET-SET-RUNNER-VARS"
+            }
+            NET-OV-PLAY-OVER {
+                assign-string local14 "NET_OV_PLAY_OVER"
+            }
+            NET-CALL-TIMEOUT {
+                assign-string local14 "NET_CALL_TIMEOUT"
+            }
+            NET-BACK-FROM-TIMEOUT {
+                assign-string local14 "NET_BACK_FROM_TIMEOUT"
+            }
+            NET-SEND-STAT {
+                assign-string local14 "NET_SEND_STAT"
+            }
+            NET-OV-SFX {
+                assign-string local14 "NET_OV_SFX"
+            }
+            NET-CHECK-TEAM-SELECTION {
+                assign-string local14 "NET_CHECK_TEAM_SELECTION"
+            }
+            NET-TEAM-INFO {
+                assign-string local14 "NET_TEAM_INFO"
+            }
+            NET-REDUCE-FATIGUE {
+                assign-string local14 "NET_REDUCE_FATIGUE"
+            }
+            NET-SET-PLAYER-FATIGUE {
+                assign-string local14 "NET_SET_PLAYER_FATIGUE"
+            }
+            else {
+                sprintf local14 "%d" message
+            }
+        }
+        sprintf local16 "(%d) %d [%s] %d (%s) %d %d %d %d   " arg1 arg0 local15 message local14 arg3 arg4 arg5 arg6
+        local17 = array-get-length local16
+        local16[local17 - 2] = 13
+        local16[local17 - 1] = 10
+        if (message != 0) {
+            write-file.array.u8 gNetAuditFile local16
+        }
+        undim local16
+        undim local14
+        undim local15
+    }
+}
+
+script smth_net_waiting_for_other_user@356 {
+    var _ _ local2 local3
+
+    global540 = 10
+    do {
+        sleep-for.seconds 1
+        dec global540
+        if (not global540) {
+            start-script.rec maybe_net_send_message 10 1 NET-PING
+        }
+        if (global540 < 3) {
+            start-script.rec maybe_net_send_message 10 1 NET-PING 13
+        }
+        if (global540 < -10) {
+            local3 = 10
+            freeze-scripts 128
+            assign-string local2 "Other user not responding... Please Wait"
+            start-script smth_message_popup local2 2 0 0
+            break-here
+            do {
+                sleep-for.seconds 1
+                dec local3
+            } until (global540 > 0 || local3 == 0)
+            global577 = 1
+            freeze-scripts 0
+            if (global540 <= 0) {
+                start-script smth_net_abort_game 50
+                stop-script 0
+            }
+        }
+    }
+}
+
+script smth_net_lag@357 {
+    var _ _ local2
+
+    gNetLag = 300
+    if (read-system-ini.i32 "printnetlag") {
+        print-system.start
+        print-system.printf "Net lag (round trip reliable (%d) = %d)" (1 - gDisableReliable) (gNetLag * 2)
+    }
+    local2 = read-system-ini.i32 "FakeLagInMS"
+    if local2 {
+        kludge 2001 1555 local2
+    }
+}
+
+script maybe_net_init_or_create_lobby@358 {
+    g_maybe_directplay_initted = kludge-call 2001 1513
+}
+
+script smth_net359@359 arg0 arg1 {
+    var local2 local3
+
+    if g_maybe_directplay_initted {
+        if arg0 {
+            while (not gNetUsername) {
+                gNetUsername = debug-input "IPX Game: Enter User ID"
+            }
+            local2 = kludge-call 2001 1514 gNetUsername
+        } else {
+            local2 = 1
+            local3 = 1
+        }
+        if local2 {
+            gNetMessageHandlerScript = NetHandleMessageGameplay
+            gNetHandlerScript_unused = NetMessageHandler_unused
+            gNetplayActive = 1
+            start-script smth_net360 arg1
+        } else {
+            print-system.start
+            print-system.string "Problem Initing the DirectPlay System"
+        }
+    } else {
+    }
+}
+
+script smth_net360@360 arg0 {
+    var local1 local2 local3 local4 local5
+
+    g_net_smth_master = kludge-call 2001 1510
+    g_net_smth_me = 0
+    g_net_smth_slave = 0
+    global43 = 0
+    if arg0 {
+        g_net_smth_me = g_net_smth_master
+        g_smth_netplay_master_or_slave = 1
+    } else {
+        g_net_smth_slave = g_net_smth_master
+        g_smth_netplay_master_or_slave = 0
+        start-script.rec maybe_net_send_message 30 1 NET-ASK-WHO-IS-MASTER g_net_smth_master
+    }
+    if (g_net_smth_me == 0 || g_net_smth_slave == 0) {
+        do {
+            inc local5
+            if (g_net_smth_me != g_net_smth_master) {
+                inc local4
+                if (local4 >= 10) {
+                    start-script.rec maybe_net_send_message 30 1 NET-ASK-WHO-IS-MASTER g_net_smth_master
+                    local4 = 0
+                }
+            }
+            if (local5 > 300) {
+                assign-string local3 "Error - Could not start game.  Other user not responding."
+                start-script smth_net_connection local3
+                stop-script 0
+            }
+            break-here
+        } until (g_net_smth_me != 0 && g_net_smth_slave != 0)
+    }
+    global40 = 369
+    start-script smth_net_set_game_flags global559
+    start-script maybe_net_set_game_options g_smth_net_game_flags
+    start-script scr365
+    local2 = gMinJiffies
+    gMinJiffies = 1
+    break-here.multi 2
+    start-script smth_net_lag
+    break-until (not (script-running smth_net_lag))
+    if global571 {
+        start-script scr347 6 13 1 global557
+        start-script scr347 6 13 0 global554
+        start-script smth_net_waiting_for_other_user
+        start-script scr367
+    } else {
+    }
+    global248 = 0
+    if gNetplayActive {
+        start-script.rec maybe_net_send_message 30 1 NET-WAITFLAG global510 global248
+        do {
+            break-here
+        } until gNetWaitFlag
+        dec gNetWaitFlag
+    }
+    gMinJiffies = local2
+    gGameMode = MODE-PICKUP
+    gNoGooch = 1
+    global44 = 0
+    gGameEnded = 0
+    if (global571 && g_smth_netplay_master_or_slave) {
+        kludge 2001 2224 g_net_smth_me g_net_smth_slave gNetRemoteCoachName
+    }
+    local1 = read-system-ini.i32 "QuickStartNetworkGame"
+    if local1 {
+        global570 = 1
+    }
+    if (g_net_smth_me == g_net_smth_master) {
+        gHomeInfoIndex = 0
+        gVisitorInfoIndex = 1
+        gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = CB-USER
+        gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = CB-NETWORK
+        gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER] = gPickOrder1
+        gTeamInfo[gVisitorInfoIndex][TI-FIELDING-ORDER] = gPickOrder2
+        gTeamInfo[gHomeInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+        gTeamInfo[gVisitorInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+        if (not global570) {
+            global621 = 3
+            current-room teamname
+        } else {
+            start-script maybe_quick_network_game
+        }
+    } else {
+        global621 = 3
+        gHomeInfoIndex = 1
+        gVisitorInfoIndex = 0
+        gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] = CB-NETWORK
+        gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] = CB-USER
+        gTeamInfo[gHomeInfoIndex][TI-FIELDING-ORDER] = gPickOrder2
+        gTeamInfo[gVisitorInfoIndex][TI-FIELDING-ORDER] = gPickOrder1
+        gTeamInfo[gHomeInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+        gTeamInfo[gVisitorInfoIndex][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+    }
+}
+
+script smth_net361@361 {
+    var local0
+
+    gNetLag = 0
+    gNoGooch = 0
+    global44 = 27
+    stop-script smth_net_waiting_for_other_user
+    undim gNetRemoteCoachName
+    g_net_smth_master = 0
+    g_net_smth_me = 0
+    g_net_smth_slave = 0
+    gSkipPickingTeam = 0
+    global675 = 0
+    global674 = 0
+    if (not global706) {
+        global706 = 1
+        local0 = kludge-call 2001 1505
+        if local0 {
+            local0 = kludge-call 2001 1500
+            if local0 {
+            } else {
+            }
+        } else {
+        }
+    }
+    if global571 {
+        kludge 2001 2223
+    }
+}
+
+script NET_DisplayBanner@362 arg0 arg1 {
+    var local2 local3 local4 local5 local6 local7 local8 local9
+
+    if global542 {
+        print-system.start
+        print-system.string "Error - NET_DisplayBanner called again - old not cleared"
+        undim global542
+    }
+    dim-array-2d.i32 global542 10 4
+    if gBatViewCursorLoopScript {
+        stop-script gBatViewCursorLoopScript
+    }
+    local5 = gCurrentRoom
+    if (not arg1) {
+        arg1 = 600
+    }
+    global534 = 1
+    case arg0 {
+        9910 {
+            local2 = 4
+            array-assign-list global542 0 3 2 2 [436]
+            array-assign-list global542 0 3 3 3 [0 2 2 1]
+            global542[1][4] = 1
+            global542[2][4] = 1
+            local4 = 363
+        }
+        9911 {
+            local2 = 2
+            array-assign-list global542 0 1 2 2 [434]
+            array-assign-list global542 0 1 3 3 [0 0]
+            global542[0][4] = 0
+        }
+        else {
+        }
+    }
+    global542[0][0] = local2 - 1
+    for local3 = 0 to (local2 - 1) + {
+        global542[local3][1] = call-script FindFreeSprite
+        sprite.init global542[local3][1]
+        sprite.new
+        sprite.image global542[local3][2]
+        sprite.state global542[local3][3]
+        sprite.animation-type 0
+        sprite.update-type 0
+        sprite.order (1000 + local3 * 5)
+        sprite.at 320 240
+        if global542[local3][4] {
+            sprite.init global542[local3][1]
+            sprite.variable-range 1 global542[local3][1]
+        }
+    }
+    if (arg0 == 9911) {
+        local8 = call-script DrawString gNetRemoteCoachName 557 934
+        undim local6
+        local9 = call-script FindFreeSprite
+        sprite.init local9
+        sprite.new
+        sprite.image image934
+        sprite.at 246 217
+        sprite.order 6000
+        sprite.update-type 0
+        local7 = call-script FindFreeSprite
+        start-script maybe_smth_net_yell_ui global552 220 220 local7 935 202
+    }
+    if (arg0 == 9910) {
+        sprintf local6 "COACH %s CALLS   " gNetRemoteCoachName
+        local7 = call-script FindFreeSprite
+        local8 = call-script DrawString local6 651 935
+        undim local6
+        sprite.init local7
+        sprite.new
+        sprite.image image935
+        sprite.at 249 162
+        sprite.order 1050
+        local9 = call-script FindFreeSprite
+        start-script maybe_smth_net_yell_ui global552 214 160 local9 934 179
+    }
+    if local4 {
+        start-script local4
+        break-until (not (script-running local4))
+    } else if (arg1 > 0) {
+        break-here.multi arg1
+    } else {
+        break-until (not global534)
+    }
+    start-script ReleaseSprite local7
+    local7 = 0
+    start-script ReleaseSprite local9
+    local9 = 0
+    for local3 = 0 to (local2 - 1) + {
+        start-script ReleaseSprite global542[local3][1]
+        global542[local3][1] = 0
+    }
+    undim global542
+    if (local5 == gCurrentRoom) {
+        start-script gBatViewCursorLoopScript
+    }
+    global534 = 0
+}
+
+script scr363@363 {
+    var local0 local1 local2 local3 _ local5
+
+    userput-off
+    do {
+        inc local3
+        if (local3 == 300) {
+            sprite.init global542[1][1]
+            sprite.state 3
+        }
+        if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+            local0 = find-sprite gGamePadX gGamePadY 0 0 []
+        } else {
+            local0 = find-sprite gMouseX gMouseY 0 0 []
+        }
+        if local0 {
+            if (sprite-get-variable local0 1 == local0) {
+                local2 = 4
+            } else {
+                local0 = 0
+                local2 = 1
+            }
+            if (local1 != local2) {
+                if (g_maybe_operating_system == 2) {
+                    cursor-color-image (local2 + 2)
+                    gCursorImage = local2 + 2
+                } else if (local2 <= 76 || in local2 [82 85 91 88 79 95]) {
+                    cursor-image (local2 + 1)
+                    gCursorImage = local2 + 1
+                } else if (gBlackAndWhiteCursors || local2 == 1) {
+                    cursor-image (local2 + 1)
+                    gCursorImage = local2 + 1
+                } else {
+                    cursor-color-image local2
+                    gCursorImage = local2
+                }
+                local1 = local2
+            }
+        }
+        if (global17 || global18 && local0) {
+            if (local0 == global542[2][1]) {
+                start-script.rec maybe_net_send_message 30 1 NET-CALL-TIMEOUT
+                break-here
+                global624 = 1
+                current-room strategy
+                stop-script 0
+            } else if (local0 == global542[1][1]) {
+                local5 = random 7
+                start-script.rec maybe_net_send_message 20 1 NET-YELL-THUMB 6 local5
+            }
+        }
+        break-here
+    } until (gNetTimeout == 0)
+    userput-on
+}
+
+script CastIdle@364 arg0 arg1 arg2 {
+    if (not arg1) {
+        if (in gCurrentRoom [4 3]) {
+            stop-script 0
+        }
+    }
+    arg2 = call-script FindFreeActor
+    actor.init arg2
+    actor.costume 0
+    put-actor arg2 0 0 gCurrentRoom
+    case arg0 {
+        0 {
+            say-line-actor "\x7fT114597253,23452\x7fLet's see some action or something." arg2
+        }
+        1 {
+            say-line-actor "\x7fT114620705,15890\x7fLet's go, y'all!" arg2
+        }
+        2 {
+            say-line-actor "\x7fT114636595,20264\x7fI'm a-gettin sleepy." arg2
+        }
+        3 {
+            say-line-actor "\x7fT114656859,12738\x7fC'mon, wake up!" arg2
+        }
+        4 {
+            say-line-actor "\x7fT114669597,23323\x7fPay attention, there's a game going on!" arg2
+        }
+        5 {
+            say-line-actor "\x7fT114692920,19466\x7fGimme action, not words, dude!" arg2
+        }
+        6 {
+            say-line-actor "\x7fT114712386,16012\x7fWhat do you think you're doing?" arg2
+        }
+        7 {
+            say-line-actor "\x7fT114728398,30939\x7fI'm growin' a beard out here waitin' for some action." arg2
+        }
+        8 {
+            say-line-actor "\x7fT114759337,12616\x7fCome back here, you." arg2
+        }
+        9 {
+            say-line-actor "\x7fT114771953,41335\x7fY'all tuckered out or sumpin?  C'mon play some ball!" arg2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    put-actor arg2 0 0 0
+}
+
+script scr365@365 {
+    var local0 local1
+
+    dim-array.i32 local0 (15 + 1)
+    local1 = string-length gNetUsername
+    array-assign-slice local0 gNetUsername 0 0 1 (local1 + 1) 0 0 0 local1
+    local0[0] = 996
+    start-script.rec maybe_smth_net_send_array 40 1 local0
+    undim local0
+}
+
+script maybe_net_send_batview_message@366 message arg1 arg2 arg3 arg4 arg5 arg6 arg7 {
+    g_smth_net_pause_flag = 0
+    start-script.rec maybe_net_send_message 30 1 NET-BATVIEW-MESSAGE message arg1 arg2 arg3 arg4 arg5 arg6 arg7
+}
+
+script scr367@367 {
+    var local0
+
+    do {
+        do {
+            if (gCursorInputEnabled > 0) {
+                if (not global612) {
+                    local0 += gMinJiffies
+                }
+            }
+            if (global122 || global75 || gKeyState) {
+                local0 = 0
+            }
+            break-here
+        } until (local0 > 5400)
+        start-script scr368
+        break-until (not (script-running scr368))
+        if (global577 == -99) {
+            start-script smth_net_abort_game 47
+            jump L0069
+        }
+        local0 = 0
+    }
+    L0069:
+}
+
+script scr368@368 {
+    var local0 local1 local2
+
+    local1 = 10
+    do {
+        local0 = 0
+        sprintf local2 "Hello?  Are you still there?  Click OK or you will be disconnected in %d seconds." local1
+        start-script smth_message_popup local2 0 0 0
+        local2 = 0
+        do {
+            local0 += gMinJiffies
+            break-here
+        } until (local0 >= 60 || global577)
+        if global577 {
+            stop-script 0
+        }
+        dec local1
+    } until (local1 == 0)
+    global577 = -99
+    break-here
+}
+
+script maybe_net_send_abort_game_unused@369 {
+    if gNetplayActive {
+        start-script.rec maybe_net_send_message 30 1 NET-maybe-abort-game 48
+    }
+}
+
+script RosterStatTotal@370 arg0 stat {
+    var local2 local3
+
+    for local2 = 0 to 8 + {
+        local3 += gGameStats[arg0[local2]][stat]
+    }
+    return local3
+}
+
+script smth_net_stats_kludge@371 arg0 {
+    var _ local2 local3 local4 _ _ local7
+
+    if g_smth_netplay_master_or_slave {
+        if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+            local7 = gVisitorInfoIndex
+        } else {
+            local7 = gHomeInfoIndex
+        }
+        dim-array.i32 local3 13
+        if (gTeamInfo[local7][TI-RUNS] > gTeamInfo[1 - local7][TI-RUNS]) {
+            local2 = 1
+        }
+        local3[0] = local2
+        local3[1] = gTeamInfo[local7][TI-RUNS]
+        local3[5] = gUserLongestHomeRun
+        local3[2] = call-script RosterStatTotal gBattingOrder1 STAT-AT-BATS
+        local3[3] = call-script RosterStatTotal gBattingOrder1 STAT-HITS
+        local3[4] = call-script RosterStatTotal gBattingOrder1 STAT-HOME-RUNS
+        local3[6] = call-script RosterStatTotal gBattingOrder1 STAT-SINGLES
+        local3[7] = call-script RosterStatTotal gBattingOrder1 STAT-DOUBLES
+        local3[8] = call-script RosterStatTotal gBattingOrder1 STAT-TRIPLES
+        local3[9] = call-script RosterStatTotal gBattingOrder1 STAT-STEALS
+        local3[10] = call-script RosterStatTotal gBattingOrder1 STAT-STRIKE-OUTS-PITCHED
+        local3[11] = call-script RosterStatTotal gBattingOrder1 STAT-WALKS-ALLOWED
+        local3[12] = global674
+        local3[13] = gCurrentHalfInning / 2
+        kludge 2001 2225 g_net_smth_master local3 arg0
+        local2 = 0
+        if (gTeamInfo[local7][TI-RUNS] < gTeamInfo[1 - local7][TI-RUNS]) {
+            local2 = 1
+        }
+        local3[0] = local2
+        local3[1] = gTeamInfo[1 - local7][TI-RUNS]
+        local3[5] = gOpponentLongestHomeRun
+        local3[2] = call-script RosterStatTotal gBattingOrder2 STAT-AT-BATS
+        local3[3] = call-script RosterStatTotal gBattingOrder2 STAT-HITS
+        local3[4] = call-script RosterStatTotal gBattingOrder2 STAT-HOME-RUNS
+        local3[6] = call-script RosterStatTotal gBattingOrder2 STAT-SINGLES
+        local3[7] = call-script RosterStatTotal gBattingOrder2 STAT-DOUBLES
+        local3[8] = call-script RosterStatTotal gBattingOrder2 STAT-TRIPLES
+        local3[9] = call-script RosterStatTotal gBattingOrder2 STAT-STEALS
+        local3[10] = call-script RosterStatTotal gBattingOrder2 STAT-STRIKE-OUTS-PITCHED
+        local3[11] = call-script RosterStatTotal gBattingOrder2 STAT-WALKS-ALLOWED
+        local3[12] = global675
+        local3[13] = gCurrentHalfInning / 2
+        local4 = iif (g_net_smth_master == g_net_smth_slave) g_net_smth_me g_net_smth_slave
+        kludge 2001 2225 local4 local3 arg0
+        undim local3
+    }
+    if arg0 {
+        if (script-running scr368) {
+            stop-script scr368
+        }
+        if (script-running scr367) {
+            stop-script scr367
+        }
+        if (script-running smth_net_waiting_for_other_user) {
+            stop-script smth_net_waiting_for_other_user
+        }
+    }
+}
+
+script smth_net_abort_game@372 arg0 {
+    var local1 _ _ _ _ local6 local7
+
+    stop-script scr363
+    global534 = 0
+    if (gCurrentHalfInning == -1) {
+        local6 = 1
+    }
+    if (script-running scr368) {
+        stop-script scr368
+    }
+    if (script-running scr367) {
+        stop-script scr367
+    }
+    if (script-running smth_net_waiting_for_other_user) {
+        stop-script smth_net_waiting_for_other_user
+    }
+    if (not (call-script NetIsRouteAvailable)) {
+        override-off-off
+        for local7 = 1 to 3000 + {
+            if (local7 != 372) {
+                if (not (in local7 [324 352 353])) {
+                    stop-script local7
+                }
+            }
+        }
+        chain-script scr334 1
+    }
+    case arg0 {
+        50 {
+            g_smth_netplay_master_or_slave = 1
+            global674 = 0
+            global675 = 1
+            assign-string local1 "Game aborted - opponent not responding."
+            start-script smth_net_report_game_aborted local1 50 local6
+        }
+        45 {
+            override-off-off
+            for local7 = 1 to 3000 + {
+                if (local7 != 372) {
+                    if (not (in local7 [324 352 353])) {
+                        stop-script local7
+                    }
+                }
+            }
+            assign-string local1 "You were not responding, so you were disconnected from the game."
+            start-script smth_net_connection local1
+        }
+        46 {
+            if g_smth_netplay_master_or_slave {
+                global674 = 2
+                global675 = 0
+            } else {
+                global674 = 0
+                global675 = 2
+            }
+            assign-string local1 "Game aborted."
+            start-script smth_net_report_game_aborted local1 46 local6
+        }
+        51 {
+            if g_smth_netplay_master_or_slave {
+                global674 = 0
+                global675 = 2
+            } else {
+                global674 = 2
+                global675 = 0
+            }
+            assign-string local1 "Opponent quit the game."
+            start-script smth_net_report_game_aborted local1 0 local6
+        }
+        47 {
+            g_smth_netplay_master_or_slave = 0
+            global674 = 0
+            global675 = 1
+            assign-string local1 "Aborting game.  You don't seem to be playing anymore."
+            start-script smth_net_report_game_aborted local1 47 local6
+        }
+        49 {
+            g_smth_netplay_master_or_slave = 1
+            global674 = 0
+            global675 = 1
+            assign-string local1 "Remote was not responding, so aborting game."
+            start-script smth_net_report_game_aborted local1 0 local6
+        }
+        48 {
+            g_smth_netplay_master_or_slave = 1
+            global674 = 0
+            global675 = 2
+            assign-string local1 "Opponent quit playing.  Game over."
+            start-script smth_net_report_game_aborted local1 0 local6
+        }
+        else {
+        }
+    }
+}
+
+script smth_net_report_game_aborted@373 arg0 arg1 arg2 {
+    var local3 local4
+
+    override-off-off
+    sprintf local3 "%s Scores will be reported." arg0
+    undim arg0
+    override-off-off
+    for local4 = 1 to 3000 + {
+        if (local4 != 373 && local4 != 352) {
+            if (not (in local4 [324 352 353])) {
+                stop-script local4
+            }
+        }
+    }
+    if global705 {
+        start-script FreeSprite global705[0]
+        start-script FreeSprite global705[2]
+        start-script FreePalette global705[1]
+        undim global705
+        global705 = 0
+    }
+    case arg1 {
+        46 {
+            start-script.rec maybe_net_send_message 30 1 NET-maybe-abort-game 51
+        }
+        47 {
+            start-script.rec maybe_net_send_message 30 1 NET-maybe-abort-game 49
+        }
+        50 {
+            start-script.rec maybe_net_send_message 30 1 NET-maybe-abort-game 45
+        }
+        else {
+        }
+    }
+    break-here
+    start-script smth_message_popup local3 0 0 0 0
+    break-until (not (script-running smth_message_popup))
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    gGameEnded = 1
+    if arg2 {
+        start-script smth_net_stats_kludge 1
+        break-until (not (script-running smth_net_stats_kludge))
+        chain-script smth_net_connection
+    } else {
+        current-room matchup
+    }
+}
+
+script scr402@402 {
+    var local0 local1 local2 local3
+
+    dim-array-2d.u8 local1 18 10
+    local2 = 1
+    for local0 = 0 to 8 + {
+        local3 = gPickOrder1[local0]
+        array-assign-slice local1 gKidData local2 local2 1 10 local3 local3 1 10
+        local1[local2][0] = local3
+        inc local2
+        local3 = gPickOrder2[local0]
+        array-assign-slice local1 gKidData local2 local2 1 10 local3 local3 1 10
+        local1[local2][0] = local3
+        inc local2
+    }
+    local1[0][0] = 96
+    start-script.rec maybe_smth_net_send_array 40 1 local1
+    undim local1
+}
+
+script scr403@403 {
+    var local0 local1 local2
+
+    for local1 = 1 to 18 + {
+        local2 = local0[local1][0]
+        array-assign-slice gKidData local0 local2 local2 1 10 local1 local1 1 10
+    }
+    undim local0
+}
+
+script scr414@414 {
+    var local0 local1 local2 local3
+
+    local2 = 10
+    sprintf local0 "%sdownloads\\" gSaveGamePath
+    assign-string local1 "news.ini"
+    kludge 2001 2122 local0 1
+    break-here
+    kludge 2001 2238 local0 local1
+    do {
+        inc local3
+        sleep-for.seconds 1
+    } until (global135 || local3 > local2)
+    undim local1
+    global135 = 0
+    local3 = 0
+    assign-string local1 "poll.ini"
+    kludge 2001 2238 local0 local1
+    do {
+        inc local3
+        sleep-for.seconds 1
+    } until (global135 || local3 > local2)
+    undim local1
+    global135 = 0
+    local3 = 0
+    assign-string local1 "banners.ini"
+    kludge 2001 2238 local0 local1
+    do {
+        inc local3
+        sleep-for.seconds 1
+    } until (global135 || local3 > local2)
+    global135 = 0
+    undim local1
+    undim local0
+}
+
+script smth_net_set_game_flags@419 arg0 {
+    case arg0 {
+        24 {
+            g_smth_net_game_flags = 0
+        }
+        26 {
+            g_smth_net_game_flags = 256
+        }
+        25 {
+            g_smth_net_game_flags = 65536
+        }
+        16 {
+            g_smth_net_game_flags = 64
+        }
+        17 {
+            g_smth_net_game_flags = 65536
+        }
+        18 {
+            g_smth_net_game_flags = 0
+        }
+        19 {
+            g_smth_net_game_flags = 4096
+        }
+        9 {
+            g_smth_net_game_flags = 64
+        }
+        8 {
+            g_smth_net_game_flags = 65536
+        }
+        else {
+            g_smth_net_game_flags = 0
+        }
+    }
+}
+
+script maybe_net_set_game_options@420 arg0 {
+    gDifficulty = MEDIUM
+    gGameLength = 12
+    g_maybe_disable_powerups = 0
+    gSkipPickingTeam = 0
+    gNoBatCircle = 0
+    if (band arg0 64) {
+        gGameLength = 6
+    } else if (band arg0 32) {
+        gGameLength = 18
+    }
+    if (band arg0 256) {
+        g_maybe_disable_powerups = 1
+    }
+    if (band arg0 4096) {
+        gSkipPickingTeam = 1
+    }
+    if (band arg0 65536) {
+        gNoBatCircle = 1
+    }
+}
+
+script smth_net_map_descriptions@421 arg0 arg1 {
+    var local2
+
+    case arg1 {
+        0 {
+            case arg0 {
+                -3 {
+                    assign-string local2 "Big League Plays.  Big League Hits.  BIG league action.  Do you have what it takes?"
+                }
+                -2 {
+                    assign-string local2 "When you're ready for a challenge, come to Mediumville.  Better practice first though."
+                }
+                -1 {
+                    assign-string local2 "Practice your skills against other beginners."
+                }
+                24 {
+                    assign-string local2 "No fancy rules, just good old fashioned Backyard Baseball."
+                }
+                26 {
+                    assign-string local2 "Are you ready for the big time?  Then c'mon downtown.  One rule here:  no power-ups allowed."
+                }
+                25 {
+                    assign-string local2 "All votes are in - no lame ducks allowed here.  No pitch locator allowed either.  So how's that eye of yours anyway?"
+                }
+                16 {
+                    assign-string local2 "If you wanna run with the big dogs, get off the porch and come on in.  Three innings of quick baseball action."
+                }
+                17 {
+                    assign-string local2 "Once you pass though those gates you're in baseball country.  Taking away the pitch locator makes it extra tough."
+                }
+                18 {
+                    assign-string local2 "Cool down in the lake after you get lit up on the diamond.  Six innings, no special rules - just come on in, the water's fine."
+                }
+                19 {
+                    assign-string local2 "In Prince Rupert, the computer picks your rosters for you, which might make things interesting.  But don't be a quitter, play with what you get!"
+                }
+                9 {
+                    assign-string local2 "A friendly game of baseball in the fresh air.  Six innings of good times."
+                }
+                8 {
+                    assign-string local2 "Come out to the 'burbs for three innings of fun."
+                }
+                else {
+                }
+            }
+        }
+        1 {
+            case arg0 {
+                -3 {
+                    assign-string local2 "TOUGHY TOWN"
+                }
+                -2 {
+                    assign-string local2 "MEDIUMVILLE"
+                }
+                -1 {
+                    assign-string local2 "EASY STREETS"
+                }
+                24 {
+                    assign-string local2 "VESPUCCI PARK"
+                }
+                26 {
+                    assign-string local2 "LEWIS AVE"
+                }
+                25 {
+                    assign-string local2 "CAPITAL HILL"
+                }
+                16 {
+                    assign-string local2 "DOGWOOD"
+                }
+                17 {
+                    assign-string local2 "BROOKLINE"
+                }
+                18 {
+                    assign-string local2 "TALULA LAKE"
+                }
+                19 {
+                    assign-string local2 "PRINCE RUPERT"
+                }
+                9 {
+                    assign-string local2 "MOUNTAIN AIRE"
+                }
+                8 {
+                    assign-string local2 "WILDERNESS"
+                }
+                else {
+                }
+            }
+        }
+        2 {
+            case arg0 {
+                24 {
+                    assign-string local2 "NO FANCY RULES IN VESPUCCI PARK"
+                }
+                26 {
+                    assign-string local2 "NO POWER-UPS ALLOWED IN LEWIS AVE"
+                }
+                25 {
+                    assign-string local2 "NO PITCH LOCATOR ALLOWED IN CAPITAL HILL"
+                }
+                16 {
+                    assign-string local2 "THREE INNING GAMES IN DOGWOOD"
+                }
+                17 {
+                    assign-string local2 "NO PITCH LOCATOR ALLOWED IN BROOKLINE"
+                }
+                18 {
+                    assign-string local2 "NO FANCY RULES IN TALULA LAKE"
+                }
+                19 {
+                    assign-string local2 "RANDOM ROSTERS IN PRINCE RUPERT"
+                }
+                9 {
+                    assign-string local2 "NO FANCY RULES IN MOUNTAIN AIRE"
+                }
+                8 {
+                    assign-string local2 "THREE INNING GAMES IN WILDERNESS"
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+    if (not local2) {
+        assign-string local2 "ERROR"
+    }
+    return local2
+}
+
+

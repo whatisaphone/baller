@@ -1,7 +1,0 @@
-; LSC2 2 2052
-
-if (random 4) {
-    return (random2 122 151)
-}
-return (random2 101 106)
-free-script

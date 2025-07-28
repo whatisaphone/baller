@@ -1,5 +1,0 @@
-; LSC2 8 2103
-
-sleep-seconds 1
-run-script HandleNavClick [192]
-free-script

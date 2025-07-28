@@ -1,7 +1,0 @@
-; SCRP 118 ResetSeasonRosterArray
-
-if (gSeasonRosterArray) {
-    free-array gSeasonRosterArray
-}
-dim array gSeasonRosterArray i16[0...23][0...16 + 9 - 1] swap=2
-free-script

@@ -1,0 +1,59 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "printme/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+script scr374@374 {
+    var local0
+
+    if gNoPrinting {
+        stop-script 0
+    }
+    if (local0 > 0) {
+    } else if (local0 == -1) {
+        local0 = 374
+        image.init local0
+        image.capture 0 0 0 639 405
+        image.end
+    } else if (local0 == -2) {
+        local0 = 374
+        image.init local0
+        image.capture 0 0 0 639 479
+        image.end
+    } else {
+        local0 = 0
+    }
+    if local0 {
+        print-image local0
+    }
+    if (local0 == 374) {
+        nuke-image local0
+    }
+}
+
+enter {
+}
+
+exit {
+}
+
+awiz image374@374 {
+    raw-block CNVS `540300005c000000`
+    raw-block RELO `4b0300003e000000`
+    wizh
+    wizd 1 "printme/image374.bmp"
+}
+awiz image375@375 {
+    raw-block CNVS `540300005c000000`
+    raw-block RELO `4b0300003e000000`
+    wizh
+    wizd 1 "printme/image375.bmp"
+}

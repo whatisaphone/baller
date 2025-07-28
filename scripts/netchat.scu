@@ -1,0 +1,2172 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "netchat/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+
+
+sound TALK sound2099@2099 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2099.wav"
+}
+sound TALK sound2100@2100 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2100.wav"
+}
+sound TALK sound2101@2101 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2101.wav"
+}
+sound TALK sound2102@2102 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2102.wav"
+}
+sound TALK sound2103@2103 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2103.wav"
+}
+sound TALK sound2104@2104 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2104.wav"
+}
+sound TALK sound2105@2105 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2105.wav"
+}
+sound TALK sound2106@2106 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2106.wav"
+}
+sound TALK sound2107@2107 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2107.wav"
+}
+sound TALK sound2108@2108 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2108.wav"
+}
+sound TALK sound2109@2109 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2109.wav"
+}
+sound TALK sound2110@2110 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2110.wav"
+}
+sound TALK sound2111@2111 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2111.wav"
+}
+sound TALK sound2112@2112 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2112.wav"
+}
+sound TALK sound2113@2113 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2113.wav"
+}
+sound TALK sound2114@2114 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2114.wav"
+}
+sound TALK sound2115@2115 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2115.wav"
+}
+sound TALK sound2116@2116 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2116.wav"
+}
+sound TALK sound2117@2117 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2117.wav"
+}
+sound TALK sound2118@2118 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2118.wav"
+}
+sound TALK sound2119@2119 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2119.wav"
+}
+sound TALK sound2120@2120 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2120.wav"
+}
+sound TALK sound2121@2121 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2121.wav"
+}
+sound TALK sound2122@2122 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2122.wav"
+}
+sound TALK sound2123@2123 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2123.wav"
+}
+sound TALK sound2124@2124 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2124.wav"
+}
+sound TALK sound2125@2125 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2125.wav"
+}
+sound TALK sound2126@2126 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2126.wav"
+}
+sound TALK sound2127@2127 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2127.wav"
+}
+sound TALK sound2128@2128 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2128.wav"
+}
+sound TALK sound2129@2129 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2129.wav"
+}
+sound TALK sound2130@2130 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2130.wav"
+}
+sound TALK sound2131@2131 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2131.wav"
+}
+sound TALK sound2132@2132 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2132.wav"
+}
+sound TALK sound2133@2133 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2133.wav"
+}
+sound TALK sound2134@2134 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2134.wav"
+}
+sound TALK sound2135@2135 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2135.wav"
+}
+sound TALK sound2136@2136 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2136.wav"
+}
+sound TALK sound2137@2137 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2137.wav"
+}
+sound TALK sound2138@2138 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2138.wav"
+}
+sound TALK sound2139@2139 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2139.wav"
+}
+sound TALK sound2140@2140 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2140.wav"
+}
+sound TALK sound2141@2141 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2141.wav"
+}
+sound TALK sound2142@2142 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2142.wav"
+}
+sound TALK sound2143@2143 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2143.wav"
+}
+sound TALK sound2144@2144 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2144.wav"
+}
+sound TALK sound2145@2145 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2145.wav"
+}
+sound TALK sound2146@2146 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2146.wav"
+}
+sound TALK sound2147@2147 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2147.wav"
+}
+sound TALK sound2148@2148 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2148.wav"
+}
+sound TALK sound2149@2149 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2149.wav"
+}
+sound TALK sound2150@2150 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2150.wav"
+}
+sound TALK sound2151@2151 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2151.wav"
+}
+sound TALK sound2152@2152 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2152.wav"
+}
+sound TALK sound2153@2153 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2153.wav"
+}
+sound TALK sound2154@2154 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2154.wav"
+}
+sound TALK sound2155@2155 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2155.wav"
+}
+sound TALK sound2156@2156 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2156.wav"
+}
+sound TALK sound2157@2157 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2157.wav"
+}
+sound TALK sound2158@2158 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2158.wav"
+}
+sound TALK sound2159@2159 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2159.wav"
+}
+sound TALK sound2160@2160 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2160.wav"
+}
+sound TALK sound2161@2161 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2161.wav"
+}
+sound TALK sound2162@2162 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2162.wav"
+}
+sound TALK sound2163@2163 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2163.wav"
+}
+sound TALK sound2164@2164 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2164.wav"
+}
+sound TALK sound2165@2165 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2165.wav"
+}
+sound TALK sound2166@2166 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2166.wav"
+}
+sound TALK sound2167@2167 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2167.wav"
+}
+sound TALK sound2168@2168 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2168.wav"
+}
+sound TALK sound2169@2169 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2169.wav"
+}
+sound TALK sound2170@2170 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2170.wav"
+}
+sound TALK sound2171@2171 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2171.wav"
+}
+sound TALK sound2172@2172 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2172.wav"
+}
+sound TALK sound2173@2173 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2173.wav"
+}
+sound TALK sound2174@2174 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2174.wav"
+}
+sound TALK sound2175@2175 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2175.wav"
+}
+sound TALK sound2176@2176 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2176.wav"
+}
+sound TALK sound2177@2177 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2177.wav"
+}
+sound TALK sound2178@2178 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2178.wav"
+}
+sound TALK sound2179@2179 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2179.wav"
+}
+sound TALK sound2180@2180 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2180.wav"
+}
+sound TALK sound2181@2181 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2181.wav"
+}
+sound TALK sound2182@2182 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2182.wav"
+}
+sound TALK sound2183@2183 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2183.wav"
+}
+sound TALK sound2184@2184 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2184.wav"
+}
+sound TALK sound2185@2185 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2185.wav"
+}
+sound TALK sound2186@2186 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2186.wav"
+}
+sound TALK sound2187@2187 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2187.wav"
+}
+sound TALK sound2188@2188 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2188.wav"
+}
+sound TALK sound2189@2189 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2189.wav"
+}
+sound TALK sound2190@2190 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2190.wav"
+}
+sound TALK sound2191@2191 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2191.wav"
+}
+sound TALK sound2192@2192 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2192.wav"
+}
+sound TALK sound2193@2193 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2193.wav"
+}
+sound TALK sound2194@2194 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2194.wav"
+}
+sound TALK sound2195@2195 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2195.wav"
+}
+sound TALK sound2196@2196 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2196.wav"
+}
+sound TALK sound2197@2197 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2197.wav"
+}
+sound TALK sound2198@2198 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2198.wav"
+}
+sound TALK sound2199@2199 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2199.wav"
+}
+sound TALK sound2200@2200 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2200.wav"
+}
+sound TALK sound2201@2201 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2201.wav"
+}
+sound TALK sound2202@2202 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2202.wav"
+}
+sound TALK sound2203@2203 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2203.wav"
+}
+sound TALK sound2204@2204 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2204.wav"
+}
+sound TALK sound2205@2205 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2205.wav"
+}
+sound TALK sound2206@2206 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2206.wav"
+}
+sound TALK sound2207@2207 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2207.wav"
+}
+sound TALK sound2208@2208 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2208.wav"
+}
+sound TALK sound2209@2209 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2209.wav"
+}
+sound TALK sound2210@2210 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2210.wav"
+}
+sound TALK sound2211@2211 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2211.wav"
+}
+sound TALK sound2212@2212 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2212.wav"
+}
+sound TALK sound2213@2213 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2213.wav"
+}
+sound TALK sound2214@2214 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2214.wav"
+}
+sound TALK sound2215@2215 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2215.wav"
+}
+sound TALK sound2216@2216 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2216.wav"
+}
+sound TALK sound2217@2217 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2217.wav"
+}
+sound TALK sound2218@2218 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2218.wav"
+}
+sound TALK sound2219@2219 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2219.wav"
+}
+sound TALK sound2220@2220 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2220.wav"
+}
+sound TALK sound2221@2221 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2221.wav"
+}
+sound TALK sound2222@2222 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2222.wav"
+}
+sound TALK sound2223@2223 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2223.wav"
+}
+sound TALK sound2224@2224 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2224.wav"
+}
+sound TALK sound2225@2225 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2225.wav"
+}
+sound TALK sound2226@2226 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2226.wav"
+}
+sound TALK sound2227@2227 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2227.wav"
+}
+sound TALK sound2228@2228 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2228.wav"
+}
+sound TALK sound2229@2229 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2229.wav"
+}
+sound TALK sound2230@2230 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2230.wav"
+}
+sound TALK sound2231@2231 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2231.wav"
+}
+sound TALK sound2232@2232 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2232.wav"
+}
+sound TALK sound2233@2233 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2233.wav"
+}
+sound TALK sound2234@2234 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2234.wav"
+}
+sound TALK sound2235@2235 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2235.wav"
+}
+sound TALK sound2236@2236 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2236.wav"
+}
+sound TALK sound2237@2237 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2237.wav"
+}
+sound TALK sound2238@2238 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2238.wav"
+}
+sound TALK sound2239@2239 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2239.wav"
+}
+sound TALK sound2240@2240 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2240.wav"
+}
+sound TALK sound2241@2241 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2241.wav"
+}
+sound TALK sound2242@2242 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2242.wav"
+}
+sound TALK sound2243@2243 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2243.wav"
+}
+sound TALK sound2244@2244 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2244.wav"
+}
+sound TALK sound2245@2245 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2245.wav"
+}
+sound TALK sound2246@2246 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2246.wav"
+}
+sound TALK sound2247@2247 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2247.wav"
+}
+sound TALK sound2248@2248 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2248.wav"
+}
+sound TALK sound2249@2249 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2249.wav"
+}
+sound TALK sound2250@2250 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2250.wav"
+}
+sound TALK sound2251@2251 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2251.wav"
+}
+sound TALK sound2252@2252 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2252.wav"
+}
+sound TALK sound2253@2253 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2253.wav"
+}
+sound TALK sound2254@2254 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2254.wav"
+}
+sound TALK sound2255@2255 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2255.wav"
+}
+sound TALK sound2256@2256 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2256.wav"
+}
+sound TALK sound2257@2257 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2257.wav"
+}
+sound TALK sound2258@2258 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2258.wav"
+}
+sound TALK sound2259@2259 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2259.wav"
+}
+sound TALK sound2260@2260 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2260.wav"
+}
+sound TALK sound2261@2261 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2261.wav"
+}
+sound TALK sound2262@2262 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2262.wav"
+}
+sound TALK sound2263@2263 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2263.wav"
+}
+sound TALK sound2264@2264 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2264.wav"
+}
+sound TALK sound2265@2265 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2265.wav"
+}
+sound TALK sound2266@2266 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2266.wav"
+}
+sound TALK sound2267@2267 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2267.wav"
+}
+sound TALK sound2268@2268 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2268.wav"
+}
+sound TALK sound2269@2269 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2269.wav"
+}
+sound TALK sound2270@2270 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2270.wav"
+}
+sound TALK sound2271@2271 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2271.wav"
+}
+sound TALK sound2272@2272 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2272.wav"
+}
+sound TALK sound2273@2273 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2273.wav"
+}
+sound TALK sound2274@2274 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2274.wav"
+}
+sound TALK sound2275@2275 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2275.wav"
+}
+sound TALK sound2276@2276 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2276.wav"
+}
+sound TALK sound2277@2277 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2277.wav"
+}
+sound TALK sound2278@2278 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2278.wav"
+}
+sound TALK sound2279@2279 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2279.wav"
+}
+sound TALK sound2280@2280 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2280.wav"
+}
+sound TALK sound2281@2281 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2281.wav"
+}
+sound TALK sound2282@2282 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2282.wav"
+}
+sound TALK sound2283@2283 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2283.wav"
+}
+sound TALK sound2284@2284 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2284.wav"
+}
+sound TALK sound2285@2285 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2285.wav"
+}
+sound TALK sound2286@2286 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2286.wav"
+}
+sound TALK sound2287@2287 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2287.wav"
+}
+sound TALK sound2288@2288 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2288.wav"
+}
+sound TALK sound2289@2289 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2289.wav"
+}
+sound TALK sound2290@2290 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2290.wav"
+}
+sound TALK sound2291@2291 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2291.wav"
+}
+sound TALK sound2292@2292 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2292.wav"
+}
+sound TALK sound2293@2293 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2293.wav"
+}
+sound TALK sound2294@2294 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2294.wav"
+}
+sound TALK sound2295@2295 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2295.wav"
+}
+sound TALK sound2296@2296 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2296.wav"
+}
+sound TALK sound2297@2297 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2297.wav"
+}
+sound TALK sound2298@2298 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2298.wav"
+}
+sound TALK sound2299@2299 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2299.wav"
+}
+sound TALK sound2300@2300 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2300.wav"
+}
+sound TALK sound2301@2301 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2301.wav"
+}
+sound TALK sound2302@2302 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2302.wav"
+}
+sound TALK sound2303@2303 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2303.wav"
+}
+sound TALK sound2304@2304 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2304.wav"
+}
+sound TALK sound2305@2305 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2305.wav"
+}
+sound TALK sound2306@2306 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2306.wav"
+}
+sound TALK sound2307@2307 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2307.wav"
+}
+sound TALK sound2308@2308 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2308.wav"
+}
+sound TALK sound2309@2309 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2309.wav"
+}
+sound TALK sound2310@2310 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2310.wav"
+}
+sound TALK sound2311@2311 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2311.wav"
+}
+sound TALK sound2312@2312 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2312.wav"
+}
+sound TALK sound2313@2313 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2313.wav"
+}
+sound TALK sound2314@2314 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2314.wav"
+}
+sound TALK sound2315@2315 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2315.wav"
+}
+sound TALK sound2316@2316 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2316.wav"
+}
+sound TALK sound2317@2317 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2317.wav"
+}
+sound TALK sound2318@2318 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2318.wav"
+}
+sound TALK sound2319@2319 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2319.wav"
+}
+sound TALK sound2320@2320 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2320.wav"
+}
+sound TALK sound2321@2321 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2321.wav"
+}
+sound TALK sound2322@2322 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2322.wav"
+}
+sound TALK sound2323@2323 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2323.wav"
+}
+sound TALK sound2324@2324 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2324.wav"
+}
+sound TALK sound2325@2325 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2325.wav"
+}
+sound TALK sound2326@2326 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2326.wav"
+}
+sound TALK sound2327@2327 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2327.wav"
+}
+sound TALK sound2328@2328 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2328.wav"
+}
+sound TALK sound2329@2329 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2329.wav"
+}
+sound TALK sound2330@2330 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2330.wav"
+}
+sound TALK sound2331@2331 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2331.wav"
+}
+sound TALK sound2332@2332 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2332.wav"
+}
+sound TALK sound2333@2333 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2333.wav"
+}
+sound TALK sound2334@2334 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2334.wav"
+}
+sound TALK sound2335@2335 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2335.wav"
+}
+sound TALK sound2336@2336 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2336.wav"
+}
+sound TALK sound2337@2337 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2337.wav"
+}
+sound TALK sound2338@2338 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2338.wav"
+}
+sound TALK sound2339@2339 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2339.wav"
+}
+sound TALK sound2340@2340 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2340.wav"
+}
+sound TALK sound2341@2341 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2341.wav"
+}
+sound TALK sound2342@2342 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2342.wav"
+}
+sound TALK sound2343@2343 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2343.wav"
+}
+sound TALK sound2344@2344 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2344.wav"
+}
+sound TALK sound2345@2345 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2345.wav"
+}
+sound TALK sound2346@2346 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2346.wav"
+}
+sound TALK sound2347@2347 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2347.wav"
+}
+sound TALK sound2348@2348 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2348.wav"
+}
+sound TALK sound2349@2349 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2349.wav"
+}
+sound TALK sound2350@2350 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2350.wav"
+}
+sound TALK sound2351@2351 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2351.wav"
+}
+sound TALK sound2352@2352 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2352.wav"
+}
+sound TALK sound2353@2353 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2353.wav"
+}
+sound TALK sound2354@2354 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2354.wav"
+}
+sound TALK sound2355@2355 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2355.wav"
+}
+sound TALK sound2356@2356 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2356.wav"
+}
+sound TALK sound2357@2357 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2357.wav"
+}
+sound TALK sound2358@2358 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2358.wav"
+}
+sound TALK sound2359@2359 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2359.wav"
+}
+sound TALK sound2360@2360 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2360.wav"
+}
+sound TALK sound2361@2361 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2361.wav"
+}
+sound TALK sound2362@2362 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2362.wav"
+}
+sound TALK sound2363@2363 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2363.wav"
+}
+sound TALK sound2364@2364 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2364.wav"
+}
+sound TALK sound2365@2365 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2365.wav"
+}
+sound TALK sound2366@2366 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2366.wav"
+}
+sound TALK sound2367@2367 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2367.wav"
+}
+sound TALK sound2368@2368 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2368.wav"
+}
+sound TALK sound2369@2369 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2369.wav"
+}
+sound TALK sound2370@2370 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2370.wav"
+}
+sound TALK sound2371@2371 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2371.wav"
+}
+sound TALK sound2372@2372 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2372.wav"
+}
+sound TALK sound2373@2373 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2373.wav"
+}
+sound TALK sound2374@2374 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2374.wav"
+}
+sound TALK sound2375@2375 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2375.wav"
+}
+sound TALK sound2376@2376 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2376.wav"
+}
+sound TALK sound2377@2377 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2377.wav"
+}
+sound TALK sound2378@2378 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2378.wav"
+}
+sound TALK sound2379@2379 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2379.wav"
+}
+sound TALK sound2380@2380 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2380.wav"
+}
+sound TALK sound2381@2381 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2381.wav"
+}
+sound TALK sound2382@2382 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2382.wav"
+}
+sound TALK sound2383@2383 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2383.wav"
+}
+sound TALK sound2384@2384 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2384.wav"
+}
+sound TALK sound2385@2385 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2385.wav"
+}
+sound TALK sound2386@2386 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2386.wav"
+}
+sound TALK sound2387@2387 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2387.wav"
+}
+sound TALK sound2388@2388 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2388.wav"
+}
+sound TALK sound2389@2389 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2389.wav"
+}
+sound TALK sound2390@2390 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2390.wav"
+}
+sound TALK sound2391@2391 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2391.wav"
+}
+sound TALK sound2392@2392 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2392.wav"
+}
+sound TALK sound2393@2393 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2393.wav"
+}
+sound TALK sound2394@2394 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2394.wav"
+}
+sound TALK sound2395@2395 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2395.wav"
+}
+sound TALK sound2396@2396 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2396.wav"
+}
+sound TALK sound2397@2397 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2397.wav"
+}
+sound TALK sound2398@2398 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2398.wav"
+}
+sound TALK sound2399@2399 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2399.wav"
+}
+sound TALK sound2400@2400 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2400.wav"
+}
+sound TALK sound2401@2401 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2401.wav"
+}
+sound TALK sound2402@2402 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2402.wav"
+}
+sound TALK sound2403@2403 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2403.wav"
+}
+sound TALK sound2404@2404 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2404.wav"
+}
+sound TALK sound2405@2405 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2405.wav"
+}
+sound TALK sound2406@2406 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2406.wav"
+}
+sound TALK sound2407@2407 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2407.wav"
+}
+sound TALK sound2408@2408 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2408.wav"
+}
+sound TALK sound2409@2409 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2409.wav"
+}
+sound TALK sound2410@2410 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2410.wav"
+}
+sound TALK sound2411@2411 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2411.wav"
+}
+sound TALK sound2412@2412 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2412.wav"
+}
+sound TALK sound2413@2413 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2413.wav"
+}
+sound TALK sound2414@2414 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2414.wav"
+}
+sound TALK sound2415@2415 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2415.wav"
+}
+sound TALK sound2416@2416 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2416.wav"
+}
+sound TALK sound2417@2417 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2417.wav"
+}
+sound TALK sound2418@2418 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2418.wav"
+}
+sound TALK sound2419@2419 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2419.wav"
+}
+sound TALK sound2420@2420 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2420.wav"
+}
+sound TALK sound2421@2421 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2421.wav"
+}
+sound TALK sound2422@2422 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2422.wav"
+}
+sound TALK sound2423@2423 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2423.wav"
+}
+sound TALK sound2424@2424 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2424.wav"
+}
+sound TALK sound2425@2425 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2425.wav"
+}
+sound TALK sound2426@2426 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2426.wav"
+}
+sound TALK sound2427@2427 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2427.wav"
+}
+sound TALK sound2428@2428 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2428.wav"
+}
+sound TALK sound2429@2429 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2429.wav"
+}
+sound TALK sound2430@2430 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2430.wav"
+}
+sound TALK sound2431@2431 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2431.wav"
+}
+sound TALK sound2432@2432 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2432.wav"
+}
+sound TALK sound2433@2433 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2433.wav"
+}
+sound TALK sound2434@2434 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2434.wav"
+}
+sound TALK sound2435@2435 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2435.wav"
+}
+sound TALK sound2436@2436 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2436.wav"
+}
+sound TALK sound2437@2437 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2437.wav"
+}
+sound TALK sound2438@2438 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2438.wav"
+}
+sound TALK sound2439@2439 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2439.wav"
+}
+sound TALK sound2440@2440 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2440.wav"
+}
+sound TALK sound2441@2441 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2441.wav"
+}
+sound TALK sound2442@2442 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2442.wav"
+}
+sound TALK sound2443@2443 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2443.wav"
+}
+sound TALK sound2444@2444 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2444.wav"
+}
+sound TALK sound2445@2445 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2445.wav"
+}
+sound TALK sound2446@2446 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2446.wav"
+}
+sound TALK sound2447@2447 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2447.wav"
+}
+sound TALK sound2448@2448 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2448.wav"
+}
+sound TALK sound2449@2449 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2449.wav"
+}
+sound TALK sound2450@2450 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2450.wav"
+}
+sound TALK sound2451@2451 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2451.wav"
+}
+sound TALK sound2452@2452 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2452.wav"
+}
+sound TALK sound2453@2453 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2453.wav"
+}
+sound TALK sound2454@2454 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2454.wav"
+}
+sound TALK sound2455@2455 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2455.wav"
+}
+sound TALK sound2456@2456 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2456.wav"
+}
+sound TALK sound2457@2457 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2457.wav"
+}
+sound TALK sound2458@2458 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2458.wav"
+}
+sound TALK sound2459@2459 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2459.wav"
+}
+sound TALK sound2460@2460 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2460.wav"
+}
+sound TALK sound2461@2461 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2461.wav"
+}
+sound TALK sound2462@2462 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2462.wav"
+}
+sound TALK sound2463@2463 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2463.wav"
+}
+sound TALK sound2464@2464 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2464.wav"
+}
+sound TALK sound2465@2465 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2465.wav"
+}
+sound TALK sound2466@2466 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2466.wav"
+}
+sound TALK sound2467@2467 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2467.wav"
+}
+sound TALK sound2468@2468 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2468.wav"
+}
+sound TALK sound2469@2469 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2469.wav"
+}
+sound TALK sound2470@2470 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2470.wav"
+}
+sound TALK sound2471@2471 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2471.wav"
+}
+sound TALK sound2472@2472 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2472.wav"
+}
+sound TALK sound2473@2473 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2473.wav"
+}
+sound TALK sound2474@2474 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2474.wav"
+}
+sound TALK sound2475@2475 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2475.wav"
+}
+sound TALK sound2476@2476 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2476.wav"
+}
+sound TALK sound2477@2477 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2477.wav"
+}
+sound TALK sound2478@2478 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2478.wav"
+}
+sound TALK sound2479@2479 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2479.wav"
+}
+sound TALK sound2480@2480 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2480.wav"
+}
+sound TALK sound2481@2481 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2481.wav"
+}
+sound TALK sound2482@2482 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2482.wav"
+}
+sound TALK sound2483@2483 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2483.wav"
+}
+sound TALK sound2484@2484 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2484.wav"
+}
+sound TALK sound2485@2485 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2485.wav"
+}
+sound TALK sound2486@2486 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2486.wav"
+}
+sound TALK sound2487@2487 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2487.wav"
+}
+sound TALK sound2488@2488 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2488.wav"
+}
+sound TALK sound2489@2489 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2489.wav"
+}
+sound TALK sound2490@2490 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2490.wav"
+}
+sound TALK sound2491@2491 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2491.wav"
+}
+sound TALK sound2492@2492 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2492.wav"
+}
+sound TALK sound2493@2493 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2493.wav"
+}
+sound TALK sound2494@2494 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2494.wav"
+}
+sound TALK sound2495@2495 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2495.wav"
+}
+sound TALK sound2496@2496 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2496.wav"
+}
+sound TALK sound2497@2497 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2497.wav"
+}
+sound TALK sound2498@2498 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2498.wav"
+}
+sound TALK sound2499@2499 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2499.wav"
+}
+sound TALK sound2500@2500 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2500.wav"
+}
+sound TALK sound2501@2501 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2501.wav"
+}
+sound TALK sound2502@2502 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2502.wav"
+}
+sound TALK sound2503@2503 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2503.wav"
+}
+sound TALK sound2504@2504 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2504.wav"
+}
+sound TALK sound2505@2505 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2505.wav"
+}
+sound TALK sound2506@2506 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2506.wav"
+}
+sound TALK sound2507@2507 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2507.wav"
+}
+sound TALK sound2508@2508 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2508.wav"
+}
+sound TALK sound2509@2509 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2509.wav"
+}
+sound TALK sound2510@2510 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2510.wav"
+}
+sound TALK sound2511@2511 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2511.wav"
+}
+sound TALK sound2512@2512 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2512.wav"
+}
+sound TALK sound2513@2513 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2513.wav"
+}
+sound TALK sound2514@2514 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2514.wav"
+}
+sound TALK sound2515@2515 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2515.wav"
+}
+sound TALK sound2516@2516 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2516.wav"
+}
+sound TALK sound2517@2517 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2517.wav"
+}
+sound TALK sound2518@2518 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2518.wav"
+}
+sound TALK sound2519@2519 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2519.wav"
+}
+sound TALK sound2520@2520 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2520.wav"
+}
+sound TALK sound2521@2521 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2521.wav"
+}
+sound TALK sound2522@2522 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2522.wav"
+}
+sound TALK sound2523@2523 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2523.wav"
+}
+sound TALK sound2524@2524 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2524.wav"
+}
+sound TALK sound2525@2525 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2525.wav"
+}
+sound TALK sound2526@2526 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2526.wav"
+}
+sound TALK sound2527@2527 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2527.wav"
+}
+sound TALK sound2528@2528 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2528.wav"
+}
+sound TALK sound2529@2529 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2529.wav"
+}
+sound TALK sound2530@2530 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2530.wav"
+}
+sound TALK sound2531@2531 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2531.wav"
+}
+sound TALK sound2532@2532 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2532.wav"
+}
+sound TALK sound2533@2533 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2533.wav"
+}
+sound TALK sound2534@2534 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2534.wav"
+}
+sound TALK sound2535@2535 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2535.wav"
+}
+sound TALK sound2536@2536 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2536.wav"
+}
+sound TALK sound2537@2537 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2537.wav"
+}
+sound TALK sound2538@2538 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2538.wav"
+}
+sound TALK sound2539@2539 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2539.wav"
+}
+sound TALK sound2540@2540 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2540.wav"
+}
+sound TALK sound2541@2541 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2541.wav"
+}
+sound TALK sound2542@2542 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2542.wav"
+}
+sound TALK sound2543@2543 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2543.wav"
+}
+sound TALK sound2544@2544 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2544.wav"
+}
+sound TALK sound2545@2545 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2545.wav"
+}
+sound TALK sound2546@2546 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2546.wav"
+}
+sound TALK sound2547@2547 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2547.wav"
+}
+sound TALK sound2548@2548 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2548.wav"
+}
+sound TALK sound2549@2549 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2549.wav"
+}
+sound TALK sound2550@2550 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2550.wav"
+}
+sound TALK sound2551@2551 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2551.wav"
+}
+sound TALK sound2552@2552 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2552.wav"
+}
+sound TALK sound2553@2553 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2553.wav"
+}
+sound TALK sound2554@2554 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2554.wav"
+}
+sound TALK sound2555@2555 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2555.wav"
+}
+sound TALK sound2556@2556 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2556.wav"
+}
+sound TALK sound2557@2557 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2557.wav"
+}
+sound TALK sound2558@2558 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2558.wav"
+}
+sound TALK sound2559@2559 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2559.wav"
+}
+sound TALK sound2560@2560 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2560.wav"
+}
+sound TALK sound2561@2561 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2561.wav"
+}
+sound TALK sound2562@2562 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2562.wav"
+}
+sound TALK sound2563@2563 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2563.wav"
+}
+sound TALK sound2564@2564 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2564.wav"
+}
+sound TALK sound2565@2565 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2565.wav"
+}
+sound TALK sound2566@2566 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2566.wav"
+}
+sound TALK sound2567@2567 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2567.wav"
+}
+sound TALK sound2568@2568 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2568.wav"
+}
+sound TALK sound2569@2569 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2569.wav"
+}
+sound TALK sound2570@2570 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2570.wav"
+}
+sound TALK sound2571@2571 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2571.wav"
+}
+sound TALK sound2572@2572 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2572.wav"
+}
+sound TALK sound2573@2573 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2573.wav"
+}
+sound TALK sound2574@2574 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2574.wav"
+}
+sound TALK sound2575@2575 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2575.wav"
+}
+sound TALK sound2576@2576 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2576.wav"
+}
+sound TALK sound2577@2577 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2577.wav"
+}
+sound TALK sound2578@2578 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2578.wav"
+}
+sound TALK sound2579@2579 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2579.wav"
+}
+sound TALK sound2580@2580 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2580.wav"
+}
+sound TALK sound2581@2581 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2581.wav"
+}
+sound TALK sound2582@2582 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2582.wav"
+}
+sound TALK sound2583@2583 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2583.wav"
+}
+sound TALK sound2584@2584 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2584.wav"
+}
+sound TALK sound2585@2585 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2585.wav"
+}
+sound TALK sound2586@2586 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2586.wav"
+}
+sound TALK sound2587@2587 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2587.wav"
+}
+sound TALK sound2588@2588 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2588.wav"
+}
+sound TALK sound2589@2589 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2589.wav"
+}
+sound TALK sound2590@2590 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2590.wav"
+}
+sound TALK sound2591@2591 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2591.wav"
+}
+sound TALK sound2592@2592 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2592.wav"
+}
+sound TALK sound2593@2593 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2593.wav"
+}
+sound TALK sound2594@2594 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2594.wav"
+}
+sound TALK sound2595@2595 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2595.wav"
+}
+sound TALK sound2596@2596 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2596.wav"
+}
+sound TALK sound2597@2597 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2597.wav"
+}
+sound TALK sound2598@2598 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2598.wav"
+}
+sound TALK sound2599@2599 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2599.wav"
+}
+sound TALK sound2600@2600 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2600.wav"
+}
+sound TALK sound2601@2601 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2601.wav"
+}
+sound TALK sound2602@2602 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2602.wav"
+}
+sound TALK sound2603@2603 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2603.wav"
+}
+sound TALK sound2604@2604 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2604.wav"
+}
+sound TALK sound2605@2605 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2605.wav"
+}
+sound TALK sound2606@2606 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2606.wav"
+}
+sound TALK sound2607@2607 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2607.wav"
+}
+sound TALK sound2608@2608 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2608.wav"
+}
+sound TALK sound2609@2609 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2609.wav"
+}
+sound TALK sound2610@2610 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2610.wav"
+}
+sound TALK sound2611@2611 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2611.wav"
+}
+sound TALK sound2612@2612 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2612.wav"
+}
+sound TALK sound2613@2613 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2613.wav"
+}
+sound TALK sound2614@2614 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2614.wav"
+}
+sound TALK sound2615@2615 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2615.wav"
+}
+sound TALK sound2616@2616 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2616.wav"
+}
+sound TALK sound2617@2617 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2617.wav"
+}
+sound TALK sound2618@2618 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2618.wav"
+}
+sound TALK sound2619@2619 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2619.wav"
+}
+sound TALK sound2620@2620 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2620.wav"
+}
+sound TALK sound2621@2621 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2621.wav"
+}
+sound TALK sound2622@2622 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2622.wav"
+}
+sound TALK sound2623@2623 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2623.wav"
+}
+sound TALK sound2624@2624 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2624.wav"
+}
+sound TALK sound2625@2625 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2625.wav"
+}
+sound TALK sound2626@2626 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "netchat/sound2626.wav"
+}
+mult image553@553 {
+    raw-block DEFA {
+        raw-block RGBS "netchat/image553/RGBS.bin"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3e01000092ffffff`
+        wizd 1 "netchat/image553/0000.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3e01000094ffffff`
+        wizd 1 "netchat/image553/0001.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3e0100007bffffff`
+        wizd 1 "netchat/image553/0002.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `1701000094ffffff`
+        wizd 1 "netchat/image553/0003.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `170100007bffffff`
+        wizd 1 "netchat/image553/0004.bmp"
+    }
+    awiz {
+        wizh
+        wizd 1 "netchat/image553/0005.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3e010000aa000000`
+        wizd 1 "netchat/image553/0007.bmp"
+    }
+    awiz {
+        wizh
+        raw-block SPOT `3e010000aa000000`
+        wizd 1 "netchat/image553/0008.bmp"
+    }
+    indices [0 1 2 3 4 5 5 6 7]
+}

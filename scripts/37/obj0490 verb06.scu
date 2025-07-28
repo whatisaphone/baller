@@ -1,6 +1,0 @@
-; VERB 37 490
-
-run-script 2087 [490]
-room23 = 1
-run-script 2080 []
-finish-script

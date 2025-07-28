@@ -1,0 +1,3039 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "kidovtlk/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `080008000000`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `0000`
+}
+
+enter {
+    global239 = 2
+}
+
+exit {
+}
+
+sound DIGI sound2@2 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound2.wav"
+}
+sound DIGI sound3@3 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound3.wav"
+}
+sound DIGI sound4@4 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound4.wav"
+}
+sound DIGI sound5@5 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound5.wav"
+}
+sound DIGI sound6@6 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound6.wav"
+}
+sound DIGI sound7@7 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound7.wav"
+}
+sound DIGI sound8@8 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound8.wav"
+}
+sound DIGI sound9@9 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound9.wav"
+}
+sound DIGI sound10@10 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound10.wav"
+}
+sound DIGI sound11@11 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound11.wav"
+}
+sound DIGI sound12@12 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound12.wav"
+}
+sound DIGI sound13@13 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound13.wav"
+}
+sound DIGI sound14@14 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound14.wav"
+}
+sound DIGI sound15@15 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound15.wav"
+}
+sound DIGI sound16@16 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound16.wav"
+}
+sound DIGI sound17@17 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound17.wav"
+}
+sound DIGI sound18@18 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound18.wav"
+}
+sound DIGI sound19@19 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound19.wav"
+}
+sound DIGI sound20@20 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound20.wav"
+}
+sound DIGI sound21@21 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound21.wav"
+}
+sound DIGI sound22@22 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound22.wav"
+}
+sound DIGI sound23@23 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound23.wav"
+}
+sound DIGI sound24@24 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound24.wav"
+}
+sound DIGI sound25@25 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound25.wav"
+}
+sound DIGI sound26@26 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound26.wav"
+}
+sound DIGI sound27@27 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound27.wav"
+}
+sound DIGI sound28@28 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound28.wav"
+}
+sound DIGI sound29@29 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound29.wav"
+}
+sound DIGI sound30@30 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound30.wav"
+}
+sound DIGI sound31@31 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound31.wav"
+}
+sound DIGI sound32@32 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound32.wav"
+}
+sound DIGI sound33@33 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound33.wav"
+}
+sound DIGI sound34@34 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound34.wav"
+}
+sound DIGI sound35@35 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound35.wav"
+}
+sound DIGI sound36@36 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound36.wav"
+}
+sound DIGI sound37@37 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound37.wav"
+}
+sound DIGI sound38@38 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound38.wav"
+}
+sound DIGI sound39@39 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound39.wav"
+}
+sound DIGI sound40@40 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound40.wav"
+}
+sound DIGI sound41@41 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound41.wav"
+}
+sound DIGI sound42@42 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound42.wav"
+}
+sound DIGI sound43@43 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound43.wav"
+}
+sound DIGI sound44@44 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound44.wav"
+}
+sound DIGI sound45@45 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound45.wav"
+}
+sound DIGI sound46@46 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound46.wav"
+}
+sound DIGI sound47@47 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound47.wav"
+}
+sound DIGI sound48@48 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound48.wav"
+}
+sound DIGI sound49@49 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound49.wav"
+}
+sound DIGI sound50@50 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound50.wav"
+}
+sound DIGI sound51@51 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound51.wav"
+}
+sound DIGI sound52@52 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound52.wav"
+}
+sound DIGI sound53@53 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound53.wav"
+}
+sound DIGI sound54@54 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound54.wav"
+}
+sound DIGI sound55@55 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound55.wav"
+}
+sound DIGI sound56@56 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound56.wav"
+}
+sound DIGI sound57@57 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound57.wav"
+}
+sound DIGI sound58@58 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound58.wav"
+}
+sound DIGI sound59@59 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound59.wav"
+}
+sound DIGI sound60@60 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound60.wav"
+}
+sound DIGI sound61@61 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound61.wav"
+}
+sound DIGI sound62@62 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound62.wav"
+}
+sound DIGI sound63@63 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound63.wav"
+}
+sound DIGI sound64@64 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound64.wav"
+}
+sound DIGI sound65@65 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound65.wav"
+}
+sound DIGI sound66@66 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound66.wav"
+}
+sound DIGI sound67@67 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound67.wav"
+}
+sound DIGI sound68@68 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound68.wav"
+}
+sound DIGI sound69@69 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound69.wav"
+}
+sound DIGI sound70@70 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound70.wav"
+}
+sound DIGI sound71@71 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound71.wav"
+}
+sound DIGI sound72@72 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound72.wav"
+}
+sound DIGI sound73@73 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound73.wav"
+}
+sound DIGI sound74@74 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound74.wav"
+}
+sound DIGI sound75@75 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound75.wav"
+}
+sound DIGI sound76@76 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound76.wav"
+}
+sound DIGI sound77@77 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound77.wav"
+}
+sound DIGI sound78@78 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound78.wav"
+}
+sound DIGI sound79@79 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound79.wav"
+}
+sound DIGI sound80@80 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound80.wav"
+}
+sound DIGI sound81@81 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound81.wav"
+}
+sound DIGI sound82@82 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound82.wav"
+}
+sound DIGI sound83@83 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound83.wav"
+}
+sound DIGI sound84@84 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound84.wav"
+}
+sound DIGI sound85@85 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound85.wav"
+}
+sound DIGI sound86@86 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound86.wav"
+}
+sound DIGI sound87@87 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound87.wav"
+}
+sound DIGI sound88@88 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound88.wav"
+}
+sound DIGI sound89@89 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound89.wav"
+}
+sound DIGI sound90@90 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound90.wav"
+}
+sound DIGI sound91@91 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound91.wav"
+}
+sound DIGI sound92@92 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound92.wav"
+}
+sound DIGI sound93@93 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound93.wav"
+}
+sound DIGI sound94@94 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound94.wav"
+}
+sound DIGI sound95@95 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound95.wav"
+}
+sound DIGI sound96@96 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound96.wav"
+}
+sound DIGI sound97@97 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound97.wav"
+}
+sound DIGI sound98@98 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound98.wav"
+}
+sound DIGI sound99@99 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound99.wav"
+}
+sound DIGI sound100@100 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound100.wav"
+}
+sound DIGI sound101@101 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound101.wav"
+}
+sound DIGI sound102@102 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound102.wav"
+}
+sound DIGI sound103@103 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound103.wav"
+}
+sound DIGI sound104@104 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound104.wav"
+}
+sound DIGI sound105@105 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound105.wav"
+}
+sound DIGI sound106@106 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound106.wav"
+}
+sound DIGI sound107@107 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound107.wav"
+}
+sound DIGI sound108@108 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound108.wav"
+}
+sound DIGI sound109@109 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound109.wav"
+}
+sound DIGI sound110@110 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound110.wav"
+}
+sound DIGI sound111@111 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound111.wav"
+}
+sound DIGI sound112@112 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound112.wav"
+}
+sound DIGI sound113@113 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound113.wav"
+}
+sound DIGI sound114@114 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound114.wav"
+}
+sound DIGI sound115@115 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound115.wav"
+}
+sound DIGI sound116@116 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound116.wav"
+}
+sound DIGI sound117@117 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound117.wav"
+}
+sound DIGI sound118@118 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound118.wav"
+}
+sound DIGI sound119@119 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound119.wav"
+}
+sound DIGI sound120@120 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound120.wav"
+}
+sound DIGI sound121@121 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound121.wav"
+}
+sound DIGI sound122@122 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound122.wav"
+}
+sound DIGI sound123@123 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound123.wav"
+}
+sound DIGI sound124@124 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound124.wav"
+}
+sound DIGI sound125@125 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound125.wav"
+}
+sound DIGI sound126@126 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound126.wav"
+}
+sound DIGI sound127@127 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound127.wav"
+}
+sound DIGI sound128@128 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound128.wav"
+}
+sound DIGI sound129@129 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound129.wav"
+}
+sound DIGI sound130@130 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound130.wav"
+}
+sound DIGI sound131@131 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound131.wav"
+}
+sound DIGI sound132@132 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound132.wav"
+}
+sound DIGI sound133@133 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound133.wav"
+}
+sound DIGI sound134@134 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound134.wav"
+}
+sound DIGI sound135@135 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound135.wav"
+}
+sound DIGI sound136@136 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound136.wav"
+}
+sound DIGI sound137@137 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound137.wav"
+}
+sound DIGI sound138@138 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound138.wav"
+}
+sound DIGI sound139@139 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound139.wav"
+}
+sound DIGI sound140@140 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound140.wav"
+}
+sound DIGI sound141@141 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound141.wav"
+}
+sound DIGI sound142@142 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound142.wav"
+}
+sound DIGI sound143@143 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound143.wav"
+}
+sound DIGI sound144@144 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound144.wav"
+}
+sound DIGI sound145@145 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound145.wav"
+}
+sound DIGI sound146@146 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound146.wav"
+}
+sound DIGI sound147@147 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound147.wav"
+}
+sound DIGI sound148@148 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound148.wav"
+}
+sound DIGI sound149@149 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound149.wav"
+}
+sound DIGI sound150@150 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound150.wav"
+}
+sound DIGI sound151@151 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound151.wav"
+}
+sound DIGI sound152@152 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound152.wav"
+}
+sound DIGI sound153@153 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound153.wav"
+}
+sound DIGI sound154@154 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound154.wav"
+}
+sound DIGI sound155@155 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound155.wav"
+}
+sound DIGI sound156@156 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound156.wav"
+}
+sound DIGI sound157@157 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound157.wav"
+}
+sound DIGI sound158@158 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound158.wav"
+}
+sound DIGI sound159@159 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound159.wav"
+}
+sound DIGI sound160@160 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound160.wav"
+}
+sound DIGI sound161@161 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound161.wav"
+}
+sound DIGI sound162@162 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound162.wav"
+}
+sound DIGI sound163@163 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound163.wav"
+}
+sound DIGI sound164@164 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound164.wav"
+}
+sound DIGI sound165@165 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound165.wav"
+}
+sound DIGI sound166@166 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound166.wav"
+}
+sound DIGI sound167@167 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound167.wav"
+}
+sound DIGI sound168@168 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound168.wav"
+}
+sound DIGI sound169@169 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound169.wav"
+}
+sound DIGI sound170@170 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound170.wav"
+}
+sound DIGI sound171@171 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound171.wav"
+}
+sound DIGI sound172@172 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound172.wav"
+}
+sound DIGI sound173@173 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound173.wav"
+}
+sound DIGI sound174@174 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound174.wav"
+}
+sound DIGI sound175@175 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound175.wav"
+}
+sound DIGI sound176@176 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound176.wav"
+}
+sound DIGI sound177@177 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound177.wav"
+}
+sound DIGI sound178@178 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound178.wav"
+}
+sound DIGI sound179@179 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound179.wav"
+}
+sound DIGI sound180@180 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound180.wav"
+}
+sound DIGI sound181@181 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound181.wav"
+}
+sound DIGI sound182@182 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound182.wav"
+}
+sound DIGI sound183@183 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound183.wav"
+}
+sound DIGI sound184@184 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound184.wav"
+}
+sound DIGI sound185@185 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound185.wav"
+}
+sound DIGI sound186@186 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound186.wav"
+}
+sound DIGI sound187@187 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound187.wav"
+}
+sound DIGI sound188@188 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound188.wav"
+}
+sound DIGI sound189@189 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound189.wav"
+}
+sound DIGI sound190@190 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound190.wav"
+}
+sound DIGI sound191@191 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound191.wav"
+}
+sound DIGI sound192@192 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound192.wav"
+}
+sound DIGI sound193@193 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound193.wav"
+}
+sound DIGI sound194@194 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound194.wav"
+}
+sound DIGI sound195@195 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound195.wav"
+}
+sound DIGI sound196@196 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound196.wav"
+}
+sound DIGI sound197@197 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound197.wav"
+}
+sound DIGI sound198@198 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound198.wav"
+}
+sound DIGI sound199@199 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound199.wav"
+}
+sound DIGI sound200@200 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound200.wav"
+}
+sound DIGI sound201@201 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound201.wav"
+}
+sound DIGI sound202@202 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound202.wav"
+}
+sound DIGI sound203@203 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound203.wav"
+}
+sound DIGI sound204@204 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound204.wav"
+}
+sound DIGI sound205@205 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound205.wav"
+}
+sound DIGI sound206@206 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound206.wav"
+}
+sound DIGI sound207@207 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound207.wav"
+}
+sound DIGI sound208@208 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound208.wav"
+}
+sound DIGI sound209@209 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound209.wav"
+}
+sound DIGI sound210@210 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound210.wav"
+}
+sound DIGI sound211@211 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound211.wav"
+}
+sound DIGI sound212@212 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound212.wav"
+}
+sound DIGI sound213@213 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound213.wav"
+}
+sound DIGI sound214@214 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound214.wav"
+}
+sound DIGI sound215@215 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound215.wav"
+}
+sound DIGI sound216@216 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound216.wav"
+}
+sound DIGI sound217@217 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound217.wav"
+}
+sound DIGI sound218@218 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound218.wav"
+}
+sound DIGI sound219@219 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound219.wav"
+}
+sound DIGI sound220@220 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound220.wav"
+}
+sound DIGI sound221@221 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound221.wav"
+}
+sound DIGI sound222@222 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound222.wav"
+}
+sound DIGI sound223@223 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound223.wav"
+}
+sound DIGI sound224@224 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound224.wav"
+}
+sound DIGI sound225@225 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound225.wav"
+}
+sound DIGI sound226@226 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound226.wav"
+}
+sound DIGI sound227@227 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound227.wav"
+}
+sound DIGI sound228@228 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound228.wav"
+}
+sound DIGI sound229@229 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound229.wav"
+}
+sound DIGI sound230@230 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound230.wav"
+}
+sound DIGI sound231@231 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound231.wav"
+}
+sound DIGI sound232@232 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound232.wav"
+}
+sound DIGI sound233@233 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound233.wav"
+}
+sound DIGI sound234@234 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound234.wav"
+}
+sound DIGI sound235@235 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound235.wav"
+}
+sound DIGI sound236@236 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound236.wav"
+}
+sound DIGI sound237@237 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound237.wav"
+}
+sound DIGI sound238@238 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound238.wav"
+}
+sound DIGI sound239@239 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound239.wav"
+}
+sound DIGI sound240@240 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound240.wav"
+}
+sound DIGI sound241@241 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound241.wav"
+}
+sound DIGI sound242@242 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound242.wav"
+}
+sound DIGI sound243@243 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound243.wav"
+}
+sound DIGI sound244@244 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound244.wav"
+}
+sound DIGI sound245@245 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound245.wav"
+}
+sound DIGI sound246@246 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound246.wav"
+}
+sound DIGI sound247@247 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound247.wav"
+}
+sound DIGI sound248@248 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound248.wav"
+}
+sound DIGI sound249@249 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound249.wav"
+}
+sound DIGI sound250@250 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound250.wav"
+}
+sound DIGI sound251@251 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound251.wav"
+}
+sound DIGI sound252@252 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound252.wav"
+}
+sound DIGI sound253@253 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound253.wav"
+}
+sound DIGI sound254@254 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound254.wav"
+}
+sound DIGI sound255@255 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound255.wav"
+}
+sound DIGI sound256@256 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound256.wav"
+}
+sound DIGI sound257@257 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound257.wav"
+}
+sound DIGI sound258@258 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound258.wav"
+}
+sound DIGI sound259@259 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound259.wav"
+}
+sound DIGI sound260@260 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound260.wav"
+}
+sound DIGI sound261@261 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound261.wav"
+}
+sound DIGI sound262@262 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound262.wav"
+}
+sound DIGI sound263@263 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound263.wav"
+}
+sound DIGI sound264@264 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound264.wav"
+}
+sound DIGI sound265@265 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound265.wav"
+}
+sound DIGI sound266@266 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound266.wav"
+}
+sound DIGI sound267@267 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound267.wav"
+}
+sound DIGI sound268@268 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound268.wav"
+}
+sound DIGI sound269@269 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound269.wav"
+}
+sound DIGI sound270@270 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound270.wav"
+}
+sound DIGI sound271@271 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound271.wav"
+}
+sound DIGI sound272@272 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound272.wav"
+}
+sound DIGI sound273@273 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound273.wav"
+}
+sound DIGI sound274@274 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound274.wav"
+}
+sound DIGI sound275@275 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound275.wav"
+}
+sound DIGI sound276@276 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound276.wav"
+}
+sound DIGI sound277@277 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound277.wav"
+}
+sound DIGI sound278@278 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound278.wav"
+}
+sound DIGI sound279@279 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound279.wav"
+}
+sound DIGI sound280@280 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound280.wav"
+}
+sound DIGI sound281@281 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound281.wav"
+}
+sound DIGI sound282@282 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound282.wav"
+}
+sound DIGI sound283@283 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound283.wav"
+}
+sound DIGI sound284@284 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound284.wav"
+}
+sound DIGI sound285@285 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound285.wav"
+}
+sound DIGI sound286@286 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound286.wav"
+}
+sound DIGI sound287@287 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound287.wav"
+}
+sound DIGI sound288@288 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound288.wav"
+}
+sound DIGI sound289@289 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound289.wav"
+}
+sound DIGI sound290@290 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound290.wav"
+}
+sound DIGI sound291@291 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound291.wav"
+}
+sound DIGI sound292@292 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound292.wav"
+}
+sound DIGI sound293@293 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound293.wav"
+}
+sound DIGI sound294@294 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound294.wav"
+}
+sound DIGI sound295@295 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound295.wav"
+}
+sound DIGI sound296@296 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound296.wav"
+}
+sound DIGI sound297@297 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound297.wav"
+}
+sound DIGI sound298@298 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound298.wav"
+}
+sound DIGI sound299@299 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound299.wav"
+}
+sound DIGI sound300@300 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound300.wav"
+}
+sound DIGI sound301@301 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound301.wav"
+}
+sound DIGI sound302@302 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound302.wav"
+}
+sound DIGI sound303@303 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound303.wav"
+}
+sound DIGI sound304@304 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound304.wav"
+}
+sound DIGI sound305@305 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound305.wav"
+}
+sound DIGI sound306@306 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound306.wav"
+}
+sound DIGI sound307@307 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound307.wav"
+}
+sound DIGI sound308@308 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound308.wav"
+}
+sound DIGI sound309@309 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound309.wav"
+}
+sound DIGI sound310@310 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound310.wav"
+}
+sound DIGI sound311@311 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound311.wav"
+}
+sound DIGI sound312@312 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound312.wav"
+}
+sound DIGI sound313@313 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound313.wav"
+}
+sound DIGI sound314@314 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound314.wav"
+}
+sound DIGI sound315@315 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound315.wav"
+}
+sound DIGI sound316@316 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound316.wav"
+}
+sound DIGI sound317@317 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound317.wav"
+}
+sound DIGI sound318@318 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound318.wav"
+}
+sound DIGI sound319@319 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound319.wav"
+}
+sound DIGI sound320@320 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound320.wav"
+}
+sound DIGI sound321@321 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound321.wav"
+}
+sound DIGI sound322@322 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound322.wav"
+}
+sound DIGI sound323@323 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound323.wav"
+}
+sound DIGI sound324@324 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound324.wav"
+}
+sound DIGI sound325@325 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound325.wav"
+}
+sound DIGI sound326@326 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound326.wav"
+}
+sound DIGI sound327@327 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound327.wav"
+}
+sound DIGI sound328@328 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound328.wav"
+}
+sound DIGI sound329@329 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound329.wav"
+}
+sound DIGI sound330@330 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound330.wav"
+}
+sound DIGI sound331@331 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound331.wav"
+}
+sound DIGI sound332@332 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound332.wav"
+}
+sound DIGI sound333@333 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound333.wav"
+}
+sound DIGI sound334@334 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound334.wav"
+}
+sound DIGI sound335@335 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound335.wav"
+}
+sound DIGI sound336@336 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound336.wav"
+}
+sound DIGI sound337@337 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound337.wav"
+}
+sound DIGI sound338@338 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound338.wav"
+}
+sound DIGI sound339@339 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound339.wav"
+}
+sound DIGI sound340@340 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound340.wav"
+}
+sound DIGI sound341@341 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound341.wav"
+}
+sound DIGI sound342@342 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound342.wav"
+}
+sound DIGI sound343@343 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound343.wav"
+}
+sound DIGI sound344@344 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound344.wav"
+}
+sound DIGI sound345@345 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound345.wav"
+}
+sound DIGI sound346@346 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound346.wav"
+}
+sound DIGI sound347@347 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound347.wav"
+}
+sound DIGI sound348@348 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound348.wav"
+}
+sound DIGI sound349@349 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound349.wav"
+}
+sound DIGI sound350@350 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound350.wav"
+}
+sound DIGI sound351@351 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound351.wav"
+}
+sound DIGI sound352@352 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound352.wav"
+}
+sound DIGI sound353@353 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound353.wav"
+}
+sound DIGI sound354@354 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound354.wav"
+}
+sound DIGI sound355@355 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound355.wav"
+}
+sound DIGI sound356@356 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound356.wav"
+}
+sound DIGI sound357@357 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound357.wav"
+}
+sound DIGI sound358@358 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound358.wav"
+}
+sound DIGI sound359@359 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound359.wav"
+}
+sound DIGI sound360@360 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound360.wav"
+}
+sound DIGI sound361@361 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound361.wav"
+}
+sound DIGI sound362@362 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound362.wav"
+}
+sound DIGI sound363@363 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound363.wav"
+}
+sound DIGI sound364@364 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound364.wav"
+}
+sound DIGI sound365@365 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound365.wav"
+}
+sound DIGI sound366@366 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound366.wav"
+}
+sound DIGI sound367@367 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound367.wav"
+}
+sound DIGI sound368@368 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound368.wav"
+}
+sound DIGI sound369@369 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound369.wav"
+}
+sound DIGI sound370@370 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound370.wav"
+}
+sound DIGI sound371@371 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound371.wav"
+}
+sound DIGI sound372@372 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound372.wav"
+}
+sound DIGI sound373@373 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound373.wav"
+}
+sound DIGI sound374@374 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound374.wav"
+}
+sound DIGI sound375@375 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound375.wav"
+}
+sound DIGI sound376@376 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound376.wav"
+}
+sound DIGI sound377@377 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound377.wav"
+}
+sound DIGI sound378@378 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound378.wav"
+}
+sound DIGI sound379@379 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound379.wav"
+}
+sound DIGI sound380@380 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound380.wav"
+}
+sound DIGI sound381@381 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound381.wav"
+}
+sound DIGI sound382@382 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound382.wav"
+}
+sound DIGI sound383@383 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound383.wav"
+}
+sound DIGI sound384@384 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound384.wav"
+}
+sound DIGI sound385@385 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound385.wav"
+}
+sound DIGI sound386@386 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound386.wav"
+}
+sound DIGI sound387@387 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound387.wav"
+}
+sound DIGI sound388@388 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound388.wav"
+}
+sound DIGI sound389@389 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound389.wav"
+}
+sound DIGI sound390@390 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound390.wav"
+}
+sound DIGI sound391@391 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound391.wav"
+}
+sound DIGI sound392@392 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound392.wav"
+}
+sound DIGI sound393@393 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound393.wav"
+}
+sound DIGI sound394@394 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound394.wav"
+}
+sound DIGI sound395@395 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound395.wav"
+}
+sound DIGI sound396@396 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound396.wav"
+}
+sound DIGI sound397@397 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound397.wav"
+}
+sound DIGI sound398@398 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound398.wav"
+}
+sound DIGI sound399@399 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound399.wav"
+}
+sound DIGI sound400@400 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound400.wav"
+}
+sound DIGI sound401@401 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound401.wav"
+}
+sound DIGI sound402@402 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound402.wav"
+}
+sound DIGI sound403@403 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound403.wav"
+}
+sound DIGI sound404@404 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound404.wav"
+}
+sound DIGI sound405@405 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound405.wav"
+}
+sound DIGI sound406@406 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound406.wav"
+}
+sound DIGI sound407@407 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound407.wav"
+}
+sound DIGI sound408@408 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound408.wav"
+}
+sound DIGI sound409@409 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound409.wav"
+}
+sound DIGI sound410@410 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound410.wav"
+}
+sound DIGI sound411@411 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound411.wav"
+}
+sound DIGI sound412@412 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound412.wav"
+}
+sound DIGI sound413@413 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound413.wav"
+}
+sound DIGI sound414@414 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound414.wav"
+}
+sound DIGI sound415@415 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound415.wav"
+}
+sound DIGI sound416@416 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound416.wav"
+}
+sound DIGI sound417@417 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound417.wav"
+}
+sound DIGI sound418@418 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound418.wav"
+}
+sound DIGI sound419@419 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound419.wav"
+}
+sound DIGI sound420@420 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound420.wav"
+}
+sound DIGI sound421@421 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound421.wav"
+}
+sound DIGI sound422@422 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound422.wav"
+}
+sound DIGI sound423@423 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound423.wav"
+}
+sound DIGI sound424@424 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound424.wav"
+}
+sound DIGI sound425@425 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound425.wav"
+}
+sound DIGI sound426@426 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound426.wav"
+}
+sound DIGI sound427@427 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound427.wav"
+}
+sound DIGI sound428@428 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound428.wav"
+}
+sound DIGI sound429@429 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound429.wav"
+}
+sound DIGI sound430@430 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound430.wav"
+}
+sound DIGI sound431@431 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound431.wav"
+}
+sound DIGI sound432@432 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound432.wav"
+}
+sound DIGI sound433@433 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound433.wav"
+}
+sound DIGI sound434@434 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound434.wav"
+}
+sound DIGI sound435@435 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound435.wav"
+}
+sound DIGI sound436@436 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound436.wav"
+}
+sound DIGI sound437@437 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound437.wav"
+}
+sound DIGI sound438@438 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound438.wav"
+}
+sound DIGI sound439@439 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound439.wav"
+}
+sound DIGI sound440@440 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound440.wav"
+}
+sound DIGI sound441@441 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound441.wav"
+}
+sound DIGI sound442@442 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound442.wav"
+}
+sound DIGI sound443@443 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound443.wav"
+}
+sound DIGI sound444@444 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound444.wav"
+}
+sound DIGI sound445@445 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound445.wav"
+}
+sound DIGI sound446@446 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound446.wav"
+}
+sound DIGI sound447@447 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound447.wav"
+}
+sound DIGI sound448@448 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound448.wav"
+}
+sound DIGI sound449@449 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound449.wav"
+}
+sound DIGI sound450@450 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound450.wav"
+}
+sound DIGI sound451@451 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound451.wav"
+}
+sound DIGI sound452@452 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound452.wav"
+}
+sound DIGI sound453@453 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound453.wav"
+}
+sound DIGI sound454@454 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound454.wav"
+}
+sound DIGI sound455@455 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound455.wav"
+}
+sound DIGI sound456@456 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound456.wav"
+}
+sound DIGI sound457@457 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound457.wav"
+}
+sound DIGI sound458@458 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound458.wav"
+}
+sound DIGI sound459@459 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound459.wav"
+}
+sound DIGI sound460@460 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound460.wav"
+}
+sound DIGI sound461@461 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound461.wav"
+}
+sound DIGI sound462@462 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound462.wav"
+}
+sound DIGI sound463@463 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound463.wav"
+}
+sound DIGI sound464@464 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound464.wav"
+}
+sound DIGI sound465@465 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound465.wav"
+}
+sound DIGI sound466@466 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound466.wav"
+}
+sound DIGI sound467@467 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound467.wav"
+}
+sound DIGI sound468@468 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound468.wav"
+}
+sound DIGI sound469@469 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound469.wav"
+}
+sound DIGI sound470@470 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound470.wav"
+}
+sound DIGI sound471@471 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound471.wav"
+}
+sound DIGI sound472@472 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound472.wav"
+}
+sound DIGI sound473@473 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound473.wav"
+}
+sound DIGI sound474@474 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound474.wav"
+}
+sound DIGI sound475@475 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound475.wav"
+}
+sound DIGI sound476@476 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound476.wav"
+}
+sound DIGI sound477@477 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound477.wav"
+}
+sound DIGI sound478@478 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound478.wav"
+}
+sound DIGI sound479@479 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound479.wav"
+}
+sound DIGI sound480@480 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound480.wav"
+}
+sound DIGI sound481@481 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound481.wav"
+}
+sound DIGI sound482@482 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound482.wav"
+}
+sound DIGI sound483@483 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound483.wav"
+}
+sound DIGI sound484@484 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound484.wav"
+}
+sound DIGI sound485@485 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound485.wav"
+}
+sound DIGI sound486@486 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound486.wav"
+}
+sound DIGI sound487@487 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound487.wav"
+}
+sound DIGI sound488@488 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound488.wav"
+}
+sound DIGI sound489@489 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound489.wav"
+}
+sound DIGI sound490@490 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound490.wav"
+}
+sound DIGI sound491@491 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound491.wav"
+}
+sound DIGI sound492@492 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound492.wav"
+}
+sound DIGI sound493@493 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound493.wav"
+}
+sound DIGI sound494@494 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound494.wav"
+}
+sound DIGI sound495@495 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound495.wav"
+}
+sound DIGI sound496@496 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound496.wav"
+}
+sound DIGI sound497@497 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound497.wav"
+}
+sound DIGI sound498@498 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound498.wav"
+}
+sound DIGI sound499@499 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound499.wav"
+}
+sound DIGI sound500@500 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound500.wav"
+}
+sound DIGI sound501@501 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound501.wav"
+}
+sound DIGI sound502@502 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound502.wav"
+}
+sound DIGI sound503@503 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound503.wav"
+}
+sound DIGI sound504@504 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound504.wav"
+}
+sound DIGI sound505@505 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound505.wav"
+}
+sound DIGI sound506@506 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound506.wav"
+}
+sound DIGI sound507@507 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound507.wav"
+}
+sound DIGI sound508@508 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound508.wav"
+}
+sound DIGI sound509@509 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound509.wav"
+}
+sound DIGI sound510@510 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound510.wav"
+}
+sound DIGI sound511@511 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound511.wav"
+}
+sound DIGI sound512@512 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound512.wav"
+}
+sound DIGI sound513@513 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound513.wav"
+}
+sound DIGI sound514@514 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound514.wav"
+}
+sound DIGI sound515@515 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound515.wav"
+}
+sound DIGI sound516@516 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound516.wav"
+}
+sound DIGI sound517@517 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound517.wav"
+}
+sound DIGI sound518@518 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound518.wav"
+}
+sound DIGI sound519@519 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound519.wav"
+}
+sound DIGI sound520@520 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound520.wav"
+}
+sound DIGI sound521@521 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound521.wav"
+}
+sound DIGI sound522@522 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound522.wav"
+}
+sound DIGI sound523@523 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound523.wav"
+}
+sound DIGI sound524@524 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound524.wav"
+}
+sound DIGI sound525@525 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound525.wav"
+}
+sound DIGI sound526@526 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound526.wav"
+}
+sound DIGI sound527@527 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound527.wav"
+}
+sound DIGI sound528@528 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound528.wav"
+}
+sound DIGI sound529@529 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound529.wav"
+}
+sound DIGI sound530@530 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound530.wav"
+}
+sound DIGI sound531@531 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound531.wav"
+}
+sound DIGI sound532@532 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound532.wav"
+}
+sound DIGI sound533@533 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound533.wav"
+}
+sound DIGI sound534@534 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound534.wav"
+}
+sound DIGI sound535@535 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound535.wav"
+}
+sound DIGI sound536@536 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound536.wav"
+}
+sound DIGI sound537@537 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound537.wav"
+}
+sound DIGI sound538@538 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound538.wav"
+}
+sound DIGI sound539@539 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound539.wav"
+}
+sound DIGI sound540@540 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound540.wav"
+}
+sound DIGI sound541@541 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound541.wav"
+}
+sound DIGI sound542@542 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound542.wav"
+}
+sound DIGI sound543@543 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound543.wav"
+}
+sound DIGI sound544@544 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound544.wav"
+}
+sound DIGI sound545@545 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound545.wav"
+}
+sound DIGI sound546@546 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound546.wav"
+}
+sound DIGI sound547@547 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound547.wav"
+}
+sound DIGI sound548@548 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound548.wav"
+}
+sound DIGI sound549@549 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound549.wav"
+}
+sound DIGI sound550@550 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound550.wav"
+}
+sound DIGI sound551@551 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound551.wav"
+}
+sound DIGI sound552@552 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound552.wav"
+}
+sound DIGI sound553@553 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound553.wav"
+}
+sound DIGI sound554@554 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound554.wav"
+}
+sound DIGI sound555@555 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound555.wav"
+}
+sound DIGI sound556@556 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound556.wav"
+}
+sound DIGI sound557@557 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound557.wav"
+}
+sound DIGI sound558@558 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound558.wav"
+}
+sound DIGI sound559@559 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound559.wav"
+}
+sound DIGI sound560@560 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound560.wav"
+}
+sound DIGI sound561@561 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound561.wav"
+}
+sound DIGI sound562@562 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound562.wav"
+}
+sound DIGI sound563@563 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound563.wav"
+}
+sound DIGI sound564@564 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound564.wav"
+}
+sound DIGI sound565@565 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound565.wav"
+}
+sound DIGI sound566@566 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound566.wav"
+}
+sound DIGI sound567@567 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound567.wav"
+}
+sound DIGI sound568@568 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound568.wav"
+}
+sound DIGI sound569@569 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound569.wav"
+}
+sound DIGI sound570@570 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound570.wav"
+}
+sound DIGI sound571@571 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound571.wav"
+}
+sound DIGI sound572@572 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound572.wav"
+}
+sound DIGI sound573@573 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound573.wav"
+}
+sound DIGI sound574@574 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound574.wav"
+}
+sound DIGI sound575@575 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound575.wav"
+}
+sound DIGI sound576@576 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound576.wav"
+}
+sound DIGI sound577@577 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound577.wav"
+}
+sound DIGI sound578@578 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound578.wav"
+}
+sound DIGI sound579@579 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound579.wav"
+}
+sound DIGI sound580@580 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound580.wav"
+}
+sound DIGI sound581@581 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound581.wav"
+}
+sound DIGI sound582@582 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound582.wav"
+}
+sound DIGI sound583@583 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound583.wav"
+}
+sound DIGI sound584@584 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound584.wav"
+}
+sound DIGI sound585@585 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound585.wav"
+}
+sound DIGI sound586@586 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound586.wav"
+}
+sound DIGI sound587@587 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound587.wav"
+}
+sound DIGI sound588@588 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound588.wav"
+}
+sound DIGI sound589@589 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound589.wav"
+}
+sound DIGI sound590@590 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound590.wav"
+}
+sound DIGI sound591@591 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound591.wav"
+}
+sound DIGI sound592@592 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound592.wav"
+}
+sound DIGI sound593@593 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound593.wav"
+}
+sound DIGI sound594@594 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound594.wav"
+}
+sound DIGI sound595@595 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound595.wav"
+}
+sound DIGI sound596@596 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound596.wav"
+}
+sound DIGI sound597@597 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound597.wav"
+}
+sound DIGI sound598@598 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound598.wav"
+}
+sound DIGI sound599@599 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound599.wav"
+}
+sound DIGI sound600@600 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound600.wav"
+}
+sound DIGI sound601@601 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound601.wav"
+}
+sound DIGI sound602@602 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound602.wav"
+}
+sound DIGI sound603@603 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound603.wav"
+}
+sound DIGI sound604@604 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound604.wav"
+}
+sound DIGI sound605@605 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound605.wav"
+}
+sound DIGI sound606@606 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound606.wav"
+}
+sound DIGI sound607@607 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound607.wav"
+}
+sound DIGI sound608@608 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound608.wav"
+}
+sound DIGI sound609@609 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound609.wav"
+}
+sound DIGI sound610@610 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound610.wav"
+}
+sound DIGI sound611@611 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound611.wav"
+}
+sound DIGI sound612@612 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound612.wav"
+}
+sound DIGI sound613@613 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound613.wav"
+}
+sound DIGI sound614@614 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound614.wav"
+}
+sound DIGI sound615@615 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound615.wav"
+}
+sound DIGI sound616@616 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound616.wav"
+}
+sound DIGI sound617@617 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound617.wav"
+}
+sound DIGI sound618@618 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound618.wav"
+}
+sound DIGI sound619@619 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound619.wav"
+}
+sound DIGI sound620@620 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound620.wav"
+}
+sound DIGI sound621@621 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound621.wav"
+}
+sound DIGI sound622@622 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound622.wav"
+}
+sound DIGI sound623@623 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound623.wav"
+}
+sound DIGI sound624@624 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound624.wav"
+}
+sound DIGI sound625@625 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound625.wav"
+}
+sound DIGI sound626@626 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound626.wav"
+}
+sound DIGI sound627@627 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound627.wav"
+}
+sound DIGI sound628@628 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound628.wav"
+}
+sound DIGI sound629@629 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound629.wav"
+}
+sound DIGI sound630@630 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound630.wav"
+}
+sound DIGI sound631@631 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound631.wav"
+}
+sound DIGI sound632@632 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound632.wav"
+}
+sound DIGI sound633@633 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound633.wav"
+}
+sound DIGI sound634@634 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound634.wav"
+}
+sound DIGI sound635@635 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound635.wav"
+}
+sound DIGI sound636@636 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound636.wav"
+}
+sound DIGI sound637@637 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound637.wav"
+}
+sound DIGI sound638@638 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound638.wav"
+}
+sound DIGI sound639@639 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound639.wav"
+}
+sound DIGI sound640@640 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound640.wav"
+}
+sound DIGI sound641@641 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound641.wav"
+}
+sound DIGI sound642@642 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound642.wav"
+}
+sound DIGI sound643@643 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound643.wav"
+}
+sound DIGI sound644@644 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound644.wav"
+}
+sound DIGI sound645@645 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound645.wav"
+}
+sound DIGI sound646@646 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound646.wav"
+}
+sound DIGI sound647@647 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound647.wav"
+}
+sound DIGI sound648@648 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound648.wav"
+}
+sound DIGI sound649@649 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound649.wav"
+}
+sound DIGI sound650@650 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound650.wav"
+}
+sound DIGI sound651@651 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound651.wav"
+}
+sound DIGI sound652@652 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound652.wav"
+}
+sound DIGI sound653@653 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound653.wav"
+}
+sound DIGI sound654@654 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound654.wav"
+}
+sound DIGI sound655@655 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound655.wav"
+}
+sound DIGI sound656@656 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound656.wav"
+}
+sound DIGI sound657@657 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound657.wav"
+}
+sound DIGI sound658@658 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound658.wav"
+}
+sound DIGI sound659@659 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound659.wav"
+}
+sound DIGI sound660@660 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound660.wav"
+}
+sound DIGI sound661@661 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound661.wav"
+}
+sound DIGI sound662@662 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound662.wav"
+}
+sound DIGI sound663@663 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound663.wav"
+}
+sound DIGI sound664@664 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound664.wav"
+}
+sound DIGI sound665@665 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound665.wav"
+}
+sound DIGI sound666@666 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound666.wav"
+}
+sound DIGI sound667@667 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound667.wav"
+}
+sound DIGI sound668@668 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound668.wav"
+}
+sound DIGI sound669@669 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound669.wav"
+}
+sound DIGI sound670@670 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound670.wav"
+}
+sound DIGI sound671@671 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound671.wav"
+}
+sound DIGI sound672@672 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound672.wav"
+}
+sound DIGI sound673@673 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound673.wav"
+}
+sound DIGI sound674@674 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound674.wav"
+}
+sound DIGI sound675@675 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound675.wav"
+}
+sound DIGI sound676@676 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound676.wav"
+}
+sound DIGI sound677@677 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound677.wav"
+}
+sound DIGI sound678@678 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound678.wav"
+}
+sound DIGI sound679@679 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound679.wav"
+}
+sound DIGI sound680@680 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound680.wav"
+}
+sound DIGI sound681@681 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound681.wav"
+}
+sound DIGI sound682@682 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound682.wav"
+}
+sound DIGI sound683@683 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound683.wav"
+}
+sound DIGI sound684@684 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound684.wav"
+}
+sound DIGI sound685@685 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound685.wav"
+}
+sound DIGI sound686@686 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound686.wav"
+}
+sound DIGI sound687@687 {
+    raw-block HSHD `00008080ffff112b0000000000000000`
+    sdat "kidovtlk/sound687.wav"
+}
+talkie talkie1@1 = "\x7fT114813288,8529\x7f Take that!"
+talkie talkie2@2 = "\x7fT114821817,21194\x7f I deserve a candy bar for that one!"
+talkie talkie3@3 = "\x7fT114843011,28174\x7f  Ha ha, I showed you!"
+talkie talkie4@4 = "\x7fT114871185,29304\x7f  I am pretty and athletic!"
+talkie talkie5@5 = "\x7fT114900489,38451\x7f  What did I tell ya, I'm the best athlete here, fer sure."
+talkie talkie6@6 = "\x7fT114938940,27176\x7f  Chalk one up for Delvecchio."
+talkie talkie7@7 = "\x7fT114966116,22054\x7f  That doesn't happen very often..."
+talkie talkie8@8 = "\x7fT114988170,8921\x7f  All right!"
+talkie talkie9@9 = "\x7fT114997091,28902\x7f  Ismackedthatsuckerwayoutasightbaseballisexcellent, hnnn!"
+talkie talkie10@10 = "\x7fT115025993,14070\x7f  Um neat!  Hnnn!"
+talkie talkie11@11 = "\x7fT115040063,29952\x7f  Sometimes, you gotta put these kids in their place."
+talkie talkie12@12 = "\x7fT115070015,18213\x7f  I knew I could do that!"
+talkie talkie13@13 = "\x7fT115088228,31050\x7f How 'bout that?  I'm perty and talented."
+talkie talkie14@14 = "\x7fT115119278,27013\x7f Au revior, baseball!!"
+talkie talkie15@15 = "\x7fT115146291,23813\x7f Yeah, I crushed that one!"
+talkie talkie16@16 = "\x7fT115170104,19729\x7f Point, set, match!"
+talkie talkie17@17 = "\x7fT115189833,50217\x7f Ladies and gentlemen, Elvis has left the building."
+talkie talkie18@18 = "\x7fT115240050,29455\x7f Excuse me, may I park this ball here?"
+talkie talkie19@19 = "\x7fT115269505,27762\x7f Watch out, major leagues, here comes Steph."
+talkie talkie20@20 = "\x7fT115297267,13545\x7f Bye bye baseball!"
+talkie talkie21@21 = "\x7fT115310812,32399\x7f Me good, huh Teddy weddy wittle sweetie?"
+talkie talkie22@22 = "\x7fT18681394,27686\x7f I wub pwaying baseball!"
+talkie talkie23@23 = "\x7fT115343211,14758\x7f I got all of that one!"
+talkie talkie24@24 = "\x7fT115357969,12265\x7f That was sweet!"
+talkie talkie25@25 = "\x7fT115370234,10505\x7f  Woo hoo!"
+talkie talkie26@26 = "\x7fT115380739,10824\x7f  Yesss!"
+talkie talkie27@27 = "\x7fT115391563,7284\x7f Terrific."
+talkie talkie28@28 = "\x7fT115398847,7960\x7f How 'bout that?"
+talkie talkie29@29 = "\x7fT115406807,34473\x7f  That one must have went 25 hundred miles at least!"
+talkie talkie30@30 = "\x7fT115441280,30678\x7f  I nailed that one 'Boom' (sfx of an explosion)"
+talkie talkie31@31 = "\x7fT115471958,14434\x7f  Far out!"
+talkie talkie32@32 = "\x7fT115486392,10212\x7f  Rock-n-roll!"
+talkie talkie33@33 = "\x7fT115496604,14182\x7f  Far out!"
+talkie talkie34@34 = "\x7fT115510786,14136\x7f  Rock-n-roll!"
+talkie talkie35@35 = "\x7fT115524922,23516\x7f  Did you see that?  I nailed it!"
+talkie talkie36@36 = "\x7fT115548438,17673\x7f  Neat, a home run!"
+talkie talkie37@37 = "\x7fT115566111,22436\x7f Umm, was that good?"
+talkie talkie38@38 = "\x7fT115588547,22924\x7f I did something good, right?"
+talkie talkie39@39 = "\x7fT115611471,16867\x7f  That was quite an accomplishment."
+talkie talkie40@40 = "\x7fT115628338,15652\x7f  Just as I had calculated."
+talkie talkie41@41 = "\x7fT115643990,19723\x7f  That was good, right?"
+talkie talkie42@42 = "\x7fT115663713,37381\x7f  I hope that was okay..."
+talkie talkie43@43 = "\x7fT115701094,31701\x7f  My pa's gonna be real proud!"
+talkie talkie44@44 = "\x7fT115732795,39887\x7f  I nailed that one like a bucket a slop in a hen house!"
+talkie talkie45@45 = "\x7fT115772682,12281\x7f  Whoo hoo!"
+talkie talkie46@46 = "\x7fT115784963,15644\x7f  Bye bye baseball!"
+talkie talkie47@47 = "\x7fT115800607,17612\x7f  Hasta la vista bola!"
+talkie talkie48@48 = "\x7fT115818219,14706\x7f  Asi es que me gusta!"
+talkie talkie49@49 = "\x7fT115832925,22371\x7f How do you like Tony now, huh?"
+talkie talkie50@50 = "\x7fT115855296,34302\x7f My name's Tony Delveccio.  Remember that."
+talkie talkie51@51 = "\x7fT115889598,18686\x7f  I'm a natural, yes?"
+talkie talkie52@52 = "\x7fT115908284,14787\x7f  That'll show you all."
+talkie talkie53@53 = "\x7fT115923071,35441\x7f   (singing) Fatty Boombalatty... Fatty Boombalatty..."
+talkie talkie54@54 = "\x7fT115958512,42345\x7f   Yessssss!  Could I have some candy for that?  Huh, could I?"
+talkie talkie55@55 = "\x7fT116000857,24925\x7f \x09Hee hee huh huh. (cackling laughter)"
+talkie talkie56@56 = "\x7fT116025782,11584\x7f \x09Whoo-hooo!"
+talkie talkie57@57 = "\x7fT116037366,13154\x7f  That was easy!"
+talkie talkie58@58 = "\x7fT116050520,15392\x7f  I do that all the time."
+talkie talkie59@59 = "\x7fT116065912,16936\x7fIt's 'Mo Time'!"
+talkie talkie60@60 = "\x7fT116082848,26600\x7fWatch out!  It's the 'Hit Dog'."
+talkie talkie61@61 = "\x7fT116109448,26664\x7fI hope this bat doesn't slip outta my hands."
+talkie talkie62@62 = "\x7fT116136112,20712\x7fGo easy on me, I'm a pitcher!"
+talkie talkie63@63 = "\x7fT116156824,11592\x7fWatch this!"
+talkie talkie64@64 = "\x7fT116168416,17192\x7fI'm gonna hit that ball, man."
+talkie talkie65@65 = "\x7fT116185608,16296\x7fHere we go!"
+talkie talkie66@66 = "\x7fT116201904,12264\x7fWatch and learn, kid."
+talkie talkie67@67 = "\x7fT116214168,18824\x7fO.K. now, watch this!"
+talkie talkie68@68 = "\x7fT116232992,16984\x7fHere I go!"
+talkie talkie69@69 = "\x7fT116249976,12632\x7fQue hora es?"
+talkie talkie70@70 = "\x7fT116262608,29736\x7fKiss this pitch goodbye!"
+talkie talkie71@71 = "\x7fT116292344,13736\x7fWatch this one!"
+talkie talkie72@72 = "\x7fT116306080,36968\x7fNow you'll see why they call me 'The Big Hurt'!"
+talkie talkie73@73 = "\x7fT116343048,11368\x7fHere we go!"
+talkie talkie74@74 = "\x7fT116354416,34024\x7fI'm going to take this pitcher to school!"
+talkie talkie75@75 = "\x7fT116388440,19072\x7fYou don't want me on those bases, man."
+talkie talkie76@76 = "\x7fT116407512,11112\x7fYou'd better not walk me!"
+talkie talkie77@77 = "\x7fT116418624,8680\x7fLet's go here."
+talkie talkie78@78 = "\x7fT116427304,22120\x7fGive me a nice pitch here, ay?"
+talkie talkie79@79 = "\x7fT116449424,20296\x7fKiss this one goodbye."
+talkie talkie80@80 = "\x7fT116469720,51368\x7fI'm sending that ball on a one way trip to Coopers Town!"
+talkie talkie81@81 = "\x7fT116521088,39208\x7fI'm sending this one back to Venezuela!"
+talkie talkie82@82 = "\x7fT116560296,22280\x7fWatch this one!"
+talkie talkie83@83 = "\x7fT116582576,29480\x7fThis one's gone.  You watch."
+talkie talkie84@84 = "\x7fT116612056,23336\x7fI'm gonna crush that ball!"
+talkie talkie85@85 = "\x7fT116635392,20200\x7fAdios, amigo!"
+talkie talkie86@86 = "\x7fT116655592,24360\x7fYou'd better not walk me!"
+talkie talkie87@87 = "\x7fT116679952,17416\x7fI'm gonna blast this one!"
+talkie talkie88@88 = "\x7fT116697368,17320\x7fThis one's goin' out!"
+talkie talkie89@89 = "\x7fT116714688,17464\x7fHere we go!"
+talkie talkie90@90 = "\x7fT116732152,30024\x7fI'm knockin' this one outta here!"
+talkie talkie91@91 = "\x7fT116762176,24488\x7fI'm sending this one to Vegas!"
+talkie talkie92@92 = "\x7fT116786664,22536\x7fI'm gonna crush it!  You'll see!"
+talkie talkie93@93 = "\x7fT116809200,29352\x7fYou wanna see some power?  Watch this!"
+talkie talkie94@94 = "\x7fT116838552,25640\x7fI'm gonna knock the seams off the ball!"
+talkie talkie95@95 = "\x7fT116864192,14088\x7fWatch this!"
+talkie talkie96@96 = "\x7fT116878280,27944\x7fI'm gonna cream this ball, dude!"
+talkie talkie97@97 = "\x7fT116906224,13224\x7fWatch this!"
+talkie talkie98@98 = "\x7fT116919448,40552\x7fI hit pretty good for a shortstop, so watch out!"
+talkie talkie99@99 = "\x7fT116960000,13640\x7fCheck this out!"
+talkie talkie100@100 = "\x7fT116973640,12648\x7fI'll show 'em!"
+talkie talkie101@101 = "\x7fT116986288,27464\x7fGo easy on me, I'm a pitcher!"
+talkie talkie102@102 = "\x7fT117013752,18792\x7fI hope they walk me."
+talkie talkie103@103 = "\x7fT117032544,33320\x7fI 'm gonna pulverize that ball!"
+talkie talkie104@104 = "\x7fT117065864,15432\x7fBring it on!"
+talkie talkie105@105 = "\x7fT117081296,23880\x7fThis should pad my batting average."
+talkie talkie106@106 = "\x7fT117105176,49704\x7fI've studied this pitcher very closely.  I know all the pitches."
+talkie talkie107@107 = "\x7fT117154880,17224\x7fThis one's gone, you watch."
+talkie talkie108@108 = "\x7fT117172104,24072\x7fKiss this one goodbye."
+talkie talkie109@109 = "\x7fT117196176,47208\x7fShould I hit this one over the right field fence or the left one?  "
+talkie talkie110@110 = "\x7fT117243384,25512\x7fDo you really want to pitch to me?"
+talkie talkie111@111 = "\x7fT117268896,29384\x7fI'm gonna hit this one sooooo far!"
+talkie talkie112@112 = "\x7fT117298280,27272\x7fYou can kiss this one goodbye, dude."
+talkie talkie113@113 = "\x7fT117325552,19912\x7fAnother day, another homer."
+talkie talkie114@114 = "\x7fT117345464,10936\x7fWatch this."
+talkie talkie115@115 = "\x7fT117356400,32488\x7fI'm sending this one back to Vega Baja!"
+talkie talkie116@116 = "\x7fT117388888,11016\x7fWatch this one!"
+talkie talkie117@117 = "\x7fT117399904,30568\x7fI think I can, I think I can ..."
+talkie talkie118@118 = "\x7fT117430472,31336\x7fFocus now...hips first ...eyes on the ball."
+talkie talkie119@119 = "\x7fT117461808,26344\x7f\x09This might hurt ... but only for a second."
+talkie talkie120@120 = "\x7fT117488152,31240\x7f\x09I got a swing like candy... it's sweeeeeet!"
+talkie talkie121@121 = "\x7fT117519392,8904\x7fMan!"
+talkie talkie122@122 = "\x7fT117528296,7184\x7fWhoops!"
+talkie talkie123@123 = "\x7fT117535480,8040\x7fHey, man."
+talkie talkie124@124 = "\x7fT117543520,6152\x7fHey!"
+talkie talkie125@125 = "\x7fT117549672,4792\x7fWhat?!!"
+talkie talkie126@126 = "\x7fT117554464,5144\x7fQue?!!"
+talkie talkie127@127 = "\x7fT117559608,18760\x7fWhat ...hey!"
+talkie talkie128@128 = "\x7fT117578368,8872\x7fWhere'd it go?!"
+talkie talkie129@129 = "\x7fT117587240,13816\x7fWhoa!"
+talkie talkie130@130 = "\x7fT117601056,11448\x7fWhiffff!!"
+talkie talkie131@131 = "\x7fT117612504,16712\x7fOw! My back!"
+talkie talkie132@132 = "\x7fT117629216,15208\x7fAy yi yi yi!"
+talkie talkie133@133 = "\x7fT117644424,16712\x7fWhat's going on here?"
+talkie talkie134@134 = "\x7fT117661136,10504\x7fOops!"
+talkie talkie135@135 = "\x7fT117671640,7288\x7fOoof!"
+talkie talkie136@136 = "\x7fT117678928,4768\x7fHey!"
+talkie talkie137@137 = "\x7fT117683696,5000\x7fOops!"
+talkie talkie138@138 = "\x7fT117688696,7128\x7fWoops?!!"
+talkie talkie139@139 = "\x7fT117695824,22760\x7fOh dude!"
+talkie talkie140@140 = "\x7fT117718584,26344\x7fHey, that's not what I meant to do."
+talkie talkie141@141 = "\x7fT117744928,14344\x7fWhere'd that ball go?"
+talkie talkie142@142 = "\x7fT117759272,8296\x7fWhoops!"
+talkie talkie143@143 = "\x7fT117767568,20680\x7fWhere's the who what!?"
+talkie talkie144@144 = "\x7fT117788248,29928\x7fI can't believe I swung at that!"
+talkie talkie145@145 = "\x7fT117818176,12200\x7fWhat ...hey!"
+talkie talkie146@146 = "\x7fT117830376,14440\x7fI'll get the next one."
+talkie talkie147@147 = "\x7fT117844816,5560\x7fWhoops!"
+talkie talkie148@148 = "\x7fT117850376,7312\x7fOuch!"
+talkie talkie149@149 = "\x7fT117857688,19048\x7fAy yi yi yi!"
+talkie talkie150@150 = "\x7fT117876736,7032\x7fOh ..."
+talkie talkie151@151 = "\x7fT117883768,10184\x7f\x09Lucky pitch."
+talkie talkie152@152 = "\x7fT117893952,16360\x7fHey I wasn't ready!"
+talkie talkie153@153 = "\x7fT117910312,9704\x7fUh....what?"
+talkie talkie154@154 = "\x7fT117920016,10280\x7fNice pitch."
+talkie talkie155@155 = "\x7fT117930296,12648\x7fGuess I shoulda swung."
+talkie talkie156@156 = "\x7fT117942944,14600\x7fI don't know about that..."
+talkie talkie157@157 = "\x7fT117957544,30120\x7fStrike?  You call that a strike?"
+talkie talkie158@158 = "\x7fT117987664,8552\x7fGrrrrr..."
+talkie talkie159@159 = "\x7fT117996216,12296\x7fStrike, eh?"
+talkie talkie160@160 = "\x7fT118008512,11704\x7fNo way!"
+talkie talkie161@161 = "\x7fT118020216,9432\x7fI don't think so!"
+talkie talkie162@162 = "\x7fT118029648,22632\x7fNO! (Que se so?)"
+talkie talkie163@163 = "\x7fT118052280,12920\x7fI don't think so!"
+talkie talkie164@164 = "\x7fT118065200,23272\x7fThat can't be a strike. Cuz, I'd have swung at it!"
+talkie talkie165@165 = "\x7fT118088472,13832\x7fI don't think so!"
+talkie talkie166@166 = "\x7fT118102304,10632\x7fOh no!"
+talkie talkie167@167 = "\x7fT118112936,15656\x7fC'mon, man."
+talkie talkie168@168 = "\x7fT118128592,12184\x7fHmmmm."
+talkie talkie169@169 = "\x7fT118140776,16712\x7fI don't know about that one, ump."
+talkie talkie170@170 = "\x7fT118157488,18312\x7fC'mon, ump."
+talkie talkie171@171 = "\x7fT118175800,14120\x7fGimme a break!"
+talkie talkie172@172 = "\x7fT118189920,22312\x7fShoulda swung.  Shouda swung."
+talkie talkie173@173 = "\x7fT118212232,23560\x7fF-f-f-frozen!"
+talkie talkie174@174 = "\x7fT118235792,14376\x7fI was frozen!"
+talkie talkie175@175 = "\x7fT118250168,10472\x7fYou got me!"
+talkie talkie176@176 = "\x7fT118260640,29256\x7fI can't believe I didn't swing!"
+talkie talkie177@177 = "\x7fT118289896,14120\x7fI was frozen!"
+talkie talkie178@178 = "\x7fT118304016,18344\x7fWhy didn't I swing?!"
+talkie talkie179@179 = "\x7fT118322360,18856\x7fI was caught looking."
+talkie talkie180@180 = "\x7fT118341216,12712\x7fNooo!"
+talkie talkie181@181 = "\x7fT118353928,15080\x7fI shoulda' swung!"
+talkie talkie182@182 = "\x7fT118369008,21592\x7fNooooo!"
+talkie talkie183@183 = "\x7fT118390600,20296\x7fYou're joking, right?"
+talkie talkie184@184 = "\x7fT118410896,8888\x7fOhhhhh!"
+talkie talkie185@185 = "\x7fT118419784,13384\x7fI was frozen!"
+talkie talkie186@186 = "\x7fT118433168,11496\x7fShoulda swung!"
+talkie talkie187@187 = "\x7fT118444664,12472\x7fAwwww!"
+talkie talkie188@188 = "\x7fT118457136,15528\x7fHarsh, man!"
+talkie talkie189@189 = "\x7fT118472664,23240\x7fWhooaaa ...dude!"
+talkie talkie190@190 = "\x7fT118495904,16488\x7fShoulda swung!"
+talkie talkie191@191 = "\x7fT118512392,17512\x7fI'm waiting for my pitch."
+talkie talkie192@192 = "\x7fT118529904,18472\x7fShoulda' swung, I guess."
+talkie talkie193@193 = "\x7fT118548376,12616\x7fYou're joking, right?"
+talkie talkie194@194 = "\x7fT118560992,15816\x7fNice pitch."
+talkie talkie195@195 = "\x7fT118576808,34600\x7fMaybe they'll walk me. (pause) Guess not."
+talkie talkie196@196 = "\x7fT118611408,23144\x7fI don't know about that..."
+talkie talkie197@197 = "\x7fT118634552,12776\x7fAre you sure that was a strike?"
+talkie talkie198@198 = "\x7fT118647328,15816\x7fHmmmm."
+talkie talkie199@199 = "\x7fT118663144,25128\x7fI don't know about that one, ump."
+talkie talkie200@200 = "\x7fT118688272,15752\x7fThat's hard to believe."
+talkie talkie201@201 = "\x7fT118704024,8616\x7fI don't think so!"
+talkie talkie202@202 = "\x7fT118712640,37992\x7fYo ump, you need a new prescription for those glasses?"
+talkie talkie203@203 = "\x7fT118750632,32296\x7fAll right, no more Mr. Nice Guy."
+talkie talkie204@204 = "\x7fT118782928,19112\x7fI can't believe I didn't swing!"
+talkie talkie205@205 = "\x7fT118802040,10936\x7fUnbelievable."
+talkie talkie206@206 = "\x7fT118812976,18600\x7fI can't believe I didn't swing!"
+talkie talkie207@207 = "\x7fT118831576,14216\x7fC'mon ump!"
+talkie talkie208@208 = "\x7fT118845792,11368\x7fFrozen!"
+talkie talkie209@209 = "\x7fT118857160,19560\x7fGrrrrrr"
+talkie talkie210@210 = "\x7fT118876720,16040\x7fShoulda swung, shoulda swung."
+talkie talkie211@211 = "\x7fT118892760,23048\x7fNice pitch.  Real nice pitch."
+talkie talkie212@212 = "\x7fT118915808,13896\x7f\x09I don't think so!"
+talkie talkie213@213 = "\x7fT118929704,9960\x7f\x09Guess I shoulda swung."
+talkie talkie214@214 = "\x7fT118939664,18536\x7f'Hit Dog' does it again!"
+talkie talkie215@215 = "\x7fT118958200,10440\x7fAin't it pretty?"
+talkie talkie216@216 = "\x7fT118968640,18440\x7fHoly crud! "
+talkie talkie217@217 = "\x7fT118987080,11640\x7fI'm think I'm gonna faint!"
+talkie talkie218@218 = "\x7fT118998720,14600\x7fWill ya look at that?!"
+talkie talkie219@219 = "\x7fT119013320,14440\x7fGet outta here!"
+talkie talkie220@220 = "\x7fT119027760,11496\x7fThere we go!"
+talkie talkie221@221 = "\x7fT119039256,11752\x7fPretty nice shot, eh?"
+talkie talkie222@222 = "\x7fT119051008,15592\x7fGet... out!"
+talkie talkie223@223 = "\x7fT119066600,17608\x7fLong gone!"
+talkie talkie224@224 = "\x7fT119084208,17384\x7fHasta La vista!"
+talkie talkie225@225 = "\x7fT119101592,26472\x7fAdios Bese-bol!"
+talkie talkie226@226 = "\x7fT119128064,16520\x7fI bet that hurt."
+talkie talkie227@227 = "\x7fT119144584,11208\x7fSee ya!"
+talkie talkie228@228 = "\x7fT119155792,22056\x7fYou didn't think I could do it, did ya?"
+talkie talkie229@229 = "\x7fT119177848,37480\x7fthat's Larkin parking the ball in the bleacher."
+talkie talkie230@230 = "\x7fT119215328,12680\x7fCan you believe it?"
+talkie talkie231@231 = "\x7fT119228008,26760\x7fWow!  A homer!  I hit a homer!"
+talkie talkie232@232 = "\x7fT119254768,7040\x7fNice shot, ay?"
+talkie talkie233@233 = "\x7fT119261808,19880\x7fI sent that one to Canada!"
+talkie talkie234@234 = "\x7fT119281688,28840\x7fI should get frequent flyer miles on that one!"
+talkie talkie235@235 = "\x7fT119310528,35176\x7fThat one's 'Juan Gone'!  Yuk-yuk!"
+talkie talkie236@236 = "\x7fT119345704,9768\x7fDid you see that?"
+talkie talkie237@237 = "\x7fT119355472,11144\x7fI did it!  "
+talkie talkie238@238 = "\x7fT119366616,17960\x7fCowabunga!"
+talkie talkie239@239 = "\x7fT119384576,42664\x7fI hate to say I told ya so ... but I told ya so!"
+talkie talkie240@240 = "\x7fT119427240,13256\x7fDid I do that?!"
+talkie talkie241@241 = "\x7fT119440496,25000\x7fI ...can't ...believe it!"
+talkie talkie242@242 = "\x7fT119465496,13224\x7fLater!!"
+talkie talkie243@243 = "\x7fT119478720,14120\x7fGone!"
+talkie talkie244@244 = "\x7fT119492840,20200\x7fNow that's a homer!"
+talkie talkie245@245 = "\x7fT119513040,20776\x7fKiss that one goodbye!"
+talkie talkie246@246 = "\x7fT119533816,30376\x7fWow! I really did it!"
+talkie talkie247@247 = "\x7fT119564192,40040\x7fI hate to say I told ya so ... but, uh ... you know!"
+talkie talkie248@248 = "\x7fT119604232,14872\x7fOh yeah!"
+talkie talkie249@249 = "\x7fT119619104,7192\x7fTold ya!"
+talkie talkie250@250 = "\x7fT119626296,36392\x7fThat's called 'Piazza Power'!"
+talkie talkie251@251 = "\x7fT119662688,49832\x7fThat's totally gone, dude!"
+talkie talkie252@252 = "\x7fT119712520,10920\x7fLook at that!"
+talkie talkie253@253 = "\x7fT119723440,22088\x7fNot bad for a shortstop, eh?"
+talkie talkie254@254 = "\x7fT119745528,14792\x7fHow ya like me now?"
+talkie talkie255@255 = "\x7fT119760320,18792\x7fI launched that one into orbit!"
+talkie talkie256@256 = "\x7fT119779112,18920\x7fHoly cow! "
+talkie talkie257@257 = "\x7fT119798032,49384\x7fI ... can't ...believe it!"
+talkie talkie258@258 = "\x7fT119847416,26408\x7fWow! You don't see that everyday!"
+talkie talkie259@259 = "\x7fT119873824,46312\x7fAnother souvenir for a lucky fan."
+talkie talkie260@260 = "\x7fT119920136,13736\x7fCan you believe it?"
+talkie talkie261@261 = "\x7fT119933872,34152\x7fWow!  A homer!  I hit a homer!"
+talkie talkie262@262 = "\x7fT119968024,20776\x7fGet out!"
+talkie talkie263@263 = "\x7fT119988800,12136\x7fSee ya!"
+talkie talkie264@264 = "\x7fT120000936,11176\x7fToo pretty!"
+talkie talkie265@265 = "\x7fT120012112,22344\x7fIt's just toooo easy!"
+talkie talkie266@266 = "\x7fT120034456,26120\x7fAwww.  I usually hit 'em harder."
+talkie talkie267@267 = "\x7fT120060576,45608\x7fMan, that barely went 500 feet.  Usually, they go twice that far."
+talkie talkie268@268 = "\x7fT120106184,16680\x7fBombs away!"
+talkie talkie269@269 = "\x7fT120122864,15352\x7fIt's these arms I tell ya!"
+talkie talkie270@270 = "\x7fT120138216,23976\x7fBye bye Baseball!!"
+talkie talkie271@271 = "\x7fT120162192,16872\x7fHasta Luego, baby!"
+talkie talkie272@272 = "\x7fT120179064,12904\x7fThere you go!"
+talkie talkie273@273 = "\x7fT120191968,15208\x7fClean livin'!"
+talkie talkie274@274 = "\x7fT120207176,23240\x7f\x09Signed, sealed, delivered."
+talkie talkie275@275 = "\x7fT120230416,24232\x7f\x09 (Niehaus) My...ohhhh ...my!"

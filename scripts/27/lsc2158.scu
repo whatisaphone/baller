@@ -1,6 +1,0 @@
-; LSC2 27 2158
-
-local variable local0
-
-return (local0 + 201)
-free-script

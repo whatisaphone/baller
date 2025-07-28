@@ -1,9 +1,0 @@
-; SCRP 63 FreeSpriteGroup
-
-parameter arg0
-
-gSpriteGroupStack[gSpriteGroupStackPointer] = arg0
-++gSpriteGroupStackPointer
-sprite-group-select arg0
-sprite-group-clear
-free-script

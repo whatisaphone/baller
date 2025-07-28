@@ -1,6 +1,0 @@
-; LSC2 39 2087
-
-local variable local0
-
-return (kludge-retval [2001, 2235, local0])
-free-script

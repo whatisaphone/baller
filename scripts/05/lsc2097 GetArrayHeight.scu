@@ -1,6 +1,0 @@
-; LSC2 5 2097 GetArrayHeight
-
-parameter arg0
-
-return (array-height arg0)
-free-script

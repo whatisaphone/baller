@@ -1,0 +1,3810 @@
+rmim {
+    raw-block RMIH `0000`
+    im {
+        bmap 150 "matchup/room.bmp"
+    }
+}
+rmda {
+    raw-block RMHD `8002e0010200`
+    raw-block CYCL `0000`
+    raw-block TRNS `0500`
+    raw-block NLSC `3500`
+    raw-block POLD "matchup/POLD_0014d6fa.bin"
+}
+
+var room0@0
+var room1@1
+var room2@2
+var room3@3
+var room4@4
+var room5@5
+var room6@6
+var room7@7
+var room8@8
+var room9@9
+var rNetRemoteCoachName@10
+
+local-script CastFirstGameOfTheSeason@2048 {
+    var local0
+
+    gCurrentMatchupCastScript = CastFirstGameOfTheSeason
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    local0 = random 9
+    case local0 {
+        0 {
+            say-line-actor "\x7fT94457174,60011\x7f     Just a reminder, folks, we're having a spitting contest for all you fans during the 4th inning stretch." 2
+            wait-for-message
+            say-line-actor "\x7fT94517185,43752\x7f     Practice up, just be careful not to hit the people sitting below you!" 2
+        }
+        1 {
+            say-line-actor "\x7fT94560937,32902\x7f     Hey, kiddos, don't forget to buy your raffle tickets..." 2
+            wait-for-message
+            say-line-actor "\x7fT94593839,39922\x7f     we've got a humdinger of a grand prize this season..." 2
+            wait-for-message
+            say-line-actor "\x7fT94633761,34970\x7f     a year's supply of Bubble Gum Chew!" 2
+            wait-for-message
+            say-line-actor "\x7fT94668731,53518\x7f     Just think of it... you could chew for a whole year without ever stopping!" 2
+        }
+        2 {
+            say-line-actor "\x7fT94722249,81654\x7f     Folks, when the sun gets too hot for ya, don't forget about the refreshments at Laughing Lucy's Lemonade Stand!" 2
+            wait-for-message
+            say-line-actor "\x7fT94803903,39964\x7f     She's running a special today... two for a dollar!" 2
+            wait-for-message
+            say-line-actor "\x7fT94843867,41636\x7f     That's two of anything behind the counter, except Lucy, of course!" 2
+        }
+        3 {
+            say-line-actor "\x7fT94885503,76067\x7f     Fans, don't forget to eat WAY too much cotton candy today so that you're not hungry at dinner time tonight." 2
+            wait-for-message
+            say-line-actor "\x7fT94961570,45345\x7f     Your parents will think it's the funniest thing since your last report card!" 2
+        }
+        4 {
+            say-line-actor "\x7fT95006915,66311\x7f     Brand new this season, we've got Pablo Sanchez dolls on sale at the concession stand." 2
+            wait-for-message
+            say-line-actor "\x7fT95073226,59887\x7f     Take home a miniature version of everybody's favorite, 'the secret weapon!'" 2
+            wait-for-message
+            say-line-actor "\x7fT95133113,44492\x7f     I'm hopin' next season they'll come out with a 'Vinnie the Gooch' doll!" 2
+        }
+        5 {
+            say-line-actor "\x7fT95177605,40401\x7f     A word of advice if you're looking to catch a home run, today..." 2
+            wait-for-message
+            say-line-actor "\x7fT95218006,26107\x7f     stay away from the spitballs!!" 2
+        }
+        6 {
+            say-line-actor "\x7fT95244113,30995\x7f     You all seem like a rowdy bunch of fans..." 2
+            wait-for-message
+            say-line-actor "\x7fT95275108,63242\x7f     I expect to see plenty of waves, signs, and stupid looking hats outta you people." 2
+        }
+        7 {
+            say-line-actor "\x7fT95338350,38708\x7f     We're gonna try something new out here in the stands today." 2
+            wait-for-message
+            say-line-actor "\x7fT95377058,105764\x7f     Every time they call a time out, I want everybody to get up, do the wave, and then sit down in the seat next to yours." 2
+            wait-for-message
+            say-line-actor "\x7fT95482822,57038\x7f     By the end of the game, maybe we'll make it all the way around to where we started!" 2
+            wait-for-message
+            say-line-actor "\x7fT95539860,17616\x7f     Are you all with me on this?" 2
+        }
+        8 {
+            say-line-actor "\x7fT95557476,75330\x7f     I hope you fans have been practicing your cheers and taunts, because I'm tired of the same old stuff." 2
+            wait-for-message
+            say-line-actor "\x7fT95632806,29800\x7f     I'm counting on you kids to keep me entertained, here." 2
+            wait-for-message
+            say-line-actor "\x7fT95662606,56150\x7f     I mean, don't even THINK about that Hey batta batta baloney." 2
+            wait-for-message
+            say-line-actor "\x7fT95718756,31059\x7f     It's been done... Ya know what I'm sayin'?" 2
+        }
+        9 {
+            say-line-actor "\x7fT95749815,99442\x7f     If any of you younger kids out there are feeling inspired by the skill of these finely honed athletes, you should think about trying it out yourself next season." 2
+            wait-for-message
+            say-line-actor "\x7fT95849257,65642\x7f     We're always looking for new players, and the requirements are easy to meet... you gotta have a pulse!" 2
+        }
+        10 {
+            say-line-actor "\x7fT95914899,219292\x7fBefore we start the game, Sunny, I'd like to read an excerpt from my new book 'I Love The Baseball' by Vinnious T. Gooch.  Chapter One.  (Ehem!) I love the baseball.  What I love most about baseball is it's 100 percent American, 'cept for the parts that were taken from other countries." 2
+            break-here.multi 40
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            wait-for-message
+            say-line-actor "\x7fT96134191,16730\x7fThat's great Vinnie." 1
+            wait-for-message
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT96150921,91744\x7fThat's from my new book 'I Love The Baseball' by Vinnious T. Gooch, available at fine bookstores and gas stations across the world." 2
+        }
+        11 {
+            say-line-actor "\x7fT96242665,89456\x7fToday, The Fabulous Gooch predicts, that at one point in the game, at least one of these two teams will get a hit." 2
+        }
+        12 {
+            say-line-actor "\x7fT96332121,108296\x7fYou know, Baseball is all about the love of the game. I mean why else would anyone stand in the outfield for hours, waiting for a ball to drop into their mitt?  " 2
+        }
+        13 {
+            say-line-actor "\x7fT96440417,27922\x7fAnd now, a woid from our sponsor..." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT96468339,33586\x7fVinnie!  There aren't any commercials in Backyard Baseball!" 1
+            break-here.multi 2
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT96501925,63452\x7fNo commercials?!  Good! They drive me bananas! Except for the good ones. Those are funny. " 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    break-here.multi 10
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastLosingSeason@2049 {
+    gCurrentMatchupCastScript = CastLosingSeason
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case (random 3) {
+        0 {
+            say-line-actor "\x7fT96565377,45333\x7f     What a season of hard knocks this has been so far!" 2
+            wait-for-message
+            say-line-actor "\x7fT96610710,59271\x7f     I mean I guess it's possible that things could be worse for these kids..." 2
+            wait-for-message
+            say-line-actor "\x7fT96669981,47374\x7f     I'm not exactly sure how, but they probably could." 2
+            wait-for-message
+            say-line-actor "\x7fT96717355,64051\x7f     Anyway, they haven't given up hope yet, and you gotta admire them for that!" 2
+        }
+        1 {
+            say-line-actor "\x7fT96781406,82387\x7f     This has been a frustrating season for these kids, but they're keeping their chins up... at least, most of 'em are." 2
+            wait-for-message
+            say-line-actor "\x7fT96863793,70583\x7f     At this point, it doesn't look like they have a very good chance of making the series, but you never know." 2
+            wait-for-message
+            say-line-actor "\x7fT96934376,31450\x7f     I mean, crazier things have happened..." 2
+        }
+        2 {
+            say-line-actor "\x7fT96965826,55642\x7f     Believe it or not, I have seen a team that had a worse season than these kids." 2
+            wait-for-message
+            say-line-actor "\x7fT97021468,37051\x7f     Of course, they had a one-eyed dog playing shortstop..." 2
+            wait-for-message
+            say-line-actor "\x7fT97058519,78287\x7f     Anyway, you gotta admire the effort these kids are putting out, even though their record hasn't been so hot." 2
+        }
+        3 {
+            say-line-actor "\x7fT97136806,56553\x7f     These kids keep plugging away even though they haven't had the best of luck so far!" 2
+            wait-for-message
+            say-line-actor "\x7fT97193359,102021\x7f     No matter how bad this season has been,     these kids aren't giving up hope, and that's the true BBL spirit we all like to see." 2
+            wait-for-message
+            say-line-actor "\x7fT97295380,43477\x7f     Remember: it's all about having fun out there." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastWinningSeason@2050 {
+    gCurrentMatchupCastScript = CastWinningSeason
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case (random 3) {
+        0 {
+            say-line-actor "\x7fT97338857,59148\x7fThis has been quite an exciting season for these kids, and the playoffs are in sight!" 2
+            wait-for-message
+            say-line-actor "\x7fT97398005,76096\x7f     These kids should be very proud of their performance so far, they've played hard and it's paid off." 2
+        }
+        1 {
+            say-line-actor "\x7fT97474101,30929\x7f     This season has been solid for these kids." 2
+            wait-for-message
+            say-line-actor "\x7fT97505030,65596\x7f     They've been playing some serious baseball out there, and they have a lot to be proud of." 2
+            wait-for-message
+            say-line-actor "\x7fT97570626,30741\x7f     Not to mention, it's looking good for the play-off's!" 2
+        }
+        2 {
+            say-line-actor "\x7fT97601367,40509\x7f     Whatever these kids are doin', it's workin' for 'em." 2
+            wait-for-message
+            say-line-actor "\x7fT97641876,27048\x7f     This has been a great season so far!" 2
+            wait-for-message
+            say-line-actor "\x7fT97668924,82492\x7f     Each one of the players is thinkin' about the playoffs, and they have a good chance of makin' it if they keep it up." 2
+        }
+        3 {
+            say-line-actor "\x7fT97751416,89696\x7f     A little luck, a lot of skill, and a buncha great attitudes have seen these kids through an outstanding season!" 2
+            wait-for-message
+            say-line-actor "\x7fT97841112,55238\x7fYou can bet they have hopes of landing in the Playoffs and my guess is, they will." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastAverageSeason@2051 {
+    gCurrentMatchupCastScript = CastAverageSeason
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case (random 4) {
+        0 {
+            say-line-actor "\x7fT97896350,58250\x7f     These kids are threatening to climb out of the cellar, and fans, your support is key." 2
+            wait-for-message
+            say-line-actor "\x7fT97954600,71734\x7fYes siree Bob, they're on the comeback trail headin' for the Playoffs, but it's gonna be a long haul to get there." 2
+        }
+        1 {
+            say-line-actor "\x7fT98026334,27412\x7f     What a season it's been so far!" 2
+            wait-for-message
+            say-line-actor "\x7fT98053746,62535\x7f     In case you haven't noticed, these kids have managed to win a few here and there." 2
+            wait-for-message
+            say-line-actor "\x7fT98116281,87319\x7f     At this point, it's still possible for them to make the series, and you can bet they'll give it their best shot." 2
+        }
+        2 {
+            say-line-actor "\x7fT98203600,78379\x7f     Sure has been an exciting season of highs and lows, and there's no telling if these kids will go all the way or not." 2
+            wait-for-message
+            say-line-actor "\x7fT98281979,58943\x7f     The one thing we can count on, though, is that they're gonna try their hardest!" 2
+        }
+        3 {
+            say-line-actor "\x7fT98340922,74775\x7f     It's been an exciting season of ups and downs, so far,     but these kids are starting to make a comeback." 2
+            wait-for-message
+            say-line-actor "\x7fT98415697,48318\x7fThey still have a chance to make it to the Playoffs, if they're ready to fight for it." 2
+        }
+        4 {
+            say-line-actor "\x7fT98464015,91936\x7f     These kids have been working hard all season, sometimes it pays off and sometimes... well... you can't win em all." 2
+            wait-for-message
+            say-line-actor "\x7fT98555951,89209\x7f     At this point, it's still hard to tell if they'll make the playoffs or not, but they're gonna try their hardest, that's for sure." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastLastGameOfTheSeason@2052 {
+    var local0 local1 local2 local3 local4 local5
+
+    gCurrentMatchupCastScript = CastLastGameOfTheSeason
+    local5 = gSeasonDivision / 4 * 4
+    for local3 = local5 to (local5 + 3) + {
+        local2 = gSeasonRosterArray[local3][14]
+        if (local2 >= local0) {
+            local1 = local0
+            local0 = local2
+        } else if (local2 > local1) {
+            local1 = local2
+        }
+    }
+    local2 = gSeasonRosterArray[gSeasonDivision][14]
+    local4 = local2 - local1
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    if (local4 > 0) {
+        say-line-actor "\x7fT98645160,34610\x7fAt this point, these kids have already made it to the Playoffs." 2
+        wait-for-message
+        say-line-actor "\x7fT98679770,80778\x7fBut if I know this team, they're gonna give this last season game everything they've got, just for the love of baseball." 2
+    } else if (local4 < -2) {
+        say-line-actor "\x7fT98760548,56852\x7fWith a record like this going into the final game, these kids aren't going to make the Playoffs." 2
+        wait-for-message
+        say-line-actor "\x7fT98817400,102625\x7f     However, you gotta hand it to 'em for one heckuva a season, eh folks?     Let's watch this team play together one last time." 2
+    } else {
+        say-line-actor "\x7fT98920025,36546\x7fThese young players have high hopes going into today's game." 2
+        wait-for-message
+        say-line-actor "\x7fT98956571,59746\x7fA win would send them on to the Playoffs, but a loss would mean the end of the line." 2
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffsGameStart@2053 {
+    gCurrentMatchupCastScript = CastPlayoffsGameStart
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case gSeasonGameNumber {
+        14 {
+            if (random 1) {
+                say-line-actor "\x7fT99016317,75316\x7fNow that we're in the Playoffs, the competition is a little rougher, and you can bet these kids'll be playin' their hearts out." 2
+            } else {
+                say-line-actor "\x7fT99091633,62282\x7fEvery player out there has their eye on the league title. I tell ya it's gonna be a tough fight for the pennant." 2
+            }
+        }
+        15 {
+            if (call-script ReadActiveSchedule gSeasonDivision 14 3 > call-script ReadActiveSchedule gSeasonDivision 14 4) {
+                say-line-actor "\x7fT99153915,45922\x7fThe score is 1-0 in this playoff round, and folks, this could be it..." 2
+                wait-for-message
+                say-line-actor "\x7fT99199837,62826\x7fIf these kids perform well today, it's on to the League Championship - the race for the pennant." 2
+                wait-for-message
+                say-line-actor "\x7fT99262663,34898\x7fIf not, they'll be battling out the tie-breaker." 2
+            } else {
+                say-line-actor "\x7fT99297561,70000\x7fWith a score of 0-1 in the playoffs, this has proven to be a tough series for these young players." 2
+                wait-for-message
+                say-line-actor "\x7fT99367561,46650\x7fThey haven't lost sight of the title, but it's gonna take two consecutive wins to nab it." 2
+            }
+        }
+        16 {
+            say-line-actor "\x7fT99414211,44237\x7f     Well, fans, this is it ...     this is the deciding game." 2
+            wait-for-message
+            say-line-actor "\x7fT99458448,65401\x7f     The score is 1 to 1 in these playoffs, and these kids know it's all or nothing out there today." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffsGameMiddle@2054 {
+    gCurrentMatchupCastScript = CastPlayoffsGameMiddle
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case gSeasonGameNumber {
+        17 {
+            if (random 1) {
+                say-line-actor "\x7fT99523849,101100\x7fEverybody out here today wants their team to be the one to take the league title and go on to the Backyard World Series, but only one team will make it." 2
+            } else {
+                say-line-actor "\x7fT99624949,79486\x7fOur favorite kids are up against some pretty tough competition now, but we all know they have what it takes to win the League pennant." 2
+            }
+        }
+        18 {
+            if (call-script ReadActiveSchedule gSeasonDivision 17 3 > call-script ReadActiveSchedule gSeasonDivision 17 4) {
+                say-line-actor "\x7fT99704435,94988\x7fThe score is one nothing, and these kids have a good chance of making it to the Backyard World Series if they can just produce another win today." 2
+            } else {
+                say-line-actor "\x7fT99799423,81158\x7f     The score is 0 to 1, and take it from the Gooch, these kids are gonna keep on fighting till the end." 2
+                wait-for-message
+                say-line-actor "\x7fT99880581,55470\x7f     They're just gonna have to fight harder if they wanna make it to the final championship round." 2
+            }
+        }
+        19 {
+            say-line-actor "\x7fT99936051,113192\x7fThe score is tied at one, and these kids are gonna be workin' their tails off out there today with one thing in mind: making it to the Backyard World Series." 2
+            wait-for-message
+            say-line-actor "\x7fT100049243,54229\x7f     Today's winners will go on to battle it out for the world title." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffsGameEnd@2055 {
+    var local0
+
+    gCurrentMatchupCastScript = CastPlayoffsGameEnd
+    if (actor-get-variable 1 3 == 1) {
+        do-animation 1 2
+    } else {
+        do-animation 1 5
+    }
+    actor.init 1
+    actor.variable 3 0
+    case gSeasonGameNumber {
+        20 {
+            say-line-actor "\x7fT100103472,83210\x7fGoing into the final round, everyone's looking at that Backyard World Series title, but only one team will make it all the way." 2
+        }
+        21 {
+            if (call-script ReadActiveSchedule gSeasonDivision 20 3 > call-script ReadActiveSchedule gSeasonDivision 20 4) {
+                say-line-actor "\x7fT100186682,73812\x7fThe score is one nothing and these kids are hangin' tough in the Backyard World Series, ready to win it all." 2
+            } else {
+                say-line-actor "\x7fT100260494,119932\x7fThe score is zero to one, and these young players have put in a great effort so far, but they've got a ways to go if they wanna nab that Backyard World Series title." 2
+            }
+        }
+        22 {
+            if (call-script ReadActiveSchedule gSeasonDivision 20 3 > call-script ReadActiveSchedule gSeasonDivision 20 4) {
+                inc local0
+            }
+            if (call-script ReadActiveSchedule gSeasonDivision 21 3 > call-script ReadActiveSchedule gSeasonDivision 21 4) {
+                inc local0
+            }
+            case local0 {
+                2 {
+                    say-line-actor "\x7fT100380426,66428\x7f     The score is two to nothin'.     What an unbelievable series this has been for these kids!" 2
+                    wait-for-message
+                    say-line-actor "\x7fT100446854,45681\x7f     Today's win would mean they take the whole enchilada!" 2
+                    wait-for-message
+                    say-line-actor "\x7fT100492535,29788\x7f     Aye yai yai, andale, andale!" 2
+                }
+                0 {
+                    say-line-actor "\x7fT100522323,22585\x7f     The series is at 0 and 2." 2
+                    wait-for-message
+                    say-line-actor "\x7fT100544908,79546\x7f     At this point in the championship series, the kids aren't doing as well as they'd hoped... but it ain't over yet." 2
+                    wait-for-message
+                    say-line-actor "\x7fT100624454,41149\x7f     I know these kids, and they gotta lotta fight in`em." 2
+                }
+                1 {
+                    say-line-actor "\x7fT100665603,75548\x7fThe score is tied at one, so at this point in the Backyard World Series, things could go either way." 2
+                    wait-for-message
+                    say-line-actor "\x7fT100741151,33610\x7fThis promises to be a tough fight till the end!" 2
+                }
+                else {
+                }
+            }
+        }
+        23 {
+            if (call-script ReadActiveSchedule gSeasonDivision 20 3 > call-script ReadActiveSchedule gSeasonDivision 20 4) {
+                inc local0
+            }
+            if (call-script ReadActiveSchedule gSeasonDivision 21 3 > call-script ReadActiveSchedule gSeasonDivision 21 4) {
+                inc local0
+            }
+            if (call-script ReadActiveSchedule gSeasonDivision 22 3 > call-script ReadActiveSchedule gSeasonDivision 22 4) {
+                inc local0
+            }
+            case local0 {
+                2 {
+                    say-line-actor "\x7fT100774761,24842\x7f     What an exciting series this is!" 2
+                    wait-for-message
+                    say-line-actor "\x7fT100799603,42993\x7f     The score is 2-1 and things are lookin' good for our favorite players." 2
+                    wait-for-message
+                    say-line-actor "\x7fT100842596,60956\x7fThe Backyard World Series title is within their grasp, and a win today would nab it for them." 2
+                }
+                1 {
+                    say-line-actor "\x7fT100903552,84164\x7fIt has been a suspenseful championship round as our favorite kids fight for a shot at the Backyard World Series title." 2
+                    wait-for-message
+                    say-line-actor "\x7fT100987716,79100\x7fThe score is 1 to 2, and they're gonna have to pull off two consecutive wins to become the champions of the Backyard World Series." 2
+                }
+                else {
+                }
+            }
+        }
+        24 {
+            say-line-actor "\x7fT101066816,55268\x7fThis is it, folks...the final game of the Backyard World Series!" 2
+            wait-for-message
+            say-line-actor "\x7fT101122084,102552\x7fThe score is tied, 2-2 and if they play it right, our kids could walk outta here the winners of the Backyard World Series title!" 2
+            wait-for-message
+            say-line-actor "\x7fT101224636,21691\x7f     What a series this has been!" 2
+            wait-for-message
+            say-line-actor "\x7fT101246327,34406\x7f     It doesn't get any better than this, I tell ya!" 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastStartOfGame@2056 {
+    var local0 local1 local2
+
+    gCurrentMatchupCastScript = CastStartOfGame
+    local1 = random 10
+    L000c:
+    case local1 {
+        [0 1] {
+            case gField {
+                PLAYGROUND-COMMONS {
+                    case (random 2) {
+                        0 {
+                            say-line-actor "\x7fT101280733,54809\x7f     Live from Playground Commons, this is Sunny Day and my sidekick, Vinnie the Gooch." 1
+                        }
+                        1 {
+                            say-line-actor "\x7fT101335542,16346\x7f     My name's Sunny Day." 1
+                            wait-for-message
+                            say-line-actor "\x7fT101351888,70038\x7f     My pal Vinnie the Gooch and I are coming to you live from Playground Commons, where the action is about to begin." 1
+                        }
+                        2 {
+                            say-line-actor "\x7fT101421926,74722\x7f     This is Sunny Day here with my buddy Vinnie the Gooch, ready to let you in on the excitement happening here at     Playground Commons!" 1
+                        }
+                        else {
+                        }
+                    }
+                }
+                CEMENT-GARDENS {
+                    if (random 1) {
+                        say-line-actor "\x7fT101496648,62792\x7f     This is Sunny Day, here, ready to bring you another exciting game here at Cement Gardens." 1
+                        wait-for-message
+                        say-line-actor "\x7fT101559440,29564\x7f     Joining me is my sidekick, Vinnie the Gooch." 1
+                        L02e4:
+                        local2 = 1
+                        wait-for-message
+                        if (actor-get-variable 2 3 == 1) {
+                            do-animation 2 2
+                        } else {
+                            do-animation 2 5
+                        }
+                        actor.init 2
+                        actor.variable 3 0
+                        while (actor-get-variable 2 3 == 0) {
+                            break-here
+                        }
+                        say-line-actor "\x7fT101589004,25038\x7f      Why do I always have to be the sidekick?" 2
+                        break-here.multi 2
+                        if (actor-get-variable 1 3 == 1) {
+                            do-animation 1 2
+                        } else {
+                            do-animation 1 5
+                        }
+                        actor.init 1
+                        actor.variable 3 0
+                        wait-for-message
+                        say-line-actor "\x7fT101614042,26596\x7f      Just once, I wish you were the sidekick!" 2
+                        wait-for-message
+                        if (actor-get-variable 1 3 == 1) {
+                            do-animation 1 2
+                        } else {
+                            do-animation 1 5
+                        }
+                        actor.init 1
+                        actor.variable 3 0
+                        while (actor-get-variable 1 3 == 0) {
+                            break-here
+                        }
+                        say-line-actor "\x7fT101640638,17352\x7fNot gonna happen, Vinnie." 1
+                    } else {
+                        local2 = 1
+                        if (actor-get-variable 2 3 == 1) {
+                            do-animation 2 2
+                        } else {
+                            do-animation 2 5
+                        }
+                        actor.init 2
+                        actor.variable 3 0
+                        say-line-actor "\x7fT101657990,62860\x7f     This is Sunny Day and Vinnie the Gooch comin' to ya live from Cement Gardens." 1
+                        wait-for-message
+                        while (actor-get-variable 2 3 == 0) {
+                            break-here
+                        }
+                        if (actor-get-variable 1 3 == 1) {
+                            do-animation 1 2
+                        } else {
+                            do-animation 1 5
+                        }
+                        actor.init 1
+                        actor.variable 3 0
+                        say-line-actor "\x7fT101720850,55773\x7f    Since when is this old parking lot called 'Cement Gardens', Sunny?" 2
+                        wait-for-message
+                        say-line-actor "\x7fT101776623,38090\x7f     Pu-leese, Vinnie, have a little imagination." 1
+                    }
+                }
+                DIRT-YARDS {
+                    if (random 1) {
+                        say-line-actor "\x7fT101814713,77574\x7f     Reporting to you directly from Dirt Yards, where balls bounce anywhere they want to, this is Sunny Day and Vinnie the Gooch." 1
+                    } else {
+                        local2 = 1
+                        say-line-actor "\x7fT101892287,82728\x7f     This is Sunny Day and my cohort, Vinnie the Gooch, ready to report every bit of the action here at Dirt Yards..." 1
+                        wait-for-message
+                        if (actor-get-variable 2 3 == 1) {
+                            do-animation 2 2
+                        } else {
+                            do-animation 2 5
+                        }
+                        actor.init 2
+                        actor.variable 3 0
+                        say-line-actor "\x7fT101975015,49238\x7f     the laughs, the tears, the excitement, the fears, the..." 1
+                        wait-for-message
+                        say-line-actor "\x7fT102024253,27367\x7f    OK, ok...I think they get the picture." 2
+                    }
+                }
+                PARKS-DEPARTMENT {
+                    case (random 3) {
+                        0 {
+                            say-line-actor "\x7fT102051620,102947\x7f My name's Sunny Day.  My pal Vinnie the Gooch and I are coming to you live from the Parks dept. field # 2, where the action is about to begin" 1
+                        }
+                        1 {
+                            say-line-actor "\x7fT102154567,68632\x7f Live from Parks Dept field #2, this is Sunny Day and my sidekick, Vinnie the Gooch" 1
+                            if (not (random 3)) {
+                                jump L02e4
+                            }
+                        }
+                        2 {
+                            say-line-actor "\x7fT102223199,85569\x7f I'm Sunny Day, and together with my pal Vinnie the Gooch, we're ready to report the action here at The Parks Dept. Field #2." 1
+                        }
+                        3 {
+                            say-line-actor "\x7fT102308768,65874\x7f Reporting to you live from the Parks Department field # 2, this is Sunny Day and Vinnie the Gooch" 1
+                        }
+                        else {
+                        }
+                    }
+                }
+                SUPER-COLOSSAL-DOME {
+                    if (random 1) {
+                        say-line-actor "\x7fT102374642,58996\x7f Reporting to you directly from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch" 1
+                    } else {
+                        say-line-actor "\x7fT102433638,74148\x7f Live from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch ready for another exciting game" 1
+                    }
+                }
+                BIG-CITY-STADIUM {
+                    if (random 1) {
+                        say-line-actor "\x7fT102507786,59588\x7f This is Sunny Day and Vinnie the Gooch comin' to ya live from the Big City Stadium" 1
+                    } else {
+                        say-line-actor "\x7fT102567374,87926\x7f This is Sunny Day here with my buddy Vinnie the Gooch, ready to let you in on the excitement happening here at  the Big City Stadium" 1
+                    }
+                }
+                SANDY-FLATS {
+                    if (random 1) {
+                        say-line-actor "\x7fT102655300,74501\x7f This is Sunny Day and Vinnie the Gooch live at Sandy Flats, where the running is slow and the balls bounce low." 1
+                    } else {
+                        jump L000c
+                    }
+                }
+                STEELE-STADIUM {
+                    if (random 1) {
+                        say-line-actor "\x7fT102729801,81352\x7f Sunny Day, here, with my pal Vinnie the Gooch at Steele Stadium, where a bhit in the neighbor's pool is a home run by rule." 1
+                    } else {
+                        jump L000c
+                    }
+                }
+                TIN-CAN-ALLEY {
+                    if (random 1) {
+                        say-line-actor "\x7fT102811153,68935\x7f This is Sunny Day and Vinnie the Gooch welcoming you to Tin Can Alley, where there is no such thing as a home run." 1
+                    } else {
+                        jump L000c
+                    }
+                }
+                ECKMAN-ACRES {
+                    if (random 1) {
+                        say-line-actor "\x7fT102880088,100314\x7f This is Sunny day and Vinnie the Gooch here at Eckman Acres, where ten balls have already been lost this season to the nextdoor neighbor, old Mrs. Crankypants." 1
+                    } else {
+                        jump L000c
+                    }
+                }
+                else {
+                    jump L000c
+                }
+            }
+            if (not local2 && not (random 10)) {
+                wait-for-message
+                say-line-actor "\x7fT102980402,41340\x7fThe hitting!  The pitching! The spitting!  I love the baseball!" 2
+            }
+        }
+        2 {
+            say-line-actor "\x7fT103021742,72784\x7f     I'm Sunny Day, and together with my pal, Vinnie the Gooch, we'll bring every bit of the action to ya!" 1
+        }
+        3 {
+            say-line-actor "\x7fT103094526,45108\x7f     I'm Sunny Day and joining me is my pal, Vinnie the Gooch." 1
+            wait-for-message
+            say-line-actor "\x7fT103139634,32842\x7f     Together, we'll bring you every bit of the action!" 1
+            wait-for-message
+            say-line-actor "\x7fT103172476,36732\x7f     What she means is, she's never gonna stop yappin'." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT103209208,17456\x7f     It's my job, Vinnie!" 1
+            wait-for-message
+            say-line-actor "\x7fT103226664,12018\x7fNow it's my turn." 2
+        }
+        4 {
+            say-line-actor "\x7fT103238682,86516\x7f     Sunny Day, here, along with Vinnie the Gooch, welcoming you friends of the feathered to another edition of baseball madness!" 1
+        }
+        5 {
+            say-line-actor "\x7fT103325198,47572\x7f     This is Sunny Day and my pal Vinnie the Gooch with a hearty hi-ho to ya!" 1
+            break-here.multi 4
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT103372770,19860\x7f      Wait a minute..." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            say-line-actor "\x7fT103392630,68823\x7f      The Gooch does not, under any circumstances,     say 'Hi-Ho'." 2
+            wait-for-message
+            say-line-actor "\x7fT103461453,51044\x7f      Sunny Day may being sayin' 'Hi-ho', but the Gooch just says 'yo.'" 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT103512497,15020\x7f     Whatever, Vinnie." 1
+        }
+        6 {
+            say-line-actor "\x7fT103527517,53630\x7fHello baseball fans!  Sunny Day here along with my good friend Vinnie the Gooch." 1
+            wait-for-message
+            say-line-actor "\x7fT103581147,64910\x7fThanks Sunny.  It's good to be here for another exciting game of baseball. I can't get enough of it." 2
+        }
+        7 {
+            say-line-actor "\x7fT103646057,36232\x7fSunny Day here with Vinnie the Gooch.  Say hello, Vinnie." 1
+            wait-for-message
+            say-line-actor "\x7fT103682289,9352\x7fHello Vinnie." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            break-here.multi 10
+        }
+        8 {
+            say-line-actor "\x7fT103691641,79340\x7fHi there sports fans.  I'm Sunny Day, along with my partner Vinnie the Gooch.  Say hello to the nice people Vinnie." 1
+            wait-for-message
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT103770981,50938\x7fNice?  I got a bowl of potato salad dumped on my head on the way in here." 2
+            break-here.multi 2
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT103821919,19824\x7fOh Vinnie, behave." 1
+            wait-for-message
+            say-line-actor "\x7fT103841743,15604\x7fWhat?  It's true!" 2
+        }
+        9 {
+            say-line-actor "\x7fT103857347,80208\x7fHiya folks!  Welcome to Backyard Baseball.  I'm Sunny Day, along with my broadcast partner Vinnie the Gooch..." 1
+            wait-for-message
+            say-line-actor "\x7fT103937555,124494\x7fFolks, we're going to bring you the best in Baseball today: home runs, triple plays, strike outs, live action from some of the hottest players in the league this season. The best in baseball." 2
+            break-here.multi 30
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT104062049,25958\x7fBoy you're sure enthusiastic today." 1
+            break-here.multi 1
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT104088007,15726\x7fI had a good breakfast." 2
+        }
+        10 {
+            say-line-actor "\x7fT104103733,64140\x7fSunny Day here, along with Vinnie the Gooch, welcoming you again to Backyard Baseball." 1
+            wait-for-message
+            say-line-actor "\x7fT104167873,58596\x7fVinnie the Gooch here, along Sunny Day, welcoming you again to Backyard Baseball." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT104226469,14070\x7fI just said that Vinnie. " 1
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            wait-for-message
+            while (actor-get-variable 2 3 == 0) {
+                break-here
+            }
+            say-line-actor "\x7fT104240539,41218\x7fI know. But I think I said it better. With more pizzaz!" 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    if (room2 != 2) {
+        actor.init 1
+        actor.costume 0
+        actor.init 2
+        actor.costume 0
+        start-script SetNavButtons HandleNavClick HandleNavHover 0
+        palette 0
+        kludge 23
+        start-script lsc2087
+        room2 = 2
+    }
+    break-here.multi 5
+    if (random 20) {
+        start-script CastMatchupTeams
+        break-until (not (script-running CastMatchupTeams))
+    } else {
+        say-line-actor "\x7fT104281757,87964\x7fThis'll be a great matchup of my two favorite teams - The ...uh ...what's-their-faces, and the ...uh ...other guys." 2
+        wait-for-message
+    }
+    if (room2 != 1) {
+        image.init image286
+        image.at 0 0
+        image.draw
+        image.flags 1
+        image.end
+        start-script scr273
+        room2 = 1
+        start-script FreeNavButtons
+        if gGameEnded {
+            image.init image287
+            image.state 2
+            image.at 280 400
+            image.draw
+            image.end
+        } else {
+            image.init image287
+            image.state 0
+            image.at 280 400
+            image.draw
+            image.end
+        }
+        actor.init 1
+        actor.new
+        actor.costume costume430
+        actor.talk-animation 0 0
+        put-actor 1 320 240 gCurrentRoom
+        actor.init 2
+        actor.new
+        actor.costume costume431
+        actor.talk-animation 0 0
+        put-actor 2 320 240 gCurrentRoom
+        start-script smth_team_color_palette 0 2
+    }
+    if gCurrentMatchupCastScript {
+        if gSeasonGameNumber {
+            case gSeasonGameNumber {
+                1 {
+                    start-script CastFirstGameOfTheSeason
+                }
+                (14 - 1) {
+                    start-script CastLastGameOfTheSeason
+                }
+                [14 15 16] {
+                    start-script CastPlayoffsGameStart
+                }
+                [17 18 19] {
+                    start-script CastPlayoffsGameMiddle
+                }
+                [20 21 22] {
+                    start-script CastPlayoffsGameEnd
+                }
+                else {
+                    local0 = call-script ReadActiveRoster gSeasonDivision 14 * 100 / gSeasonGameNumber
+                    if (local0 < 30) {
+                        start-script CastLosingSeason
+                    } else if (local0 > 70) {
+                        start-script CastWinningSeason
+                    } else {
+                        start-script CastAverageSeason
+                    }
+                }
+            }
+        } else {
+            start-script CastFirstGameOfTheSeason
+        }
+    }
+}
+
+local-script CastGameStart8@2057 {
+    gCurrentMatchupCastScript = CastGameStart8
+    while (actor-get-variable 1 3 == 0) {
+        break-here
+    }
+    case (random 9) {
+        0 {
+            say-line-actor "\x7fT104369721,41232\x7f     Welcome back to baseball fever all you crazy fans." 1
+        }
+        1 {
+            say-line-actor "\x7fT104410953,48181\x7f     Welcome back to the fun, you nutty baseball lovers, you!" 1
+        }
+        2 {
+            say-line-actor "\x7fT104459134,32189\x7f     Hello all you baseball maniacs!" 1
+        }
+        3 {
+            say-line-actor "\x7fT104491323,49380\x7f     It's that time again... time for some non-stop baseball fun." 1
+        }
+        4 {
+            say-line-actor "\x7fT104540703,29928\x7f     Welcome to the most fun you'll have all day!" 1
+        }
+        5 {
+            say-line-actor "\x7fT104570631,18277\x7f     Ready to have fun, kiddos?" 1
+            wait-for-message
+            say-line-actor "\x7fT104588908,33368\x7f     Well, I hope so because it's baseball time!" 1
+        }
+        6 {
+            say-line-actor "\x7fT104622276,53128\x7f     Here we are again, ready to kick off another baseball extravaganza." 1
+        }
+        7 {
+            say-line-actor "\x7fT104675404,28359\x7f     Let's get the party started!" 1
+            wait-for-message
+            say-line-actor "\x7fT104703763,43119\x7f     It's time to get down with your favorite baseball players." 1
+        }
+        8 {
+            say-line-actor "\x7fT104746882,42257\x7f     Hello there, all you tried and true baseball fans!" 1
+        }
+        9 {
+            say-line-actor "\x7fT104789139,58804\x7f     It's time for another game of the most exciting baseball around!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastGameStart10@2058 {
+    gCurrentMatchupCastScript = CastGameStart10
+    case (random 3) {
+        0 {
+            say-line-actor "\x7fT104847943,21629\x7f     Well, it's that time again!" 1
+            wait-for-message
+            say-line-actor "\x7fT104869572,57438\x7f     Baseball is in the air and we're ready for another exiting BBL season!" 1
+        }
+        1 {
+            say-line-actor "\x7fT104927010,25484\x7f     Hello baseball enthusiasts!" 1
+            wait-for-message
+            say-line-actor "\x7fT104952494,60158\x7f     It's time for another adventurous BBL season of unforgettable plays!" 1
+        }
+        2 {
+            say-line-actor "\x7fT105012652,29413\x7f     Hello again, all you baseball fans." 1
+            wait-for-message
+            say-line-actor "\x7fT105042065,53815\x7f     Welcome to another action packed season of BBL classic thrills -n- spills." 1
+        }
+        3 {
+            say-line-actor "\x7fT105095880,27978\x7f     Welcome back, baseball fans!" 1
+            wait-for-message
+            say-line-actor "\x7fT105123858,46628\x7f     Are you ready for another unbelievable BBL season?" 1
+            wait-for-message
+            say-line-actor "\x7fT105170486,44535\x7f     Well, fasten your seat belts, cause here we go!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastSeasonLastGame@2059 {
+    gCurrentMatchupCastScript = CastSeasonLastGame
+    case (random 3) {
+        0 {
+            say-line-actor "\x7fT105215021,84114\x7f     Well, it all boils down to this final season game and you can bet those players are ready to play their hearts out today!" 1
+        }
+        1 {
+            say-line-actor "\x7fT105299135,55208\x7f     Here we are at the last game of the regular season... I can hardly believe it went by so fast!" 1
+        }
+        2 {
+            say-line-actor "\x7fT105354343,55893\x7f     The tension is mounting in both dugouts as we approach the beginning of this season's final game." 1
+        }
+        3 {
+            say-line-actor "\x7fT105410236,36146\x7f     Welcome to the last game of the season." 1
+            wait-for-message
+            say-line-actor "\x7fT105446382,51962\x7f     All the teams have made it this far, but only two will be moving on to the playoffs." 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastPlayoffsStart@2060 {
+    gCurrentMatchupCastScript = CastPlayoffsStart
+    case gSeasonGameNumber {
+        14 {
+            say-line-actor "\x7fT105498344,60190\x7f     TThe excitement level is high as the players prepare for their first game in this playoff series." 1
+        }
+        15 {
+            say-line-actor "\x7fT104622276,53128\x7f     Here we are again, ready to kick off another baseball extravaganza." 1
+        }
+        16 {
+            say-line-actor "\x7fT104369721,41232\x7f     Welcome back to baseball fever all you crazy fans." 1
+            wait-for-message
+            say-line-actor "\x7fT105558534,26077\x7f     What an exciting day this is!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastPlayoffsMid@2061 {
+    gCurrentMatchupCastScript = CastPlayoffsMid
+    case gSeasonGameNumber {
+        17 {
+            say-line-actor "\x7fT105584611,34044\x7fWelcome to the first game in the race for the pennant!" 1
+            wait-for-message
+            say-line-actor "\x7fT105618655,43502\x7fEvery player out there is excited to have made it this far." 1
+        }
+        18 {
+            say-line-actor "\x7fT105662157,35373\x7f     Hello there, all you crazy fans!" 1
+            wait-for-message
+            say-line-actor "\x7fT105697530,36746\x7fWelcome to another game in the race for the pennant." 1
+            wait-for-message
+            say-line-actor "\x7fT105734276,16666\x7fThis could be the big one!" 1
+        }
+        19 {
+            say-line-actor "\x7fT105750942,39448\x7fThis is it, folks... the final game in the race for the pennant!" 1
+            wait-for-message
+            say-line-actor "\x7fT105790390,67998\x7fYou can bet everyone's got one thing on their minds out there, and it sure isn't losing!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastPlayoffsEnd@2062 {
+    gCurrentMatchupCastScript = CastPlayoffsEnd
+    case gSeasonGameNumber {
+        20 {
+            say-line-actor "\x7fT105858388,29018\x7f     Well, fans, it doesn't get any bigger than this!" 1
+            wait-for-message
+            say-line-actor "\x7fT105887406,41610\x7fHere we are at the first game of the Backyard World Series." 1
+        }
+        24 {
+            say-line-actor "\x7fT105929016,81962\x7fI can't believe the excitement in this stadium as we head into the final game of the official Backyard World Series!" 1
+            wait-for-message
+            say-line-actor "\x7fT106010978,97392\x7f     This is the game that decides which team wins it all, who takes the cake, who's the big cheese, who's the mac daddy of baseball, the top of....." 1
+            break-here.multi 8
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            wait-for-message
+            say-line-actor "\x7fT106108370,37804\x7f      Okay, okay...we get your drift, Sunny." 2
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            say-line-actor "\x7fT106146174,33510\x7f     This is just all so invigorating!!" 1
+            wait-for-message
+            if (actor-get-variable 1 3 == 1) {
+                do-animation 1 2
+            } else {
+                do-animation 1 5
+            }
+            actor.init 1
+            actor.variable 3 0
+            if (actor-get-variable 2 3 == 1) {
+                do-animation 2 2
+            } else {
+                do-animation 2 5
+            }
+            actor.init 2
+            actor.variable 3 0
+            while (actor-get-variable 1 3 == 0) {
+                break-here
+            }
+        }
+        else {
+            if (random 1) {
+                say-line-actor "\x7fT106179684,25804\x7f     Welcome back to the action, fans." 1
+                wait-for-message
+                say-line-actor "\x7fT106205488,67898\x7fIt looks as though our favorite players have made it to another round in the Backyard World Series." 1
+            } else {
+                say-line-actor "\x7fT106273386,56400\x7fHere we are at another exciting game in the official Backyard World Series!" 1
+            }
+        }
+    }
+    wait-for-message
+    start-script CastStartOfGame
+}
+
+local-script CastGameEnded@2063 {
+    gCurrentMatchupCastScript = CastGameEnded
+    L0006:
+    case (random 7) {
+        0 {
+            say-line-actor "\x7fT106329786,47975\x7f       Until next time, this is Sunny day and Vinnie the Gooch, signing off." 1
+        }
+        1 {
+            say-line-actor "\x7fT106377761,38055\x7f       This is Sunny Day and Vinnie the Gooch sayin' see ya next time." 1
+        }
+        [2 3] {
+            case gField {
+                PLAYGROUND-COMMONS {
+                    say-line-actor "\x7fT106415816,69536\x7f       Thanks for coming out, folks.  This has been Sunny Day and Vinnie the Gooch, live at the playground commons." 1
+                }
+                DIRT-YARDS {
+                    say-line-actor "\x7fT106485352,53692\x7f       Live from Dirt Yards, this has been Sunny Day and Vinnie the Gooch. See ya next time!" 1
+                }
+                CEMENT-GARDENS {
+                    say-line-actor "\x7fT106539044,47450\x7f       Straight from Cement Gardens, this is Sunny Day and Vinnie the Gooch signing off." 1
+                }
+                PARKS-DEPARTMENT {
+                    case (random 4) {
+                        0 {
+                            say-line-actor "\x7fT106586494,59051\x7f  Straight from the official BBL field, this is Sunny Day and Vinnie the Gooch signing off." 1
+                        }
+                        1 {
+                            say-line-actor "\x7fT106645545,72786\x7f  Until next time, this is Sunny day and Vinnie the Gooch signing off from the Parks dept field #2." 1
+                        }
+                        2 {
+                            say-line-actor "\x7fT106718331,68960\x7f  This is Sunny Day and Vinnie the Gooch sayin' see ya next time here at the Parks dept. Field #2." 1
+                        }
+                        3 {
+                            say-line-actor "\x7fT106787291,73796\x7f  Live from the Parks Dept field # 2, this has been Sunny Day and Vinnie the Gooch.  See ya next time!" 1
+                        }
+                        4 {
+                            say-line-actor "\x7fT106861087,69520\x7f  Straight from the Parks Dept. Field #2, this is Sunny Day and Vinnie the Gooch signing off" 1
+                        }
+                        else {
+                        }
+                    }
+                }
+                BIG-CITY-STADIUM {
+                    if (random 1) {
+                        say-line-actor "\x7fT106930607,73226\x7f  Thanks for coming out, folks  This has been Sunny Day and Vinnie the Gooch, live at the Big City Stadium" 1
+                    } else {
+                        say-line-actor "\x7fT107003833,56062\x7f  Straight from the Big City Stadium, this is Sunny Day and Vinnie the Gooch signing off" 1
+                    }
+                }
+                SUPER-COLOSSAL-DOME {
+                    say-line-actor "\x7fT107059895,55756\x7f  Straight from the Super Colossal Dome, this is Sunny Day and Vinnie the Gooch signing off" 1
+                }
+                SANDY-FLATS {
+                    say-line-actor "\x7fT107115651,50829\x7f  Straight from Sandy Flats, this is Sunny Day and Vinnie the Gooch, signing off." 1
+                }
+                TIN-CAN-ALLEY {
+                    say-line-actor "\x7fT107166480,50525\x7f  Straight from Tin Can Alley, this is Sunny Day and Vinnie the Gooch, signing off." 1
+                }
+                ECKMAN-ACRES {
+                    say-line-actor "\x7fT107217005,56873\x7f  Live from Eckman Acres, this has been Sunny Day and Vinnie the Gooch.  See ya next time." 1
+                }
+                STEELE-STADIUM {
+                    say-line-actor "\x7fT107273878,53045\x7f  Straight from Steele Stadium, this is Sunny Day and Vinnie the Gooch, signing off." 1
+                }
+                else {
+                    jump L0006
+                }
+            }
+        }
+        4 {
+            say-line-actor "\x7fT107326923,79544\x7fFor Vinnie the Gooch, this is Sunny Day, wishing you all peace, harmony, and great baseball. See ya next time!" 1
+        }
+        5 {
+            say-line-actor "\x7fT107406467,71608\x7fUntil next time, this is Sunny Day, for Vinnie the Gooch and the whole Backyard Gang ...so long!" 1
+        }
+        6 {
+            say-line-actor "\x7fT107478075,47938\x7fFor Vinnie the Gooch, this is Sunny Day, bidding you farewell ..." 1
+            wait-for-message
+            say-line-actor "\x7fT107526013,62650\x7f'Bidding you farewell'?!  You've been reading those fancy novels again haven't you?" 2
+            wait-for-message
+            say-line-actor "\x7fT107588663,40472\x7fHonestly, Vinnie. See ya next time Baseball fans!" 1
+        }
+        7 {
+            say-line-actor "\x7fT107629135,57686\x7fUntil next time, for Vinnie the Gooch, this is Sunny Day.  So long sports fans!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffWinQualifier@2064 {
+    var local0
+
+    gCurrentMatchupCastScript = CastPlayoffWinQualifier
+    case gTeamInfo[room0][TI-TEAM-NOUN] {
+        103 {
+            say-line-actor "\x7fT107686821,43624\x7fThe Hornets have won the first round of the playoffs!!!!" 1
+        }
+        101 {
+            say-line-actor "\x7fT107730445,39784\x7fThe Bombers have won the first round of the playoffs!!!!" 1
+        }
+        104 {
+            say-line-actor "\x7fT107770229,43368\x7fThe Melonheads have won the first round of the playoffs!!!!" 1
+        }
+        105 {
+            say-line-actor "\x7fT107813597,55400\x7fThe Monsters have won and will advance to the second round of the playoffs!!!" 1
+        }
+        106 {
+            say-line-actor "\x7fT107868997,57832\x7fThe Wombats have won and will advance to the second round of the playoffs!!!" 1
+        }
+        102 {
+            say-line-actor "\x7fT107926829,50088\x7fThe Fishes have won and will advance to the second round of the playoffs!!!" 1
+        }
+        else {
+            local0 = gTeamInfo[room0][TI-TEAM-NOUN] - 122 + 1677
+            say-line.start 1
+            say-line.color [0]
+            say-line.talkie local0
+            wait-for-message
+        }
+    }
+    wait-for-message
+    start-script CastNumber gTeamInfo[room0][TI-RUNS] 1
+    wait-for-message
+    say-line "\x7fT107976917,4791\x7f...to..."
+    wait-for-message
+    start-script CastNumber gTeamInfo[1 - room0][TI-RUNS]
+    wait-for-message
+    if (not gNoGooch) {
+        if (room2 != 1) {
+            image.init image286
+            image.at 0 0
+            image.draw
+            image.flags 1
+            image.end
+            start-script scr273
+            room2 = 1
+            start-script FreeNavButtons
+            if gGameEnded {
+                image.init image287
+                image.state 2
+                image.at 280 400
+                image.draw
+                image.end
+            } else {
+                image.init image287
+                image.state 0
+                image.at 280 400
+                image.draw
+                image.end
+            }
+            actor.init 1
+            actor.new
+            actor.costume costume430
+            actor.talk-animation 0 0
+            put-actor 1 320 240 gCurrentRoom
+            actor.init 2
+            actor.new
+            actor.costume costume431
+            actor.talk-animation 0 0
+            put-actor 2 320 240 gCurrentRoom
+            start-script smth_team_color_palette 0 2
+        }
+        if (random 1) {
+            say-line-actor "\x7fT107981708,69490\x7f     UNBELIEVABLE!  WAY TO GO!  What a moment, folks!  This is one for the memory books.  " 2
+            wait-for-message
+            say-line-actor "\x7fT108051198,41972\x7fThese kids are now ready to move on to the next round in the playoffs." 2
+        } else {
+            say-line-actor "\x7fT108093170,23888\x7f     THIS IS SO EXCITING!!  " 2
+            wait-for-message
+            say-line-actor "\x7fT108117058,70130\x7fThey've made it to the next round of the playoffs, where they'll continue the fight, this time for the league title." 2
+        }
+        wait-for-message
+        if (room2 != 2) {
+            actor.init 1
+            actor.costume 0
+            actor.init 2
+            actor.costume 0
+            start-script SetNavButtons HandleNavClick HandleNavHover 0
+            palette 0
+            kludge 23
+            start-script lsc2087
+            room2 = 2
+        }
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffWinPennant@2065 {
+    var local0 local1
+
+    gCurrentMatchupCastScript = CastPlayoffWinPennant
+    if (gSeasonDivision >= 12) {
+        local1 = 1
+    } else {
+        local1 = 0
+    }
+    case gTeamInfo[room0][TI-TEAM-NOUN] {
+        103 {
+            if local1 {
+                say-line-actor "\x7fT108187188,39272\x7fThe  Hornets are the American League champs!" 1
+            } else {
+                say-line-actor "\x7fT108226460,35496\x7fThe  Hornets are the National League champs!" 1
+            }
+        }
+        101 {
+            if local1 {
+                say-line-actor "\x7fT108261956,35176\x7fThe  Bombers are the American League champs!" 1
+            } else {
+                say-line-actor "\x7fT108297132,36968\x7fThe  Bombers are the National League champs!" 1
+            }
+        }
+        104 {
+            if local1 {
+                say-line-actor "\x7fT108334100,37352\x7fThe Melonheads are the American League champs!" 1
+            } else {
+                say-line-actor "\x7fT108371452,40680\x7fThe Melonheads are the National League champs!" 1
+            }
+        }
+        105 {
+            if local1 {
+                say-line-actor "\x7fT108412132,45352\x7fThe Monsters have won the American League pennant!!!" 1
+            } else {
+                say-line-actor "\x7fT108457484,44904\x7fThe Monsters have won the National League pennant!!!" 1
+            }
+        }
+        106 {
+            if local1 {
+                say-line-actor "\x7fT108502388,46824\x7fThe Wombats have won the American League pennant!!!" 1
+            } else {
+                say-line-actor "\x7fT108549212,44456\x7fThe Wombats have won the National League pennant!!!" 1
+            }
+        }
+        102 {
+            if local1 {
+                say-line-actor "\x7fT108593668,43176\x7fThe Fishes have won the American League pennant!!!" 1
+            } else {
+                say-line-actor "\x7fT108636844,40040\x7fThe Fishes have won the National League pennant!!!" 1
+            }
+        }
+        else {
+            local0 = gTeamInfo[room0][TI-TEAM-NOUN] - 122 + 1707
+            say-line.start 1
+            say-line.color [0]
+            say-line.talkie local0
+            wait-for-message
+        }
+    }
+    wait-for-message
+    start-script CastNumber gTeamInfo[room0][TI-RUNS] 1
+    wait-for-message
+    start-script CastNumber gTeamInfo[1 - room0][TI-RUNS]
+    wait-for-message
+    if (not gNoGooch) {
+        if (room2 != 1) {
+            image.init image286
+            image.at 0 0
+            image.draw
+            image.flags 1
+            image.end
+            start-script scr273
+            room2 = 1
+            start-script FreeNavButtons
+            if gGameEnded {
+                image.init image287
+                image.state 2
+                image.at 280 400
+                image.draw
+                image.end
+            } else {
+                image.init image287
+                image.state 0
+                image.at 280 400
+                image.draw
+                image.end
+            }
+            actor.init 1
+            actor.new
+            actor.costume costume430
+            actor.talk-animation 0 0
+            put-actor 1 320 240 gCurrentRoom
+            actor.init 2
+            actor.new
+            actor.costume costume431
+            actor.talk-animation 0 0
+            put-actor 2 320 240 gCurrentRoom
+            start-script smth_team_color_palette 0 2
+        }
+        if (random 1) {
+            say-line-actor "\x7fT108676884,29508\x7f     WHAT A DAY!  THIS IS UNBELIEVABLE!  " 2
+            wait-for-message
+            say-line-actor "\x7fT108706392,47028\x7fToday's victory will carry them on to the Backyard World series!" 2
+        } else {
+            say-line-actor "\x7fT108753420,58654\x7f     WHAT A DAY!  THAT WAS INCREDIBLE!  Today is huge day for these kids!  " 2
+            wait-for-message
+            say-line-actor "\x7fT108812074,60438\x7fThey are the League champs, ready to go on to compete for the Backyard World Series title!" 2
+        }
+        wait-for-message
+        if (room2 != 2) {
+            actor.init 1
+            actor.costume 0
+            actor.init 2
+            actor.costume 0
+            start-script SetNavButtons HandleNavClick HandleNavHover 0
+            palette 0
+            kludge 23
+            start-script lsc2087
+            room2 = 2
+        }
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffWinWorldSeries@2066 {
+    var local0
+
+    gCurrentMatchupCastScript = CastPlayoffWinPennant
+    case gTeamInfo[room0][TI-TEAM-NOUN] {
+        103 {
+            say-line-actor "\x7fT108872512,81704\x7fThe Hornets have won the Backyard World Series! I don't believe it!  They've won it all!" 1
+        }
+        101 {
+            say-line-actor "\x7fT108954216,77736\x7fThe Bombers have won the Backyard World Series! I don't believe it!  They've won it all!" 1
+        }
+        104 {
+            say-line-actor "\x7fT109031952,105256\x7fThe Melonheads have won the Backyard World Series! I don't believe it!  They've won it all!" 1
+        }
+        105 {
+            say-line-actor "\x7fT109137208,46504\x7fThe Monsters are the Backyard World Series champions!!!" 1
+        }
+        106 {
+            say-line-actor "\x7fT109183712,53992\x7fThe Wombats are the Backyard World Series champions!!!" 1
+        }
+        102 {
+            say-line-actor "\x7fT109237704,44200\x7fThe Fishes are the Backyard World Series champions!!" 1
+        }
+        else {
+            local0 = gTeamInfo[room0][TI-TEAM-NOUN] - 122 + 1737
+            say-line.start 1
+            say-line.color [0]
+            say-line.talkie local0
+            wait-for-message
+        }
+    }
+    wait-for-message
+    start-script CastNumber gTeamInfo[room0][TI-RUNS] 1
+    wait-for-message
+    start-script CastNumber gTeamInfo[1 - room0][TI-RUNS]
+    wait-for-message
+    if (not gNoGooch) {
+        room1 = 1
+        if (room2 != 1) {
+            image.init image286
+            image.at 0 0
+            image.draw
+            image.flags 1
+            image.end
+            start-script scr273
+            room2 = 1
+            start-script FreeNavButtons
+            if gGameEnded {
+                image.init image287
+                image.state 2
+                image.at 280 400
+                image.draw
+                image.end
+            } else {
+                image.init image287
+                image.state 0
+                image.at 280 400
+                image.draw
+                image.end
+            }
+            actor.init 1
+            actor.new
+            actor.costume costume430
+            actor.talk-animation 0 0
+            put-actor 1 320 240 gCurrentRoom
+            actor.init 2
+            actor.new
+            actor.costume costume431
+            actor.talk-animation 0 0
+            put-actor 2 320 240 gCurrentRoom
+            start-script smth_team_color_palette 0 2
+        }
+        if (random 1) {
+            say-line-actor "\x7fT109281904,50470\x7f     THEY'VE WON IT!! THEY'VE WON IT!!  OH MY STARS, THEY'VE WON IT ALL!  " 2
+            wait-for-message
+            say-line-actor "\x7fT109332374,114070\x7fThese kids are the champions of the Backyard World Series!  It doesn't get any bigger than this!!  Tell you one thing, not one of those kids is ever gonna forget this day.  You can bet on it.   " 2
+            wait-for-message
+            say-line-actor "\x7fT109446444,66192\x7f     And as the players celebrate their victory, it's time for us to say goodbye to you.  " 2
+            wait-for-message
+            say-line-actor "\x7fT109512636,48854\x7f     This is Sunny Day and Vinnie the Gooch saying, see ya next season!" 1
+        } else {
+            say-line-actor "\x7fT109561490,50804\x7f      THIS IS THE GREATEST MOMENT IN THEIR BASEBALL CAREERS!  They've done it!  They've won it all!  " 2
+            wait-for-message
+            say-line-actor "\x7fT109612294,82856\x7fThe whole enchilada, the big Kahuna, the plate of spaghetti. They are the champions of the Backyard World Series!  " 2
+            wait-for-message
+            say-line-actor "\x7fT109695150,24860\x7f      The plate of spaghetti?  What does that mean?   " 1
+            wait-for-message
+            say-line-actor "\x7fT109720010,19866\x7f     Forget it, kid.  I was on a  roll.  " 2
+            wait-for-message
+            say-line-actor "\x7fT109739876,72415\x7f     Thanks for the memories, folks.  This is Sunny Day and Vinnie the Gooch signing off until next season.      <no sign off needed>" 2
+        }
+        wait-for-message
+        if (room2 != 2) {
+            actor.init 1
+            actor.costume 0
+            actor.init 2
+            actor.costume 0
+            start-script SetNavButtons HandleNavClick HandleNavHover 0
+            palette 0
+            kludge 23
+            start-script lsc2087
+            room2 = 2
+        }
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastPlayoffLoss@2067 {
+    start-script CastLoss 1
+    break-until (not (script-running CastLoss))
+    room1 = 1
+    gCurrentMatchupCastScript = CastPlayoffLoss
+    if (room2 != 1) {
+        image.init image286
+        image.at 0 0
+        image.draw
+        image.flags 1
+        image.end
+        start-script scr273
+        room2 = 1
+        start-script FreeNavButtons
+        if gGameEnded {
+            image.init image287
+            image.state 2
+            image.at 280 400
+            image.draw
+            image.end
+        } else {
+            image.init image287
+            image.state 0
+            image.at 280 400
+            image.draw
+            image.end
+        }
+        actor.init 1
+        actor.new
+        actor.costume costume430
+        actor.talk-animation 0 0
+        put-actor 1 320 240 gCurrentRoom
+        actor.init 2
+        actor.new
+        actor.costume costume431
+        actor.talk-animation 0 0
+        put-actor 2 320 240 gCurrentRoom
+        start-script smth_team_color_palette 0 2
+    }
+    case (random 4) {
+        0 {
+            say-line-actor "\x7fT109812291,60888\x7f      Oh, the agony of defeat seems so much worse when we were so close to total victory" 1
+        }
+        1 {
+            say-line-actor "\x7fT109873179,51765\x7f      So close, but yet so far.  This is a heart-wrenching defeat. " 1
+        }
+        2 {
+            say-line-actor "\x7fT109924944,43992\x7f      Well, that's the end of the line.  It's been a great ride, though." 1
+        }
+        3 {
+            say-line-actor "\x7fT109968936,67604\x7f      Well, that's the end of an incredible season!  These kids have finally been defeated." 1
+        }
+        4 {
+            say-line-actor "\x7fT110036540,60024\x7f      All good things must come to an end and that is true for this season, as well.  <sniff.>" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    case (random 4) {
+        0 {
+            say-line-actor "\x7fT110096564,39244\x7f     Tough break for these kids, they really played their hearts out.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110135808,48359\x7f     It was a close one, and they should be proud they made it as far as they did!   " 2
+            wait-for-message
+            say-line-actor "\x7fT110184167,42763\x7f     Well, thanks for coming out, and we'll see you all next season!   " 2
+            wait-for-message
+            say-line-actor "\x7fT110226930,29350\x7f       This is Sunny Day, saying 'toodles'" 1
+            wait-for-message
+            say-line-actor "\x7fT110256280,47937\x7f     Toodles?  Sunny, we gotta have a talk about this 'toodles' thing.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110304217,28411\x7f     This is the Gooch sayin' catch ya later. " 2
+        }
+        1 {
+            say-line-actor "\x7fT110332628,62817\x7f     Every one of these players should hold their heads up high, and be proud of the way they've played this season.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110395445,19948\x7f     Thanks for the memories, kids.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110415393,57209\x7f     This is Vinnie the Gooch and Sunny Day sayin' see ya on the flip side. " 2
+            wait-for-message
+            say-line-actor "\x7fT110472602,11818\x7f       See ya next season! " 1
+        }
+        2 {
+            say-line-actor "\x7fT110484420,78384\x7f     Well, there's nothing tougher than having the prize almost in your hands, only to be yanked away at the last minute.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110562804,40011\x7f     But you know, a true ball player doesn't play for the trophy.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110602815,28527\x7f     It's the game that counts, not the outcome.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110631342,31012\x7f     And every one of these kids played like a champ.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110662354,59054\x7f     This is Vinnie the Gooch and Sunny Day signing off until next season.   " 2
+            wait-for-message
+            say-line-actor "\x7fT110721408,36073\x7f       Bye, everybody! (fading) Aw, Vinnie, that was sweet. " 1
+        }
+        3 {
+            say-line-actor "\x7fT110757481,74218\x7f     You know, these kids played the best ball they know how, and just makin' it to the championships is something to be proud of.   " 2
+            wait-for-message
+            say-line-actor "\x7fT110831699,32274\x7f     Thanks for joining us in this unforgettable season.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110863973,16490\x7f     We'll see ya next time.    " 2
+            wait-for-message
+            say-line-actor "\x7fT110880463,34008\x7f       This is Sunny Day and Vinnie the Gooch signing off. " 1
+        }
+        4 {
+            say-line-actor "\x7fT110914471,41510\x7f     Well, folks, this has been an exciting season of ups and downs.  " 2
+            wait-for-message
+            say-line-actor "\x7fT110955981,48454\x7f     True, this is a sad ending but the season as a whole has been a success.  " 2
+            wait-for-message
+            say-line-actor "\x7fT111004435,36491\x7f     The kids played hard... and we thank them for the memories. " 2
+            wait-for-message
+            say-line-actor "\x7fT111040926,45063\x7f     This is Sunny Day and Vinnie the Gooch sayin' Buh-Bye, now.   " 2
+            wait-for-message
+            say-line-actor "\x7fT111085989,13747\x7f       See ya next time around!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    if (room2 != 2) {
+        actor.init 1
+        actor.costume 0
+        actor.init 2
+        actor.costume 0
+        start-script SetNavButtons HandleNavClick HandleNavHover 0
+        palette 0
+        kludge 23
+        start-script lsc2087
+        room2 = 2
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastWin@2068 {
+    var local0
+
+    gCurrentMatchupCastScript = CastWin
+    case gTeamInfo[room0][TI-TEAM-NOUN] {
+        103 {
+            say-line-actor "\x7fT111099736,21932\x7f     ...And the Hornets win it!  " 1
+        }
+        101 {
+            say-line-actor "\x7fT111121668,22760\x7f      and the Bombers win the game!" 1
+        }
+        104 {
+            say-line-actor "\x7fT111144428,23028\x7f      The Melonheads dominate" 1
+        }
+        105 {
+            say-line-actor "\x7fT111167456,21947\x7f      The Monsters creamed 'em" 1
+        }
+        106 {
+            say-line-actor "\x7fT111189403,16414\x7f      And the Wombats take it" 1
+        }
+        102 {
+            say-line-actor "\x7fT111205817,19429\x7f      The Fishes have crushed 'em" 1
+        }
+        else {
+            local0 = (gTeamInfo[room0][TI-TEAM-NOUN] - 122) * 2 + 1527
+            local0 += random 1
+            say-line.start 1
+            say-line.color [0]
+            say-line.talkie local0
+        }
+    }
+    wait-for-message
+    start-script CastNumber gTeamInfo[room0][TI-RUNS] 1
+    wait-for-message
+    start-script CastNumber gTeamInfo[1 - room0][TI-RUNS]
+    wait-for-message
+    if (room2 != 1) {
+        image.init image286
+        image.at 0 0
+        image.draw
+        image.flags 1
+        image.end
+        start-script scr273
+        room2 = 1
+        start-script FreeNavButtons
+        if gGameEnded {
+            image.init image287
+            image.state 2
+            image.at 280 400
+            image.draw
+            image.end
+        } else {
+            image.init image287
+            image.state 0
+            image.at 280 400
+            image.draw
+            image.end
+        }
+        actor.init 1
+        actor.new
+        actor.costume costume430
+        actor.talk-animation 0 0
+        put-actor 1 320 240 gCurrentRoom
+        actor.init 2
+        actor.new
+        actor.costume costume431
+        actor.talk-animation 0 0
+        put-actor 2 320 240 gCurrentRoom
+        start-script smth_team_color_palette 0 2
+    }
+    case (random 9) {
+        0 {
+            say-line-actor "\x7fT111225246,45330\x7f     As you can imagine, there will be a lot to celebrate at the pizza parlor tonight!" 2
+        }
+        1 {
+            say-line-actor "\x7fT111270576,47569\x7f     What a great buncha kids!  They're gonna be hootin' and hollerin' at the mall tonight!  " 2
+        }
+        2 {
+            say-line-actor "\x7fT111318145,175705\x7f     What a scene there's gonna be at the pizza parlor tonight!  I heard last time they won a game they were dancing on the tables and singing victory songs at the top of their lungs!  They even made the pizza guy spell out 'We Are the Champions' with pepperoni on every single pie." 2
+        }
+        3 {
+            say-line-actor "\x7fT111493850,62267\x7f     This is fantastic!  These kids really deserve this victory... they played a great game out there!" 2
+        }
+        4 {
+            say-line-actor "\x7fT111556117,109085\x7f     Everybody's so excited on the field, they're jumping up and down.  Even the parents out in the stands are dancing around out there.  I think I even saw somebody's dog leaping in the air!    " 2
+        }
+        5 {
+            say-line-actor "\x7fT111665202,126435\x7f     What an exciting game, everybody's so happy out there!  Now, it's time for the post game victory tour around town where the players hang their heads outta their parents' cars cheering and singing." 2
+        }
+        6 {
+            say-line-actor "\x7fT111791637,126189\x7f     Boy, are these kids excited!  What a game!  Tonight at the victory party, it's rumored that Achmed and some of his cousins are going to bring their instruments and rock out.  Despite that, the party should be a lot of fun." 2
+        }
+        7 {
+            say-line-actor "\x7fT111917826,81095\x7f     What an outstanding game this has been... a victory these kids won't soon forget.  They played hard and got what they deserved." 2
+        }
+        8 {
+            say-line-actor "\x7fT111998921,86856\x7f     These kids have really earned this victory.  They played their hearts out, and then some.  They can all go home proud of their performances today." 2
+        }
+        9 {
+            say-line-actor "\x7fT112085777,111228\x7f     What a game, folks!  When things got rough out there, these kids hung in and kept playing their hardest.  This victory is a well deserved pay-off for a job well done." 2
+        }
+        else {
+        }
+    }
+    wait-for-message
+    if (room2 != 2) {
+        actor.init 1
+        actor.costume 0
+        actor.init 2
+        actor.costume 0
+        start-script SetNavButtons HandleNavClick HandleNavHover 0
+        palette 0
+        kludge 23
+        start-script lsc2087
+        room2 = 2
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script CastLoss@2069 {
+    var local0 local1
+
+    gCurrentMatchupCastScript = CastLoss
+    case gTeamInfo[room0][TI-TEAM-NOUN] {
+        103 {
+            say-line-actor "\x7fT112197005,24920\x7f     The Hornets have been blown down" 1
+        }
+        101 {
+            say-line-actor "\x7fT112221925,21171\x7f     The Bombers have been snuffed out" 1
+        }
+        104 {
+            say-line-actor "\x7fT112243096,26841\x7f     The Melonheads have taken a licking" 1
+        }
+        105 {
+            say-line-actor "\x7fT112269937,18488\x7f     An upset for the The Monsters." 1
+        }
+        106 {
+            say-line-actor "\x7fT112288425,24272\x7f     Well, that's a loss for the The Wombats." 1
+        }
+        102 {
+            say-line-actor "\x7fT112312697,20787\x7f      The Fishes have been slaughtered" 1
+        }
+        else {
+            local1 = (gTeamInfo[room0][TI-TEAM-NOUN] - 122) * 2 + 1587
+            local1 += random 1
+            say-line.start 1
+            say-line.color [0]
+            say-line.talkie local1
+        }
+    }
+    wait-for-message
+    start-script CastNumber gTeamInfo[room0][TI-RUNS]
+    wait-for-message
+    start-script CastNumber gTeamInfo[1 - room0][TI-RUNS]
+    wait-for-message
+    if (not local0) {
+        if (room2 != 1) {
+            image.init image286
+            image.at 0 0
+            image.draw
+            image.flags 1
+            image.end
+            start-script scr273
+            room2 = 1
+            start-script FreeNavButtons
+            if gGameEnded {
+                image.init image287
+                image.state 2
+                image.at 280 400
+                image.draw
+                image.end
+            } else {
+                image.init image287
+                image.state 0
+                image.at 280 400
+                image.draw
+                image.end
+            }
+            actor.init 1
+            actor.new
+            actor.costume costume430
+            actor.talk-animation 0 0
+            put-actor 1 320 240 gCurrentRoom
+            actor.init 2
+            actor.new
+            actor.costume costume431
+            actor.talk-animation 0 0
+            put-actor 2 320 240 gCurrentRoom
+            start-script smth_team_color_palette 0 2
+        }
+        case (random 9) {
+            0 {
+                say-line-actor "\x7fT112333484,75391\x7f     All you can do out there is play your hardest, and these kids certainly did that.  They should be proud of a job well done." 2
+            }
+            1 {
+                say-line-actor "\x7fT112408875,53853\x7f     If losing builds character, these kids are gonna grow up to be pillars of society." 2
+            }
+            2 {
+                say-line-actor "\x7fT112462728,81557\x7f     These kids had a rough time of it out there today, but they all played their hardest, and that's what counts most of all." 2
+            }
+            3 {
+                say-line-actor "\x7fT112544285,65730\x7f     I take my hat off to these kids, cause they played as hard as they could.  Can't win 'em all." 2
+            }
+            4 {
+                say-line-actor "\x7fT112610015,66987\x7f     What a lame deal.  These kids played tough, and they can walk home proudly with no excuses." 2
+            }
+            5 {
+                say-line-actor "\x7fT112677002,75548\x7f     You win some, you lose some.  Unfortunately, today was one of the 'lose some' kinda days." 2
+            }
+            6 {
+                say-line-actor "\x7fT112752550,118638\x7f     When you win a game, it's easy to think of yourselves as 'winners.'  When you lose, though, no one should think of themselves as 'losers' ...just winners who had an off day." 2
+            }
+            7 {
+                say-line-actor "\x7fT112871188,87446\x7f     Nobody likes losing, but think about it... if no one ever lost, no one could ever win.  These kids played a great game." 2
+            }
+            8 {
+                say-line-actor "\x7fT112958634,82851\x7f     If it's true that you learn more from losing than from winning, these kids could turn out to be quite the young scholars." 2
+            }
+            9 {
+                say-line-actor "\x7fT113041485,126650\x7f     Well, these kids played their hardest out there, and they should be proud.  To prove what good sports they are, they're out there on the field right now shaking hands with the players from the other team." 2
+            }
+            else {
+            }
+        }
+        wait-for-message
+        if (room2 != 2) {
+            actor.init 1
+            actor.costume 0
+            actor.init 2
+            actor.costume 0
+            start-script SetNavButtons HandleNavClick HandleNavHover 0
+            palette 0
+            kludge 23
+            start-script lsc2087
+            room2 = 2
+        }
+    }
+    if (not local0) {
+        gCurrentMatchupCastScript = 0
+    }
+}
+
+local-script CastGameStart9@2070 {
+    var local0 local1
+
+    gCurrentMatchupCastScript = CastGameStart9
+    case (random 7) {
+        0 {
+            say-line-actor "\x7fT113168135,27656\x7f     Alright, let's get on with the fun!" 1
+        }
+        1 {
+            say-line-actor "\x7fT113195791,30376\x7f     And now, kids, it's time for some action!" 1
+        }
+        2 {
+            say-line-actor "\x7fT113226167,59080\x7f     So, what are we waiting for?     Let's play ball!" 1
+        }
+        3 {
+            say-line-actor "\x7fT113285247,45288\x7f     I think we're all ready to play some baseball!" 1
+        }
+        4 {
+            say-line-actor "\x7fT113330535,53160\x7f     Without further ado, it's baseball time!" 1
+        }
+        5 {
+            say-line-actor "\x7fT113383695,42920\x7f     Alrighty, then, it's time for some baseball." 1
+        }
+        6 {
+            say-line-actor "\x7fT113426615,30568\x7f     So, let's get on with the ball game!" 1
+        }
+        7 {
+            say-line-actor "\x7fT113457183,36264\x7f     And now, it's time for the action to begin!" 1
+        }
+        else {
+        }
+    }
+    wait-for-message
+    if (gGameMode == MODE-SEASON) {
+        local0 = gTeamInfo[room0][TI-TEAM-NOUN]
+        case local0 {
+            101 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113493447,50548\x7f     Let's hear it for the best team in the BBL, the Bombers!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113543995,30524\x7f     Let's hear you, Bomber fans!     C'mon, join in there at home!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113574519,69811\x7f     C'mon fans, give it up one time for the roughest, toughest team in the BBL... the Bombers!"
+                    }
+                    else {
+                    }
+                }
+            }
+            102 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113644330,56676\x7f     Don't hold back, fans, show the Fishes how much you want them to win!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113701006,40546\x7f     Let's show the Fishes what their fans are made of!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113741552,64020\x7f     Yessir!     These fans are going crazy for the Fishes!     Lets hear it, everybody!"
+                    }
+                    else {
+                    }
+                }
+            }
+            103 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113805572,77201\x7f     The crowd is on their feet, now, stomping and clapping for the best team in the BBL, the Hornets!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113882773,66281\x7f     OK, you kooky fans, give us a cheer for your favorite baseball team, the Hornets!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT113949054,71941\x7f     Yessir!     These fans are going crazy for the Hornets!     Lets hear it, everybody!"
+                    }
+                    else {
+                    }
+                }
+            }
+            104 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114020995,76457\x7f     The crowd is on their feet, now, stomping and clapping for the best team in the BBL, the Melonheads!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114097452,57225\x7f     C'mon, show these players your support!     Let's hear it for the Melonheads!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114154677,64348\x7f     OK, you kooky fans, give us a cheer for your favorite baseball team, the Melonheads!"
+                    }
+                    else {
+                    }
+                }
+            }
+            105 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114219025,28328\x7f     Let's hear you, Monster fans!     C'mon, join in there at home!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114247353,47816\x7f     C'mon, show these players your support!     Let's hear it for the Monsters!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114295169,48817\x7f     Just listen to the roar of the crowd as the Monsters take the field!"
+                    }
+                    else {
+                    }
+                }
+            }
+            106 {
+                case (random 2) {
+                    0 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114343986,69936\x7f     The crowd is on their feet, now, stomping and clapping for the best team in the BBL, the Wombats!"
+                    }
+                    1 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114413922,53904\x7f     C'mon, show these players your support!     Let's hear it for the Wombats!"
+                    }
+                    2 {
+                        say-line-actor.start
+                        say-line.at 10 125
+                        say-line.string "\x7fT114467826,45491\x7f     Just listen to the roar of the crowd as the Wombats take the field!"
+                    }
+                    else {
+                    }
+                }
+            }
+            else {
+                if (random 1) {
+                    local1 = local0 - 122 + 1647
+                    say-line.start 1
+                    say-line.color [0]
+                    say-line.talkie local1
+                }
+            }
+        }
+    }
+    gCurrentMatchupCastScript = 0
+}
+
+local-script LoadCostumes@2071 {
+    var local0 local1 local2 local3 local4
+
+    assign-string local2 "LOADING"
+    sprintf local3 "%s" local2
+    start-script ShowPopup local3 3
+    local4 = -1
+    for local0 = 0 to 8 + {
+        local1 = call-script maybe_kid_get_costume_fielding gPickOrder1[local0]
+        load-costume local1
+        break-here
+        inc local4
+        local4 %= 7
+        if (local2[local4] >= 97) {
+            local2[local4] -= 32
+        } else {
+            local2[local4] += 32
+        }
+        sprintf local3 "%s" local2
+        start-script maybe_draw_popup_text local3 0 0 1
+        local1 = call-script maybe_kid_get_costume_fielding gPickOrder2[local0]
+        load-costume local1
+        break-here
+        inc local4
+        local4 %= 7
+        if (local2[local4] >= 97) {
+            local2[local4] -= 32
+        } else {
+            local2[local4] += 32
+        }
+        sprintf local3 "%s" local2
+        start-script maybe_draw_popup_text local3 0 0 1
+    }
+    while (local4 < 6) {
+        inc local4
+        if (local2[local4] >= 97) {
+            local2[local4] -= 32
+        } else {
+            local2[local4] += 32
+        }
+        sprintf local3 "%s" local2
+        start-script maybe_draw_popup_text local3 0 0 1
+        break-here
+    }
+    undim local2
+    start-script FreePopup
+}
+
+local-script lsc2072@2072 {
+    var local0 local1 local2 local3
+
+    if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+        local0 = gHomeInfoIndex
+        local1 = gVisitorInfoIndex
+    } else if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+        local0 = gVisitorInfoIndex
+        local1 = gHomeInfoIndex
+    } else {
+        stop-script 0
+    }
+    local2 = call-script ReadActiveSchedule gSeasonDivision gSeasonGameNumber 0
+    local3 = call-script smth_find_season_team local2
+    start-script WriteActiveSchedule gSeasonDivision gSeasonGameNumber 3 gTeamInfo[local1][TI-RUNS]
+    start-script WriteActiveSchedule gSeasonDivision gSeasonGameNumber 4 gTeamInfo[local0][TI-RUNS]
+    start-script WriteActiveSchedule local3 gSeasonGameNumber 3 gTeamInfo[local0][TI-RUNS]
+    start-script WriteActiveSchedule local3 gSeasonGameNumber 4 gTeamInfo[local1][TI-RUNS]
+    if (gTeamInfo[local1][TI-RUNS] < gTeamInfo[local0][TI-RUNS]) {
+        start-script scr125 local3 14 (call-script ReadActiveRoster local3 14 + 1)
+        start-script scr125 gSeasonDivision 15 (call-script ReadActiveRoster gSeasonDivision 15 + 1)
+    } else if (gTeamInfo[local1][TI-RUNS] == gTeamInfo[local0][TI-RUNS]) {
+    } else {
+        start-script scr125 local3 15 (call-script ReadActiveRoster local3 15 + 1)
+        start-script scr125 gSeasonDivision 14 (call-script ReadActiveRoster gSeasonDivision 14 + 1)
+    }
+}
+
+local-script HandleNavClick@2073 arg0 {
+    case arg0 {
+        193 {
+            start-script lsc2092
+        }
+        192 {
+            if (gCurrentHalfInning == -1) {
+                start-script TransitionFromCastingToGameplay
+            } else {
+                start-script lsc2092
+            }
+        }
+        194 {
+            if (gGameInputDevice == INPUT-DEVICE-GAME-PAD) {
+                gGameInputDevice = INPUT-DEVICE-MOUSE
+            } else {
+                gGameInputDevice = INPUT-DEVICE-GAME-PAD
+            }
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+        else {
+        }
+    }
+}
+
+local-script HandleNavHover@2074 _ _ {
+}
+
+local-script lsc2076@2076 {
+    var local0 local1 local2 local3
+
+    for local2 = 0 to 8 + {
+        local3 += gGameStats[local0[local2]][local1]
+    }
+    return local3
+}
+
+local-script lsc2077@2077 {
+    start-script smth_net_stats_kludge 1
+    break-until (not (script-running smth_net_stats_kludge))
+    gNetplayActive = 0
+    global696 = 1
+    start-script smth_net361
+}
+
+local-script BeginCast@2078 arg0 {
+    if gNoCommentary {
+        stop-script 0
+    }
+    if (actor-get-room 1 != gCurrentRoom) {
+        put-actor 1 -320 0 gCurrentRoom
+    }
+    if (actor-get-room 2 != gCurrentRoom) {
+        put-actor 2 -320 0 gCurrentRoom
+    }
+    actor.init g_maybe_selected_actor
+    actor.text-offset 0 250
+    actor.talk-color 245
+    case arg0 {
+        1 {
+            start-script CastWin
+        }
+        2 {
+            start-script CastLoss
+        }
+        3 {
+            start-script CastPlayoffWinQualifier
+        }
+        4 {
+            start-script CastPlayoffWinPennant
+        }
+        5 {
+            start-script CastPlayoffWinWorldSeries
+        }
+        6 {
+            start-script CastPlayoffLoss
+        }
+        7 {
+            start-script CastGameEnded
+        }
+        8 {
+            start-script CastGameStart8
+        }
+        10 {
+            start-script CastGameStart10
+        }
+        11 {
+            start-script CastSeasonLastGame
+        }
+        12 {
+            start-script CastPlayoffsStart
+        }
+        13 {
+            start-script CastPlayoffsMid
+        }
+        14 {
+            start-script CastPlayoffsEnd
+        }
+        9 {
+            start-script CastGameStart9
+        }
+        else {
+        }
+    }
+}
+
+local-script lsc2080@2080 {
+    var local0 local1 local2 local3 local4 local5 local6
+
+    local2 = gTeamInfo[local0][TI-TEAM-ADJECTIVE]
+    local3 = gTeamInfo[local0][TI-TEAM-NOUN]
+    if (local0 == gVisitorInfoIndex) {
+        local6 = room6
+    } else {
+        local6 = room7
+    }
+    if (local2 >= 1 && local2 <= 10) {
+        local4 = 305
+        local5 = local2 - 1
+    } else {
+        if (call-script scr284 local2) {
+            local4 = 307
+        } else {
+            local4 = 310
+        }
+        local5 = gMLBTeamData[local2 + 100][0] - 1
+    }
+    image.init (local4 + local5 / 5)
+    image.state (local5 % 5)
+    image.palette local6
+    image.at local1 (260 + 10)
+    image.draw
+    image.end
+    if (local3 >= 101 && local3 <= 106) {
+        local4 = 314
+        local5 = local3 - 101
+    } else {
+        if (call-script scr284 local3) {
+            local4 = 315
+        } else {
+            local4 = 318
+        }
+        local5 = gMLBTeamData[local3][0] - 1
+    }
+    image.init (local4 + local5 / 6)
+    image.state (local5 % 6)
+    image.palette local6
+    image.at 0 0
+    image.at local1 (292 + 10)
+    image.draw
+    image.end
+}
+
+local-script lsc2081@2081 {
+    var local0 local1 local2
+
+    local2 = 0
+    if (local0 >= 101 && local0 <= 106) {
+        if local1 {
+            local2 = 323
+        } else {
+            local2 = 324
+        }
+    } else if (call-script scr284 local0) {
+        case gMLBTeamData[local0][2] {
+            1 {
+                local2 = 299
+            }
+            2 {
+                local2 = 300
+            }
+            3 {
+                local2 = 301
+            }
+            else {
+            }
+        }
+    } else {
+        case gMLBTeamData[local0][2] {
+            1 {
+                local2 = 302
+            }
+            2 {
+                local2 = 303
+            }
+            3 {
+                local2 = 304
+            }
+            else {
+            }
+        }
+    }
+    return local2
+}
+
+local-script lsc2082@2082 {
+    var local0 local1
+
+    local1 = 0
+    if (local0 >= 101 && local0 <= 106) {
+        local1 = local0 - 101
+    } else {
+        case local0 {
+            122 {
+                local1 = 0
+            }
+            123 {
+                local1 = 0
+            }
+            124 {
+                local1 = 0
+            }
+            125 {
+                local1 = 0
+            }
+            126 {
+                local1 = 1
+            }
+            127 {
+                local1 = 0
+            }
+            128 {
+                local1 = 0
+            }
+            129 {
+                local1 = 1
+            }
+            130 {
+                local1 = 1
+            }
+            131 {
+                local1 = 1
+            }
+            132 {
+                local1 = 2
+            }
+            133 {
+                local1 = 1
+            }
+            134 {
+                local1 = 2
+            }
+            135 {
+                local1 = 3
+            }
+            136 {
+                local1 = 2
+            }
+            137 {
+                local1 = 3
+            }
+            138 {
+                local1 = 4
+            }
+            139 {
+                local1 = 2
+            }
+            140 {
+                local1 = 2
+            }
+            141 {
+                local1 = 3
+            }
+            142 {
+                local1 = 1
+            }
+            143 {
+                local1 = 4
+            }
+            144 {
+                local1 = 4
+            }
+            145 {
+                local1 = 3
+            }
+            146 {
+                local1 = 4
+            }
+            147 {
+                local1 = 2
+            }
+            148 {
+                local1 = 5
+            }
+            149 {
+                local1 = 3
+            }
+            150 {
+                local1 = 3
+            }
+            151 {
+                local1 = 4
+            }
+            else {
+            }
+        }
+    }
+    return local1
+}
+
+local-script lsc2083@2083 {
+    var local0 local1 local2 local3 local4
+
+    local0 = gTeamInfo[gVisitorInfoIndex][TI-TEAM-NOUN]
+    local2 = call-script lsc2081 local0 1
+    local3 = call-script lsc2082 local0 1
+    if local2 {
+        palette.init room5
+        palette.from-image local2 0
+        palette.end
+        if (local0 >= 101 && local0 <= 106) {
+            start-script scr279 room5 gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]
+        }
+        image.init local2
+        image.state local3
+        image.palette room5
+        image.at (320 - image-get-object-x local2 local3) (240 - image-get-object-y local2 local3 + 10)
+        image.draw
+        image.end
+    }
+    local1 = gTeamInfo[gHomeInfoIndex][TI-TEAM-NOUN]
+    local2 = call-script lsc2081 local1
+    local3 = call-script lsc2082 local1
+    if local2 {
+        palette.init room4
+        palette.from-image local2 0
+        palette.end
+        if (local1 >= 101 && local1 <= 106) {
+            start-script scr279 room4 gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]
+            local4 = 0
+        } else {
+            local4 = 344
+        }
+        image.init local2
+        image.state local3
+        image.palette room4
+        image.at (320 - image-get-object-x local2 local3 + local4) (240 - image-get-object-y local2 local3 + 10)
+        image.draw
+        image.end
+    }
+}
+
+local-script lsc2084@2084 {
+    var local0 local1 local2 local3 local4 local5
+
+    local4 = 33
+    case gTeamInfo[local0][TI-CONTROLLED-BY] {
+        CB-COMPUTER {
+            assign-string local3 "COMPUTER"
+        }
+        CB-USER {
+            if (gGameMode == MODE-SEASON) {
+                sprintf local3 "%s" gCoachName
+            } else if gNetplayActive {
+                sprintf local3 "%s" gNetUsername
+            } else {
+                assign-string local3 "PLAYER"
+            }
+        }
+        CB-NETWORK {
+            sprintf local3 "%s" rNetRemoteCoachName
+        }
+        else {
+        }
+    }
+    if (local3 != 0) {
+        local5 = call-script maybe_draw_text_to_image local3 321 local2 room8 1
+        local1 -= local5 / 2
+        image.init local2
+        image.at local1 local4
+        image.draw
+        image.end
+        undim local3
+    }
+}
+
+local-script lsc2085@2085 {
+    var local0 local1 local2 local3 local4 local5 local6 local7
+
+    sprintf local4 "%d" local1
+    if (local0 == gVisitorInfoIndex) {
+        local5 = 148
+        local7 = room6
+    } else {
+        local5 = 492
+        local7 = room7
+    }
+    local6 = 319
+    local3 = call-script maybe_draw_text_to_image local4 322 local2 local7 -1
+    image.init local2
+    image.at (local5 - local3 / 2) (local6 + 10)
+    image.draw
+    image.end
+    undim local4
+}
+
+local-script smth_controls_ui@2086 arg0 {
+    var local1 local2
+
+    if (arg0 == gVisitorInfoIndex) {
+        local1 = 0
+    } else {
+        local1 = 512
+    }
+    case gTeamInfo[arg0][TI-CONTROLLED-BY] {
+        CB-COMPUTER {
+            local2 = 2
+        }
+        CB-NETWORK {
+            local2 = 3
+            if g_smth_netplay_master_or_slave {
+                if (global675 == 1) {
+                    local2 = 4
+                }
+            } else if (global674 == 1) {
+                local2 = 4
+            }
+        }
+        CB-USER {
+            if (gGameInputDevice == INPUT-DEVICE-MOUSE) {
+                local2 = 0
+            } else {
+                local2 = 1
+            }
+        }
+        else {
+        }
+    }
+    image.init image325
+    image.state local2
+    image.palette room9
+    image.at (320 - image-get-object-x image325 local2 + local1) (240 - image-get-object-y image325 local2)
+    image.draw
+    image.end
+}
+
+local-script lsc2087@2087 {
+    var local0 local1 local2 local3 local4 local5 local6 local7 local8
+
+    if local0 {
+        kludge 23
+    }
+    local1 = 485 + gField
+    image.init local1
+    image.shadow image257
+    image.at 0 0
+    image.flags 1
+    image.draw
+    image.end
+    image.init image298
+    image.state 1
+    image.at (320 - image-get-object-x image298 1) (240 - image-get-object-y image298 1)
+    image.palette room3
+    image.draw
+    image.end
+    image.init image298
+    image.state 0
+    image.at (320 - image-get-object-x image298 0) (240 - image-get-object-y image298 0)
+    image.shadow image257
+    image.palette room3
+    image.draw
+    image.end
+    local5 = call-script AllocScratchImage
+    local6 = call-script AllocScratchImage
+    start-script lsc2084 gVisitorInfoIndex 180 local5
+    start-script lsc2084 gHomeInfoIndex 460 local6
+    image.init image298
+    image.state 2
+    image.at (320 - image-get-object-x image298 2) (240 - image-get-object-y image298 2 + 10)
+    image.palette room3
+    image.draw
+    image.end
+    start-script scr273
+    if gGameEnded {
+        image.init image298
+        image.state 10
+        image.at (320 - image-get-object-x image298 10) (240 - image-get-object-y image298 10 + 10)
+        image.palette room3
+        image.draw
+        image.end
+        image.init image298
+        image.state 8
+        image.at (320 - image-get-object-x image298 8) (240 - image-get-object-y image298 8 + 10)
+        image.shadow image257
+        image.palette room3
+        image.draw
+        image.end
+        image.init image298
+        image.state 6
+        image.at (320 - image-get-object-x image298 6) (240 - image-get-object-y image298 6 + 10)
+        image.shadow image257
+        image.palette room3
+        image.draw
+        image.end
+        local3 = gTeamInfo[gVisitorInfoIndex][TI-RUNS]
+        local4 = gTeamInfo[gHomeInfoIndex][TI-RUNS]
+        local7 = call-script AllocScratchImage
+        local8 = call-script AllocScratchImage
+        start-script lsc2085 gVisitorInfoIndex local3 local7
+        start-script lsc2085 gHomeInfoIndex local4 local8
+        start-script lsc2099 local3 local4
+    } else {
+        image.init image298
+        image.state 4
+        image.at (320 - image-get-object-x image298 4) (240 - image-get-object-y image298 4 + 10)
+        image.palette room3
+        image.draw
+        image.end
+        local2 = gField - 0 + 11
+        image.init image298
+        image.state local2
+        image.at (320 - image-get-object-x image298 local2) (240 - image-get-object-y image298 local2 + 10)
+        image.palette room3
+        image.draw
+        image.end
+        image.init image298
+        image.state 5
+        image.at (320 - image-get-object-x image298 5) (240 - image-get-object-y image298 5 + 10)
+        image.shadow image257
+        image.palette room3
+        image.draw
+        image.end
+        image.init image298
+        image.state 3
+        image.at (320 - image-get-object-x image298 3) (240 - image-get-object-y image298 3 + 10)
+        image.shadow image257
+        image.palette room3
+        image.draw
+        image.end
+    }
+    start-script smth_controls_ui gVisitorInfoIndex
+    start-script smth_controls_ui gHomeInfoIndex
+    start-script lsc2083
+    start-script lsc2080 gVisitorInfoIndex 78
+    start-script lsc2080 gHomeInfoIndex 422
+    break-here
+    start-script FreeScratchImage local5
+    start-script FreeScratchImage local6
+    if local7 {
+        start-script FreeScratchImage local7
+    }
+    if local8 {
+        start-script FreeScratchImage local8
+    }
+}
+
+local-script lsc2089@2089 {
+    var local0 local1
+
+    global451 = 0
+    if (gNoCommentary || gNetplayActive) {
+    } else {
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        override L0369
+        break-here.multi 10
+        if (gTeamInfo[room0][TI-RUNS] > gTeamInfo[1 - room0][TI-RUNS]) {
+            local1 = 1
+        }
+        if (gSeasonGameNumber > 14) {
+            if (in gSeasonGameNumber [17 20 21]) {
+                if local1 {
+                    start-script BeginCast 1
+                } else {
+                    start-script BeginCast 2
+                }
+            } else {
+                case gSeasonGameNumber {
+                    15 {
+                        if (call-script ReadActiveSchedule gSeasonDivision 14 3 > call-script ReadActiveSchedule gSeasonDivision 14 4) {
+                            if local1 {
+                                start-script BeginCast 3
+                            } else {
+                                start-script BeginCast 2
+                            }
+                        } else if local1 {
+                            start-script BeginCast 1
+                        } else {
+                            start-script BeginCast 6
+                        }
+                    }
+                    16 {
+                        if local1 {
+                            start-script BeginCast 3
+                        } else {
+                            start-script BeginCast 6
+                        }
+                    }
+                    18 {
+                        if (call-script ReadActiveSchedule gSeasonDivision 17 3 > call-script ReadActiveSchedule gSeasonDivision 17 4) {
+                            if local1 {
+                                start-script BeginCast 4
+                            } else {
+                                start-script BeginCast 2
+                            }
+                        } else if local1 {
+                            start-script BeginCast 1
+                        } else {
+                            start-script BeginCast 6
+                        }
+                    }
+                    19 {
+                        if local1 {
+                            start-script BeginCast 4
+                        } else {
+                            start-script BeginCast 6
+                        }
+                    }
+                    22 {
+                        if (call-script ReadActiveSchedule gSeasonDivision 20 3 > call-script ReadActiveSchedule gSeasonDivision 20 4) {
+                            inc local0
+                        }
+                        if (call-script ReadActiveSchedule gSeasonDivision 21 3 > call-script ReadActiveSchedule gSeasonDivision 21 4) {
+                            inc local0
+                        }
+                        if local1 {
+                            inc local0
+                        }
+                        if (local0 == 3) {
+                            start-script BeginCast 5
+                        } else if (local0 == 0) {
+                            start-script BeginCast 6
+                        } else if local1 {
+                            start-script BeginCast 1
+                        } else {
+                            start-script BeginCast 2
+                        }
+                    }
+                    23 {
+                        if (call-script ReadActiveSchedule gSeasonDivision 20 3 > call-script ReadActiveSchedule gSeasonDivision 20 4) {
+                            inc local0
+                        }
+                        if (call-script ReadActiveSchedule gSeasonDivision 21 3 > call-script ReadActiveSchedule gSeasonDivision 21 4) {
+                            inc local0
+                        }
+                        if (call-script ReadActiveSchedule gSeasonDivision 22 3 > call-script ReadActiveSchedule gSeasonDivision 22 4) {
+                            inc local0
+                        }
+                        if local1 {
+                            inc local0
+                        }
+                        if (local0 == 3) {
+                            start-script BeginCast 5
+                        } else if (local0 <= 1) {
+                            start-script BeginCast 6
+                        } else if local1 {
+                            start-script BeginCast 1
+                        } else {
+                            start-script BeginCast 2
+                        }
+                    }
+                    24 {
+                        if local1 {
+                            start-script BeginCast 5
+                        } else {
+                            start-script BeginCast 6
+                        }
+                    }
+                    else {
+                    }
+                }
+            }
+        } else if local1 {
+            start-script BeginCast 1
+        } else {
+            start-script BeginCast 2
+        }
+        break-until (gCurrentMatchupCastScript == 0)
+        if (not room1) {
+            start-script BeginCast 7
+            break-until (gCurrentMatchupCastScript == 0)
+        }
+    }
+    L0369:
+    start-script FreeCollisionData
+    if g_maybe_skipped_cutscene {
+        stop-line
+        if (gCurrentSpeechScript > Boot) {
+            stop-line
+            stop-script gCurrentSpeechScript
+            gCurrentSpeechScript = 0
+        }
+        if (gCurrentLowPriCastScript > Boot) {
+            stop-line
+            stop-script gCurrentLowPriCastScript
+            gCurrentLowPriCastScript = 0
+        }
+        if (gCurrentMatchupCastScript > 0) {
+            stop-script gCurrentMatchupCastScript
+            gCurrentMatchupCastScript = 0
+        }
+    } else {
+        override-off
+    }
+    if (gNoCommentary || gNetplayActive) {
+    } else if (room2 != 2) {
+        actor.init 1
+        actor.costume 0
+        actor.init 2
+        actor.costume 0
+        start-script SetNavButtons HandleNavClick HandleNavHover 0
+        palette 0
+        kludge 23
+        start-script lsc2087
+        room2 = 2
+    }
+    if (gGameMode == MODE-SEASON) {
+        undim global465
+        if (gSeasonGameNumber < 14) {
+            global461 = 1
+        } else {
+            global461 = 0
+        }
+        if (gPreviousRoom == 4) {
+            start-script lsc2072
+        }
+    } else {
+        global461 = 0
+    }
+    gGameLength = gSavedGameLength
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script lsc2090@2090 {
+    var local0 local1
+
+    if global451 {
+        stop-script 0
+    }
+    preload-room batview
+    local0 = 288 + gField
+    local1 = 485 + gField
+    kludge 714 19 local0 1
+    kludge 714 19 local1 1
+    preload-image local0
+    preload-image local1
+    lock-image local1
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    override L017b
+    break-here.multi 10
+    if (gGameMode == MODE-SEASON) {
+        temp = gSeasonGameNumber
+        case temp {
+            1 {
+                start-script BeginCast 10
+            }
+            (14 - 1) {
+                start-script BeginCast 11
+            }
+            [14 15 16] {
+                start-script BeginCast 12
+            }
+            [17 18 19] {
+                start-script BeginCast 13
+            }
+            [20 21 22 23 24] {
+                start-script BeginCast 14
+            }
+            else {
+                start-script BeginCast 8
+            }
+        }
+    } else {
+        start-script BeginCast 8
+    }
+    break-until (gCurrentMatchupCastScript == 0)
+    if (room2 != 2) {
+        actor.init 1
+        actor.costume 0
+        actor.init 2
+        actor.costume 0
+        start-script SetNavButtons HandleNavClick HandleNavHover 0
+        palette 0
+        kludge 23
+        start-script lsc2087
+        room2 = 2
+    }
+    start-script BeginCast 9
+    L017b:
+    if g_maybe_skipped_cutscene {
+        stop-line
+        if (gCurrentSpeechScript > Boot) {
+            stop-line
+            stop-script gCurrentSpeechScript
+            gCurrentSpeechScript = 0
+        }
+        if (gCurrentLowPriCastScript > Boot) {
+            stop-line
+            stop-script gCurrentLowPriCastScript
+            gCurrentLowPriCastScript = 0
+        }
+        if (gCurrentMatchupCastScript > 0) {
+            stop-script gCurrentMatchupCastScript
+            gCurrentMatchupCastScript = 0
+        }
+        if gCurrentMatchupCastScript {
+            stop-script gCurrentMatchupCastScript
+        }
+        if (room2 == 1) {
+            if (room2 != 2) {
+                actor.init 1
+                actor.costume 0
+                actor.init 2
+                actor.costume 0
+                start-script SetNavButtons HandleNavClick HandleNavHover 0
+                palette 0
+                kludge 23
+                start-script lsc2087
+                room2 = 2
+            }
+        }
+    } else {
+        override-off
+    }
+    global451 = 1
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+}
+
+local-script TransitionFromCastingToGameplay@2091 arg0 {
+    var local1 local2
+
+    userput-off
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-off
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    arg0 = random 3
+    case arg0 {
+        0 {
+            say-line.start 1
+            say-line.at 0 0
+            say-line.string "\x7fT114513317,16648\x7fLet's play ball!"
+        }
+        1 {
+            say-line.start 1
+            say-line.at 0 0
+            say-line.string "\x7fT114529965,17288\x7fPlay ball!"
+        }
+        2 {
+            say-line.start 1
+            say-line.at 0 0
+            say-line.string "\x7fT114547253,21224\x7fOkay, let's play ball!"
+        }
+        3 {
+            say-line.start 1
+            say-line.at 0 0
+            say-line.string "\x7fT114568477,28776\x7fAll right, let's play ball!"
+        }
+        else {
+        }
+    }
+    break-here
+    start-script smth_pregame_stuff
+    start-script maybe_alloc_or_free_chatter_sounds 1
+    start-script maybe_alloc_or_free_costumes 1
+    start-script LoadCostumes
+    break-until (not (script-running LoadCostumes))
+    if (gNetplayActive && gCurrentHalfInning == -1) {
+        assign-string local1 "Waiting For"
+        sprintf local2 "Coach %s" gNetRemoteCoachName
+        start-script UpdateNavText local1 local2
+        undim local1
+        undim local2
+        if (not gNetWaitFlag) {
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+            start-script smth_nav407
+        }
+        global248 = 0
+        if gNetplayActive {
+            start-script.rec maybe_net_send_message 30 1 NET-WAITFLAG global510 global248
+            do {
+                break-here
+            } until gNetWaitFlag
+            dec gNetWaitFlag
+        }
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+    }
+    if (INPUT-DEVICE-GAME-PAD == gGameInputDevice) {
+        if (band 1 global124) {
+        } else {
+            gGameInputDevice = INPUT-DEVICE-MOUSE
+        }
+    }
+    wait-for-message
+    current-room batview
+}
+
+local-script lsc2092@2092 {
+    start-script SetAmbientSound 0
+    if (gGameMode == MODE-SEASON && gGameEnded) {
+        global682 = call-script AllocScratchImage
+        image.init global682
+        image.capture 0 0 0 639 479
+        image.end
+        global703 = 0
+        current-room league
+    } else if (MODE-SPECTATE == gGameMode) {
+        start-script lsc2100
+    } else if gGameEnded {
+        global703 = 0
+        current-room teaminfo
+    } else {
+        current-room strategy
+    }
+}
+
+local-script lsc2093@2093 {
+    var local0 local1 _ local3 local4 local5
+
+    object.class 494 [160]
+    object.class 495 [160]
+    if gNetplayActive {
+        sprintf rNetRemoteCoachName "%s" gNetRemoteCoachName
+    }
+    if gGameEnded {
+        if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] == CB-USER) {
+            room0 = gVisitorInfoIndex
+        } else {
+            room0 = gHomeInfoIndex
+        }
+        if (gTeamInfo[room0][TI-RUNS] > gTeamInfo[1 - room0][TI-RUNS]) {
+            gWonLastGame = 1
+        }
+        start-script CollectLastGameTotals
+        local1 = 2
+        start-script lsc2087
+        if (gPreviousRoom == 4) {
+            start-script lsc2089
+        } else {
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+        if gNetplayActive {
+            start-script lsc2077
+        }
+        local4 = 288 + gField
+        local5 = 485 + gField
+        kludge 714 19 local4 0
+        kludge 714 19 local5 0
+        nuke-image local4
+        nuke-image local5
+    } else {
+        local4 = 288 + gField
+        local5 = 485 + gField
+        kludge 714 19 local4 1
+        kludge 714 19 local5 1
+        preload-image local4
+        preload-image local5
+        if gNetplayActive {
+            gUserLongestHomeRun = 0
+            gOpponentLongestHomeRun = 0
+            if global570 {
+                if (g_net_smth_master == g_net_smth_me) {
+                    if (g_net_smth_me == g_net_smth_master) {
+                        start-script.rec maybe_net_send_message 30 1 NET-SETROOM 8
+                    }
+                }
+            } else {
+                start-script lsc2098
+            }
+        } else {
+            if (gBattingOrder1[1] == 0) {
+                local3 = array-get-length gPickOrder1 - 1
+                for local0 = 0 to local3 + {
+                    gBattingOrder1[local0] = gPickOrder1[local0]
+                    gBattingOrder2[local0] = gPickOrder2[local0]
+                }
+            }
+            if (gGameMode != MODE-SEASON) {
+                gTeamInfo[1][TI-CONTROLLED-BY] = CB-COMPUTER
+                if (gGameMode == MODE-SPECTATE) {
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-COMPUTER
+                } else {
+                    gTeamInfo[0][TI-CONTROLLED-BY] = CB-USER
+                }
+                object.class 494 [32]
+                object.class 495 [32]
+                gTeamInfo[1][TI-FIELDING-ORDER] = gPickOrder2
+                gTeamInfo[0][TI-FIELDING-ORDER] = gPickOrder1
+                gTeamInfo[1][TI-BATTING-ORDER-KIDS] = gBattingOrder2
+                gTeamInfo[0][TI-BATTING-ORDER-KIDS] = gBattingOrder1
+            }
+        }
+        start-script SetFieldVars
+        start-script ResetGameStats
+        if (not (sound-running gAmbientSound)) {
+            start-script SetAmbientSound 1
+        }
+        if (not gNoCommentary && not global451 && not gNetplayActive) {
+            if (room2 != 1) {
+                image.init image286
+                image.at 0 0
+                image.draw
+                image.flags 1
+                image.end
+                start-script scr273
+                room2 = 1
+                start-script FreeNavButtons
+                if gGameEnded {
+                    image.init image287
+                    image.state 2
+                    image.at 280 400
+                    image.draw
+                    image.end
+                } else {
+                    image.init image287
+                    image.state 0
+                    image.at 280 400
+                    image.draw
+                    image.end
+                }
+                actor.init 1
+                actor.new
+                actor.costume costume430
+                actor.talk-animation 0 0
+                put-actor 1 320 240 gCurrentRoom
+                actor.init 2
+                actor.new
+                actor.costume costume431
+                actor.talk-animation 0 0
+                put-actor 2 320 240 gCurrentRoom
+                start-script smth_team_color_palette 0 2
+            }
+            start-script lsc2090
+        } else {
+            start-script lsc2087
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+        if (not gCollideBoxes) {
+            start-script ReadHE9
+            if (gDebug == 13) {
+                start-script CollideCalculateNormals_unused
+            }
+        }
+    }
+}
+
+local-script lsc2094@2094 {
+    var local0 local1 local2 local3
+
+    case local1 {
+        2 {
+            case local0 {
+                gNavButtons[1][0] {
+                    case gGameMode {
+                        MODE-SPECTATE {
+                            assign-string local2 "LEave game"
+                            assign-string local3 "click here to return to THE CLUB HOUSE"
+                        }
+                        MODE-SEASON {
+                            if gGameEnded {
+                                assign-string local2 "Around the league"
+                                assign-string local3 "click here to see results from AROUND THE LEAGUE"
+                            } else {
+                                assign-string local2 "Roster"
+                                assign-string local3 "click here to return to your Roster"
+                            }
+                        }
+                        else {
+                            if gGameEnded {
+                                assign-string local2 "Team Page"
+                                assign-string local3 "Click here to return to your team page"
+                            } else {
+                                assign-string local2 "Roster"
+                                assign-string local3 "click here to return to your Roster"
+                            }
+                        }
+                    }
+                }
+                gNavButtons[3][0] {
+                    if (gCurrentHalfInning == -1) {
+                        assign-string local2 "Play ball!"
+                        assign-string local3 "click here to PLAY BALL!"
+                    } else if (gGameMode == MODE-SEASON) {
+                        assign-string local2 "Around the league"
+                        assign-string local3 "click here to see results from AROUND THE LEAGUE"
+                    } else if gGameEnded {
+                        assign-string local2 "Team page"
+                        assign-string local3 "click here to return to your team page"
+                    } else {
+                        assign-string local2 "Roster"
+                        assign-string local3 "Click here to return to your Roster"
+                    }
+                }
+                else {
+                }
+            }
+        }
+        6 {
+            if (local0 == gNavButtons[2][0]) {
+                assign-string local2 "Hurry Up!"
+                assign-string local3 "Click here to tease your slow opponent."
+            }
+        }
+        3 {
+            case local0 {
+                494 {
+                    if (object-get-class local0 [32]) {
+                        if (gTeamInfo[gVisitorInfoIndex][TI-CONTROLLED-BY] != CB-USER) {
+                            assign-string local2 "Away Team"
+                            assign-string local3 "click here to switch your team to be the Away team"
+                        } else {
+                            assign-string local2 "You are the Away Team"
+                            assign-string local3 "You bat first"
+                        }
+                    }
+                }
+                495 {
+                    if (object-get-class local0 [32]) {
+                        if (gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] != CB-USER) {
+                            assign-string local2 "Home team"
+                            assign-string local3 "click here to switch your team to be the Home team"
+                        } else {
+                            assign-string local2 "You are the Home Team"
+                            assign-string local3 "You pitch first"
+                        }
+                    }
+                }
+                else {
+                }
+            }
+        }
+        else {
+        }
+    }
+    if (local2 || local3) {
+        start-script UpdateNavText local2 local3
+        if local2 {
+            undim local2
+        }
+        if local3 {
+            undim local3
+        }
+    }
+}
+
+local-script lsc2095@2095 {
+    room3 = call-script AllocPalette
+    palette.init room3
+    palette.from-image 298 0
+    palette.end
+    room4 = call-script AllocPalette
+    room5 = call-script AllocPalette
+    room6 = call-script AllocPalette
+    palette.init room6
+    palette.from-image 153 0
+    palette.end
+    start-script scr279 room6 gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]
+    room7 = call-script AllocPalette
+    palette.init room7
+    palette.from-image 153 0
+    palette.end
+    start-script scr279 room7 gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]
+    room8 = call-script AllocPalette
+    palette.init room8
+    palette.from-image 321 0
+    palette.end
+    room9 = call-script AllocPalette
+    palette.init room9
+    palette.from-image 325 0
+    palette.end
+}
+
+local-script lsc2096@2096 {
+    start-script FreePalette room3
+    start-script FreePalette room4
+    start-script FreePalette room5
+    start-script FreePalette room6
+    start-script FreePalette room7
+    start-script FreePalette room8
+    start-script FreePalette room9
+}
+
+local-script smth_pregame_stuff@2097 {
+    if (gKidData[0][33] == 0) {
+        gKidData[0][33] = 1
+        start-script maybe_kid_bonuses
+        start-script maybe_stat_ups_downs
+        start-script maybe_check_kid_birthdays
+        start-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders
+        if (MODE-SEASON != gGameMode) {
+            start-script smth_maybe_ai_choose_sensible_batting_and_fielding_orders 1
+        }
+    }
+}
+
+local-script lsc2098@2098 {
+    var local0
+
+    dim-array.i16 local0 36
+    local0[0] = 999
+    array-assign-slice local0 gPickOrder1 0 0 1 9 0 0 0 8
+    array-assign-slice local0 gBattingOrder1 0 0 19 27 0 0 0 8
+    start-script.rec maybe_smth_net_send_array 40 1 local0
+    undim local0
+}
+
+local-script lsc2099@2099 {
+    var local0 local1 local2 local3 local4 local5
+
+    local3 = gTeamInfo[gHomeInfoIndex][TI-CONTROLLED-BY] == CB-USER
+    if gNetplayActive {
+        if (global674 == 0 && global675 == 0) {
+            if (local0 > local1) {
+                local2 = 7
+            } else {
+                local2 = 9
+            }
+        } else {
+            if g_smth_netplay_master_or_slave {
+                local4 = global674
+                local5 = global675
+            } else {
+                local4 = global675
+                local5 = global674
+            }
+            if (local5 == 2) {
+                if (gVisitorInfoIndex == 0) {
+                    local2 = 7
+                } else {
+                    local2 = 9
+                }
+            } else if (local4 == 2) {
+                if (gVisitorInfoIndex == 1) {
+                    local2 = 7
+                } else {
+                    local2 = 9
+                }
+            } else if (local4 == 1) {
+                if (local5 == 0) {
+                    if (local1 > local0) {
+                        if local3 {
+                        } else {
+                            local2 = 9
+                        }
+                    } else if (local1 == local0) {
+                    } else if local3 {
+                        local2 = 7
+                    } else {
+                    }
+                } else {
+                }
+            } else if (local5 == 1) {
+                if (local4 == 0) {
+                    if (local1 > local0) {
+                        if local3 {
+                            local2 = 9
+                        } else {
+                        }
+                    } else if (local1 == local0) {
+                    } else if local3 {
+                    } else {
+                        local2 = 7
+                    }
+                } else {
+                }
+            } else {
+                debug 0
+            }
+        }
+    } else if (local0 > local1) {
+        local2 = 7
+    } else {
+        local2 = 9
+    }
+    if local2 {
+        image.init image298
+        image.state local2
+        image.at (320 - image-get-object-x image298 local2) (240 - image-get-object-y image298 local2 + 10)
+        image.shadow image257
+        image.palette room3
+        image.draw
+        image.end
+    }
+}
+
+local-script lsc2100@2100 {
+    var local0
+
+    userput-on
+    if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+        cursor-on
+    } else if (gCursorInputEnabled == 0) {
+        stop-script GamePadCursorLoop
+        start-script ReleaseSprite gGamePadCursorSprite
+        gGamePadCursorSprite = 0
+    } else {
+        start-script ShowGamePadCursor
+    }
+    assign-string local0 "Are you sure you want to quit?"
+    start-script ShowPopup local0
+    break-until gPopupResult
+    if (gPopupResult == 1) {
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        current-room baseball
+    } else {
+    }
+}
+
+local-script CollectLastGameTotals@2101 {
+    var local0 local1 local2
+
+    if gLastGameTotals {
+        undim gLastGameTotals
+    }
+    dim-array.i16 gLastGameTotals 9
+    gLastGameTotals[0] = call-script TeamStatTotal room0 STAT-RUNS-SCORED
+    gLastGameTotals[1] = call-script TeamStatTotal room0 STAT-RUNS-AGAINST
+    gLastGameTotals[2] = call-script TeamStatTotal room0 STAT-HITS
+    gLastGameTotals[3] = call-script TeamStatTotal room0 STAT-HOME-RUNS
+    local1 = gTeamInfo[room0][TI-FIELDING-ORDER]
+    local2 = -1
+    for local0 = 0 to 8 + {
+        if (gGameStats[local1[local0]][STAT-HOME-RUNS] > local2) {
+            local2 = gGameStats[local1[local0]][STAT-HOME-RUNS]
+            gLastGameTotals[4] = local2
+            gLastGameTotals[5] = local1[local0]
+        }
+    }
+    local2 = -1
+    for local0 = 0 to 8 + {
+        if (gGameStats[local1[local0]][STAT-STRIKE-OUTS-PITCHED] > local2) {
+            local2 = gGameStats[local1[local0]][STAT-STRIKE-OUTS-PITCHED]
+            gLastGameTotals[6] = local2
+            gLastGameTotals[7] = local1[local0]
+        }
+    }
+    local2 = -1
+    for local0 = 0 to 8 + {
+        if (gGameStats[local1[local0]][STAT-RBIS] > local2) {
+            local2 = gGameStats[local1[local0]][STAT-RBIS]
+            gLastGameTotals[8] = local2
+            gLastGameTotals[9] = local1[local0]
+        }
+    }
+}
+
+local-script ResetGameStats@2102 {
+    var local0 local1
+
+    if gGameStats {
+        local0 = array-get-height gGameStats - 1
+        local1 = array-get-width gGameStats - 1
+        undim gGameStats
+        dim-array-2d.i16 gGameStats local0 local1
+    }
+}
+
+local-script lsc2103@2103 {
+    sleep-for.seconds 1
+    start-script HandleNavClick 192
+}
+
+enter {
+    if (gGameInputDevice == 0) {
+        gGameInputDevice = INPUT-DEVICE-MOUSE
+    }
+    start-script SetNavButtons HandleNavClick HandleNavHover 0
+    gHoverScript = lsc2094
+    start-script PlayMusicPool 0
+    start-script AddSongsToPool -1
+    start-script maybe_alloc_or_free_costumes 0
+    start-script maybe_alloc_or_free_chatter_sounds 0
+    start-script lsc2095
+    start-script lsc2093
+    if gAutoplaySeason {
+        start-script lsc2103
+    }
+}
+
+exit {
+    start-script FreeNavButtons
+    stop-line
+    if (gCurrentSpeechScript > Boot) {
+        stop-line
+        stop-script gCurrentSpeechScript
+        gCurrentSpeechScript = 0
+    }
+    if (gCurrentLowPriCastScript > Boot) {
+        stop-line
+        stop-script gCurrentLowPriCastScript
+        gCurrentLowPriCastScript = 0
+    }
+    if (gCurrentMatchupCastScript > 0) {
+        stop-script gCurrentMatchupCastScript
+        gCurrentMatchupCastScript = 0
+    }
+    override-off-off
+    start-script lsc2096
+    gHoverScript = 0
+    undim rNetRemoteCoachName
+}
+
+obim {
+    raw-block IMHD `ee0100000000000038002800080010000000`
+}
+obim {
+    raw-block IMHD `ef0100000000000030022800080008000000`
+}
+object object494@494 "" {
+    raw-block CDHD `ee01380028000800100000000000000000`
+
+    verb 1 {
+        var local0
+
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        start-script PlayClickySound
+        break-here
+        local0 = gHomeInfoIndex
+        gHomeInfoIndex = gVisitorInfoIndex
+        gVisitorInfoIndex = local0
+        start-script scr279 room6 gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]
+        start-script scr279 room7 gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]
+        start-script lsc2087 1
+        if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+            userput-on
+        } else {
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+    }
+}
+object object495@495 "" {
+    raw-block CDHD `ef01300228000800080000000000000000`
+
+    verb 1 {
+        var local0
+
+        userput-off
+        if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+            cursor-off
+        } else if (gCursorInputEnabled == 0) {
+            stop-script GamePadCursorLoop
+            start-script ReleaseSprite gGamePadCursorSprite
+            gGamePadCursorSprite = 0
+        } else {
+            start-script ShowGamePadCursor
+        }
+        start-script PlayClickySound
+        break-here
+        local0 = gHomeInfoIndex
+        gHomeInfoIndex = gVisitorInfoIndex
+        gVisitorInfoIndex = local0
+        start-script scr279 room6 gTeamInfo[gVisitorInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gVisitorInfoIndex][TI-SECONDARY-COLOR]
+        start-script scr279 room7 gTeamInfo[gHomeInfoIndex][TI-PRIMARY-COLOR] gTeamInfo[gHomeInfoIndex][TI-SECONDARY-COLOR]
+        start-script lsc2087 1
+        if (gUIInputDevice == INPUT-DEVICE-GAME-PAD) {
+            userput-on
+        } else {
+            userput-on
+            if (gUIInputDevice == INPUT-DEVICE-MOUSE) {
+                cursor-on
+            } else if (gCursorInputEnabled == 0) {
+                stop-script GamePadCursorLoop
+                start-script ReleaseSprite gGamePadCursorSprite
+                gGamePadCursorSprite = 0
+            } else {
+                start-script ShowGamePadCursor
+            }
+        }
+    }
+}
+raw-glob AWIZ image257@257 "matchup/image257.bin"

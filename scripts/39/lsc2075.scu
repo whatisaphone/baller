@@ -1,8 +1,0 @@
-; LSC2 39 2075
-
-if (call-script 2085 []) {
-    if (global690 > 0) {
-        global133 = 1
-    }
-}
-free-script

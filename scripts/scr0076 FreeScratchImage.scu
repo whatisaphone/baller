@@ -1,9 +1,0 @@
-; SCRP 76 FreeScratchImage
-
-parameter arg0
-
-kludge [714, 19, arg0, 0]
-free-image arg0
-gScratchStack[gScratchStackPointer] = arg0
-++gScratchStackPointer
-free-script

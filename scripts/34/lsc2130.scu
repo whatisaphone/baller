@@ -1,8 +1,0 @@
-; LSC2 34 2130
-
-run-script 2084 []
-if (gSeasonGameNumber <= 14) {
-    array-copy-range room17 gGameInfo 0 0 0 62 0 0 0 62
-    run-script 2129 []
-}
-free-script

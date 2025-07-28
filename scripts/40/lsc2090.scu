@@ -1,6 +1,0 @@
-; LSC2 40 2090
-
-local variable local0
-
-run-script-xc3 2112 [55, local0]
-free-script

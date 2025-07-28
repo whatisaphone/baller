@@ -1,5 +1,0 @@
-; LSC2 27 2272
-
-room139 = call-script FindFreeSprite []
-room138 = call-script FindFreeSprite []
-free-script

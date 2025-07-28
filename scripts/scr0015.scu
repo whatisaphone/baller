@@ -1,4 +1,0 @@
-; SCRP 15
-
-return ((gCursorImage - 1) / 3 * 3 + 1)
-free-script

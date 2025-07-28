@@ -1,9 +1,0 @@
-; LSC2 32 2061
-
-local variable local0
-
-local0 = (min 6 (room10 - 1)) + 487
-for temp = 487 to 492 ++ {
-    put-class temp [160]
-}
-free-script

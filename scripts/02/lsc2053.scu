@@ -1,9 +1,0 @@
-; LSC2 2 2053
-
-local variable local0
-
-if (local0 >= 122) {
-    return (local0 - 100)
-}
-return (random2 1 10)
-free-script

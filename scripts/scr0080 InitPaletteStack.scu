@@ -1,9 +1,0 @@
-; SCRP 80 InitPaletteStack
-
-local variable local0
-
-local0 = abs (gNumPalettes - 3)
-gPaletteStackPointer = local0 + 1
-dim array gPaletteStack i32[0...0][0...local0] swap=2
-array-fill-values gPaletteStack 0 0 0 local0 3 gNumPalettes
-free-script

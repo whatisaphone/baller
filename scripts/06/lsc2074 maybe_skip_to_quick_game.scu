@@ -1,4 +1,0 @@
-; LSC2 6 2074 maybe_skip_to_quick_game
-
-run-script StartQuickPickupGame [(call-script GetFieldFromChoice [rFieldChoice]) + 1]
-free-script

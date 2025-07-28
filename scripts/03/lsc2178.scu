@@ -1,5 +1,0 @@
-; LSC2 3 2178
-
-room35 = call-script AllocPalette []
-room36 = call-script AllocPalette []
-free-script

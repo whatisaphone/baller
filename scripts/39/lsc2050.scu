@@ -1,8 +1,0 @@
-; LSC2 39 2050
-
-if (global423) {
-    global652 = global423
-} else {
-    global652 = 257
-}
-free-script

@@ -1,6 +1,0 @@
-; LSC2 3 2135 DistanceToBall2D
-
-parameter entity: Entity
-
-return (distance-2d gWorld[entity][X] gWorld[entity][Z] gBallPosX gBallPosZ)
-free-script
