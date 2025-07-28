@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = "0.5.5";
+const version = "0.6.0";
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external

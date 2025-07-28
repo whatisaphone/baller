@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.6.0 – unreleased
+
+This release is a major overhaul.
+
+- Baller now has a proper language with a proper parser
+  - Improved error reporting, usually with a line/column pointing to the error
+  - Source files are now ASCII instead of windows-1252. Within strings, you can use `\x00`-style escapes to represent characters from windows-1252.
+  - CRLF is now supported smoothly. You're welcome, Windows users!
+- It's now significantly faster. If you have enough CPU cores, extract and build both take under 0.25 seconds.
+- Added high-level scripts instead of assembly
+  - Perfect matching decompiler/compiler round trips for all supported games
+  - Simple type inference for the decompiler
+- Many opcodes have changed to more sensible and consistent names
+- The compilation target is now a source directive, instead of being detected from the filename
+  - The compiler and assembler now only accept opcodes valid for the current target
+- Support music (.he4)
+- symbols.ini changes
+  - All glob types can have names, not just scripts
+  - Extracted files are now named after their symbol
+  - The locals and types for a script are now defined compactly all on one line
+- Add `baller dump` low-level util for examining block structure
+- Add `baller saveload dump` command for examining save files
+- Add `baller extract --annotate=yes` flag which writes script addresses alongside the decompilation/disassembly
+- Expanded block support
+  - OBIM – newly supported
+  - OBCD – newly supported
+  - TALK – newly supported
+  - TLKE – newly supported
+  - RMIM
+    - Support all compression types used across supported titles
+    - Don't bail when z-planes are present
+    - Extracted bmp files are now spec-compliant
+  - AWIZ
+    - Support uncompressed encoding
+    - Add a flag `baller build --awiz=original` to precisely match the original RLE encoder. This is slightly less space-efficient, but allows 1:1 byte matching the original games.
+    - Don't bail when unrecognized child blocks are seen
+  - AKOS
+    - Byte-identical encoding, same as for AWIZ
+  - DIGI
+    - Don't bail when unrecognized child blocks are seen
+
 ## v0.5.5 – 2025-02-19
 
 Added:
