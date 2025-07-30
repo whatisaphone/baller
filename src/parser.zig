@@ -1672,10 +1672,7 @@ fn expectIdentifier(cx: *Cx) !Ast.StringSlice {
 fn parseIdentifierOpt(cx: *Cx, token: *const lexer.Token, T: type) ?T {
     if (token.kind != .identifier) return null;
     const identifier = cx.source[token.span.start.offset..token.span.end.offset];
-    inline for (comptime std.meta.fieldNames(T)) |f|
-        if (std.mem.eql(u8, identifier, f))
-            return @field(T, f);
-    return null;
+    return std.meta.stringToEnum(T, identifier);
 }
 
 fn parseIdentifier(cx: *Cx, token: *const lexer.Token, T: type) !T {
