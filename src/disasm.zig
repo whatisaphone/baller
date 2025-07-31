@@ -206,12 +206,5 @@ fn emitVariable(
     room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
-    if (symbols.getVariable(room_number, id, variable)) |sym|
-        if (sym.name) |name| {
-            try out.writeAll(name);
-            return;
-        };
-
-    const kind, const number = try variable.decode();
-    try out.print("{s}{}", .{ @tagName(kind), number });
+    return symbols.writeVariableName(room_number, id, variable, out);
 }
