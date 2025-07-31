@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.6.0 – unreleased
+## v0.6.0 – 2025-07-31
 
 This release is a major overhaul.
 
