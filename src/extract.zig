@@ -374,17 +374,11 @@ pub fn run(
 
     if (args.options.anyScriptDecode()) {
         try code.append(gpa, '\n');
-        for (0..UsageTracker.max_global_vars) |num| {
+        for (0..UsageTracker.max_global_vars) |num_usize| {
+            const num: u14 = @intCast(num_usize);
             if (!UsageTracker.get(&cx.global_var_usage, num)) continue;
             try code.appendSlice(gpa, "var ");
-            write_name: {
-                if (symbols.globals.getPtr(num)) |sym| if (sym.name) |name| {
-                    try code.appendSlice(gpa, name);
-                    break :write_name;
-                };
-                // Fall back to generated name
-                try code.writer(gpa).print("global{}", .{num});
-            }
+            try symbols.writeVariableName(undefined, undefined, .init(.global, num), code.writer(gpa));
             try code.writer(gpa).print("@{}\n", .{num});
         }
     }
@@ -967,19 +961,11 @@ fn emitRoomVars(cx: *RoomContext) !void {
 
     try out.append(cx.cx.gpa, '\n');
 
-    const symbols_room = cx.cx.symbols.getRoom(cx.room_number);
-
-    for (0..UsageTracker.max_room_vars) |num| {
+    for (0..UsageTracker.max_room_vars) |num_usize| {
+        const num: u14 = @intCast(num_usize);
         if (!UsageTracker.get(&cx.room_var_usage, num)) continue;
         try out.appendSlice(cx.cx.gpa, "var ");
-        write_name: {
-            if (symbols_room) |sr| if (sr.vars.getPtr(num)) |sym| if (sym.name) |name| {
-                try out.appendSlice(cx.cx.gpa, name);
-                break :write_name;
-            };
-            // Fall back to generated name
-            try out.writer(cx.cx.gpa).print("room{}", .{num});
-        }
+        try cx.cx.symbols.writeVariableName(cx.room_number, undefined, .init(.room, num), out.writer(cx.cx.gpa));
         try out.writer(cx.cx.gpa).print("@{}\n", .{num});
     }
 
