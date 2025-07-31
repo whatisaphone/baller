@@ -283,7 +283,61 @@ test "type script args" {
         \\    start-script f FOO BAR
         \\}
         \\
-        \\script f@2 {
+        \\script f@2 _ _ {
+        \\}
+    );
+}
+
+test "unused args and vars become underscore" {
+    try testRoundTrip(
+        \\
+    ,
+        \\script s@1 a b {
+        \\    var c d
+        \\    d = b
+        \\}
+    ,
+        \\script.1 = f(x y) z w
+    ,
+        \\script f@1 _ y {
+        \\    var _ w
+        \\
+        \\    w = y
+        \\}
+    );
+}
+
+test "preserve trailing unused args from symbols" {
+    try testRoundTrip(
+        \\
+    ,
+        \\script s@1 a b {
+        \\    a = 0
+        \\}
+    ,
+        \\script.1 = f(x y)
+    ,
+        \\script f@1 x _ {
+        \\    x = 0
+        \\}
+    );
+}
+
+test "unnamed args and locals are named appropriately" {
+    try testRoundTrip(
+        \\
+    ,
+        \\script s@1 a {
+        \\    var b
+        \\    b = a
+        \\}
+    ,
+        \\script.1 = s1(_)
+    ,
+        \\script s1@1 arg0 {
+        \\    var local1
+        \\
+        \\    local1 = arg0
         \\}
     );
 }

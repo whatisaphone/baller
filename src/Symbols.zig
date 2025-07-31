@@ -316,17 +316,19 @@ fn handleGlobalScript(cx: *Cx) !void {
     try handleScript(cx, script, true);
 }
 
-fn handleScript(cx: *Cx, script: *Script, can_have_name: bool) !void {
+fn handleScript(cx: *Cx, script: *Script, can_have_name_and_params: bool) !void {
     if (cx.key_parts.next()) |_| return error.BadData;
 
     const name_str, const after_name_opt = split(cx.value, '(');
     script.name = if (name_str.len == 0) null else name_str;
-    if (!can_have_name and script.name != null) return error.BadData;
+    if (!can_have_name_and_params and script.name != null) return error.BadData;
     if (script.name) |n| try validateSymbolName(n);
 
     const after_name = after_name_opt orelse return;
     const params, const after_params_opt = split(after_name, ')');
     const after_params = after_params_opt orelse return error.BadData;
+
+    if (!can_have_name_and_params and params.len != 0) return error.BadData;
 
     var it = std.mem.tokenizeScalar(u8, params, ' ');
     while (it.next()) |s| {
@@ -619,6 +621,34 @@ pub fn getVariable(
             return room.vars.getPtr(num);
         },
     }
+}
+
+pub fn writeVariableName(
+    self: *const Symbols,
+    room_number: u8,
+    script_id: ScriptId,
+    variable: lang.Variable,
+    writer: anytype,
+) !void {
+    // If there's a name, write the name
+    if (self.getVariable(room_number, script_id, variable)) |v|
+        if (v.name) |name|
+            return writer.writeAll(name);
+
+    // Otherwise fall back to a generated name
+    const kind, const number = try variable.decode();
+    const prefix = prefix: switch (kind) {
+        .global => "global",
+        .room => "room",
+        .local => {
+            const num_params = num_params: {
+                const symbol = self.getScript(script_id) orelse break :num_params 0;
+                break :num_params symbol.params orelse 0;
+            };
+            break :prefix if (number < num_params) "arg" else "local";
+        },
+    };
+    try writer.print("{s}{}", .{ prefix, number });
 }
 
 pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {

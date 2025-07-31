@@ -2517,32 +2517,47 @@ fn emitScript(cx: *EmitCx) !void {
 }
 
 fn emitLocalVarsDecl(cx: *EmitCx) !void {
-    var i: usize = UsageTracker.max_local_vars;
-    const max_used = while (i > 0) {
-        i -= 1;
-        const used = UsageTracker.get(cx.local_var_usage, i);
-        if (used) break i;
-    } else return;
+    const num_used = num_used: {
+        var i: usize = UsageTracker.max_local_vars;
+        break :num_used while (i > 0) {
+            i -= 1;
+            const used = UsageTracker.get(cx.local_var_usage, i);
+            if (used) break i + 1;
+        } else 0;
+    };
 
-    const script_symbols = cx.symbols.getScript(cx.id);
+    const num_params = num_params: {
+        // Only global scripts and local scripts can have params
+        switch (cx.id) {
+            .global, .local => {},
+            .enter, .exit, .object => break :num_params 0,
+        }
+        const symbol = cx.symbols.getScript(cx.id) orelse break :num_params 0;
+        break :num_params symbol.params orelse 0;
+    };
 
-    try writeIndent(cx, null);
-    try cx.out.appendSlice(cx.gpa, "var");
-    for (0..max_used + 1) |num| {
-        const name = name: {
-            const used = UsageTracker.get(cx.local_var_usage, num);
-            if (!used) break :name "_";
-            const ss = script_symbols orelse break :name null;
-            const sym = ss.locals.getPtr(num) orelse break :name null;
-            break :name sym.name;
-        };
-        try cx.out.append(cx.gpa, ' ');
-        if (name) |n|
-            try cx.out.appendSlice(cx.gpa, n)
-        else
-            try cx.out.writer(cx.gpa).print("local{}", .{num});
+    for (0..num_params) |num_usize|
+        try emitLocalVarDecl(cx, @intCast(num_usize));
+
+    try cx.out.appendSlice(cx.gpa, " {\n");
+
+    if (num_used > num_params) {
+        try writeIndent(cx, null);
+        try cx.out.appendSlice(cx.gpa, "var");
+        for (num_params..num_used) |num_usize|
+            try emitLocalVarDecl(cx, @intCast(num_usize));
+        try cx.out.appendSlice(cx.gpa, "\n\n");
     }
-    try cx.out.appendSlice(cx.gpa, "\n\n");
+}
+
+fn emitLocalVarDecl(cx: *EmitCx, num: u14) !void {
+    try cx.out.append(cx.gpa, ' ');
+    const used = UsageTracker.get(cx.local_var_usage, num);
+    if (!used) {
+        try cx.out.append(cx.gpa, '_');
+        return;
+    }
+    try emitVariable(cx, .init(.local, num));
 }
 
 fn emitNodeList(cx: *EmitCx, ni_start: NodeIndex) error{ OutOfMemory, BadData }!void {
@@ -2998,14 +3013,7 @@ fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
-    if (cx.symbols.getVariable(cx.room_number, cx.id, variable)) |sym|
-        if (sym.name) |name| {
-            try cx.out.appendSlice(cx.gpa, name);
-            return;
-        };
-
-    const kind, const number = try variable.decode();
-    try cx.out.writer(cx.gpa).print("{s}{}", .{ @tagName(kind), number });
+    try cx.symbols.writeVariableName(cx.room_number, cx.id, variable, cx.out.writer(cx.gpa));
 }
 
 fn emitLabel(cx: *const EmitCx, pc: u16) !void {

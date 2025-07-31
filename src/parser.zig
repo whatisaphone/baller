@@ -393,19 +393,11 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
                     try appendNode(cx, &variables, node_index);
                 },
                 .script => {
-                    const name = try expectIdentifier(cx);
-                    try expect(cx, .swat);
-                    const glob_number = try expectInteger(cx, u16);
-                    try expect(cx, .brace_l);
-                    const node_index = try parseScript(cx, token, name, glob_number);
+                    const node_index = try parseScript(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .@"local-script" => {
-                    const name = try expectIdentifier(cx);
-                    try expect(cx, .swat);
-                    const script_number = try expectInteger(cx, u16);
-                    try expect(cx, .brace_l);
-                    const node_index = try parseLocalScript(cx, token, name, script_number);
+                    const node_index = try parseLocalScript(cx, token);
                     try appendNode(cx, &children, node_index);
                 },
                 .enter => {
@@ -1064,32 +1056,48 @@ fn parseRawGlobBlock(
     } });
 }
 
-fn parseScript(
-    cx: *Cx,
-    token: *const lexer.Token,
-    name: Ast.StringSlice,
-    glob_number: u16,
-) !Ast.NodeIndex {
+fn parseScript(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
+    const glob_number = try expectInteger(cx, u16);
+    const params = try parseScriptParams(cx);
     const statements = try parseScriptBlock(cx);
     return try storeNode(cx, token, .{ .script = .{
         .name = name,
         .glob_number = glob_number,
+        .params = params,
         .statements = statements,
     } });
 }
 
-fn parseLocalScript(
-    cx: *Cx,
-    token: *const lexer.Token,
-    name: Ast.StringSlice,
-    script_number: u16,
-) !Ast.NodeIndex {
+fn parseLocalScript(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
+    const name = try expectIdentifier(cx);
+    try expect(cx, .swat);
+    const script_number = try expectInteger(cx, u16);
+    const params = try parseScriptParams(cx);
     const statements = try parseScriptBlock(cx);
     return try storeNode(cx, token, .{ .local_script = .{
         .name = name,
         .script_number = script_number,
+        .params = params,
         .statements = statements,
     } });
+}
+
+fn parseScriptParams(cx: *Cx) ParseError!Ast.ExtraSlice {
+    var result: std.BoundedArray(Ast.NodeIndex.Optional, UsageTracker.max_local_vars) = .{};
+    while (true) {
+        const token = consumeToken(cx);
+        const ni: Ast.NodeIndex.Optional = switch (token.kind) {
+            .brace_l => break,
+            .underscore => .null,
+            .identifier => (try parseIdentifierNode(cx, token)).wrap(),
+            else => return reportUnexpected(cx, token),
+        };
+        result.append(ni) catch
+            return reportError(cx, token, "too many children", .{});
+    }
+    return storeExtraOpt(cx, result.constSlice());
 }
 
 fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
@@ -1552,6 +1560,10 @@ fn appendU32(cx: *Cx, token: *const lexer.Token, nodes: anytype, int: u32) !void
 }
 
 fn storeExtra(cx: *Cx, items: []const Ast.NodeIndex) !Ast.ExtraSlice {
+    return storeExtraU32(cx, @ptrCast(items));
+}
+
+fn storeExtraOpt(cx: *Cx, items: []const Ast.NodeIndex.Optional) !Ast.ExtraSlice {
     return storeExtraU32(cx, @ptrCast(items));
 }
 

@@ -1065,7 +1065,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -1090,7 +1090,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
         .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
     }
 
-    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = lsc_type.blockId(),
@@ -1107,7 +1107,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .ENCD,
@@ -1124,7 +1124,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.statements, &out);
+    try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .EXCD,
@@ -1213,7 +1213,7 @@ fn planObjectInner(
                             .diagnostic = cx.diagnostic,
                             .path = room_file.path,
                         };
-                        try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, statements, out);
+                        try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, statements, out);
                     },
                 }
 

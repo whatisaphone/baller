@@ -19,6 +19,7 @@ pub fn compile(
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     file: *const Project.SourceFile,
     root_node: Ast.NodeIndex,
+    param_names: Ast.ExtraSlice,
     statements: Ast.ExtraSlice,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
@@ -41,7 +42,7 @@ pub fn compile(
     defer cx.label_fixups.deinit(gpa);
     defer cx.label_offsets.deinit(gpa);
 
-    compileInner(&cx, root_node, statements) catch |err| {
+    compileInner(&cx, root_node, param_names, statements) catch |err| {
         if (err != error.AddedToDiagnostic) {
             const token_index = file.ast.node_tokens.get(root_node);
             const loc = file.lex.tokens.at(token_index).span.start;
@@ -50,7 +51,21 @@ pub fn compile(
     };
 }
 
-pub fn compileInner(cx: *Cx, root_node: Ast.NodeIndex, statements: Ast.ExtraSlice) !void {
+pub fn compileInner(
+    cx: *Cx,
+    root_node: Ast.NodeIndex,
+    param_names: Ast.ExtraSlice,
+    statements: Ast.ExtraSlice,
+) !void {
+    for (cx.ast.getExtraOpt(param_names)) |ni_opt| {
+        if (ni_opt.unwrap()) |ni| {
+            const name = cx.ast.strings.get(cx.ast.nodes.at(ni).identifier);
+            try appendLocalVar(cx, ni.wrap(), name);
+        } else {
+            try appendLocalVar(cx, .null, null);
+        }
+    }
+
     try emitBody(cx, statements);
 
     const end: lang.Op = switch (cx.ast.nodes.at(root_node).*) {
@@ -93,14 +108,24 @@ fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {
         for (cx.ast.getExtra(stmt.local_vars.children)) |ni| {
             const var_node = &cx.ast.nodes.at(ni).local_var;
             const name = if (var_node.name) |n| cx.ast.strings.get(n) else null;
-            if (name) |n| if (lookupSymbolByName(cx, n)) |_|
-                return fail(cx, ni, "duplicate name: {s}", .{n});
-            try cx.local_vars.append(name);
+            try appendLocalVar(cx, ni.wrap(), name);
         }
     } else return;
 
     for (stmts[first_non_var_stmt..]) |i|
         try emitStatement(cx, i);
+}
+
+fn appendLocalVar(cx: *Cx, ni: Ast.NodeIndex.Optional, name: ?[]const u8) !void {
+    // a non-null name must always be passed with its node index, as the place
+    // to attach an error. a null name might not have one (and so can never
+    // trigger an error)
+    if (name != null)
+        std.debug.assert(ni != .null);
+
+    if (name) |n| if (lookupSymbolByName(cx, n)) |_|
+        return fail(cx, ni.unwrap().?, "duplicate name: {s}", .{n});
+    try cx.local_vars.append(name);
 }
 
 fn emitBlock(cx: *Cx, slice: Ast.ExtraSlice) error{ OutOfMemory, AddedToDiagnostic, BadData }!void {

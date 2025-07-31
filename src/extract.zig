@@ -1478,7 +1478,7 @@ fn decompileVerb(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    try code.writer(cx.cx.gpa).print("\n    verb {} {{\n", .{verb});
+    try code.writer(cx.cx.gpa).print("\n    verb {}", .{verb});
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 2, &usage);
     try code.appendSlice(cx.cx.gpa, "    }\n");
@@ -1622,7 +1622,7 @@ fn extractEncdExcdDecompileInner(
         .encd => "enter",
         .excd => "exit",
     };
-    try code.writer(cx.cx.gpa).print("{s} {{\n", .{keyword});
+    try code.appendSlice(cx.cx.gpa, keyword);
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
@@ -1767,7 +1767,7 @@ fn extractLscDecompile(
 
     try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
     try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{script_number});
+    try code.writer(cx.cx.gpa).print("@{}", .{script_number});
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
@@ -2056,7 +2056,7 @@ fn extractScrpDecompile(
 
     try code.appendSlice(cx.cx.gpa, "\nscript ");
     try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    try code.writer(cx.cx.gpa).print("@{}", .{glob_number});
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");

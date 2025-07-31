@@ -28,6 +28,10 @@ pub fn getExtra(self: *const Ast, slice: ExtraSlice) []const NodeIndex {
     return @ptrCast(self.extra.items[slice.start..][0..slice.len]);
 }
 
+pub fn getExtraOpt(self: *const Ast, slice: ExtraSlice) []const NodeIndex.Optional {
+    return @ptrCast(self.extra.items[slice.start..][0..slice.len]);
+}
+
 pub fn getExtraU32(self: *const Ast, slice: ExtraSlice) []const u32 {
     return self.extra.items[slice.start..][0..slice.len];
 }
@@ -193,11 +197,13 @@ pub const Node = union(enum) {
     script: struct {
         name: StringSlice,
         glob_number: u16,
+        params: ExtraSlice,
         statements: ExtraSlice,
     },
     local_script: struct {
         name: StringSlice,
         script_number: u16,
+        params: ExtraSlice,
         statements: ExtraSlice,
     },
     enter: struct {

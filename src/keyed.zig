@@ -1,11 +1,13 @@
 const std = @import("std");
 
 pub fn Key(Template: type) type {
-    const Index = @typeInfo(Template).@"enum".tag_type;
-    std.debug.assert(@typeInfo(Template).@"enum".fields.len == 0);
-
     return enum(Index) {
         const Self = @This();
+
+        const Index = @typeInfo(Template).@"enum".tag_type;
+        comptime {
+            std.debug.assert(@typeInfo(Template).@"enum".fields.len == 0);
+        }
 
         _,
 
@@ -62,8 +64,8 @@ pub fn List(K: type, V: type) type {
             self.list.deinit(gpa);
         }
 
-        pub fn len(self: *const Self) usize {
-            return self.list.items.len;
+        pub fn len(self: *const Self) K.Index {
+            return @intCast(self.list.items.len);
         }
 
         pub fn at(self: anytype, key: K) switch (@TypeOf(self)) {
