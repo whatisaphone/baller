@@ -929,7 +929,7 @@ fn planSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try sounds.build(cx.gpa, cx.project_dir, file, node.children, &out);
+    try sounds.build(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, node.children, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -1321,11 +1321,12 @@ fn buildMusic(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     // nodes at all
     _ = room_number;
     _ = node_index;
-    cx.sendEvent(event_index, .nop);
 
     var path_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "{s}", .{cx.index_name}) catch unreachable;
     games.pointPathToMusic(cx.target.defined.pickAnyGame(), path);
 
-    try music.build(cx.gpa, cx.project_dir, cx.project, cx.output_dir, path);
+    try music.build(cx.gpa, cx.diagnostic, cx.project_dir, cx.project, cx.output_dir, path);
+
+    cx.sendEvent(event_index, .nop);
 }

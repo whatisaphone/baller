@@ -8,6 +8,7 @@ const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
+const fsd = @import("fsd.zig");
 const io = @import("io.zig");
 const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 
@@ -36,7 +37,7 @@ pub fn extract(
 
     var wav_path_buf: [Symbols.max_name_len + ".wav".len + 1]u8 = undefined;
     const wav_path = std.fmt.bufPrintZ(&wav_path_buf, "{s}.wav", .{name}) catch unreachable;
-    try writeWav(out_dir, wav_path, sdat);
+    try writeWav(diag.diagnostic, out_dir, wav_path, sdat);
 
     try code.writer(gpa).print("    sdat \"{s}/{s}\"\n", .{ out_path, wav_path });
 
@@ -45,6 +46,8 @@ pub fn extract(
 
 pub fn build(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     project_dir: std.fs.Dir,
     file: *const Project.SourceFile,
     children: Ast.ExtraSlice,
@@ -57,7 +60,7 @@ pub fn build(
             },
             .sdat => |*n| {
                 const start = try beginBlockAl(gpa, out, .SDAT);
-                try readWav(gpa, project_dir, file.ast.strings.get(n.path), out);
+                try readWav(gpa, diagnostic, loc, project_dir, file.ast.strings.get(n.path), out);
                 endBlockAl(out, start);
             },
             else => unreachable,
@@ -76,8 +79,13 @@ const PCMWAVEFORMAT = extern struct {
     wBitsPerSample: u16,
 };
 
-fn writeWav(dir: std.fs.Dir, path: [*:0]const u8, samples: []const u8) !void {
-    const file = try dir.createFileZ(path, .{});
+fn writeWav(
+    diagnostic: *Diagnostic,
+    dir: std.fs.Dir,
+    path: [*:0]const u8,
+    samples: []const u8,
+) !void {
+    const file = try fsd.createFileZ(diagnostic, dir, path);
     defer file.close();
 
     var buf = std.io.bufferedWriter(file.writer());
@@ -110,11 +118,13 @@ pub fn writeWavHeader(out: anytype, num_samples: u32) !void {
 
 fn readWav(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     dir: std.fs.Dir,
     path: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var file = try dir.openFile(path, .{});
+    var file = try fsd.openFile(diagnostic, loc, dir, path);
     defer file.close();
 
     var in = std.io.bufferedReader(file.reader());

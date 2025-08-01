@@ -15,6 +15,7 @@ const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
+const fsd = @import("fsd.zig");
 const io = @import("io.zig");
 const sounds = @import("sounds.zig");
 const utils = @import("utils.zig");
@@ -29,7 +30,7 @@ pub fn extract(
     output_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const in_file = try input_dir.openFileZ(input_path, .{});
+    const in_file = try fsd.openFileZ(diagnostic, input_dir, input_path);
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), 0x00);
     var in_buf = std.io.bufferedReader(in_xor.reader());
@@ -132,7 +133,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     try digi_blocks.finish(&hshd_block);
 
     const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
-    const wav_file = try cx.output_dir.createFileZ(wav_path, .{});
+    const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
     var wav_out = std.io.bufferedWriter(wav_file.writer());
     try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
@@ -159,7 +160,7 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
         .{ name, entry.number, cx.output_path, wav_path },
     );
 
-    const wav_file = try cx.output_dir.createFileZ(wav_path, .{});
+    const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
     try wav_file.writer().writeAll(&peeked_bytes);
     try io.copy(
@@ -177,6 +178,7 @@ fn readBlockAsValue(in: *FxbclReader, block: *const Block, T: type) !T {
 
 pub fn build(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
     out_dir: std.fs.Dir,
@@ -189,7 +191,7 @@ pub fn build(
         if (node.* == .music) break &node.music;
     } else return;
 
-    const out_file = try out_dir.createFileZ(out_name, .{});
+    const out_file = try fsd.createFileZ(diagnostic, out_dir, out_name);
     defer out_file.close();
     var out_buf = std.io.bufferedWriter(out_file.writer());
     var out = std.io.countingWriter(out_buf.writer());
@@ -229,7 +231,7 @@ pub fn build(
                 const fixup = try beginBlock(&out, sound.block_id);
                 std.debug.assert(fixup == start);
                 buf.clearRetainingCapacity();
-                try sounds.build(gpa, project_dir, file, sound.children, &buf);
+                try sounds.build(gpa, diagnostic, .node(file, node_index), project_dir, file, sound.children, &buf);
                 try out.writer().writeAll(buf.items);
                 try endBlock(&out, &fixups, fixup);
                 break :glob_number sound.glob_number;

@@ -47,6 +47,21 @@ pub fn makeDirIfNotExistZ(
     };
 }
 
+pub fn openFile(
+    diagnostic: *Diagnostic,
+    location: ?Diagnostic.Location,
+    dir: std.fs.Dir,
+    sub_path: []const u8,
+) !std.fs.File {
+    return dir.openFile(sub_path, .{}) catch |err| {
+        diagnostic.errAt(location, "failed to open file: {s} ({s})", .{
+            sub_path,
+            @errorName(err),
+        });
+        return error.AddedToDiagnostic;
+    };
+}
+
 pub fn openFileZ(
     diagnostic: *Diagnostic,
     dir: std.fs.Dir,

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.6.1 – 2025-08-01
+
+- Add better reporting for music errors
+
 ## v0.6.0 – 2025-07-31
 
 This release is a major overhaul.
