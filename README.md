@@ -11,6 +11,10 @@ This project also hosts a [decompilation of Backyard Baseball 2001](https://gith
 
 ## Tutorial
 
+<a href="https://www.youtube.com/watch?v=E70mop9JcFw">
+    <img src="https://img.youtube.com/vi/E70mop9JcFw/0.jpg" align="right" />
+</a>
+
 Let's extract Backyard Baseball 2001's scripts, modify one of them, and rebuild the game.
 
 Before you start of course, [download the latest release](https://github.com/whatisaphone/baller/releases). Open a terminal and run `baller --help` to make sure it works.
