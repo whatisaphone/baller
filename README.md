@@ -12,7 +12,7 @@ This project also hosts a [decompilation of Backyard Baseball 2001](https://gith
 ## Tutorial
 
 <a href="https://www.youtube.com/watch?v=E70mop9JcFw">
-    <img src="https://img.youtube.com/vi/E70mop9JcFw/0.jpg" align="right" />
+    <img src="https://img.youtube.com/vi/E70mop9JcFw/0.jpg" align="right" width="360" />
 </a>
 
 Let's extract Backyard Baseball 2001's scripts, modify one of them, and rebuild the game.
