@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const utils = @import("utils.zig");
+
 pub fn Channel(T: type, capacity: usize) type {
     return struct {
         const Self = @This();
@@ -43,5 +45,55 @@ pub fn Channel(T: type, capacity: usize) type {
             self.queue_not_full.signal();
             return result;
         }
+    };
+}
+
+pub fn OrderedReceiver(T: type, comptime capacity: usize) type {
+    return struct {
+        const Self = @This();
+
+        channel: *Channel(OrderedEvent(T), capacity),
+        // TODO: optimize mem usage
+        buffer: std.ArrayListUnmanaged(?T),
+        index: u16,
+
+        pub fn init(channel: *Channel(OrderedEvent(T), capacity)) Self {
+            return .{
+                .channel = channel,
+                .buffer = .empty,
+                .index = 0,
+            };
+        }
+
+        pub fn deinit(self: *Self, gpa: std.mem.Allocator) void {
+            self.buffer.deinit(gpa);
+        }
+
+        pub fn next(self: *Self, gpa: std.mem.Allocator) !T {
+            while (true) {
+                if (self.index < self.buffer.items.len) {
+                    if (self.buffer.items[self.index]) |result| {
+                        self.index += 1;
+                        return result;
+                    }
+                }
+
+                try self.receive(gpa);
+            }
+        }
+
+        fn receive(self: *Self, gpa: std.mem.Allocator) !void {
+            const event = self.channel.receive();
+            try utils.growArrayList(?T, &self.buffer, gpa, event.index + 1, null);
+            std.debug.assert(self.buffer.items[event.index] == null);
+            self.buffer.items[event.index] = event.payload;
+        }
+    };
+}
+
+pub fn OrderedEvent(T: type) type {
+    return struct {
+        index: u16,
+        payload: T,
     };
 }

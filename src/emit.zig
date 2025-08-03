@@ -32,9 +32,9 @@ pub fn run(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    events: *sync.Channel(plan.Event, 16),
+    events: *sync.Channel(sync.OrderedEvent(plan.Payload), 16),
 ) !void {
-    var receiver: OrderedReceiver = .init(events);
+    var receiver: sync.OrderedReceiver(plan.Payload, 16) = .init(events);
     defer receiver.deinit(gpa);
 
     runInner(gpa, diagnostic, project, output_dir, index_name, options, &receiver) catch |err| {
@@ -60,7 +60,7 @@ pub fn runInner(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *OrderedReceiver,
+    receiver: *sync.OrderedReceiver(plan.Payload, 16),
 ) !void {
     const target_message = try receiver.next(gpa);
     const target = switch (target_message) {
@@ -101,48 +101,9 @@ const Cx = struct {
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *OrderedReceiver,
+    receiver: *sync.OrderedReceiver(plan.Payload, 16),
     target: games.Target,
     index: *Index,
-};
-
-const OrderedReceiver = struct {
-    channel: *sync.Channel(plan.Event, 16),
-    // TODO: optimize mem usage
-    buffer: std.ArrayListUnmanaged(?plan.Payload),
-    index: u16,
-
-    fn init(channel: *sync.Channel(plan.Event, 16)) OrderedReceiver {
-        return .{
-            .channel = channel,
-            .buffer = .empty,
-            .index = 0,
-        };
-    }
-
-    fn deinit(self: *OrderedReceiver, gpa: std.mem.Allocator) void {
-        self.buffer.deinit(gpa);
-    }
-
-    fn next(self: *OrderedReceiver, gpa: std.mem.Allocator) !plan.Payload {
-        while (true) {
-            if (self.index < self.buffer.items.len) {
-                if (self.buffer.items[self.index]) |result| {
-                    self.index += 1;
-                    return result;
-                }
-            }
-
-            try self.receive(gpa);
-        }
-    }
-
-    fn receive(self: *OrderedReceiver, gpa: std.mem.Allocator) !void {
-        const event = self.channel.receive();
-        try utils.growArrayList(?plan.Payload, &self.buffer, gpa, event.index + 1, null);
-        std.debug.assert(self.buffer.items[event.index] == null);
-        self.buffer.items[event.index] = event.payload;
-    }
 };
 
 fn emitDisk(cx: *const Cx, disk_number: u8) !void {
