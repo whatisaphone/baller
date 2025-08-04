@@ -197,7 +197,7 @@ test "dump smoke test" {
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
     const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
-    try dump.run(&in, &diag, "/tmp/dump");
+    try dump.run(&in, &diag, "/tmp/dump", &.{});
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 

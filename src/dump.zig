@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
@@ -11,6 +12,8 @@ const io = @import("io.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[*:0]const u8 = null;
     var xor_key_opt: ?u8 = null;
+    var skip: std.ArrayListUnmanaged(BlockId) = .empty;
+    defer skip.deinit(gpa);
 
     var it: cliargs.Iterator = .init(args);
     while (it.next()) |arg| switch (arg) {
@@ -24,6 +27,9 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             if (opt.flag == 'x') {
                 if (xor_key_opt != null) return arg.reportDuplicate();
                 xor_key_opt = parseXorKey(opt.value) orelse return arg.reportInvalidValue();
+            } else if (opt.flag == 's') {
+                const block_id = BlockId.parse(opt.value) orelse return arg.reportInvalidValue();
+                try skip.append(gpa, block_id);
             } else {
                 return arg.reportUnexpected();
             }
@@ -32,6 +38,9 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             if (std.mem.eql(u8, opt.flag, "xor")) {
                 if (xor_key_opt != null) return arg.reportDuplicate();
                 xor_key_opt = parseXorKey(opt.value) orelse return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "skip")) {
+                const block_id = BlockId.parse(opt.value) orelse return arg.reportInvalidValue();
+                try skip.append(gpa, block_id);
             } else {
                 return arg.reportUnexpected();
             }
@@ -51,7 +60,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     defer diagnostic.deinit();
     const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
-    _ = run(&in, &diag, output_path) catch |err| {
+    run(&in, &diag, output_path, skip.items) catch |err| {
         if (err != error.AddedToDiagnostic) {
             const pos: u32 = @intCast(in.inner_reader.context.bytes_read);
             diag.zigErr(pos, "unexpected error: {s}", .{}, err);
@@ -69,12 +78,14 @@ const Cx = struct {
     in: *FxbclReader,
     diag: *const Diagnostic.ForBinaryFile,
     dir: std.fs.Dir,
+    skip: []const BlockId,
 };
 
 pub fn run(
     in: *FxbclReader,
     diag: *const Diagnostic.ForBinaryFile,
     output_path: [*:0]const u8,
+    skip: []const BlockId,
 ) !void {
     try fs.makeDirIfNotExistZ(std.fs.cwd(), output_path);
     var dir = try std.fs.cwd().openDirZ(output_path, .{});
@@ -84,6 +95,7 @@ pub fn run(
         .in = in,
         .diag = diag,
         .dir = dir,
+        .skip = skip,
     };
     try dump(&cx);
 }
@@ -99,6 +111,12 @@ fn dump(cx: *Cx) !void {
 }
 
 fn dumpBlock(cx: *Cx, block: *const Block) anyerror!void {
+    const skip = for (cx.skip) |id| {
+        if (id == block.id) break true;
+    } else false;
+    if (skip)
+        return dumpRaw(cx, block, null);
+
     // Try dumping it as nested, but if anything fails, fall back to raw
     if (block.size < Block.header_size)
         return dumpRaw(cx, block, null);
