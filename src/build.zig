@@ -665,22 +665,38 @@ fn handleAudio(
     const glob_number_str = words.next() orelse return error.BadData;
     const glob_number = try std.fmt.parseInt(u16, glob_number_str, 10);
 
-    const relative_path = words.next() orelse return error.BadData;
+    const hshd_word = words.next() orelse return error.BadData;
+    if (!std.mem.startsWith(u8, hshd_word, "HSHD=")) return error.BadData;
+    const hshd_hex = hshd_word[5..];
+    if (hshd_hex.len != audio.hshd_len * 2) return error.BadData;
+    var hshd: [audio.hshd_len]u8 = undefined;
+    const hshd_written = try std.fmt.hexToBytes(&hshd, hshd_hex);
+    std.debug.assert(hshd_written.len == hshd.len);
+
+    var cur_word = words.next() orelse return error.BadData;
+    var sbng_path: ?[]const u8 = null;
+    if (std.mem.startsWith(u8, cur_word, "SBNG=")) {
+        sbng_path = cur_word[5..];
+        cur_word = words.next() orelse return error.BadData;
+    }
+
+    if (!std.mem.startsWith(u8, cur_word, "SDAT=")) return error.BadData;
+    const sdat_path = cur_word[5..];
 
     if (words.next()) |_| return error.BadData;
 
     // Process block
 
-    const path = try pathf.append(&prst.cur_path, relative_path);
-    defer path.restore();
-
-    const wav_file = try std.fs.cwd().openFileZ(path.full(), .{});
-    defer wav_file.close();
-    var wav_reader = std.io.bufferedReader(wav_file.reader());
-
     const digi_fixup = try beginBlockImpl(&state.writer, block_id);
-    audio.encode(wav_reader.reader(), &state.writer, &state.fixups) catch |err| {
-        report.fatal("error encoding {s}", .{path.full()});
+    audio.encode(
+        &prst.cur_path,
+        &hshd,
+        sbng_path,
+        sdat_path,
+        &state.writer,
+        &state.fixups,
+    ) catch |err| {
+        report.fatal("error encoding audio {}", .{glob_number});
         return err;
     };
     try endBlock(&state.writer, &state.fixups, digi_fixup);

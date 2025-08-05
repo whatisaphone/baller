@@ -1174,41 +1174,29 @@ fn decodeAudio(
     _: void,
 ) !void {
     _ = allocator;
-    try decodeAudioData(block_id, glob_number, block_raw, state);
-    try writeAudioLine(block_id, glob_number, state, room_state);
-}
 
-fn decodeAudioData(
-    block_id: BlockId,
-    glob_number: u32,
-    data: []const u8,
-    state: *State,
-) !void {
-    const path = try appendGlobPath(state, block_id, glob_number, "wav");
+    const path = try pathf.print(&state.cur_path, "{s}_{:0>4}", .{ blockIdToStr(&block_id), glob_number });
     defer path.restore();
+    const path_prefix: []const u8 = path.relative();
 
-    const output_file = try std.fs.cwd().createFileZ(path.full(), .{});
-    defer output_file.close();
-    var output_writer = std.io.bufferedWriter(output_file.writer());
-
-    try audio.decode(data, output_writer.writer());
-
-    try output_writer.flush();
+    const sound = try audio.decode(block_raw, &path);
+    try writeAudioLine(block_id, glob_number, sound, room_state, path_prefix);
 }
 
 fn writeAudioLine(
     block_id: BlockId,
     glob_number: u32,
-    state: *State,
+    sound: audio.Sound,
     room_state: *const RoomState,
+    path_prefix: []const u8,
 ) !void {
-    const path = try appendGlobPath(state, block_id, glob_number, "wav");
-    defer path.restore();
-
     try room_state.room_txt.print(
-        "audio {s} {} {s}\n",
-        .{ blockIdToStr(&block_id), glob_number, path.relative() },
+        "audio {s} {} HSHD={}",
+        .{ blockIdToStr(&block_id), glob_number, std.fmt.fmtSliceHexLower(&sound.hshd) },
     );
+    if (sound.sbng)
+        try room_state.room_txt.print(" SBNG={s}_SBNG.bin", .{path_prefix});
+    try room_state.room_txt.print(" SDAT={s}.wav\n", .{path_prefix});
 }
 
 fn decodeWsou(
