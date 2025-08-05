@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.6 – 2025-08-05
+
+Added:
+
+- Support file int32 opcodes
+
+Breaking changes:
+
+- Support audio with arbitrary HSHD/SBNG blocks
+
 ## v0.5.5 – 2025-02-19
 
 Added:
