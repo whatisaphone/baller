@@ -321,6 +321,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
             var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};
             try pushExpr(cx, s.value);
             var cond_fixup: ?u32 = null;
+            var emitted_default = false;
             for (cx.ast.getExtra(s.branches)) |ni_branch| {
                 const branch = &cx.ast.nodes.at(ni_branch).case_branch;
                 if (cond_fixup) |fixup|
@@ -342,7 +343,9 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                         cond_fixup = @intCast(cx.out.items.len);
                         _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                     },
-                    .default => {},
+                    .default => {
+                        emitted_default = true;
+                    },
                 }
                 try emitOpcode(cx, .pop);
                 try emitBlock(cx, branch.body);
@@ -351,6 +354,11 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                     end_fixups.append(@intCast(cx.out.items.len)) catch unreachable;
                     _ = try cx.out.addManyAsSlice(cx.gpa, 2);
                 }
+            }
+            if (!emitted_default) {
+                if (cond_fixup) |fixup|
+                    try fixupJumpToHere(cx, fixup);
+                try emitOpcode(cx, .pop);
             }
             for (end_fixups.slice()) |fixup|
                 try fixupJumpToHere(cx, fixup);

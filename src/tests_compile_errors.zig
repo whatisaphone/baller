@@ -187,6 +187,18 @@ test "duplicate label" {
     );
 }
 
+test "case else isn't last" {
+    try testRoomError(
+        \\script s@1 {
+        \\    case 0 {
+        \\        else {}
+        \\        0 {}
+        \\        ^ expected '}', found <integer>
+        \\    }
+        \\}
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 

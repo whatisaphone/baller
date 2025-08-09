@@ -2112,25 +2112,37 @@ fn makeCase(cx: *StructuringCx, ni: NodeIndex, ni_last: NodeIndex) !void {
         ni_cur = ni_next;
     }
 
+    // Structure the final `else`
+
     const ni_body_start = ni_cur;
     const ni_body_end = findNodeWithEnd(cx, ni_cur, case_end);
     const ni_after = cx.nodes.items[ni_body_end].next;
 
-    const ni_else_branch = try appendNode(cx, .{
-        .start = cx.nodes.items[ni_cur].start,
-        .end = cx.nodes.items[ni_body_end].end,
-        .prev = ni_prev_branch,
-        .next = null_node,
-        .kind = .{ .case_branch = .{
-            .value = null_expr,
-            .body = ni_body_start,
-        } },
-    });
-    cx.nodes.items[ni_prev_branch].next = ni_else_branch;
+    const else_start = cx.nodes.items[ni_body_start].start;
+    const else_end = cx.nodes.items[ni_body_end].end;
 
-    cx.nodes.items[ni_body_start].prev = null_node;
-    cx.nodes.items[ni_body_end].next = null_node;
-    chopStartStmts(cx, ni_cur, 1); // chop `pop`
+    chopStartStmts(cx, ni_body_start, 1); // chop `pop`
+
+    // Skip emitting the `else` block if it's empty
+    if (cx.nodes.items[ni_body_start].start == cx.nodes.items[ni_body_end].end) {
+        cx.nodes.items[ni_prev_branch].next = null_node;
+        orphanNode(cx, ni_body_start);
+    } else {
+        const ni_else_branch = try appendNode(cx, .{
+            .start = else_start,
+            .end = else_end,
+            .prev = ni_prev_branch,
+            .next = null_node,
+            .kind = .{ .case_branch = .{
+                .value = null_expr,
+                .body = ni_body_start,
+            } },
+        });
+        cx.nodes.items[ni_prev_branch].next = ni_else_branch;
+
+        cx.nodes.items[ni_body_start].prev = null_node;
+        cx.nodes.items[ni_body_end].next = null_node;
+    }
 
     cx.nodes.items[ni_case].next = ni_after;
     if (ni_after != null_node)

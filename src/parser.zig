@@ -1331,6 +1331,13 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                         .body = stmts,
                     } });
                     try appendNode(cx, &branches, node_index);
+
+                    // Don't allow more branches after an `else`
+                    if (condition == .default) {
+                        skipWhitespace(cx);
+                        try expect(cx, .brace_r);
+                        break;
+                    }
                 }
                 return storeNode(cx, token, .{ .case = .{
                     .value = case_value,
