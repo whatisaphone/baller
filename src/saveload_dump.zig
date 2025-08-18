@@ -132,11 +132,12 @@ fn dumpSaveGame(
     try readValue(in, &save.default_actor_clipping);
     try debugSlice(out, "default_actor_clipping", &save.default_actor_clipping);
 
-    switch (game) {
-        .baseball_1997 => _ = try io.readInPlaceAsValue(in, [62]ActorBaseball1997),
-        .baseball_2001 => _ = try io.readInPlaceAsValue(in, [62]ActorBaseball2001),
-        else => return error.GameNotSupported,
-    }
+    if (game.target().le(.sputm90))
+        _ = try io.readInPlaceAsValue(in, [62]ActorSputm90)
+    else if (game.target().ge(.sputm99))
+        _ = try io.readInPlaceAsValue(in, [62]ActorSputm99)
+    else
+        return error.GameNotSupported;
 
     save.array_local_script_number = try readArray(arena, in, i32, maxs.arrays);
     try debugSlice(out, "array_local_script_number", save.array_local_script_number);
@@ -174,11 +175,12 @@ fn dumpSaveGame(
     try readValue(in, &save.room_pseudo_table);
     try debugSlice(out, "room_pseudo_table", &save.room_pseudo_table);
 
-    const stack_size: usize = switch (game) {
-        .baseball_1997 => 100,
-        .baseball_2001 => 256,
-        else => return error.GameNotSupported,
-    };
+    const stack_size: usize = if (game.target().le(.sputm90))
+        100
+    else if (game.target().ge(.sputm99))
+        256
+    else
+        return error.GameNotSupported;
     try in.reader().readNoEof(std.mem.sliceAsBytes(save.stack[0..stack_size]));
     try debugSlice(out, "stack", save.stack[0..stack_size]);
 
@@ -227,8 +229,10 @@ fn dumpSaveGame(
     try readValue(in, &save.recursive_stack_ptr);
     try debugValue(out, "recursive_stack_ptr", &save.recursive_stack_ptr);
 
+    // I'll be honest, I have no idea if these are right or not.
     const trailing: usize = switch (game) {
         .baseball_1997 => 26043,
+        .football_1999 => 190315,
         .baseball_2001 => 214572,
         else => return error.GameNotSupported,
     };
@@ -547,8 +551,8 @@ const Script = extern struct {
 };
 
 const Polygon = [68]u8;
-const ActorBaseball1997 = [1923]u8;
-const ActorBaseball2001 = [1951]u8;
+const ActorSputm90 = [1923]u8;
+const ActorSputm99 = [1951]u8;
 const ActorTalkie = [144]u8;
 const Sentence = [11]u8;
 const Cutscene = [12]u8;
