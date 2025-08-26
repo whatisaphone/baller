@@ -64,6 +64,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    if (valgrind)
+        exe_unit_tests.linkLibC();
 
     exe_unit_tests.root_module.addOptions("build_options", exe_options);
 
@@ -75,6 +77,20 @@ pub fn build(b: *std.Build) void {
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_exe_unit_tests.step);
+
+    const run_tests_valgrind = b.addSystemCommand(&.{
+        "valgrind",
+        "--leak-check=full",
+        "--error-exitcode=1",
+        "--exit-on-first-error=yes",
+        "--",
+    });
+    run_tests_valgrind.addFileArg(exe_unit_tests.getEmittedBin());
+    const test_valgrind_step = b.step("test:valgrind", "Run unit tests under valgrind");
+    if (valgrind)
+        test_valgrind_step.dependOn(&run_tests_valgrind.step)
+    else
+        test_valgrind_step.dependOn(&b.addFail("missing valgrind flag").step);
 
     const release = b.step("release", "Prepare release builds for all supported platforms");
     const release_targets = [_]std.Target.Query{

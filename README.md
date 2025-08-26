@@ -61,8 +61,9 @@ baller talkie build ~/bb2001talkies/talkies.txt ~/bb2001game/baseball\ 2001.he2
 
 Install prerequisites:
 
-- [Zig] 0.13.0
+- Either install [mise], or the version of [Zig] from `mise.toml`
 
+[mise]: https://mise.jdx.dev/
 [Zig]: https://ziglang.org/
 
 Run the app:
@@ -75,4 +76,11 @@ Run the tests:
 
 ```sh
 zig build test
+```
+
+### Running under valgrind
+
+```sh
+zig build -Dvalgrind && valgrind --leak-check=full --error-exitcode=1 --exit-on-first-error=yes zig-out/bin/baller <args>
+zig build -Dvalgrind test:valgrind
 ```
