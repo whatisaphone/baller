@@ -6,11 +6,12 @@ const version = "0.6.1";
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
-    // Standard target options allows the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+    const valgrind = b.option(bool, "valgrind", "Add valgrind support") orelse false;
+
+    var target_args: std.Build.StandardTargetOptionsArgs = .{};
+    if (valgrind)
+        target_args.default_target.cpu_model = .baseline;
+    const target = b.standardTargetOptions(target_args);
 
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
@@ -23,6 +24,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    if (valgrind)
+        exe.linkLibC();
 
     const exe_options = b.addOptions();
     exe_options.addOption([]const u8, "version", "dev");

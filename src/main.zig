@@ -26,7 +26,13 @@ pub fn main() !u8 {
 
 fn runCli() !void {
     var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
-    const allocator = if (std.debug.runtime_safety)
+    const allocator = if (std.valgrind.runningOnValgrind() != 0)
+        // Valgrind relies on instrumenting the C allocator to detect leaks
+        if (builtin.link_libc)
+            std.heap.c_allocator
+        else
+            @panic("running under valgrind but compiled without valgrind support")
+    else if (std.debug.runtime_safety)
         debug_allocator.allocator()
     else
         std.heap.smp_allocator;

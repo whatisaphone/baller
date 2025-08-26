@@ -168,7 +168,7 @@ fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void
     var x: u16 = 0;
     var y = cel.info.height;
 
-    while (true) {
+    decode: while (true) {
         const b = try in.readByte();
         var run = b & run_mask;
         const color = b >> color_shift;
@@ -180,13 +180,20 @@ fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void
             i += stride;
             y -= 1;
             if (y == 0) {
-                y = cel.info.height;
                 x += 1;
                 if (x == cel.info.width)
-                    return;
+                    break :decode;
                 i = x; // Move to pixel `x` in the first row
+                y = cel.info.height;
             }
         }
+    }
+
+    // Zero out the BMP padding bytes after each row so the output is deterministic
+    if (cel.info.width != stride) {
+        y = 0;
+        while (y != cel.info.height) : (y += 1)
+            @memset(pixels[y * stride ..][cel.info.width..stride], 0);
     }
 }
 
