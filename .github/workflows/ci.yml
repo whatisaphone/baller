@@ -1,0 +1,44 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.0
+
+      - env:
+          ghtok: ${{ secrets.SECRET_GITHUB_TOKEN_BALLER_FIXTURES_BALLER_CI }}
+        run: |
+          ci/download-fixture "${ghtok}" baseball1997
+          ci/download-fixture "${ghtok}" soccer
+          ci/download-fixture "${ghtok}" football
+          ci/download-fixture "${ghtok}" baseball2001
+          ci/download-fixture "${ghtok}" basketball
+
+      - run: zig fmt --check .
+      - run: zig build test --summary all
+
+  smoke-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.0
+
+      - env:
+          ghtok: ${{ secrets.SECRET_GITHUB_TOKEN_BALLER_FIXTURES_BALLER_CI }}
+        run: ci/download-fixture "${ghtok}" baseball2001
+
+      - run: zig build --summary all
+      - run: zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
+      - run: zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'
+
+      - run: zig build -Doptimize=ReleaseFast --summary all
+      - run: zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
+      - run: zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+github-download-release-asset() {
+    local token=$1
+    local repo=$2
+    local tag=$3
+    local name=$4
+
+    local url=$(
+        curl -H "Authorization: Token $token" \
+            "https://api.github.com/repos/${repo}/releases/tags/${tag}" \
+            | jq --raw-output --arg name "${name}" '.assets[] | select(.name == $name).url'
+    )
+    curl -L -H "Authorization: Token $token" -H 'Accept: application/octet-stream' -- "${url}"
+}
+
+download-fixture() {
+    local token=$1
+    local name=$2
+
+    github-download-release-asset "${token}" whatisaphone/baller-fixtures "${name}" "${name}.tar.zst" \
+        | zstd -d \
+        | tar -x -C src/fixtures
+}
+
+download-fixture "$@"
