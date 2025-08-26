@@ -294,7 +294,7 @@ pub fn encodeSmap(
     strip_compression: []const u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const bitmap = try bmp.readHeader(bmp_raw);
+    const bitmap = try bmp.readHeaderDiag(bmp_raw, diagnostic, loc);
     if (bitmap.width % strip_width != 0) {
         diagnostic.errAt(loc, "bitmap width must be a multiple of strip width", .{});
         return error.AddedToDiagnostic;

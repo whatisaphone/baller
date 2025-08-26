@@ -194,6 +194,8 @@ pub const EncodingStrategy = enum { original, max };
 
 pub fn encode(
     gpa: std.mem.Allocator,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
     project_dir: std.fs.Dir,
     file: *const Project.SourceFile,
     children: Ast.ExtraSlice,
@@ -210,7 +212,7 @@ pub fn encode(
     const bmp_raw = try fs.readFile(gpa, project_dir, file.ast.strings.get(wizd.path));
     defer gpa.free(bmp_raw);
 
-    const header = try bmp.readHeader(bmp_raw);
+    const header = try bmp.readHeaderDiag(bmp_raw, diagnostic, loc);
 
     // Now write the blocks in the requested order
 

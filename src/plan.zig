@@ -683,7 +683,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
         bmp_path,
     );
     defer cx.gpa.free(bmp_raw);
-    const bitmap = try bmp.readHeader(bmp_raw);
+    const bitmap = try bmp.readHeaderDiag(bmp_raw, cx.diagnostic, .node(file, bmap_node_index));
     try buildPals(&bitmap, &out);
 
     std.debug.assert(out.items.len == out.capacity);
@@ -941,7 +941,7 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     var out: std.ArrayListUnmanaged(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
-    try awiz.encode(cx.gpa, cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
+    try awiz.encode(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
@@ -998,7 +998,7 @@ fn planMultInner(
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.items.len)) - offs_start);
         const wiz = &room_file.ast.nodes.at(node).mult_awiz;
         const awiz_start = try beginBlockAl(cx.gpa, out, .AWIZ);
-        try awiz.encode(cx.gpa, cx.project_dir, room_file, wiz.children, cx.awiz_strategy, out);
+        try awiz.encode(cx.gpa, cx.diagnostic, .node(room_file, node), cx.project_dir, room_file, wiz.children, cx.awiz_strategy, out);
         endBlockAl(out, awiz_start);
     }
 

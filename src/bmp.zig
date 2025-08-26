@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const Diagnostic = @import("Diagnostic.zig");
+
 const bitmap_file_header_size = 14;
 const bitmap_info_header_size = 40;
 const magic = std.mem.bytesToValue(u16, "BM");
@@ -37,45 +39,88 @@ const RGBQUAD = extern struct {
     rgbReserved: u8,
 };
 
-pub fn readHeader(bmp: []u8) !Bmp {
+pub fn readHeaderDiag(
+    bmp: []u8,
+    diagnostic: *Diagnostic,
+    loc: Diagnostic.Location,
+) error{AddedToDiagnostic}!Bmp {
+    var err: HeaderError = undefined;
+    return readHeader(bmp, &err) catch {
+        switch (err) {
+            .not_bmp => {
+                diagnostic.errAt(loc, "invalid bmp file", .{});
+            },
+            .wrong_bit_count => |bits| {
+                diagnostic.errAt(loc, "expected 8-bit bmp, found {}-bit", .{bits});
+            },
+            .compressed => {
+                diagnostic.errAt(loc, "expected uncompressed bmp, found compressed", .{});
+            },
+            .wrong_palette_size => |size| {
+                diagnostic.errAt(loc, "expected palette with 256 colors, found {} colors", .{size});
+            },
+            .other => {
+                diagnostic.errAt(loc, "error reading bmp", .{});
+            },
+        }
+        return error.AddedToDiagnostic;
+    };
+}
+
+const HeaderError = union(enum) {
+    not_bmp,
+    wrong_bit_count: u16,
+    compressed,
+    wrong_palette_size: u32,
+    other,
+
+    fn set(self: *HeaderError, err: HeaderError) error{BmpError} {
+        self.* = err;
+        return error.BmpError;
+    }
+};
+
+pub fn readHeader(bmp: []u8, err: *HeaderError) error{BmpError}!Bmp {
     if (bmp.len < @sizeOf(BITMAPFILEHEADER) + @sizeOf(BITMAPINFOHEADER))
-        return error.BadData;
+        return err.set(.not_bmp);
 
     const file_header = std.mem.bytesAsValue(BITMAPFILEHEADER, bmp);
     if (file_header.bfType != magic)
-        return error.BadData;
+        return err.set(.not_bmp);
 
     const header_size = std.mem.readInt(u32, bmp[bitmap_file_header_size..][0..4], .little);
     if (header_size != 0x28 and // BITMAPINFOHEADER
         header_size != 0x6c and // BITMAPV4HEADER
         header_size != 0x7c) // BITMAPV5HEADER
-        return error.BadData;
+        return err.set(.not_bmp);
     // BITMAPINFOHEADER is a prefix of all the above header types
     const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[bitmap_file_header_size..]);
 
-    if (info_header.biBitCount != 8 or
-        info_header.biCompression != BI_RGB or
-        !(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
-        return error.BadData;
+    if (info_header.biBitCount != 8)
+        return err.set(.{ .wrong_bit_count = info_header.biBitCount });
+    if (info_header.biCompression != BI_RGB)
+        return err.set(.compressed);
+    if (!(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
+        return err.set(.{ .wrong_palette_size = info_header.biClrUsed });
 
     // Bmp.width/height assumes these fit in 31 bits
     const width = std.math.cast(u31, info_header.biWidth) orelse
-        return error.BadData;
+        return err.set(.other);
     const height = std.math.cast(u31, @abs(info_header.biHeight)) orelse
-        return error.BadData;
+        return err.set(.other);
     const stride = calcStride(width);
 
     const palette_start = bitmap_file_header_size + info_header.biSize;
     const palette_size = num_colors * @sizeOf(RGBQUAD);
     if (palette_start + palette_size > bmp.len)
-        return error.BadData;
+        return err.set(.other);
     const palette: *const [num_colors]RGBQUAD = @ptrCast(bmp[palette_start..][0..palette_size]);
 
     if (file_header.bfOffBits > bmp.len)
-        return error.BadData;
+        return err.set(.other);
     const pixels = bmp[file_header.bfOffBits..];
     if (pixels.len != stride * height)
-        return error.BadData;
+        return err.set(.other);
 
     // If the bmp is bottom-up, flip it so it's top-down
     const bottom_up = info_header.biHeight > 0;
