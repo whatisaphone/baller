@@ -199,6 +199,60 @@ test "case else isn't last" {
     );
 }
 
+test "parse multiline binop in parens" {
+    try testNoErrors(
+        \\script s@1 {
+        \\    g1 = (
+        \\        g2
+        \\        +
+        \\        g3
+        \\    )
+        \\}
+    );
+}
+
+test "forbid multiline binop outside parens" {
+    try testRoomError(
+        \\script s@1 {
+        \\    g1
+        \\    = g2 + g3
+        \\    ^ unexpected '='
+        \\}
+    );
+    try testRoomError(
+        \\script s@1 {
+        \\    g1 =
+        \\        ^ unexpected <newline>
+        \\    g2 + g3
+        \\}
+    );
+    try testRoomError(
+        \\script s@1 {
+        \\    g1 = g2
+        \\    + g3
+        \\    ^ unexpected '+'
+        \\}
+    );
+    try testRoomError(
+        \\script s@1 {
+        \\    g1 = g2 +
+        \\             ^ unexpected <newline>
+        \\    g3
+        \\}
+    );
+}
+
+test "parse multiline lists" {
+    try testNoErrors(
+        \\script s@1 {
+        \\    global_var = pick 0 [
+        \\        1 2 3
+        \\        4 5 6
+        \\    ]
+        \\}
+    );
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 
@@ -282,4 +336,48 @@ fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
     }
 
     return .{ .source = source, .message = message };
+}
+
+fn testNoErrors(room_scu: []const u8) !void {
+    const gpa = std.testing.allocator;
+
+    const in_path = "/tmp/baller-test-in";
+    const build_path = "/tmp/baller-test-build";
+
+    try std.fs.cwd().deleteTree(in_path);
+    try std.fs.cwd().deleteTree(build_path);
+
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
+    var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
+    defer in_dir.close();
+
+    const project_scu =
+        \\target sputm99
+        \\index {}
+        \\disk 1 {
+        \\    room 1 "room" "room.scu"
+        \\}
+        \\var global_var@0
+        \\var g1@1
+        \\var g2@2
+        \\var g3@3
+        \\
+    ;
+    try fs.writeFileZ(in_dir, "project.scu", project_scu);
+
+    try fs.writeFileZ(in_dir, "room.scu", room_scu);
+
+    var diagnostic: Diagnostic = .init(gpa);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+
+    _ = try build.run(gpa, &diagnostic, .{
+        .project_path = in_path ++ "/project.scu",
+        .index_path = build_path ++ "/baseball 2001.he0",
+        .options = .{
+            .awiz_strategy = .max,
+            .write_version = true,
+        },
+    });
+    try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
