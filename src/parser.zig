@@ -15,6 +15,7 @@ const Cx = struct {
     source: []const u8,
     lex: *const lexer.Lex,
     token_index: @typeInfo(lexer.TokenIndex).@"enum".tag_type,
+    bracket_nesting: u32,
     result: Ast,
 };
 
@@ -34,6 +35,7 @@ pub fn parseProject(
         .source = source,
         .lex = lex,
         .token_index = 0,
+        .bracket_nesting = 0,
         .result = .{
             .root = undefined, // filled in at the end
             .nodes = .empty,
@@ -252,6 +254,7 @@ pub fn parseRoom(
         .source = source,
         .lex = lex,
         .token_index = 0,
+        .bracket_nesting = 0,
         .result = .{
             .root = undefined, // filled in at the end
             .nodes = .empty,
@@ -1381,10 +1384,10 @@ pub const Precedence = enum {
 fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
     var cur = try parseUnit(cx, token);
     while (true) {
-        if (getBinOp(peekDown(cx))) |op| {
+        if (getBinOp(peekWrapped(cx))) |op| {
             // If it's a binop assign like `+=`, fall back to where it's
             // handled in `parseStatement`.
-            if (peekDownSecond(cx).kind == .eq) break;
+            if (peekWrappedSecond(cx).kind == .eq) break;
 
             cur = try parseBinOp(cx, cur, prec, op) orelse break;
         } else if (isAtomToken(peekRight(cx))) {
@@ -1484,9 +1487,9 @@ fn getBinOp(token: *const lexer.Token) ?Ast.BinOp {
 
 fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?Ast.NodeIndex {
     if (@intFromEnum(prec) >= @intFromEnum(op.precedence())) return null;
-    const token = consumeDown(cx);
+    const token = consumeWrapped(cx);
     std.debug.assert(getBinOp(token) == op);
-    const rhs = try parseExpr(cx, consumeDown(cx), op.precedence());
+    const rhs = try parseExpr(cx, consumeWrapped(cx), op.precedence());
     return try storeNode(cx, token, .{ .binop = .{
         .op = op,
         .lhs = lhs,
@@ -1497,9 +1500,9 @@ fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?As
 fn parseList(cx: *Cx) !Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex, 64) = .{};
     while (true) {
-        const token = peekRight(cx);
+        const token = peekWrapped(cx);
         if (!isAtomToken(token)) break;
-        _ = consumeRight(cx);
+        _ = consumeWrapped(cx);
         const node = try parseExpr(cx, token, .space);
         try appendNode(cx, &result, node);
     }
@@ -1566,19 +1569,42 @@ fn peekDown(cx: *const Cx) *const lexer.Token {
     return cx.lex.tokens.at(.fromIndex(index));
 }
 
-fn peekDownSecond(cx: *const Cx) *const lexer.Token {
-    const index = findNonNewline(cx) + 1;
+fn wrappedPeekIndex(cx: *const Cx) u32 {
+    return if (cx.bracket_nesting == 0)
+        cx.token_index
+    else
+        findNonNewline(cx);
+}
+
+fn peekWrapped(cx: *const Cx) *const lexer.Token {
+    const index = wrappedPeekIndex(cx);
+    return cx.lex.tokens.at(.fromIndex(index));
+}
+
+fn peekWrappedSecond(cx: *const Cx) *const lexer.Token {
+    const index = wrappedPeekIndex(cx) + 1;
     return cx.lex.tokens.at(.fromIndex(index));
 }
 
 fn consumeRight(cx: *Cx) *const lexer.Token {
     const result = cx.lex.tokens.at(.fromIndex(cx.token_index));
     cx.token_index += 1;
+    switch (result.kind) {
+        .paren_l, .bracket_l => cx.bracket_nesting += 1,
+        .paren_r, .bracket_r => cx.bracket_nesting -= 1,
+        else => {},
+    }
     return result;
 }
 
 fn consumeDown(cx: *Cx) *const lexer.Token {
     skipNewlines(cx);
+    return consumeRight(cx);
+}
+
+fn consumeWrapped(cx: *Cx) *const lexer.Token {
+    if (cx.bracket_nesting != 0)
+        skipNewlines(cx);
     return consumeRight(cx);
 }
 
