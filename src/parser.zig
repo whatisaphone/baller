@@ -66,9 +66,9 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
 
     {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         _ = try parseIdentifier(cx, token, enum { target });
-        const target = try parseIdentifier(cx, consumeToken(cx), games.Target);
+        const target = try parseIdentifier(cx, consumeRight(cx), games.Target);
         try expect(cx, .newline);
 
         const node = try storeNode(cx, token, .{ .target = target });
@@ -77,7 +77,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .index => {
@@ -132,7 +132,7 @@ fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -179,7 +179,7 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -303,7 +303,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -438,14 +438,14 @@ fn parseRmim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     const rmih = rmih: {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         _ = try parseIdentifier(cx, token2, enum { @"raw-block" });
         break :rmih try parseRawBlock(cx, token2);
     };
 
     const im = im: {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         _ = try parseIdentifier(cx, token2, enum { im });
         break :im try parseRmimIm(cx, token2);
     };
@@ -472,7 +472,7 @@ fn parseRmimIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -512,7 +512,7 @@ fn parseRmda(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -542,7 +542,7 @@ fn parseObim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -576,7 +576,7 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -633,7 +633,7 @@ fn parseSoundChildren(cx: *Cx) !Ast.ExtraSlice {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -682,7 +682,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -742,7 +742,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -801,7 +801,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -818,7 +818,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     try appendNode(cx, &children, node_index);
                 },
                 .akcd => {
-                    const codec_token = consumeToken(cx);
+                    const codec_token = consumeRight(cx);
                     const path = try expectString(cx);
                     try expect(cx, .newline);
 
@@ -867,7 +867,7 @@ fn parseTalkie(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
     var result: std.BoundedArray(u32, 256) = .{};
     while (true) {
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .integer => {
                 const source = cx.source[token.span.start.offset..token.span.end.offset];
@@ -902,7 +902,7 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
 
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .sound => {
@@ -935,7 +935,7 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
 fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id = try expectBlockId(cx);
 
-    const contents_token = consumeToken(cx);
+    const contents_token = consumeRight(cx);
     const contents: Ast.RawContents = switch (contents_token.kind) {
         .string => .{ .path = try parseString(cx, contents_token) },
         .hex_string => .{ .data = try parseHexString(cx, contents_token) },
@@ -962,7 +962,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -984,7 +984,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id = try expectBlockId(cx);
 
-    const name = if (peekToken(cx).kind == .identifier) name: {
+    const name = if (peekRight(cx).kind == .identifier) name: {
         const name = try expectIdentifier(cx);
         try expect(cx, .swat);
         break :name name;
@@ -992,7 +992,7 @@ fn parseRawGlob(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     const glob_number = try expectInteger(cx, u16);
 
-    const contents = consumeToken(cx);
+    const contents = consumeRight(cx);
     return switch (contents.kind) {
         .string => parseRawGlobFile(cx, token, block_id, name, glob_number, contents),
         .brace_l => parseRawGlobBlock(cx, token, block_id, name, glob_number),
@@ -1035,7 +1035,7 @@ fn parseRawGlobBlock(
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -1087,7 +1087,7 @@ fn parseLocalScript(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseScriptParams(cx: *Cx) ParseError!Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex.Optional, UsageTracker.max_local_vars) = .{};
     while (true) {
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         const ni: Ast.NodeIndex.Optional = switch (token.kind) {
             .brace_l => break,
             .underscore => .null,
@@ -1116,7 +1116,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     while (true) {
         skipWhitespace(cx);
-        const token2 = consumeToken(cx);
+        const token2 = consumeRight(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -1144,7 +1144,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const number = try expectInteger(cx, u8);
 
-    const contents = consumeToken(cx);
+    const contents = consumeRight(cx);
     const body: Ast.VerbBody = body: switch (contents.kind) {
         .string => {
             try expect(cx, .newline);
@@ -1167,7 +1167,7 @@ fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
     var statements: std.BoundedArray(Ast.NodeIndex, 4096) = .{};
     while (true) {
         skipWhitespace(cx);
-        const token = consumeToken(cx);
+        const token = consumeRight(cx);
         if (token.kind == .brace_r) break;
         const node = try parseStatement(cx, token);
         try appendNode(cx, &statements, node);
@@ -1187,8 +1187,8 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     if (token.kind == .identifier) {
         // Check for labels
-        if (peekToken(cx).kind == .colon) {
-            _ = consumeToken(cx);
+        if (peekRight(cx).kind == .colon) {
+            _ = consumeRight(cx);
             const identifier = try getIdentifier(cx, token);
             return storeNode(cx, token, .{ .label = identifier });
         }
@@ -1197,7 +1197,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .@"var" => {
                 var children: std.BoundedArray(Ast.NodeIndex, UsageTracker.max_local_vars) = .{};
                 while (true) {
-                    const token2 = consumeToken(cx);
+                    const token2 = consumeRight(cx);
                     const name = switch (token2.kind) {
                         .newline => break,
                         .underscore => null,
@@ -1214,16 +1214,16 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .@"if" => {
-                const next = consumeToken(cx);
+                const next = consumeRight(cx);
                 const condition = try parseExpr(cx, next, .space);
                 try expect(cx, .brace_l);
                 const true_stmts = try parseScriptBlock(cx);
 
                 var false_stmts: Ast.ExtraSlice = .empty;
-                if (parseIdentifierOpt(cx, peekToken(cx), enum { @"else" })) |_| {
-                    _ = consumeToken(cx);
-                    if (parseIdentifierOpt(cx, peekToken(cx), enum { @"if" })) |_| {
-                        const else_if = try parseStatement(cx, consumeToken(cx));
+                if (parseIdentifierOpt(cx, peekRight(cx), enum { @"else" })) |_| {
+                    _ = consumeRight(cx);
+                    if (parseIdentifierOpt(cx, peekRight(cx), enum { @"if" })) |_| {
+                        const else_if = try parseStatement(cx, consumeRight(cx));
                         false_stmts = try storeExtra(cx, (&else_if)[0..1]);
                     } else {
                         try expect(cx, .brace_l);
@@ -1238,7 +1238,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .@"while" => {
-                const next = consumeToken(cx);
+                const next = consumeRight(cx);
                 const condition = try parseExpr(cx, next, .space);
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
@@ -1248,15 +1248,15 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .@"for" => {
-                const target = try parseIdentifierNode(cx, consumeToken(cx));
+                const target = try parseIdentifierNode(cx, consumeRight(cx));
                 try expect(cx, .eq);
-                const token2 = consumeToken(cx);
+                const token2 = consumeRight(cx);
                 if (token2.kind == .brace_l) {
-                    const backing = try parseIdentifierNode(cx, consumeToken(cx));
+                    const backing = try parseIdentifierNode(cx, consumeRight(cx));
                     try expect(cx, .brace_r);
-                    if (peekToken(cx).kind != .bracket_l)
-                        return reportUnexpected(cx, peekToken(cx));
-                    const list = try parseExpr(cx, consumeToken(cx), .space);
+                    if (peekRight(cx).kind != .bracket_l)
+                        return reportUnexpected(cx, peekRight(cx));
+                    const list = try parseExpr(cx, consumeRight(cx), .space);
                     try expect(cx, .brace_l);
                     const body = try parseScriptBlock(cx);
                     return storeNode(cx, token, .{ .for_in = .{
@@ -1267,9 +1267,9 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                     } });
                 } else if (isAtomToken(token2)) {
                     const start = try parseExpr(cx, token2, .space);
-                    _ = try parseIdentifier(cx, consumeToken(cx), enum { to });
-                    const end = try parseExpr(cx, consumeToken(cx), .space);
-                    const dir_tok = consumeToken(cx);
+                    _ = try parseIdentifier(cx, consumeRight(cx), enum { to });
+                    const end = try parseExpr(cx, consumeRight(cx), .space);
+                    const dir_tok = consumeRight(cx);
                     const dir: Ast.ForDirection = switch (dir_tok.kind) {
                         .plus => .up,
                         .minus => .down,
@@ -1291,12 +1291,12 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .do => {
                 try expect(cx, .brace_l);
                 const body = try parseScriptBlock(cx);
-                const token2 = consumeToken(cx);
+                const token2 = consumeRight(cx);
                 const condition: Ast.NodeIndex.Optional = condition: switch (token2.kind) {
                     .newline => .null,
                     .identifier => {
                         _ = try parseIdentifier(cx, token2, enum { until });
-                        const next = consumeToken(cx);
+                        const next = consumeRight(cx);
                         const condition = try parseExpr(cx, next, .space);
                         try expect(cx, .newline);
                         break :condition condition.wrap();
@@ -1309,12 +1309,12 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 } });
             },
             .case => {
-                const case_value = try parseExpr(cx, consumeToken(cx), .space);
+                const case_value = try parseExpr(cx, consumeRight(cx), .space);
                 try expect(cx, .brace_l);
                 var branches: std.BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
                 while (true) {
                     skipWhitespace(cx);
-                    const token2 = consumeToken(cx);
+                    const token2 = consumeRight(cx);
                     if (token2.kind == .brace_r) break;
                     const condition: Ast.CaseCondition = if (token2.kind == .bracket_l) blk: {
                         const list = try parseList(cx);
@@ -1349,17 +1349,17 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     const ei = try parseExpr(cx, token, .all);
 
-    if (peekToken(cx).kind == .eq) {
-        const eq_token = consumeToken(cx);
-        const rhs = try parseExpr(cx, consumeToken(cx), .all);
+    if (peekRight(cx).kind == .eq) {
+        const eq_token = consumeRight(cx);
+        const rhs = try parseExpr(cx, consumeRight(cx), .all);
         try expect(cx, .newline);
         return try storeNode(cx, eq_token, .{ .set = .{ .lhs = ei, .rhs = rhs } });
     }
 
-    if (getBinOp(peekToken(cx))) |op| {
-        const op_token = consumeToken(cx);
+    if (getBinOp(peekRight(cx))) |op| {
+        const op_token = consumeRight(cx);
         try expect(cx, .eq);
-        const rhs = try parseExpr(cx, consumeToken(cx), .all);
+        const rhs = try parseExpr(cx, consumeRight(cx), .all);
         try expect(cx, .newline);
         return try storeNode(cx, op_token, .{ .binop_assign = .{
             .op = op,
@@ -1404,11 +1404,11 @@ pub const Precedence = enum {
 fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!Ast.NodeIndex {
     var cur = try parseUnit(cx, token);
     while (true) {
-        const token2 = peekToken(cx);
+        const token2 = peekRight(cx);
         if (getBinOp(token2)) |op| {
             // If it's a binop assign like `+=`, fall back to where it's
             // handled in `parseStatement`.
-            if (peekSecondToken(cx).kind == .eq) break;
+            if (peekRightSecond(cx).kind == .eq) break;
 
             cur = try parseBinOp(cx, cur, prec, op) orelse break;
         } else if (isAtomToken(token2)) {
@@ -1422,15 +1422,15 @@ fn parseExpr(cx: *Cx, token: *const lexer.Token, prec: Precedence) ParseError!As
 
 fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var cur = try parseAtom(cx, token);
-    if (peekToken(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
-        const token2 = consumeToken(cx);
-        const index = try parseExpr(cx, consumeToken(cx), .all);
+    if (peekRight(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
+        const token2 = consumeRight(cx);
+        const index = try parseExpr(cx, consumeRight(cx), .all);
         try expect(cx, .bracket_r);
         cur = try storeNode(cx, token2, .{ .array_get = .{ .lhs = cur, .index = index } });
     }
-    if (peekToken(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
-        _ = consumeToken(cx);
-        const index2 = try parseExpr(cx, consumeToken(cx), .all);
+    if (peekRight(cx).kind == .bracket_l and !anyWhitespaceBetweenNextToken(cx)) {
+        _ = consumeRight(cx);
+        const index2 = try parseExpr(cx, consumeRight(cx), .all);
         try expect(cx, .bracket_r);
         const cur_node = cx.result.nodes.at(cur);
         cur_node.* = .{ .array_get2 = .{
@@ -1471,7 +1471,7 @@ fn parseAtom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             return try storeNode(cx, token, .{ .identifier = identifier });
         },
         .paren_l => {
-            const next = consumeToken(cx);
+            const next = consumeRight(cx);
             const result = try parseTopLevelExpr(cx, next);
             try expect(cx, .paren_r);
             return result;
@@ -1508,9 +1508,9 @@ fn getBinOp(token: *const lexer.Token) ?Ast.BinOp {
 
 fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?Ast.NodeIndex {
     if (@intFromEnum(prec) >= @intFromEnum(op.precedence())) return null;
-    const token = consumeToken(cx);
+    const token = consumeRight(cx);
     std.debug.assert(getBinOp(token) == op);
-    const rhs = try parseExpr(cx, consumeToken(cx), op.precedence());
+    const rhs = try parseExpr(cx, consumeRight(cx), op.precedence());
     return try storeNode(cx, token, .{ .binop = .{
         .op = op,
         .lhs = lhs,
@@ -1521,9 +1521,9 @@ fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?As
 fn parseList(cx: *Cx) !Ast.ExtraSlice {
     var result: std.BoundedArray(Ast.NodeIndex, 64) = .{};
     while (true) {
-        const token = peekToken(cx);
+        const token = peekRight(cx);
         if (!isAtomToken(token)) break;
-        _ = consumeToken(cx);
+        _ = consumeRight(cx);
         const node = try parseExpr(cx, token, .space);
         try appendNode(cx, &result, node);
     }
@@ -1581,15 +1581,15 @@ fn storeExtraU32(cx: *Cx, items: []const u32) !Ast.ExtraSlice {
     return .{ .start = start, .len = len };
 }
 
-fn peekToken(cx: *const Cx) *const lexer.Token {
+fn peekRight(cx: *const Cx) *const lexer.Token {
     return cx.lex.tokens.at(.fromIndex(cx.token_index));
 }
 
-fn peekSecondToken(cx: *const Cx) *const lexer.Token {
+fn peekRightSecond(cx: *const Cx) *const lexer.Token {
     return cx.lex.tokens.at(.fromIndex(cx.token_index + 1));
 }
 
-fn consumeToken(cx: *Cx) *const lexer.Token {
+fn consumeRight(cx: *Cx) *const lexer.Token {
     const result = cx.lex.tokens.at(.fromIndex(cx.token_index));
     cx.token_index += 1;
     return result;
@@ -1597,9 +1597,9 @@ fn consumeToken(cx: *Cx) *const lexer.Token {
 
 fn skipWhitespace(cx: *Cx) void {
     while (true) {
-        const token = peekToken(cx);
+        const token = peekRight(cx);
         if (token.kind == .newline)
-            _ = consumeToken(cx)
+            _ = consumeRight(cx)
         else
             break;
     }
@@ -1613,7 +1613,7 @@ fn anyWhitespaceBetweenNextToken(cx: *const Cx) bool {
 }
 
 fn expectString(cx: *Cx) !Ast.StringSlice {
-    const token = consumeToken(cx);
+    const token = consumeRight(cx);
     if (token.kind != .string)
         return reportExpected(cx, token, .string);
     return parseString(cx, token);
@@ -1671,7 +1671,7 @@ fn parseHexString(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
 }
 
 fn expectInteger(cx: *Cx, T: type) !T {
-    const token = consumeToken(cx);
+    const token = consumeRight(cx);
     if (token.kind != .integer)
         return reportExpected(cx, token, .integer);
     const source = cx.source[token.span.start.offset..token.span.end.offset];
@@ -1682,7 +1682,7 @@ fn expectInteger(cx: *Cx, T: type) !T {
 }
 
 fn expectIdentifier(cx: *Cx) !Ast.StringSlice {
-    const token = consumeToken(cx);
+    const token = consumeRight(cx);
     if (token.kind != .identifier)
         return reportExpected(cx, token, .integer);
     return getIdentifier(cx, token);
@@ -1706,14 +1706,14 @@ fn getIdentifier(cx: *Cx, token: *const lexer.Token) !Ast.StringSlice {
 }
 
 fn expectBlockId(cx: *Cx) !BlockId {
-    const token = peekToken(cx);
+    const token = peekRight(cx);
     const ident = try expectIdentifier(cx);
     return BlockId.parse(cx.result.strings.get(ident)) orelse
         reportError(cx, token, "invalid block id", .{});
 }
 
 fn expect(cx: *Cx, kind: lexer.Token.Kind) !void {
-    const token = consumeToken(cx);
+    const token = consumeRight(cx);
     if (token.kind != kind)
         return reportExpected(cx, token, kind);
 }
