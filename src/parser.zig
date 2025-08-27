@@ -65,8 +65,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     var parsed_index = false;
 
     {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         _ = try parseIdentifier(cx, token, enum { target });
         const target = try parseIdentifier(cx, consumeRight(cx), games.Target);
         try expect(cx, .newline);
@@ -76,8 +75,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
     }
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .index => {
@@ -131,8 +129,7 @@ fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 16) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -178,8 +175,7 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 32) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -302,8 +298,7 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
     var variables: std.BoundedArray(Ast.NodeIndex, 160) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -437,15 +432,13 @@ fn parseRmim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     try expect(cx, .brace_l);
 
     const rmih = rmih: {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         _ = try parseIdentifier(cx, token2, enum { @"raw-block" });
         break :rmih try parseRawBlock(cx, token2);
     };
 
     const im = im: {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         _ = try parseIdentifier(cx, token2, enum { im });
         break :im try parseRmimIm(cx, token2);
     };
@@ -471,8 +464,7 @@ fn parseRmimIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -511,8 +503,7 @@ fn parseRmda(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -541,8 +532,7 @@ fn parseObim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 12) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -575,8 +565,7 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -632,8 +621,7 @@ fn parseSoundChildren(cx: *Cx) !Ast.ExtraSlice {
     var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -681,8 +669,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
     var children: std.BoundedArray(Ast.NodeIndex, 8) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .@"raw-block" => {
@@ -741,8 +728,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var indices_opt: ?Ast.ExtraSlice = null;
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -800,8 +786,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 1536) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -901,8 +886,7 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
     var children: std.BoundedArray(Ast.NodeIndex, 192) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         switch (token.kind) {
             .identifier => switch (try parseIdentifier(cx, token, Keyword)) {
                 .sound => {
@@ -961,8 +945,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -1034,8 +1017,7 @@ fn parseRawGlobBlock(
     var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -1115,8 +1097,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
 
     while (true) {
-        skipWhitespace(cx);
-        const token2 = consumeRight(cx);
+        const token2 = consumeDown(cx);
         switch (token2.kind) {
             .identifier => switch (try parseIdentifier(cx, token2, Keyword)) {
                 .@"raw-block" => {
@@ -1166,8 +1147,7 @@ fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
     var statements: std.BoundedArray(Ast.NodeIndex, 4096) = .{};
     while (true) {
-        skipWhitespace(cx);
-        const token = consumeRight(cx);
+        const token = consumeDown(cx);
         if (token.kind == .brace_r) break;
         const node = try parseStatement(cx, token);
         try appendNode(cx, &statements, node);
@@ -1313,8 +1293,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
                 try expect(cx, .brace_l);
                 var branches: std.BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
                 while (true) {
-                    skipWhitespace(cx);
-                    const token2 = consumeRight(cx);
+                    const token2 = consumeDown(cx);
                     if (token2.kind == .brace_r) break;
                     const condition: Ast.CaseCondition = if (token2.kind == .bracket_l) blk: {
                         const list = try parseList(cx);
@@ -1593,6 +1572,11 @@ fn consumeRight(cx: *Cx) *const lexer.Token {
     const result = cx.lex.tokens.at(.fromIndex(cx.token_index));
     cx.token_index += 1;
     return result;
+}
+
+fn consumeDown(cx: *Cx) *const lexer.Token {
+    skipWhitespace(cx);
+    return consumeRight(cx);
 }
 
 fn skipWhitespace(cx: *Cx) void {
