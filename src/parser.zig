@@ -1412,9 +1412,11 @@ fn parseUnit(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         const index2 = try parseExpr(cx, consumeDown(cx), .all);
         try expectDown(cx, .bracket_r);
         const cur_node = cx.result.nodes.at(cur);
+        const lhs = cur_node.array_get.lhs;
+        const index1 = cur_node.array_get.index;
         cur_node.* = .{ .array_get2 = .{
-            .lhs = cur_node.array_get.lhs,
-            .index1 = cur_node.array_get.index,
+            .lhs = lhs,
+            .index1 = index1,
             .index2 = index2,
         } };
     }
