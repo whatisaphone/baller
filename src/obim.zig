@@ -10,6 +10,7 @@ const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const Compression = @import("rmim.zig").Compression;
 const utils = @import("utils.zig");
 
@@ -178,7 +179,7 @@ fn decodeZigZagV(
     out: []u8,
 ) !void {
     var stream = std.io.fixedBufferStream(data);
-    var in = std.io.bitReader(.little, stream.reader());
+    var in = iold.bitReader(.little, stream.reader());
 
     const shift = compression % 10;
     var color = try stream.reader().readByte();
@@ -239,7 +240,7 @@ fn decodeRMajMin(
 }
 
 const MajMinCodec = struct {
-    in: std.io.BitReader(.little, std.io.FixedBufferStream([]const u8).Reader),
+    in: iold.BitReader(.little, std.io.FixedBufferStream([]const u8).Reader),
     shift: u8,
 
     color: u8,
@@ -248,7 +249,7 @@ const MajMinCodec = struct {
 
     fn init(src: std.io.FixedBufferStream([]const u8).Reader, shift: u8) !MajMinCodec {
         return .{
-            .in = std.io.bitReader(.little, src),
+            .in = iold.bitReader(.little, src),
             .shift = shift,
             .color = try src.readByte(),
             .repeat_mode = false,
@@ -371,7 +372,7 @@ fn encodeZigZagV(
 }
 
 const ZigZagEncoder = struct {
-    out: std.io.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    out: iold.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
     bpp: u4,
 
     prev_color: u8,
@@ -380,7 +381,7 @@ const ZigZagEncoder = struct {
     fn begin(out: std.ArrayListUnmanaged(u8).Writer, bpp: u4, initial_color: u8) !ZigZagEncoder {
         try out.writeByte(initial_color);
         return .{
-            .out = std.io.bitWriter(.little, out),
+            .out = iold.bitWriter(.little, out),
             .bpp = bpp,
             .prev_color = initial_color,
             .dir = 1,
@@ -433,7 +434,7 @@ fn encodeRMajMin(
 }
 
 const RMajMinEncoder = struct {
-    out: std.io.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    out: iold.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
     bpp: u4,
 
     prev_color: u8,
@@ -446,7 +447,7 @@ const RMajMinEncoder = struct {
     ) !RMajMinEncoder {
         try writer.writeByte(initial_color);
         return .{
-            .out = std.io.bitWriter(.little, writer),
+            .out = iold.bitWriter(.little, writer),
             .bpp = bpp,
             .prev_color = initial_color,
             .repeat = 0,

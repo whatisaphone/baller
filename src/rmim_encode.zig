@@ -6,6 +6,7 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const Compression = @import("rmim.zig").Compression;
 
 pub fn encode(
@@ -70,7 +71,7 @@ fn compressBmapNMajMin(
     };
     const max_pixel: u8 = @intCast((@as(u9, 1) << @intCast(color_bits)) - 1);
 
-    var out = std.io.bitWriter(.little, writer);
+    var out = iold.bitWriter(.little, writer);
 
     var current = header.pixels[0];
     if (current > max_pixel)

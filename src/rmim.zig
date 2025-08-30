@@ -6,6 +6,7 @@ const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const utils = @import("utils.zig");
 
 pub const Compression = struct {
@@ -115,7 +116,7 @@ fn decompressBmapNMajMin(
 ) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
-    var in = std.io.bitReader(.little, reader.reader());
+    var in = iold.bitReader(.little, reader.reader());
 
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
