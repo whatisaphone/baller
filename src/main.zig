@@ -13,7 +13,7 @@ const talkie_extract = @import("talkie_extract.zig");
 pub fn main() !u8 {
     runCli() catch |err| {
         if (err == error.CommandLine) {
-            try std.io.getStdErr().writeAll(usage);
+            try std.fs.File.stderr().writeAll(usage);
             return 1;
         }
         if (err == error.CommandLineReported or err == error.Reported) {
@@ -51,12 +51,12 @@ fn runCli() !void {
         std.mem.eql(u8, command, "-h") or
         std.mem.eql(u8, command, "--help"))
     {
-        try std.io.getStdOut().writeAll(usage);
+        try std.fs.File.stdout().writeAll(usage);
     } else if (std.mem.eql(u8, command, "version") or
         std.mem.eql(u8, command, "-v") or
         std.mem.eql(u8, command, "--version"))
     {
-        try std.io.getStdOut().writeAll(build_options.version);
+        try std.fs.File.stdout().writeAll(build_options.version);
     } else if (std.mem.eql(u8, command, "build")) {
         try build.runCli(allocator, args[2..]);
     } else if (std.mem.eql(u8, command, "dump")) {

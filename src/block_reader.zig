@@ -15,7 +15,7 @@ fn OldBlockReader(Stream: type) type {
     comptime std.debug.assert(std.mem.startsWith(
         u8,
         @typeName(Stream),
-        "*io.counting_reader.CountingReader(",
+        "*Io.counting_reader.CountingReader(",
     ));
 
     return struct {
@@ -45,7 +45,7 @@ fn OldBlockReader(Stream: type) type {
             const id, const len = try self.next();
             if (id != expected_id) {
                 std.debug.print(
-                    \\expected block {} but found {}
+                    \\expected block {f} but found {f}
                     \\
                 ,
                     .{ expected_id, id },
@@ -93,7 +93,7 @@ fn OldFixedBlockReader(Stream: type) type {
     comptime std.debug.assert(std.mem.startsWith(
         u8,
         @typeName(Stream),
-        "*io.fixed_buffer_stream.FixedBufferStream(",
+        "*Io.fixed_buffer_stream.FixedBufferStream(",
     ));
 
     return struct {
@@ -140,7 +140,7 @@ fn OldFixedBlockReader(Stream: type) type {
             const id, const len = try self.next();
             if (id != expected_id) {
                 std.debug.print(
-                    \\expected block {} but found {}
+                    \\expected block {f} but found {f}
                     \\
                 ,
                     .{ expected_id, id },
@@ -238,7 +238,7 @@ const FixedBlockReader = struct {
             .size = size,
         };
 
-        self.diag.trace(offset, "start block {}", .{id});
+        self.diag.trace(offset, "start block {f}", .{id});
 
         return .{ .ok = .{
             .block = self.current.?,
@@ -261,7 +261,7 @@ const FixedBlockReader = struct {
 
     fn validateId(self: *const Self, raw: BlockId.Raw, offset: u32) !BlockId {
         return BlockId.init(raw) orelse {
-            self.diag.err(offset, "invalid block id: {}", .{BlockId.fmtInvalid(raw)});
+            self.diag.err(offset, "invalid block id: {f}", .{BlockId.fmtInvalid(raw)});
             return error.AddedToDiagnostic;
         };
     }
@@ -278,7 +278,7 @@ const FixedBlockReader = struct {
         const pos: u32 = @intCast(self.stream.pos);
         const expected_end = current.end();
         if (pos == expected_end) { // happy path
-            self.diag.trace(pos, "end block {}", .{current.id});
+            self.diag.trace(pos, "end block {f}", .{current.id});
             self.current = null;
             return true;
         }
@@ -286,7 +286,7 @@ const FixedBlockReader = struct {
         // otherwise report an error
         self.diag.err(
             pos,
-            "desync during block {}; expected end 0x{x:0>8}",
+            "desync during block {f}; expected end 0x{x:0>8}",
             .{ current.id, expected_end },
         );
         return false;
@@ -340,7 +340,7 @@ const BlockResult = union(enum) {
         if (id == self.ok.block.id) return self;
         self.ok.reader.diag.err(
             self.ok.block.start - block_header_size,
-            "expected block {} but found {}",
+            "expected block {f} but found {f}",
             .{ id, self.ok.block.id },
         );
         return .err;
@@ -396,7 +396,7 @@ const BlockResult = union(enum) {
     }
 };
 
-pub const FxbclReader = iold.LimitedReader(std.io.CountingReader(iold.BufferedReader(4096, io.XorReader(std.fs.File.Reader).Reader).Reader).Reader);
+pub const FxbclReader = iold.LimitedReader(std.io.CountingReader(iold.BufferedReader(4096, io.XorReader(std.fs.File.DeprecatedReader).Reader).Reader).Reader);
 
 pub fn fxbclPos(in: *const FxbclReader) u32 {
     return @intCast(in.inner_reader.context.bytes_read);
@@ -455,7 +455,7 @@ pub const StreamingBlockReader = struct {
     pub fn commit(self: *StreamingBlockReader, block: *const Block) void {
         _ = self.state.baseline;
 
-        self.diag.trace(block.offset(), "start block {}", .{block.id});
+        self.diag.trace(block.offset(), "start block {f}", .{block.id});
 
         std.debug.assert(fxbclPos(self.in) == block.start);
 
@@ -470,7 +470,7 @@ pub const StreamingBlockReader = struct {
         _ = self.state.inside_block;
 
         const pos = fxbclPos(self.in);
-        self.diag.trace(pos, "end block {}", .{block.id});
+        self.diag.trace(pos, "end block {f}", .{block.id});
 
         if (self.in.bytes_left != 0) return error.BadData;
         std.debug.assert(pos == block.end());
@@ -491,7 +491,7 @@ pub const StreamingBlockReader = struct {
     pub fn expect(self: *StreamingBlockReader, id: BlockId) !?Block {
         const block = try self.next() orelse return null;
         if (block.id != id) {
-            self.diag.err(block.offset(), "expected block {} but found {}", .{ id, block.id });
+            self.diag.err(block.offset(), "expected block {f} but found {f}", .{ id, block.id });
             return error.AddedToDiagnostic;
         }
         return block;

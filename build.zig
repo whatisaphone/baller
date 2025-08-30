@@ -20,9 +20,11 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "baller",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     if (valgrind)
         exe.linkLibC();
@@ -60,9 +62,11 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     if (valgrind)
         exe_unit_tests.linkLibC();
@@ -106,10 +110,12 @@ pub fn build(b: *std.Build) void {
         const release_target = b.resolveTargetQuery(target_query);
         const release_exe = b.addExecutable(.{
             .name = "baller",
-            .root_source_file = b.path("src/main.zig"),
-            .target = release_target,
-            .optimize = .ReleaseFast,
-            .strip = true,
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = release_target,
+                .optimize = .ReleaseFast,
+                .strip = true,
+            }),
         });
 
         const release_exe_options = b.addOptions();

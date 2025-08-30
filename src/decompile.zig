@@ -362,7 +362,8 @@ fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
             std.debug.assert(bb.state == .new or bb.state == .decompiled);
         if (bb.state != .new) continue;
         try scheduleBasicBlockWithAssumedStack(cx, bbi);
-        return @call(.always_tail, decompileBasicBlocks, .{ cx, bytecode });
+        // TODO: make this a tail call again once stage2 supports it
+        return decompileBasicBlocks(cx, bytecode);
     }
 
     // Do some checks on the last basic block.
@@ -2630,7 +2631,8 @@ fn emitSingleNode(cx: *EmitCx, ni: NodeIndex, skip_first_indent: bool) !void {
             try cx.out.appendSlice(cx.gpa, "} else ");
 
             if (shouldEmitElseIf(cx, k.false)) |child| {
-                return @call(.always_tail, emitSingleNode, .{ cx, child, true });
+                // TODO: make this a tail call again once stage2 supports it
+                return emitSingleNode(cx, child, true);
             }
 
             try cx.out.appendSlice(cx.gpa, "{\n");

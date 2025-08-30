@@ -41,7 +41,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
         .diagnostic = &diagnostic,
         .index_path = index_path,
         .savegame_path = savegame_path,
-        .out = std.io.getStdOut().writer(),
+        .out = std.fs.File.stdout().deprecatedWriter(),
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
@@ -54,7 +54,7 @@ const Args = struct {
     diagnostic: *Diagnostic,
     index_path: [:0]const u8,
     savegame_path: [:0]const u8,
-    out: std.fs.File.Writer,
+    out: std.fs.File.DeprecatedWriter,
 };
 
 pub fn run(args: Args) !void {
@@ -80,7 +80,7 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
     defer file.close();
 
     var raw: [8 + @sizeOf(Maxs)]u8 = undefined;
-    try file.reader().readNoEof(&raw);
+    try file.deprecatedReader().readNoEof(&raw);
     for (&raw) |*b|
         b.* ^= xor_key;
 
@@ -346,11 +346,11 @@ fn dumpHbgl(raw: []const u8, out: anytype) !void {
     const header = std.mem.bytesAsValue(HbglHeader, raw[0..@sizeOf(HbglHeader)]);
     const payload = raw[@sizeOf(HbglHeader)..];
     if (header.size != payload.len) return error.BadData;
-    try out.print("glob {} {} = ", .{ header.type, header.number });
+    try out.print("glob {f} {} = ", .{ header.type, header.number });
     switch (header.type) {
         .array => try dumpArray(payload, out),
         .image => try out.writeAll("<image>"),
-        else => try out.print("{}", .{std.fmt.fmtSliceHexLower(payload)}),
+        else => try out.print("{x}", .{payload}),
     }
     try out.writeByte('\n');
 }
@@ -386,7 +386,7 @@ fn dumpArray(raw: []const u8, out: anytype) !void {
         switch (header.type) {
             .string => {
                 const str = cur.use()[0..across_len];
-                try out.print(" \"{}\"", .{std.fmt.fmtSliceEscapeLower(str)});
+                try out.print(" \"{f}\"", .{std.ascii.hexEscape(str, .lower)});
             },
             else => {
                 for (0..across_len) |_| {
@@ -416,13 +416,8 @@ const HbglHeader = extern struct {
         image = 19,
         _,
 
-        pub fn format(
-            self: Type,
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            return fmtTagNameNonExhaustive(self).format(fmt, options, writer);
+        pub fn format(self: Type, w: *std.io.Writer) !void {
+            return fmtTagNameNonExhaustive(self).format(w);
         }
     };
 };
@@ -566,34 +561,21 @@ fn FmtTagNameNonExhaustive(E: type) type {
     return struct {
         value: E,
 
-        pub fn format(
-            self: @This(),
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            comptime std.debug.assert(fmt.len == 0);
+        pub fn format(self: @This(), w: *std.io.Writer) !void {
             if (std.enums.tagName(E, self.value)) |name|
-                return std.fmt.formatText(name, "s", options, writer);
-            // XXX: this should not ignore `options`
-            return writer.print("0x{x}", .{@intFromEnum(self.value)});
+                return w.writeAll(name);
+            return w.print("0x{x}", .{@intFromEnum(self.value)});
         }
     };
 }
 
 fn debugValue(out: anytype, name: []const u8, ptr: anytype) !void {
     if (!debug) return;
-    try out.print(
-        "{s}: {}\n",
-        .{ name, std.fmt.fmtSliceHexLower(std.mem.asBytes(ptr)) },
-    );
+    try out.print("{s}: {x}\n", .{ name, std.mem.asBytes(ptr) });
 }
 
 fn debugSlice(out: anytype, name: []const u8, slice: anytype) !void {
     if (!debug) return;
     for (slice, 0..) |*ptr, i|
-        try out.print(
-            "{s}[{}]: {}\n",
-            .{ name, i, std.fmt.fmtSliceHexLower(std.mem.asBytes(ptr)) },
-        );
+        try out.print("{s}[{}]: {x}\n", .{ name, i, std.mem.asBytes(ptr) });
 }

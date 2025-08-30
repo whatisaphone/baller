@@ -52,7 +52,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     const output_path = output_path_opt orelse return cliargs.reportMissing("output");
     const xor_key = xor_key_opt orelse 0x00;
 
-    var in_xor = io.xorReader(std.io.getStdIn().reader(), xor_key);
+    var in_xor = io.xorReader(std.fs.File.stdin().deprecatedReader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
@@ -138,7 +138,7 @@ fn dumpNested(
     var name_buf: ["00000000-XXXX.bin".len + 1]u8 = undefined;
     const name = std.fmt.bufPrintZ(
         &name_buf,
-        "{x:0>8}-{}",
+        "{x:0>8}-{f}",
         .{ parent.offset(), parent.id },
     ) catch unreachable;
 
@@ -164,7 +164,7 @@ fn dumpRaw(cx: *Cx, block: *const Block, prefix: ?[8]u8) !void {
     var name_buf: ["00000000-XXXX.bin".len + 1]u8 = undefined;
     const name = std.fmt.bufPrintZ(
         &name_buf,
-        "{x:0>8}-{}.bin",
+        "{x:0>8}-{f}.bin",
         .{ block.offset(), block.id },
     ) catch unreachable;
 

@@ -38,7 +38,7 @@ pub fn appendBlockPath(
 ) !PrintedPath {
     std.debug.assert(ext.len >= 1 and ext.len <= 3 and ext[0] != '.');
 
-    return print(buf, "{}_{:0>4}.{s}", .{ block_id, number, ext });
+    return print(buf, "{f}_{:0>4}.{s}", .{ block_id, number, ext });
 }
 
 pub fn popFile(buf: *Path) !void {

@@ -188,7 +188,7 @@ test "dump smoke test" {
     const in_path = "src/fixtures/baseball2001/baseball 2001.(b)";
     const in_file = try std.fs.cwd().openFileZ(in_path, .{});
     defer in_file.close();
-    var in_xor = io.xorReader(in_file.reader(), extract.xor_key);
+    var in_xor = io.xorReader(in_file.deprecatedReader(), extract.xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
@@ -444,6 +444,6 @@ fn saveloadDumpSmokeTest(
         .diagnostic = &diagnostic,
         .index_path = "src/fixtures/" ++ index_path,
         .savegame_path = "src/fixtures/" ++ savegame_path,
-        .out = sink.writer(),
+        .out = sink.deprecatedWriter(),
     });
 }

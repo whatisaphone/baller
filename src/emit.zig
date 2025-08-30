@@ -114,11 +114,11 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
 
     const out_file = try cx.output_dir.createFileZ(out_name, .{});
     defer out_file.close();
-    const out_xor = io.xorWriter(out_file.writer(), xor_key);
+    const out_xor = io.xorWriter(out_file.deprecatedWriter(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = iold.countingWriter(out_buf.writer());
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
+    var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
 
     const lecf_start = try beginBlock(&out, .LECF);
@@ -141,7 +141,7 @@ fn emitRoom(
     cx: *const Cx,
     disk_number: u8,
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    fixups: *std.array_list.Managed(Fixup),
     room_number: u8,
 ) !void {
     const lflf_start = try beginBlock(out, .LFLF);
@@ -195,7 +195,7 @@ fn emitGlob(
 fn emitGlobBlock(
     cx: *const Cx,
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    fixups: *std.array_list.Managed(Fixup),
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob_start"),
 ) !void {
@@ -352,11 +352,11 @@ const DirectoryEntry = struct {
 fn emitIndex(cx: *const Cx) !void {
     const out_file = try cx.output_dir.createFileZ(cx.index_name, .{});
     defer out_file.close();
-    const out_xor = io.xorWriter(out_file.writer(), xor_key);
+    const out_xor = io.xorWriter(out_file.deprecatedWriter(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = iold.countingWriter(out_buf.writer());
 
-    var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
+    var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
 
     // SCUMM outputs sequential room numbers for these whether or not the room
@@ -432,7 +432,7 @@ fn writeMaxs(cx: *const Cx, out: anytype, data_mut: std.ArrayListUnmanaged(u8)) 
 
 fn writeDirectory(
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    fixups: *std.array_list.Managed(Fixup),
     block_id: BlockId,
     directory: *const std.MultiArrayList(DirectoryEntry),
 ) !void {
@@ -448,7 +448,7 @@ fn writeDirectory(
 fn writeVersionIntoInib(
     gpa: std.mem.Allocator,
     out: anytype,
-    fixups: *std.ArrayList(Fixup),
+    fixups: *std.array_list.Managed(Fixup),
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
     std.debug.assert(raw_block.block_id == .INIB);

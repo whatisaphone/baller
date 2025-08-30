@@ -34,7 +34,7 @@ pub fn extract(
 ) !void {
     const in_file = try fsd.openFileZ(diagnostic, input_dir, input_path);
     defer in_file.close();
-    const in_xor = io.xorReader(in_file.reader(), 0x00);
+    const in_xor = io.xorReader(in_file.deprecatedReader(), 0x00);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
@@ -123,7 +123,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
     try cx.code.writer(cx.gpa).print(
-        "    sound {} {s}@{} {{\n",
+        "    sound {f} {s}@{} {{\n",
         .{ digi_block.id, name, sgen.number },
     );
 
@@ -137,7 +137,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
     const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
-    var wav_out = iold.bufferedWriter(wav_file.writer());
+    var wav_out = iold.bufferedWriter(wav_file.deprecatedWriter());
     try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
     try io.copy(cx.in.reader(), wav_out.writer());
     try wav_out.flush();
@@ -164,10 +164,10 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
 
     const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
-    try wav_file.writer().writeAll(&peeked_bytes);
+    try wav_file.deprecatedWriter().writeAll(&peeked_bytes);
     try io.copy(
         iold.limitedReader(cx.in.reader(), entry.size - peeked_bytes.len),
-        wav_file.writer(),
+        wav_file.deprecatedWriter(),
     );
 }
 
@@ -195,10 +195,10 @@ pub fn build(
 
     const out_file = try fsd.createFileZ(diagnostic, out_dir, out_name);
     defer out_file.close();
-    var out_buf = iold.bufferedWriter(out_file.writer());
+    var out_buf = iold.bufferedWriter(out_file.deprecatedWriter());
     var out = iold.countingWriter(out_buf.writer());
 
-    var fixups: std.ArrayList(Fixup) = .init(gpa);
+    var fixups: std.array_list.Managed(Fixup) = .init(gpa);
     defer fixups.deinit();
 
     const song_start = try beginBlock(&out, .SONG);
@@ -262,7 +262,7 @@ pub fn build(
 
     try out_buf.flush();
 
-    try writeFixups(out_file, out_file.writer(), fixups.items);
+    try writeFixups(out_file, out_file.deprecatedWriter(), fixups.items);
 
     try out_file.seekTo(sgens_start);
     std.debug.assert(sgens.items.len == sgens.capacity);

@@ -30,7 +30,7 @@ const Extract = struct {
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     const in_file = try std.fs.cwd().openFileZ(args.input_path, .{});
     defer in_file.close();
-    var buf_reader = iold.bufferedReader(in_file.reader());
+    var buf_reader = iold.bufferedReader(in_file.deprecatedReader());
     var reader = std.io.countingReader(buf_reader.reader());
 
     var cur_path_buf: pathf.Path = .{};
@@ -67,7 +67,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 }
 
 const State = struct {
-    reader: *std.io.CountingReader(iold.BufferedReader(4096, std.fs.File.Reader).Reader),
+    reader: *std.io.CountingReader(iold.BufferedReader(4096, std.fs.File.DeprecatedReader).Reader),
     reader_pos: *const u64,
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
     cur_path: *pathf.Path,
@@ -200,7 +200,7 @@ fn parseStreamingRaw(
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(
-        "raw-block {} {s}\n",
+        "raw-block {f} {s}\n",
         .{ block_id, state.curPathRelative() },
     );
 }
@@ -220,7 +220,7 @@ fn parseFixedRaw(
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(
-        "raw-block {} {s}\n",
+        "raw-block {f} {s}\n",
         .{ block_id, state.curPathRelative() },
     );
 }
@@ -293,7 +293,7 @@ fn parseTalkFixed(
     defer path2.restore();
     const wav_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer wav_file.close();
-    var wav_stream = iold.bufferedWriter(wav_file.writer());
+    var wav_stream = iold.bufferedWriter(wav_file.deprecatedWriter());
 
     try wav.writeHeader(sdat_len, wav_stream.writer());
     try wav_stream.writer().writeAll(sdat_raw);

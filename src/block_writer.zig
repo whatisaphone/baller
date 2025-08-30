@@ -12,7 +12,7 @@ pub fn beginBlock(stream: anytype, id: BlockId) !u32 {
     return block_start;
 }
 
-pub fn endBlock(stream: anytype, fixups: *std.ArrayList(Fixup), block_start: u32) !void {
+pub fn endBlock(stream: anytype, fixups: *std.array_list.Managed(Fixup), block_start: u32) !void {
     const stream_pos: u32 = @intCast(stream.bytes_written);
     try fixups.append(.{
         .offset = block_start + 4,

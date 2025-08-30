@@ -518,7 +518,7 @@ fn extractIndex(
         @memset(maxs_missing_bytes, 0);
 
         var path_buf: ["index_MAXS.bin".len + 1]u8 = undefined;
-        const path = try std.fmt.bufPrintZ(&path_buf, "index_{}.bin", .{BlockId.MAXS});
+        const path = try std.fmt.bufPrintZ(&path_buf, "index_{f}.bin", .{BlockId.MAXS});
         try fsd.writeFileZ(diagnostic, output_dir, path, maxs_present_bytes);
 
         try code.writer(gpa).print("    maxs \"{s}\"\n", .{path});
@@ -653,7 +653,7 @@ fn readDirectory(
 ) !Directory {
     const block_raw = try blocks.expect(block_id).bytes();
 
-    try code.writer(gpa).print("    index-block {}\n", .{block_id});
+    try code.writer(gpa).print("    index-block {f}\n", .{block_id});
 
     var in = std.io.fixedBufferStream(block_raw);
 
@@ -703,7 +703,7 @@ fn readRoomNames(
         const name = try fba.allocator().dupe(u8, name_src_z[0..name_len :0]);
         starts[number] = @intCast(name.ptr - buffer_start);
         lens[number] = std.math.cast(u8, name_len) orelse return error.BadData;
-        diag.trace(@intCast(in.pos), "  {:>3}: {s}", .{ number, std.fmt.fmtSliceEscapeLower(name) });
+        diag.trace(@intCast(in.pos), "  {:>3}: {f}", .{ number, std.ascii.hexEscape(name, .lower) });
     }
 
     const buffer_len = fba.buffer[fba.end_index..].ptr - buffer_start;
@@ -767,7 +767,7 @@ fn extractDisk(
 
     const in_file = try fsd.openFileZ(diagnostic, input_dir, disk_name);
     defer in_file.close();
-    const in_xor = io.xorReader(in_file.reader(), xor_key);
+    const in_xor = io.xorReader(in_file.deprecatedReader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
@@ -2069,7 +2069,7 @@ fn extractSound(
     cx.cx.symbols.writeGlobName(.sound, glob_number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
 
-    try code.writer(cx.cx.gpa).print("sound {} {s}@{} {{\n", .{ block_id, name, glob_number });
+    try code.writer(cx.cx.gpa).print("sound {f} {s}@{} {{\n", .{ block_id, name, glob_number });
 
     try sounds.extract(cx.cx.gpa, diag, name, raw, code, cx.room_dir, cx.room_path);
 
@@ -2194,7 +2194,7 @@ fn writeRawGlob(
         cx.cx.symbols.writeGlobName(kind, glob_number, filename_buf.writer()) catch unreachable;
         break :blk filename_buf.slice();
     } else blk: {
-        try filename_buf.writer().print("{}_{:0>4}", .{ block.id, glob_number });
+        try filename_buf.writer().print("{f}_{:0>4}", .{ block.id, glob_number });
         break :blk null;
     };
     filename_buf.appendSlice(".bin\x00") catch unreachable;
@@ -2202,7 +2202,7 @@ fn writeRawGlob(
 
     try fsd.writeFileZ(diagnostic, cx.room_dir, filename, data);
 
-    try code.writer(cx.cx.gpa).print("raw-glob {} ", .{block.id});
+    try code.writer(cx.cx.gpa).print("raw-glob {f} ", .{block.id});
     if (name) |n| {
         try code.appendSlice(cx.cx.gpa, n);
         try code.append(cx.cx.gpa, '@');
@@ -2252,7 +2252,7 @@ fn writeRawBlockImpl(
 
     for (0..indent) |_|
         try code.append(gpa, ' ');
-    try code.writer(gpa).print("raw-block {} ", .{block_id});
+    try code.writer(gpa).print("raw-block {f} ", .{block_id});
 
     // If the data is short enough, write it inline
 
@@ -2270,7 +2270,7 @@ fn writeRawBlockImpl(
                 break :blk data;
             },
         };
-        try code.writer(gpa).print("`{}`\n", .{std.fmt.fmtSliceHexLower(data)});
+        try code.writer(gpa).print("`{x}`\n", .{data});
         return;
     }
 
@@ -2280,42 +2280,42 @@ fn writeRawBlockImpl(
     const filename = switch (filename_pattern) {
         .block => try std.fmt.bufPrintZ(
             &filename_buf,
-            "{}.bin",
+            "{f}.bin",
             .{block_id},
         ),
         .block_offset => |offset| try std.fmt.bufPrintZ(
             &filename_buf,
-            "{}_{x:0>8}.bin",
+            "{f}_{x:0>8}.bin",
             .{ block_id, offset },
         ),
         .index_block => try std.fmt.bufPrintZ(
             &filename_buf,
-            "index_{}.bin",
+            "index_{f}.bin",
             .{block_id},
         ),
         .block_block => |id| try std.fmt.bufPrintZ(
             &filename_buf,
-            "{}_{}.bin",
+            "{f}_{f}.bin",
             .{ id, block_id },
         ),
         .block_number_block => |x| try std.fmt.bufPrintZ(
             &filename_buf,
-            "{}_{:0>4}_{}.bin",
+            "{f}_{:0>4}_{f}.bin",
             x ++ .{block_id},
         ),
         .object => |number| try std.fmt.bufPrintZ(
             &filename_buf,
-            "object{:0>4}_{}.bin",
+            "object{:0>4}_{f}.bin",
             .{ number, block_id },
         ),
         .object_block => |o| try std.fmt.bufPrintZ(
             &filename_buf,
-            "object{:0>4}_{}_{}.bin",
+            "object{:0>4}_{f}_{f}.bin",
             o ++ .{block_id},
         ),
         .symbol_block => |s| try std.fmt.bufPrintZ(
             &filename_buf,
-            "{s}_{}.bin",
+            "{s}_{f}.bin",
             .{ s, block_id },
         ),
     };

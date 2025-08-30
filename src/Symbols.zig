@@ -219,7 +219,7 @@ pub fn parsePass(
         error_count += 1;
         if (pass == .reporting) {
             const line_number = line_index + 1;
-            try std.io.getStdErr().writer().print(
+            try std.fs.File.stderr().deprecatedWriter().print(
                 "error on line {}\n",
                 .{line_number},
             );

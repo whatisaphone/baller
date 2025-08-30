@@ -56,7 +56,7 @@ const Arg = union(enum) {
     }
 
     fn reportUnexpectedInner(self: Arg) !void {
-        const out = std.io.getStdErr().writer();
+        const out = std.fs.File.stderr().deprecatedWriter();
         try out.writeAll("unexpected argument ");
         try self.reportFlagName(out);
         try out.writeByte('\n');
@@ -68,7 +68,7 @@ const Arg = union(enum) {
     }
 
     fn reportInvalidValueInner(self: Arg) !void {
-        const out = std.io.getStdErr().writer();
+        const out = std.fs.File.stderr().deprecatedWriter();
         try out.writeAll("invalid value for ");
         try self.reportFlagName(out);
         try out.writeByte('\n');
@@ -80,7 +80,7 @@ const Arg = union(enum) {
     }
 
     fn reportDuplicateInner(self: Arg) !void {
-        const out = std.io.getStdErr().writer();
+        const out = std.fs.File.stderr().deprecatedWriter();
         try out.writeAll("duplicate argument ");
         try self.reportFlagName(out);
         try out.writeByte('\n');
@@ -108,7 +108,7 @@ const LongOption = struct {
 };
 
 pub fn reportMissing(name: []const u8) error{CommandLineReported} {
-    const out = std.io.getStdErr().writer();
+    const out = std.fs.File.stderr().deprecatedWriter();
     out.print("missing argument {s}\n", .{name}) catch {};
     return error.CommandLineReported;
 }

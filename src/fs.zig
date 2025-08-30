@@ -15,7 +15,7 @@ pub fn readFile(
     const buf = try allocator.alloc(u8, stat.size);
     errdefer allocator.free(buf);
 
-    try file.reader().readNoEof(buf);
+    try file.deprecatedReader().readNoEof(buf);
     return buf;
 }
 
@@ -31,7 +31,7 @@ pub fn readFileZ(
     const buf = try allocator.alloc(u8, stat.size);
     errdefer allocator.free(buf);
 
-    try file.reader().readNoEof(buf);
+    try file.deprecatedReader().readNoEof(buf);
     return buf;
 }
 

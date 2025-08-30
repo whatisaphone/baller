@@ -15,7 +15,7 @@ pub fn BufferedReader(comptime buffer_size: usize, comptime ReaderType: type) ty
         end: usize = 0,
 
         pub const Error = ReaderType.Error;
-        pub const Reader = io.Reader(*Self, Error, read);
+        pub const Reader = io.GenericReader(*Self, Error, read);
 
         const Self = @This();
 
@@ -64,7 +64,7 @@ pub fn BufferedWriter(comptime buffer_size: usize, comptime WriterType: type) ty
         end: usize = 0,
 
         pub const Error = WriterType.Error;
-        pub const Writer = io.Writer(*Self, Error, write);
+        pub const Writer = io.GenericWriter(*Self, Error, write);
 
         const Self = @This();
 
@@ -103,7 +103,7 @@ pub fn CountingWriter(comptime WriterType: type) type {
         child_stream: WriterType,
 
         pub const Error = WriterType.Error;
-        pub const Writer = io.Writer(*Self, Error, write);
+        pub const Writer = io.GenericWriter(*Self, Error, write);
 
         const Self = @This();
 
@@ -138,7 +138,7 @@ pub fn LimitedReader(comptime ReaderType: type) type {
         bytes_left: u64,
 
         pub const Error = ReaderType.Error;
-        pub const Reader = io.Reader(*Self, Error, read);
+        pub const Reader = io.GenericReader(*Self, Error, read);
 
         const Self = @This();
 

@@ -89,7 +89,7 @@ fn writeWav(
     const file = try fsd.createFileZ(diagnostic, dir, path);
     defer file.close();
 
-    var buf = iold.bufferedWriter(file.writer());
+    var buf = iold.bufferedWriter(file.deprecatedWriter());
 
     try writeWavHeader(buf.writer(), @intCast(samples.len));
     try buf.writer().writeAll(samples);
@@ -128,7 +128,7 @@ fn readWav(
     var file = try fsd.openFile(diagnostic, loc, dir, path);
     defer file.close();
 
-    var in = iold.bufferedReader(file.reader());
+    var in = iold.bufferedReader(file.deprecatedReader());
 
     if (try in.reader().readInt(u32, .little) != std.mem.bytesToValue(u32, "RIFF"))
         return error.BadData;
@@ -151,7 +151,7 @@ fn readWav(
     try io.copy(iold.limitedReader(in.reader(), data_size), out.writer(gpa));
 }
 
-const BufferedFile = iold.BufferedReader(4096, std.fs.File.Reader);
+const BufferedFile = iold.BufferedReader(4096, std.fs.File.DeprecatedReader);
 
 fn skipToChunk(in: *BufferedFile, chunk_id: u32) !u32 {
     while (true) {

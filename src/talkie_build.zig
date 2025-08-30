@@ -42,7 +42,7 @@ const Build = struct {
 pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const Build) !void {
     const manifest_file = try std.fs.cwd().openFileZ(args.manifest_path, .{});
     defer manifest_file.close();
-    var manifest_reader = iold.bufferedReader(manifest_file.reader());
+    var manifest_reader = iold.bufferedReader(manifest_file.deprecatedReader());
     var line_buf: [255]u8 = undefined;
 
     var cur_path: pathf.Path = .{};
@@ -51,7 +51,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 
     const output_file = try std.fs.cwd().createFileZ(args.output_path, .{});
     defer output_file.close();
-    var output_buf = iold.bufferedWriter(output_file.writer());
+    var output_buf = iold.bufferedWriter(output_file.deprecatedWriter());
     var output_writer = iold.countingWriter(output_buf.writer());
 
     var state: State = .{
@@ -86,16 +86,16 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 
     try output_buf.flush();
 
-    try writeFixups(output_file, output_file.writer(), state.fixups.items);
+    try writeFixups(output_file, output_file.deprecatedWriter(), state.fixups.items);
 }
 
 const State = struct {
     diagnostic: *Diagnostic,
-    manifest_reader: *iold.BufferedReader(4096, std.fs.File.Reader),
+    manifest_reader: *iold.BufferedReader(4096, std.fs.File.DeprecatedReader),
     line_buf: *[255]u8,
     cur_path: *pathf.Path,
-    output_writer: *iold.CountingWriter(iold.BufferedWriter(4096, std.fs.File.Writer).Writer),
-    fixups: std.ArrayList(Fixup),
+    output_writer: *iold.CountingWriter(iold.BufferedWriter(4096, std.fs.File.DeprecatedWriter).Writer),
+    fixups: std.array_list.Managed(Fixup),
 };
 
 fn buildRawBlock(state: *State, line: []const u8) !void {
@@ -196,7 +196,7 @@ fn buildTalk(state: *State) !void {
         defer wav_path.restore();
         const wav_file = try std.fs.cwd().openFileZ(wav_path.full(), .{});
         defer wav_file.close();
-        var wav_reader = iold.bufferedReader(wav_file.reader());
+        var wav_reader = iold.bufferedReader(wav_file.deprecatedReader());
 
         const wav_header = try wav.readHeader(wav_reader.reader());
         if (wav_header.channels != 1 or

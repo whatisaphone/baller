@@ -111,7 +111,7 @@ fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args:
 
 fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     if (live_spew) {
-        var buf = iold.bufferedWriter(std.io.getStdErr().writer());
+        var buf = iold.bufferedWriter(std.fs.File.stderr().deprecatedWriter());
         buf.writer().print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
         buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text.items }) catch @panic("spew");
         buf.flush() catch @panic("spew");
@@ -134,8 +134,8 @@ fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
 }
 
 pub fn writeToStderrAndPropagateIfAnyErrors(self: *const Diagnostic) !void {
-    const out_file = std.io.getStdErr();
-    var out = iold.bufferedWriter(out_file.writer());
+    const out_file = std.fs.File.stderr();
+    var out = iold.bufferedWriter(out_file.deprecatedWriter());
 
     if (live_spew)
         try out.writer().writeByte('\n');
@@ -282,7 +282,7 @@ pub const ForBinaryFile = struct {
         switch (self.section) {
             .string => |s| try writer.writeAll(s),
             .block_id => |id| try writer.writeAll(id.str()),
-            .glob => |id_and_num| try writer.print("{}_{:0>4}", id_and_num),
+            .glob => |id_and_num| try writer.print("{f}_{:0>4}", id_and_num),
         }
     }
 };
@@ -337,14 +337,14 @@ pub const ForTextFile = struct {
             std.fmt.count("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) +
             std.fmt.count(fmt, args);
         const text = self.diagnostic.arena.allocator().alloc(u8, text_count) catch oom();
-        var fba: std.heap.FixedBufferAllocator = .init(text);
-        _ = std.fmt.allocPrint(
-            fba.allocator(),
+        const first = std.fmt.bufPrint(
+            text,
             "{s}:{}:{}: ",
             .{ self.path, loc.line, loc.column },
         ) catch unreachable;
-        _ = std.fmt.allocPrint(fba.allocator(), fmt, args) catch unreachable;
-        std.debug.assert(fba.end_index == text_count);
+        const remaining = text[first.len..];
+        const second = std.fmt.bufPrint(remaining, fmt, args) catch unreachable;
+        std.debug.assert(text[text.len..].ptr == second[second.len..].ptr);
 
         self.diagnostic.add(level, .fromOwnedSlice(text));
     }

@@ -30,15 +30,9 @@ pub const BlockId = enum(u32) {
     }
 
     /// use with std.fmt
-    pub fn format(
-        self: BlockId,
-        comptime fmt: []const u8,
-        options: std.fmt.FormatOptions,
-        writer: anytype,
-    ) !void {
-        comptime std.debug.assert(fmt.len == 0);
+    pub fn format(self: BlockId, w: *std.io.Writer) !void {
         std.debug.assert(isValid(self.raw()));
-        try std.fmt.formatText(self.str(), "s", options, writer);
+        try w.writeAll(self.str());
     }
 
     pub fn fmtInvalid(value: Raw) FmtInvalid {
@@ -48,15 +42,8 @@ pub const BlockId = enum(u32) {
     const FmtInvalid = struct {
         value: Raw,
 
-        pub fn format(
-            self: FmtInvalid,
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            comptime std.debug.assert(fmt.len == 0);
-            _ = options;
-            try writer.print("\"{}\"", .{std.fmt.fmtSliceEscapeLower(std.mem.asBytes(&self.value))});
+        pub fn format(self: FmtInvalid, w: *std.io.Writer) !void {
+            try w.print("\"{f}\"", .{std.ascii.hexEscape(std.mem.asBytes(&self.value), .lower)});
         }
     };
 

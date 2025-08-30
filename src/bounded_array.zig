@@ -278,7 +278,7 @@ pub fn BoundedArrayAligned(
             @compileError("The Writer interface is only defined for BoundedArray(u8, ...) " ++
                 "but the given type is BoundedArray(" ++ @typeName(T) ++ ", ...)")
         else
-            std.io.Writer(*Self, error{Overflow}, appendWrite);
+            std.io.GenericWriter(*Self, error{Overflow}, appendWrite);
 
         /// Initializes a writer which will write into the array.
         pub fn writer(self: *Self) Writer {
