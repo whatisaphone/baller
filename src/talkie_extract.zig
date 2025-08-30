@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
-const oldBlockReader = @import("block_reader.zig").oldBlockReader;
+const OldBlockReader = @import("block_reader.zig").OldBlockReader;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -30,8 +30,8 @@ const Extract = struct {
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     const in_file = try std.fs.cwd().openFileZ(args.input_path, .{});
     defer in_file.close();
-    var buf_reader = iold.bufferedReader(in_file.deprecatedReader());
-    var reader = std.io.countingReader(buf_reader.reader());
+    var buf: [4096]u8 = undefined;
+    var reader = in_file.reader(&buf);
 
     var cur_path_buf: pathf.Path = .{};
     const out_dir = try pathf.append(&cur_path_buf, args.output_path);
@@ -43,7 +43,6 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 
     var state: State = .{
         .reader = &reader,
-        .reader_pos = &reader.bytes_read,
         .block_seqs = &block_seqs,
         .cur_path = &cur_path_buf,
         .path_rel_start = @intCast(cur_path_buf.len),
@@ -54,7 +53,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     defer state.block_buf.deinit(allocator);
     defer state.manifest.deinit(allocator);
 
-    var file_blocks = oldBlockReader(&reader);
+    var file_blocks: OldBlockReader = .init(&reader);
 
     const tlkb_len = try file_blocks.expect(.TLKB);
     try parseTlkb(allocator, tlkb_len, &state);
@@ -67,8 +66,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 }
 
 const State = struct {
-    reader: *std.io.CountingReader(iold.BufferedReader(4096, std.fs.File.DeprecatedReader).Reader),
-    reader_pos: *const u64,
+    reader: *std.fs.File.Reader,
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
     cur_path: *pathf.Path,
     path_rel_start: pathf.PathLen,
@@ -77,14 +75,14 @@ const State = struct {
     block_buf: std.ArrayListUnmanaged(u8),
 
     fn readerPos(self: *const State) u32 {
-        return @intCast(self.reader_pos.*);
+        return @intCast(self.reader.logicalPos());
     }
 
     fn fillBlockBuf(self: *State, allocator: std.mem.Allocator, block_len: u32) ![]u8 {
         std.debug.assert(self.block_buf.items.len == 0);
         try self.block_buf.ensureTotalCapacity(allocator, block_len);
         const buf = self.block_buf.addManyAsSliceAssumeCapacity(block_len);
-        try self.reader.reader().readNoEof(buf);
+        try self.reader.interface.readSliceAll(buf);
         return buf;
     }
 
@@ -167,7 +165,7 @@ fn parseChildBlocks(
 ) !void {
     const parent_end = state.readerPos() + parent_len;
 
-    var blocks = oldBlockReader(state.reader);
+    var blocks: OldBlockReader = .init(state.reader);
 
     while (state.readerPos() < parent_end) {
         const block_id, const block_len = try blocks.next();
@@ -196,7 +194,7 @@ fn parseStreamingRaw(
 
     const file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer file.close();
-    try io.copy(iold.limitedReader(state.reader.reader(), block_len), file);
+    try io.copy(iold.limitedReader(state.reader.interface.adaptToOldInterface(), block_len), file);
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(

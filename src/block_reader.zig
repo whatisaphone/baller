@@ -7,81 +7,60 @@ const iold = @import("iold.zig");
 
 pub const block_header_size = 8;
 
-pub fn oldBlockReader(stream: anytype) OldBlockReader(@TypeOf(stream)) {
-    return .{ .stream = stream };
-}
+pub const OldBlockReader = struct {
+    stream: *std.fs.File.Reader,
+    current_block_end: ?u32 = null,
 
-fn OldBlockReader(Stream: type) type {
-    comptime std.debug.assert(std.mem.startsWith(
-        u8,
-        @typeName(Stream),
-        "*Io.counting_reader.CountingReader(",
-    ));
+    pub fn init(stream: *std.fs.File.Reader) OldBlockReader {
+        return .{ .stream = stream };
+    }
 
-    return struct {
-        const Self = @This();
+    pub fn next(self: *OldBlockReader) !struct { BlockId, u32 } {
+        try self.checkSync();
 
-        stream: Stream,
-        current_block_end: ?u32 = null,
+        const id_raw = try self.stream.interface.takeInt(BlockId.Raw, .little);
+        const id = BlockId.init(id_raw) orelse return error.BadData;
 
-        pub fn next(self: *Self) !struct { BlockId, u32 } {
-            try self.checkSync();
+        const full_len = try self.stream.interface.takeInt(u32, .big);
+        // The original value includes the id and length, but the caller
+        // doesn't care about those, so subtract them out.
+        const len = full_len - block_header_size;
 
-            const id_raw = try self.stream.reader().readInt(BlockId.Raw, .little);
-            const id = BlockId.init(id_raw) orelse return error.BadData;
+        const current_pos: u32 = @intCast(self.stream.logicalPos());
+        self.current_block_end = current_pos + len;
 
-            const full_len = try self.stream.reader().readInt(u32, .big);
-            // The original value includes the id and length, but the caller
-            // doesn't care about those, so subtract them out.
-            const len = full_len - block_header_size;
+        return .{ id, len };
+    }
 
-            const current_pos: u32 = @intCast(self.stream.bytes_read);
-            self.current_block_end = current_pos + len;
-
-            return .{ id, len };
+    pub fn expect(self: *OldBlockReader, expected_id: BlockId) !u32 {
+        const id, const len = try self.next();
+        if (id != expected_id) {
+            std.debug.print(
+                \\expected block {f} but found {f}
+                \\
+            ,
+                .{ expected_id, id },
+            );
+            return error.BadData;
         }
+        return len;
+    }
 
-        pub fn expect(self: *Self, expected_id: BlockId) !u32 {
-            const id, const len = try self.next();
-            if (id != expected_id) {
-                std.debug.print(
-                    \\expected block {f} but found {f}
-                    \\
-                ,
-                    .{ expected_id, id },
-                );
-                return error.BadData;
-            }
-            return len;
-        }
+    pub fn checkSync(self: *const OldBlockReader) !void {
+        const current_block_end = self.current_block_end orelse return;
+        if (self.stream.logicalPos() != current_block_end)
+            return error.BlockDesync;
+    }
 
-        pub fn skipUntil(self: *Self, block_id: BlockId) !u32 {
-            while (true) {
-                const id, const len = try self.next();
-                if (id != block_id) {
-                    try self.stream.reader().skipBytes(len, .{});
-                    continue;
-                }
-                return len;
-            }
-        }
+    pub fn finish(self: *const OldBlockReader, expected_pos: u32) !void {
+        if (self.stream.logicalPos() != expected_pos)
+            return error.BlockDesync;
+    }
 
-        pub fn checkSync(self: *const Self) !void {
-            const current_block_end = self.current_block_end orelse return;
-            if (self.stream.bytes_read != current_block_end)
-                return error.BlockDesync;
-        }
-
-        pub fn finish(self: *const Self, expected_pos: u32) !void {
-            if (self.stream.bytes_read != expected_pos)
-                return error.BlockDesync;
-        }
-
-        pub fn finishEof(self: *const Self) !void {
-            try io.requireEof(self.stream.reader());
-        }
-    };
-}
+    pub fn finishEof(self: *const OldBlockReader) !void {
+        try io.requireEof(self.stream.interface.adaptToOldInterface());
+    }
+};
 
 // This is identical to blockReader, but uses FixedBufferStream instead of
 // CountingReader. Prefer this over blockReader where possible.
