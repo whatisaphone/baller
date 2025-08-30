@@ -52,7 +52,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     const output_file = try std.fs.cwd().createFileZ(args.output_path, .{});
     defer output_file.close();
     var output_buf = iold.bufferedWriter(output_file.writer());
-    var output_writer = std.io.countingWriter(output_buf.writer());
+    var output_writer = iold.countingWriter(output_buf.writer());
 
     var state: State = .{
         .diagnostic = diagnostic,
@@ -94,7 +94,7 @@ const State = struct {
     manifest_reader: *std.io.BufferedReader(4096, std.fs.File.Reader),
     line_buf: *[255]u8,
     cur_path: *pathf.Path,
-    output_writer: *std.io.CountingWriter(iold.BufferedWriter(4096, std.fs.File.Writer).Writer),
+    output_writer: *iold.CountingWriter(iold.BufferedWriter(4096, std.fs.File.Writer).Writer),
     fixups: std.ArrayList(Fixup),
 };
 

@@ -196,7 +196,7 @@ pub fn build(
     const out_file = try fsd.createFileZ(diagnostic, out_dir, out_name);
     defer out_file.close();
     var out_buf = iold.bufferedWriter(out_file.writer());
-    var out = std.io.countingWriter(out_buf.writer());
+    var out = iold.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(gpa);
     defer fixups.deinit();

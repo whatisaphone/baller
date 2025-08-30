@@ -116,7 +116,7 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
     defer out_file.close();
     const out_xor = io.xorWriter(out_file.writer(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
-    var out = std.io.countingWriter(out_buf.writer());
+    var out = iold.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
@@ -354,7 +354,7 @@ fn emitIndex(cx: *const Cx) !void {
     defer out_file.close();
     const out_xor = io.xorWriter(out_file.writer(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
-    var out = std.io.countingWriter(out_buf.writer());
+    var out = iold.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
