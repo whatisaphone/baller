@@ -6,6 +6,7 @@ const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const games = @import("games.zig");
 const lexer = @import("lexer.zig");
 
@@ -63,7 +64,7 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
         @"const",
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 8192) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 8192) = .{};
     var parsed_index = false;
 
     {
@@ -128,7 +129,7 @@ fn parseIndex(cx: *Cx, index_token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 16) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 16) = .{};
 
     while (true) {
         const token = consumeDown(cx);
@@ -174,7 +175,7 @@ fn parseDisk(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const disk_number = try expectInteger(cx, u8);
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 32) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 32) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -297,8 +298,8 @@ fn parseRoomChildren(cx: *Cx) !Ast.NodeIndex {
         object,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 5120) = .{};
-    var variables: std.BoundedArray(Ast.NodeIndex, 160) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 5120) = .{};
+    var variables: BoundedArray(Ast.NodeIndex, 160) = .{};
 
     while (true) {
         const token = consumeDown(cx);
@@ -463,7 +464,7 @@ fn parseRmimIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 4) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -502,7 +503,7 @@ fn parseRmda(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -531,7 +532,7 @@ fn parseObim(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 12) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 12) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -564,7 +565,7 @@ fn parseIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 2) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 2) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -620,7 +621,7 @@ fn parseSoundChildren(cx: *Cx) !Ast.ExtraSlice {
         sdat,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 3) = .{};
 
     while (true) {
         const token = consumeDown(cx);
@@ -668,7 +669,7 @@ fn parseAwizChildren(cx: *Cx) !Ast.ExtraSlice {
         wizd,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 8) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 8) = .{};
 
     while (true) {
         const token = consumeDown(cx);
@@ -726,7 +727,7 @@ fn parseMult(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     try expect(cx, .brace_l);
 
     var raw_block: Ast.NodeIndex.Optional = .null;
-    var children: std.BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
+    var children: BoundedArray(Ast.NodeIndex, Ast.max_mult_children) = .{};
     var indices_opt: ?Ast.ExtraSlice = null;
 
     while (true) {
@@ -785,7 +786,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 1536) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 1536) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -852,7 +853,7 @@ fn parseTalkie(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseIntegerList(cx: *Cx) !Ast.ExtraSlice {
-    var result: std.BoundedArray(u32, 256) = .{};
+    var result: BoundedArray(u32, 256) = .{};
     while (true) {
         const token = consumeDown(cx);
         switch (token.kind) {
@@ -885,7 +886,7 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
         riff,
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 192) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 192) = .{};
 
     while (true) {
         const token = consumeDown(cx);
@@ -944,7 +945,7 @@ fn parseRawBlockNested(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id = try expectBlockId(cx);
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 4) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 4) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -1016,7 +1017,7 @@ fn parseRawGlobBlock(
         @"raw-block",
     };
 
-    var children: std.BoundedArray(Ast.NodeIndex, 640) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 640) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -1069,7 +1070,7 @@ fn parseLocalScript(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseScriptParams(cx: *Cx) ParseError!Ast.ExtraSlice {
-    var result: std.BoundedArray(Ast.NodeIndex.Optional, UsageTracker.max_local_vars) = .{};
+    var result: BoundedArray(Ast.NodeIndex.Optional, UsageTracker.max_local_vars) = .{};
     while (true) {
         const token = consumeRight(cx);
         const ni: Ast.NodeIndex.Optional = switch (token.kind) {
@@ -1096,7 +1097,7 @@ fn parseObject(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const obna = try expectString(cx);
     try expect(cx, .brace_l);
 
-    var children: std.BoundedArray(Ast.NodeIndex, 3) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 3) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);
@@ -1147,7 +1148,7 @@ fn parseVerb(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 }
 
 fn parseScriptBlock(cx: *Cx) ParseError!Ast.ExtraSlice {
-    var statements: std.BoundedArray(Ast.NodeIndex, 4096) = .{};
+    var statements: BoundedArray(Ast.NodeIndex, 4096) = .{};
     while (true) {
         const token = consumeDown(cx);
         if (token.kind == .brace_r) break;
@@ -1177,7 +1178,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
         // Check for keywords
         if (parseIdentifierOpt(cx, token, Keyword)) |kw| switch (kw) {
             .@"var" => {
-                var children: std.BoundedArray(Ast.NodeIndex, UsageTracker.max_local_vars) = .{};
+                var children: BoundedArray(Ast.NodeIndex, UsageTracker.max_local_vars) = .{};
                 while (true) {
                     const token2 = consumeRight(cx);
                     const name = switch (token2.kind) {
@@ -1293,7 +1294,7 @@ fn parseStatement(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
             .case => {
                 const case_value = try parseExpr(cx, consumeRight(cx), .space);
                 try expect(cx, .brace_l);
-                var branches: std.BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
+                var branches: BoundedArray(Ast.NodeIndex, Ast.max_case_branches) = .{};
                 while (true) {
                     const token2 = consumeDown(cx);
                     if (token2.kind == .brace_r) break;
@@ -1500,7 +1501,7 @@ fn parseBinOp(cx: *Cx, lhs: Ast.NodeIndex, prec: Precedence, op: Ast.BinOp) !?As
 }
 
 fn parseList(cx: *Cx) !Ast.ExtraSlice {
-    var result: std.BoundedArray(Ast.NodeIndex, 64) = .{};
+    var result: BoundedArray(Ast.NodeIndex, 64) = .{};
     while (true) {
         const token = peekWrapped(cx);
         if (!isAtomToken(token)) break;

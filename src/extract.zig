@@ -15,6 +15,7 @@ const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const fxbclPos = @import("block_reader.zig").fxbclPos;
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
 const disasm = @import("disasm.zig");
@@ -1711,7 +1712,7 @@ fn extractLscDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
+    var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
     cx.cx.symbols.writeScriptName(cx.room_number, script_number, path_buf.writer()) catch unreachable;
     const name = path_buf.slice();
 
@@ -1985,7 +1986,7 @@ fn extractScrpDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: std.BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
+    var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
     cx.cx.symbols.writeScriptName(cx.room_number, glob_number, path_buf.writer()) catch unreachable;
     const name = path_buf.slice();
 
@@ -2063,7 +2064,7 @@ fn extractSound(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
     cx.cx.symbols.writeGlobName(.sound, glob_number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
 
@@ -2089,7 +2090,7 @@ fn extractAwiz(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len) = .{};
     cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
 
@@ -2111,7 +2112,7 @@ fn extractMult(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
     cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
@@ -2128,7 +2129,7 @@ fn extractAkos(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + 1) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
     cx.cx.symbols.writeGlobName(.costume, glob_number, name_buf.writer()) catch unreachable;
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
@@ -2186,7 +2187,7 @@ fn writeRawGlob(
     data: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: std.BoundedArray(u8, Symbols.max_name_len + ".bin".len + 1) = .{};
+    var filename_buf: BoundedArray(u8, Symbols.max_name_len + ".bin".len + 1) = .{};
     const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
     const name = if (kind.hasName()) blk: {
         cx.cx.symbols.writeGlobName(kind, glob_number, filename_buf.writer()) catch unreachable;
@@ -2339,7 +2340,7 @@ fn emitRoom(
     project_code: *std.ArrayListUnmanaged(u8),
     events: *sync.Channel(Event, 16),
 ) !void {
-    var chunks: std.BoundedArray(Chunk, max_room_code_chunks) = .{};
+    var chunks: BoundedArray(Chunk, max_room_code_chunks) = .{};
     defer for (chunks.slice()) |*chunk| chunk.code.deinit(cx.gpa);
 
     var ok = true;
@@ -2371,7 +2372,7 @@ fn emitRoom(
         try room_scu.writeAll("#error while extracting room; this file is incomplete!\n\n");
 
     const max_iovecs = max_room_code_chunks + std.meta.fields(Section).len;
-    var iovecs: std.BoundedArray(std.posix.iovec_const, max_iovecs) = .{};
+    var iovecs: BoundedArray(std.posix.iovec_const, max_iovecs) = .{};
     var last_section: Section = .top;
     for (chunks.slice()) |*chunk| {
         if (chunk.section != last_section) {

@@ -16,6 +16,7 @@ const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const compile = @import("compile.zig");
 const decompile = @import("decompile.zig");
 const VerbEntry = @import("extract.zig").VerbEntry;
@@ -993,7 +994,7 @@ fn planMultInner(
     _ = try out.addManyAsSlice(cx.gpa, mult_node.indices.len * 4);
     endBlockAl(out, offs_start);
 
-    var awiz_offsets: std.BoundedArray(u32, Ast.max_mult_children) = .{};
+    var awiz_offsets: BoundedArray(u32, Ast.max_mult_children) = .{};
     for (room_file.ast.getExtra(mult_node.children)) |node| {
         awiz_offsets.appendAssumeCapacity(@as(u32, @intCast(out.items.len)) - offs_start);
         const wiz = &room_file.ast.nodes.at(node).mult_awiz;
@@ -1280,7 +1281,7 @@ fn planRoomNames(cx: *Context) !void {
     try result.ensureTotalCapacity(cx.gpa, 256);
 
     // Collect rooms by number
-    var room_nodes: std.BoundedArray(Ast.NodeIndex.Optional, 256) = .{};
+    var room_nodes: BoundedArray(Ast.NodeIndex.Optional, 256) = .{};
     const project_file = &cx.project.files.items[0].?;
     const project_root = &project_file.ast.nodes.at(project_file.ast.root).project;
     for (project_file.ast.getExtra(project_root.children)) |node_index| {

@@ -5,6 +5,7 @@ const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const bmp = @import("bmp.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
@@ -218,7 +219,7 @@ fn decodeRMajMin(
     // HACK: Unless I made a mistake, the original decoder reads 1 byte past the
     // end sometimes. Just to get it working for now, let's copy the data into a
     // buffer that's bigger by 1 byte so we can decode without triggering UB.
-    var hack: std.BoundedArray(u8, 1024) = .{};
+    var hack: BoundedArray(u8, 1024) = .{};
     try hack.appendSlice(data);
     try hack.append(0); // This is the pesky oob byte
     var stream = std.io.fixedBufferStream(hack.constSlice());

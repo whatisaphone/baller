@@ -158,7 +158,7 @@ pub fn growMultiArrayList(
 }
 
 pub fn growBoundedArray(
-    /// `*std.BoundedArray(any, any)`
+    /// `*BoundedArray(any, any)`
     xs: anytype,
     minimum_len: usize,
     fill: @typeInfo(@FieldType(@typeInfo(@TypeOf(xs)).pointer.child, "buffer")).array.child,

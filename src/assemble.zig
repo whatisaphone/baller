@@ -2,6 +2,7 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const UsageTracker = @import("UsageTracker.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const lang = @import("lang.zig");
 const script = @import("script.zig");
 
@@ -28,7 +29,7 @@ pub fn assemble(
     var label_fixups: std.ArrayListUnmanaged(Fixup) = .empty;
     defer label_fixups.deinit(allocator);
 
-    var locals: std.BoundedArray([]const u8, UsageTracker.max_local_vars) = .{};
+    var locals: BoundedArray([]const u8, UsageTracker.max_local_vars) = .{};
 
     var bytecode: std.ArrayListUnmanaged(u8) = .empty;
     errdefer bytecode.deinit(allocator);
@@ -83,7 +84,7 @@ fn assembleLine(
     scopes: Scopes,
     label_offsets: *std.StringHashMapUnmanaged(u16),
     label_fixups: *std.ArrayListUnmanaged(Fixup),
-    locals: *std.BoundedArray([]const u8, UsageTracker.max_local_vars),
+    locals: *BoundedArray([]const u8, UsageTracker.max_local_vars),
     line_number: u32,
     line_full: []const u8,
     bytecode: *std.ArrayListUnmanaged(u8),

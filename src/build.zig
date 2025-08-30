@@ -5,6 +5,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");
 const fs = @import("fs.zig");
@@ -172,7 +173,7 @@ fn readRooms(
     project: *Project,
     project_dir: std.fs.Dir,
 ) !void {
-    var room_nodes: std.BoundedArray(Ast.NodeIndex, 255) = .{};
+    var room_nodes: BoundedArray(Ast.NodeIndex, 255) = .{};
     var max_room_number: u8 = 0;
 
     var project_file = &project.files.items[0].?;

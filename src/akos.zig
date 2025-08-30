@@ -9,6 +9,7 @@ const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -262,7 +263,7 @@ pub fn encode(
     try state.cd_offsets.ensureTotalCapacityPrecise(gpa, akcd_count);
     try state.akcd.ensureTotalCapacity(gpa, @as(u32, @intCast(akcd_count)) * 2048);
 
-    var akpl: ?std.BoundedArray(u8, 64) = null;
+    var akpl: ?BoundedArray(u8, 64) = null;
 
     for (file.ast.getExtra(akos.children)) |node_index| {
         const node = file.ast.nodes.at(node_index);

@@ -7,6 +7,7 @@ const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
 const endBlock = @import("block_writer.zig").endBlock;
 const writeFixups = @import("block_writer.zig").writeFixups;
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const pathf = @import("pathf.zig");
@@ -123,17 +124,17 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 fn buildTalk(state: *State) !void {
     const RawBlock = struct {
         id: BlockId,
-        path: std.BoundedArray(u8, 255),
+        path: BoundedArray(u8, 255),
     };
 
     const Sdat = struct {
         expected_len: u32,
-        path: std.BoundedArray(u8, 255),
+        path: BoundedArray(u8, 255),
     };
 
     // Parse lines
 
-    var raw_blocks: std.BoundedArray(RawBlock, 2) = .{};
+    var raw_blocks: BoundedArray(RawBlock, 2) = .{};
     var sdat_opt: ?Sdat = null;
 
     while (true) {

@@ -1,8 +1,9 @@
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 
-pub const Path = std.BoundedArray(u8, 4095);
+pub const Path = BoundedArray(u8, 4095);
 pub const PathLen = u12;
 
 pub fn append(buf: *Path, items: []const u8) !PrintedPath {

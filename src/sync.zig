@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const utils = @import("utils.zig");
 
 pub fn Channel(T: type, capacity: usize) type {
@@ -8,7 +9,7 @@ pub fn Channel(T: type, capacity: usize) type {
 
         // yeah this could be better
         mutex: std.Thread.Mutex,
-        queue: std.BoundedArray(T, capacity),
+        queue: BoundedArray(T, capacity),
         queue_not_empty: std.Thread.Condition,
         queue_not_full: std.Thread.Condition,
 

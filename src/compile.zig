@@ -4,6 +4,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const UsageTracker = @import("UsageTracker.zig");
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const decompile = @import("decompile.zig");
 const lang = @import("lang.zig");
 const lexer = @import("lexer.zig");
@@ -94,7 +95,7 @@ const Cx = struct {
     ast: *const Ast,
 
     out: *std.ArrayListUnmanaged(u8),
-    local_vars: std.BoundedArray(?[]const u8, UsageTracker.max_local_vars),
+    local_vars: BoundedArray(?[]const u8, UsageTracker.max_local_vars),
     label_offsets: std.StringHashMapUnmanaged(u16),
     label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
 };
@@ -318,7 +319,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
             try emitVariable(cx, s.backing);
         },
         .case => |*s| {
-            var end_fixups: std.BoundedArray(u32, Ast.max_case_branches) = .{};
+            var end_fixups: BoundedArray(u32, Ast.max_case_branches) = .{};
             try pushExpr(cx, s.value);
             var cond_fixup: ?u32 = null;
             var emitted_default = false;

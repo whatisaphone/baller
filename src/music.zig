@@ -13,6 +13,7 @@ const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
+const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
@@ -114,7 +115,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
 
     if (sgen.size != digi_block.full_size()) return error.BadData;
 
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
     cx.symbols.writeGlobName(.sound, sgen.number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
@@ -149,7 +150,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
 }
 
 fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
-    var name_buf: std.BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
+    var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
     cx.symbols.writeGlobName(.sound, entry.number, name_buf.writer()) catch unreachable;
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
