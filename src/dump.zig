@@ -55,7 +55,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var in_xor = io.xorReader(std.io.getStdIn().reader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
-    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();

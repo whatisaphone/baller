@@ -196,7 +196,7 @@ fn parseStreamingRaw(
 
     const file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer file.close();
-    try io.copy(std.io.limitedReader(state.reader.reader(), block_len), file);
+    try io.copy(iold.limitedReader(state.reader.reader(), block_len), file);
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(

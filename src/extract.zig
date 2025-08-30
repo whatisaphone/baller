@@ -770,7 +770,7 @@ fn extractDisk(
     const in_xor = io.xorReader(in_file.reader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
-    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
     var file_blocks: StreamingBlockReader = .init(&in, &diag);
 
@@ -2325,7 +2325,7 @@ fn writeRawBlockImpl(
     defer file.close();
     switch (data_source) {
         .bytes => |bytes| try file.writeAll(bytes),
-        .reader => |r| try io.copy(std.io.limitedReader(r.in.reader(), r.size), file),
+        .reader => |r| try io.copy(iold.limitedReader(r.in.reader(), r.size), file),
     }
 
     try code.appendSlice(gpa, "\"");

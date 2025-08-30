@@ -191,7 +191,7 @@ test "dump smoke test" {
     var in_xor = io.xorReader(in_file.reader(), extract.xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
-    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();

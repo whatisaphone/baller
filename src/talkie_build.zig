@@ -218,7 +218,7 @@ fn buildTalk(state: *State) !void {
 
         const sdat_start = try beginBlock(state.output_writer, .SDAT);
         try io.copy(
-            std.io.limitedReader(wav_reader, data_size),
+            iold.limitedReader(wav_reader, data_size),
             state.output_writer.writer(),
         );
         try endBlock(state.output_writer, &state.fixups, sdat_start);

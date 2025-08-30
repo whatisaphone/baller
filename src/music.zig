@@ -37,7 +37,7 @@ pub fn extract(
     const in_xor = io.xorReader(in_file.reader(), 0x00);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
-    var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, input_path);
 
@@ -166,7 +166,7 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
     defer wav_file.close();
     try wav_file.writer().writeAll(&peeked_bytes);
     try io.copy(
-        std.io.limitedReader(cx.in.reader(), entry.size - peeked_bytes.len),
+        iold.limitedReader(cx.in.reader(), entry.size - peeked_bytes.len),
         wav_file.writer(),
     );
 }

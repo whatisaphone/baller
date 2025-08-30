@@ -148,7 +148,7 @@ fn readWav(
 
     const data_size = try skipToChunk(&in, std.mem.bytesToValue(u32, "data"));
     try out.ensureUnusedCapacity(gpa, data_size);
-    try io.copy(std.io.limitedReader(in.reader(), data_size), out.writer(gpa));
+    try io.copy(iold.limitedReader(in.reader(), data_size), out.writer(gpa));
 }
 
 const BufferedFile = iold.BufferedReader(4096, std.fs.File.Reader);

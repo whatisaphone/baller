@@ -2,6 +2,7 @@
 
 const std = @import("std");
 
+const assert = std.debug.assert;
 const io = std.io;
 const mem = std.mem;
 const testing = std.testing;
@@ -129,4 +130,45 @@ test CountingWriter {
     const bytes = "yay" ** 100;
     stream.writeAll(bytes) catch unreachable;
     try testing.expect(counting_stream.bytes_written == bytes.len);
+}
+
+pub fn LimitedReader(comptime ReaderType: type) type {
+    return struct {
+        inner_reader: ReaderType,
+        bytes_left: u64,
+
+        pub const Error = ReaderType.Error;
+        pub const Reader = io.Reader(*Self, Error, read);
+
+        const Self = @This();
+
+        pub fn read(self: *Self, dest: []u8) Error!usize {
+            const max_read = @min(self.bytes_left, dest.len);
+            const n = try self.inner_reader.read(dest[0..max_read]);
+            self.bytes_left -= n;
+            return n;
+        }
+
+        pub fn reader(self: *Self) Reader {
+            return .{ .context = self };
+        }
+    };
+}
+
+/// Returns an initialised `LimitedReader`.
+/// `bytes_left` is a `u64` to be able to take 64 bit file offsets
+pub fn limitedReader(inner_reader: anytype, bytes_left: u64) LimitedReader(@TypeOf(inner_reader)) {
+    return .{ .inner_reader = inner_reader, .bytes_left = bytes_left };
+}
+
+test "LimitedReader" {
+    const data = "hello world";
+    var fbs = std.io.fixedBufferStream(data);
+    var early_stream = limitedReader(fbs.reader(), 3);
+
+    var buf: [5]u8 = undefined;
+    try testing.expectEqual(@as(usize, 3), try early_stream.reader().read(&buf));
+    try testing.expectEqualSlices(u8, data[0..3], buf[0..3]);
+    try testing.expectEqual(@as(usize, 0), try early_stream.reader().read(&buf));
+    try testing.expectError(error.EndOfStream, early_stream.reader().skipBytes(10, .{}));
 }
