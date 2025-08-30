@@ -42,8 +42,8 @@ const Build = struct {
 pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const Build) !void {
     const manifest_file = try std.fs.cwd().openFileZ(args.manifest_path, .{});
     defer manifest_file.close();
-    var manifest_reader = iold.bufferedReader(manifest_file.deprecatedReader());
-    var line_buf: [255]u8 = undefined;
+    var buf: [4096]u8 = undefined;
+    var reader = manifest_file.reader(&buf);
 
     var cur_path: pathf.Path = .{};
     try cur_path.appendSlice(args.manifest_path);
@@ -56,8 +56,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 
     var state: State = .{
         .diagnostic = diagnostic,
-        .manifest_reader = &manifest_reader,
-        .line_buf = &line_buf,
+        .manifest_reader = &reader.interface,
         .cur_path = &cur_path,
         .output_writer = &output_writer,
         .fixups = .init(allocator),
@@ -67,8 +66,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     const tlkb_start = try beginBlock(state.output_writer, .TLKB);
 
     while (true) {
-        const line = manifest_reader.reader()
-            .readUntilDelimiter(&line_buf, '\n') catch |err| switch (err) {
+        const line = reader.interface.takeDelimiterExclusive('\n') catch |err| switch (err) {
             error.EndOfStream => break,
             else => return err,
         };
@@ -91,8 +89,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 
 const State = struct {
     diagnostic: *Diagnostic,
-    manifest_reader: *iold.BufferedReader(4096, std.fs.File.DeprecatedReader),
-    line_buf: *[255]u8,
+    manifest_reader: *std.io.Reader,
     cur_path: *pathf.Path,
     output_writer: *iold.CountingWriter(iold.BufferedWriter(4096, std.fs.File.DeprecatedWriter).Writer),
     fixups: std.array_list.Managed(Fixup),
@@ -139,8 +136,7 @@ fn buildTalk(state: *State) !void {
     var sdat_opt: ?Sdat = null;
 
     while (true) {
-        const line =
-            try state.manifest_reader.reader().readUntilDelimiter(state.line_buf, '\n');
+        const line = try state.manifest_reader.takeDelimiterExclusive('\n');
         var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         const token = tokens.next() orelse return error.BadData;
         if (std.mem.eql(u8, token, "raw-block")) {
