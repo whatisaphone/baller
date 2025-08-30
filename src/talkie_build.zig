@@ -42,7 +42,7 @@ const Build = struct {
 pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const Build) !void {
     const manifest_file = try std.fs.cwd().openFileZ(args.manifest_path, .{});
     defer manifest_file.close();
-    var manifest_reader = std.io.bufferedReader(manifest_file.reader());
+    var manifest_reader = iold.bufferedReader(manifest_file.reader());
     var line_buf: [255]u8 = undefined;
 
     var cur_path: pathf.Path = .{};
@@ -91,7 +91,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 
 const State = struct {
     diagnostic: *Diagnostic,
-    manifest_reader: *std.io.BufferedReader(4096, std.fs.File.Reader),
+    manifest_reader: *iold.BufferedReader(4096, std.fs.File.Reader),
     line_buf: *[255]u8,
     cur_path: *pathf.Path,
     output_writer: *iold.CountingWriter(iold.BufferedWriter(4096, std.fs.File.Writer).Writer),
@@ -196,7 +196,7 @@ fn buildTalk(state: *State) !void {
         defer wav_path.restore();
         const wav_file = try std.fs.cwd().openFileZ(wav_path.full(), .{});
         defer wav_file.close();
-        var wav_reader = std.io.bufferedReader(wav_file.reader());
+        var wav_reader = iold.bufferedReader(wav_file.reader());
 
         const wav_header = try wav.readHeader(wav_reader.reader());
         if (wav_header.channels != 1 or

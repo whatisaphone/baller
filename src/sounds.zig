@@ -128,7 +128,7 @@ fn readWav(
     var file = try fsd.openFile(diagnostic, loc, dir, path);
     defer file.close();
 
-    var in = std.io.bufferedReader(file.reader());
+    var in = iold.bufferedReader(file.reader());
 
     if (try in.reader().readInt(u32, .little) != std.mem.bytesToValue(u32, "RIFF"))
         return error.BadData;
@@ -151,7 +151,7 @@ fn readWav(
     try io.copy(std.io.limitedReader(in.reader(), data_size), out.writer(gpa));
 }
 
-const BufferedFile = std.io.BufferedReader(4096, std.fs.File.Reader);
+const BufferedFile = iold.BufferedReader(4096, std.fs.File.Reader);
 
 fn skipToChunk(in: *BufferedFile, chunk_id: u32) !u32 {
     while (true) {

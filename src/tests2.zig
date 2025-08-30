@@ -6,6 +6,7 @@ const dump = @import("dump.zig");
 const extract = @import("extract.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const fixture_hashes = @import("tests.zig").fixture_hashes;
 const saveload_dump = @import("saveload_dump.zig");
 
@@ -188,7 +189,7 @@ test "dump smoke test" {
     const in_file = try std.fs.cwd().openFileZ(in_path, .{});
     defer in_file.close();
     var in_xor = io.xorReader(in_file.reader(), extract.xor_key);
-    var in_buf = std.io.bufferedReader(in_xor.reader());
+    var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
 

@@ -23,6 +23,7 @@ const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const music = @import("music.zig");
@@ -767,7 +768,7 @@ fn extractDisk(
     const in_file = try fsd.openFileZ(diagnostic, input_dir, disk_name);
     defer in_file.close();
     const in_xor = io.xorReader(in_file.reader(), xor_key);
-    var in_buf = std.io.bufferedReader(in_xor.reader());
+    var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
 

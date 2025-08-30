@@ -8,6 +8,7 @@ const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[*:0]const u8 = null;
@@ -52,7 +53,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     const xor_key = xor_key_opt orelse 0x00;
 
     var in_xor = io.xorReader(std.io.getStdIn().reader(), xor_key);
-    var in_buf = std.io.bufferedReader(in_xor.reader());
+    var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = std.io.limitedReader(in_count.reader(), std.math.maxInt(u32));
 

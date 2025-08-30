@@ -30,7 +30,7 @@ const Extract = struct {
 pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     const in_file = try std.fs.cwd().openFileZ(args.input_path, .{});
     defer in_file.close();
-    var buf_reader = std.io.bufferedReader(in_file.reader());
+    var buf_reader = iold.bufferedReader(in_file.reader());
     var reader = std.io.countingReader(buf_reader.reader());
 
     var cur_path_buf: pathf.Path = .{};
@@ -67,7 +67,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
 }
 
 const State = struct {
-    reader: *std.io.CountingReader(std.io.BufferedReader(4096, std.fs.File.Reader).Reader),
+    reader: *std.io.CountingReader(iold.BufferedReader(4096, std.fs.File.Reader).Reader),
     reader_pos: *const u64,
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
     cur_path: *pathf.Path,
