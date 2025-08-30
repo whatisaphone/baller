@@ -5,6 +5,7 @@ const oldBlockReader = @import("block_reader.zig").oldBlockReader;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const pathf = @import("pathf.zig");
 const wav = @import("wav.zig");
 
@@ -292,7 +293,7 @@ fn parseTalkFixed(
     defer path2.restore();
     const wav_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer wav_file.close();
-    var wav_stream = std.io.bufferedWriter(wav_file.writer());
+    var wav_stream = iold.bufferedWriter(wav_file.writer());
 
     try wav.writeHeader(sdat_len, wav_stream.writer());
     try wav_stream.writer().writeAll(sdat_raw);

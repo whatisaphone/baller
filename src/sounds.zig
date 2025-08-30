@@ -10,6 +10,7 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fsd = @import("fsd.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 
 pub fn extract(
@@ -88,7 +89,7 @@ fn writeWav(
     const file = try fsd.createFileZ(diagnostic, dir, path);
     defer file.close();
 
-    var buf = std.io.bufferedWriter(file.writer());
+    var buf = iold.bufferedWriter(file.writer());
 
     try writeWavHeader(buf.writer(), @intCast(samples.len));
     try buf.writer().writeAll(samples);

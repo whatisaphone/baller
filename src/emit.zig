@@ -21,6 +21,7 @@ const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const plan = @import("plan.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
@@ -114,7 +115,7 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
     const out_file = try cx.output_dir.createFileZ(out_name, .{});
     defer out_file.close();
     const out_xor = io.xorWriter(out_file.writer(), xor_key);
-    var out_buf = std.io.bufferedWriter(out_xor.writer());
+    var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = std.io.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(cx.gpa);
@@ -352,7 +353,7 @@ fn emitIndex(cx: *const Cx) !void {
     const out_file = try cx.output_dir.createFileZ(cx.index_name, .{});
     defer out_file.close();
     const out_xor = io.xorWriter(out_file.writer(), xor_key);
-    var out_buf = std.io.bufferedWriter(out_xor.writer());
+    var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = std.io.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(cx.gpa);

@@ -18,6 +18,7 @@ const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
 const io = @import("io.zig");
+const iold = @import("iold.zig");
 const sounds = @import("sounds.zig");
 const utils = @import("utils.zig");
 
@@ -136,7 +137,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
     const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
-    var wav_out = std.io.bufferedWriter(wav_file.writer());
+    var wav_out = iold.bufferedWriter(wav_file.writer());
     try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
     try io.copy(cx.in.reader(), wav_out.writer());
     try wav_out.flush();
@@ -194,7 +195,7 @@ pub fn build(
 
     const out_file = try fsd.createFileZ(diagnostic, out_dir, out_name);
     defer out_file.close();
-    var out_buf = std.io.bufferedWriter(out_file.writer());
+    var out_buf = iold.bufferedWriter(out_file.writer());
     var out = std.io.countingWriter(out_buf.writer());
 
     var fixups: std.ArrayList(Fixup) = .init(gpa);

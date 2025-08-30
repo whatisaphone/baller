@@ -4,6 +4,7 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Project = @import("Project.zig");
 const BlockId = @import("block_id.zig").BlockId;
+const iold = @import("iold.zig");
 const Loc = @import("lexer.zig").Loc;
 
 const Diagnostic = @This();
@@ -110,7 +111,7 @@ fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args:
 
 fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     if (live_spew) {
-        var buf = std.io.bufferedWriter(std.io.getStdErr().writer());
+        var buf = iold.bufferedWriter(std.io.getStdErr().writer());
         buf.writer().print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
         buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text.items }) catch @panic("spew");
         buf.flush() catch @panic("spew");
@@ -134,7 +135,7 @@ fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
 
 pub fn writeToStderrAndPropagateIfAnyErrors(self: *const Diagnostic) !void {
     const out_file = std.io.getStdErr();
-    var out = std.io.bufferedWriter(out_file.writer());
+    var out = iold.bufferedWriter(out_file.writer());
 
     if (live_spew)
         try out.writer().writeByte('\n');
