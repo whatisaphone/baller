@@ -234,6 +234,7 @@ fn dumpSaveGame(
         .baseball_1997 => 26043,
         .football_1999 => 190315,
         .baseball_2001 => 214572,
+        .basketball => 305376,
         else => return error.GameNotSupported,
     };
     _ = try io.readInPlace(in, trailing);
