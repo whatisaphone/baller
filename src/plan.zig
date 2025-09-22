@@ -684,8 +684,12 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
         bmp_path,
     );
     defer cx.gpa.free(bmp_raw);
-    const bitmap = try bmp.readHeaderDiag(bmp_raw, cx.diagnostic, .node(file, bmap_node_index));
-    try buildPals(&bitmap, &out);
+    var bmp_err: bmp.HeaderError = undefined;
+    const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
+        return bmp_err.addToDiag(cx.diagnostic, .node(file, bmap_node_index));
+    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+        return bmp_err.addToDiag(cx.diagnostic, .node(file, bmap_node_index));
+    try buildPals(&bmp8, &out);
 
     std.debug.assert(out.items.len == out.capacity);
 
@@ -695,7 +699,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     } });
 }
 
-fn buildPals(bitmap: *const bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
+fn buildPals(bitmap: *const bmp.Bmp8, out: *std.ArrayListUnmanaged(u8)) !void {
     const na = utils.null_allocator;
 
     const wrap_start = try beginBlockAl(na, out, .WRAP);

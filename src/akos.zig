@@ -309,17 +309,21 @@ fn encodeCelBmp(
     const bmp_data = try fs.readFile(allocator, state.project_dir, path);
     defer allocator.free(bmp_data);
 
-    const bitmap = try bmp.readHeaderDiag(bmp_data, diagnostic, loc);
-    const width = std.math.cast(u16, bitmap.width) orelse return error.BadData;
-    const height = std.math.cast(u16, bitmap.height) orelse return error.BadData;
+    var bmp_err: bmp.HeaderError = undefined;
+    const bmp_header = bmp.readHeader(bmp_data, &bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    const width = std.math.cast(u16, bmp8.width) orelse return error.BadData;
+    const height = std.math.cast(u16, bmp8.height) orelse return error.BadData;
 
     try state.akci.append(utils.null_allocator, .{ .width = width, .height = height });
 
     try state.cd_offsets.append(utils.null_allocator, @intCast(state.akcd.items.len));
 
     (switch (codec) {
-        .byle_rle => encodeCelByleRle(allocator, diagnostic, loc, &bitmap, akpl, &state.akcd),
-        .trle => encodeCelTrle(allocator, &bitmap, strategy, &state.akcd),
+        .byle_rle => encodeCelByleRle(allocator, diagnostic, loc, &bmp8, akpl, &state.akcd),
+        .trle => encodeCelTrle(allocator, &bmp8, strategy, &state.akcd),
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
@@ -333,7 +337,7 @@ const CelEncodeState = struct {
     run_mask: u8,
     color_shift: u3,
     color_map: [256]u8,
-    bitmap: *const bmp.Bmp,
+    bitmap: *const bmp.Bmp8,
     x: usize,
     y: usize,
     run: u8,
@@ -344,7 +348,7 @@ fn encodeCelByleRle(
     allocator: std.mem.Allocator,
     diagnostic: *Diagnostic,
     loc: Diagnostic.Location,
-    bitmap: *const bmp.Bmp,
+    bitmap: *const bmp.Bmp8,
     akpl: []const u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
@@ -416,7 +420,7 @@ fn flushRun(state: *CelEncodeState, out: anytype) !void {
 
 fn encodeCelTrle(
     allocator: std.mem.Allocator,
-    bitmap: *const bmp.Bmp,
+    bitmap: *const bmp.Bmp8,
     strategy: awiz.EncodingStrategy,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {

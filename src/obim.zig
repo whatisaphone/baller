@@ -296,8 +296,12 @@ pub fn encodeSmap(
     strip_compression: []const u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const bitmap = try bmp.readHeaderDiag(bmp_raw, diagnostic, loc);
-    if (bitmap.width % strip_width != 0) {
+    var bmp_err: bmp.HeaderError = undefined;
+    const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    if (bmp8.width % strip_width != 0) {
         diagnostic.errAt(loc, "bitmap width must be a multiple of strip width", .{});
         return error.AddedToDiagnostic;
     }
@@ -308,7 +312,7 @@ pub fn encodeSmap(
 
     const strip_offset_origin = out.items.len - Block.header_size;
 
-    const num_strips = bitmap.width / strip_width;
+    const num_strips = bmp8.width / strip_width;
     const table_offset = out.items.len;
     _ = try out.addManyAsSlice(gpa, num_strips * @sizeOf(u32));
 
@@ -321,7 +325,7 @@ pub fn encodeSmap(
 
         const x = strip_index * strip_width;
         const comp = std.math.cast(u8, strip_compression[strip_index]) orelse return error.BadData;
-        try encodeStrip(gpa, bitmap.width, bitmap.height, bitmap.pixels[x..], comp, out);
+        try encodeStrip(gpa, bmp8.width, bmp8.height, bmp8.pixels[x..], comp, out);
     }
 
     // Older versions pad the output to an even number of bytes

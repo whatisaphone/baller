@@ -213,7 +213,11 @@ pub fn encode(
     const bmp_raw = try fs.readFile(gpa, project_dir, file.ast.strings.get(wizd.path));
     defer gpa.free(bmp_raw);
 
-    const header = try bmp.readHeaderDiag(bmp_raw, diagnostic, loc);
+    var bmp_err: bmp.HeaderError = undefined;
+    const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
 
     // Now write the blocks in the requested order
 
@@ -224,21 +228,21 @@ pub fn encode(
             },
             .awiz_rgbs => {
                 const fixup = try beginBlockAl(gpa, out, .RGBS);
-                try writeRgbs(gpa, header, out);
+                try writeRgbs(gpa, bmp8, out);
                 endBlockAl(out, fixup);
             },
             .awiz_wizh => {
                 const fixup = try beginBlockAl(gpa, out, .WIZH);
                 try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
-                try out.writer(gpa).writeInt(i32, header.width, .little);
-                try out.writer(gpa).writeInt(i32, header.height, .little);
+                try out.writer(gpa).writeInt(i32, bmp8.width, .little);
+                try out.writer(gpa).writeInt(i32, bmp8.height, .little);
                 endBlockAl(out, fixup);
             },
             .awiz_wizd => |_| {
                 const fixup = try beginBlockAl(gpa, out, .WIZD);
                 switch (wizd.compression) {
-                    .none => try encodeUncompressed(gpa, header, out),
-                    .rle => try encodeRle(gpa, header, strategy, out),
+                    .none => try encodeUncompressed(gpa, bmp8, out),
+                    .rle => try encodeRle(gpa, bmp8, strategy, out),
                 }
                 // Pad output to a multiple of 2 bytes
                 if ((out.items.len - fixup) & 1 != 0)
@@ -262,7 +266,7 @@ pub const placeholder_palette = placeholder_palette: {
     break :placeholder_palette result;
 };
 
-pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnmanaged(u8)) !void {
+pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp8, out: *std.ArrayListUnmanaged(u8)) !void {
     for (header.palette) |color| {
         try out.append(gpa, color.rgbRed);
         try out.append(gpa, color.rgbGreen);
@@ -272,7 +276,7 @@ pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp, out: *std.ArrayListUnm
 
 pub fn encodeUncompressed(
     gpa: std.mem.Allocator,
-    header: bmp.Bmp,
+    header: bmp.Bmp8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, header.width * header.height);
@@ -283,7 +287,7 @@ pub fn encodeUncompressed(
 
 pub fn encodeRle(
     gpa: std.mem.Allocator,
-    header: bmp.Bmp,
+    header: bmp.Bmp8,
     strategy: EncodingStrategy,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {

@@ -18,12 +18,16 @@ pub fn encode(
     bmp_raw: []u8,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const header = try bmp.readHeaderDiag(bmp_raw, diagnostic, loc);
+    var bmp_err: bmp.HeaderError = undefined;
+    const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
+    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+        return bmp_err.addToDiag(diagnostic, loc);
 
     const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
     try out.append(gpa, compression);
-    try compressBmap(diagnostic, loc, header, target, compression, out.writer(gpa));
+    try compressBmap(diagnostic, loc, bmp8, target, compression, out.writer(gpa));
 
     endBlockAl(out, bmap_fixup);
 }
@@ -31,7 +35,7 @@ pub fn encode(
 fn compressBmap(
     diagnostic: *Diagnostic,
     loc: Diagnostic.Location,
-    header: bmp.Bmp,
+    header: bmp.Bmp8,
     target: games.Target,
     compression: u8,
     writer: anytype,
@@ -57,7 +61,7 @@ fn compressBmap(
 fn compressBmapNMajMin(
     diagnostic: *Diagnostic,
     loc: Diagnostic.Location,
-    header: bmp.Bmp,
+    header: bmp.Bmp8,
     target: games.Target,
     compression: u8,
     writer: anytype,
@@ -120,7 +124,7 @@ fn reportColorOutOfRange(
     return error.AddedToDiagnostic;
 }
 
-fn compressBmapSolidColorFill(header: bmp.Bmp, writer: anytype) !void {
+fn compressBmapSolidColorFill(header: bmp.Bmp8, writer: anytype) !void {
     const color = header.pixels[0];
     if (!std.mem.allEqual(u8, header.pixels[1..], color)) return error.BadData;
     try writer.writeByte(color);
