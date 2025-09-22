@@ -105,9 +105,25 @@ pub fn readHeader(bmp: []u8, err: *HeaderError) error{BmpError}!Bmp {
 pub const Bmp = struct {
     raw: []u8,
 
+    fn fileHeader(self: Bmp) *align(1) const BITMAPFILEHEADER {
+        return std.mem.bytesAsValue(BITMAPFILEHEADER, self.raw);
+    }
+
+    fn infoHeader(self: Bmp) *align(1) const BITMAPINFOHEADER {
+        return std.mem.bytesAsValue(BITMAPINFOHEADER, self.raw[bitmap_file_header_size..]);
+    }
+
+    pub fn width(self: Bmp) u31 {
+        return @intCast(self.infoHeader().biWidth);
+    }
+
+    pub fn height(self: Bmp) u31 {
+        return @intCast(@abs(self.infoHeader().biHeight));
+    }
+
     pub fn as8Bit(self: Bmp, err: *HeaderError) error{BmpError}!Bmp8 {
-        const file_header = std.mem.bytesAsValue(BITMAPFILEHEADER, self.raw);
-        const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, self.raw[bitmap_file_header_size..]);
+        const file_header = self.fileHeader();
+        const info_header = self.infoHeader();
 
         if (info_header.biBitCount != 8)
             return err.set(.{ .wrong_bit_count = info_header.biBitCount });
@@ -116,9 +132,9 @@ pub const Bmp = struct {
         if (!(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
             return err.set(.{ .wrong_palette_size = info_header.biClrUsed });
 
-        const width: u31 = @intCast(info_header.biWidth);
-        const height: u31 = @intCast(@abs(info_header.biHeight));
-        const stride = calcStride(width);
+        const w = self.width();
+        const h = self.height();
+        const stride = calcStride(w);
 
         const palette_start = bitmap_file_header_size + info_header.biSize;
         const palette_size = num_colors * @sizeOf(RGBQUAD);
@@ -129,24 +145,24 @@ pub const Bmp = struct {
         if (file_header.bfOffBits > self.raw.len)
             return err.set(.other);
         const pixels = self.raw[file_header.bfOffBits..];
-        if (pixels.len != stride * height)
+        if (pixels.len != stride * h)
             return err.set(.other);
 
         // If the bmp is bottom-up, flip it so it's top-down
         const bottom_up = info_header.biHeight > 0;
         if (bottom_up) {
-            for (0..height / 2) |y| {
-                const row_a = pixels[y * stride ..][0..width];
-                const flipped_y = height - 1 - y;
-                const row_b = pixels[flipped_y * stride ..][0..width];
+            for (0..h / 2) |y| {
+                const row_a = pixels[y * stride ..][0..w];
+                const flipped_y = h - 1 - y;
+                const row_b = pixels[flipped_y * stride ..][0..w];
                 for (row_a, row_b) |*a, *b|
                     std.mem.swap(u8, a, b);
             }
         }
 
         return .{
-            .width = width,
-            .height = height,
+            .width = w,
+            .height = h,
             .palette = palette,
             .pixels = pixels,
         };
