@@ -331,15 +331,20 @@ fn dumpScript(
 }
 
 fn dumpVar(prefix: []const u8, number: usize, value: i32, out: anytype) !void {
-    try out.print("    {s}{} = {}", .{ prefix, number, value });
-    if (getArrayNumber(value)) |array_number|
-        try out.print(" <array {}>", .{array_number});
+    try out.print("    {s}{} = ", .{ prefix, number });
+    try dumpValue(value, out);
     try out.writeByte('\n');
 }
 
-fn getArrayNumber(value: i32) ?u8 {
-    if (@as(u32, @bitCast(value)) & 0xffffff00 != 0x33539000) return null;
-    return @intCast(value & 0xff);
+fn dumpValue(value: i32, out: anytype) !void {
+    try out.print("{}", .{value});
+    if (getArrayNumber(value)) |array_number|
+        try out.print("<array{}>", .{array_number});
+}
+
+fn getArrayNumber(value: i32) ?u12 {
+    if (@as(u32, @bitCast(value)) & 0xfffff000 != 0x33539000) return null;
+    return @intCast(value & 0xfff);
 }
 
 fn dumpHbgl(raw: []const u8, out: anytype) !void {
@@ -397,7 +402,8 @@ fn dumpArray(raw: []const u8, out: anytype) !void {
                         .int16 => std.mem.readInt(i16, cur.use()[0..2], .little),
                         .int32 => std.mem.readInt(i32, cur.use()[0..4], .little),
                     };
-                    try out.print(" {}", .{value});
+                    try out.writeByte(' ');
+                    try dumpValue(value, out);
                     cur = cur.plus(header.type.bytes());
                 }
             },
