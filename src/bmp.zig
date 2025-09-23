@@ -3,9 +3,6 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const utils = @import("utils.zig");
 
-const bitmap_file_header_size = 14;
-const bitmap_info_header_size = 40;
-const bitmap_info_header_v4_size = 108;
 const magic = std.mem.bytesToValue(u16, "BM");
 const num_colors = 256;
 const row_align = 4;
@@ -111,10 +108,10 @@ pub fn readHeader(bmp: []u8, err: *HeaderError) error{BmpError}!Bmp {
     if (file_header.bfType != magic)
         return err.set(.not_bmp);
 
-    const info_header_size = std.mem.readInt(u32, bmp[bitmap_file_header_size..][0..4], .little);
-    if (info_header_size < bitmap_info_header_size)
+    const info_header_size = std.mem.readInt(u32, bmp[@sizeOf(BITMAPFILEHEADER)..][0..4], .little);
+    if (info_header_size < @sizeOf(BITMAPINFOHEADER))
         return err.set(.not_bmp);
-    const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[bitmap_file_header_size..]);
+    const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[@sizeOf(BITMAPFILEHEADER)..]);
 
     // Make sure width/height fit in 31 bits
     _ = std.math.cast(u31, info_header.biWidth) orelse
@@ -136,12 +133,12 @@ pub const Bmp = struct {
     }
 
     fn infoHeader(self: Bmp) *align(1) const BITMAPINFOHEADER {
-        return std.mem.bytesAsValue(BITMAPINFOHEADER, self.raw[bitmap_file_header_size..]);
+        return std.mem.bytesAsValue(BITMAPINFOHEADER, self.raw[@sizeOf(BITMAPFILEHEADER)..]);
     }
 
     fn infoHeaderV4(self: Bmp) *align(1) const BITMAPINFOHEADERV4 {
-        std.debug.assert(self.infoHeader().biSize >= bitmap_info_header_v4_size);
-        return std.mem.bytesAsValue(BITMAPINFOHEADERV4, self.raw[bitmap_file_header_size..]);
+        std.debug.assert(self.infoHeader().biSize >= @sizeOf(BITMAPINFOHEADERV4));
+        return @ptrCast(self.infoHeader());
     }
 
     pub fn width(self: Bmp) u31 {
@@ -219,7 +216,7 @@ pub const Bmp = struct {
     fn getBitfields(self: Bmp, err: *HeaderError) ![4]u32 {
         const header = self.infoHeader();
         std.debug.assert(header.biCompression == BI_BITFIELDS);
-        if (header.biSize < bitmap_info_header_v4_size) {
+        if (header.biSize < @sizeOf(BITMAPINFOHEADERV4)) {
             const bfs_ptr = try self.getPalette(3, err);
             const bfs: *align(1) const [3]u32 = @ptrCast(bfs_ptr.array(3));
             return .{ bfs[0], bfs[1], bfs[2], 0 };
@@ -230,7 +227,7 @@ pub const Bmp = struct {
     }
 
     fn getPalette(self: Bmp, len: usize, err: *HeaderError) !utils.SafeManyPointer([*]const RGBQUAD) {
-        const start = bitmap_file_header_size + self.infoHeader().biSize;
+        const start = @sizeOf(BITMAPFILEHEADER) + self.infoHeader().biSize;
         const size = len * @sizeOf(RGBQUAD);
         if (start + size > self.raw.len)
             return err.set(.other);
@@ -327,7 +324,7 @@ pub fn calcFileSize(width: u31, height: u31) u32 {
 }
 
 fn calcDataStart() u32 {
-    return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors;
+    return @sizeOf(BITMAPFILEHEADER) + @sizeOf(BITMAPINFOHEADER) + 4 * num_colors;
 }
 
 pub const Bmp15 = struct {
@@ -351,7 +348,7 @@ pub fn calcFileSize15(width: u31, height: u31) u32 {
 }
 
 fn calcDataStart15() u32 {
-    return bitmap_file_header_size + bitmap_info_header_size;
+    return @sizeOf(BITMAPFILEHEADER) + @sizeOf(BITMAPINFOHEADER);
 }
 
 pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
@@ -363,7 +360,7 @@ pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void 
     try out.writeInt(u32, calcDataStart(), .little);
 
     // BITMAPINFOHEADER
-    try out.writeInt(u32, bitmap_info_header_size, .little);
+    try out.writeInt(u32, @sizeOf(BITMAPINFOHEADER), .little);
     try out.writeInt(i32, width, .little);
     try out.writeInt(i32, -@as(i32, height), .little);
     try out.writeInt(u16, 1, .little);
@@ -385,7 +382,7 @@ pub fn writeHeader15(out: anytype, width: u31, height: u31, file_size: u32) !voi
     try out.writeInt(u32, calcDataStart15(), .little);
 
     // BITMAPINFOHEADER
-    try out.writeInt(u32, bitmap_info_header_size, .little);
+    try out.writeInt(u32, @sizeOf(BITMAPINFOHEADER), .little);
     try out.writeInt(i32, width, .little);
     try out.writeInt(i32, -@as(i32, height), .little);
     try out.writeInt(u16, 1, .little);
