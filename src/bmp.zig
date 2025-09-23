@@ -101,6 +101,9 @@ pub fn readHeader(bmp: []u8, err: *HeaderError) error{BmpError}!Bmp {
     _ = std.math.cast(u31, @abs(info_header.biHeight)) orelse
         return err.set(.other);
 
+    if (info_header.biPlanes != 1)
+        return err.set(.other);
+
     return .{ .raw = bmp };
 }
 
