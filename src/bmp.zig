@@ -5,6 +5,7 @@ const utils = @import("utils.zig");
 
 const bitmap_file_header_size = 14;
 const bitmap_info_header_size = 40;
+const bitmap_info_header_v4_size = 108;
 const magic = std.mem.bytesToValue(u16, "BM");
 const num_colors = 256;
 const row_align = 4;
@@ -32,6 +33,29 @@ pub const BITMAPINFOHEADER = extern struct {
     biYPelsPerMeter: i32 align(2),
     biClrUsed: u32 align(2),
     biClrImportant: u32 align(2),
+};
+
+pub const BITMAPINFOHEADERV4 = extern struct {
+    bV4Size: u32 align(2),
+    bV4Width: i32 align(2),
+    bV4Height: i32 align(2),
+    bV4Planes: u16,
+    bV4BitCount: u16,
+    bV4V4Compression: u32 align(2),
+    bV4SizeImage: u32 align(2),
+    bV4XPelsPerMeter: i32 align(2),
+    bV4YPelsPerMeter: i32 align(2),
+    bV4ClrUsed: u32 align(2),
+    bV4ClrImportant: u32 align(2),
+    bV4RedMask: u32 align(2),
+    bV4GreenMask: u32 align(2),
+    bV4BlueMask: u32 align(2),
+    bV4AlphaMask: u32 align(2),
+    bV4CSType: u32 align(2),
+    bV4Endpoints: [3]i32 align(2),
+    bV4GammaRed: u32 align(2),
+    bV4GammaGreen: u32 align(2),
+    bV4GammaBlue: u32 align(2),
 };
 
 const RGBQUAD = extern struct {
@@ -87,12 +111,9 @@ pub fn readHeader(bmp: []u8, err: *HeaderError) error{BmpError}!Bmp {
     if (file_header.bfType != magic)
         return err.set(.not_bmp);
 
-    const header_size = std.mem.readInt(u32, bmp[bitmap_file_header_size..][0..4], .little);
-    if (header_size != 0x28 and // BITMAPINFOHEADER
-        header_size != 0x6c and // BITMAPV4HEADER
-        header_size != 0x7c) // BITMAPV5HEADER
+    const info_header_size = std.mem.readInt(u32, bmp[bitmap_file_header_size..][0..4], .little);
+    if (info_header_size < bitmap_info_header_size)
         return err.set(.not_bmp);
-    // BITMAPINFOHEADER is a prefix of all the above header types
     const info_header = std.mem.bytesAsValue(BITMAPINFOHEADER, bmp[bitmap_file_header_size..]);
 
     // Make sure width/height fit in 31 bits
@@ -116,6 +137,11 @@ pub const Bmp = struct {
 
     fn infoHeader(self: Bmp) *align(1) const BITMAPINFOHEADER {
         return std.mem.bytesAsValue(BITMAPINFOHEADER, self.raw[bitmap_file_header_size..]);
+    }
+
+    fn infoHeaderV4(self: Bmp) *align(1) const BITMAPINFOHEADERV4 {
+        std.debug.assert(self.infoHeader().biSize >= bitmap_info_header_v4_size);
+        return std.mem.bytesAsValue(BITMAPINFOHEADERV4, self.raw[bitmap_file_header_size..]);
     }
 
     pub fn width(self: Bmp) u31 {
@@ -164,11 +190,11 @@ pub const Bmp = struct {
             BI_RGB => {},
             BI_BITFIELDS => {
                 // just make sure the bitfields match standard 555
-                const bitfields_ptr = try self.getPalette(3, err);
-                const bitfields: *align(1) const [3]u32 = @ptrCast(bitfields_ptr.array(3));
+                const bitfields = try self.getBitfields(err);
                 if (bitfields[0] != 0x7c00 or
                     bitfields[1] != 0x03e0 or
-                    bitfields[2] != 0x001f)
+                    bitfields[2] != 0x001f or
+                    bitfields[3] != 0x0000)
                     // I'm not checking if it's 16-bit exactly, but this error
                     // should be close enough
                     return err.set(.{ .wrong_bit_count = .{ .expected = 15, .actual = 16 } });
@@ -188,6 +214,19 @@ pub const Bmp = struct {
             .height = h,
             .pixels = pixels,
         };
+    }
+
+    fn getBitfields(self: Bmp, err: *HeaderError) ![4]u32 {
+        const header = self.infoHeader();
+        std.debug.assert(header.biCompression == BI_BITFIELDS);
+        if (header.biSize < bitmap_info_header_v4_size) {
+            const bfs_ptr = try self.getPalette(3, err);
+            const bfs: *align(1) const [3]u32 = @ptrCast(bfs_ptr.array(3));
+            return .{ bfs[0], bfs[1], bfs[2], 0 };
+        } else {
+            const h4 = self.infoHeaderV4();
+            return .{ h4.bV4RedMask, h4.bV4GreenMask, h4.bV4BlueMask, h4.bV4AlphaMask };
+        }
     }
 
     fn getPalette(self: Bmp, len: usize, err: *HeaderError) !utils.SafeManyPointer([*]const RGBQUAD) {
