@@ -23,6 +23,7 @@ const transparent = 5;
 pub const Compression = enum(u8) {
     none = 0,
     rle = 1,
+    none_16bit = 2,
 };
 
 pub fn decode(
@@ -110,20 +111,12 @@ fn decodeInner(
     if (width > max_supported_width)
         return error.BadData;
 
-    const bmp_file_size = bmp.calcFileSize(width, height);
-    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
+    var bmp_buf = switch (wizh.compression) {
+        .none => try decodeUncompressed(allocator, width, height, rgbs_opt orelse default_palette, reader),
+        .rle => try decodeRleToBmp(allocator, width, height, rgbs_opt orelse default_palette, reader),
+        .none_16bit => try decodeUncompressed16bit(allocator, width, height, reader),
+    };
     defer bmp_buf.deinit(allocator);
-
-    const bmp_writer = bmp_buf.writer(allocator);
-
-    try bmp.writeHeader(bmp_writer, width, height, bmp_file_size);
-
-    try bmp.writePalette(bmp_writer, rgbs_opt orelse default_palette);
-
-    switch (wizh.compression) {
-        .none => try decodeUncompressed(width, height, reader, &bmp_buf),
-        .rle => try decodeRle(width, height, reader, &bmp_buf),
-    }
 
     // Allow one byte of padding from the encoder
     if (reader.pos < wizd_end)
@@ -143,17 +136,44 @@ fn decodeInner(
 }
 
 fn decodeUncompressed(
+    allocator: std.mem.Allocator,
     width: u31,
     height: u31,
+    palette: *const [0x300]u8,
     reader: anytype,
-    bmp_buf: *std.ArrayListUnmanaged(u8),
-) !void {
+) !std.ArrayListUnmanaged(u8) {
+    const bmp_file_size = bmp.calcFileSize(width, height);
+    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_buf.deinit(allocator);
+
+    try bmp.writeHeader(bmp_buf.fixedWriter(), width, height, bmp_file_size);
+    try bmp.writePalette(bmp_buf.fixedWriter(), palette);
+
     for (0..height) |_| {
         const row = try io.readInPlace(reader, width);
         try bmp_buf.appendSlice(utils.null_allocator, row);
 
         try bmp.padRow(bmp_buf.writer(utils.null_allocator), width);
     }
+
+    return bmp_buf;
+}
+
+pub fn decodeRleToBmp(
+    allocator: std.mem.Allocator,
+    width: u31,
+    height: u31,
+    palette: *const [0x300]u8,
+    reader: anytype,
+) !std.ArrayListUnmanaged(u8) {
+    const bmp_file_size = bmp.calcFileSize(width, height);
+    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_buf.deinit(allocator);
+
+    try bmp.writeHeader(bmp_buf.fixedWriter(), width, height, bmp_file_size);
+    try bmp.writePalette(bmp_buf.fixedWriter(), palette);
+    try decodeRle(width, height, reader, &bmp_buf);
+    return bmp_buf;
 }
 
 // based on ScummVM's auxDecompTRLEPrim
@@ -191,6 +211,28 @@ pub fn decodeRle(
     }
 }
 
+fn decodeUncompressed16bit(
+    allocator: std.mem.Allocator,
+    width: u31,
+    height: u31,
+    reader: anytype,
+) !std.ArrayListUnmanaged(u8) {
+    const bmp_file_size = bmp.calcFileSize15(width, height);
+    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_buf.deinit(allocator);
+
+    try bmp.writeHeader15(bmp_buf.fixedWriter(), width, height, bmp_file_size);
+
+    for (0..height) |_| {
+        const row = try io.readInPlace(reader, width * @sizeOf(u16));
+        try bmp_buf.appendSlice(utils.null_allocator, row);
+
+        try bmp.padRow15(bmp_buf.writer(utils.null_allocator), width);
+    }
+
+    return bmp_buf;
+}
+
 pub const EncodingStrategy = enum { original, max };
 
 pub fn encode(
@@ -216,8 +258,6 @@ pub fn encode(
     var bmp_err: bmp.HeaderError = undefined;
     const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
         return bmp_err.addToDiag(diagnostic, loc);
-    const bmp8 = bmp_header.as8Bit(&bmp_err) catch
-        return bmp_err.addToDiag(diagnostic, loc);
 
     // Now write the blocks in the requested order
 
@@ -228,21 +268,36 @@ pub fn encode(
             },
             .awiz_rgbs => {
                 const fixup = try beginBlockAl(gpa, out, .RGBS);
+                const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+                    return bmp_err.addToDiag(diagnostic, loc);
                 try writeRgbs(gpa, bmp8, out);
                 endBlockAl(out, fixup);
             },
             .awiz_wizh => {
                 const fixup = try beginBlockAl(gpa, out, .WIZH);
                 try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
-                try out.writer(gpa).writeInt(i32, bmp8.width, .little);
-                try out.writer(gpa).writeInt(i32, bmp8.height, .little);
+                try out.writer(gpa).writeInt(i32, bmp_header.width(), .little);
+                try out.writer(gpa).writeInt(i32, bmp_header.height(), .little);
                 endBlockAl(out, fixup);
             },
             .awiz_wizd => |_| {
                 const fixup = try beginBlockAl(gpa, out, .WIZD);
                 switch (wizd.compression) {
-                    .none => try encodeUncompressed(gpa, bmp8, out),
-                    .rle => try encodeRle(gpa, bmp8, strategy, out),
+                    .none => {
+                        const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+                            return bmp_err.addToDiag(diagnostic, loc);
+                        try encodeUncompressed(gpa, bmp8, out);
+                    },
+                    .rle => {
+                        const bmp8 = bmp_header.as8Bit(&bmp_err) catch
+                            return bmp_err.addToDiag(diagnostic, loc);
+                        try encodeRle(gpa, bmp8, strategy, out);
+                    },
+                    .none_16bit => {
+                        const bmp15 = bmp_header.as15Bit(&bmp_err) catch
+                            return bmp_err.addToDiag(diagnostic, loc);
+                        try encodeUncompressed15Bit(gpa, bmp15, out);
+                    },
                 }
                 // Pad output to a multiple of 2 bytes
                 if ((out.items.len - fixup) & 1 != 0)
@@ -280,6 +335,17 @@ pub fn encodeUncompressed(
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, header.width * header.height);
+    var rows = header.iterRows();
+    while (rows.next()) |row|
+        out.appendSliceAssumeCapacity(row);
+}
+
+pub fn encodeUncompressed15Bit(
+    gpa: std.mem.Allocator,
+    header: bmp.Bmp15,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
+    try out.ensureUnusedCapacity(gpa, header.width * header.height * @sizeOf(u16));
     var rows = header.iterRows();
     while (rows.next()) |row|
         out.appendSliceAssumeCapacity(row);

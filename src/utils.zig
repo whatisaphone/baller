@@ -106,6 +106,12 @@ pub fn SafeManyPointer(ManyPtr: type) type {
             return self.ptr[0..len];
         }
 
+        pub fn array(self: Self, comptime len: usize) *const [len]Element {
+            if (store_len)
+                std.debug.assert(len == self.len);
+            return self.ptr[0..len];
+        }
+
         pub fn get(self: Self, index: usize) Element {
             return self.use()[index];
         }

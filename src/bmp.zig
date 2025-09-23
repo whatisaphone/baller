@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
+const utils = @import("utils.zig");
 
 const bitmap_file_header_size = 14;
 const bitmap_info_header_size = 40;
@@ -9,27 +10,28 @@ const num_colors = 256;
 const row_align = 4;
 
 const BI_RGB = 0;
+const BI_BITFIELDS = 3;
 
-const BITMAPFILEHEADER = packed struct {
+const BITMAPFILEHEADER = extern struct {
     bfType: u16,
-    bfSize: u32,
+    bfSize: u32 align(2),
     bfReserved1: u16,
     bfReserved2: u16,
-    bfOffBits: u32,
+    bfOffBits: u32 align(2),
 };
 
-pub const BITMAPINFOHEADER = packed struct {
-    biSize: u32,
-    biWidth: i32,
-    biHeight: i32,
+pub const BITMAPINFOHEADER = extern struct {
+    biSize: u32 align(2),
+    biWidth: i32 align(2),
+    biHeight: i32 align(2),
     biPlanes: u16,
     biBitCount: u16,
-    biCompression: u32,
-    biSizeImage: u32,
-    biXPelsPerMeter: i32,
-    biYPelsPerMeter: i32,
-    biClrUsed: u32,
-    biClrImportant: u32,
+    biCompression: u32 align(2),
+    biSizeImage: u32 align(2),
+    biXPelsPerMeter: i32 align(2),
+    biYPelsPerMeter: i32 align(2),
+    biClrUsed: u32 align(2),
+    biClrImportant: u32 align(2),
 };
 
 const RGBQUAD = extern struct {
@@ -41,7 +43,7 @@ const RGBQUAD = extern struct {
 
 pub const HeaderError = union(enum) {
     not_bmp,
-    wrong_bit_count: u16,
+    wrong_bit_count: struct { expected: u16, actual: u16 },
     compressed,
     wrong_palette_size: u32,
     other,
@@ -60,8 +62,8 @@ pub const HeaderError = union(enum) {
             .not_bmp => {
                 diagnostic.errAt(loc, "invalid bmp file", .{});
             },
-            .wrong_bit_count => |bits| {
-                diagnostic.errAt(loc, "expected 8-bit bmp, found {}-bit", .{bits});
+            .wrong_bit_count => |e| {
+                diagnostic.errAt(loc, "expected {}-bit bmp, found {}-bit", .{ e.expected, e.actual });
             },
             .compressed => {
                 diagnostic.errAt(loc, "expected uncompressed bmp, found compressed", .{});
@@ -122,11 +124,10 @@ pub const Bmp = struct {
     }
 
     pub fn as8Bit(self: Bmp, err: *HeaderError) error{BmpError}!Bmp8 {
-        const file_header = self.fileHeader();
         const info_header = self.infoHeader();
 
         if (info_header.biBitCount != 8)
-            return err.set(.{ .wrong_bit_count = info_header.biBitCount });
+            return err.set(.{ .wrong_bit_count = .{ .expected = 8, .actual = info_header.biBitCount } });
         if (info_header.biCompression != BI_RGB)
             return err.set(.compressed);
         if (!(info_header.biClrUsed == 0 or info_header.biClrUsed == 256))
@@ -136,29 +137,11 @@ pub const Bmp = struct {
         const h = self.height();
         const stride = calcStride(w);
 
-        const palette_start = bitmap_file_header_size + info_header.biSize;
-        const palette_size = num_colors * @sizeOf(RGBQUAD);
-        if (palette_start + palette_size > self.raw.len)
-            return err.set(.other);
-        const palette: *const [num_colors]RGBQUAD = @ptrCast(self.raw[palette_start..][0..palette_size]);
+        const palette_ptr = try self.getPalette(num_colors, err);
+        const palette = palette_ptr.array(num_colors);
 
-        if (file_header.bfOffBits > self.raw.len)
-            return err.set(.other);
-        const pixels = self.raw[file_header.bfOffBits..];
-        if (pixels.len != stride * h)
-            return err.set(.other);
-
-        // If the bmp is bottom-up, flip it so it's top-down
-        const bottom_up = info_header.biHeight > 0;
-        if (bottom_up) {
-            for (0..h / 2) |y| {
-                const row_a = pixels[y * stride ..][0..w];
-                const flipped_y = h - 1 - y;
-                const row_b = pixels[flipped_y * stride ..][0..w];
-                for (row_a, row_b) |*a, *b|
-                    std.mem.swap(u8, a, b);
-            }
-        }
+        const pixels = try self.getPixels(stride, err);
+        self.flipToTopDown(pixels, stride);
 
         return .{
             .width = w,
@@ -166,6 +149,75 @@ pub const Bmp = struct {
             .palette = palette,
             .pixels = pixels,
         };
+    }
+
+    pub fn as15Bit(self: *const Bmp, err: *HeaderError) error{BmpError}!Bmp15 {
+        const info_header = self.infoHeader();
+
+        if (info_header.biBitCount != 16)
+            return err.set(.{ .wrong_bit_count = .{ .expected = 15, .actual = info_header.biBitCount } });
+
+        switch (info_header.biCompression) {
+            BI_RGB => {},
+            BI_BITFIELDS => {
+                // just make sure the bitfields match standard 555
+                const bitfields_ptr = try self.getPalette(3, err);
+                const bitfields: *align(1) const [3]u32 = @ptrCast(bitfields_ptr.array(3));
+                if (bitfields[0] != 0x7c00 or
+                    bitfields[1] != 0x03e0 or
+                    bitfields[2] != 0x001f)
+                    // I'm not checking if it's 16-bit exactly, but this error
+                    // should be close enough
+                    return err.set(.{ .wrong_bit_count = .{ .expected = 15, .actual = 16 } });
+            },
+            else => return err.set(.compressed),
+        }
+
+        const w = self.width();
+        const h = self.height();
+        const stride = calcStride15(w);
+
+        const pixels = try self.getPixels(stride, err);
+        self.flipToTopDown(pixels, stride);
+
+        return .{
+            .width = w,
+            .height = h,
+            .pixels = pixels,
+        };
+    }
+
+    fn getPalette(self: Bmp, len: usize, err: *HeaderError) !utils.SafeManyPointer([*]const RGBQUAD) {
+        const start = bitmap_file_header_size + self.infoHeader().biSize;
+        const size = len * @sizeOf(RGBQUAD);
+        if (start + size > self.raw.len)
+            return err.set(.other);
+        return .init(@ptrCast(self.raw[start..][0..size]));
+    }
+
+    fn getPixels(self: Bmp, stride: u31, err: *HeaderError) ![]u8 {
+        const file_header = self.fileHeader();
+        if (file_header.bfOffBits > self.raw.len)
+            return err.set(.other);
+        const pixels = self.raw[file_header.bfOffBits..];
+        if (pixels.len != stride * self.height())
+            return err.set(.other);
+        return pixels;
+    }
+
+    /// If the bmp is bottom-up, flip it so it's top-down
+    fn flipToTopDown(self: Bmp, pixels: []u8, stride: u31) void {
+        const bottom_up = self.infoHeader().biHeight > 0;
+        if (!bottom_up) return;
+
+        const h: u31 = self.height();
+        for (0..h / 2) |y| {
+            const row_a = pixels[y * stride ..][0..stride];
+            const flipped_y = h - 1 - y;
+            const row_b = pixels[flipped_y * stride ..][0..stride];
+            for (row_a, row_b) |*a, *b|
+                std.mem.swap(u8, a, b);
+        }
     }
 };
 
@@ -202,6 +254,16 @@ pub const RowIter = struct {
         };
     }
 
+    // TODO: this doesn't belong here
+    fn init15(width: u31, pixels: []const u8) RowIter {
+        return .{
+            .pixels = pixels,
+            .pos = 0,
+            .width = width * @sizeOf(u16),
+            .stride = calcStride15(width),
+        };
+    }
+
     pub fn next(self: *RowIter) ?[]const u8 {
         const pos = self.pos;
 
@@ -226,6 +288,30 @@ fn calcDataStart() u32 {
     return bitmap_file_header_size + bitmap_info_header_size + 4 * num_colors;
 }
 
+pub const Bmp15 = struct {
+    width: u31,
+    height: u31,
+    pixels: []const u8,
+
+    pub fn iterRows(self: *const Bmp15) RowIter {
+        return .init15(self.width, self.pixels);
+    }
+};
+
+pub fn calcStride15(width: u31) u31 {
+    const row_size = width * @sizeOf(u16);
+    return std.mem.alignForward(u31, row_size, row_align);
+}
+
+pub fn calcFileSize15(width: u31, height: u31) u32 {
+    const stride = calcStride15(width);
+    return calcDataStart15() + stride * height;
+}
+
+fn calcDataStart15() u32 {
+    return bitmap_file_header_size + bitmap_info_header_size;
+}
+
 pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
     // BITMAPFILEHEADER
     try out.writeAll("BM");
@@ -239,7 +325,29 @@ pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void 
     try out.writeInt(i32, width, .little);
     try out.writeInt(i32, -@as(i32, height), .little);
     try out.writeInt(u16, 1, .little);
-    try out.writeInt(u16, 8, .little);
+    try out.writeInt(u16, 8, .little); // bits
+    try out.writeInt(u32, 0, .little); // BI_RGB
+    try out.writeInt(u32, 0, .little);
+    try out.writeInt(i32, 0, .little);
+    try out.writeInt(i32, 0, .little);
+    try out.writeInt(u32, 0, .little);
+    try out.writeInt(u32, 0, .little);
+}
+
+pub fn writeHeader15(out: anytype, width: u31, height: u31, file_size: u32) !void {
+    // BITMAPFILEHEADER
+    try out.writeAll("BM");
+    try out.writeInt(u32, file_size, .little);
+    try out.writeInt(u16, 0, .little);
+    try out.writeInt(u16, 0, .little);
+    try out.writeInt(u32, calcDataStart15(), .little);
+
+    // BITMAPINFOHEADER
+    try out.writeInt(u32, bitmap_info_header_size, .little);
+    try out.writeInt(i32, width, .little);
+    try out.writeInt(i32, -@as(i32, height), .little);
+    try out.writeInt(u16, 1, .little);
+    try out.writeInt(u16, 16, .little); // bits
     try out.writeInt(u32, 0, .little); // BI_RGB
     try out.writeInt(u32, 0, .little);
     try out.writeInt(i32, 0, .little);
@@ -270,10 +378,15 @@ pub fn writePlaceholderPalette(out: anytype) !void {
         });
 }
 
-pub fn padRow(out: anytype, width: u31) !void {
+pub fn padRow(out: anytype, row_size: u31) !void {
     // Per the BMP spec, align each row to a multiple of 4 bytes
     const mask = row_align - 1;
-    const bytes = mask - ((width + mask) & mask);
+    const bytes = mask - ((row_size + mask) & mask);
     for (0..bytes) |_|
         try out.writeByte(0);
+}
+
+pub fn padRow15(out: anytype, width: u31) !void {
+    const row_size = width * @sizeOf(u16);
+    return padRow(out, row_size);
 }
