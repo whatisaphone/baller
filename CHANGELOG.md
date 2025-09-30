@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.6.2 – 2025-09-30
+
+Added:
+
+- Support 15-bit AWIZ (such as the court images in Backyard Basketball)
+- Allow newlines within expressions inside parens
+- Improve the error messages for bmp files with the wrong format
+
+Fixed:
+
+- Correctly handle case blocks without an `else`
+- Misc other tiny fixes
+
 ## v0.6.1 – 2025-08-01
 
 - Add better reporting for music errors
