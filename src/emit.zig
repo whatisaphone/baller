@@ -114,7 +114,7 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
 
     const out_file = try cx.output_dir.createFileZ(out_name, .{});
     defer out_file.close();
-    const out_xor = io.xorWriter(out_file.deprecatedWriter(), xor_key);
+    const out_xor = io.oldXorWriter(out_file.deprecatedWriter(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = iold.countingWriter(out_buf.writer());
 
@@ -352,7 +352,7 @@ const DirectoryEntry = struct {
 fn emitIndex(cx: *const Cx) !void {
     const out_file = try cx.output_dir.createFileZ(cx.index_name, .{});
     defer out_file.close();
-    const out_xor = io.xorWriter(out_file.deprecatedWriter(), xor_key);
+    const out_xor = io.oldXorWriter(out_file.deprecatedWriter(), xor_key);
     var out_buf = iold.bufferedWriter(out_xor.writer());
     var out = iold.countingWriter(out_buf.writer());
 
@@ -461,7 +461,7 @@ fn writeVersionIntoInib(
 
     const note_start = try beginBlock(out, .NOTE);
     // double-xor so it's readable in the raw file
-    try io.xorWriter(out.writer(), xor_key).writer().print(
+    try io.oldXorWriter(out.writer(), xor_key).writer().print(
         "\r\nBuilt with Baller {s} <https://baller.whatisaph.one/>\r\n",
         .{build_options.version},
     );

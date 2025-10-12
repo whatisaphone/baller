@@ -62,7 +62,7 @@ pub fn peekInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
     return std.mem.bytesAsValue(T, data);
 }
 
-pub fn XorReader(Stream: type) type {
+pub fn OldXorReader(Stream: type) type {
     return struct {
         stream: Stream,
         key: u8,
@@ -82,11 +82,11 @@ pub fn XorReader(Stream: type) type {
     };
 }
 
-pub fn xorReader(stream: anytype, key: u8) XorReader(@TypeOf(stream)) {
+pub fn oldXorReader(stream: anytype, key: u8) OldXorReader(@TypeOf(stream)) {
     return .{ .stream = stream, .key = key };
 }
 
-pub fn XorWriter(Stream: type) type {
+pub fn OldXorWriter(Stream: type) type {
     return struct {
         stream: Stream,
         key: u8,
@@ -108,6 +108,6 @@ pub fn XorWriter(Stream: type) type {
     };
 }
 
-pub fn xorWriter(stream: anytype, key: u8) XorWriter(@TypeOf(stream)) {
+pub fn oldXorWriter(stream: anytype, key: u8) OldXorWriter(@TypeOf(stream)) {
     return .{ .stream = stream, .key = key };
 }

@@ -767,7 +767,7 @@ fn extractDisk(
 
     const in_file = try fsd.openFileZ(diagnostic, input_dir, disk_name);
     defer in_file.close();
-    const in_xor = io.xorReader(in_file.deprecatedReader(), xor_key);
+    const in_xor = io.oldXorReader(in_file.deprecatedReader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));

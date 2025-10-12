@@ -375,7 +375,7 @@ const BlockResult = union(enum) {
     }
 };
 
-pub const FxbclReader = iold.LimitedReader(std.io.CountingReader(iold.BufferedReader(4096, io.XorReader(std.fs.File.DeprecatedReader).Reader).Reader).Reader);
+pub const FxbclReader = iold.LimitedReader(std.io.CountingReader(iold.BufferedReader(4096, io.OldXorReader(std.fs.File.DeprecatedReader).Reader).Reader).Reader);
 
 pub fn fxbclPos(in: *const FxbclReader) u32 {
     return @intCast(in.inner_reader.context.bytes_read);

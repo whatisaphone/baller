@@ -52,7 +52,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     const output_path = output_path_opt orelse return cliargs.reportMissing("output");
     const xor_key = xor_key_opt orelse 0x00;
 
-    var in_xor = io.xorReader(std.fs.File.stdin().deprecatedReader(), xor_key);
+    var in_xor = io.oldXorReader(std.fs.File.stdin().deprecatedReader(), xor_key);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));

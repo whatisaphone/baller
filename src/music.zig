@@ -34,7 +34,7 @@ pub fn extract(
 ) !void {
     const in_file = try fsd.openFileZ(diagnostic, input_dir, input_path);
     defer in_file.close();
-    const in_xor = io.xorReader(in_file.deprecatedReader(), 0x00);
+    const in_xor = io.oldXorReader(in_file.deprecatedReader(), 0x00);
     var in_buf = iold.bufferedReader(in_xor.reader());
     var in_count = std.io.countingReader(in_buf.reader());
     var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
