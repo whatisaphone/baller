@@ -6,7 +6,6 @@ const dump = @import("dump.zig");
 const extract = @import("extract.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const fixture_hashes = @import("tests.zig").fixture_hashes;
 const saveload_dump = @import("saveload_dump.zig");
 
@@ -188,17 +187,18 @@ test "dump smoke test" {
     const in_path = "src/fixtures/baseball2001/baseball 2001.(b)";
     const in_file = try std.fs.cwd().openFileZ(in_path, .{});
     defer in_file.close();
-    var in_xor = io.oldXorReader(in_file.deprecatedReader(), extract.xor_key);
-    var in_buf = iold.bufferedReader(in_xor.reader());
-    var in_count = std.io.countingReader(in_buf.reader());
-    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in_buf: [4096]u8 = undefined;
+    var in_raw = in_file.reader(&in_buf);
+    var in_xor: io.XorReader = .init(&in_raw.interface, extract.xor_key, &.{});
+    var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
+    const in = &in_limit.interface;
 
     var diagnostic: Diagnostic = .init(std.testing.allocator);
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
     const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
-    try dump.run(&in, &diag, "/tmp/dump", &.{});
+    try dump.run(in, &diag, "/tmp/dump", &.{});
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 

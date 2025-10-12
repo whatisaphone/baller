@@ -5,8 +5,8 @@ const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
-const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
+const fxbclPos = @import("block_reader.zig").fxbclPos;
 const Fixup = @import("block_writer.zig").Fixup;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
@@ -34,22 +34,23 @@ pub fn extract(
 ) !void {
     const in_file = try fsd.openFileZ(diagnostic, input_dir, input_path);
     defer in_file.close();
-    const in_xor = io.oldXorReader(in_file.deprecatedReader(), 0x00);
-    var in_buf = iold.bufferedReader(in_xor.reader());
-    var in_count = std.io.countingReader(in_buf.reader());
-    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in_buf: [4096]u8 = undefined;
+    var in_raw = in_file.reader(&in_buf);
+    var in_xor: io.XorReader = .init(&in_raw.interface, 0x00, &.{});
+    var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
+    const in = &in_limit.interface;
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, input_path);
 
     try code.appendSlice(gpa, "\nmusic {\n");
 
-    var file_blocks: StreamingBlockReader = .init(&in, &diag);
+    var file_blocks: StreamingBlockReader = .init(in, &diag);
 
     const song_block = try file_blocks.expect(.SONG) orelse return error.BadData;
-    var song_blocks: StreamingBlockReader = .init(&in, &diag);
+    var song_blocks: StreamingBlockReader = .init(in, &diag);
 
     const sghd_block = try song_blocks.expect(.SGHD) orelse return error.BadData;
-    const sghd = try readBlockAsValue(&in, &sghd_block, Sghd);
+    const sghd = try readBlockAsValue(in, &sghd_block, Sghd);
     try song_blocks.finish(&sghd_block);
 
     const sgens = try gpa.alloc(Sgen, sghd.count);
@@ -57,14 +58,14 @@ pub fn extract(
 
     for (sgens) |*sgen| {
         const sgen_block = try song_blocks.expect(.SGEN) orelse return error.BadData;
-        sgen.* = try readBlockAsValue(&in, &sgen_block, Sgen);
+        sgen.* = try readBlockAsValue(in, &sgen_block, Sgen);
         try song_blocks.finish(&sgen_block);
     }
 
     const cx: Cx = .{
         .gpa = gpa,
         .symbols = symbols,
-        .in = &in,
+        .in = in,
         .diag = &diag,
         .code = code,
         .output_dir = output_dir,
@@ -72,7 +73,7 @@ pub fn extract(
     };
 
     for (sgens) |*sgen| {
-        if (in_count.bytes_read != sgen.offset) return error.BadData;
+        if (fxbclPos(in) != sgen.offset) return error.BadData;
 
         // Basketball dumps raw wav files here and they don't fit into the usual
         // block structure, so the parsing gets a little hacky, beware.
@@ -104,7 +105,7 @@ pub fn extract(
 const Cx = struct {
     gpa: std.mem.Allocator,
     symbols: *const Symbols,
-    in: *FxbclReader,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     code: *std.ArrayListUnmanaged(u8),
     output_dir: std.fs.Dir,
@@ -139,7 +140,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     defer wav_file.close();
     var wav_out = iold.bufferedWriter(wav_file.deprecatedWriter());
     try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
-    try io.copy(cx.in.reader(), wav_out.writer());
+    try io.copy(cx.in.adaptToOldInterface(), wav_out.writer());
     try wav_out.flush();
     try digi_blocks.finish(&sdat_block);
 
@@ -166,15 +167,15 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
     defer wav_file.close();
     try wav_file.deprecatedWriter().writeAll(&peeked_bytes);
     try io.copy(
-        iold.limitedReader(cx.in.reader(), entry.size - peeked_bytes.len),
+        iold.limitedReader(cx.in.adaptToOldInterface(), entry.size - peeked_bytes.len),
         wav_file.deprecatedWriter(),
     );
 }
 
-fn readBlockAsValue(in: *FxbclReader, block: *const Block, T: type) !T {
+fn readBlockAsValue(in: *std.io.Reader, block: *const Block, T: type) !T {
     if (block.size != @sizeOf(T)) return error.BadData;
     var result: T = undefined;
-    try in.reader().readNoEof(std.mem.asBytes(&result));
+    try in.readSliceAll(std.mem.asBytes(&result));
     return result;
 }
 

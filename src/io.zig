@@ -62,29 +62,38 @@ pub fn peekInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
     return std.mem.bytesAsValue(T, data);
 }
 
-pub fn OldXorReader(Stream: type) type {
-    return struct {
-        stream: Stream,
-        key: u8,
+pub const XorReader = struct {
+    inner: *std.io.Reader,
+    key: u8,
+    interface: std.io.Reader,
 
-        pub const Reader = std.io.GenericReader(*const @This(), Stream.Error, read);
+    pub fn init(inner: *std.io.Reader, key: u8, buffer: []u8) XorReader {
+        return .{
+            .inner = inner,
+            .key = key,
+            .interface = .{
+                .vtable = &.{
+                    .stream = stream,
+                },
+                .buffer = buffer,
+                .seek = 0,
+                .end = 0,
+            },
+        };
+    }
 
-        pub fn reader(self: *const @This()) Reader {
-            return .{ .context = self };
-        }
-
-        fn read(self: *const @This(), dest: []u8) Stream.Error!usize {
-            const len = try self.stream.read(dest);
-            for (dest[0..len]) |*p|
-                p.* ^= self.key;
-            return len;
-        }
-    };
-}
-
-pub fn oldXorReader(stream: anytype, key: u8) OldXorReader(@TypeOf(stream)) {
-    return .{ .stream = stream, .key = key };
-}
+    fn stream(r: *std.io.Reader, w: *std.io.Writer, limit: std.io.Limit) !usize {
+        const self: *XorReader = @fieldParentPtr("interface", r);
+        const buf = w.unusedCapacitySlice();
+        const n = try self.inner.stream(w, limit);
+        // this is a simplified implementation. it won't work unless the full
+        // read fits into w's buffer. assert that's always the case in practice
+        std.debug.assert(w.unusedCapacityLen() == buf.len - n);
+        for (buf[0..n]) |*b|
+            b.* ^= self.key;
+        return n;
+    }
+};
 
 pub fn OldXorWriter(Stream: type) type {
     return struct {

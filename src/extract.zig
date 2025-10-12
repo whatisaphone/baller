@@ -11,7 +11,6 @@ const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
-const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const fxbclPos = @import("block_reader.zig").fxbclPos;
@@ -767,18 +766,19 @@ fn extractDisk(
 
     const in_file = try fsd.openFileZ(diagnostic, input_dir, disk_name);
     defer in_file.close();
-    const in_xor = io.oldXorReader(in_file.deprecatedReader(), xor_key);
-    var in_buf = iold.bufferedReader(in_xor.reader());
-    var in_count = std.io.countingReader(in_buf.reader());
-    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in_buf: [4096]u8 = undefined;
+    var in_raw = in_file.reader(&in_buf);
+    var in_xor: io.XorReader = .init(&in_raw.interface, xor_key, &.{});
+    var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
+    const in = &in_limit.interface;
 
-    var file_blocks: StreamingBlockReader = .init(&in, &diag);
+    var file_blocks: StreamingBlockReader = .init(in, &diag);
 
     const lecf = try file_blocks.expect(.LECF) orelse return error.BadData;
-    var lecf_blocks: StreamingBlockReader = .init(&in, &diag);
+    var lecf_blocks: StreamingBlockReader = .init(in, &diag);
 
     while (try lecf_blocks.expect(.LFLF)) |block| {
-        try extractRoom(cx, disk_number, &in, &diag, code);
+        try extractRoom(cx, disk_number, in, &diag, code);
         try lecf_blocks.finish(&block);
     }
 
@@ -814,7 +814,7 @@ const Section = enum {
 fn extractRoom(
     cx: *Context,
     disk_number: u8,
-    in: anytype,
+    in: *std.io.Reader,
     disk_diag: *const Diagnostic.ForBinaryFile,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
@@ -902,7 +902,7 @@ const RoomContext = struct {
 
 fn readRoomJob(
     cx: *Context,
-    in: anytype,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
     events: *sync.Channel(Event, 16),
@@ -980,7 +980,7 @@ fn emitRoomVars(cx: *RoomContext) !void {
 
 fn readRoomInner(
     cx: *RoomContext,
-    in: anytype,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
 ) !void {
     var lflf_blocks: StreamingBlockReader = .init(in, diag);
@@ -989,7 +989,7 @@ fn readRoomInner(
     const rmim_block = try lflf_blocks.expect(.RMIM) orelse return error.BadData;
     var rmim_raw = try cx.cx.gpa.alloc(u8, rmim_block.size);
     errdefer cx.cx.gpa.free(rmim_raw);
-    try in.reader().readNoEof(rmim_raw);
+    try in.readSliceAll(rmim_raw);
     try lflf_blocks.finish(&rmim_block);
 
     const rmda_block = try lflf_blocks.expect(.RMDA) orelse return error.BadData;
@@ -1012,7 +1012,7 @@ fn readRoomInner(
 
 fn extractRmda(
     cx: *RoomContext,
-    in: anytype,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
 ) !struct { u16, []u8 } {
     try cx.sendSyncFmt(.top, "rmda {{\n", .{});
@@ -1041,7 +1041,7 @@ fn extractRmda(
                 pals_chunk_index = try cx.claimChunkIndex();
 
                 pals_raw = try cx.cx.gpa.alloc(u8, block.size);
-                try in.reader().readNoEof(pals_raw);
+                try in.readSliceAll(pals_raw);
 
                 cx.room_palette.setOnce(try extractPals(pals_raw, diag, &block));
             },
@@ -1109,13 +1109,13 @@ const BufferedBlock = struct {
 
 fn addBlockToBuffer(
     cx: *RoomContext,
-    in: anytype,
+    in: *std.io.Reader,
     block: *const Block,
     buffered_blocks: *std.ArrayListUnmanaged(BufferedBlock),
 ) !void {
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
-    try in.reader().readNoEof(raw);
+    try in.readSliceAll(raw);
 
     try buffered_blocks.append(cx.cx.gpa, .{ .block = block.*, .data = raw });
     errdefer comptime unreachable;
@@ -1163,13 +1163,13 @@ const BlockJob = fn (
 fn readBlockAndSpawn(
     job: BlockJob,
     cx: *RoomContext,
-    in: anytype,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     block: *const Block,
 ) !void {
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
-    try in.reader().readNoEof(raw);
+    try in.readSliceAll(raw);
 
     const chunk_index = try cx.claimChunkIndex();
 
@@ -2231,7 +2231,7 @@ fn writeRawBlockImpl(
     block_id: BlockId,
     data_source: union(enum) {
         bytes: []const u8,
-        reader: struct { in: *FxbclReader, size: u32 },
+        reader: struct { in: *std.io.Reader, size: u32 },
     },
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,
@@ -2266,7 +2266,7 @@ fn writeRawBlockImpl(
             .bytes => |bytes| bytes,
             .reader => |r| blk: {
                 const data = buf[0..len];
-                try r.in.reader().readNoEof(data);
+                try r.in.readSliceAll(data);
                 break :blk data;
             },
         };
@@ -2325,7 +2325,7 @@ fn writeRawBlockImpl(
     defer file.close();
     switch (data_source) {
         .bytes => |bytes| try file.writeAll(bytes),
-        .reader => |r| try io.copy(iold.limitedReader(r.in.reader(), r.size), file),
+        .reader => |r| try io.copy(iold.limitedReader(r.in.adaptToOldInterface(), r.size), file),
     }
 
     try code.appendSlice(gpa, "\"");

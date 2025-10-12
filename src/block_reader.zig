@@ -3,7 +3,6 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 
 pub const block_header_size = 8;
 
@@ -375,21 +374,35 @@ const BlockResult = union(enum) {
     }
 };
 
-pub const FxbclReader = iold.LimitedReader(std.io.CountingReader(iold.BufferedReader(4096, io.OldXorReader(std.fs.File.DeprecatedReader).Reader).Reader).Reader);
+// `fxbcl` means `Reader.Limited(XorReader(File.Reader))`
 
-pub fn fxbclPos(in: *const FxbclReader) u32 {
-    return @intCast(in.inner_reader.context.bytes_read);
+pub fn fxbclPos(in: *const std.io.Reader) u32 {
+    const limited: *const std.io.Reader.Limited = @fieldParentPtr("interface", in);
+    const xor: *const io.XorReader = @fieldParentPtr("interface", limited.unlimited);
+    const file: *const std.fs.File.Reader = @fieldParentPtr("interface", xor.inner);
+    return @intCast(file.logicalPos());
+}
+
+pub fn fxbclRemaining(in: *const std.io.Reader) u32 {
+    const limited: *const std.io.Reader.Limited = @fieldParentPtr("interface", in);
+    std.debug.assert(limited.remaining == .unlimited or limited.remaining.toInt().? < 0xffffffff);
+    return @truncate(@intFromEnum(limited.remaining));
+}
+
+pub fn fxbclSetRemaining(in: *std.io.Reader, value: u32) void {
+    const limited: *std.io.Reader.Limited = @fieldParentPtr("interface", in);
+    limited.remaining = .limited(value);
 }
 
 pub const StreamingBlockReader = struct {
-    in: *FxbclReader,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     state: union {
         baseline: void,
         inside_block: struct { next_limit: u32 },
     },
 
-    pub fn init(in: *FxbclReader, diag: *const Diagnostic.ForBinaryFile) StreamingBlockReader {
+    pub fn init(in: *std.io.Reader, diag: *const Diagnostic.ForBinaryFile) StreamingBlockReader {
         return .{
             .in = in,
             .diag = diag,
@@ -408,7 +421,7 @@ pub const StreamingBlockReader = struct {
         _ = self.state.baseline;
         const offset = fxbclPos(self.in);
         var header: RawBlockHeader = undefined;
-        const len = try self.in.reader().readAll(std.mem.asBytes(&header));
+        const len = try self.in.readSliceShort(std.mem.asBytes(&header));
         if (len == 0) return null;
         if (len == Block.header_size) return .{ offset, header };
         return error.EndOfStream;
@@ -425,7 +438,7 @@ pub const StreamingBlockReader = struct {
         const raw_size = header.raw_size();
         if (raw_size < Block.header_size) return null;
         const size = raw_size - Block.header_size;
-        if (size > self.in.bytes_left) return null;
+        if (size > fxbclRemaining(self.in)) return null;
 
         const start = offset + Block.header_size;
         return .{ .start = start, .id = id, .size = size };
@@ -438,11 +451,11 @@ pub const StreamingBlockReader = struct {
 
         std.debug.assert(fxbclPos(self.in) == block.start);
 
-        const prev_limit: u32 = @intCast(self.in.bytes_left);
+        const prev_limit = fxbclRemaining(self.in);
         const next_limit = prev_limit - block.size;
         self.state = .{ .inside_block = .{ .next_limit = next_limit } };
 
-        self.in.bytes_left = block.size;
+        fxbclSetRemaining(self.in, block.size);
     }
 
     pub fn finish(self: *StreamingBlockReader, block: *const Block) !void {
@@ -451,16 +464,16 @@ pub const StreamingBlockReader = struct {
         const pos = fxbclPos(self.in);
         self.diag.trace(pos, "end block {f}", .{block.id});
 
-        if (self.in.bytes_left != 0) return error.BadData;
+        if (fxbclRemaining(self.in) != 0) return error.BadData;
         std.debug.assert(pos == block.end());
 
-        self.in.bytes_left = self.state.inside_block.next_limit;
+        fxbclSetRemaining(self.in, self.state.inside_block.next_limit);
         self.state = .{ .baseline = {} };
     }
 
     pub fn end(self: *const StreamingBlockReader) !void {
         _ = self.state.baseline;
-        if (self.in.bytes_left != 0) return error.BadData;
+        if (fxbclRemaining(self.in) != 0) return error.BadData;
     }
 
     pub fn expectMismatchedEnd(self: *const StreamingBlockReader) void {

@@ -3,12 +3,11 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
-const FxbclReader = @import("block_reader.zig").FxbclReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
+const fxbclPos = @import("block_reader.zig").fxbclPos;
 const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[*:0]const u8 = null;
@@ -52,19 +51,19 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     const output_path = output_path_opt orelse return cliargs.reportMissing("output");
     const xor_key = xor_key_opt orelse 0x00;
 
-    var in_xor = io.oldXorReader(std.fs.File.stdin().deprecatedReader(), xor_key);
-    var in_buf = iold.bufferedReader(in_xor.reader());
-    var in_count = std.io.countingReader(in_buf.reader());
-    var in = iold.limitedReader(in_count.reader(), std.math.maxInt(u32));
+    var in_buf: [4096]u8 = undefined;
+    var in_raw = std.fs.File.stdin().reader(&in_buf);
+    var in_xor: io.XorReader = .init(&in_raw.interface, xor_key, &.{});
+    var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
+    const in = &in_limit.interface;
 
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();
     const diag: Diagnostic.ForBinaryFile = .init(&diagnostic, "-");
 
-    run(&in, &diag, output_path, skip.items) catch |err| {
+    run(in, &diag, output_path, skip.items) catch |err| {
         if (err != error.AddedToDiagnostic) {
-            const pos: u32 = @intCast(in.inner_reader.context.bytes_read);
-            diag.zigErr(pos, "unexpected error: {s}", .{}, err);
+            diag.zigErr(fxbclPos(in), "unexpected error: {s}", .{}, err);
         }
     };
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
@@ -76,14 +75,14 @@ fn parseXorKey(s: []const u8) ?u8 {
 }
 
 const Cx = struct {
-    in: *FxbclReader,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     dir: std.fs.Dir,
     skip: []const BlockId,
 };
 
 pub fn run(
-    in: *FxbclReader,
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     output_path: [*:0]const u8,
     skip: []const BlockId,
@@ -173,5 +172,5 @@ fn dumpRaw(cx: *Cx, block: *const Block, prefix: ?[8]u8) !void {
 
     if (prefix) |*b|
         try file.writeAll(b);
-    try io.copy(cx.in.reader(), file);
+    try io.copy(cx.in.adaptToOldInterface(), file);
 }
