@@ -4,7 +4,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
-const fxbclPos = @import("block_reader.zig").fxbclPos;
+const fxbcl = @import("block_reader.zig").fxbcl;
 const cliargs = @import("cliargs.zig");
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -63,7 +63,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
 
     run(in, &diag, output_path, skip.items) catch |err| {
         if (err != error.AddedToDiagnostic) {
-            diag.zigErr(fxbclPos(in), "unexpected error: {s}", .{}, err);
+            diag.zigErr(fxbcl.pos(in), "unexpected error: {s}", .{}, err);
         }
     };
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();

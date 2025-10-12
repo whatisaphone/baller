@@ -13,7 +13,7 @@ const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
-const fxbclPos = @import("block_reader.zig").fxbclPos;
+const fxbcl = @import("block_reader.zig").fxbcl;
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
@@ -818,7 +818,7 @@ fn extractRoom(
     disk_diag: *const Diagnostic.ForBinaryFile,
     project_code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbclPos(in)) orelse
+    const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbcl.pos(in)) orelse
         return error.BadData;
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
@@ -934,23 +934,23 @@ fn readRoomJob(
         readRoomInner(&rcx, in, diag) catch |err| break :blk err;
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
-            diag.zigErr(fxbclPos(in), "room {}: unexpected error: {s}", .{room_number}, err);
+            diag.zigErr(fxbcl.pos(in), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
     };
 
-    diag.trace(fxbclPos(in), "waiting for jobs", .{});
+    diag.trace(fxbcl.pos(in), "waiting for jobs", .{});
     while (true) {
         const pending = rcx.pending_jobs.load(.acquire);
         if (pending == 0) break;
         std.Thread.Futex.wait(&rcx.pending_jobs, pending);
     }
-    diag.trace(fxbclPos(in), "all jobs finished", .{});
+    diag.trace(fxbcl.pos(in), "all jobs finished", .{});
 
     // This depends on usage data that the script jobs wrote to context. Do it
     // after the join so we know they finished.
     emitRoomVars(&rcx) catch |err| {
         if (err != error.AddedToDiagnostic)
-            diag.zigErr(fxbclPos(in), "room {}: unexpected error: {s}", .{room_number}, err);
+            diag.zigErr(fxbcl.pos(in), "room {}: unexpected error: {s}", .{room_number}, err);
         events.send(.err);
     };
 

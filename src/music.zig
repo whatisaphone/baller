@@ -6,7 +6,7 @@ const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
-const fxbclPos = @import("block_reader.zig").fxbclPos;
+const fxbcl = @import("block_reader.zig").fxbcl;
 const Fixup = @import("block_writer.zig").Fixup;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const beginBlock = @import("block_writer.zig").beginBlock;
@@ -73,7 +73,7 @@ pub fn extract(
     };
 
     for (sgens) |*sgen| {
-        if (fxbclPos(in) != sgen.offset) return error.BadData;
+        if (fxbcl.pos(in) != sgen.offset) return error.BadData;
 
         // Basketball dumps raw wav files here and they don't fit into the usual
         // block structure, so the parsing gets a little hacky, beware.
