@@ -66,10 +66,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     const tlkb_start = try beginBlock(state.output_writer, .TLKB);
 
     while (true) {
-        const line = reader.interface.takeDelimiterExclusive('\n') catch |err| switch (err) {
-            error.EndOfStream => break,
-            else => return err,
-        };
+        const line = try reader.interface.takeDelimiter('\n') orelse break;
         var tokens = std.mem.tokenizeScalar(u8, line, ' ');
         const keyword = tokens.next() orelse return error.BadData;
         if (std.mem.eql(u8, keyword, "raw-block"))
