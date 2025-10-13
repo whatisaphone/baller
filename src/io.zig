@@ -117,21 +117,17 @@ pub const XorWriter = struct {
         const self: *XorWriter = @fieldParentPtr("interface", w);
 
         // simplified implementation only works in this simple case
-        std.debug.assert(w.buffer.len == 0);
-        std.debug.assert(self.inner.buffer.len != 0);
         std.debug.assert(data.len == 1);
         std.debug.assert(splat == 1);
+        const bytes = data[0];
 
-        if (self.inner.end == self.inner.buffer.len)
-            try self.inner.rebase(0, 1);
-
-        const len = @min(self.inner.buffer.len - self.inner.end, data[0].len);
-        const dest = self.inner.buffer[self.inner.end..][0..len];
-        const src = data[0][0..len];
-        for (dest, src) |*d, s|
-            d.* = s ^ self.key;
-        self.inner.advance(len);
-        return len;
+        // TODO: use writer buffer instead of stack buffer to avoid extra memcpy
+        var buf: [4096]u8 = undefined;
+        const chunk_len = @min(bytes.len, buf.len);
+        @memcpy(buf[0..chunk_len], bytes[0..chunk_len]);
+        for (buf[0..chunk_len]) |*p|
+            p.* ^= self.key;
+        return self.inner.write(buf[0..chunk_len]);
     }
 };
 

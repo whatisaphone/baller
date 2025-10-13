@@ -8,16 +8,11 @@ const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
-const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlock2 = @import("block_writer.zig").beginBlock2;
-const beginBlockKnown = @import("block_writer.zig").beginBlockKnown;
 const beginBlockKnown2 = @import("block_writer.zig").beginBlockKnown2;
-const endBlock = @import("block_writer.zig").endBlock;
 const endBlock2 = @import("block_writer.zig").endBlock2;
-const endBlockKnown = @import("block_writer.zig").endBlockKnown;
 const endBlockKnown2 = @import("block_writer.zig").endBlockKnown2;
 const fxbc = @import("block_writer.zig").fxbc;
-const writeFixups = @import("block_writer.zig").writeFixups;
 const writeFixups2 = @import("block_writer.zig").writeFixups2;
 const Options = @import("build.zig").Options;
 const Maxs = @import("extract.zig").Maxs;
@@ -25,7 +20,6 @@ const xor_key = @import("extract.zig").xor_key;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const plan = @import("plan.zig");
 const sync = @import("sync.zig");
 const utils = @import("utils.zig");
@@ -160,7 +154,7 @@ fn emitRoom(
     while (true) switch (try cx.receiver.next(cx.gpa)) {
         .glob => |*b| try emitGlob(cx, out, room_number, b),
         .glob_start => |*b| try emitGlobBlock(cx, out, fixups, room_number, b),
-        .raw_block => |*b| try emitRawBlock2(cx.gpa, out, b),
+        .raw_block => |*b| try emitRawBlock(cx.gpa, out, b),
         .room_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -171,24 +165,13 @@ fn emitRoom(
 
 fn emitRawBlock(
     gpa: std.mem.Allocator,
-    out: anytype,
-    raw_block: *const @FieldType(plan.Payload, "raw_block"),
-) !void {
-    var data_mut = raw_block.data;
-    defer data_mut.deinit(gpa);
-
-    try writeBlock(out, raw_block.block_id, raw_block.data.items);
-}
-
-fn emitRawBlock2(
-    gpa: std.mem.Allocator,
     out: *std.io.Writer,
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
     var data_mut = raw_block.data;
     defer data_mut.deinit(gpa);
 
-    try writeBlock2(out, raw_block.block_id, raw_block.data.items);
+    try writeBlock(out, raw_block.block_id, raw_block.data.items);
 }
 
 fn emitGlob(
@@ -201,7 +184,7 @@ fn emitGlob(
     defer data_mut.deinit(cx.gpa);
 
     const start = fxbc.pos(out);
-    try writeBlock2(out, glob.block_id, glob.data.items);
+    try writeBlock(out, glob.block_id, glob.data.items);
     const end = fxbc.pos(out);
     const size = end - start;
 
@@ -218,7 +201,7 @@ fn emitGlobBlock(
     const start = try beginBlock2(out, glob.block_id);
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
-        .raw_block => |*b| try emitRawBlock2(cx.gpa, out, b),
+        .raw_block => |*b| try emitRawBlock(cx.gpa, out, b),
         .glob_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -280,13 +263,7 @@ fn addGlobToIndex(
     });
 }
 
-fn writeBlock(out: anytype, block_id: BlockId, data: []const u8) !void {
-    const start = try beginBlockKnown(out, block_id, @intCast(data.len));
-    try out.writer().writeAll(data);
-    endBlockKnown(out, start);
-}
-
-fn writeBlock2(out: *std.io.Writer, block_id: BlockId, data: []const u8) !void {
+fn writeBlock(out: *std.io.Writer, block_id: BlockId, data: []const u8) !void {
     const start = try beginBlockKnown2(out, block_id, @intCast(data.len));
     try out.writeAll(data);
     endBlockKnown2(out, start);
@@ -374,9 +351,10 @@ const DirectoryEntry = struct {
 fn emitIndex(cx: *const Cx) !void {
     const out_file = try cx.output_dir.createFileZ(cx.index_name, .{});
     defer out_file.close();
-    const out_xor = io.oldXorWriter(out_file.deprecatedWriter(), xor_key);
-    var out_buf = iold.bufferedWriter(out_xor.writer());
-    var out = iold.countingWriter(out_buf.writer());
+    var out_buf: [4096]u8 = undefined;
+    var out_direct = out_file.writer(&out_buf);
+    var out_xor: io.XorWriter = .init(&out_direct.interface, xor_key, &.{});
+    const out = &out_xor.interface;
 
     var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
@@ -389,47 +367,47 @@ fn emitIndex(cx: *const Cx) !void {
         room.* = @intCast(i);
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
-        .index_maxs => |data| try writeMaxs(cx, &out, data),
+        .index_maxs => |data| try writeMaxs(cx, out, data),
         .index_block => |id| switch (id) {
-            .DIRI => try writeDirectory(&out, &fixups, .DIRI, &cx.index.directories.room_images),
-            .DIRR => try writeDirectory(&out, &fixups, .DIRR, &cx.index.directories.rooms),
-            .DIRS => try writeDirectory(&out, &fixups, .DIRS, &cx.index.directories.scripts),
-            .DIRN => try writeDirectory(&out, &fixups, .DIRN, &cx.index.directories.sounds),
-            .DIRC => try writeDirectory(&out, &fixups, .DIRC, &cx.index.directories.costumes),
-            .DIRF => try writeDirectory(&out, &fixups, .DIRF, &cx.index.directories.charsets),
-            .DIRM => try writeDirectory(&out, &fixups, .DIRM, &cx.index.directories.images),
-            .DIRT => try writeDirectory(&out, &fixups, .DIRT, &cx.index.directories.talkies),
+            .DIRI => try writeDirectory(out, &fixups, .DIRI, &cx.index.directories.room_images),
+            .DIRR => try writeDirectory(out, &fixups, .DIRR, &cx.index.directories.rooms),
+            .DIRS => try writeDirectory(out, &fixups, .DIRS, &cx.index.directories.scripts),
+            .DIRN => try writeDirectory(out, &fixups, .DIRN, &cx.index.directories.sounds),
+            .DIRC => try writeDirectory(out, &fixups, .DIRC, &cx.index.directories.costumes),
+            .DIRF => try writeDirectory(out, &fixups, .DIRF, &cx.index.directories.charsets),
+            .DIRM => try writeDirectory(out, &fixups, .DIRM, &cx.index.directories.images),
+            .DIRT => try writeDirectory(out, &fixups, .DIRT, &cx.index.directories.talkies),
             .DLFL => {
-                const start = try beginBlock(&out, .DLFL);
-                try out.writer().writeInt(u16, @intCast(cx.index.rooms.len), .little);
-                try out.writer().writeAll(std.mem.sliceAsBytes(cx.index.rooms.items(.offset)));
-                try endBlock(&out, &fixups, start);
+                const start = try beginBlock2(out, .DLFL);
+                try out.writeInt(u16, @intCast(cx.index.rooms.len), .little);
+                try out.writeAll(std.mem.sliceAsBytes(cx.index.rooms.items(.offset)));
+                try endBlock2(out, &fixups, start);
             },
             .DISK => {
-                const start = try beginBlock(&out, .DISK);
-                try out.writer().writeInt(u16, @intCast(cx.index.rooms.len), .little);
-                try out.writer().writeAll(cx.index.rooms.items(.disk));
-                try endBlock(&out, &fixups, start);
+                const start = try beginBlock2(out, .DISK);
+                try out.writeInt(u16, @intCast(cx.index.rooms.len), .little);
+                try out.writeAll(cx.index.rooms.items(.disk));
+                try endBlock2(out, &fixups, start);
             },
             .RNAM => unreachable,
         },
         .raw_block => |*rb| {
             if (rb.block_id == .INIB and cx.options.write_version)
-                try writeVersionIntoInib(cx.gpa, &out, &fixups, rb)
+                try writeVersionIntoInib(cx.gpa, out, &fixups, rb)
             else
-                try emitRawBlock(cx.gpa, &out, rb);
+                try emitRawBlock(cx.gpa, out, rb);
         },
         .index_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
-    try out_buf.flush();
+    try out_direct.interface.flush();
 
-    try writeFixups(out_file, out_xor.writer(), fixups.items);
+    try writeFixups2(&out_direct, out, fixups.items);
 }
 
-fn writeMaxs(cx: *const Cx, out: anytype, data_mut: std.ArrayListUnmanaged(u8)) !void {
+fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayListUnmanaged(u8)) !void {
     var data = data_mut;
     defer data.deinit(cx.gpa);
 
@@ -447,29 +425,29 @@ fn writeMaxs(cx: *const Cx, out: anytype, data_mut: std.ArrayListUnmanaged(u8)) 
     if (games.hasTalkies(cx.target.pickAnyGame()))
         maxs.talkies = @intCast(cx.index.directories.talkies.len);
 
-    const start = try beginBlockKnown(out, .MAXS, @intCast(data.items.len));
-    try out.writer().writeAll(data.items);
-    endBlockKnown(out, start);
+    const start = try beginBlockKnown2(out, .MAXS, @intCast(data.items.len));
+    try out.writeAll(data.items);
+    endBlockKnown2(out, start);
 }
 
 fn writeDirectory(
-    out: anytype,
+    out: *std.io.Writer,
     fixups: *std.array_list.Managed(Fixup),
     block_id: BlockId,
     directory: *const std.MultiArrayList(DirectoryEntry),
 ) !void {
-    const start = try beginBlock(out, block_id);
-    try out.writer().writeInt(u16, @intCast(directory.len), .little);
+    const start = try beginBlock2(out, block_id);
+    try out.writeInt(u16, @intCast(directory.len), .little);
     const slice = directory.slice();
-    try out.writer().writeAll(slice.items(.room));
-    try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
-    try out.writer().writeAll(std.mem.sliceAsBytes(slice.items(.size)));
-    try endBlock(out, fixups, start);
+    try out.writeAll(slice.items(.room));
+    try out.writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
+    try out.writeAll(std.mem.sliceAsBytes(slice.items(.size)));
+    try endBlock2(out, fixups, start);
 }
 
 fn writeVersionIntoInib(
     gpa: std.mem.Allocator,
-    out: anytype,
+    out: *std.io.Writer,
     fixups: *std.array_list.Managed(Fixup),
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
@@ -479,16 +457,17 @@ fn writeVersionIntoInib(
     var data_mut = raw_block.data;
     data_mut.deinit(gpa);
 
-    const inib_start = try beginBlock(out, .INIB);
+    const inib_start = try beginBlock2(out, .INIB);
 
-    const note_start = try beginBlock(out, .NOTE);
+    const note_start = try beginBlock2(out, .NOTE);
     // double-xor so it's readable in the raw file
-    try io.oldXorWriter(out.writer(), xor_key).writer().print(
+    var xor: io.XorWriter = .init(out, xor_key, &.{});
+    try xor.interface.print(
         "\r\nBuilt with Baller {s} <https://baller.whatisaph.one/>\r\n",
         .{build_options.version},
     );
-    try out.writer().writeByte(0);
-    try endBlock(out, fixups, note_start);
+    try out.writeByte(0);
+    try endBlock2(out, fixups, note_start);
 
-    try endBlock(out, fixups, inib_start);
+    try endBlock2(out, fixups, inib_start);
 }
