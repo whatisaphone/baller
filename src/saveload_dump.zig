@@ -65,7 +65,7 @@ pub fn run(args: Args) !void {
     defer arena.deinit();
 
     const buf = try fs.readFileZ(arena.allocator(), std.fs.cwd(), args.savegame_path);
-    var in = std.io.fixedBufferStream(@as([]const u8, buf));
+    var in: std.io.Reader = .fixed(buf);
 
     const diag: Diagnostic.ForBinaryFile = .init(args.diagnostic, args.savegame_path);
 
@@ -84,7 +84,7 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
     for (&raw) |*b|
         b.* ^= xor_key;
 
-    var in = std.io.fixedBufferStream(@as([]const u8, &raw));
+    var in: std.io.Reader = .fixed(&raw);
     var blocks = fixedBlockReader(&in, &diag);
 
     const maxs_raw = try blocks.expect(.MAXS).bytes();
@@ -106,7 +106,7 @@ fn dumpSaveGame(
     arena: std.mem.Allocator,
     game: games.Game,
     maxs: *const Maxs,
-    in: *std.io.FixedBufferStream([]const u8),
+    in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     out: anytype,
 ) !void {
@@ -181,7 +181,7 @@ fn dumpSaveGame(
         256
     else
         return error.GameNotSupported;
-    try in.reader().readNoEof(std.mem.sliceAsBytes(save.stack[0..stack_size]));
+    try in.readSliceAll(std.mem.sliceAsBytes(save.stack[0..stack_size]));
     try debugSlice(out, "stack", save.stack[0..stack_size]);
 
     try readValue(in, &save.stack_ptr);
@@ -272,15 +272,15 @@ fn dumpSaveGame(
     try root.finish();
 }
 
-fn readValue(in: anytype, ptr: anytype) !void {
+fn readValue(in: *std.io.Reader, ptr: anytype) !void {
     const value = try io.readInPlaceAsValue(in, @TypeOf(ptr.*));
     ptr.* = value.*;
 }
 
-fn readArray(gpa: std.mem.Allocator, in: anytype, T: type, count: usize) ![]T {
+fn readArray(gpa: std.mem.Allocator, in: *std.io.Reader, T: type, count: usize) ![]T {
     const result = try gpa.alloc(T, count);
     errdefer gpa.free(result);
-    try in.reader().readNoEof(std.mem.sliceAsBytes(result));
+    try in.readSliceAll(std.mem.sliceAsBytes(result));
     return result;
 }
 

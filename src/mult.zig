@@ -20,10 +20,10 @@ pub fn extract(
     room_path: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var in = std.io.fixedBufferStream(mult_raw);
+    var in: std.io.Reader = .fixed(mult_raw);
     extractMultInner(gpa, diag, name, &in, room_palette, room_dir, room_path, code) catch |err| {
         if (err != error.AddedToDiagnostic)
-            diag.zigErr(@intCast(in.pos), "unexpected error: {s}", .{}, err);
+            diag.zigErr(@intCast(in.seek), "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
 }
@@ -32,7 +32,7 @@ fn extractMultInner(
     gpa: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
     name: [:0]const u8,
-    in: *std.io.FixedBufferStream([]const u8),
+    in: *std.io.Reader,
     room_palette: *const [0x300]u8,
     room_dir: std.fs.Dir,
     room_path: []const u8,
@@ -113,7 +113,7 @@ fn extractDefa(
 ) !?*const [0x300]u8 {
     var rgbs: ?*const [0x300]u8 = null;
 
-    var stream = std.io.fixedBufferStream(defa_raw);
+    var stream: std.io.Reader = .fixed(defa_raw);
     var blocks = fixedBlockReader(&stream, diag);
 
     try code.writer(gpa).print("    raw-block {s} {{\n", .{"DEFA"});

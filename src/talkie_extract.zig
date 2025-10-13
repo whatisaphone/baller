@@ -253,7 +253,7 @@ fn parseTalkFixed(
     talk_offset: u32,
     state: *State,
 ) !void {
-    var talk_stream = std.io.fixedBufferStream(talk_raw);
+    var talk_stream: std.io.Reader = .fixed(talk_raw);
     var talk_blocks = oldFixedBlockReader(&talk_stream);
 
     try state.writeIndent(allocator);

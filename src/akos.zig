@@ -47,7 +47,7 @@ pub fn decode(
     out_dir: std.fs.Dir,
     manifest: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var stream = std.io.fixedBufferStream(akos_raw);
+    var stream: std.io.Reader = .fixed(akos_raw);
     var blocks = oldFixedBlockReader(&stream);
 
     const akhd = try blocks.expectAsValue(.AKHD, Akhd);
@@ -99,7 +99,7 @@ pub fn decode(
         try decodeCel(allocator, akhd, akpl, rgbs, cel, out_path, out_dir, manifest);
     }
 
-    while (stream.pos < akos_raw.len) {
+    while (stream.seek < akos_raw.len) {
         const block_id, const block_raw = try blocks.nextAsSlice();
         try writeRawBlock(allocator, block_id, block_raw, out_dir, out_path, 4, .block, manifest);
     }
@@ -209,7 +209,7 @@ fn byleParams(akpl_len: usize) ?struct { u8, u3 } {
 }
 
 fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
-    var data_stream = std.io.fixedBufferStream(cel.data);
+    var data_stream: std.io.Reader = .fixed(cel.data);
 
     // api quirk: decodeRle takes its buffer as an ArrayListUnmanaged, although
     // it never resizes it.

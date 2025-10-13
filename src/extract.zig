@@ -11,6 +11,7 @@ const akos = @import("akos.zig");
 const awiz = @import("awiz.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
@@ -494,7 +495,7 @@ fn extractIndex(
     for (raw) |*b|
         b.* ^= xor_key;
 
-    var in = std.io.fixedBufferStream(@as([]const u8, raw));
+    var in: std.io.Reader = .fixed(raw);
     var blocks = fixedBlockReader(&in, &diag);
 
     const result_buf = try gpa.alloc(u8, raw.len);
@@ -526,7 +527,7 @@ fn extractIndex(
     };
 
     inline for (comptime std.meta.fieldNames(Maxs)) |f|
-        diag.trace(@intCast(in.pos), "  {s} = {}", .{ f, @field(maxs, f) });
+        diag.trace(@intCast(in.seek), "  {s} = {}", .{ f, @field(maxs, f) });
 
     // DIR*
 
@@ -555,7 +556,7 @@ fn extractIndex(
     try code.appendSlice(gpa, "    index-block DLFL\n");
 
     for (lfl_offsets, 0..) |off, i|
-        diag.trace(@intCast(in.pos), "  {:>3}: 0x{x:0>8}", .{ i, off });
+        diag.trace(@intCast(in.seek), "  {:>3}: 0x{x:0>8}", .{ i, off });
 
     // DISK
 
@@ -572,7 +573,7 @@ fn extractIndex(
         try code.appendSlice(gpa, "    index-block DISK\n");
 
         for (lfl_disks.defined.slice(maxs.rooms), 0..) |disk, i|
-            diag.trace(@intCast(in.pos), "  {:>3}: {:>3}", .{ i, disk });
+            diag.trace(@intCast(in.seek), "  {:>3}: {:>3}", .{ i, disk });
     }
 
     // SVER
@@ -608,7 +609,7 @@ fn extractIndex(
             .{ "DIRT", &dirt, maxs.talkies },
         }) |dir_info| {
             const block_id, const dir, const len = dir_info;
-            diag.trace(@intCast(in.pos), "{s}", .{block_id});
+            diag.trace(@intCast(in.seek), "{s}", .{block_id});
             for (
                 dir.rooms.slice(len),
                 dir.offsets.slice(len),
@@ -616,7 +617,7 @@ fn extractIndex(
                 0..,
             ) |room, offset, size, i|
                 diag.trace(
-                    @intCast(in.pos),
+                    @intCast(in.seek),
                     "  {:>5}: {:>3} 0x{x:0>8} (0x{x:0>8}) 0x{x:0>8}",
                     .{ i, room, offset, lfl_offsets[room] + offset, size },
                 );
@@ -645,7 +646,7 @@ fn extractIndex(
 fn readDirectory(
     gpa: std.mem.Allocator,
     fba: *std.heap.FixedBufferAllocator,
-    blocks: anytype,
+    blocks: *FixedBlockReader,
     code: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
     expected_len: u32,
@@ -654,9 +655,9 @@ fn readDirectory(
 
     try code.writer(gpa).print("    index-block {f}\n", .{block_id});
 
-    var in = std.io.fixedBufferStream(block_raw);
+    var in: std.io.Reader = .fixed(block_raw);
 
-    const len = try in.reader().readInt(u16, .little);
+    const len = try in.takeInt(u16, .little);
     if (len != expected_len) return error.BadData;
 
     const rooms_src = try io.readInPlace(&in, len);
@@ -678,8 +679,8 @@ fn readDirectory(
 }
 
 fn readRoomNames(
-    in: anytype,
-    blocks: anytype,
+    in: *std.io.Reader,
+    blocks: *FixedBlockReader,
     diag: *const Diagnostic.ForBinaryFile,
     num_rooms: u16,
     fba: *std.heap.FixedBufferAllocator,
@@ -694,15 +695,15 @@ fn readRoomNames(
     const buffer_start = fba.buffer[fba.end_index..].ptr;
 
     while (true) {
-        const number = try in.reader().readInt(u16, .little);
+        const number = try in.takeInt(u16, .little);
         if (number == 0) break;
-        const name_len = std.mem.indexOfScalar(u8, in.buffer[in.pos..], 0) orelse
+        const name_len = std.mem.indexOfScalar(u8, in.buffer[in.seek..], 0) orelse
             return error.BadData;
         const name_src_z = try io.readInPlace(in, name_len + 1);
         const name = try fba.allocator().dupe(u8, name_src_z[0..name_len :0]);
         starts[number] = @intCast(name.ptr - buffer_start);
         lens[number] = std.math.cast(u8, name_len) orelse return error.BadData;
-        diag.trace(@intCast(in.pos), "  {:>3}: {f}", .{ number, std.ascii.hexEscape(name, .lower) });
+        diag.trace(@intCast(in.seek), "  {:>3}: {f}", .{ number, std.ascii.hexEscape(name, .lower) });
     }
 
     const buffer_len = fba.buffer[fba.end_index..].ptr - buffer_start;
@@ -715,8 +716,8 @@ fn readRoomNames(
 
 fn extractRawIndexBlock(
     gpa: std.mem.Allocator,
-    blocks: anytype,
-    output_dir: anytype,
+    blocks: *FixedBlockReader,
+    output_dir: std.fs.Dir,
     code: *std.ArrayListUnmanaged(u8),
     block_id: BlockId,
 ) !void {
@@ -1086,7 +1087,7 @@ fn extractPals(
     const diag = disk_diag.child(block.start, .{ .block_id = .PALS });
 
     if (pals_raw.len != expected_pals_size) return error.BadData;
-    var pals_stream = std.io.fixedBufferStream(pals_raw);
+    var pals_stream: std.io.Reader = .fixed(pals_raw);
     var pals_blocks = fixedBlockReader(&pals_stream, &diag);
 
     var wrap_blocks = try pals_blocks.expect(.WRAP).nested();
@@ -1358,7 +1359,7 @@ fn decodeObcd(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var stream = std.io.fixedBufferStream(raw);
+    var stream: std.io.Reader = .fixed(raw);
     var obcd_blocks = fixedBlockReader(&stream, diag);
 
     const cdhd = try obcd_blocks.expect(.CDHD).value(Cdhd);
@@ -2161,7 +2162,7 @@ fn extractTlke(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var stream = std.io.fixedBufferStream(raw);
+    var stream: std.io.Reader = .fixed(raw);
     var blocks = fixedBlockReader(&stream, diag);
     const text_raw = try blocks.expect(.TEXT).bytes();
     try blocks.finish();

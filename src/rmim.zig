@@ -36,7 +36,7 @@ pub fn decode(
 
     try code.appendSlice(allocator, "rmim {\n");
 
-    var rmim_reader = std.io.fixedBufferStream(rmim_raw);
+    var rmim_reader: std.io.Reader = .fixed(rmim_raw);
     var rmim_blocks = fixedBlockReader(&rmim_reader, diag);
 
     const rmih = try rmim_blocks.expect(.RMIH).bytes();
@@ -49,7 +49,7 @@ pub fn decode(
     const bmap = try im00_blocks.expect(.BMAP).block();
     const bmap_end = bmap.end();
 
-    const compression = try rmim_reader.reader().readByte();
+    const compression = try rmim_reader.takeByte();
 
     const bmp_size = bmp.calcFileSize(width, height);
     var out: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_size);
@@ -102,7 +102,7 @@ fn decompressBmap(
             try decompressBmapSolidColorFill(reader, end, out);
         },
         else => {
-            diag.err(@intCast(reader.pos), "unsupported BMAP compression {}", .{compression});
+            diag.err(@intCast(reader.seek), "unsupported BMAP compression {}", .{compression});
             return error.AddedToDiagnostic;
         },
     }
@@ -110,13 +110,13 @@ fn decompressBmap(
 
 fn decompressBmapNMajMin(
     compression: u8,
-    reader: anytype,
+    reader: *std.io.Reader,
     end: u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
-    var in = iold.bitReader(.little, reader.reader());
+    var in = iold.bitReader(.little, reader.adaptToOldInterface());
 
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
@@ -127,7 +127,7 @@ fn decompressBmapNMajMin(
     };
 
     var color = try in.readBitsNoEof(u8, 8);
-    while (reader.pos < end or in.count != 0) {
+    while (reader.seek < end or in.count != 0) {
         if (out.items.len == out.capacity) break;
 
         out.appendAssumeCapacity(color);
@@ -144,9 +144,9 @@ fn decompressBmapNMajMin(
 
     // Allow at most one extra input byte. The encoder is allowed to pad the
     // compressed data to an even number of bytes.
-    if (reader.pos != end) {
-        _ = reader.reader().readByte() catch unreachable;
-        if (reader.pos != end)
+    if (reader.seek != end) {
+        _ = reader.takeByte() catch unreachable;
+        if (reader.seek != end)
             return error.BadData;
     }
 
@@ -160,12 +160,12 @@ fn decompressBmapNMajMin(
 }
 
 fn decompressBmapSolidColorFill(
-    reader: anytype,
+    reader: *std.io.Reader,
     end: u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {
-    const color = try reader.reader().readByte();
-    if (reader.pos != end) return error.BadData;
+    const color = try reader.takeByte();
+    if (reader.seek != end) return error.BadData;
 
     @memset(out.unusedCapacitySlice(), color);
     out.items.len = out.capacity;

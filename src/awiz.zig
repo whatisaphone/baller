@@ -37,9 +37,9 @@ pub fn decode(
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) error{AddedToDiagnostic}!void {
-    var stream = std.io.fixedBufferStream(awiz_raw);
+    var stream: std.io.Reader = .fixed(awiz_raw);
     return decodeInner(allocator, diag, &stream, default_palette, name, code, indent, out_dir, out_path) catch |err| {
-        diag.zigErr(@intCast(stream.pos), "general decode failure: {s}", .{}, err);
+        diag.zigErr(@intCast(stream.seek), "general decode failure: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
 }
@@ -47,7 +47,7 @@ pub fn decode(
 fn decodeInner(
     allocator: std.mem.Allocator,
     diag: *const Diagnostic.ForBinaryFile,
-    reader: anytype,
+    reader: *std.io.Reader,
     default_palette: *const [0x300]u8,
     name: []const u8,
     code: *std.ArrayListUnmanaged(u8),
@@ -79,11 +79,11 @@ fn decodeInner(
             .WIZH => {
                 if (block.size != 12)
                     return error.BadData;
-                const compression_int = try reader.reader().readInt(i32, .little);
+                const compression_int = try reader.takeInt(i32, .little);
                 const compression = std.meta.intToEnum(Compression, compression_int) catch return error.BadData;
-                const width_signed = try reader.reader().readInt(i32, .little);
+                const width_signed = try reader.takeInt(i32, .little);
                 const width = std.math.cast(u31, width_signed) orelse return error.BadData;
-                const height_signed = try reader.reader().readInt(i32, .little);
+                const height_signed = try reader.takeInt(i32, .little);
                 const height = std.math.cast(u31, height_signed) orelse return error.BadData;
 
                 wizh_opt = .{
@@ -119,8 +119,8 @@ fn decodeInner(
     defer bmp_buf.deinit(allocator);
 
     // Allow one byte of padding from the encoder
-    if (reader.pos < wizd_end)
-        _ = try reader.reader().readByte();
+    if (reader.seek < wizd_end)
+        _ = try reader.takeByte();
 
     try awiz_blocks.finish();
 
@@ -140,7 +140,7 @@ fn decodeUncompressed(
     width: u31,
     height: u31,
     palette: *const [0x300]u8,
-    reader: anytype,
+    reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
@@ -164,7 +164,7 @@ pub fn decodeRleToBmp(
     width: u31,
     height: u31,
     palette: *const [0x300]u8,
-    reader: anytype,
+    reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
@@ -180,23 +180,23 @@ pub fn decodeRleToBmp(
 pub fn decodeRle(
     width: u31,
     height: u31,
-    reader: anytype,
+    reader: *std.io.Reader,
     bmp_buf: *std.ArrayListUnmanaged(u8),
 ) !void {
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
 
-        const line_size = try reader.reader().readInt(u16, .little);
-        const line_end = reader.pos + line_size;
+        const line_size = try reader.takeInt(u16, .little);
+        const line_end = reader.seek + line_size;
 
-        while (reader.pos < line_end) {
-            const n = try reader.reader().readByte();
+        while (reader.seek < line_end) {
+            const n = try reader.takeByte();
             if (n & 1 != 0) {
                 const count = n >> 1;
                 try bmp_buf.appendNTimes(utils.null_allocator, transparent, count);
             } else if (n & 2 != 0) {
                 const count = (n >> 2) + 1;
-                const color = try reader.reader().readByte();
+                const color = try reader.takeByte();
                 try bmp_buf.appendNTimes(utils.null_allocator, color, count);
             } else {
                 const count = (n >> 2) + 1;
@@ -215,7 +215,7 @@ fn decodeUncompressed16bit(
     allocator: std.mem.Allocator,
     width: u31,
     height: u31,
-    reader: anytype,
+    reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize15(width, height);
     var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);

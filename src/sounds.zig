@@ -22,7 +22,7 @@ pub fn extract(
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
-    var stream = std.io.fixedBufferStream(raw);
+    var stream: std.io.Reader = .fixed(raw);
     var blocks = fixedBlockReader(&stream, diag);
 
     const hshd = try blocks.expect(.HSHD).value([16]u8);

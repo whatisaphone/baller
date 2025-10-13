@@ -63,17 +63,11 @@ pub const OldBlockReader = struct {
 
 // This is identical to blockReader, but uses FixedBufferStream instead of
 // CountingReader. Prefer this over blockReader where possible.
-pub fn oldFixedBlockReader(stream: anytype) OldFixedBlockReader(@TypeOf(stream)) {
+pub fn oldFixedBlockReader(stream: *std.io.Reader) OldFixedBlockReader(@TypeOf(stream)) {
     return .{ .stream = stream };
 }
 
 fn OldFixedBlockReader(Stream: type) type {
-    comptime std.debug.assert(std.mem.startsWith(
-        u8,
-        @typeName(Stream),
-        "*Io.fixed_buffer_stream.FixedBufferStream(",
-    ));
-
     return struct {
         const Self = @This();
 
@@ -83,15 +77,15 @@ fn OldFixedBlockReader(Stream: type) type {
         pub fn next(self: *Self) !struct { BlockId, u32 } {
             try self.checkSync();
 
-            const id_raw = try self.stream.reader().readInt(BlockId.Raw, .little);
+            const id_raw = try self.stream.takeInt(BlockId.Raw, .little);
             const id = BlockId.init(id_raw) orelse return error.BadData;
 
-            const full_len = try self.stream.reader().readInt(u32, .big);
+            const full_len = try self.stream.takeInt(u32, .big);
             // The original value includes the id and length, but the caller
             // doesn't care about those, so subtract them out.
             const len = full_len - block_header_size;
 
-            const current_pos: u32 = @intCast(self.stream.pos);
+            const current_pos: u32 = @intCast(self.stream.seek);
             self.current_block_end = current_pos + len;
 
             return .{ id, len };
@@ -106,7 +100,7 @@ fn OldFixedBlockReader(Stream: type) type {
         pub fn peek(self: *const Self) !?BlockId {
             try self.checkSync();
 
-            if (self.stream.pos == self.stream.buffer.len)
+            if (self.stream.seek == self.stream.buffer.len)
                 return null;
 
             const id_buf = try io.peekInPlaceBytes(self.stream, 4);
@@ -160,26 +154,29 @@ fn OldFixedBlockReader(Stream: type) type {
 
         pub fn checkSync(self: *const Self) !void {
             const current_block_end = self.current_block_end orelse return;
-            if (self.stream.pos != current_block_end)
+            if (self.stream.seek != current_block_end)
                 return error.BlockDesync;
         }
 
         pub fn finish(self: *const Self, expected_pos: u32) !void {
-            if (self.stream.pos != expected_pos)
+            if (self.stream.seek != expected_pos)
                 return error.BlockDesync;
         }
 
         pub fn finishEof(self: *const Self) !void {
-            try io.requireEof(self.stream.reader());
+            try io.requireEof(self.stream.adaptToOldInterface());
         }
     };
 }
 
 pub fn fixedBlockReader(
-    stream: *std.io.FixedBufferStream([]const u8),
+    stream: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
 ) FixedBlockReader {
-    std.debug.assert(stream.pos == 0);
+    // Assert that it's a `std.io.Reader.fixed`
+    std.debug.assert(std.meta.eql(stream.vtable, std.io.Reader.fixed(&.{}).vtable));
+    std.debug.assert(stream.seek == 0);
+
     return .{
         .stream = stream,
         .end = @intCast(stream.buffer.len),
@@ -188,10 +185,10 @@ pub fn fixedBlockReader(
     };
 }
 
-const FixedBlockReader = struct {
+pub const FixedBlockReader = struct {
     const Self = @This();
 
-    stream: *std.io.FixedBufferStream([]const u8),
+    stream: *std.io.Reader,
     end: u32,
     diag: *const Diagnostic.ForBinaryFile,
     current: ?Block,
@@ -199,8 +196,8 @@ const FixedBlockReader = struct {
     pub fn next(self: *Self) BlockResult {
         if (!self.checkEndBlock()) return .err;
 
-        const offset: u32 = @intCast(self.stream.pos);
-        const header = self.stream.reader().readBytesNoEof(8) catch {
+        const offset: u32 = @intCast(self.stream.seek);
+        const header = self.stream.takeArray(Block.header_size) catch {
             self.diag.err(offset, "eof during block header", .{});
             return .err;
         };
@@ -212,7 +209,7 @@ const FixedBlockReader = struct {
         const size = full_size - block_header_size;
         self.current = .{
             .id = id,
-            .start = @intCast(self.stream.pos),
+            .start = @intCast(self.stream.seek),
             .size = size,
         };
 
@@ -227,7 +224,7 @@ const FixedBlockReader = struct {
     pub fn peek(self: *Self) !BlockId {
         if (!self.checkEndBlock()) return error.AddedToDiagnostic;
 
-        const offset: u32 = @intCast(self.stream.pos);
+        const offset: u32 = @intCast(self.stream.seek);
         if (offset + block_header_size > self.stream.buffer.len) {
             self.diag.err(offset, "eof during block header", .{});
             return error.AddedToDiagnostic;
@@ -253,7 +250,7 @@ const FixedBlockReader = struct {
     fn checkEndBlock(self: *Self) bool {
         const current = self.current orelse return true;
 
-        const pos: u32 = @intCast(self.stream.pos);
+        const pos: u32 = @intCast(self.stream.seek);
         const expected_end = current.end();
         if (pos == expected_end) { // happy path
             self.diag.trace(pos, "end block {f}", .{current.id});
@@ -279,14 +276,14 @@ const FixedBlockReader = struct {
     }
 
     pub fn atEnd(self: *const Self) bool {
-        const pos: u32 = @intCast(self.stream.pos);
+        const pos: u32 = @intCast(self.stream.seek);
         return pos == self.end;
     }
 
     pub fn finish(self: *Self) !void {
         if (!self.checkEndBlock()) return error.AddedToDiagnostic;
 
-        const pos: u32 = @intCast(self.stream.pos);
+        const pos: u32 = @intCast(self.stream.seek);
         if (pos != self.end) {
             self.diag.err(
                 pos,
@@ -364,7 +361,7 @@ const BlockResult = union(enum) {
 
     pub fn nested(self: *const Self) !FixedBlockReader {
         if (self.* != .ok) return error.AddedToDiagnostic;
-        const pos: u32 = @intCast(self.ok.reader.stream.pos);
+        const pos: u32 = @intCast(self.ok.reader.stream.seek);
         return .{
             .stream = self.ok.reader.stream,
             .end = pos + self.ok.block.size,

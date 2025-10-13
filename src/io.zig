@@ -22,40 +22,40 @@ pub fn copy(input: anytype, output: anytype) !void {
     }
 }
 
-pub fn readInPlace(stream: anytype, len: usize) ![]const u8 {
-    const end = stream.pos + len;
+pub fn readInPlace(stream: *std.io.Reader, len: usize) ![]const u8 {
+    const end = stream.seek + len;
     if (end > stream.buffer.len)
         return error.EndOfStream;
-    const result = stream.buffer[stream.pos..][0..len];
-    stream.pos = end;
+    const result = stream.buffer[stream.seek..][0..len];
+    stream.seek = end;
     return result;
 }
 
-pub fn readInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
+pub fn readInPlaceBytes(stream: *std.io.Reader, comptime len: usize) !*const [len]u8 {
     const result = try readInPlace(stream, len);
     return result[0..len];
 }
 
-pub fn readInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
+pub fn readInPlaceAsValue(stream: *std.io.Reader, T: type) !*align(1) const T {
     std.debug.assert(utils.hasGuaranteedLayout(T));
 
     const data = try readInPlace(stream, @sizeOf(T));
     return std.mem.bytesAsValue(T, data);
 }
 
-pub fn peekInPlace(stream: anytype, len: usize) ![]const u8 {
-    const end = stream.pos + len;
+pub fn peekInPlace(stream: *std.io.Reader, len: usize) ![]const u8 {
+    const end = stream.seek + len;
     if (end > stream.buffer.len)
         return error.EndOfStream;
-    return stream.buffer[stream.pos..][0..len];
+    return stream.buffer[stream.seek..][0..len];
 }
 
-pub fn peekInPlaceBytes(stream: anytype, comptime len: usize) !*const [len]u8 {
+pub fn peekInPlaceBytes(stream: *std.io.Reader, comptime len: usize) !*const [len]u8 {
     const result = try peekInPlace(stream, len);
     return result[0..len];
 }
 
-pub fn peekInPlaceAsValue(stream: anytype, T: type) !*align(1) const T {
+pub fn peekInPlaceAsValue(stream: *std.io.Reader, T: type) !*align(1) const T {
     std.debug.assert(utils.hasGuaranteedLayout(T));
 
     const data = try peekInPlace(stream, @sizeOf(T));

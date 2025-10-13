@@ -23,7 +23,7 @@ pub fn extract(
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
-    var in = std.io.fixedBufferStream(raw);
+    var in: std.io.Reader = .fixed(raw);
     var blocks = fixedBlockReader(&in, diag);
 
     try code.appendSlice(gpa, "obim {\n");
