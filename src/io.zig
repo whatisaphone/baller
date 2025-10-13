@@ -95,6 +95,46 @@ pub const XorReader = struct {
     }
 };
 
+pub const XorWriter = struct {
+    inner: *std.io.Writer,
+    key: u8,
+    interface: std.io.Writer,
+
+    pub fn init(inner: *std.io.Writer, key: u8, buffer: []u8) XorWriter {
+        return .{
+            .inner = inner,
+            .key = key,
+            .interface = .{
+                .vtable = &.{
+                    .drain = drain,
+                },
+                .buffer = buffer,
+            },
+        };
+    }
+
+    pub fn drain(w: *std.io.Writer, data: []const []const u8, splat: usize) !usize {
+        const self: *XorWriter = @fieldParentPtr("interface", w);
+
+        // simplified implementation only works in this simple case
+        std.debug.assert(w.buffer.len == 0);
+        std.debug.assert(self.inner.buffer.len != 0);
+        std.debug.assert(data.len == 1);
+        std.debug.assert(splat == 1);
+
+        if (self.inner.end == self.inner.buffer.len)
+            try self.inner.rebase(0, 1);
+
+        const len = @min(self.inner.buffer.len - self.inner.end, data[0].len);
+        const dest = self.inner.buffer[self.inner.end..][0..len];
+        const src = data[0][0..len];
+        for (dest, src) |*d, s|
+            d.* = s ^ self.key;
+        self.inner.advance(len);
+        return len;
+    }
+};
+
 pub fn OldXorWriter(Stream: type) type {
     return struct {
         stream: Stream,

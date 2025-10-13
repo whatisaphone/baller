@@ -9,12 +9,16 @@ const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
 const beginBlock = @import("block_writer.zig").beginBlock;
-const beginBlockAl = @import("block_writer.zig").beginBlockAl;
+const beginBlock2 = @import("block_writer.zig").beginBlock2;
 const beginBlockKnown = @import("block_writer.zig").beginBlockKnown;
+const beginBlockKnown2 = @import("block_writer.zig").beginBlockKnown2;
 const endBlock = @import("block_writer.zig").endBlock;
-const endBlockAl = @import("block_writer.zig").endBlockAl;
+const endBlock2 = @import("block_writer.zig").endBlock2;
 const endBlockKnown = @import("block_writer.zig").endBlockKnown;
+const endBlockKnown2 = @import("block_writer.zig").endBlockKnown2;
+const fxbc = @import("block_writer.zig").fxbc;
 const writeFixups = @import("block_writer.zig").writeFixups;
+const writeFixups2 = @import("block_writer.zig").writeFixups2;
 const Options = @import("build.zig").Options;
 const Maxs = @import("extract.zig").Maxs;
 const xor_key = @import("extract.zig").xor_key;
@@ -114,54 +118,55 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
 
     const out_file = try cx.output_dir.createFileZ(out_name, .{});
     defer out_file.close();
-    const out_xor = io.oldXorWriter(out_file.deprecatedWriter(), xor_key);
-    var out_buf = iold.bufferedWriter(out_xor.writer());
-    var out = iold.countingWriter(out_buf.writer());
+    var out_buf: [4096]u8 = undefined;
+    var out_direct = out_file.writer(&out_buf);
+    var out_xor: io.XorWriter = .init(&out_direct.interface, xor_key, &.{});
+    const out = &out_xor.interface;
 
     var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
     defer fixups.deinit();
 
-    const lecf_start = try beginBlock(&out, .LECF);
+    const lecf_start = try beginBlock2(out, .LECF);
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
-        .room_start => |room_number| try emitRoom(cx, disk_number, &out, &fixups, room_number),
+        .room_start => |room_number| try emitRoom(cx, disk_number, out, &fixups, room_number),
         .disk_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
-    try endBlock(&out, &fixups, lecf_start);
+    try endBlock2(out, &fixups, lecf_start);
 
-    try out_buf.flush();
+    try out_direct.interface.flush();
 
-    try writeFixups(out_file, out_xor.writer(), fixups.items);
+    try writeFixups2(&out_direct, out, fixups.items);
 }
 
 fn emitRoom(
     cx: *const Cx,
     disk_number: u8,
-    out: anytype,
+    out: *std.io.Writer,
     fixups: *std.array_list.Managed(Fixup),
     room_number: u8,
 ) !void {
-    const lflf_start = try beginBlock(out, .LFLF);
+    const lflf_start = try beginBlock2(out, .LFLF);
 
     try utils.growMultiArrayList(Room, &cx.index.rooms, cx.gpa, room_number + 1, .zero);
     cx.index.rooms.set(room_number, .{
-        .offset = @intCast(out.bytes_written),
+        .offset = fxbc.pos(out),
         .disk = disk_number,
     });
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
         .glob => |*b| try emitGlob(cx, out, room_number, b),
         .glob_start => |*b| try emitGlobBlock(cx, out, fixups, room_number, b),
-        .raw_block => |*b| try emitRawBlock(cx.gpa, out, b),
+        .raw_block => |*b| try emitRawBlock2(cx.gpa, out, b),
         .room_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
-    try endBlock(out, fixups, lflf_start);
+    try endBlock2(out, fixups, lflf_start);
 }
 
 fn emitRawBlock(
@@ -175,18 +180,29 @@ fn emitRawBlock(
     try writeBlock(out, raw_block.block_id, raw_block.data.items);
 }
 
+fn emitRawBlock2(
+    gpa: std.mem.Allocator,
+    out: *std.io.Writer,
+    raw_block: *const @FieldType(plan.Payload, "raw_block"),
+) !void {
+    var data_mut = raw_block.data;
+    defer data_mut.deinit(gpa);
+
+    try writeBlock2(out, raw_block.block_id, raw_block.data.items);
+}
+
 fn emitGlob(
     cx: *const Cx,
-    out: anytype,
+    out: *std.io.Writer,
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob"),
 ) !void {
     var data_mut = glob.data;
     defer data_mut.deinit(cx.gpa);
 
-    const start: u32 = @intCast(out.bytes_written);
-    try writeBlock(out, glob.block_id, glob.data.items);
-    const end: u32 = @intCast(out.bytes_written);
+    const start = fxbc.pos(out);
+    try writeBlock2(out, glob.block_id, glob.data.items);
+    const end = fxbc.pos(out);
     const size = end - start;
 
     try addGlobToIndex(cx, room_number, glob.node_index, glob.block_id, glob.glob_number, start, size);
@@ -194,22 +210,22 @@ fn emitGlob(
 
 fn emitGlobBlock(
     cx: *const Cx,
-    out: anytype,
+    out: *std.io.Writer,
     fixups: *std.array_list.Managed(Fixup),
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob_start"),
 ) !void {
-    const start = try beginBlock(out, glob.block_id);
+    const start = try beginBlock2(out, glob.block_id);
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
-        .raw_block => |*b| try emitRawBlock(cx.gpa, out, b),
+        .raw_block => |*b| try emitRawBlock2(cx.gpa, out, b),
         .glob_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
     };
 
-    try endBlock(out, fixups, start);
-    const end: u32 = @intCast(out.bytes_written);
+    try endBlock2(out, fixups, start);
+    const end = fxbc.pos(out);
     const size = end - start;
 
     try addGlobToIndex(cx, room_number, glob.node_index, glob.block_id, glob.glob_number, start, size);
@@ -268,6 +284,12 @@ fn writeBlock(out: anytype, block_id: BlockId, data: []const u8) !void {
     const start = try beginBlockKnown(out, block_id, @intCast(data.len));
     try out.writer().writeAll(data);
     endBlockKnown(out, start);
+}
+
+fn writeBlock2(out: *std.io.Writer, block_id: BlockId, data: []const u8) !void {
+    const start = try beginBlockKnown2(out, block_id, @intCast(data.len));
+    try out.writeAll(data);
+    endBlockKnown2(out, start);
 }
 
 const Index = struct {

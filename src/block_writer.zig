@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
+const io = @import("io.zig");
 
 pub fn beginBlock(stream: anytype, id: BlockId) !u32 {
     const block_start: u32 = @intCast(stream.bytes_written);
@@ -34,6 +35,50 @@ pub fn endBlockKnown(stream: anytype, start_and_size: struct { u32, u32 }) void 
     const pos: u32 = @intCast(stream.bytes_written);
     std.debug.assert(pos - start == size);
 }
+
+pub fn beginBlock2(w: *std.io.Writer, id: BlockId) !u32 {
+    const block_start = fxbc.pos(w);
+
+    try w.writeInt(BlockId.Raw, id.raw(), .little);
+    // Write the length as a placeholder to be filled in later
+    try w.writeAll(&@as([4]u8, undefined));
+
+    return block_start;
+}
+
+pub fn endBlock2(w: *std.io.Writer, fixups: *std.array_list.Managed(Fixup), block_start: u32) !void {
+    const stream_pos = fxbc.pos(w);
+    try fixups.append(.{
+        .offset = block_start + 4,
+        .bytes = Fixup.encode(stream_pos - block_start, .big),
+    });
+}
+
+pub fn beginBlockKnown2(w: *std.io.Writer, id: BlockId, size: u32) !struct { u32, u32 } {
+    const block_start = fxbc.pos(w);
+
+    try w.writeInt(BlockId.Raw, id.raw(), .little);
+    try w.writeInt(u32, size + 8, .big);
+
+    return .{ block_start, size + 8 };
+}
+
+pub fn endBlockKnown2(w: *std.io.Writer, start_and_size: struct { u32, u32 }) void {
+    const start, const size = start_and_size;
+    const pos = fxbc.pos(w);
+    std.debug.assert(pos - start == size);
+}
+
+/// fxbc means XorWriter(File.Writer)
+pub const fxbc = struct {
+    pub fn pos(w: *const std.io.Writer) u32 {
+        const xor: *const io.XorWriter = @fieldParentPtr("interface", w);
+        const file: *const std.fs.File.Writer = @fieldParentPtr("interface", xor.inner);
+        // in this codebase the xors never have a buffer. just verify
+        std.debug.assert(xor.interface.end == 0);
+        return @intCast(file.pos + file.interface.end);
+    }
+};
 
 pub fn beginBlockAl(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id: BlockId) !u32 {
     const block_start: u32 = @intCast(out.items.len);
@@ -72,5 +117,18 @@ pub fn writeFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !v
     for (fixups) |fixup| {
         try file.seekTo(fixup.offset);
         try writer.writeAll(&fixup.bytes);
+    }
+}
+
+pub fn writeFixups2(
+    file: *std.fs.File.Writer,
+    writer: *std.io.Writer,
+    fixups: []const Fixup,
+) !void {
+    for (fixups) |fixup| {
+        try file.seekTo(fixup.offset);
+        try writer.writeAll(&fixup.bytes);
+        std.debug.assert(writer.buffer.len == 0); // verify we can skip writer.flush()
+        try file.interface.flush();
     }
 }
