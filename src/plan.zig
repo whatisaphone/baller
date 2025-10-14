@@ -1324,7 +1324,7 @@ fn buildMusic(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
 
     var path_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "{s}", .{cx.index_name}) catch unreachable;
-    games.pointPathToMusic(cx.target.defined.pickAnyGame(), path);
+    games.pointPathToMusic(path);
 
     try music.build(cx.gpa, cx.diagnostic, cx.project_dir, cx.project, cx.output_dir, path);
 

@@ -135,7 +135,7 @@ pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
 }
 
 /// change ".he0" to ".he4"
-pub fn pointPathToMusic(game: Game, path: []u8) void {
+pub fn pointPathToMusic(path: []u8) void {
     if (builtin.mode == .Debug) {
         const ext = path[path.len - 4 ..];
         std.debug.assert(std.mem.eql(u8, ext, ".he0") or std.mem.eql(u8, ext, ".HE0"));
@@ -143,7 +143,8 @@ pub fn pointPathToMusic(game: Game, path: []u8) void {
 
     path[path.len - 1] = '4';
 
-    if (game.target() == .sputm99) {
+    // This is the only lowercase filename on the football CD for some reason
+    if (std.mem.eql(u8, path[0 .. path.len - 4], "FOOTBALL")) {
         for (path) |*c|
             c.* = std.ascii.toLower(c.*);
     }

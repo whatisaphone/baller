@@ -2415,7 +2415,7 @@ fn extractMusic(
 ) !void {
     var in_path_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const in_path = std.fmt.bufPrintZ(&in_path_buf, "{s}", .{index_name}) catch unreachable;
-    games.pointPathToMusic(cx.game, in_path);
+    games.pointPathToMusic(in_path);
 
     const output_path = "music";
     try fsd.makeDirIfNotExistZ(diagnostic, output_parent_dir, output_path);
