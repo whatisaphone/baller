@@ -198,7 +198,7 @@ pub const Disasm = struct {
             const byte = self.reader.reader().readByte() catch unreachable;
             switch (self.vm.opcode_lookup[group_pos + byte].decode()) {
                 .op => |op| return try disasmIns(self.vm, &self.reader, ins_start, op),
-                .unset => return self.becomePoison(1),
+                .unset => return self.becomePoison(@intCast(self.reader.pos - ins_start)),
                 .nested => |next_start| group_pos = next_start,
             }
         }
