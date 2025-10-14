@@ -40,8 +40,8 @@ pub fn beginBlock2(w: *std.io.Writer, id: BlockId) !u32 {
     const block_start = fxbc.pos(w);
 
     try w.writeInt(BlockId.Raw, id.raw(), .little);
-    // Write the length as a placeholder to be filled in later
-    try w.writeAll(&@as([4]u8, undefined));
+    // Leave the length as a placeholder to be filled in later
+    try fxbc.skip(w, 4);
 
     return block_start;
 }
@@ -77,6 +77,18 @@ pub const fxbc = struct {
         // in this codebase the xors never have a buffer. just verify
         std.debug.assert(xor.interface.end == 0);
         return @intCast(file.pos + file.interface.end);
+    }
+
+    pub fn skip(w: *std.io.Writer, n: usize) !void {
+        const xor: *io.XorWriter = @fieldParentPtr("interface", w);
+        const file: *std.fs.File.Writer = @fieldParentPtr("interface", xor.inner);
+        // since the xor has no buffer (verify that), we have to skip using the
+        // file instead
+        std.debug.assert(xor.interface.end == 0);
+        if (file.interface.buffer.len < n)
+            return error.WriteFailed;
+        // leave the bytes undefined
+        _ = try file.interface.writableSlice(n);
     }
 };
 
