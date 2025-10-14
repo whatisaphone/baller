@@ -4,6 +4,11 @@ const version = "0.6.2";
 
 pub fn build(b: *std.Build) void {
     const valgrind = b.option(bool, "valgrind", "Add valgrind support") orelse false;
+    const test_filters = b.option(
+        []const []const u8,
+        "test-filter",
+        "Skip tests that do not match any filter",
+    ) orelse &.{};
 
     const optimize = b.standardOptimizeOption(.{});
 
@@ -50,6 +55,7 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
         }),
+        .filters = test_filters,
     });
     if (valgrind)
         exe_unit_tests.linkLibC();
