@@ -8,11 +8,11 @@ const Block = @import("block_reader.zig").Block;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
 const Fixup = @import("block_writer.zig").Fixup;
-const writeFixups = @import("block_writer.zig").writeFixups;
-const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
-const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
+const oldBeginBlock = @import("block_writer.zig").oldBeginBlock;
+const oldEndBlock = @import("block_writer.zig").oldEndBlock;
+const oldWriteFixups = @import("block_writer.zig").oldWriteFixups;
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
@@ -202,13 +202,13 @@ pub fn build(
     var fixups: std.array_list.Managed(Fixup) = .init(gpa);
     defer fixups.deinit();
 
-    const song_start = try beginBlock(&out, .SONG);
+    const song_start = try oldBeginBlock(&out, .SONG);
 
-    const sghd_start = try beginBlock(&out, .SGHD);
+    const sghd_start = try oldBeginBlock(&out, .SGHD);
     const num_sounds = music_node.children.len;
     try out.writer().writeInt(u32, num_sounds, .little);
     try out.writer().writeAll(&@as([28]u8, @splat(0)));
-    try endBlock(&out, &fixups, sghd_start);
+    try oldEndBlock(&out, &fixups, sghd_start);
 
     const sgens_start: u32 = @intCast(out.bytes_written);
     const sgens_total_size = num_sounds * (Block.header_size + @sizeOf(Sgen));
@@ -231,12 +231,12 @@ pub fn build(
 
         const glob_number = glob_number: switch (node.*) {
             .sound => |*sound| {
-                const fixup = try beginBlock(&out, sound.block_id);
+                const fixup = try oldBeginBlock(&out, sound.block_id);
                 std.debug.assert(fixup == start);
                 buf.clearRetainingCapacity();
                 try sounds.build(gpa, diagnostic, .node(file, node_index), project_dir, file, sound.children, &buf);
                 try out.writer().writeAll(buf.items);
-                try endBlock(&out, &fixups, fixup);
+                try oldEndBlock(&out, &fixups, fixup);
                 break :glob_number sound.glob_number;
             },
             .riff => |*riff| {
@@ -259,11 +259,11 @@ pub fn build(
         endBlockAl(&sgens, sgen_start);
     }
 
-    try endBlock(&out, &fixups, song_start);
+    try oldEndBlock(&out, &fixups, song_start);
 
     try out_buf.flush();
 
-    try writeFixups(out_file, out_file.deprecatedWriter(), fixups.items);
+    try oldWriteFixups(out_file, out_file.deprecatedWriter(), fixups.items);
 
     try out_file.seekTo(sgens_start);
     std.debug.assert(sgens.items.len == sgens.capacity);

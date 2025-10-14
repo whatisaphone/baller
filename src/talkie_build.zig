@@ -4,9 +4,9 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Fixup = @import("block_writer.zig").Fixup;
-const beginBlock = @import("block_writer.zig").beginBlock;
-const endBlock = @import("block_writer.zig").endBlock;
-const writeFixups = @import("block_writer.zig").writeFixups;
+const oldBeginBlock = @import("block_writer.zig").oldBeginBlock;
+const oldEndBlock = @import("block_writer.zig").oldEndBlock;
+const oldWriteFixups = @import("block_writer.zig").oldWriteFixups;
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -63,7 +63,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     };
     defer state.fixups.deinit();
 
-    const tlkb_start = try beginBlock(state.output_writer, .TLKB);
+    const tlkb_start = try oldBeginBlock(state.output_writer, .TLKB);
 
     while (true) {
         const line = try reader.interface.takeDelimiter('\n') orelse break;
@@ -77,11 +77,11 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
             return error.BadData;
     }
 
-    try endBlock(state.output_writer, &state.fixups, tlkb_start);
+    try oldEndBlock(state.output_writer, &state.fixups, tlkb_start);
 
     try output_buf.flush();
 
-    try writeFixups(output_file, output_file.deprecatedWriter(), state.fixups.items);
+    try oldWriteFixups(output_file, output_file.deprecatedWriter(), state.fixups.items);
 }
 
 const State = struct {
@@ -106,14 +106,14 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 
     // Write block
 
-    const start = try beginBlock(state.output_writer, block_id);
+    const start = try oldBeginBlock(state.output_writer, block_id);
 
     const path = try pathf.append(state.cur_path, relative_path);
     defer path.restore();
 
     try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.output_writer.writer());
 
-    try endBlock(state.output_writer, &state.fixups, start);
+    try oldEndBlock(state.output_writer, &state.fixups, start);
 }
 
 fn buildTalk(state: *State) !void {
@@ -171,17 +171,17 @@ fn buildTalk(state: *State) !void {
 
     // Write block
 
-    const talk_start = try beginBlock(state.output_writer, .TALK);
+    const talk_start = try oldBeginBlock(state.output_writer, .TALK);
 
     for (raw_blocks.slice()) |raw_block| {
-        const block_start = try beginBlock(state.output_writer, raw_block.id);
+        const block_start = try oldBeginBlock(state.output_writer, raw_block.id);
 
         const raw_path = try pathf.append(state.cur_path, raw_block.path.slice());
         defer raw_path.restore();
 
         try fs.readFileIntoZ(std.fs.cwd(), raw_path.full(), state.output_writer.writer());
 
-        try endBlock(state.output_writer, &state.fixups, block_start);
+        try oldEndBlock(state.output_writer, &state.fixups, block_start);
     }
 
     {
@@ -209,13 +209,13 @@ fn buildTalk(state: *State) !void {
             return error.AddedToDiagnostic;
         }
 
-        const sdat_start = try beginBlock(state.output_writer, .SDAT);
+        const sdat_start = try oldBeginBlock(state.output_writer, .SDAT);
         try io.copy(
             iold.limitedReader(wav_reader, data_size),
             state.output_writer.writer(),
         );
-        try endBlock(state.output_writer, &state.fixups, sdat_start);
+        try oldEndBlock(state.output_writer, &state.fixups, sdat_start);
     }
 
-    try endBlock(state.output_writer, &state.fixups, talk_start);
+    try oldEndBlock(state.output_writer, &state.fixups, talk_start);
 }
