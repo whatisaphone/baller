@@ -151,6 +151,40 @@ test "Backyard Baseball 2001 round trip disasm" {
     }
 }
 
+const soccer_mls: Game = .{
+    .fixture_dir = "soccer-mls",
+    .index_name = "SoccerMLS.he0",
+    .fixture_names = &.{"SoccerMLS.(a)"},
+};
+test "Backyard Soccer MLS round trip raw" {
+    _ = try testRoundTrip(soccer_mls, .raw, &.{});
+}
+test "Backyard Soccer MLS round trip decode all" {
+    const stats = try testRoundTrip(soccer_mls, .decode_all, &.{"SoccerMLS.he4"});
+    {
+        errdefer dumpExtractStats(&stats);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 21);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 226);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 25);
+        try std.testing.expectEqual(stats.get(.excd_total), 21);
+        try std.testing.expectEqual(stats.get(.excd_decompile), 19);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 21);
+        try std.testing.expectEqual(stats.get(.lsc2_total), 1161);
+        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1140);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 1696);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 3276);
+        try std.testing.expectEqual(stats.get(.awiz_total), 658);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 594);
+    }
+}
+test "Backyard Soccer MLS round trip disasm" {
+    const stats = try testRoundTrip(soccer_mls, .disasm, &.{});
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 19);
+    }
+}
+
 const basketball: Game = .{
     .fixture_dir = "basketball",
     .index_name = "Basketball.he0",

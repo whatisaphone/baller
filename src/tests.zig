@@ -14,20 +14,29 @@ pub const fixture_hashes = .{
     .@"baseball1997/BASEBALL.HE1" = "f3e910f120433d318e30dae75e0fbd418f08338966cbf129487909e1f3cf5cd8",
     .@"baseball1997/BASEBALL.HE2" = "216db30c5810b063aaf718defdf67ee11c2d6aaa7bf2cf64c7101e507f65647a",
     .@"baseball1997/BASEBALL.HE4" = "3c8e3ac672454a52d9b1d5b2bc64f5614200ef22952d679ee539a44c306351e7",
+
     .@"baseball2001/baseball 2001.he0" = "c89d5c17c58db55652b31828a4b27edfa9810dbfddcada428b8b2bf5fb85a5b9",
     .@"baseball2001/baseball 2001.(a)" = "a2bd2d171c47a320fe31dd2e40cfcbecae01d46c5ecebc362fc998e4f0cb73ff",
     .@"baseball2001/baseball 2001.(b)" = "dde0397d5c658f2acffdebb5b58b0d2770707619092a4319354b37512b513038",
     .@"baseball2001/baseball 2001.he2" = "583be6ee0ad30bdd1d4a78ddc006155d77f567a6c5467b22d8871c137e974927",
     .@"baseball2001/baseball 2001.he4" = "dfcb1bfb07cfeb2fb37d3feb99a0b3e19b44856921da58c8b3e784bb4b082a34",
+
     .@"soccer/SOCCER.HE0" = "44d5de043628bbe5db166f00e8cb9b0398800dc30b0868ae0ce4c8eba96ec9f9",
     .@"soccer/SOCCER.(A)" = "8cdd016013493bbc22bda8e3fa3d62ece7a61e4ee346fd85d7288e3de385bf79",
     .@"soccer/SOCCER.HE2" = "2e5cd139e44274652d94ed1af09995f20426be4741d13abb4c9075356bdbe073",
     .@"soccer/SOCCER.HE4" = "e312bd96d2f5daeaa1b8dbefac6e4811a0a6bfea599a8dce070071c78dfd7a45",
+
     .@"football/FOOTBALL.HE0" = "5fbec205047ce8da3d42b2c48652183ef30bcf0d3e1aa233cda9745317bbb59d",
     .@"football/FOOTBALL.(A)" = "4d406cbe8243f84bac39a743495b6377879afc9d7a187e203d7f58cd8bc59742",
     .@"football/FOOTBALL.(B)" = "42cf15534b9a707ec1cec54a09d30211da07b226a084e802c3b049701751a2f1",
     .@"football/FOOTBALL.HE2" = "fc5ab3c7d917eaaa9cb2e7cee6ca73bef0958d939e6349498bb17ae752f691ef",
     .@"football/football.he4" = "e6f0f9a41d4e96b3a67d74bbe338ff847446d6af75235717b48380a67cd4db7e",
+
+    .@"soccer-mls/SoccerMLS.he0" = "6417ed5728936176313cd3c3bf77ac97aa7964d1c186cbdcf9f0427ab9aaf3b7",
+    .@"soccer-mls/SoccerMLS.(a)" = "d74316ce633220a9092e8b2a7121b72d17097e5f8aee2dfc8a282cf2e7bf6591",
+    .@"soccer-mls/SoccerMLS.he2" = "baf2d3682ff8d2b67044d6f681311fda013648ba9ba4a3550e4faa555251f0e6",
+    .@"soccer-mls/SoccerMLS.he4" = "b7b1b12a4a01be32b91ee345989473944b1223855da5e457c033777c5ed245e7",
+
     .@"basketball/Basketball.he0" = "9a767514bc5bf00743648111d6bf31e886e8f4fc8401be30447ee69126c997b2",
     .@"basketball/Basketball.(a)" = "b90c8b7c4d906d568647cd049d15b0c360a5945418c2807fcd22dcdc64decb84",
     .@"basketball/Basketball.(b)" = "7551d6465bd4cc8e0c0b97357ca28825d18bb2d645ccf30c5f56a810abd62e4c",
@@ -57,6 +66,10 @@ test "Backyard Soccer talkies round trip" {
 
 test "Backyard Football talkies round trip" {
     try testRoundTripTalkies("football", "FOOTBALL.HE2");
+}
+
+test "Backyard Soccer MLS talkies round trip" {
+    try testRoundTripTalkies("soccer-mls", "SoccerMLS.he2");
 }
 
 test "Backyard Basketball talkies round trip" {

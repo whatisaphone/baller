@@ -102,6 +102,9 @@ fn decodeInner(
     }
 
     const wizd = try awiz_blocks.assume(.WIZD).block();
+    // Presently, the encoder always writes a padding byte, so if it's missing,
+    // the WIZD won't roundtrip exactly.
+    if (wizd.size & 1 != 0) return error.BadData;
     const wizd_end = wizd.end();
 
     const wizh = wizh_opt orelse return error.BadData;
@@ -120,7 +123,10 @@ fn decodeInner(
 
     // Allow one byte of padding from the encoder
     if (reader.seek < wizd_end)
-        _ = try reader.takeByte();
+        // The padding byte must be a 0 in order to roundtrip, since that's what
+        // the encoder writes
+        if (try reader.takeByte() != 0)
+            return error.BadData;
 
     try awiz_blocks.finish();
 

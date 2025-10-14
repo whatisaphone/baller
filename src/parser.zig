@@ -886,7 +886,7 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
         riff,
     };
 
-    var children: BoundedArray(Ast.NodeIndex, 192) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 256) = .{};
 
     while (true) {
         const token = consumeDown(cx);

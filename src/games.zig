@@ -8,6 +8,7 @@ pub const Game = enum {
     soccer_1998,
     football_1999,
     baseball_2001,
+    soccer_mls,
     basketball,
 
     pub fn lt(a: Game, b: Game) bool {
@@ -26,7 +27,7 @@ pub const Game = enum {
         return switch (self) {
             .baseball_1997 => .sputm90,
             .soccer_1998 => .sputm98,
-            .football_1999, .baseball_2001 => .sputm99,
+            .football_1999, .baseball_2001, .soccer_mls => .sputm99,
             .basketball => .sputm100,
         };
     }
@@ -66,6 +67,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
         .{ "SOCCER.HE0", .soccer_1998 },
         .{ "FOOTBALL.HE0", .football_1999 },
         .{ "baseball 2001.he0", .baseball_2001 },
+        .{ "SoccerMLS.he0", .soccer_mls },
         .{ "Basketball.he0", .basketball },
     };
 
@@ -88,7 +90,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
 pub fn maxsLen(game: Game) u32 {
     return switch (game) {
         .baseball_1997, .soccer_1998 => 38,
-        .football_1999, .baseball_2001, .basketball => 44,
+        .football_1999, .baseball_2001, .soccer_mls, .basketball => 44,
     };
 }
 
