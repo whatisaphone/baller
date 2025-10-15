@@ -56,6 +56,8 @@ opcode,name,operands,target_min,target_max
 24 1d,line-length.3d,,,99
 25 1e,sprite-get-object-x,,,99
 25 1f,sprite-get-object-y,,,99
+25 20,sprite-get-width,,99,99
+25 21,sprite-get-height,,99,99
 25 24,sprite-get-state-count,,99,99
 25 25,sprite-get-group,,99,99
 25 26,sprite-get-object-draw-x,,98,99
@@ -87,6 +89,7 @@ opcode,name,operands,target_min,target_max
 26 62,sprite.shadow,,,99
 26 7c,sprite.update-type,,,99
 26 7d,sprite.class,,98,99
+26 8b,sprite.general-property,,99,99
 26 8c,sprite.mask-image,,99,99
 26 9e,sprite-restart,,,99
 26 c6,sprite.variable-range,,,99
@@ -101,6 +104,7 @@ opcode,name,operands,target_min,target_max
 28 39,group.init,,,99
 28 41,group.at,,,99
 28 43,group.clip,,,99
+28 5d,group.never-zclip,,,99
 28 d9,group.new,,,99
 29 1e,image-get-object-x,,,99
 29 1f,image-get-object-y,,,99
@@ -258,6 +262,7 @@ opcode,name,operands,target_min,target_max
 9d 61,actor.animation-speed,,,99
 9d 62,actor.shadow,,,99
 9d 63,actor.text-offset,,,99
+9d af,actor.palette,,99,99
 9d c5,actor.init,,,99
 9d c6,actor.variable,,,99
 9d d9,actor.new,,,99
@@ -266,6 +271,7 @@ opcode,name,operands,target_min,target_max
 9e 3f,palette.from-image,,99,99
 9e 42,palette.rgb,,99,99
 9e 46,palette.color,,99,99
+9e 4c,palette.from-costume,,99,99
 9e 56,palette.from-palette,,99,99
 9e d9,palette.new,,99,99
 9e ff,palette.end,,99,99
