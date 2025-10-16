@@ -196,14 +196,11 @@ test "Backyard Football 2002 round trip decode all" {
     {
         errdefer dumpExtractStats(&stats);
         try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 47);
-        try std.testing.expectEqual(stats.get(.scrp_total), 627);
-        try std.testing.expectEqual(stats.get(.scrp_decompile), 596);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 627);
         try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 9);
         try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 47);
-        try std.testing.expectEqual(stats.get(.encd_total), 47);
-        try std.testing.expectEqual(stats.get(.encd_decompile), 46);
-        try std.testing.expectEqual(stats.get(.lsc2_total), 1979);
-        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1677);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 47);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1979);
         try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
         try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 0);
         try std.testing.expectEqual(stats.get(.awiz_total), 620);
@@ -214,7 +211,7 @@ test "Backyard Football 2002 round trip disasm" {
     const stats = try testRoundTrip(football2002, .disasm, &.{});
     {
         errdefer dumpExtractStats(&stats);
-        try std.testing.expectEqual(stats.get(.script_unknown_byte), 334);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
     }
 }
 
