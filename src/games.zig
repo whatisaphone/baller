@@ -9,6 +9,7 @@ pub const Game = enum {
     football_1999,
     baseball_2001,
     soccer_mls,
+    football_2002,
     basketball,
 
     pub fn lt(a: Game, b: Game) bool {
@@ -28,7 +29,7 @@ pub const Game = enum {
             .baseball_1997 => .sputm90,
             .soccer_1998 => .sputm98,
             .football_1999, .baseball_2001, .soccer_mls => .sputm99,
-            .basketball => .sputm100,
+            .football_2002, .basketball => .sputm100,
         };
     }
 };
@@ -68,6 +69,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
         .{ "FOOTBALL.HE0", .football_1999 },
         .{ "baseball 2001.he0", .baseball_2001 },
         .{ "SoccerMLS.he0", .soccer_mls },
+        .{ "Football2002.HE0", .football_2002 },
         .{ "Basketball.he0", .basketball },
     };
 
@@ -90,7 +92,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
 pub fn maxsLen(game: Game) u32 {
     return switch (game) {
         .baseball_1997, .soccer_1998 => 38,
-        .football_1999, .baseball_2001, .soccer_mls, .basketball => 44,
+        .football_1999, .baseball_2001, .soccer_mls, .football_2002, .basketball => 44,
     };
 }
 
@@ -107,7 +109,7 @@ pub fn hasIndexInib(game: Game) bool {
 }
 
 pub fn hasIndexSver(game: Game) bool {
-    return game == .basketball;
+    return game.target().ge(.sputm100);
 }
 
 pub fn directoryNonPresentLen(target: Target) u32 {
@@ -130,9 +132,9 @@ pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
     }
 
     // change ".he0" to ".(a)"
-    const lowercase = path[path.len - 2] & 0x20;
+    const lowercase = path[path.len - 2] & 0x20 != 0 or target.ge(.sputm100);
     path[path.len - 3] = '(';
-    path[path.len - 2] = ('A' | lowercase) - 1 + disk_number;
+    path[path.len - 2] = @as(u8, if (lowercase) 'a' else 'A') - 1 + disk_number;
     path[path.len - 1] = ')';
 }
 

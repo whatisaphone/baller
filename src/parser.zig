@@ -786,7 +786,7 @@ fn parseAkos(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const glob_number = try expectInteger(cx, u16);
     try expect(cx, .brace_l);
 
-    var children: BoundedArray(Ast.NodeIndex, 1536) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 2048) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);

@@ -37,6 +37,12 @@ pub const fixture_hashes = .{
     .@"soccer-mls/SoccerMLS.he2" = "baf2d3682ff8d2b67044d6f681311fda013648ba9ba4a3550e4faa555251f0e6",
     .@"soccer-mls/SoccerMLS.he4" = "b7b1b12a4a01be32b91ee345989473944b1223855da5e457c033777c5ed245e7",
 
+    .@"football2002/Football2002.HE0" = "94410e75954919abf67ee593378184ac9aec724454564277c0305e87ca683890",
+    .@"football2002/Football2002.(a)" = "e9b4770c2117ad3ba5445578780f2ef6bc531fc4d4f8e2d15da5c30e50035ea8",
+    .@"football2002/Football2002.(b)" = "3755dda4b8d5dc1d0fcb00c282aec83e00148a1fc98c85e41bae06dff3cb2e6f",
+    .@"football2002/Football2002.HE2" = "3e8d96a1f527bcc01ff7a43f1957fe7942a02b4acc3746947b195f8debf39836",
+    .@"football2002/Football2002.HE4" = "4a7e8fa0989aabaf1d831a0e6c648b172b91f5ecc3e7def972aa721f0814bbf5",
+
     .@"basketball/Basketball.he0" = "9a767514bc5bf00743648111d6bf31e886e8f4fc8401be30447ee69126c997b2",
     .@"basketball/Basketball.(a)" = "b90c8b7c4d906d568647cd049d15b0c360a5945418c2807fcd22dcdc64decb84",
     .@"basketball/Basketball.(b)" = "7551d6465bd4cc8e0c0b97357ca28825d18bb2d645ccf30c5f56a810abd62e4c",
@@ -70,6 +76,10 @@ test "Backyard Football talkies round trip" {
 
 test "Backyard Soccer MLS talkies round trip" {
     try testRoundTripTalkies("soccer-mls", "SoccerMLS.he2");
+}
+
+test "Backyard Football 2002 talkies round trip" {
+    try testRoundTripTalkies("football2002", "Football2002.HE2");
 }
 
 test "Backyard Basketball talkies round trip" {
