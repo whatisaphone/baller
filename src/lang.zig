@@ -15,7 +15,8 @@ pub const Vm = struct {
     operands: [op_count]utils.TinyArray(LangOperand, max_operands),
     /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
     /// of `Entry`s.
-    opcode_lookup: [256 * 53]OpcodeEntry,
+    // TODO: generate.py should output this array size
+    opcode_lookup: [256 * 55]OpcodeEntry,
 };
 
 const OpcodeEntry = struct {

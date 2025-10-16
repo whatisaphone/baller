@@ -247,6 +247,38 @@ test "Backyard Basketball round trip disasm" {
     }
 }
 
+const baseball2003: Game = .{
+    .fixture_dir = "baseball2003",
+    .index_name = "baseball2003.HE0",
+    .fixture_names = &.{ "baseball2003.(a)", "baseball2003.(b)" },
+};
+test "Backyard Baseball 2003 round trip raw" {
+    _ = try testRoundTrip(baseball2003, .raw, &.{});
+}
+test "Backyard Baseball 2003 round trip decode all" {
+    const stats = try testRoundTrip(baseball2003, .decode_all, &.{"baseball2003.he4"});
+    {
+        errdefer dumpExtractStats(&stats);
+        try expectTwoStatsEq(&stats, .rmim_total, .rmim_decode, 33);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 421);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 24);
+        try expectTwoStatsEq(&stats, .excd_total, .excd_decompile, 33);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 33);
+        try expectTwoStatsEq(&stats, .lsc2_total, .lsc2_decompile, 1434);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 0);
+        try std.testing.expectEqual(stats.get(.awiz_total), 732);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 731);
+    }
+}
+test "Backyard Baseball 2003 round trip disasm" {
+    const stats = try testRoundTrip(baseball2003, .disasm, &.{});
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 0);
+    }
+}
+
 test "dump smoke test" {
     const in_path = "src/fixtures/baseball2001/baseball 2001.(b)";
     const in_file = try std.fs.cwd().openFileZ(in_path, .{});

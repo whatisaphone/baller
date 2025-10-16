@@ -11,6 +11,7 @@ pub const Game = enum {
     soccer_mls,
     football_2002,
     basketball,
+    baseball_2003,
 
     pub fn lt(a: Game, b: Game) bool {
         return @intFromEnum(a) < @intFromEnum(b);
@@ -29,7 +30,7 @@ pub const Game = enum {
             .baseball_1997 => .sputm90,
             .soccer_1998 => .sputm98,
             .football_1999, .baseball_2001, .soccer_mls => .sputm99,
-            .football_2002, .basketball => .sputm100,
+            .football_2002, .basketball, .baseball_2003 => .sputm100,
         };
     }
 };
@@ -71,6 +72,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
         .{ "SoccerMLS.he0", .soccer_mls },
         .{ "Football2002.HE0", .football_2002 },
         .{ "Basketball.he0", .basketball },
+        .{ "baseball2003.HE0", .baseball_2003 },
     };
 
     const error_suffix = comptime error_suffix: {
@@ -90,10 +92,10 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
 }
 
 pub fn maxsLen(game: Game) u32 {
-    return switch (game) {
-        .baseball_1997, .soccer_1998 => 38,
-        .football_1999, .baseball_2001, .soccer_mls, .football_2002, .basketball => 44,
-    };
+    return if (game.target().le(.sputm98))
+        38
+    else
+        44;
 }
 
 pub fn hasTalkies(game: Game) bool {
@@ -147,9 +149,15 @@ pub fn pointPathToMusic(path: []u8) void {
 
     path[path.len - 1] = '4';
 
-    // This is the only lowercase filename on the football CD for some reason
-    if (std.mem.eql(u8, path[0 .. path.len - 4], "FOOTBALL")) {
+    // Hardcode instances where the official releases had inconsistent filename
+    // casing:
+    const basename = path[0 .. path.len - 4];
+    if (std.mem.eql(u8, basename, "FOOTBALL")) {
         for (path) |*c|
+            c.* = std.ascii.toLower(c.*);
+    }
+    if (std.mem.eql(u8, basename, "baseball2003")) {
+        for (path[path.len - 3 ..]) |*c|
             c.* = std.ascii.toLower(c.*);
     }
 }

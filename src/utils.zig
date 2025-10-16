@@ -186,7 +186,7 @@ pub fn TinyArray(T: type, capacity: usize) type {
 
         pub fn init(xs: []const T) Self {
             // TODO: wrong place for this. fix this one day
-            @setEvalBranchQuota(3000);
+            @setEvalBranchQuota(4000);
 
             var result: Self = .empty;
             result.len = @intCast(xs.len);
