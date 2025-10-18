@@ -279,6 +279,41 @@ test "Backyard Baseball 2003 round trip disasm" {
     }
 }
 
+const soccer2004: Game = .{
+    .fixture_dir = "soccer2004",
+    .index_name = "Soccer2004.HE0",
+    .fixture_names = &.{ "Soccer2004.(a)", "Soccer2004.(b)" },
+};
+test "Backyard Soccer 2004 round trip raw" {
+    _ = try testRoundTrip(soccer2004, .raw, &.{});
+}
+test "Backyard Soccer 2004 round trip decode all" {
+    const stats = try testRoundTrip(soccer2004, .decode_all, &.{"soccer2004.he4"});
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.rmim_total), 39);
+        try std.testing.expectEqual(stats.get(.rmim_decode), 38);
+        try expectTwoStatsEq(&stats, .scrp_total, .scrp_decompile, 272);
+        try expectTwoStatsEq(&stats, .verb_total, .verb_decompile, 24);
+        try std.testing.expectEqual(stats.get(.excd_total), 39);
+        try std.testing.expectEqual(stats.get(.excd_decompile), 38);
+        try expectTwoStatsEq(&stats, .encd_total, .encd_decompile, 39);
+        try std.testing.expectEqual(stats.get(.lsc2_total), 1267);
+        try std.testing.expectEqual(stats.get(.lsc2_decompile), 1262);
+        try expectTwoStatsEq(&stats, .digi_total, .digi_decode, 0);
+        try expectTwoStatsEq(&stats, .talk_total, .talk_decode, 0);
+        try std.testing.expectEqual(stats.get(.awiz_total), 285);
+        try std.testing.expectEqual(stats.get(.awiz_decode), 263);
+    }
+}
+test "Backyard Soccer 2004 round trip disasm" {
+    const stats = try testRoundTrip(soccer2004, .disasm, &.{});
+    {
+        errdefer dumpExtractStats(&stats);
+        try std.testing.expectEqual(stats.get(.script_unknown_byte), 2);
+    }
+}
+
 test "dump smoke test" {
     const in_path = "src/fixtures/baseball2001/baseball 2001.(b)";
     const in_file = try std.fs.cwd().openFileZ(in_path, .{});

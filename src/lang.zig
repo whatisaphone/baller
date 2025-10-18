@@ -16,7 +16,7 @@ pub const Vm = struct {
     /// Mapping from one or more opcode bytes, to `Op`s, stored as a flat array
     /// of `Entry`s.
     // TODO: generate.py should output this array size
-    opcode_lookup: [256 * 55]OpcodeEntry,
+    opcode_lookup: [256 * 56]OpcodeEntry,
 };
 
 const OpcodeEntry = struct {

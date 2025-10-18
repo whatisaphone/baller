@@ -464,7 +464,7 @@ fn parseRmimIm(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     try expect(cx, .brace_l);
 
-    var children: BoundedArray(Ast.NodeIndex, 4) = .{};
+    var children: BoundedArray(Ast.NodeIndex, 5) = .{};
 
     while (true) {
         const token2 = consumeDown(cx);

@@ -12,6 +12,7 @@ pub const Game = enum {
     football_2002,
     basketball,
     baseball_2003,
+    soccer_2004,
 
     pub fn lt(a: Game, b: Game) bool {
         return @intFromEnum(a) < @intFromEnum(b);
@@ -30,7 +31,7 @@ pub const Game = enum {
             .baseball_1997 => .sputm90,
             .soccer_1998 => .sputm98,
             .football_1999, .baseball_2001, .soccer_mls => .sputm99,
-            .football_2002, .basketball, .baseball_2003 => .sputm100,
+            .football_2002, .basketball, .baseball_2003, .soccer_2004 => .sputm100,
         };
     }
 };
@@ -73,6 +74,7 @@ pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game 
         .{ "Football2002.HE0", .football_2002 },
         .{ "Basketball.he0", .basketball },
         .{ "baseball2003.HE0", .baseball_2003 },
+        .{ "Soccer2004.HE0", .soccer_2004 },
     };
 
     const error_suffix = comptime error_suffix: {
@@ -158,6 +160,10 @@ pub fn pointPathToMusic(path: []u8) void {
     }
     if (std.mem.eql(u8, basename, "baseball2003")) {
         for (path[path.len - 3 ..]) |*c|
+            c.* = std.ascii.toLower(c.*);
+    }
+    if (std.mem.eql(u8, basename, "Soccer2004")) {
+        for (path) |*c|
             c.* = std.ascii.toLower(c.*);
     }
 }
