@@ -31,7 +31,8 @@ pub const Game = enum {
             .baseball_1997 => .sputm90,
             .soccer_1998 => .sputm98,
             .football_1999, .baseball_2001, .soccer_mls => .sputm99,
-            .football_2002, .basketball, .baseball_2003, .soccer_2004 => .sputm100,
+            .football_2002, .basketball, .baseball_2003 => .sputm100,
+            .soccer_2004 => .sputm101,
         };
     }
 };
@@ -41,6 +42,7 @@ pub const Target = enum {
     sputm98,
     sputm99,
     sputm100,
+    sputm101,
 
     pub fn le(a: Target, b: Target) bool {
         return @intFromEnum(a) <= @intFromEnum(b);
@@ -58,6 +60,7 @@ pub const Target = enum {
             .sputm98 => .soccer_1998,
             .sputm99 => .baseball_2001,
             .sputm100 => .basketball,
+            .sputm101 => .soccer_2004,
         };
     }
 };
