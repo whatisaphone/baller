@@ -6,7 +6,6 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const Compression = @import("rmim.zig").Compression;
 
 pub fn encode(
@@ -27,19 +26,23 @@ pub fn encode(
     const bmap_fixup = try beginBlockAl(gpa, out, .BMAP);
 
     try out.append(gpa, compression);
-    try compressBmap(diagnostic, loc, bmp8, target, compression, out.writer(gpa));
+    try compressBmap(gpa, diagnostic, loc, bmp8, target, compression, out);
 
     endBlockAl(out, bmap_fixup);
 }
 
 fn compressBmap(
+    gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
     loc: Diagnostic.Location,
     header: bmp.Bmp8,
     target: games.Target,
     compression: u8,
-    writer: anytype,
+    out: *std.ArrayListUnmanaged(u8),
 ) !void {
+    var writer: std.io.Writer.Allocating = .fromArrayList(gpa, out);
+    defer out.* = writer.toArrayList();
+
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
         Compression.BMCOMP_NMAJMIN_H5,
@@ -48,11 +51,11 @@ fn compressBmap(
         Compression.BMCOMP_NMAJMIN_HT4,
         Compression.BMCOMP_NMAJMIN_HT8,
         => {
-            try writer.context.self.ensureUnusedCapacity(writer.context.allocator, 32 << 10);
-            try compressBmapNMajMin(diagnostic, loc, header, target, compression, writer);
+            try writer.ensureUnusedCapacity(32 << 10);
+            try compressBmapNMajMin(diagnostic, loc, header, target, compression, &writer.writer);
         },
         Compression.BMCOMP_SOLID_COLOR_FILL => {
-            try compressBmapSolidColorFill(header, writer);
+            try compressBmapSolidColorFill(header, &writer.writer);
         },
         else => return error.BadData,
     }
@@ -64,7 +67,7 @@ fn compressBmapNMajMin(
     header: bmp.Bmp8,
     target: games.Target,
     compression: u8,
-    writer: anytype,
+    writer: *std.io.Writer,
 ) !void {
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
@@ -75,7 +78,7 @@ fn compressBmapNMajMin(
     };
     const max_pixel: u8 = @intCast((@as(u9, 1) << @intCast(color_bits)) - 1);
 
-    var out = iold.bitWriter(.little, writer);
+    var out: io.BitWriter = .init(writer);
 
     var current = header.pixels[0];
     if (current > max_pixel)
@@ -111,7 +114,7 @@ fn compressBmapNMajMin(
     try out.flushBits();
 
     // Older versions pad the output to an even number of bytes
-    if (target.le(.sputm99) and writer.context.self.items.len & 1 != 0)
+    if (target.le(.sputm99) and writer.end & 1 != 0)
         try writer.writeByte(0);
 }
 
@@ -124,7 +127,7 @@ fn reportColorOutOfRange(
     return error.AddedToDiagnostic;
 }
 
-fn compressBmapSolidColorFill(header: bmp.Bmp8, writer: anytype) !void {
+fn compressBmapSolidColorFill(header: bmp.Bmp8, writer: *std.io.Writer) !void {
     const color = header.pixels[0];
     if (!std.mem.allEqual(u8, header.pixels[1..], color)) return error.BadData;
     try writer.writeByte(color);

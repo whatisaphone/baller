@@ -185,3 +185,52 @@ pub const BitReader = struct {
         return result;
     }
 };
+
+pub const BitWriter = struct {
+    inner: *std.io.Writer,
+    buffer: u8,
+    buf_count: u8,
+
+    pub fn init(inner: *std.io.Writer) BitWriter {
+        return .{
+            .inner = inner,
+            .buffer = 0,
+            .buf_count = 0,
+        };
+    }
+
+    pub fn writeBits(self: *BitWriter, value: i16, bits: u8) !void {
+        std.debug.assert(bits <= 16);
+
+        var data: u16 = @bitCast(value);
+        var remaining = bits;
+
+        // first top off the buffer
+        const topoff = @min(remaining, 8 - self.buf_count);
+        if (topoff != 0) {
+            self.buffer |= @truncate(data << @intCast(self.buf_count));
+            data >>= @intCast(topoff);
+            self.buf_count += topoff;
+            remaining -= topoff;
+        }
+        if (remaining == 0) return;
+        try self.flushBits();
+
+        // write full bytes in multiples of 8
+        while (remaining > 8) {
+            try self.inner.writeByte(@truncate(data));
+            data >>= 8;
+            remaining -= 8;
+        }
+
+        // buffer remaining bits
+        self.buffer = @intCast(data);
+        self.buf_count = remaining;
+    }
+
+    pub fn flushBits(self: *BitWriter) !void {
+        try self.inner.writeByte(self.buffer);
+        self.buffer = 0;
+        self.buf_count = 0;
+    }
+};

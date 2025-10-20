@@ -10,7 +10,6 @@ const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const Compression = @import("rmim.zig").Compression;
 const utils = @import("utils.zig");
 
@@ -358,14 +357,17 @@ fn encodeZigZagV(
     height: u31,
     pixels: []const u8,
     compression: u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out_al: *std.ArrayListUnmanaged(u8),
 ) !void {
     const bpp: u4 = @intCast(compression % 10);
+
+    var out: std.io.Writer.Allocating = .fromArrayList(gpa, out_al);
+    defer out_al.* = out.toArrayList();
 
     var encoder: ZigZagEncoder = undefined;
     for (0..strip_width) |x| {
         const y_start: usize = if (x == 0) blk: {
-            encoder = try .begin(out.writer(gpa), bpp, pixels[0]);
+            encoder = try .begin(&out.writer, bpp, pixels[0]);
             break :blk 1;
         } else 0;
         for (y_start..height) |y|
@@ -376,16 +378,16 @@ fn encodeZigZagV(
 }
 
 const ZigZagEncoder = struct {
-    out: iold.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    out: io.BitWriter,
     bpp: u4,
 
     prev_color: u8,
     dir: i2,
 
-    fn begin(out: std.ArrayListUnmanaged(u8).Writer, bpp: u4, initial_color: u8) !ZigZagEncoder {
+    fn begin(out: *std.io.Writer, bpp: u4, initial_color: u8) !ZigZagEncoder {
         try out.writeByte(initial_color);
         return .{
-            .out = iold.bitWriter(.little, out),
+            .out = .init(out),
             .bpp = bpp,
             .prev_color = initial_color,
             .dir = 1,
@@ -422,11 +424,14 @@ fn encodeRMajMin(
     height: u31,
     pixels: []const u8,
     compression: u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out_al: *std.ArrayListUnmanaged(u8),
 ) !void {
     const bpp: u4 = @intCast(compression % 10);
 
-    var encoder: RMajMinEncoder = try .begin(out.writer(gpa), bpp, pixels[0]);
+    var out: std.io.Writer.Allocating = .fromArrayList(gpa, out_al);
+    defer out_al.* = out.toArrayList();
+
+    var encoder: RMajMinEncoder = try .begin(&out.writer, bpp, pixels[0]);
     try encoder.write(pixels[1..strip_width]);
 
     var pos: usize = stride;
@@ -438,20 +443,16 @@ fn encodeRMajMin(
 }
 
 const RMajMinEncoder = struct {
-    out: iold.BitWriter(.little, std.ArrayListUnmanaged(u8).Writer),
+    out: io.BitWriter,
     bpp: u4,
 
     prev_color: u8,
     repeat: u8,
 
-    fn begin(
-        writer: std.ArrayListUnmanaged(u8).Writer,
-        bpp: u4,
-        initial_color: u8,
-    ) !RMajMinEncoder {
+    fn begin(writer: *std.io.Writer, bpp: u4, initial_color: u8) !RMajMinEncoder {
         try writer.writeByte(initial_color);
         return .{
-            .out = iold.bitWriter(.little, writer),
+            .out = .init(writer),
             .bpp = bpp,
             .prev_color = initial_color,
             .repeat = 0,
