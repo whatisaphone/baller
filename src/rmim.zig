@@ -120,7 +120,7 @@ fn decompressBmapNMajMin(
 ) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
-    var in = iold.bitReader(.little, reader.adaptToOldInterface());
+    var in: io.BitReader = .init(reader);
 
     const color_bits: u8 = switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4, Compression.BMCOMP_NMAJMIN_HT4 => 4,
@@ -130,18 +130,18 @@ fn decompressBmapNMajMin(
         else => unreachable,
     };
 
-    var color = try in.readBitsNoEof(u8, 8);
-    while (reader.seek < end or in.count != 0) {
+    var color = try in.takeBits(u8, 8);
+    while (reader.seek < end or in.buf_count != 0) {
         if (out.items.len == out.capacity) break;
 
         out.appendAssumeCapacity(color);
 
-        if (try in.readBitsNoEof(u1, 1) != 0) {
-            if (try in.readBitsNoEof(u1, 1) != 0) {
-                const d = try in.readBitsNoEof(u3, 3);
+        if (try in.takeBits(u1, 1) != 0) {
+            if (try in.takeBits(u1, 1) != 0) {
+                const d = try in.takeBits(u3, 3);
                 color = utils.add(u8, color, delta[d]) orelse return error.BadData;
             } else {
-                color = try in.readBitsNoEof(u8, color_bits);
+                color = try in.takeBits(u8, color_bits);
             }
         }
     }

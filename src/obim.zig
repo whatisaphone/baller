@@ -178,11 +178,11 @@ fn decodeZigZagV(
     data: []const u8,
     out: []u8,
 ) !void {
-    var stream = std.io.fixedBufferStream(data);
-    var in = iold.bitReader(.little, stream.reader());
+    var stream: std.io.Reader = .fixed(data);
+    var in: io.BitReader = .init(&stream);
 
     const shift = compression % 10;
-    var color = try stream.reader().readByte();
+    var color = try stream.takeByte();
     var inc: i2 = -1;
 
     for (0..8) |x| {
@@ -191,12 +191,12 @@ fn decodeZigZagV(
             out[pos] = color;
             pos += width; // move down 1px
 
-            if (try in.readBitsNoEof(u1, 1) == 0) {
+            if (try in.takeBits(u1, 1) == 0) {
                 // color stays the same
-            } else if (try in.readBitsNoEof(u1, 1) == 0) {
-                color = try in.readBitsNoEof(u8, shift);
+            } else if (try in.takeBits(u1, 1) == 0) {
+                color = try in.takeBits(u8, shift);
                 inc = -1;
-            } else if (try in.readBitsNoEof(u1, 1) == 0) {
+            } else if (try in.takeBits(u1, 1) == 0) {
                 color = utils.add(u8, color, inc) orelse return error.BadData;
             } else {
                 inc = -inc;
@@ -205,7 +205,7 @@ fn decodeZigZagV(
         }
     }
 
-    if (stream.pos != stream.buffer.len)
+    if (stream.end != stream.buffer.len or in.buf_count != 0)
         return error.BadData;
 }
 
@@ -223,10 +223,10 @@ fn decodeRMajMin(
     var hack: BoundedArray(u8, 1024) = .{};
     try hack.appendSlice(data);
     try hack.append(0); // This is the pesky oob byte
-    var stream = std.io.fixedBufferStream(hack.constSlice());
+    var stream: std.io.Reader = .fixed(hack.constSlice());
 
     const shift = compression % 10;
-    var maj_min: MajMinCodec = try .init(stream.reader(), shift);
+    var maj_min: MajMinCodec = try .init(&stream, shift);
 
     var pos: u32 = 0;
     for (0..height) |_| {
@@ -235,23 +235,23 @@ fn decodeRMajMin(
     }
 
     // Allow at most 2 unused bytes (not sure why)
-    if (stream.pos < stream.buffer.len - 2)
+    if (stream.end < stream.buffer.len - 2)
         return error.BadData;
 }
 
 const MajMinCodec = struct {
-    in: iold.BitReader(.little, std.io.FixedBufferStream([]const u8).Reader),
+    in: io.BitReader,
     shift: u8,
 
     color: u8,
     repeat_mode: bool,
     repeat_count: u8,
 
-    fn init(src: std.io.FixedBufferStream([]const u8).Reader, shift: u8) !MajMinCodec {
+    fn init(src: *std.io.Reader, shift: u8) !MajMinCodec {
         return .{
-            .in = iold.bitReader(.little, src),
+            .in = .init(src),
             .shift = shift,
-            .color = try src.readByte(),
+            .color = try src.takeByte(),
             .repeat_mode = false,
             .repeat_count = undefined,
         };
@@ -262,20 +262,20 @@ const MajMinCodec = struct {
             pixel.* = self.color;
 
             if (!self.repeat_mode) {
-                if (try self.in.readBitsNoEof(u1, 1) == 0) {
+                if (try self.in.takeBits(u1, 1) == 0) {
                     // color stays the same
-                } else if (try self.in.readBitsNoEof(u1, 1) != 0) {
-                    const diff = try self.in.readBitsNoEof(i4, 3) - 4;
+                } else if (try self.in.takeBits(u1, 1) != 0) {
+                    const diff = try self.in.takeBits(i4, 3) - 4;
                     if (diff != 0) {
                         // A color change
                         self.color = utils.add(u8, self.color, diff) orelse return error.BadData;
                     } else {
                         // Color does not change, but rather identical pixels get repeated
                         self.repeat_mode = true;
-                        self.repeat_count = try self.in.readBitsNoEof(u8, 8) - 1;
+                        self.repeat_count = try self.in.takeBits(u8, 8) - 1;
                     }
                 } else {
-                    self.color = try self.in.readBitsNoEof(u8, self.shift);
+                    self.color = try self.in.takeBits(u8, self.shift);
                 }
             } else {
                 self.repeat_count -= 1;

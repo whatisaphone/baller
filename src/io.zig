@@ -130,3 +130,58 @@ pub const XorWriter = struct {
         return self.inner.write(buf[0..chunk_len]);
     }
 };
+
+pub const BitReader = struct {
+    inner: *std.io.Reader,
+    buffer: u8,
+    buf_count: u8,
+
+    pub fn init(inner: *std.io.Reader) BitReader {
+        return .{
+            .inner = inner,
+            .buffer = undefined,
+            .buf_count = 0,
+        };
+    }
+
+    pub fn takeBits(self: *BitReader, Result: type, bits: u8) !Result {
+        const result_info = @typeInfo(Result);
+        std.debug.assert(bits <= result_info.int.bits);
+
+        const result = try self.takeBitsInner(bits);
+        return @intCast(result);
+    }
+
+    // This is split apart to prevent generic explosion
+    fn takeBitsInner(self: *BitReader, bits: u8) !u8 {
+        std.debug.assert(bits <= 8);
+
+        const count = @min(bits, self.buf_count);
+        var result = try self.drainBuffer(count);
+        const remaining = bits - count;
+        if (remaining != 0) {
+            try self.fillBuffer();
+            result |= @shlExact(try self.drainBuffer(remaining), @intCast(count));
+        }
+        return result;
+    }
+
+    fn fillBuffer(self: *BitReader) !void {
+        std.debug.assert(self.buf_count == 0);
+        self.buffer = try self.inner.takeByte();
+        self.buf_count = 8;
+    }
+
+    fn drainBuffer(self: *BitReader, bits: u8) !u8 {
+        std.debug.assert(bits <= self.buf_count);
+        if (bits == 8) {
+            self.buf_count = 0;
+            return self.buffer;
+        }
+        const mask: u8 = @intCast(@shlExact(@as(u9, 1), @intCast(bits)) - 1);
+        const result = self.buffer & mask;
+        self.buffer >>= @intCast(bits);
+        self.buf_count -= bits;
+        return result;
+    }
+};
