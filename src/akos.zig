@@ -376,7 +376,7 @@ fn encodeCelByleRle(
         } else if (color == state.color and state.run < 255) {
             state.run += 1;
         } else {
-            try flushRun(&state, out.writer(allocator));
+            try flushRun(allocator, &state, out);
             state.color = color;
             state.run = 1;
         }
@@ -389,10 +389,14 @@ fn encodeCelByleRle(
                 break;
         }
     }
-    try flushRun(&state, out.writer(allocator));
+    try flushRun(allocator, &state, out);
 }
 
-fn flushRun(state: *CelEncodeState, out: anytype) !void {
+fn flushRun(
+    allocator: std.mem.Allocator,
+    state: *CelEncodeState,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
     const index = state.color_map[state.color];
     if (index == 0xff) {
         state.diagnostic.errAt(
@@ -404,10 +408,10 @@ fn flushRun(state: *CelEncodeState, out: anytype) !void {
     }
 
     if (state.run == state.run & state.run_mask) {
-        try out.writeByte(state.run | @shlExact(index, state.color_shift));
+        try out.append(allocator, state.run | @shlExact(index, state.color_shift));
     } else {
-        try out.writeByte(0 | @shlExact(index, state.color_shift));
-        try out.writeByte(state.run);
+        try out.append(allocator, 0 | @shlExact(index, state.color_shift));
+        try out.append(allocator, state.run);
     }
 }
 
@@ -420,7 +424,11 @@ fn encodeCelTrle(
     try awiz.encodeRle(allocator, bitmap.*, strategy, out);
 }
 
-fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: anytype) !void {
+fn flushCels(
+    gpa: std.mem.Allocator,
+    state: *EncodeState,
+    out: *std.ArrayListUnmanaged(u8),
+) !void {
     if (state.akci.items.len == 0)
         return;
 
