@@ -55,7 +55,7 @@ pub fn decode(
 
     const akpl = try blocks.expectAsSlice(.AKPL);
     try fs.writeFileZ(out_dir, "AKPL.bin", akpl);
-    try manifest.writer(allocator).print("    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
+    try manifest.print(allocator, "    akpl \"{s}/{s}\"\n", .{ out_path, "AKPL.bin" });
 
     const rgbs = try blocks.expectAsValue(.RGBS, [0x300]u8);
     try writeRawBlock(allocator, .RGBS, rgbs, out_dir, out_path, 4, .block, manifest);
@@ -131,16 +131,14 @@ fn decodeCel(
 
     const bmp_buf = try allocator.alloc(u8, bmp_size);
     defer allocator.free(bmp_buf);
+    var bmp_writer: std.io.Writer = .fixed(bmp_buf);
 
-    var bmp_stream = std.io.fixedBufferStream(bmp_buf);
-    const bmp_writer = bmp_stream.writer();
-
-    try bmp.writeHeader(bmp_writer, cel.info.width, cel.info.height, bmp_size);
-    try bmp.writePalette(bmp_writer, rgbs);
+    try bmp.writeHeader(&bmp_writer, cel.info.width, cel.info.height, bmp_size);
+    try bmp.writePalette(&bmp_writer, rgbs);
 
     switch (codec) {
-        .byle_rle => try decodeCelByleRle(akpl, cel, bmp_buf[bmp_stream.pos..], stride),
-        .trle => try decodeCelTrle(cel, bmp_buf[bmp_stream.pos..]),
+        .byle_rle => try decodeCelByleRle(akpl, cel, bmp_writer.unusedCapacitySlice(), stride),
+        .trle => try decodeCelTrle(cel, bmp_writer.unusedCapacitySlice()),
     }
 
     var bmp_path_buf: ["cel_0000_AKCD.bmp".len + 1]u8 = undefined;
@@ -152,7 +150,8 @@ fn decodeCel(
         .byle_rle => "byle",
         .trle => "trle",
     };
-    try manifest.writer(allocator).print(
+    try manifest.print(
+        allocator,
         "    akcd {s} \"{s}/{s}\"\n",
         .{ codec_str, out_path, bmp_path },
     );
@@ -162,19 +161,18 @@ fn decodeCel(
 fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
     const run_mask, const color_shift = byleParams(akpl.len) orelse return error.CelDecode;
 
-    var in_stream = std.io.fixedBufferStream(cel.data);
-    var in = in_stream.reader();
+    var in: std.io.Reader = .fixed(cel.data);
 
     var i: u32 = 0;
     var x: u16 = 0;
     var y = cel.info.height;
 
     decode: while (true) {
-        const b = try in.readByte();
+        const b = try in.takeByte();
         var run = b & run_mask;
         const color = b >> color_shift;
         if (run == 0)
-            run = try in.readByte();
+            run = try in.takeByte();
 
         for (0..run) |_| {
             pixels[i] = akpl[color];
@@ -210,13 +208,8 @@ fn byleParams(akpl_len: usize) ?struct { u8, u3 } {
 
 fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
     var data_stream: std.io.Reader = .fixed(cel.data);
-
-    // api quirk: decodeRle takes its buffer as an ArrayListUnmanaged, although
-    // it never resizes it.
     var pixels_buf: std.ArrayListUnmanaged(u8) = .initBuffer(pixels);
-
     try awiz.decodeRle(cel.info.width, cel.info.height, &data_stream, &pixels_buf);
-
     // ensure buffer is fully initialized
     if (pixels_buf.items.len != pixels_buf.capacity)
         return error.CelDecode;
