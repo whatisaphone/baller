@@ -236,3 +236,15 @@ pub fn bitSetEnsureAddressable(
     if (set.bit_length >= min_len) return;
     try set.resize(gpa, min_len, fill);
 }
+
+pub fn writeInt(
+    gpa: std.mem.Allocator,
+    out: *std.ArrayListUnmanaged(u8),
+    comptime T: type,
+    value: T,
+    comptime endian: std.builtin.Endian,
+) !void {
+    const size = @divExact(@typeInfo(T).int.bits, 8);
+    const dest = try out.addManyAsArray(gpa, size);
+    std.mem.writeInt(std.math.ByteAlignedInt(@TypeOf(value)), dest, value, endian);
+}

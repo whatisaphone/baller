@@ -5,6 +5,7 @@ const UsageTracker = @import("UsageTracker.zig");
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const lang = @import("lang.zig");
 const script = @import("script.zig");
+const utils = @import("utils.zig");
 
 const horizontal_whitespace = " \t\r";
 
@@ -147,11 +148,11 @@ fn assembleLine(
             },
             .i16 => {
                 const int, rest = try tokenizeInt(i16, rest);
-                try bytecode.writer(allocator).writeInt(i16, int, .little);
+                try utils.writeInt(allocator, bytecode, i16, int, .little);
             },
             .i32 => {
                 const int, rest = try tokenizeInt(i32, rest);
-                try bytecode.writer(allocator).writeInt(i32, int, .little);
+                try utils.writeInt(allocator, bytecode, i32, int, .little);
             },
             .relative_offset => {
                 const label_name, rest = try tokenizeKeyword(rest);
@@ -163,7 +164,7 @@ fn assembleLine(
             },
             .variable => {
                 const variable, rest = try tokenizeVariable(rest, locals.constSlice(), scopes);
-                try bytecode.writer(allocator).writeInt(u16, variable.raw, .little);
+                try utils.writeInt(allocator, bytecode, u16, variable.raw, .little);
             },
             .string => {
                 const string, rest = try tokenizeString(rest);
