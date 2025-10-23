@@ -52,17 +52,21 @@ pub fn decode(
     const compression = try rmim_reader.takeByte();
 
     const bmp_size = bmp.calcFileSize(width, height);
-    var out: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_size);
-    defer out.deinit(allocator);
+    var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_size);
+    defer bmp_writer.deinit();
 
-    try bmp.writeHeader(out.fixedWriter(), width, height, bmp_size);
-    try bmp.writePalette(out.fixedWriter(), apal);
-    try decompressBmap(diag, compression, &rmim_reader, bmap_end, &out);
+    try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_size);
+    try bmp.writePalette(&bmp_writer.writer, apal);
+
+    var bmp_buf = bmp_writer.toArrayList();
+    defer bmp_buf.deinit(allocator);
+
+    try decompressBmap(diag, compression, &rmim_reader, bmap_end, &bmp_buf);
 
     // All decompressors must fully fill the buffer
-    std.debug.assert(out.items.len == out.capacity);
+    std.debug.assert(bmp_buf.items.len == bmp_size);
 
-    try fs.writeFileZ(out_dir, "room.bmp", out.items);
+    try fs.writeFileZ(out_dir, "room.bmp", bmp_buf.items);
     try code.writer(allocator).print(
         "        bmap {} \"{s}/{s}\"\n",
         .{ compression, out_path, "room.bmp" },

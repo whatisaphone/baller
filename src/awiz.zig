@@ -135,7 +135,8 @@ fn decodeInner(
     try fs.writeFileZ(out_dir, bmp_path, bmp_buf.items);
 
     try code.appendNTimes(allocator, ' ', indent);
-    try code.writer(allocator).print(
+    try code.print(
+        allocator,
         "wizd {} \"{s}/{s}\"\n",
         .{ @intFromEnum(wizh.compression), out_path, bmp_path },
     );
@@ -149,19 +150,23 @@ fn decodeUncompressed(
     reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
-    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
-    errdefer bmp_buf.deinit(allocator);
+    var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_writer.deinit();
 
-    try bmp.writeHeader(bmp_buf.fixedWriter(), width, height, bmp_file_size);
-    try bmp.writePalette(bmp_buf.fixedWriter(), palette);
+    try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_file_size);
+    try bmp.writePalette(&bmp_writer.writer, palette);
+
+    var bmp_buf = bmp_writer.toArrayList();
+    errdefer bmp_buf.deinit(allocator);
 
     for (0..height) |_| {
         const row = try io.readInPlace(reader, width);
         try bmp_buf.appendSlice(utils.null_allocator, row);
 
-        try bmp.padRow(bmp_buf.writer(utils.null_allocator), width);
+        try bmp.padRow(utils.null_allocator, &bmp_buf, width);
     }
 
+    std.debug.assert(bmp_buf.items.len == bmp_file_size);
     return bmp_buf;
 }
 
@@ -173,12 +178,17 @@ pub fn decodeRleToBmp(
     reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
-    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
+    var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_writer.deinit();
+
+    try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_file_size);
+    try bmp.writePalette(&bmp_writer.writer, palette);
+
+    var bmp_buf = bmp_writer.toArrayList();
     errdefer bmp_buf.deinit(allocator);
 
-    try bmp.writeHeader(bmp_buf.fixedWriter(), width, height, bmp_file_size);
-    try bmp.writePalette(bmp_buf.fixedWriter(), palette);
     try decodeRle(width, height, reader, &bmp_buf);
+    std.debug.assert(bmp_buf.items.len == bmp_file_size);
     return bmp_buf;
 }
 
@@ -213,7 +223,7 @@ pub fn decodeRle(
 
         try bmp_buf.appendNTimes(utils.null_allocator, transparent, out_row_end - bmp_buf.items.len);
 
-        try bmp.padRow(bmp_buf.writer(utils.null_allocator), width);
+        try bmp.padRow(utils.null_allocator, bmp_buf, width);
     }
 }
 
@@ -224,18 +234,22 @@ fn decodeUncompressed16bit(
     reader: *std.io.Reader,
 ) !std.ArrayListUnmanaged(u8) {
     const bmp_file_size = bmp.calcFileSize15(width, height);
-    var bmp_buf: std.ArrayListUnmanaged(u8) = try .initCapacity(allocator, bmp_file_size);
-    errdefer bmp_buf.deinit(allocator);
+    var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
+    errdefer bmp_writer.deinit();
 
-    try bmp.writeHeader15(bmp_buf.fixedWriter(), width, height, bmp_file_size);
+    try bmp.writeHeader15(&bmp_writer.writer, width, height, bmp_file_size);
+
+    var bmp_buf = bmp_writer.toArrayList();
+    errdefer bmp_buf.deinit(allocator);
 
     for (0..height) |_| {
         const row = try io.readInPlace(reader, width * @sizeOf(u16));
         try bmp_buf.appendSlice(utils.null_allocator, row);
 
-        try bmp.padRow15(bmp_buf.writer(utils.null_allocator), width);
+        try bmp.padRow15(utils.null_allocator, &bmp_buf, width);
     }
 
+    std.debug.assert(bmp_buf.items.len == bmp_file_size);
     return bmp_buf;
 }
 

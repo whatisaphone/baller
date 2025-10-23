@@ -97,10 +97,10 @@ fn decodeSmap(
     const bmp_raw = try gpa.alloc(u8, bmp_size);
     defer gpa.free(bmp_raw);
 
-    var bmp_writer = std.io.fixedBufferStream(bmp_raw);
-    try bmp.writeHeader(bmp_writer.writer(), imhd.width, imhd.height, bmp_size);
-    try bmp.writePalette(bmp_writer.writer(), palette);
-    const bmp_pixels = bmp_raw[bmp_writer.pos..];
+    var bmp_writer: std.io.Writer = .fixed(bmp_raw);
+    try bmp.writeHeader(&bmp_writer, imhd.width, imhd.height, bmp_size);
+    try bmp.writePalette(&bmp_writer, palette);
+    const bmp_pixels = bmp_writer.unusedCapacitySlice();
 
     try decodeSmapData(imhd, smap_raw, bmp_pixels);
 

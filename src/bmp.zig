@@ -351,7 +351,7 @@ fn calcDataStart15() u32 {
     return @sizeOf(BITMAPFILEHEADER) + @sizeOf(BITMAPINFOHEADER);
 }
 
-pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void {
+pub fn writeHeader(out: *std.io.Writer, width: u31, height: u31, file_size: u32) !void {
     // BITMAPFILEHEADER
     try out.writeAll("BM");
     try out.writeInt(u32, file_size, .little);
@@ -373,7 +373,7 @@ pub fn writeHeader(out: anytype, width: u31, height: u31, file_size: u32) !void 
     try out.writeInt(u32, 0, .little);
 }
 
-pub fn writeHeader15(out: anytype, width: u31, height: u31, file_size: u32) !void {
+pub fn writeHeader15(out: *std.io.Writer, width: u31, height: u31, file_size: u32) !void {
     // BITMAPFILEHEADER
     try out.writeAll("BM");
     try out.writeInt(u32, file_size, .little);
@@ -395,7 +395,7 @@ pub fn writeHeader15(out: anytype, width: u31, height: u31, file_size: u32) !voi
     try out.writeInt(u32, 0, .little);
 }
 
-pub fn writePalette(out: anytype, pal: *const [0x300]u8) !void {
+pub fn writePalette(out: *std.io.Writer, pal: *const [0x300]u8) !void {
     var i: usize = 0;
     while (i < 0x300) {
         // convert from RGB to BGR0
@@ -407,7 +407,7 @@ pub fn writePalette(out: anytype, pal: *const [0x300]u8) !void {
     }
 }
 
-pub fn writePlaceholderPalette(out: anytype) !void {
+pub fn writePlaceholderPalette(out: *std.io.Writer) !void {
     for (0..4) |b| for (0..8) |g| for (0..8) |r|
         try out.writeAll(&.{
             @intCast(255 * b / 3),
@@ -417,15 +417,15 @@ pub fn writePlaceholderPalette(out: anytype) !void {
         });
 }
 
-pub fn padRow(out: anytype, row_size: u31) !void {
+pub fn padRow(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), row_size: u31) !void {
     // Per the BMP spec, align each row to a multiple of 4 bytes
     const mask = row_align - 1;
     const bytes = mask - ((row_size + mask) & mask);
     for (0..bytes) |_|
-        try out.writeByte(0);
+        try out.append(gpa, 0);
 }
 
-pub fn padRow15(out: anytype, width: u31) !void {
+pub fn padRow15(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), width: u31) !void {
     const row_size = width * @sizeOf(u16);
-    return padRow(out, row_size);
+    return padRow(gpa, out, row_size);
 }
