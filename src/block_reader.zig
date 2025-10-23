@@ -169,22 +169,6 @@ fn OldFixedBlockReader(Stream: type) type {
     };
 }
 
-pub fn fixedBlockReader(
-    stream: *std.io.Reader,
-    diag: *const Diagnostic.ForBinaryFile,
-) FixedBlockReader {
-    // Assert that it's a `std.io.Reader.fixed`
-    std.debug.assert(std.meta.eql(stream.vtable, std.io.Reader.fixed(&.{}).vtable));
-    std.debug.assert(stream.seek == 0);
-
-    return .{
-        .stream = stream,
-        .end = @intCast(stream.buffer.len),
-        .diag = diag,
-        .current = null,
-    };
-}
-
 pub const FixedBlockReader = struct {
     const Self = @This();
 
@@ -192,6 +176,22 @@ pub const FixedBlockReader = struct {
     end: u32,
     diag: *const Diagnostic.ForBinaryFile,
     current: ?Block,
+
+    pub fn init(
+        stream: *std.io.Reader,
+        diag: *const Diagnostic.ForBinaryFile,
+    ) FixedBlockReader {
+        // Assert that it's a `std.io.Reader.fixed`
+        std.debug.assert(std.meta.eql(stream.vtable, std.io.Reader.fixed(&.{}).vtable));
+        std.debug.assert(stream.seek == 0);
+
+        return .{
+            .stream = stream,
+            .end = @intCast(stream.buffer.len),
+            .diag = diag,
+            .current = null,
+        };
+    }
 
     pub fn next(self: *Self) BlockResult {
         if (!self.checkEndBlock()) return .err;

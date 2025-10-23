@@ -13,7 +13,6 @@ const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
 const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const cliargs = @import("cliargs.zig");
@@ -497,7 +496,7 @@ fn extractIndex(
         b.* ^= xor_key;
 
     var in: std.io.Reader = .fixed(raw);
-    var blocks = fixedBlockReader(&in, &diag);
+    var blocks: FixedBlockReader = .init(&in, &diag);
 
     const result_buf = try gpa.alloc(u8, raw.len);
     errdefer gpa.free(result_buf);
@@ -1090,7 +1089,7 @@ fn extractPals(
 
     if (pals_raw.len != expected_pals_size) return error.BadData;
     var pals_stream: std.io.Reader = .fixed(pals_raw);
-    var pals_blocks = fixedBlockReader(&pals_stream, &diag);
+    var pals_blocks: FixedBlockReader = .init(&pals_stream, &diag);
 
     var wrap_blocks = try pals_blocks.expect(.WRAP).nested();
 
@@ -1362,7 +1361,7 @@ fn decodeObcd(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var stream: std.io.Reader = .fixed(raw);
-    var obcd_blocks = fixedBlockReader(&stream, diag);
+    var obcd_blocks: FixedBlockReader = .init(&stream, diag);
 
     const cdhd = try obcd_blocks.expect(.CDHD).value(Cdhd);
 
@@ -2169,7 +2168,7 @@ fn extractTlke(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var stream: std.io.Reader = .fixed(raw);
-    var blocks = fixedBlockReader(&stream, diag);
+    var blocks: FixedBlockReader = .init(&stream, diag);
     const text_raw = try blocks.expect(.TEXT).bytes();
     try blocks.finish();
 

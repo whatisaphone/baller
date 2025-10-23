@@ -3,7 +3,7 @@ const std = @import("std");
 const Diagnostic = @import("Diagnostic.zig");
 const BlockId = @import("block_id.zig").BlockId;
 const Block = @import("block_reader.zig").Block;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const bmp = @import("bmp.zig");
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
@@ -24,7 +24,7 @@ pub fn extract(
     out_path: []const u8,
 ) !void {
     var in: std.io.Reader = .fixed(raw);
-    var blocks = fixedBlockReader(&in, diag);
+    var blocks: FixedBlockReader = .init(&in, diag);
 
     try code.appendSlice(gpa, "obim {\n");
 

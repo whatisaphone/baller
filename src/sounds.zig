@@ -4,7 +4,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
@@ -23,7 +23,7 @@ pub fn extract(
     out_path: []const u8,
 ) !void {
     var stream: std.io.Reader = .fixed(raw);
-    var blocks = fixedBlockReader(&stream, diag);
+    var blocks: FixedBlockReader = .init(&stream, diag);
 
     const hshd = try blocks.expect(.HSHD).value([16]u8);
     try writeRawBlock(gpa, .HSHD, hshd, out_dir, out_path, 4, .{ .symbol_block = name }, code);

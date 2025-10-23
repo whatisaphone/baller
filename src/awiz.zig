@@ -6,7 +6,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
@@ -62,7 +62,7 @@ fn decodeInner(
         height: u31,
     } = null;
 
-    var awiz_blocks = fixedBlockReader(reader, diag);
+    var awiz_blocks: FixedBlockReader = .init(reader, diag);
 
     while (try awiz_blocks.peek() != .WIZD) {
         try code.appendNTimes(allocator, ' ', indent);

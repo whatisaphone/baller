@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
@@ -37,7 +37,7 @@ pub fn decode(
     try code.appendSlice(allocator, "rmim {\n");
 
     var rmim_reader: std.io.Reader = .fixed(rmim_raw);
-    var rmim_blocks = fixedBlockReader(&rmim_reader, diag);
+    var rmim_blocks: FixedBlockReader = .init(&rmim_reader, diag);
 
     const rmih = try rmim_blocks.expect(.RMIH).bytes();
     try writeRawBlock(allocator, .RMIH, rmih, out_dir, out_path, 4, .block, code);

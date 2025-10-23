@@ -4,7 +4,7 @@ const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const awiz = @import("awiz.zig");
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
@@ -45,7 +45,7 @@ fn extractMultInner(
     var mult_dir = try room_dir.openDirZ(name, .{});
     defer mult_dir.close();
 
-    var mult_blocks = fixedBlockReader(in, diag);
+    var mult_blocks: FixedBlockReader = .init(in, diag);
 
     var mult_palette: ?*const [0x300]u8 = null;
     if (try mult_blocks.nextIf(.DEFA)) |defa| {
@@ -114,7 +114,7 @@ fn extractDefa(
     var rgbs: ?*const [0x300]u8 = null;
 
     var stream: std.io.Reader = .fixed(defa_raw);
-    var blocks = fixedBlockReader(&stream, diag);
+    var blocks: FixedBlockReader = .init(&stream, diag);
 
     try code.writer(gpa).print("    raw-block {s} {{\n", .{"DEFA"});
 

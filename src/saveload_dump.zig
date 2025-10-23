@@ -2,7 +2,7 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const Block = @import("block_reader.zig").Block;
-const fixedBlockReader = @import("block_reader.zig").fixedBlockReader;
+const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const cliargs = @import("cliargs.zig");
 const Maxs = @import("extract.zig").Maxs;
 const xor_key = @import("extract.zig").xor_key;
@@ -85,7 +85,7 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
         b.* ^= xor_key;
 
     var in: std.io.Reader = .fixed(&raw);
-    var blocks = fixedBlockReader(&in, &diag);
+    var blocks: FixedBlockReader = .init(&in, &diag);
 
     const maxs_raw = try blocks.expect(.MAXS).bytes();
     if (maxs_raw.len != games.maxsLen(game))
@@ -112,7 +112,7 @@ fn dumpSaveGame(
 ) !void {
     var save: Save = undefined;
 
-    var root = fixedBlockReader(in, diag);
+    var root: FixedBlockReader = .init(in, diag);
     var save_blocks = try root.expect(.SAVE).nested();
 
     _ = try save_blocks.expect(.VARS).block();
