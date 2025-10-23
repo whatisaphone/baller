@@ -379,9 +379,10 @@ pub fn run(
         for (0..UsageTracker.max_global_vars) |num_usize| {
             const num: u14 = @intCast(num_usize);
             if (!UsageTracker.get(&cx.global_var_usage, num)) continue;
-            try code.appendSlice(gpa, "var ");
-            try symbols.writeVariableName(undefined, undefined, .init(.global, num), code.writer(gpa));
-            try code.writer(gpa).print("@{}\n", .{num});
+            try code.print(gpa, "var {f}@{}\n", .{
+                symbols.fmtVariableName(undefined, undefined, .init(.global, num)),
+                num,
+            });
         }
     }
 
@@ -967,9 +968,10 @@ fn emitRoomVars(cx: *RoomContext) !void {
     for (0..UsageTracker.max_room_vars) |num_usize| {
         const num: u14 = @intCast(num_usize);
         if (!UsageTracker.get(&cx.room_var_usage, num)) continue;
-        try out.appendSlice(cx.cx.gpa, "var ");
-        try cx.cx.symbols.writeVariableName(cx.room_number, undefined, .init(.room, num), out.writer(cx.cx.gpa));
-        try out.writer(cx.cx.gpa).print("@{}\n", .{num});
+        try out.print(cx.cx.gpa, "var {f}@{}\n", .{
+            cx.cx.symbols.fmtVariableName(cx.room_number, undefined, .init(.room, num)),
+            num,
+        });
     }
 
     // If there were no vars, don't output an extra newline with nothing below it

@@ -3028,7 +3028,7 @@ fn emitList(cx: *const EmitCx, items: ExtraSlice) !void {
 }
 
 fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
-    try cx.symbols.writeVariableName(cx.room_number, cx.id, variable, cx.out.writer(cx.gpa));
+    try cx.out.print(cx.gpa, "{f}", .{cx.symbols.fmtVariableName(cx.room_number, cx.id, variable)});
 }
 
 fn emitLabel(cx: *const EmitCx, pc: u16) !void {

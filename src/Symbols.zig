@@ -623,32 +623,47 @@ pub fn getVariable(
     }
 }
 
-pub fn writeVariableName(
+const FormatVariableName = struct {
+    symbols: *const Symbols,
+    room_number: u8,
+    script_id: ScriptId,
+    variable: lang.Variable,
+
+    pub fn format(f: *const FormatVariableName, w: *std.io.Writer) !void {
+        // If there's a name, write the name
+        if (f.symbols.getVariable(f.room_number, f.script_id, f.variable)) |v|
+            if (v.name) |name|
+                return w.writeAll(name);
+
+        // Otherwise fall back to a generated name
+        const kind, const number = f.variable.decode() catch return error.WriteFailed;
+        const prefix = prefix: switch (kind) {
+            .global => "global",
+            .room => "room",
+            .local => {
+                const num_params = num_params: {
+                    const symbol = f.symbols.getScript(f.script_id) orelse break :num_params 0;
+                    break :num_params symbol.params orelse 0;
+                };
+                break :prefix if (number < num_params) "arg" else "local";
+            },
+        };
+        try w.print("{s}{}", .{ prefix, number });
+    }
+};
+
+pub fn fmtVariableName(
     self: *const Symbols,
     room_number: u8,
     script_id: ScriptId,
     variable: lang.Variable,
-    writer: anytype,
-) !void {
-    // If there's a name, write the name
-    if (self.getVariable(room_number, script_id, variable)) |v|
-        if (v.name) |name|
-            return writer.writeAll(name);
-
-    // Otherwise fall back to a generated name
-    const kind, const number = try variable.decode();
-    const prefix = prefix: switch (kind) {
-        .global => "global",
-        .room => "room",
-        .local => {
-            const num_params = num_params: {
-                const symbol = self.getScript(script_id) orelse break :num_params 0;
-                break :num_params symbol.params orelse 0;
-            };
-            break :prefix if (number < num_params) "arg" else "local";
-        },
+) FormatVariableName {
+    return .{
+        .symbols = self,
+        .room_number = room_number,
+        .script_id = script_id,
+        .variable = variable,
     };
-    try writer.print("{s}{}", .{ prefix, number });
 }
 
 pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {

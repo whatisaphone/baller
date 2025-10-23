@@ -206,5 +206,5 @@ fn emitVariable(
     room_number: u8,
     id: Symbols.ScriptId,
 ) !void {
-    return symbols.writeVariableName(room_number, id, variable, out);
+    try out.print("{f}", .{symbols.fmtVariableName(room_number, id, variable)});
 }
