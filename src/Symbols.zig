@@ -699,16 +699,21 @@ fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]c
     return script.name;
 }
 
-pub fn writeGlobName(
-    self: *const Symbols,
+const FormatGlobName = struct {
+    symbols: *const Symbols,
     kind: GlobKind,
     glob_number: u32,
-    out: anytype,
-) !void {
-    switch (self.getGlobName(kind, glob_number)) {
-        .string => |s| try out.writeAll(s),
-        .prefixed => |p| try out.print("{s}{}", .{ p, glob_number }),
+
+    pub fn format(f: *const FormatGlobName, w: *std.io.Writer) !void {
+        switch (f.symbols.getGlobName(f.kind, f.glob_number)) {
+            .string => |s| try w.writeAll(s),
+            .prefixed => |p| try w.print("{s}{}", .{ p, f.glob_number }),
+        }
     }
+};
+
+pub fn fmtGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) FormatGlobName {
+    return .{ .symbols = self, .kind = kind, .glob_number = glob_number };
 }
 
 fn getGlobName(self: *const Symbols, kind: GlobKind, glob_number: u32) union(enum) {

@@ -118,7 +118,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     if (sgen.size != digi_block.full_size()) return error.BadData;
 
     var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
-    cx.symbols.writeGlobName(.sound, sgen.number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.symbols.fmtGlobName(.sound, sgen.number)}) catch unreachable;
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
@@ -153,7 +153,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
 
 fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
     var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
-    cx.symbols.writeGlobName(.sound, entry.number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.symbols.fmtGlobName(.sound, entry.number)}) catch unreachable;
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];

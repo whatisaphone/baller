@@ -2996,7 +2996,7 @@ fn emitIntAsGlob(cx: *const EmitCx, kind: Symbols.GlobKind, int: i32) !bool {
     if (num >= dir_len) return false;
     if (dir.rooms.get(num) == 0) return false;
 
-    try cx.symbols.writeGlobName(kind, num, cx.out.writer(cx.gpa));
+    try cx.out.print(cx.gpa, "{f}", .{cx.symbols.fmtGlobName(kind, num)});
     return true;
 }
 

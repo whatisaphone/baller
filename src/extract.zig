@@ -2075,7 +2075,7 @@ fn extractSound(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    cx.cx.symbols.writeGlobName(.sound, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.sound, glob_number)}) catch unreachable;
     const name = name_buf.slice();
 
     try code.writer(cx.cx.gpa).print("sound {f} {s}@{} {{\n", .{ block_id, name, glob_number });
@@ -2101,7 +2101,7 @@ fn extractAwiz(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var name_buf: BoundedArray(u8, Symbols.max_name_len) = .{};
-    cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)}) catch unreachable;
     const name = name_buf.slice();
 
     try code.writer(cx.cx.gpa).print("awiz {s}@{} {{\n", .{ name, glob_number });
@@ -2123,7 +2123,7 @@ fn extractMult(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    cx.cx.symbols.writeGlobName(.image, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)}) catch unreachable;
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
@@ -2140,7 +2140,7 @@ fn extractAkos(
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
     var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    cx.cx.symbols.writeGlobName(.costume, glob_number, name_buf.writer()) catch unreachable;
+    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.costume, glob_number)}) catch unreachable;
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
@@ -2156,9 +2156,7 @@ fn extractAkos(
         .{ cx.room_path, name },
     ) catch unreachable;
 
-    try code.appendSlice(cx.cx.gpa, "akos ");
-    try cx.cx.symbols.writeGlobName(.costume, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} {{\n", .{glob_number});
+    try code.print(cx.cx.gpa, "akos {s}@{} {{\n", .{ name, glob_number });
     try akos.decode(cx.cx.gpa, raw, path, dir, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 }
@@ -2182,9 +2180,10 @@ fn extractTlke(
     if (text_raw[text_raw.len - 1] != 0) return error.BadData;
     const text = text_raw[0 .. text_raw.len - 1];
 
-    try code.appendSlice(cx.cx.gpa, "talkie ");
-    try cx.cx.symbols.writeGlobName(.talkie, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{} = \"", .{glob_number});
+    try code.print(cx.cx.gpa, "talkie {f}@{} = \"", .{
+        cx.cx.symbols.fmtGlobName(.talkie, glob_number),
+        glob_number,
+    });
     try decompile.emitStringContents(cx.cx.gpa, code, text);
     try code.appendSlice(cx.cx.gpa, "\"\n");
 }
@@ -2200,7 +2199,7 @@ fn writeRawGlob(
     var filename_buf: BoundedArray(u8, Symbols.max_name_len + ".bin".len + 1) = .{};
     const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
     const name = if (kind.hasName()) blk: {
-        cx.cx.symbols.writeGlobName(kind, glob_number, filename_buf.writer()) catch unreachable;
+        filename_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(kind, glob_number)}) catch unreachable;
         break :blk filename_buf.slice();
     } else blk: {
         try filename_buf.writer().print("{f}_{:0>4}", .{ block.id, glob_number });
