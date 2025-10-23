@@ -57,7 +57,7 @@ pub const OldBlockReader = struct {
     }
 
     pub fn finishEof(self: *const OldBlockReader) !void {
-        try io.requireEof(self.stream.interface.adaptToOldInterface());
+        try io.requireEof(&self.stream.interface);
     }
 };
 
@@ -164,7 +164,7 @@ fn OldFixedBlockReader(Stream: type) type {
         }
 
         pub fn finishEof(self: *const Self) !void {
-            try io.requireEof(self.stream.adaptToOldInterface());
+            try io.requireEof(self.stream);
         }
     };
 }

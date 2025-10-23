@@ -2,8 +2,8 @@ const std = @import("std");
 
 const utils = @import("utils.zig");
 
-pub fn requireEof(s: anytype) !void {
-    _ = s.readByte() catch |err| switch (err) {
+pub fn requireEof(r: *std.io.Reader) !void {
+    _ = r.takeByte() catch |err| switch (err) {
         error.EndOfStream => return,
         else => return err,
     };
