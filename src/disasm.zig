@@ -13,7 +13,7 @@ pub fn disassemble(
     bytecode: []const u8,
     symbols: *const Symbols,
     annotate: bool,
-    out: anytype,
+    out: *std.io.Writer,
     usage: *UsageTracker,
     diagnostic: anytype,
 ) !void {
@@ -42,11 +42,11 @@ fn disassembleInner(
     bytecode: []const u8,
     symbols: *const Symbols,
     annotate: bool,
-    out: anytype,
+    out: *std.io.Writer,
     usage: *UsageTracker,
     diagnostic: anytype,
 ) !void {
-    try out.context.self.ensureTotalCapacity(out.context.allocator, bytecode.len * 8);
+    try out.ensureUnusedCapacity(bytecode.len * 8);
 
     var warned_for_unknown_byte = false;
 
@@ -105,7 +105,12 @@ fn disassembleInner(
         return error.BadData;
 }
 
-fn writePreamble(room_number: u8, id: Symbols.ScriptId, symbols: *const Symbols, out: anytype) !void {
+fn writePreamble(
+    room_number: u8,
+    id: Symbols.ScriptId,
+    symbols: *const Symbols,
+    out: *std.io.Writer,
+) !void {
     const script = symbols.getScript(id) orelse return;
 
     if (script.name) |name|
@@ -162,7 +167,7 @@ fn orderU16(a: u16, b: u16) std.math.Order {
     return std.math.order(a, b);
 }
 
-fn emitLabel(pc: u16, out: anytype) !void {
+fn emitLabel(pc: u16, out: *std.io.Writer) !void {
     try out.print("L_{x:0>4}", .{pc});
 }
 
@@ -170,7 +175,7 @@ fn emitOperand(
     op: lang.Operand,
     pc: u16,
     jump_targets: []const u16,
-    out: anytype,
+    out: *std.io.Writer,
     usage: *UsageTracker,
     symbols: *const Symbols,
     room_number: u8,
@@ -200,7 +205,7 @@ fn emitOperand(
 }
 
 fn emitVariable(
-    out: anytype,
+    out: *std.io.Writer,
     variable: lang.Variable,
     symbols: *const Symbols,
     room_number: u8,

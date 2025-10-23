@@ -1428,19 +1428,19 @@ fn disassembleVerb(
         .verb = verb,
     } };
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    defer out.deinit(cx.cx.gpa);
+    var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
+    defer out.deinit();
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
 
     var path_buf: ["object0000_00.s".len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "object{:0>4}_{:0>2}.s", .{ object, verb }) catch unreachable;
-    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
     try code.writer(cx.cx.gpa).print("\n    verb {} \"{s}/{s}\"\n", .{ verb, cx.room_path, path });
 
@@ -1543,19 +1543,19 @@ fn extractEncdExcdDisassemble(
         .excd => .{ .exit = .{ .room = cx.room_number } },
     };
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    defer out.deinit(cx.cx.gpa);
+    var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
+    defer out.deinit();
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
 
     var path_buf: ["encd.s".len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "{s}.s", .{@tagName(edge)}) catch unreachable;
-    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
     try code.writer(cx.cx.gpa).print(
         "{s} \"{s}/{s}\"\n",
@@ -1702,8 +1702,8 @@ fn extractLscDisassemble(
 ) !void {
     var diagnostic: DisasmDiagnostic = .init;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    defer out.deinit(cx.cx.gpa);
+    var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
+    defer out.deinit();
 
     var usage: UsageTracker = .init(cx.cx.game);
 
@@ -1711,7 +1711,7 @@ fn extractLscDisassemble(
         .room = cx.room_number,
         .number = script_number,
     } };
-    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -1724,7 +1724,7 @@ fn extractLscDisassemble(
 
     path_buf.appendSlice(".s\x00") catch unreachable;
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
-    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
     try code.writer(cx.cx.gpa).print(
         "\nlsc {s}@{} \"{s}/{s}\"\n",
@@ -1983,12 +1983,12 @@ fn extractScrpDisassemble(
 
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
-    defer out.deinit(cx.cx.gpa);
+    var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
+    defer out.deinit();
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, out.writer(cx.cx.gpa), &usage, &diagnostic) catch |err| {
+    disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -2001,7 +2001,7 @@ fn extractScrpDisassemble(
 
     path_buf.appendSlice(".s\x00") catch unreachable;
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
-    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.items);
+    try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
     try code.writer(cx.cx.gpa).print(
         "\nscr {s}@{} \"{s}/{s}\"\n",
