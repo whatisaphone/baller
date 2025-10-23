@@ -425,7 +425,7 @@ fn decompileBasicBlock(cx: *DecompileCx, bytecode: []const u8, bbi: u16) !void {
     const first_stmt: u16 = @intCast(cx.stmts.items.len);
 
     var disasm: lang.Disasm = .init(cx.vm, bytecode[0..bb.end]);
-    disasm.reader.pos = bb_start;
+    disasm.reader.seek = bb_start;
     while (try disasm.next()) |ins|
         try decompileIns(cx, ins);
 

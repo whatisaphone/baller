@@ -172,34 +172,32 @@ pub const Variable = struct {
 
 pub const Disasm = struct {
     vm: *const Vm,
-    reader: std.io.FixedBufferStream([]const u8),
+    reader: std.io.Reader,
     poison: bool,
 
     pub fn init(vm: *const Vm, bytecode: []const u8) Disasm {
-        const reader = std.io.fixedBufferStream(bytecode);
-
         return .{
             .vm = vm,
-            .reader = reader,
+            .reader = .fixed(bytecode),
             .poison = false,
         };
     }
 
     pub fn next(self: *Disasm) !?Ins {
-        if (self.reader.pos == self.reader.buffer.len)
+        if (self.reader.seek == self.reader.buffer.len)
             return null;
 
         if (self.poison)
             return unknownByte(&self.reader);
 
-        const ins_start: u16 = @intCast(self.reader.pos);
+        const ins_start: u16 = @intCast(self.reader.seek);
         // Follow the nested entries until we find the op
         var group_pos: u16 = 0;
         while (true) {
-            const byte = self.reader.reader().readByte() catch unreachable;
+            const byte = self.reader.takeByte() catch unreachable;
             switch (self.vm.opcode_lookup[group_pos + byte].decode()) {
                 .op => |op| return try disasmIns(self.vm, &self.reader, ins_start, op),
-                .unset => return self.becomePoison(@intCast(self.reader.pos - ins_start)),
+                .unset => return self.becomePoison(@intCast(self.reader.seek - ins_start)),
                 .nested => |next_start| group_pos = next_start,
             }
         }
@@ -208,17 +206,17 @@ pub const Disasm = struct {
     // The stream is not self-synchronizing, so if we fail to decode any byte,
     // it's not possible to recover.
     fn becomePoison(self: *Disasm, rewind: u8) !?Ins {
-        self.reader.pos -= rewind;
+        self.reader.seek -= rewind;
         self.poison = true;
         return unknownByte(&self.reader);
     }
 };
 
 // precondition: not at EOF
-fn unknownByte(reader: anytype) !?Ins {
-    const start: u16 = @intCast(reader.pos);
-    const byte = reader.reader().readByte() catch unreachable;
-    const end: u16 = @intCast(reader.pos);
+fn unknownByte(reader: *std.io.Reader) !?Ins {
+    const start: u16 = @intCast(reader.seek);
+    const byte = reader.takeByte() catch unreachable;
+    const end: u16 = @intCast(reader.seek);
     var operands: utils.TinyArray(Operand, max_operands) = .empty;
     operands.append(.{ .u8 = byte }) catch unreachable;
     return .{
@@ -229,14 +227,14 @@ fn unknownByte(reader: anytype) !?Ins {
     };
 }
 
-fn disasmIns(vm: *const Vm, reader: anytype, start: u16, op: Op) !Ins {
+fn disasmIns(vm: *const Vm, reader: *std.io.Reader, start: u16, op: Op) !Ins {
     var lang_operands = vm.operands[@intFromEnum(op)];
     var operands: utils.TinyArray(Operand, max_operands) = .empty;
     for (lang_operands.slice()) |lang_op| {
         const operand = try disasmOperand(reader, lang_op);
         operands.append(operand) catch unreachable;
     }
-    const end: u16 = @intCast(reader.pos);
+    const end: u16 = @intCast(reader.seek);
     return .{
         .start = start,
         .end = end,
@@ -245,22 +243,22 @@ fn disasmIns(vm: *const Vm, reader: anytype, start: u16, op: Op) !Ins {
     };
 }
 
-fn disasmOperand(reader: anytype, op: LangOperand) !Operand {
+fn disasmOperand(reader: *std.io.Reader, op: LangOperand) !Operand {
     switch (op) {
         .u8 => {
-            const n = try reader.reader().readInt(u8, .little);
+            const n = try reader.takeInt(u8, .little);
             return .{ .u8 = n };
         },
         .i16 => {
-            const n = try reader.reader().readInt(i16, .little);
+            const n = try reader.takeInt(i16, .little);
             return .{ .i16 = n };
         },
         .i32 => {
-            const n = try reader.reader().readInt(i32, .little);
+            const n = try reader.takeInt(i32, .little);
             return .{ .i32 = n };
         },
         .relative_offset => {
-            const n = try reader.reader().readInt(i16, .little);
+            const n = try reader.takeInt(i16, .little);
             return .{ .relative_offset = n };
         },
         .variable => {
@@ -274,15 +272,15 @@ fn disasmOperand(reader: anytype, op: LangOperand) !Operand {
     }
 }
 
-fn readVariable(reader: anytype) !Variable {
-    const raw = try reader.reader().readInt(u16, .little);
+fn readVariable(reader: *std.io.Reader) !Variable {
+    const raw = try reader.takeInt(u16, .little);
     return .{ .raw = raw };
 }
 
-fn readString(reader: anytype) ![]const u8 {
-    const start = reader.pos;
+fn readString(reader: *std.io.Reader) ![]const u8 {
+    const start = reader.seek;
     const null_pos = std.mem.indexOfScalarPos(u8, reader.buffer, start, 0) orelse
         return error.BadData;
-    reader.pos = null_pos + 1;
+    reader.seek = null_pos + 1;
     return reader.buffer[start..null_pos];
 }
