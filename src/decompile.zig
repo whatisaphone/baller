@@ -2251,14 +2251,18 @@ fn dumpNodes(cx: *StructuringCx, comptime fmt: []const u8, args: anytype) !void 
     std.Progress.lockStdErr();
     defer std.Progress.unlockStdErr();
 
-    const out = std.io.getStdErr().writer();
-    try out.writeAll("-------------------- ");
-    try out.print(fmt, args);
-    try out.writeByte('\n');
-    try dumpNodesInner(cx, out);
+    var out_buf: [4096]u8 = undefined;
+    var out = std.fs.File.stderr().writer(&out_buf);
+
+    try out.interface.writeAll("-------------------- ");
+    try out.interface.print(fmt, args);
+    try out.interface.writeByte('\n');
+    try dumpNodesInner(cx, &out.interface);
+
+    try out.interface.flush();
 }
 
-fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
+fn dumpNodesInner(cx: *StructuringCx, out: *std.io.Writer) !void {
     const Item = struct {
         index: usize,
         node: Node,
@@ -2273,18 +2277,11 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
     const FormatNodeIndex = struct {
         value: NodeIndex,
 
-        pub fn format(
-            self: @This(),
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            comptime std.debug.assert(fmt.len == 0);
-
+        pub fn format(self: @This(), writer: *std.io.Writer) !void {
             if (self.value != null_node)
-                try std.fmt.formatIntValue(self.value, "", options, writer)
+                try writer.print("{}", .{self.value})
             else
-                try std.fmt.formatText("-", "s", options, writer);
+                try writer.writeByte('-');
         }
     };
 
@@ -2297,14 +2294,7 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
     const FormatExit = struct {
         value: BasicBlockExit,
 
-        pub fn format(
-            self: @This(),
-            comptime fmt: []const u8,
-            options: std.fmt.FormatOptions,
-            writer: anytype,
-        ) !void {
-            comptime std.debug.assert(fmt.len == 0);
-            _ = options; // XXX: should not ignore this
+        pub fn format(self: @This(), writer: *std.io.Writer) !void {
             switch (self.value) {
                 .no_jump => try writer.writeAll("no_jump"),
                 inline else => |target, tag| {
@@ -2324,19 +2314,19 @@ fn dumpNodesInner(cx: *StructuringCx, out: anytype) !void {
         const ni = item.index;
         const node = item.node;
         try out.print(
-            "{:>2}: {s:<11} {:>2}/{:>2} 0x{x:0>4}-0x{x:0>4} ",
+            "{:>2}: {s:<11} {f:>2}/{f:>2} 0x{x:0>4}-0x{x:0>4} ",
             .{ ni, @tagName(node.kind), fni(node.prev), fni(node.next), node.start, node.end },
         );
         switch (node.kind) {
-            .basic_block => |*n| try out.print("exit={}", .{FormatExit{ .value = n.exit }}),
-            .@"if" => |*n| try out.print("true={}", .{fni(n.true)}),
-            .if_else => |*n| try out.print("true={} false={}", .{ fni(n.true), fni(n.false) }),
-            .@"while" => |*n| try out.print("body={}", .{fni(n.body)}),
-            .@"for" => |*n| try out.print("body={}", .{fni(n.body)}),
-            .for_in => |*n| try out.print("body={}", .{fni(n.body)}),
-            .do => |*n| try out.print("body={}", .{fni(n.body)}),
-            .case => |*n| try out.print("first={}", .{fni(n.first_branch)}),
-            .case_branch => |*n| try out.print("body={}", .{fni(n.body)}),
+            .basic_block => |*n| try out.print("exit={f}", .{FormatExit{ .value = n.exit }}),
+            .@"if" => |*n| try out.print("true={f}", .{fni(n.true)}),
+            .if_else => |*n| try out.print("true={f} false={f}", .{ fni(n.true), fni(n.false) }),
+            .@"while" => |*n| try out.print("body={f}", .{fni(n.body)}),
+            .@"for" => |*n| try out.print("body={f}", .{fni(n.body)}),
+            .for_in => |*n| try out.print("body={f}", .{fni(n.body)}),
+            .do => |*n| try out.print("body={f}", .{fni(n.body)}),
+            .case => |*n| try out.print("first={f}", .{fni(n.first_branch)}),
+            .case_branch => |*n| try out.print("body={f}", .{fni(n.body)}),
             .orphan => {},
         }
         try out.writeByte('\n');
@@ -2848,7 +2838,7 @@ fn emitExpr(
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, '(');
                 try emitExpr(cx, args[0], op_prec.oneLower());
-                try cx.out.writer(cx.gpa).print(" {s} ", .{op.str()});
+                try cx.out.print(cx.gpa, " {s} ", .{op.str()});
                 try emitExpr(cx, args[1], op_prec);
                 if (@intFromEnum(prec) >= @intFromEnum(op_prec))
                     try cx.out.append(cx.gpa, ')');
@@ -2891,7 +2881,7 @@ pub fn emitStringContents(
         else if (32 <= c and c <= 126)
             try out.append(gpa, c)
         else
-            try out.writer(gpa).print("\\x{x:0>2}", .{c});
+            try out.print(gpa, "\\x{x:0>2}", .{c});
     }
 }
 
@@ -2922,7 +2912,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         .char => {
             if (!(32 <= int and int < 127)) break :write_name;
             if (int == '\'') break :write_name; // i gotta handle escaping first
-            try cx.out.writer(cx.gpa).print("'{c}'", .{@as(u8, @intCast(int))});
+            try cx.out.print(cx.gpa, "'{c}'", .{@as(u8, @intCast(int))});
             return;
         },
         .room => {
@@ -2987,7 +2977,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         .image => if (try emitIntAsGlob(cx, .image, int)) return,
         .talkie => if (try emitIntAsGlob(cx, .talkie, int)) return,
     };
-    try cx.out.writer(cx.gpa).print("{}", .{int});
+    try cx.out.print(cx.gpa, "{}", .{int});
 }
 
 fn emitIntAsGlob(cx: *const EmitCx, kind: Symbols.GlobKind, int: i32) !bool {
@@ -3032,13 +3022,13 @@ fn emitVariable(cx: *const EmitCx, variable: lang.Variable) !void {
 }
 
 fn emitLabel(cx: *const EmitCx, pc: u16) !void {
-    try cx.out.writer(cx.gpa).print("L{x:0>4}", .{pc});
+    try cx.out.print(cx.gpa, "L{x:0>4}", .{pc});
 }
 
 fn writeIndent(cx: *const EmitCx, annotation: ?u16) !void {
     if (cx.stmt_ends != null) {
         if (annotation) |ann| {
-            try cx.out.writer(cx.gpa).print("0x{x:0>4}  ", .{ann});
+            try cx.out.print(cx.gpa, "0x{x:0>4}  ", .{ann});
         } else {
             const bytes = try cx.out.addManyAsSlice(cx.gpa, 8);
             @memset(bytes, ' ');

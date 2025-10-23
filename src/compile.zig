@@ -193,7 +193,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                 try pushExpr(cx, lhs.array_get2.index1);
                 try pushExpr(cx, lhs.array_get2.index2);
                 try emitOpcode(cx, .@"dup.multi");
-                try cx.out.writer(cx.gpa).writeInt(i16, 2, .little);
+                try utils.writeInt(cx.gpa, cx.out, i16, 2, .little);
                 try emitOpcode(cx, .@"get-array-item-2d");
                 try emitVariable(cx, lhs.array_get2.lhs);
                 try pushExpr(cx, e.rhs);
@@ -608,10 +608,10 @@ fn pushInt(cx: *const Cx, integer: i32) !void {
         try cx.out.append(cx.gpa, i);
     } else if (std.math.cast(i16, integer)) |i| {
         try emitOpcode(cx, .@"push.i16");
-        try cx.out.writer(cx.gpa).writeInt(i16, i, .little);
+        try utils.writeInt(cx.gpa, cx.out, i16, i, .little);
     } else {
         try emitOpcode(cx, .@"push.i32");
-        try cx.out.writer(cx.gpa).writeInt(i32, integer, .little);
+        try utils.writeInt(cx.gpa, cx.out, i32, integer, .little);
     }
 }
 
@@ -672,7 +672,7 @@ fn emitVariable(cx: *const Cx, node_index: Ast.NodeIndex) !void {
 }
 
 fn emitVarNumber(cx: *const Cx, variable: lang.Variable) !void {
-    try cx.out.writer(cx.gpa).writeInt(u16, variable.raw, .little);
+    try utils.writeInt(cx.gpa, cx.out, u16, variable.raw, .little);
 }
 
 fn lookupSymbol(cx: *const Cx, node_index: Ast.NodeIndex) !script.Symbol {
@@ -717,7 +717,7 @@ fn writeJumpTargetBackwards(cx: *Cx, target: u32) !void {
     const target_signed: i32 = @intCast(target);
     const rel_wide = target_signed - (here + 2);
     const rel = std.math.cast(i16, rel_wide) orelse return error.BadData;
-    try cx.out.writer(cx.gpa).writeInt(i16, rel, .little);
+    try utils.writeInt(cx.gpa, cx.out, i16, rel, .little);
 }
 
 fn fail(
