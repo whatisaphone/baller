@@ -8,7 +8,7 @@ const Header = struct {
     bits_per_sample: u16,
 };
 
-pub fn writeHeader(data_len: u32, out: anytype) !void {
+pub fn writeHeader(data_len: u32, out: *std.io.Writer) !void {
     try out.writeAll("RIFF");
     try out.writeInt(u32, 44 + data_len, .little);
 
@@ -29,22 +29,26 @@ pub fn writeHeader(data_len: u32, out: anytype) !void {
     try out.writeInt(u32, data_len, .little);
 }
 
-pub fn readHeader(in: anytype) !Header {
-    if (!try in.isBytes("RIFF")) return error.BadData;
-    _ = try in.readInt(u32, .little);
+pub fn readHeader(in: *std.io.Reader) !Header {
+    if (try in.takeInt(u32, .little) != std.mem.bytesToValue(u32, "RIFF"))
+        return error.BadData;
+    _ = try in.takeInt(u32, .little);
 
-    if (!try in.isBytes("WAVE")) return error.BadData;
+    if (try in.takeInt(u32, .little) != std.mem.bytesToValue(u32, "WAVE"))
+        return error.BadData;
 
-    if (!try in.isBytes("fmt ")) return error.BadData;
-    if (try in.readInt(u32, .little) != 16) return error.BadData;
+    if (try in.takeInt(u32, .little) != std.mem.bytesToValue(u32, "fmt "))
+        return error.BadData;
+    if (try in.takeInt(u32, .little) != 16) return error.BadData;
 
-    if (try in.readInt(u16, .little) != WAVE_FORMAT_PCM) return error.WavFormat;
-    const channels = try in.readInt(u16, .little);
-    const samples_per_sec = try in.readInt(u32, .little);
-    _ = try in.readInt(u32, .little);
-    _ = try in.readInt(u16, .little);
+    if (try in.takeInt(u16, .little) != WAVE_FORMAT_PCM)
+        return error.WavFormat;
+    const channels = try in.takeInt(u16, .little);
+    const samples_per_sec = try in.takeInt(u32, .little);
+    _ = try in.takeInt(u32, .little);
+    _ = try in.takeInt(u16, .little);
     // PCM
-    const bits_per_sample = try in.readInt(u16, .little);
+    const bits_per_sample = try in.takeInt(u16, .little);
 
     return .{
         .channels = channels,
@@ -53,14 +57,14 @@ pub fn readHeader(in: anytype) !Header {
     };
 }
 
-pub fn findData(in: anytype) !u32 {
+pub fn findData(in: *std.io.Reader) !u32 {
     while (true) {
-        const chunk_id = try in.readInt(u32, .little);
-        const chunk_len = try in.readInt(u32, .little);
+        const chunk_id = try in.takeInt(u32, .little);
+        const chunk_len = try in.takeInt(u32, .little);
         // We're looking for the data chunk
         if (chunk_id == std.mem.bytesToValue(u32, "data"))
             return chunk_len;
         // If that wasn't it, skip over it and try the next one
-        try in.skipBytes(chunk_len, .{});
+        try in.discardAll(chunk_len);
     }
 }

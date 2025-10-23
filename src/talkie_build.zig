@@ -189,9 +189,10 @@ fn buildTalk(state: *State) !void {
         defer wav_path.restore();
         const wav_file = try std.fs.cwd().openFileZ(wav_path.full(), .{});
         defer wav_file.close();
-        var wav_reader = iold.bufferedReader(wav_file.deprecatedReader());
+        var wav_buf: [4096]u8 = undefined;
+        var wav_reader = wav_file.reader(&wav_buf);
 
-        const wav_header = try wav.readHeader(wav_reader.reader());
+        const wav_header = try wav.readHeader(&wav_reader.interface);
         if (wav_header.channels != 1 or
             wav_header.samples_per_sec != 11025 or
             wav_header.bits_per_sample != 8)
@@ -200,7 +201,7 @@ fn buildTalk(state: *State) !void {
             return error.AddedToDiagnostic;
         }
 
-        const data_size = try wav.findData(wav_reader.reader());
+        const data_size = try wav.findData(&wav_reader.interface);
         if (data_size != sdat.expected_len) {
             state.diagnostic.err(
                 "{s} must be {} samples long",
@@ -211,7 +212,7 @@ fn buildTalk(state: *State) !void {
 
         const sdat_start = try oldBeginBlock(state.output_writer, .SDAT);
         try io.copy(
-            iold.limitedReader(wav_reader, data_size),
+            iold.limitedReader(wav_reader.interface.adaptToOldInterface(), data_size),
             state.output_writer.writer(),
         );
         try oldEndBlock(state.output_writer, &state.fixups, sdat_start);

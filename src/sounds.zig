@@ -88,16 +88,16 @@ fn writeWav(
 ) !void {
     const file = try fsd.createFileZ(diagnostic, dir, path);
     defer file.close();
+    var buf: [4096]u8 = undefined;
+    var writer = file.writer(&buf);
 
-    var buf = iold.bufferedWriter(file.deprecatedWriter());
+    try writeWavHeader(&writer.interface, @intCast(samples.len));
+    try writer.interface.writeAll(samples);
 
-    try writeWavHeader(buf.writer(), @intCast(samples.len));
-    try buf.writer().writeAll(samples);
-
-    try buf.flush();
+    try writer.interface.flush();
 }
 
-pub fn writeWavHeader(out: anytype, num_samples: u32) !void {
+pub fn writeWavHeader(out: *std.io.Writer, num_samples: u32) !void {
     try out.writeAll("RIFF");
     try out.writeInt(u32, @intCast(4 + 8 + 16 + 8 + num_samples), .little);
     try out.writeAll("WAVE");
@@ -127,20 +127,19 @@ fn readWav(
 ) !void {
     var file = try fsd.openFile(diagnostic, loc, dir, path);
     defer file.close();
+    var buf: [4096]u8 = undefined;
+    var in = file.reader(&buf);
 
-    var in = iold.bufferedReader(file.deprecatedReader());
-
-    if (try in.reader().readInt(u32, .little) != std.mem.bytesToValue(u32, "RIFF"))
+    if (try in.interface.takeInt(u32, .little) != std.mem.bytesToValue(u32, "RIFF"))
         return error.BadData;
-    _ = try in.reader().readInt(u32, .little); // XXX: file length. ideally i would handle this
-    if (try in.reader().readInt(u32, .little) != std.mem.bytesToValue(u32, "WAVE"))
+    _ = try in.interface.takeInt(u32, .little); // XXX: file length. ideally i would handle this
+    if (try in.interface.takeInt(u32, .little) != std.mem.bytesToValue(u32, "WAVE"))
         return error.BadData;
 
     const fmt_size = try skipToChunk(&in, std.mem.bytesToValue(u32, "fmt "));
     if (fmt_size < @sizeOf(PCMWAVEFORMAT)) return error.BadData;
 
-    var fmt: PCMWAVEFORMAT = undefined;
-    try in.reader().readNoEof(std.mem.asBytes(&fmt));
+    const fmt = try in.interface.takeStructPointer(PCMWAVEFORMAT);
     if (fmt.wFormatTag != WAVE_FORMAT_PCM) return error.BadData;
     if (fmt.nChannels != 1) return error.BadData;
     if (fmt.nSamplesPerSec != 11025) return error.BadData;
@@ -148,22 +147,14 @@ fn readWav(
 
     const data_size = try skipToChunk(&in, std.mem.bytesToValue(u32, "data"));
     try out.ensureUnusedCapacity(gpa, data_size);
-    try io.copy(iold.limitedReader(in.reader(), data_size), out.writer(gpa));
+    try io.copy(iold.limitedReader(in.interface.adaptToOldInterface(), data_size), out.writer(gpa));
 }
 
-const BufferedFile = iold.BufferedReader(4096, std.fs.File.DeprecatedReader);
-
-fn skipToChunk(in: *BufferedFile, chunk_id: u32) !u32 {
+fn skipToChunk(in: *std.fs.File.Reader, chunk_id: u32) !u32 {
     while (true) {
-        const id = try in.reader().readInt(u32, .little);
-        const size = try in.reader().readInt(u32, .little);
+        const id = try in.interface.takeInt(u32, .little);
+        const size = try in.interface.takeInt(u32, .little);
         if (id == chunk_id) return size;
-        try seekByAndResetBuffer(in, size);
+        try in.seekBy(size);
     }
-}
-
-fn seekByAndResetBuffer(in: *BufferedFile, offset: i64) !void {
-    const rewind: u32 = @intCast(in.end - in.start);
-    try in.unbuffered_reader.context.seekBy(offset - rewind);
-    in.end = in.start;
 }

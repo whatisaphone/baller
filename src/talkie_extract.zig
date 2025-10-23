@@ -291,11 +291,12 @@ fn parseTalkFixed(
     defer path2.restore();
     const wav_file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer wav_file.close();
-    var wav_stream = iold.bufferedWriter(wav_file.deprecatedWriter());
+    var wav_buf: [4096]u8 = undefined;
+    var wav_stream = wav_file.writer(&wav_buf);
 
-    try wav.writeHeader(sdat_len, wav_stream.writer());
-    try wav_stream.writer().writeAll(sdat_raw);
-    try wav_stream.flush();
+    try wav.writeHeader(sdat_len, &wav_stream.interface);
+    try wav_stream.interface.writeAll(sdat_raw);
+    try wav_stream.interface.flush();
 
     try state.writeIndent(allocator);
     try state.manifest.writer(allocator).print(

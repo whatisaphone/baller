@@ -138,10 +138,11 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     const sdat_block = try digi_blocks.expect(.SDAT) orelse return error.BadData;
     const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
-    var wav_out = iold.bufferedWriter(wav_file.deprecatedWriter());
-    try sounds.writeWavHeader(wav_out.writer(), sdat_block.size);
-    try io.copy(cx.in.adaptToOldInterface(), wav_out.writer());
-    try wav_out.flush();
+    var wav_buf: [4096]u8 = undefined;
+    var wav_out = wav_file.writer(&wav_buf);
+    try sounds.writeWavHeader(&wav_out.interface, sdat_block.size);
+    try io.copy(cx.in.adaptToOldInterface(), &wav_out.interface);
+    try wav_out.interface.flush();
     try digi_blocks.finish(&sdat_block);
 
     try cx.code.writer(cx.gpa).print("        sdat \"{s}/{s}\"\n", .{ cx.output_path, wav_path });
