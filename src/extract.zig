@@ -321,7 +321,7 @@ pub fn run(
     defer code.deinit(gpa);
     try code.ensureTotalCapacity(gpa, 8 << 10);
 
-    try code.writer(gpa).print("; Extracted with Baller {s}\n\n", .{build_options.version});
+    try code.print(gpa, "; Extracted with Baller {s}\n\n", .{build_options.version});
 
     var vm: lang.Vm = undefined;
     var vm_ptr: utils.SafeUndefined(*const lang.Vm) = .undef;
@@ -337,7 +337,7 @@ pub fn run(
     if (args.options.annotate)
         try code.appendSlice(gpa, "#error cannot build after extracting with --annotate\n\n");
 
-    try code.writer(gpa).print("target {s}\n\n", .{@tagName(game.target())});
+    try code.print(gpa, "target {s}\n\n", .{@tagName(game.target())});
 
     const index, const index_buf = try extractIndex(gpa, diagnostic, input_dir, index_name, game, output_dir, &code);
     defer gpa.free(index_buf);
@@ -522,7 +522,7 @@ fn extractIndex(
         const path = try std.fmt.bufPrintZ(&path_buf, "index_{f}.bin", .{BlockId.MAXS});
         try fsd.writeFileZ(diagnostic, output_dir, path, maxs_present_bytes);
 
-        try code.writer(gpa).print("    maxs \"{s}\"\n", .{path});
+        try code.print(gpa, "    maxs \"{s}\"\n", .{path});
 
         break :maxs maxs;
     };
@@ -654,7 +654,7 @@ fn readDirectory(
 ) !Directory {
     const block_raw = try blocks.expect(block_id).bytes();
 
-    try code.writer(gpa).print("    index-block {f}\n", .{block_id});
+    try code.print(gpa, "    index-block {f}\n", .{block_id});
 
     var in: std.io.Reader = .fixed(block_raw);
 
@@ -758,7 +758,7 @@ fn extractDisk(
     disk_number: u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    try code.writer(cx.gpa).print("disk {} {{\n", .{disk_number});
+    try code.print(cx.gpa, "disk {} {{\n", .{disk_number});
 
     var disk_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const disk_name = std.fmt.bufPrintZ(&disk_name_buf, "{s}", .{index_name}) catch unreachable;
@@ -1367,11 +1367,11 @@ fn decodeObcd(
     const cdhd = try obcd_blocks.expect(.CDHD).value(Cdhd);
 
     const verb_raw = try obcd_blocks.expect(.VERB).bytes();
-    var verb_in = std.io.fixedBufferStream(verb_raw);
-    while (try verb_in.reader().readByte() != 0)
-        _ = try verb_in.reader().readBytesNoEof(2);
-    const verbs = std.mem.bytesAsSlice(VerbEntry, verb_raw[0 .. verb_in.pos - 1]);
-    const min_code_offset = Block.header_size + @as(u32, @intCast(verb_in.pos));
+    var verb_in: std.io.Reader = .fixed(verb_raw);
+    while (try verb_in.takeByte() != 0)
+        try verb_in.discardAll(2);
+    const verbs = std.mem.bytesAsSlice(VerbEntry, verb_raw[0 .. verb_in.seek - 1]);
+    const min_code_offset = Block.header_size + @as(u32, @intCast(verb_in.seek));
 
     const obna = try obcd_blocks.expect(.OBNA).bytes();
     if (obna.len == 0 or obna[obna.len - 1] != 0) return error.BadData;
@@ -1379,7 +1379,8 @@ fn decodeObcd(
 
     try obcd_blocks.finish();
 
-    try code.writer(cx.cx.gpa).print(
+    try code.print(
+        cx.cx.gpa,
         "object object{0}@{0} \"{1s}\" {{\n",
         .{ cdhd.object_id, name },
     );
@@ -1442,7 +1443,7 @@ fn disassembleVerb(
     const path = std.fmt.bufPrintZ(&path_buf, "object{:0>4}_{:0>2}.s", .{ object, verb }) catch unreachable;
     try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
-    try code.writer(cx.cx.gpa).print("\n    verb {} \"{s}/{s}\"\n", .{ verb, cx.room_path, path });
+    try code.print(cx.cx.gpa, "\n    verb {} \"{s}/{s}\"\n", .{ verb, cx.room_path, path });
 
     errdefer comptime unreachable; // if we get here, success and commit
 
@@ -1469,7 +1470,7 @@ fn decompileVerb(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    try code.writer(cx.cx.gpa).print("\n    verb {}", .{verb});
+    try code.print(cx.cx.gpa, "\n    verb {}", .{verb});
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 2, &usage);
     try code.appendSlice(cx.cx.gpa, "    }\n");
@@ -1557,10 +1558,7 @@ fn extractEncdExcdDisassemble(
     const path = std.fmt.bufPrintZ(&path_buf, "{s}.s", .{@tagName(edge)}) catch unreachable;
     try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
-    try code.writer(cx.cx.gpa).print(
-        "{s} \"{s}/{s}\"\n",
-        .{ @tagName(edge), cx.room_path, path },
-    );
+    try code.print(cx.cx.gpa, "{s} \"{s}/{s}\"\n", .{ @tagName(edge), cx.room_path, path });
 
     errdefer comptime unreachable; // if we get here, success and commit
 
@@ -1726,7 +1724,8 @@ fn extractLscDisassemble(
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
     try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
-    try code.writer(cx.cx.gpa).print(
+    try code.print(
+        cx.cx.gpa,
         "\nlsc {s}@{} \"{s}/{s}\"\n",
         .{ name, script_number, cx.room_path, path },
     );
@@ -2003,7 +2002,8 @@ fn extractScrpDisassemble(
     const path = path_buf.slice()[0 .. path_buf.len - 1 :0];
     try fsd.writeFileZ(diag.diagnostic, cx.room_dir, path, out.written());
 
-    try code.writer(cx.cx.gpa).print(
+    try code.print(
+        cx.cx.gpa,
         "\nscr {s}@{} \"{s}/{s}\"\n",
         .{ name, glob_number, cx.room_path, path },
     );
@@ -2078,7 +2078,7 @@ fn extractSound(
     name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.sound, glob_number)}) catch unreachable;
     const name = name_buf.slice();
 
-    try code.writer(cx.cx.gpa).print("sound {f} {s}@{} {{\n", .{ block_id, name, glob_number });
+    try code.print(cx.cx.gpa, "sound {f} {s}@{} {{\n", .{ block_id, name, glob_number });
 
     try sounds.extract(cx.cx.gpa, diag, name, raw, code, cx.room_dir, cx.room_path);
 
@@ -2104,7 +2104,7 @@ fn extractAwiz(
     name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)}) catch unreachable;
     const name = name_buf.slice();
 
-    try code.writer(cx.cx.gpa).print("awiz {s}@{} {{\n", .{ name, glob_number });
+    try code.print(cx.cx.gpa, "awiz {s}@{} {{\n", .{ name, glob_number });
 
     try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined, name, code, 4, cx.room_dir, cx.room_path);
 
@@ -2127,7 +2127,7 @@ fn extractMult(
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
-    try code.writer(cx.cx.gpa).print("mult {s}@{} {{\n", .{ name, glob_number });
+    try code.print(cx.cx.gpa, "mult {s}@{} {{\n", .{ name, glob_number });
 
     try mult.extract(cx.cx.gpa, diag, name, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
 }
@@ -2210,15 +2210,12 @@ fn writeRawGlob(
 
     try fsd.writeFileZ(diagnostic, cx.room_dir, filename, data);
 
-    try code.writer(cx.cx.gpa).print("raw-glob {f} ", .{block.id});
+    try code.print(cx.cx.gpa, "raw-glob {f} ", .{block.id});
     if (name) |n| {
         try code.appendSlice(cx.cx.gpa, n);
         try code.append(cx.cx.gpa, '@');
     }
-    try code.writer(cx.cx.gpa).print(
-        "{} \"{s}/{s}\"\n",
-        .{ glob_number, cx.room_path, filename },
-    );
+    try code.print(cx.cx.gpa, "{} \"{s}/{s}\"\n", .{ glob_number, cx.room_path, filename });
 }
 
 pub fn writeRawBlock(
@@ -2260,7 +2257,7 @@ fn writeRawBlockImpl(
 
     for (0..indent) |_|
         try code.append(gpa, ' ');
-    try code.writer(gpa).print("raw-block {f} ", .{block_id});
+    try code.print(gpa, "raw-block {f} ", .{block_id});
 
     // If the data is short enough, write it inline
 
@@ -2278,7 +2275,7 @@ fn writeRawBlockImpl(
                 break :blk data;
             },
         };
-        try code.writer(gpa).print("`{x}`\n", .{data});
+        try code.print(gpa, "`{x}`\n", .{data});
         return;
     }
 
@@ -2338,8 +2335,8 @@ fn writeRawBlockImpl(
 
     try code.appendSlice(gpa, "\"");
     if (output_path) |path|
-        try code.writer(gpa).print("{s}/", .{path});
-    try code.writer(gpa).print("{s}\"\n", .{filename});
+        try code.print(gpa, "{s}/", .{path});
+    try code.print(gpa, "{s}\"\n", .{filename});
 }
 
 fn emitRoom(
@@ -2369,7 +2366,8 @@ fn emitRoom(
     var room_scu_path_buf: [Ast.max_room_name_len + ".scu".len + 1]u8 = undefined;
     const room_scu_path = try std.fmt.bufPrintZ(&room_scu_path_buf, "{s}.scu", .{room_name});
 
-    try project_code.writer(cx.gpa).print(
+    try project_code.print(
+        cx.gpa,
         "    room {} \"{s}\" \"{s}\"\n",
         .{ room_number, room_name, room_scu_path },
     );
@@ -2441,7 +2439,7 @@ fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayListUnmanag
         cx.symbols.enum_names.entries.items(.key),
         cx.symbols.enum_names.entries.items(.value),
     ) |enum_name, enum_index| {
-        try code.writer(cx.gpa).print("\n; {s}\n", .{enum_name});
+        try code.print(cx.gpa, "\n; {s}\n", .{enum_name});
         const the_enum = &cx.symbols.enums.items[enum_index];
         for (the_enum.entries.items) |*entry|
             try emitConst(cx, diagnostic, &emit_log, entry.name, entry.value, code);
@@ -2451,7 +2449,7 @@ fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayListUnmanag
         cx.symbols.map_names.entries.items(.key),
         cx.symbols.map_names.entries.items(.value),
     ) |map_name, map_index| {
-        try code.writer(cx.gpa).print("\n; {s}\n", .{map_name});
+        try code.print(cx.gpa, "\n; {s}\n", .{map_name});
         const map = cx.symbols.maps.at(map_index);
         for (map.entries.items) |*entry|
             if (entry.name) |name|
@@ -2478,7 +2476,7 @@ fn emitConst(
     } else {
         log_entry.value_ptr.* = value;
     }
-    try code.writer(cx.gpa).print("const {s} = {}\n", .{ name, value });
+    try code.print(cx.gpa, "const {s} = {}\n", .{ name, value });
 }
 
 fn sanityCheckStats(s: *const std.EnumArray(Stat, u16)) void {
