@@ -180,7 +180,8 @@ pub fn TinyArray(T: type, capacity: usize) type {
         const Self = @This();
 
         buffer: [capacity]T,
-        len: std.math.IntFittingRange(0, capacity),
+        // ByteAlignedInt results in better codegen
+        len: std.math.ByteAlignedInt(std.math.IntFittingRange(0, capacity)),
 
         pub const empty: Self = .{ .buffer = undefined, .len = 0 };
 
