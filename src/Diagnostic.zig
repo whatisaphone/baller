@@ -4,7 +4,6 @@ const std = @import("std");
 const Ast = @import("Ast.zig");
 const Project = @import("Project.zig");
 const BlockId = @import("block_id.zig").BlockId;
-const iold = @import("iold.zig");
 const Loc = @import("lexer.zig").Loc;
 
 const Diagnostic = @This();
@@ -111,10 +110,12 @@ fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args:
 
 fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
     if (live_spew) {
-        var buf = iold.bufferedWriter(std.fs.File.stderr().deprecatedWriter());
-        buf.writer().print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
-        buf.writer().print("{s} {s}\n", .{ level.spewPrefix(), text.items }) catch @panic("spew");
-        buf.flush() catch @panic("spew");
+        var buf: [4096]u8 = undefined;
+        var writer = std.fs.File.stderr().writer(&buf);
+        const w = &writer.interface;
+        w.print("[{}] ", .{std.Thread.getCurrentId()}) catch @panic("spew");
+        w.print("{s} {s}\n", .{ level.spewPrefix(), text.items }) catch @panic("spew");
+        w.flush() catch @panic("spew");
     }
 
     // traces are not stored, only spewed
@@ -134,31 +135,32 @@ fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
 }
 
 pub fn writeToStderrAndPropagateIfAnyErrors(self: *const Diagnostic) !void {
-    const out_file = std.fs.File.stderr();
-    var out = iold.bufferedWriter(out_file.deprecatedWriter());
+    var buf: [4096]u8 = undefined;
+    var writer = std.fs.File.stderr().writer(&buf);
+    const out = &writer.interface;
 
     if (live_spew)
-        try out.writer().writeByte('\n');
+        try out.writeByte('\n');
 
     var total: std.EnumArray(Level, u32) = .initFill(0);
     var it = self.messages.constIterator(0);
     while (it.next()) |message| {
-        try out.writer().print("[{c}] {s}\n", .{ message.level.char(), message.text });
+        try out.print("[{c}] {s}\n", .{ message.level.char(), message.text });
         total.set(message.level, total.get(message.level) + 1);
     }
 
     if (total.get(.err) != 0 or total.get(.info) != 0) {
-        try out.writer().print("{} error", .{total.get(.err)});
+        try out.print("{} error", .{total.get(.err)});
         if (total.get(.err) != 1)
-            try out.writer().writeByte('s');
+            try out.writeByte('s');
 
         if (total.get(.info) != 0) {
-            try out.writer().print(", {} info", .{total.get(.info)});
+            try out.print(", {} info", .{total.get(.info)});
             if (total.get(.info) != 1)
-                try out.writer().writeByte('s');
+                try out.writeByte('s');
         }
 
-        try out.writer().writeByte('\n');
+        try out.writeByte('\n');
         try out.flush();
     }
 
@@ -264,17 +266,18 @@ pub const ForBinaryFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        var text: std.ArrayListUnmanaged(u8) = .empty;
-        const writer = text.writer(self.diagnostic.arena.allocator());
+        var text: std.io.Writer.Allocating = .init(self.diagnostic.arena.allocator());
+        errdefer comptime unreachable;
+        const writer = &text.writer;
         self.writeSection(writer) catch oom();
         writer.print(":0x{x:0>8}: ", .{self.offset + offset}) catch oom();
         writer.print(fmt, args) catch oom();
 
         const effective_level: Level = if (self.cap_level and level == .err) .info else level;
-        self.diagnostic.add(effective_level, text);
+        self.diagnostic.add(effective_level, text.toArrayList());
     }
 
-    fn writeSection(self: *const ForBinaryFile, writer: anytype) !void {
+    fn writeSection(self: *const ForBinaryFile, writer: *std.io.Writer) !void {
         if (self.parent) |parent| {
             try parent.writeSection(writer);
             try writer.writeByte(':');
@@ -333,20 +336,13 @@ pub const ForTextFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        const text_count =
-            std.fmt.count("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) +
-            std.fmt.count(fmt, args);
-        const text = self.diagnostic.arena.allocator().alloc(u8, text_count) catch oom();
-        const first = std.fmt.bufPrint(
-            text,
-            "{s}:{}:{}: ",
-            .{ self.path, loc.line, loc.column },
-        ) catch unreachable;
-        const remaining = text[first.len..];
-        const second = std.fmt.bufPrint(remaining, fmt, args) catch unreachable;
-        std.debug.assert(text[text.len..].ptr == second[second.len..].ptr);
+        var text: std.io.Writer.Allocating = .init(self.diagnostic.arena.allocator());
+        errdefer comptime unreachable;
+        const w = &text.writer;
+        w.print("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) catch oom();
+        w.print(fmt, args) catch oom();
 
-        self.diagnostic.add(level, .fromOwnedSlice(text));
+        self.diagnostic.add(level, text.toArrayList());
     }
 };
 
