@@ -1717,7 +1717,9 @@ fn extractLscDisassemble(
     };
 
     var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
-    cx.cx.symbols.writeScriptName(cx.room_number, script_number, path_buf.writer()) catch unreachable;
+    path_buf.writer().print("{f}", .{
+        cx.cx.symbols.fmtScriptName(cx.room_number, script_number),
+    }) catch unreachable;
     const name = path_buf.slice();
 
     path_buf.appendSlice(".s\x00") catch unreachable;
@@ -1756,9 +1758,10 @@ fn extractLscDecompile(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    try code.appendSlice(cx.cx.gpa, "\nlocal-script ");
-    try cx.cx.symbols.writeScriptName(cx.room_number, script_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{}", .{script_number});
+    try code.print(cx.cx.gpa, "\nlocal-script {f}@{}", .{
+        cx.cx.symbols.fmtScriptName(cx.room_number, script_number),
+        script_number,
+    });
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, bytecode, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");
@@ -1991,7 +1994,9 @@ fn extractScrpDisassemble(
     };
 
     var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
-    cx.cx.symbols.writeScriptName(cx.room_number, glob_number, path_buf.writer()) catch unreachable;
+    path_buf.writer().print("{f}", .{
+        cx.cx.symbols.fmtScriptName(cx.room_number, glob_number),
+    }) catch unreachable;
     const name = path_buf.slice();
 
     path_buf.appendSlice(".s\x00") catch unreachable;
@@ -2045,9 +2050,10 @@ fn extractScrpDecompile(
 
     var usage: UsageTracker = .init(cx.cx.game);
 
-    try code.appendSlice(cx.cx.gpa, "\nscript ");
-    try cx.cx.symbols.writeScriptName(cx.room_number, glob_number, code.writer(cx.cx.gpa));
-    try code.writer(cx.cx.gpa).print("@{}", .{glob_number});
+    try code.print(cx.cx.gpa, "\nscript {f}@{}", .{
+        cx.cx.symbols.fmtScriptName(cx.room_number, glob_number),
+        glob_number,
+    });
     _ = cx.lsc_mask_state.frozen;
     try decompile.run(cx.cx.gpa, diag, cx.cx.vm.defined, cx.cx.op_map.defined, cx.cx.symbols, cx.cx.options.annotate, cx.room_number, id, raw, cx.cx.index, &cx.lsc_mask, code, 1, &usage);
     try code.appendSlice(cx.cx.gpa, "}\n");

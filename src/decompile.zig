@@ -2952,7 +2952,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
                     break :write_name;
                 }
             }
-            try cx.symbols.writeScriptName(cx.room_number, num, cx.out.writer(cx.gpa));
+            try cx.out.print(cx.gpa, "{f}", .{cx.symbols.fmtScriptName(cx.room_number, num)});
             return;
         },
         .@"enum" => |enum_index| {

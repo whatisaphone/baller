@@ -670,19 +670,24 @@ pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {
     return self.rooms.getPtr(number - first_room);
 }
 
-pub fn writeScriptName(
-    self: *const Symbols,
+const FormatScriptName = struct {
+    symbols: *const Symbols,
     room_number: u8,
     script_number: u32,
-    out: anytype,
-) !void {
-    if (self.getScriptName(room_number, script_number)) |name| {
-        try out.writeAll(name);
-        return;
+
+    pub fn format(f: *const FormatScriptName, w: *std.io.Writer) !void {
+        if (f.symbols.getScriptName(f.room_number, f.script_number)) |name| {
+            try w.writeAll(name);
+            return;
+        }
+        // If not found, generate a default name
+        const prefix = if (f.script_number < games.firstLocalScript(f.symbols.game)) "scr" else "lsc";
+        try w.print("{s}{}", .{ prefix, f.script_number });
     }
-    // If not found, generate a default name
-    const prefix = if (script_number < games.firstLocalScript(self.game)) "scr" else "lsc";
-    try out.print("{s}{}", .{ prefix, script_number });
+};
+
+pub fn fmtScriptName(self: *const Symbols, room_number: u8, script_number: u32) FormatScriptName {
+    return .{ .symbols = self, .room_number = room_number, .script_number = script_number };
 }
 
 fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]const u8 {
