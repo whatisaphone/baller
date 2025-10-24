@@ -565,14 +565,13 @@ fn saveloadDumpSmokeTest(
     defer diagnostic.deinit();
     errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
 
-    const sink = try std.fs.cwd().createFileZ("/dev/null", .{});
-    defer sink.close();
+    var sink: std.io.Writer.Discarding = .init(&.{});
 
     try saveload_dump.run(.{
         .gpa = gpa,
         .diagnostic = &diagnostic,
         .index_path = "src/fixtures/" ++ index_path,
         .savegame_path = "src/fixtures/" ++ savegame_path,
-        .out = sink.deprecatedWriter(),
+        .out = &sink.writer,
     });
 }

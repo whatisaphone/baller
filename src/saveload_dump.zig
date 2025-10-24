@@ -36,16 +36,20 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();
 
+    var out_buf: [4096]u8 = undefined;
+    var out = std.fs.File.stdout().writer(&out_buf);
+
     run(.{
         .gpa = gpa,
         .diagnostic = &diagnostic,
         .index_path = index_path,
         .savegame_path = savegame_path,
-        .out = std.fs.File.stdout().deprecatedWriter(),
+        .out = &out.interface,
     }) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
     };
+    try out.interface.flush();
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
 }
 
@@ -54,7 +58,7 @@ const Args = struct {
     diagnostic: *Diagnostic,
     index_path: [:0]const u8,
     savegame_path: [:0]const u8,
-    out: std.fs.File.DeprecatedWriter,
+    out: *std.io.Writer,
 };
 
 pub fn run(args: Args) !void {
@@ -80,7 +84,8 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
     defer file.close();
 
     var raw: [8 + @sizeOf(Maxs)]u8 = undefined;
-    try file.deprecatedReader().readNoEof(&raw);
+    var reader = file.reader(&raw);
+    try reader.interface.fill(raw.len);
     for (&raw) |*b|
         b.* ^= xor_key;
 
@@ -108,7 +113,7 @@ fn dumpSaveGame(
     maxs: *const Maxs,
     in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
-    out: anytype,
+    out: *std.io.Writer,
 ) !void {
     var save: Save = undefined;
 
@@ -289,7 +294,7 @@ fn dumpScript(
     maxs: *const Maxs,
     save: *const Save,
     slot: usize,
-    out: anytype,
+    out: *std.io.Writer,
 ) !void {
     const script = &save.scripts[slot];
     if (script.state == .dead) return;
@@ -330,13 +335,13 @@ fn dumpScript(
             try dumpVar("local", i, value, out);
 }
 
-fn dumpVar(prefix: []const u8, number: usize, value: i32, out: anytype) !void {
+fn dumpVar(prefix: []const u8, number: usize, value: i32, out: *std.io.Writer) !void {
     try out.print("    {s}{} = ", .{ prefix, number });
     try dumpValue(value, out);
     try out.writeByte('\n');
 }
 
-fn dumpValue(value: i32, out: anytype) !void {
+fn dumpValue(value: i32, out: *std.io.Writer) !void {
     try out.print("{}", .{value});
     if (getArrayNumber(value)) |array_number|
         try out.print("<array{}>", .{array_number});
@@ -347,7 +352,7 @@ fn getArrayNumber(value: i32) ?u12 {
     return @intCast(value & 0xfff);
 }
 
-fn dumpHbgl(raw: []const u8, out: anytype) !void {
+fn dumpHbgl(raw: []const u8, out: *std.io.Writer) !void {
     if (raw.len < @sizeOf(HbglHeader)) return error.BadData;
     const header = std.mem.bytesAsValue(HbglHeader, raw[0..@sizeOf(HbglHeader)]);
     const payload = raw[@sizeOf(HbglHeader)..];
@@ -361,7 +366,7 @@ fn dumpHbgl(raw: []const u8, out: anytype) !void {
     try out.writeByte('\n');
 }
 
-fn dumpArray(raw: []const u8, out: anytype) !void {
+fn dumpArray(raw: []const u8, out: *std.io.Writer) !void {
     if (raw.len < @sizeOf(ArrayHeader)) return error.BadData;
     // verify we can safely cast
     _ = std.meta.intToEnum(ArrayHeader.Type, std.mem.readInt(u32, raw[0..4], .little)) catch
@@ -576,12 +581,12 @@ fn FmtTagNameNonExhaustive(E: type) type {
     };
 }
 
-fn debugValue(out: anytype, name: []const u8, ptr: anytype) !void {
+fn debugValue(out: *std.io.Writer, name: []const u8, ptr: anytype) !void {
     if (!debug) return;
     try out.print("{s}: {x}\n", .{ name, std.mem.asBytes(ptr) });
 }
 
-fn debugSlice(out: anytype, name: []const u8, slice: anytype) !void {
+fn debugSlice(out: *std.io.Writer, name: []const u8, slice: anytype) !void {
     if (!debug) return;
     for (slice, 0..) |*ptr, i|
         try out.print("{s}[{}]: {x}\n", .{ name, i, std.mem.asBytes(ptr) });
