@@ -3,39 +3,6 @@ const std = @import("std");
 const BlockId = @import("block_id.zig").BlockId;
 const io = @import("io.zig");
 
-pub fn oldBeginBlock(stream: anytype, id: BlockId) !u32 {
-    const block_start: u32 = @intCast(stream.bytes_written);
-
-    try stream.writer().writeInt(BlockId.Raw, id.raw(), .little);
-    // Write the length as a placeholder to be filled in later
-    try stream.writer().writeAll(&@as([4]u8, undefined));
-
-    return block_start;
-}
-
-pub fn oldEndBlock(stream: anytype, fixups: *std.array_list.Managed(Fixup), block_start: u32) !void {
-    const stream_pos: u32 = @intCast(stream.bytes_written);
-    try fixups.append(.{
-        .offset = block_start + 4,
-        .bytes = Fixup.encode(stream_pos - block_start, .big),
-    });
-}
-
-pub fn oldBeginBlockKnown(stream: anytype, id: BlockId, size: u32) !struct { u32, u32 } {
-    const block_start: u32 = @intCast(stream.bytes_written);
-
-    try stream.writer().writeInt(BlockId.Raw, id.raw(), .little);
-    try stream.writer().writeInt(u32, size + 8, .big);
-
-    return .{ block_start, size + 8 };
-}
-
-pub fn oldEndBlockKnown(stream: anytype, start_and_size: struct { u32, u32 }) void {
-    const start, const size = start_and_size;
-    const pos: u32 = @intCast(stream.bytes_written);
-    std.debug.assert(pos - start == size);
-}
-
 pub fn beginBlock(w: *std.io.Writer, id: BlockId) !u32 {
     const block_start = fxbc.pos(w);
 
@@ -128,13 +95,6 @@ pub const Fixup = struct {
 pub fn applyFixups(out: []u8, fixups: []const Fixup) void {
     for (fixups) |fixup|
         @memcpy(out[fixup.offset..][0..4], &fixup.bytes);
-}
-
-pub fn oldWriteFixups(file: std.fs.File, writer: anytype, fixups: []const Fixup) !void {
-    for (fixups) |fixup| {
-        try file.seekTo(fixup.offset);
-        try writer.writeAll(&fixup.bytes);
-    }
 }
 
 pub fn writeFixups(
