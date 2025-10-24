@@ -2345,7 +2345,7 @@ fn emitRoom(
     project_code: *std.ArrayListUnmanaged(u8),
     events: *sync.Channel(Event, 16),
 ) !void {
-    var chunks: BoundedArray(Chunk, max_room_code_chunks) = .{};
+    var chunks: utils.TinyArray(Chunk, max_room_code_chunks) = .empty;
     defer for (chunks.slice()) |*chunk| chunk.code.deinit(cx.gpa);
 
     var ok = true;
@@ -2354,7 +2354,7 @@ fn emitRoom(
         .err => ok = false,
         .code_chunk => |chunk| {
             utils.growBoundedArray(&chunks, chunk.index + 1, .{ .section = .top, .code = .empty });
-            std.debug.assert(chunks.constSlice()[chunk.index].code.items.len == 0);
+            std.debug.assert(chunks.at(chunk.index).code.items.len == 0);
             chunks.set(chunk.index, .{ .section = chunk.section, .code = chunk.code });
         },
     };
@@ -2378,7 +2378,7 @@ fn emitRoom(
         try room_scu.writeAll("#error while extracting room; this file is incomplete!\n\n");
 
     const max_iovecs = max_room_code_chunks + std.meta.fields(Section).len;
-    var iovecs: BoundedArray(std.posix.iovec_const, max_iovecs) = .{};
+    var iovecs: utils.TinyArray(std.posix.iovec_const, max_iovecs) = .empty;
     var last_section: Section = .top;
     for (chunks.slice()) |*chunk| {
         if (chunk.section != last_section) {

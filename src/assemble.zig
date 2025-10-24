@@ -2,7 +2,6 @@ const std = @import("std");
 
 const Diagnostic = @import("Diagnostic.zig");
 const UsageTracker = @import("UsageTracker.zig");
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const lang = @import("lang.zig");
 const script = @import("script.zig");
 const utils = @import("utils.zig");
@@ -30,7 +29,7 @@ pub fn assemble(
     var label_fixups: std.ArrayListUnmanaged(Fixup) = .empty;
     defer label_fixups.deinit(allocator);
 
-    var locals: BoundedArray([]const u8, UsageTracker.max_local_vars) = .{};
+    var locals: utils.TinyArray([]const u8, UsageTracker.max_local_vars) = .empty;
 
     var bytecode: std.ArrayListUnmanaged(u8) = .empty;
     errdefer bytecode.deinit(allocator);
@@ -85,7 +84,7 @@ fn assembleLine(
     scopes: Scopes,
     label_offsets: *std.StringHashMapUnmanaged(u16),
     label_fixups: *std.ArrayListUnmanaged(Fixup),
-    locals: *BoundedArray([]const u8, UsageTracker.max_local_vars),
+    locals: *utils.TinyArray([]const u8, UsageTracker.max_local_vars),
     line_number: u32,
     line_full: []const u8,
     bytecode: *std.ArrayListUnmanaged(u8),
@@ -163,7 +162,7 @@ fn assembleLine(
                 _ = try bytecode.addManyAsSlice(allocator, 2);
             },
             .variable => {
-                const variable, rest = try tokenizeVariable(rest, locals.constSlice(), scopes);
+                const variable, rest = try tokenizeVariable(rest, locals.slice(), scopes);
                 try utils.writeInt(allocator, bytecode, u16, variable.raw, .little);
             },
             .string => {

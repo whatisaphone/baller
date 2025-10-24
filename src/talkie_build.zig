@@ -7,11 +7,11 @@ const Fixup = @import("block_writer.zig").Fixup;
 const oldBeginBlock = @import("block_writer.zig").oldBeginBlock;
 const oldEndBlock = @import("block_writer.zig").oldEndBlock;
 const oldWriteFixups = @import("block_writer.zig").oldWriteFixups;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
 const iold = @import("iold.zig");
 const pathf = @import("pathf.zig");
+const utils = @import("utils.zig");
 const wav = @import("wav.zig");
 
 pub fn runCli(allocator: std.mem.Allocator, args: []const [:0]const u8) !void {
@@ -119,17 +119,17 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 fn buildTalk(state: *State) !void {
     const RawBlock = struct {
         id: BlockId,
-        path: BoundedArray(u8, 255),
+        path: utils.TinyArray(u8, 255),
     };
 
     const Sdat = struct {
         expected_len: u32,
-        path: BoundedArray(u8, 255),
+        path: utils.TinyArray(u8, 255),
     };
 
     // Parse lines
 
-    var raw_blocks: BoundedArray(RawBlock, 2) = .{};
+    var raw_blocks: utils.TinyArray(RawBlock, 2) = .empty;
     var sdat_opt: ?Sdat = null;
 
     while (true) {

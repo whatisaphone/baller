@@ -1,6 +1,5 @@
 const std = @import("std");
 
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const utils = @import("utils.zig");
 
 pub fn Channel(T: type, capacity: usize) type {
@@ -9,13 +8,13 @@ pub fn Channel(T: type, capacity: usize) type {
 
         // yeah this could be better
         mutex: std.Thread.Mutex,
-        queue: BoundedArray(T, capacity),
+        queue: utils.TinyArray(T, capacity),
         queue_not_empty: std.Thread.Condition,
         queue_not_full: std.Thread.Condition,
 
         pub const init: Self = .{
             .mutex = .{},
-            .queue = .{},
+            .queue = .empty,
             .queue_not_empty = .{},
             .queue_not_full = .{},
         };
@@ -25,7 +24,7 @@ pub fn Channel(T: type, capacity: usize) type {
                 self.mutex.lock();
                 defer self.mutex.unlock();
 
-                while (self.queue.len == self.queue.capacity())
+                while (self.queue.len == self.queue.theCapacity())
                     self.queue_not_full.wait(&self.mutex);
 
                 self.queue.append(value) catch unreachable;

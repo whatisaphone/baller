@@ -10,7 +10,6 @@ const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -382,7 +381,7 @@ pub fn encodeRle(
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte
-        var line_buf: BoundedArray(u8, 2 + max_supported_width * 2) = .{};
+        var line_buf: utils.TinyArray(u8, 2 + max_supported_width * 2) = .empty;
 
         // reserve space for line size, to be filled in later
         line_buf.len = 2;
@@ -396,13 +395,13 @@ pub fn encodeRle(
         std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
 
         // flush line to output stream
-        try out.appendSlice(gpa, line_buf.constSlice());
+        try out.appendSlice(gpa, line_buf.slice());
     }
 }
 
 fn encodeRleRowMax(
     row: []const u8,
-    line_buf: *BoundedArray(u8, 2 + max_supported_width * 2),
+    line_buf: *utils.TinyArray(u8, 2 + max_supported_width * 2),
 ) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))
@@ -458,7 +457,7 @@ fn encodeRleRowMax(
 
 fn encodeRleRowOriginal(
     row: []const u8,
-    line_buf: *BoundedArray(u8, 2 + max_supported_width * 2),
+    line_buf: *utils.TinyArray(u8, 2 + max_supported_width * 2),
 ) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))

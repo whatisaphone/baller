@@ -6,7 +6,6 @@ const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const Directory = @import("extract.zig").Directory;
 const Index = @import("extract.zig").Index;
 const games = @import("games.zig");
@@ -49,8 +48,8 @@ pub fn run(
         .basic_blocks = basic_blocks.items,
 
         .pending_basic_blocks = .empty,
-        .stack = .{},
-        .str_stack = .{},
+        .stack = .empty,
+        .str_stack = .empty,
         .stmts = .empty,
         .stmt_ends = .empty,
         .exprs = .empty,
@@ -221,9 +220,9 @@ const BasicBlock = struct {
     /// (`decompiled` is only used in asserts in debug builds)
     state: enum { new, pending, decompiled },
     /// valid in {pending,decompiled}
-    stack_on_enter: utils.SafeUndefined(BoundedArray(ExprIndex, 1)),
+    stack_on_enter: utils.SafeUndefined(utils.TinyArray(ExprIndex, 1)),
     /// valid in {decompiled}
-    stack_on_exit: utils.SafeUndefined(BoundedArray(ExprIndex, 1)),
+    stack_on_exit: utils.SafeUndefined(utils.TinyArray(ExprIndex, 1)),
     /// valid in {decompiled}
     statements: utils.SafeUndefined(ExtraSlice),
 
@@ -248,8 +247,8 @@ const DecompileCx = struct {
     basic_blocks: []BasicBlock,
 
     pending_basic_blocks: std.ArrayListUnmanaged(u16),
-    stack: BoundedArray(ExprIndex, 80),
-    str_stack: BoundedArray(ExprIndex, 3),
+    stack: utils.TinyArray(ExprIndex, 80),
+    str_stack: utils.TinyArray(ExprIndex, 3),
     stmts: std.ArrayListUnmanaged(Stmt),
     stmt_ends: std.ArrayListUnmanaged(u16),
     exprs: std.ArrayListUnmanaged(Expr),
@@ -529,7 +528,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
             try storeStmt(cx, ins.end, .{ .override = .{ .target = target } });
         },
         .generic => |*gen| {
-            var args: BoundedArray(ExprIndex, lang.max_operands + script.max_params) = .{};
+            var args: utils.TinyArray(ExprIndex, lang.max_operands + script.max_params) = .empty;
             for (ins.operands.slice()) |operand| {
                 const expr: Expr = switch (operand) {
                     .variable => |v| .{ .variable = v },
@@ -553,7 +552,7 @@ fn decompileIns(cx: *DecompileCx, ins: lang.Ins) !void {
                 };
                 args.buffer[args.len + pi] = ei;
             }
-            args.len += gen.params.len;
+            args.len += @intCast(gen.params.len);
 
             const args_extra = try storeExtra(cx, args.slice());
             if (gen.call) {

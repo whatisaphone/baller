@@ -5,10 +5,10 @@ const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const awiz = @import("awiz.zig");
 const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
+const utils = @import("utils.zig");
 
 pub fn extract(
     gpa: std.mem.Allocator,
@@ -59,7 +59,7 @@ fn extractMultInner(
     const offs_raw = try io.readInPlace(in, offs_block.size);
     const offs = std.mem.bytesAsSlice(u32, offs_raw);
 
-    var awiz_offsets: BoundedArray(u32, Ast.max_mult_children) = .{};
+    var awiz_offsets: utils.TinyArray(u32, Ast.max_mult_children) = .empty;
 
     while (!wrap_blocks.atEnd()) {
         const awiz_block = try wrap_blocks.expect(.AWIZ).block();
@@ -79,7 +79,7 @@ fn extractMultInner(
         try code.appendSlice(gpa, "    }\n");
     }
 
-    var off_indices: BoundedArray(u8, Ast.max_mult_children) = .{};
+    var off_indices: utils.TinyArray(u8, Ast.max_mult_children) = .empty;
     for (offs) |off| {
         const index = std.sort.binarySearch(u32, awiz_offsets.slice(), off, orderU32) orelse
             return error.BadData;

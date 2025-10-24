@@ -164,14 +164,14 @@ pub fn growMultiArrayList(
 }
 
 pub fn growBoundedArray(
-    /// `*BoundedArray(any, any)`
+    /// `*TinyArray(any, any)`
     xs: anytype,
     minimum_len: usize,
     fill: @typeInfo(@FieldType(@typeInfo(@TypeOf(xs)).pointer.child, "buffer")).array.child,
 ) void {
     if (xs.len >= minimum_len) return;
     @memset(xs.buffer[xs.len..minimum_len], fill);
-    xs.len = minimum_len;
+    xs.len = @intCast(minimum_len);
 }
 
 /// std.BoundedArray, but `len` is not wastefully large
@@ -189,16 +189,41 @@ pub fn TinyArray(T: type, capacity: usize) type {
             // TODO: wrong place for this. fix this one day
             @setEvalBranchQuota(4000);
 
+            return fromSlice(xs) catch unreachable;
+        }
+
+        pub fn fromSlice(xs: []const T) !Self {
             var result: Self = .empty;
+            if (xs.len > capacity) return error.Overflow;
             result.len = @intCast(xs.len);
-            for (result.buffer[0..xs.len], xs) |*p, x|
-                p.* = x;
+            @memcpy(result.buffer[0..xs.len], xs);
             return result;
         }
 
-        pub fn get(self: *const Self, index: usize) T {
+        pub fn theCapacity(self: *const Self) @TypeOf(self.len) {
+            return capacity;
+        }
+
+        pub fn clear(self: *Self) void {
+            self.len = 0;
+            @memset(&self.buffer, undefined);
+        }
+
+        pub fn at(self: anytype, index: usize) switch (@TypeOf(self)) {
+            *Self => *T,
+            *const Self => *const T,
+            else => unreachable,
+        } {
             std.debug.assert(index < self.len);
-            return self.buffer[index];
+            return &self.buffer[index];
+        }
+
+        pub fn get(self: *const Self, index: usize) T {
+            return self.at(index).*;
+        }
+
+        pub fn set(self: *Self, index: usize, value: T) void {
+            self.at(index).* = value;
         }
 
         pub fn slice(self: anytype) switch (@TypeOf(self)) {
@@ -209,7 +234,7 @@ pub fn TinyArray(T: type, capacity: usize) type {
             return self.buffer[0..self.len];
         }
 
-        pub fn ensureUnusedCapacity(self: Self, additional_count: usize) !void {
+        pub fn ensureUnusedCapacity(self: *const Self, additional_count: usize) !void {
             if (self.len + additional_count > capacity)
                 return error.Overflow;
         }
@@ -223,6 +248,36 @@ pub fn TinyArray(T: type, capacity: usize) type {
         pub fn append(self: *Self, item: T) !void {
             const ptr = try self.addOne();
             ptr.* = item;
+        }
+
+        pub fn appendAssumeCapacity(self: *Self, item: T) void {
+            self.append(item) catch unreachable;
+        }
+
+        pub fn appendSlice(self: *Self, items: []const T) !void {
+            try self.ensureUnusedCapacity(items.len);
+            @memcpy(self.buffer[self.len..][0..items.len], items);
+            self.len += @intCast(items.len);
+        }
+
+        pub fn appendSliceAssumeCapacity(self: *Self, items: []const T) void {
+            self.appendSlice(items) catch unreachable;
+        }
+
+        pub fn pop(self: *Self) ?T {
+            if (self.len == 0) return null;
+            self.len -= 1;
+            const result = self.buffer[self.len];
+            self.buffer[self.len] = undefined;
+            return result;
+        }
+
+        pub fn orderedRemove(self: *Self, index: usize) T {
+            const result = self.buffer[index];
+            @memmove(self.buffer[index .. self.len - 1], self.buffer[index + 1 .. self.len]);
+            self.len -= 1;
+            self.buffer[self.len] = undefined;
+            return result;
         }
     };
 }

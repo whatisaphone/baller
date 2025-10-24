@@ -9,7 +9,6 @@ const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
 const bmp = @import("bmp.zig");
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
@@ -256,7 +255,8 @@ pub fn encode(
     try state.cd_offsets.ensureTotalCapacityPrecise(gpa, akcd_count);
     try state.akcd.ensureTotalCapacity(gpa, @as(u32, @intCast(akcd_count)) * 2048);
 
-    var akpl: ?BoundedArray(u8, 64) = null;
+    var akpl_buf: [64]u8 = undefined;
+    var akpl: ?std.io.Writer = null;
 
     for (file.ast.getExtra(akos.children)) |node_index| {
         const node = file.ast.nodes.at(node_index);
@@ -270,17 +270,17 @@ pub fn encode(
             },
             .akpl => |*n| {
                 if (akpl != null) return error.BadData;
-                akpl = .{};
-                try fs.readFileInto(project_dir, file.ast.strings.get(n.path), akpl.?.writer());
+                akpl = .fixed(&akpl_buf);
+                try fs.readFileInto(project_dir, file.ast.strings.get(n.path), &akpl.?);
 
                 const start = try beginBlockAl(gpa, out, .AKPL);
-                try out.appendSlice(gpa, akpl.?.slice());
+                try out.appendSlice(gpa, akpl.?.buffered());
                 endBlockAl(out, start);
             },
             .akcd => |*n| {
                 if (akpl == null) return error.BadData;
                 const loc: Diagnostic.Location = .node(file, node_index);
-                try encodeCelBmp(gpa, diagnostic, loc, akpl.?.slice(), file.ast.strings.get(n.path), &state, n.compression, awiz_strategy);
+                try encodeCelBmp(gpa, diagnostic, loc, akpl.?.buffered(), file.ast.strings.get(n.path), &state, n.compression, awiz_strategy);
             },
             else => unreachable,
         }
