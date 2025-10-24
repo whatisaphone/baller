@@ -8,11 +8,12 @@ const Block = @import("block_reader.zig").Block;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
 const Fixup = @import("block_writer.zig").Fixup;
+const beginBlock = @import("block_writer.zig").beginBlock;
 const beginBlockAl = @import("block_writer.zig").beginBlockAl;
+const endBlock = @import("block_writer.zig").endBlock;
 const endBlockAl = @import("block_writer.zig").endBlockAl;
-const oldBeginBlock = @import("block_writer.zig").oldBeginBlock;
-const oldEndBlock = @import("block_writer.zig").oldEndBlock;
-const oldWriteFixups = @import("block_writer.zig").oldWriteFixups;
+const fxbc = @import("block_writer.zig").fxbc;
+const writeFixups = @import("block_writer.zig").writeFixups;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
@@ -87,7 +88,18 @@ pub fn extract(
                 try song_blocks.finish(&block);
             },
             std.mem.bytesToValue(u32, "RIFF") => {
+                // Normally the block reader sets this limit, but RIFF isn't a
+                // block, so we have to do it manually instead.
+                if (sgen.size < Block.header_size) return error.BadData;
+                const riff_size = sgen.size - Block.header_size;
+
+                const parent_remaining = fxbcl.remaining(cx.in);
+                fxbcl.setRemaining(cx.in, riff_size);
+
                 try extractRiff(&cx, sgen, std.mem.toBytes(block_header));
+
+                if (fxbcl.remaining(cx.in) != 0) return error.BadData;
+                fxbcl.setRemaining(cx.in, parent_remaining - riff_size);
             },
             else => return error.BadData,
         }
@@ -122,7 +134,8 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
-    try cx.code.writer(cx.gpa).print(
+    try cx.code.print(
+        cx.gpa,
         "    sound {f} {s}@{} {{\n",
         .{ digi_block.id, name, sgen.number },
     );
@@ -144,7 +157,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     try wav_out.interface.flush();
     try digi_blocks.finish(&sdat_block);
 
-    try cx.code.writer(cx.gpa).print("        sdat \"{s}/{s}\"\n", .{ cx.output_path, wav_path });
+    try cx.code.print(cx.gpa, "        sdat \"{s}/{s}\"\n", .{ cx.output_path, wav_path });
 
     try digi_blocks.end();
 
@@ -158,18 +171,17 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
-    try cx.code.writer(cx.gpa).print(
+    try cx.code.print(
+        cx.gpa,
         "    riff {s}@{} \"{s}/{s}\"\n",
         .{ name, entry.number, cx.output_path, wav_path },
     );
 
     const wav_file = try fsd.createFileZ(cx.diag.diagnostic, cx.output_dir, wav_path);
     defer wav_file.close();
-    try wav_file.deprecatedWriter().writeAll(&peeked_bytes);
-    try io.copy(
-        iold.limitedReader(cx.in.adaptToOldInterface(), entry.size - peeked_bytes.len),
-        wav_file.deprecatedWriter(),
-    );
+    var wav_writer = wav_file.writer(&.{});
+    try wav_writer.interface.writeAll(&peeked_bytes);
+    try io.copy(cx.in.adaptToOldInterface(), &wav_writer.interface);
 }
 
 fn readBlockAsValue(in: *std.io.Reader, block: *const Block, T: type) !T {
@@ -196,24 +208,26 @@ pub fn build(
 
     const out_file = try fsd.createFileZ(diagnostic, out_dir, out_name);
     defer out_file.close();
-    var out_buf = iold.bufferedWriter(out_file.deprecatedWriter());
-    var out = iold.countingWriter(out_buf.writer());
+    var file_buf: [4096]u8 = undefined;
+    var file_writer = out_file.writer(&file_buf);
+    var xor_writer: io.XorWriter = .init(&file_writer.interface, 0x00, &.{});
+    const out = &xor_writer.interface;
 
     var fixups: std.array_list.Managed(Fixup) = .init(gpa);
     defer fixups.deinit();
 
-    const song_start = try oldBeginBlock(&out, .SONG);
+    const song_start = try beginBlock(out, .SONG);
 
-    const sghd_start = try oldBeginBlock(&out, .SGHD);
+    const sghd_start = try beginBlock(out, .SGHD);
     const num_sounds = music_node.children.len;
-    try out.writer().writeInt(u32, num_sounds, .little);
-    try out.writer().writeAll(&@as([28]u8, @splat(0)));
-    try oldEndBlock(&out, &fixups, sghd_start);
+    try out.writeInt(u32, num_sounds, .little);
+    try out.writeAll(&@as([28]u8, @splat(0)));
+    try endBlock(out, &fixups, sghd_start);
 
-    const sgens_start: u32 = @intCast(out.bytes_written);
+    const sgens_start = fxbc.pos(out);
     const sgens_total_size = num_sounds * (Block.header_size + @sizeOf(Sgen));
     // Write SGENs all at once at the end
-    try out.writer().writeByteNTimes(undefined, sgens_total_size);
+    try fxbc.skip(out, sgens_total_size);
 
     // Buffer SGENs here until then
     var sgens: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, sgens_total_size);
@@ -227,43 +241,43 @@ pub fn build(
     for (file.ast.getExtra(music_node.children)) |node_index| {
         const node = file.ast.nodes.at(node_index);
 
-        const start: u32 = @intCast(out.bytes_written);
+        const start = fxbc.pos(out);
 
         const glob_number = glob_number: switch (node.*) {
             .sound => |*sound| {
-                const fixup = try oldBeginBlock(&out, sound.block_id);
+                const fixup = try beginBlock(out, sound.block_id);
                 std.debug.assert(fixup == start);
                 buf.clearRetainingCapacity();
                 try sounds.build(gpa, diagnostic, .node(file, node_index), project_dir, file, sound.children, &buf);
-                try out.writer().writeAll(buf.items);
-                try oldEndBlock(&out, &fixups, fixup);
+                try out.writeAll(buf.items);
+                try endBlock(out, &fixups, fixup);
                 break :glob_number sound.glob_number;
             },
             .riff => |*riff| {
-                try fs.readFileInto(project_dir, file.ast.strings.get(riff.path), out.writer());
+                try fs.readFileInto(project_dir, file.ast.strings.get(riff.path), out);
                 break :glob_number riff.glob_number;
             },
             else => unreachable,
         };
 
-        const end: u32 = @intCast(out.bytes_written);
+        const end = fxbc.pos(out);
         const size = end - start;
 
         const sgen_start = beginBlockAl(utils.null_allocator, &sgens, .SGEN) catch unreachable;
-        sgens.fixedWriter().writeAll(std.mem.asBytes(&Sgen{
+        sgens.appendSliceAssumeCapacity(std.mem.asBytes(&Sgen{
             .number = glob_number,
             .offset = start,
             .size = size,
             .unk_0c = 0,
-        })) catch unreachable;
+        }));
         endBlockAl(&sgens, sgen_start);
     }
 
-    try oldEndBlock(&out, &fixups, song_start);
+    try endBlock(out, &fixups, song_start);
 
-    try out_buf.flush();
+    try file_writer.interface.flush();
 
-    try oldWriteFixups(out_file, out_file.deprecatedWriter(), fixups.items);
+    try writeFixups(&file_writer, out, fixups.items);
 
     try out_file.seekTo(sgens_start);
     std.debug.assert(sgens.items.len == sgens.capacity);

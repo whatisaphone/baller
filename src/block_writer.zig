@@ -75,20 +75,25 @@ pub const fxbc = struct {
         const xor: *const io.XorWriter = @fieldParentPtr("interface", w);
         const file: *const std.fs.File.Writer = @fieldParentPtr("interface", xor.inner);
         // in this codebase the xors never have a buffer. just verify
-        std.debug.assert(xor.interface.end == 0);
+        std.debug.assert(xor.interface.buffer.len == 0);
         return @intCast(file.pos + file.interface.end);
     }
 
     pub fn skip(w: *std.io.Writer, n: usize) !void {
         const xor: *io.XorWriter = @fieldParentPtr("interface", w);
         const file: *std.fs.File.Writer = @fieldParentPtr("interface", xor.inner);
-        // since the xor has no buffer (verify that), we have to skip using the
-        // file instead
-        std.debug.assert(xor.interface.end == 0);
-        if (file.interface.buffer.len < n)
-            return error.WriteFailed;
-        // leave the bytes undefined
-        _ = try file.interface.writableSlice(n);
+        // since the xor has no buffer (verify that), skip using the file instead
+        std.debug.assert(xor.interface.buffer.len == 0);
+        // for small skips, buffer undefined bytes
+        if (n <= file.interface.unusedCapacityLen()) {
+            @memset(file.interface.unusedCapacitySlice()[0..n], undefined);
+            file.interface.advance(n);
+            return;
+        }
+        // for large skips, advance the file position
+        try file.interface.flush();
+        std.debug.assert(file.interface.end == 0);
+        try file.seekTo(file.pos + file.interface.end + n);
     }
 };
 

@@ -380,13 +380,13 @@ pub const fxbcl = struct {
         return @intCast(file.logicalPos());
     }
 
-    fn remaining(in: *const std.io.Reader) u32 {
+    pub fn remaining(in: *const std.io.Reader) u32 {
         const limited: *const std.io.Reader.Limited = @fieldParentPtr("interface", in);
         std.debug.assert(limited.remaining == .unlimited or limited.remaining.toInt().? < 0xffffffff);
         return @truncate(@intFromEnum(limited.remaining));
     }
 
-    fn setRemaining(in: *std.io.Reader, value: u32) void {
+    pub fn setRemaining(in: *std.io.Reader, value: u32) void {
         const limited: *std.io.Reader.Limited = @fieldParentPtr("interface", in);
         limited.remaining = .limited(value);
     }
