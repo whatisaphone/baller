@@ -163,17 +163,6 @@ pub fn growMultiArrayList(
         xs.appendAssumeCapacity(fill);
 }
 
-pub fn growBoundedArray(
-    /// `*TinyArray(any, any)`
-    xs: anytype,
-    minimum_len: usize,
-    fill: @typeInfo(@FieldType(@typeInfo(@TypeOf(xs)).pointer.child, "buffer")).array.child,
-) void {
-    if (xs.len >= minimum_len) return;
-    @memset(xs.buffer[xs.len..minimum_len], fill);
-    xs.len = @intCast(minimum_len);
-}
-
 /// std.BoundedArray, but `len` is not wastefully large
 pub fn TinyArray(T: type, capacity: usize) type {
     return struct {
@@ -262,6 +251,12 @@ pub fn TinyArray(T: type, capacity: usize) type {
 
         pub fn appendSliceAssumeCapacity(self: *Self, items: []const T) void {
             self.appendSlice(items) catch unreachable;
+        }
+
+        pub fn grow(self: *Self, minimum_len: usize, fill: T) void {
+            if (self.len >= minimum_len) return;
+            @memset(self.buffer[self.len..minimum_len], fill);
+            self.len = @intCast(minimum_len);
         }
 
         pub fn pop(self: *Self) ?T {

@@ -1294,7 +1294,7 @@ fn planRoomNames(cx: *Context) !void {
             const child = project_file.ast.nodes.at(child_node);
             if (child.* != .disk_room) continue;
             const room = &child.disk_room;
-            utils.growBoundedArray(&room_nodes, room.room_number + 1, Ast.NodeIndex.Optional.null);
+            room_nodes.grow(room.room_number + 1, Ast.NodeIndex.Optional.null);
             room_nodes.set(room.room_number, child_node.wrap());
         }
     }
