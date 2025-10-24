@@ -51,48 +51,24 @@ const Arg = union(enum) {
     positional: [:0]const u8,
 
     pub fn reportUnexpected(self: Arg) error{CommandLineReported} {
-        self.reportUnexpectedInner() catch {};
-        return error.CommandLineReported;
-    }
-
-    fn reportUnexpectedInner(self: Arg) !void {
-        const out = std.fs.File.stderr().deprecatedWriter();
-        try out.writeAll("unexpected argument ");
-        try self.reportFlagName(out);
-        try out.writeByte('\n');
+        return report("unexpected argument {f}\n", .{self});
     }
 
     pub fn reportInvalidValue(self: Arg) error{CommandLineReported} {
-        self.reportInvalidValueInner() catch {};
-        return error.CommandLineReported;
-    }
-
-    fn reportInvalidValueInner(self: Arg) !void {
-        const out = std.fs.File.stderr().deprecatedWriter();
-        try out.writeAll("invalid value for ");
-        try self.reportFlagName(out);
-        try out.writeByte('\n');
+        return report("invalid value for {f}\n", .{self});
     }
 
     pub fn reportDuplicate(self: Arg) error{CommandLineReported} {
-        self.reportDuplicateInner() catch {};
-        return error.CommandLineReported;
+        return report("duplicate argument {f}\n", .{self});
     }
 
-    fn reportDuplicateInner(self: Arg) !void {
-        const out = std.fs.File.stderr().deprecatedWriter();
-        try out.writeAll("duplicate argument ");
-        try self.reportFlagName(out);
-        try out.writeByte('\n');
-    }
-
-    fn reportFlagName(self: Arg, out: anytype) !void {
+    pub fn format(self: Arg, w: *std.io.Writer) !void {
         switch (self) {
-            .short_flag => |flag| try out.print("-{c}", .{flag}),
-            .short_option => |opt| try out.print("-{c}", .{opt.flag}),
-            .long_flag => |flag| try out.print("--{s}", .{flag}),
-            .long_option => |opt| try out.print("--{s}", .{opt.flag}),
-            .positional => |str| try out.print("{s}", .{str}),
+            .short_flag => |flag| try w.print("-{c}", .{flag}),
+            .short_option => |opt| try w.print("-{c}", .{opt.flag}),
+            .long_flag => |flag| try w.print("--{s}", .{flag}),
+            .long_option => |opt| try w.print("--{s}", .{opt.flag}),
+            .positional => |str| try w.print("{s}", .{str}),
         }
     }
 };
@@ -108,7 +84,13 @@ const LongOption = struct {
 };
 
 pub fn reportMissing(name: []const u8) error{CommandLineReported} {
-    const out = std.fs.File.stderr().deprecatedWriter();
-    out.print("missing argument {s}\n", .{name}) catch {};
+    return report("missing argument {s}\n", .{name});
+}
+
+fn report(comptime fmt: []const u8, args: anytype) error{CommandLineReported} {
+    var buf: [4096]u8 = undefined;
+    var out = std.fs.File.stderr().writer(&buf);
+    out.interface.print(fmt, args) catch {};
+    out.interface.flush() catch {};
     return error.CommandLineReported;
 }
