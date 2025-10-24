@@ -33,7 +33,7 @@ pub fn run(allocator: std.mem.Allocator, args: *const Extract) !void {
     var buf: [4096]u8 = undefined;
     var reader = in_file.reader(&buf);
 
-    var cur_path_buf: pathf.Path = .{};
+    var cur_path_buf: pathf.Path = .empty;
     const out_dir = try pathf.append(&cur_path_buf, args.output_path);
     try fs.makeDirIfNotExistZ(std.fs.cwd(), out_dir.full());
     try cur_path_buf.append('/');

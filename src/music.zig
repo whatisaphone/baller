@@ -13,7 +13,6 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const oldBeginBlock = @import("block_writer.zig").oldBeginBlock;
 const oldEndBlock = @import("block_writer.zig").oldEndBlock;
 const oldWriteFixups = @import("block_writer.zig").oldWriteFixups;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
@@ -117,8 +116,8 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
 
     if (sgen.size != digi_block.full_size()) return error.BadData;
 
-    var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
-    name_buf.writer().print("{f}", .{cx.symbols.fmtGlobName(.sound, sgen.number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len + ".wav".len + 1) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.symbols.fmtGlobName(.sound, sgen.number)});
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];
@@ -153,8 +152,8 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
 }
 
 fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
-    var name_buf: BoundedArray(u8, Symbols.max_name_len + ".wav".len + 1) = .{};
-    name_buf.writer().print("{f}", .{cx.symbols.fmtGlobName(.sound, entry.number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len + ".wav".len + 1) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.symbols.fmtGlobName(.sound, entry.number)});
     const name = name_buf.slice();
     name_buf.appendSlice(".wav\x00") catch unreachable;
     const wav_path = name_buf.slice()[0 .. name_buf.len - 1 :0];

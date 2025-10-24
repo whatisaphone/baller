@@ -14,7 +14,6 @@ const Block = @import("block_reader.zig").Block;
 const FixedBlockReader = @import("block_reader.zig").FixedBlockReader;
 const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
 const disasm = @import("disasm.zig");
@@ -1713,10 +1712,10 @@ fn extractLscDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
-    path_buf.writer().print("{f}", .{
+    var path_buf: utils.TinyArray(u8, Symbols.max_name_len + ".s".len + 1) = .empty;
+    path_buf.printAssumeCapacity("{f}", .{
         cx.cx.symbols.fmtScriptName(cx.room_number, script_number),
-    }) catch unreachable;
+    });
     const name = path_buf.slice();
 
     path_buf.appendSlice(".s\x00") catch unreachable;
@@ -1991,10 +1990,10 @@ fn extractScrpDisassemble(
         return error.AddedToDiagnostic;
     };
 
-    var path_buf: BoundedArray(u8, Symbols.max_name_len + ".s".len + 1) = .{};
-    path_buf.writer().print("{f}", .{
+    var path_buf: utils.TinyArray(u8, Symbols.max_name_len + ".s".len + 1) = .empty;
+    path_buf.printAssumeCapacity("{f}", .{
         cx.cx.symbols.fmtScriptName(cx.room_number, glob_number),
-    }) catch unreachable;
+    });
     const name = path_buf.slice();
 
     path_buf.appendSlice(".s\x00") catch unreachable;
@@ -2073,8 +2072,8 @@ fn extractSound(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.sound, glob_number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.sound, glob_number)});
     const name = name_buf.slice();
 
     try code.print(cx.cx.gpa, "sound {f} {s}@{} {{\n", .{ block_id, name, glob_number });
@@ -2099,8 +2098,8 @@ fn extractAwiz(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: BoundedArray(u8, Symbols.max_name_len) = .{};
-    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)});
     const name = name_buf.slice();
 
     try code.print(cx.cx.gpa, "awiz {s}@{} {{\n", .{ name, glob_number });
@@ -2121,8 +2120,8 @@ fn extractMult(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)});
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
@@ -2138,8 +2137,8 @@ fn extractAkos(
     raw: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var name_buf: BoundedArray(u8, Symbols.max_name_len + 1) = .{};
-    name_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(.costume, glob_number)}) catch unreachable;
+    var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
+    name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.costume, glob_number)});
     name_buf.appendSlice("\x00") catch unreachable;
     const name = name_buf.slice()[0 .. name_buf.len - 1 :0];
 
@@ -2195,13 +2194,13 @@ fn writeRawGlob(
     data: []const u8,
     code: *std.ArrayListUnmanaged(u8),
 ) !void {
-    var filename_buf: BoundedArray(u8, Symbols.max_name_len + ".bin".len + 1) = .{};
+    var filename_buf: utils.TinyArray(u8, Symbols.max_name_len + ".bin".len + 1) = .empty;
     const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
     const name = if (kind.hasName()) blk: {
-        filename_buf.writer().print("{f}", .{cx.cx.symbols.fmtGlobName(kind, glob_number)}) catch unreachable;
+        filename_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(kind, glob_number)});
         break :blk filename_buf.slice();
     } else blk: {
-        try filename_buf.writer().print("{f}_{:0>4}", .{ block.id, glob_number });
+        filename_buf.printAssumeCapacity("{f}_{:0>4}", .{ block.id, glob_number });
         break :blk null;
     };
     filename_buf.appendSlice(".bin\x00") catch unreachable;

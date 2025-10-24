@@ -1,9 +1,9 @@
 const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
-const BoundedArray = @import("bounded_array.zig").BoundedArray;
+const utils = @import("utils.zig");
 
-pub const Path = BoundedArray(u8, 4095);
+pub const Path = utils.TinyArray(u8, 4095);
 pub const PathLen = u12;
 
 pub fn append(buf: *Path, items: []const u8) !PrintedPath {
@@ -21,7 +21,7 @@ pub fn append(buf: *Path, items: []const u8) !PrintedPath {
 pub fn print(buf: *Path, comptime format: []const u8, args: anytype) !PrintedPath {
     const prev_len: PathLen = @intCast(buf.len);
 
-    try buf.writer().print(format, args);
+    try buf.print(format, args);
 
     // append a null terminator, but don't include it in the len
     try buf.append(0);

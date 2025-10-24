@@ -274,6 +274,20 @@ pub fn TinyArray(T: type, capacity: usize) type {
             self.buffer[self.len] = undefined;
             return result;
         }
+
+        pub fn print(self: *Self, comptime fmt: []const u8, args: anytype) !void {
+            var w: std.io.Writer = .fixed(&self.buffer);
+            w.end = self.len;
+            try w.print(fmt, args);
+            self.len = @intCast(w.end);
+        }
+
+        pub fn printAssumeCapacity(self: *Self, comptime fmt: []const u8, args: anytype) void {
+            var w: std.io.Writer = .fixed(&self.buffer);
+            w.end = self.len;
+            w.print(fmt, args) catch unreachable;
+            self.len = @intCast(w.end);
+        }
     };
 }
 

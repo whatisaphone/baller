@@ -45,7 +45,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     var buf: [4096]u8 = undefined;
     var reader = manifest_file.reader(&buf);
 
-    var cur_path: pathf.Path = .{};
+    var cur_path: pathf.Path = .empty;
     try cur_path.appendSlice(args.manifest_path);
     try pathf.popFile(&cur_path);
 
