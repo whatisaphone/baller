@@ -569,7 +569,7 @@ fn buildDummyPals() [extract.expected_pals_size]u8 {
     const wrap_start = beginBlockAl(na, &out, .WRAP) catch unreachable;
 
     const offs_start = beginBlockAl(na, &out, .OFFS) catch unreachable;
-    out.writer(na).writeInt(u32, 12, .little) catch unreachable;
+    utils.writeInt(na, &out, u32, 12, .little) catch unreachable;
     endBlockAl(&out, offs_start);
 
     const apal_start = beginBlockAl(na, &out, .APAL) catch unreachable;

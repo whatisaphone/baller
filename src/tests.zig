@@ -183,10 +183,9 @@ fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
 
-    var hasher: std.crypto.hash.sha2.Sha256 = .init(.{});
+    var sink: std.io.Writer.Hashing(std.crypto.hash.sha2.Sha256) = .init(&.{});
+    try fs.readFileIntoZ(std.fs.cwd(), path, &sink.writer);
 
-    try fs.readFileIntoZ(std.fs.cwd(), path, hasher.writer());
-
-    const actual_hash = hasher.finalResult();
+    const actual_hash = sink.hasher.finalResult();
     try std.testing.expectEqualSlices(u8, &actual_hash, &expected_hash);
 }

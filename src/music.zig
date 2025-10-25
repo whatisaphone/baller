@@ -18,7 +18,6 @@ const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const sounds = @import("sounds.zig");
 const utils = @import("utils.zig");
 
@@ -153,7 +152,7 @@ fn extractDigi(cx: *const Cx, sgen: *const Sgen, digi_block: *const Block) !void
     var wav_buf: [4096]u8 = undefined;
     var wav_out = wav_file.writer(&wav_buf);
     try sounds.writeWavHeader(&wav_out.interface, sdat_block.size);
-    try io.copy(cx.in.adaptToOldInterface(), &wav_out.interface);
+    try io.copy(cx.in, &wav_out.interface);
     try wav_out.interface.flush();
     try digi_blocks.finish(&sdat_block);
 
@@ -181,7 +180,7 @@ fn extractRiff(cx: *const Cx, entry: *const Sgen, peeked_bytes: [8]u8) !void {
     defer wav_file.close();
     var wav_writer = wav_file.writer(&.{});
     try wav_writer.interface.writeAll(&peeked_bytes);
-    try io.copy(cx.in.adaptToOldInterface(), &wav_writer.interface);
+    try io.copy(cx.in, &wav_writer.interface);
 }
 
 fn readBlockAsValue(in: *std.io.Reader, block: *const Block, T: type) !T {

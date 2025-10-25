@@ -10,7 +10,6 @@ const endBlockAl = @import("block_writer.zig").endBlockAl;
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fsd = @import("fsd.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const encodeRawBlock = @import("plan.zig").encodeRawBlock;
 
 pub fn extract(
@@ -40,7 +39,7 @@ pub fn extract(
     const wav_path = std.fmt.bufPrintZ(&wav_path_buf, "{s}.wav", .{name}) catch unreachable;
     try writeWav(diag.diagnostic, out_dir, wav_path, sdat);
 
-    try code.writer(gpa).print("    sdat \"{s}/{s}\"\n", .{ out_path, wav_path });
+    try code.print(gpa, "    sdat \"{s}/{s}\"\n", .{ out_path, wav_path });
 
     try blocks.finish();
 }
@@ -147,7 +146,8 @@ fn readWav(
 
     const data_size = try skipToChunk(&in, std.mem.bytesToValue(u32, "data"));
     try out.ensureUnusedCapacity(gpa, data_size);
-    try io.copy(iold.limitedReader(in.interface.adaptToOldInterface(), data_size), out.writer(gpa));
+    try in.interface.readSliceAll(out.unusedCapacitySlice()[0..data_size]);
+    out.items.len += data_size;
 }
 
 fn skipToChunk(in: *std.fs.File.Reader, chunk_id: u32) !u32 {

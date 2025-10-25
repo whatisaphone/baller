@@ -10,12 +10,11 @@ pub fn requireEof(r: *std.io.Reader) !void {
     return error.StreamTooLong;
 }
 
-pub fn copy(input: anytype, output: anytype) !void {
-    var input_mut = input;
-
+pub fn copy(input: *std.io.Reader, output: *std.io.Writer) !void {
+    // TODO: replace with `streamRemaining` once `XorReader` can handle it
     var buf: [4096]u8 = undefined;
     while (true) {
-        const len = try input_mut.read(&buf);
+        const len = try input.readSliceShort(&buf);
         if (len == 0)
             break;
         try output.writeAll(buf[0..len]);

@@ -704,7 +704,7 @@ fn buildPals(bitmap: *const bmp.Bmp8, out: *std.ArrayListUnmanaged(u8)) !void {
     const wrap_start = try beginBlockAl(na, out, .WRAP);
 
     const offs_start = try beginBlockAl(na, out, .OFFS);
-    try out.writer(na).writeInt(u32, 12, .little);
+    try utils.writeInt(na, out, u32, 12, .little);
     endBlockAl(out, offs_start);
 
     const apal_start = try beginBlockAl(na, out, .APAL);
@@ -914,8 +914,12 @@ pub fn encodeRawBlock(
 ) !void {
     const start = try beginBlockAl(gpa, out, node.block_id);
     switch (node.contents) {
-        // TODO: use `fsd` for better errors
-        .path => |ss| try fs.readFileInto(dir, file.ast.strings.get(ss), out.writer(gpa)),
+        .path => |ss| {
+            var writer: std.io.Writer.Allocating = .fromArrayList(gpa, out);
+            defer out.* = writer.toArrayList();
+            // TODO: use `fsd` for better errors
+            try fs.readFileInto(dir, file.ast.strings.get(ss), &writer.writer);
+        },
         .data => |ss| try out.appendSlice(gpa, file.ast.strings.get(ss)),
     }
     endBlockAl(out, start);
@@ -1086,7 +1090,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
     const lsc_type = cx.room_lsc_types[room_number].defined;
     switch (lsc_type) {
         .lscr => try out.append(cx.gpa, @intCast(node.script_number)),
-        .lsc2 => try out.writer(cx.gpa).writeInt(u32, node.script_number, .little),
+        .lsc2 => try utils.writeInt(cx.gpa, &out, u32, node.script_number, .little),
     }
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);

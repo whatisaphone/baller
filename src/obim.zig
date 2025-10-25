@@ -106,7 +106,7 @@ fn decodeSmap(
     const out_name = std.fmt.bufPrintZ(&out_name_buf, "object{}_{:0>2}.bmp", .{ imhd.object_number, im_number }) catch unreachable;
     try fs.writeFileZ(out_dir, out_name, bmp_raw);
 
-    try code.writer(gpa).print("        smap \"{s}/{s}\" [", .{ out_path, out_name });
+    try code.print(gpa, "        smap \"{s}/{s}\" [", .{ out_path, out_name });
     try writeCompressionTypes(gpa, code, imhd, smap_raw);
     try code.appendSlice(gpa, "]\n");
 }
@@ -149,7 +149,7 @@ fn writeCompressionTypes(
         if (strip_index != 0)
             try code.append(gpa, ' ');
         const compression = smap_raw[strip_offset - Block.header_size];
-        try code.writer(gpa).print("{}", .{compression});
+        try code.print(gpa, "{}", .{compression});
     }
 }
 

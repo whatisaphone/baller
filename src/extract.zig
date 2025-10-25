@@ -21,7 +21,6 @@ const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
 const games = @import("games.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const lang = @import("lang.zig");
 const mult = @import("mult.zig");
 const music = @import("music.zig");
@@ -1060,7 +1059,7 @@ fn extractRmda(
             else => {
                 var code: std.ArrayListUnmanaged(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
-                try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = .{ .in = in, .size = block.size } }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
+                try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = in }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
             },
         }
@@ -2234,7 +2233,7 @@ fn writeRawBlockImpl(
     block_id: BlockId,
     data_source: union(enum) {
         bytes: []const u8,
-        reader: struct { in: *std.io.Reader, size: u32 },
+        reader: *std.io.Reader,
     },
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,
@@ -2261,7 +2260,7 @@ fn writeRawBlockImpl(
 
     const len = switch (data_source) {
         .bytes => |b| b.len,
-        .reader => |r| r.size,
+        .reader => |r| fxbcl.remaining(r),
     };
     if (len <= inline_threshold) {
         var buf: [inline_threshold]u8 = undefined;
@@ -2269,7 +2268,7 @@ fn writeRawBlockImpl(
             .bytes => |bytes| bytes,
             .reader => |r| blk: {
                 const data = buf[0..len];
-                try r.in.readSliceAll(data);
+                try r.readSliceAll(data);
                 break :blk data;
             },
         };
@@ -2326,9 +2325,10 @@ fn writeRawBlockImpl(
     // TODO: use `fsd` for better errors
     const file = try output_dir.createFileZ(filename, .{});
     defer file.close();
+    var writer = file.writer(&.{});
     switch (data_source) {
-        .bytes => |bytes| try file.writeAll(bytes),
-        .reader => |r| try io.copy(iold.limitedReader(r.in.adaptToOldInterface(), r.size), file),
+        .bytes => |bytes| try writer.interface.writeAll(bytes),
+        .reader => |r| try io.copy(r, &writer.interface),
     }
 
     try code.appendSlice(gpa, "\"");

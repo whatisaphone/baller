@@ -324,7 +324,8 @@ fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
             const text_pos = std.mem.indexOfNonePos(u8, line, caret_pos + 1, " ") orelse break :msg;
 
             std.debug.assert(message.items.len == 0);
-            try message.writer(gpa).print(
+            try message.print(
+                gpa,
                 "room.scu:{}:{}: {s}",
                 .{ line_number, caret_pos + 1, line[text_pos..] },
             );

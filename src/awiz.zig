@@ -294,9 +294,9 @@ pub fn encode(
             },
             .awiz_wizh => {
                 const fixup = try beginBlockAl(gpa, out, .WIZH);
-                try out.writer(gpa).writeInt(i32, @intFromEnum(wizd.compression), .little);
-                try out.writer(gpa).writeInt(i32, bmp_header.width(), .little);
-                try out.writer(gpa).writeInt(i32, bmp_header.height(), .little);
+                try utils.writeInt(gpa, out, i32, @intFromEnum(wizd.compression), .little);
+                try utils.writeInt(gpa, out, i32, bmp_header.width(), .little);
+                try utils.writeInt(gpa, out, i32, bmp_header.height(), .little);
                 endBlockAl(out, fixup);
             },
             .awiz_wizd => |_| {

@@ -5,7 +5,6 @@ const OldBlockReader = @import("block_reader.zig").OldBlockReader;
 const oldFixedBlockReader = @import("block_reader.zig").oldFixedBlockReader;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const pathf = @import("pathf.zig");
 const wav = @import("wav.zig");
 
@@ -101,12 +100,7 @@ const State = struct {
     }
 
     fn writeIndent(self: *State, allocator: std.mem.Allocator) !void {
-        try self.writeIndentTo(self.manifest.writer(allocator));
-    }
-
-    fn writeIndentTo(self: *const State, writer: anytype) !void {
-        for (0..self.indent * 4) |_|
-            try writer.writeByte(' ');
+        try self.manifest.appendNTimes(allocator, ' ', self.indent * 4);
     }
 };
 
@@ -194,10 +188,14 @@ fn parseStreamingRaw(
 
     const file = try std.fs.cwd().createFileZ(path.full(), .{});
     defer file.close();
-    try io.copy(iold.limitedReader(state.reader.interface.adaptToOldInterface(), block_len), file);
+    var buf: [4096]u8 = undefined;
+    var writer = file.writer(&buf);
+    try state.reader.interface.streamExact(&writer.interface, block_len);
+    try writer.interface.flush();
 
     try state.writeIndent(allocator);
-    try state.manifest.writer(allocator).print(
+    try state.manifest.print(
+        allocator,
         "raw-block {f} {s}\n",
         .{ block_id, state.curPathRelative() },
     );
@@ -217,7 +215,8 @@ fn parseFixedRaw(
     try fs.writeFileZ(std.fs.cwd(), path.full(), block_raw);
 
     try state.writeIndent(allocator);
-    try state.manifest.writer(allocator).print(
+    try state.manifest.print(
+        allocator,
         "raw-block {f} {s}\n",
         .{ block_id, state.curPathRelative() },
     );
@@ -257,7 +256,7 @@ fn parseTalkFixed(
     var talk_blocks = oldFixedBlockReader(&talk_stream);
 
     try state.writeIndent(allocator);
-    try state.manifest.writer(allocator).print("talk ; T{},{}\n", .{
+    try state.manifest.print(allocator, "talk ; T{},{}\n", .{
         talk_offset,
         talk_raw.len + 8, // Add 8 so len includes block header
     });
@@ -299,7 +298,8 @@ fn parseTalkFixed(
     try wav_stream.interface.flush();
 
     try state.writeIndent(allocator);
-    try state.manifest.writer(allocator).print(
+    try state.manifest.print(
+        allocator,
         "wav-sdat {} {s}\n",
         .{ sdat_raw.len, state.curPathRelative() },
     );

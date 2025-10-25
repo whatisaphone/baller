@@ -90,7 +90,7 @@ fn extractMultInner(
     for (off_indices.slice(), 0..) |index, i| {
         if (i != 0)
             try code.append(gpa, ' ');
-        try code.writer(gpa).print("{}", .{index});
+        try code.print(gpa, "{}", .{index});
     }
 
     try code.appendSlice(gpa, "]\n}\n");
@@ -116,7 +116,7 @@ fn extractDefa(
     var stream: std.io.Reader = .fixed(defa_raw);
     var blocks: FixedBlockReader = .init(&stream, diag);
 
-    try code.writer(gpa).print("    raw-block {s} {{\n", .{"DEFA"});
+    try code.print(gpa, "    raw-block {s} {{\n", .{"DEFA"});
 
     while (!blocks.atEnd()) {
         const block = try blocks.next().block();

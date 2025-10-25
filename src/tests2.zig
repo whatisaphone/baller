@@ -517,9 +517,9 @@ fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *con
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
 
-    var hasher: std.crypto.hash.sha2.Sha256 = .init(.{});
-    try fs.readFileIntoZ(dir, path, hasher.writer());
-    const actual_hash = hasher.finalResult();
+    var sink: std.io.Writer.Hashing(std.crypto.hash.sha2.Sha256) = .init(&.{});
+    try fs.readFileIntoZ(dir, path, &sink.writer);
+    const actual_hash = sink.hasher.finalResult();
 
     if (!std.mem.eql(u8, &actual_hash, &expected_hash))
         return error.TestExpectedEqual;

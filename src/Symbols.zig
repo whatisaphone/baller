@@ -219,10 +219,11 @@ pub fn parsePass(
         error_count += 1;
         if (pass == .reporting) {
             const line_number = line_index + 1;
-            try std.fs.File.stderr().deprecatedWriter().print(
-                "error on line {}\n",
-                .{line_number},
-            );
+
+            var out_buf: [4096]u8 = undefined;
+            var out = std.fs.File.stderr().writer(&out_buf);
+            try out.interface.print("error on line {}\n", .{line_number});
+            try out.interface.flush();
         }
     }
     return error_count;

@@ -6,7 +6,6 @@ const bmp = @import("bmp.zig");
 const writeRawBlock = @import("extract.zig").writeRawBlock;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const utils = @import("utils.zig");
 
 pub const Compression = struct {
@@ -67,7 +66,8 @@ pub fn decode(
     std.debug.assert(bmp_buf.items.len == bmp_size);
 
     try fs.writeFileZ(out_dir, "room.bmp", bmp_buf.items);
-    try code.writer(allocator).print(
+    try code.print(
+        allocator,
         "        bmap {} \"{s}/{s}\"\n",
         .{ compression, out_path, "room.bmp" },
     );
@@ -88,7 +88,7 @@ pub fn decode(
 fn decompressBmap(
     diag: *const Diagnostic.ForBinaryFile,
     compression: u8,
-    reader: anytype,
+    reader: *std.io.Reader,
     end: u32,
     out: *std.ArrayListUnmanaged(u8),
 ) !void {

@@ -2,6 +2,7 @@ const std = @import("std");
 
 const BlockId = @import("block_id.zig").BlockId;
 const io = @import("io.zig");
+const utils = @import("utils.zig");
 
 pub fn beginBlock(w: *std.io.Writer, id: BlockId) !u32 {
     const block_start = fxbc.pos(w);
@@ -67,7 +68,7 @@ pub const fxbc = struct {
 pub fn beginBlockAl(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), id: BlockId) !u32 {
     const block_start: u32 = @intCast(out.items.len);
 
-    try out.writer(gpa).writeInt(BlockId.Raw, id.raw(), .little);
+    try utils.writeInt(gpa, out, BlockId.Raw, id.raw(), .little);
     // Leave the length as a placeholder to be filled in later
     _ = try out.addManyAsSlice(gpa, 4);
 

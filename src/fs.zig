@@ -15,7 +15,8 @@ pub fn readFile(
     const buf = try allocator.alloc(u8, stat.size);
     errdefer allocator.free(buf);
 
-    try file.deprecatedReader().readNoEof(buf);
+    var reader = file.reader(&.{});
+    try reader.interface.readSliceAll(buf);
     return buf;
 }
 
@@ -31,7 +32,8 @@ pub fn readFileZ(
     const buf = try allocator.alloc(u8, stat.size);
     errdefer allocator.free(buf);
 
-    try file.deprecatedReader().readNoEof(buf);
+    var reader = file.reader(&.{});
+    try reader.interface.readSliceAll(buf);
     return buf;
 }
 
@@ -42,18 +44,18 @@ pub fn writeFileZ(dir: std.fs.Dir, sub_path: [*:0]const u8, bytes: []const u8) !
     try file.writeAll(bytes);
 }
 
-pub fn readFileInto(dir: std.fs.Dir, sub_path: []const u8, output: anytype) !void {
+pub fn readFileInto(dir: std.fs.Dir, sub_path: []const u8, output: *std.io.Writer) !void {
     const file = try dir.openFile(sub_path, .{});
     defer file.close();
-
-    try io.copy(file, output);
+    var reader = file.reader(&.{});
+    try io.copy(&reader.interface, output);
 }
 
-pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: anytype) !void {
+pub fn readFileIntoZ(dir: std.fs.Dir, sub_path: [*:0]const u8, output: *std.io.Writer) !void {
     const file = try dir.openFileZ(sub_path, .{});
     defer file.close();
-
-    try io.copy(file, output);
+    var reader = file.reader(&.{});
+    try io.copy(&reader.interface, output);
 }
 
 pub fn makeDirIfNotExist(dir: std.fs.Dir, sub_path: []const u8) !void {

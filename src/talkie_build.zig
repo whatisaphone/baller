@@ -9,7 +9,6 @@ const endBlock = @import("block_writer.zig").endBlock;
 const writeFixups = @import("block_writer.zig").writeFixups;
 const fs = @import("fs.zig");
 const io = @import("io.zig");
-const iold = @import("iold.zig");
 const pathf = @import("pathf.zig");
 const utils = @import("utils.zig");
 const wav = @import("wav.zig");
@@ -213,10 +212,7 @@ fn buildTalk(state: *State) !void {
         }
 
         const sdat_start = try beginBlock(state.output_writer, .SDAT);
-        try io.copy(
-            iold.limitedReader(wav_reader.interface.adaptToOldInterface(), data_size),
-            state.output_writer,
-        );
+        _ = try wav_reader.interface.streamExact(state.output_writer, data_size);
         try endBlock(state.output_writer, &state.fixups, sdat_start);
     }
 

@@ -169,8 +169,9 @@ fn dumpRaw(cx: *Cx, block: *const Block, prefix: ?[8]u8) !void {
 
     const file = try cx.dir.createFileZ(name, .{});
     defer file.close();
+    var file_writer = file.writer(&.{});
 
     if (prefix) |*b|
-        try file.writeAll(b);
-    try io.copy(cx.in.adaptToOldInterface(), file);
+        try file_writer.interface.writeAll(b);
+    try io.copy(cx.in, &file_writer.interface);
 }
