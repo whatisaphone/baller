@@ -18,7 +18,7 @@ pub fn extract(
     room_palette: *const [0x300]u8,
     room_dir: std.fs.Dir,
     room_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var in: std.io.Reader = .fixed(mult_raw);
     extractMultInner(gpa, diag, name, &in, room_palette, room_dir, room_path, code) catch |err| {
@@ -36,7 +36,7 @@ fn extractMultInner(
     room_palette: *const [0x300]u8,
     room_dir: std.fs.Dir,
     room_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var mult_path_buf: [Ast.max_room_name_len + 1 + Symbols.max_name_len + 1]u8 = undefined;
     const mult_path = std.fmt.bufPrintZ(&mult_path_buf, "{s}/{s}", .{ room_path, name }) catch unreachable;
@@ -109,7 +109,7 @@ fn extractDefa(
     defa_raw: []const u8,
     out_dir: std.fs.Dir,
     out_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !?*const [0x300]u8 {
     var rgbs: ?*const [0x300]u8 = null;
 

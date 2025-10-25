@@ -314,7 +314,7 @@ pub fn run(
     try pool.init(.{ .allocator = gpa, .n_jobs = n_jobs });
     defer pool.deinit();
 
-    var code: std.ArrayListUnmanaged(u8) = .empty;
+    var code: std.ArrayList(u8) = .empty;
     defer code.deinit(gpa);
     try code.ensureTotalCapacity(gpa, 8 << 10);
 
@@ -484,7 +484,7 @@ fn extractIndex(
     index_name: [:0]const u8,
     game: games.Game,
     output_dir: std.fs.Dir,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !struct { Index, []u8 } {
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, index_name);
 
@@ -645,7 +645,7 @@ fn readDirectory(
     gpa: std.mem.Allocator,
     fba: *std.heap.FixedBufferAllocator,
     blocks: *FixedBlockReader,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     block_id: BlockId,
     expected_len: u32,
 ) !Directory {
@@ -716,7 +716,7 @@ fn extractRawIndexBlock(
     gpa: std.mem.Allocator,
     blocks: *FixedBlockReader,
     output_dir: std.fs.Dir,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     block_id: BlockId,
 ) !void {
     const block = try blocks.expect(block_id).block();
@@ -753,7 +753,7 @@ fn extractDisk(
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
     disk_number: u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     try code.print(cx.gpa, "disk {} {{\n", .{disk_number});
 
@@ -797,7 +797,7 @@ const Event = union(enum) {
     code_chunk: struct {
         index: u32,
         section: Section,
-        code: std.ArrayListUnmanaged(u8),
+        code: std.ArrayList(u8),
     },
 };
 
@@ -815,7 +815,7 @@ fn extractRoom(
     disk_number: u8,
     in: *std.io.Reader,
     disk_diag: *const Diagnostic.ForBinaryFile,
-    project_code: *std.ArrayListUnmanaged(u8),
+    project_code: *std.ArrayList(u8),
 ) !void {
     const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbcl.pos(in)) orelse
         return error.BadData;
@@ -867,7 +867,7 @@ const RoomContext = struct {
         return result;
     }
 
-    fn sendSync(self: *RoomContext, section: Section, code: std.ArrayListUnmanaged(u8)) !void {
+    fn sendSync(self: *RoomContext, section: Section, code: std.ArrayList(u8)) !void {
         self.events.send(.{ .code_chunk = .{
             .index = try self.claimChunkIndex(),
             .section = section,
@@ -889,7 +889,7 @@ const RoomContext = struct {
         self: *const RoomContext,
         chunk_index: u16,
         section: Section,
-        code: std.ArrayListUnmanaged(u8),
+        code: std.ArrayList(u8),
     ) void {
         self.events.send(.{ .code_chunk = .{
             .index = chunk_index,
@@ -957,7 +957,7 @@ fn readRoomJob(
 }
 
 fn emitRoomVars(cx: *RoomContext) !void {
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.cx.gpa);
 
     try out.append(cx.cx.gpa, '\n');
@@ -1025,7 +1025,7 @@ fn extractRmda(
     // local script numbers for the decompiler. This is needed specifically for
     // Backyard Baseball 2001 teaminfo lsc2204, which references lsc2173, which
     // does not actually exist.
-    var buffered_blocks: std.ArrayListUnmanaged(BufferedBlock) = .empty;
+    var buffered_blocks: std.ArrayList(BufferedBlock) = .empty;
     defer {
         for (buffered_blocks.items) |*b|
             cx.cx.gpa.free(b.data);
@@ -1057,7 +1057,7 @@ fn extractRmda(
                 try addBlockToBuffer(cx, in, &block, &buffered_blocks);
             },
             else => {
-                var code: std.ArrayListUnmanaged(u8) = .empty;
+                var code: std.ArrayList(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
                 try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = in }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
@@ -1111,7 +1111,7 @@ fn addBlockToBuffer(
     cx: *RoomContext,
     in: *std.io.Reader,
     block: *const Block,
-    buffered_blocks: *std.ArrayListUnmanaged(BufferedBlock),
+    buffered_blocks: *std.ArrayList(BufferedBlock),
 ) !void {
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
@@ -1137,7 +1137,7 @@ fn addBlockToBuffer(
 fn spawnBufferedBlockJobs(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
-    buffered_blocks: *std.ArrayListUnmanaged(BufferedBlock),
+    buffered_blocks: *std.ArrayList(BufferedBlock),
 ) !void {
     _ = cx.lsc_mask_state.collecting;
     cx.lsc_mask_state = .{ .frozen = {} };
@@ -1230,7 +1230,7 @@ fn extractRmimAndPalsJob(
     var diag = disk_diag.child(block.start, .{ .block_id = .RMIM });
     diag.cap_level = true;
 
-    var code: std.ArrayListUnmanaged(u8) = .empty;
+    var code: std.ArrayList(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
     var tx: Transaction = .init(&code);
@@ -1256,7 +1256,7 @@ fn extractRmimInner(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
 
@@ -1285,7 +1285,7 @@ fn extractRmdaChildJob(
     var diag = disk_diag.child(block.start, .{ .block_id = block.id });
     diag.cap_level = true;
 
-    var code: std.ArrayListUnmanaged(u8) = .empty;
+    var code: std.ArrayList(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
     var tx: Transaction = .init(&code);
@@ -1337,7 +1337,7 @@ fn extractObim(
     cx: *const RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     try obim.extract(cx.cx.gpa, diag, raw, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
 }
@@ -1356,7 +1356,7 @@ fn decodeObcd(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var stream: std.io.Reader = .fixed(raw);
     var obcd_blocks: FixedBlockReader = .init(&stream, diag);
@@ -1416,7 +1416,7 @@ fn disassembleVerb(
     object: u16,
     verb: u8,
     bytecode: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var diagnostic: DisasmDiagnostic = .init;
 
@@ -1457,7 +1457,7 @@ fn decompileVerb(
     object: u16,
     verb: u8,
     bytecode: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const id: Symbols.ScriptId = .{ .object = .{
         .room = cx.room_number,
@@ -1499,7 +1499,7 @@ fn extractEncdExcd(
     diag: *const Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     chunk_index: u16,
 ) bool {
     const edge: EncdExcd = .from(block_id);
@@ -1533,7 +1533,7 @@ fn extractEncdExcdDisassemble(
     diag: *const Diagnostic.ForBinaryFile,
     edge: EncdExcd,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var diagnostic: DisasmDiagnostic = .init;
     const id: Symbols.ScriptId = switch (edge) {
@@ -1574,7 +1574,7 @@ fn extractEncdExcdDecompile(
     diag: *const Diagnostic.ForBinaryFile,
     edge: EncdExcd,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     // If there's no script block at all, the compiler emits a zero-length
     // ENCD/EXCD. If there's an empty script block, the compiler emits ENCD/EXCD
@@ -1595,7 +1595,7 @@ fn extractEncdExcdDecompileInner(
     diag: *const Diagnostic.ForBinaryFile,
     edge: EncdExcd,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const id: Symbols.ScriptId = switch (edge) {
         .encd => .{ .enter = .{ .room = cx.room_number } },
@@ -1638,7 +1638,7 @@ fn extractLsc(
     diag: *Diagnostic.ForBinaryFile,
     block_id: BlockId,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     chunk_index: u16,
 ) bool {
     const block_type: LocalScriptBlockType = .from(block_id);
@@ -1693,7 +1693,7 @@ fn extractLscDisassemble(
     block_type: LocalScriptBlockType,
     script_number: u32,
     bytecode: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var diagnostic: DisasmDiagnostic = .init;
 
@@ -1745,7 +1745,7 @@ fn extractLscDecompile(
     block_type: LocalScriptBlockType,
     script_number: u32,
     bytecode: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const id: Symbols.ScriptId = .{ .local = .{
         .room = cx.room_number,
@@ -1803,7 +1803,7 @@ fn extractGlobJob(
         else => null,
     });
 
-    var code: std.ArrayListUnmanaged(u8) = .empty;
+    var code: std.ArrayList(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
 
     const glob_number = findGlobNumber(cx.cx.index, block.id, cx.room_number, block.offset()) orelse {
@@ -1867,13 +1867,13 @@ fn extractGlobJob(
 const Transaction = struct {
     code_initial_len: u32,
 
-    fn init(code: *std.ArrayListUnmanaged(u8)) Transaction {
+    fn init(code: *std.ArrayList(u8)) Transaction {
         return .{
             .code_initial_len = @intCast(code.items.len),
         };
     }
 
-    fn rollback(self: *Transaction, code: *std.ArrayListUnmanaged(u8)) void {
+    fn rollback(self: *Transaction, code: *std.ArrayList(u8)) void {
         code.shrinkRetainingCapacity(self.code_initial_len);
         self.* = undefined;
     }
@@ -1886,7 +1886,7 @@ fn tryDecode(
     tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     decode_args: anytype,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) bool {
     const result = @call(.auto, decodeFn, .{ cx, diag } ++ decode_args ++ .{code});
     return handleDecodeResult(result, tx, decoder_name, diag, code);
@@ -1898,7 +1898,7 @@ fn handleDecodeResult(
     tx: *Transaction,
     decoder_name: []const u8,
     diag: *const Diagnostic.ForBinaryFile,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) bool {
     if (result) {
         return true;
@@ -1919,7 +1919,7 @@ fn tryDecodeAndSend(
     tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
     decode_args: anytype,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     chunk_index: u16,
     section: Section,
 ) bool {
@@ -1933,7 +1933,7 @@ fn handleDecodeAndSendResult(
     cx: *const RoomContext,
     tx: *Transaction,
     diag: *const Diagnostic.ForBinaryFile,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     chunk_index: u16,
     section: Section,
 ) bool {
@@ -1950,7 +1950,7 @@ fn extractScrp(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     chunk_index: u16,
 ) bool {
     if (cx.cx.options.scrp == .raw)
@@ -1973,7 +1973,7 @@ fn extractScrpDisassemble(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var diagnostic: DisasmDiagnostic = .init;
 
@@ -2041,7 +2041,7 @@ fn extractScrpDecompile(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
@@ -2069,7 +2069,7 @@ fn extractSound(
     block_id: BlockId,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
     name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.sound, glob_number)});
@@ -2095,7 +2095,7 @@ fn extractAwiz(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var name_buf: utils.TinyArray(u8, Symbols.max_name_len) = .empty;
     name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)});
@@ -2117,7 +2117,7 @@ fn extractMult(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
     name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.image, glob_number)});
@@ -2134,7 +2134,7 @@ fn extractAkos(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var name_buf: utils.TinyArray(u8, Symbols.max_name_len + 1) = .empty;
     name_buf.printAssumeCapacity("{f}", .{cx.cx.symbols.fmtGlobName(.costume, glob_number)});
@@ -2163,7 +2163,7 @@ fn extractTlke(
     diag: *const Diagnostic.ForBinaryFile,
     glob_number: u16,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var stream: std.io.Reader = .fixed(raw);
     var blocks: FixedBlockReader = .init(&stream, diag);
@@ -2191,7 +2191,7 @@ fn writeRawGlob(
     block: *const Block,
     glob_number: u16,
     data: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var filename_buf: utils.TinyArray(u8, Symbols.max_name_len + ".bin".len + 1) = .empty;
     const kind = Symbols.GlobKind.fromBlockId(block.id) orelse unreachable;
@@ -2223,7 +2223,7 @@ pub fn writeRawBlock(
     output_path: ?[]const u8,
     indent: u8,
     filename_pattern: @typeInfo(@TypeOf(writeRawBlockImpl)).@"fn".params[6].type.?,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     try writeRawBlockImpl(gpa, block_id, .{ .bytes = bytes }, output_dir, output_path, indent, filename_pattern, code);
 }
@@ -2248,7 +2248,7 @@ fn writeRawBlockImpl(
         object_block: struct { u16, BlockId },
         symbol_block: []const u8,
     },
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const inline_threshold = 24;
 
@@ -2341,7 +2341,7 @@ fn emitRoom(
     cx: *const Context,
     diagnostic: *Diagnostic,
     room_number: u8,
-    project_code: *std.ArrayListUnmanaged(u8),
+    project_code: *std.ArrayList(u8),
     events: *sync.Channel(Event, 16),
 ) !void {
     var chunks: utils.TinyArray(Chunk, max_room_code_chunks) = .empty;
@@ -2397,7 +2397,7 @@ fn emitRoom(
 
 const Chunk = struct {
     section: Section,
-    code: std.ArrayListUnmanaged(u8),
+    code: std.ArrayList(u8),
 
     fn sectionAsc(_: void, lhs: Chunk, rhs: Chunk) bool {
         return @intFromEnum(lhs.section) < @intFromEnum(rhs.section);
@@ -2414,7 +2414,7 @@ fn extractMusic(
     input_dir: std.fs.Dir,
     index_name: [:0]const u8,
     output_parent_dir: std.fs.Dir,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     var in_path_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const in_path = std.fmt.bufPrintZ(&in_path_buf, "{s}", .{index_name}) catch unreachable;
@@ -2428,7 +2428,7 @@ fn extractMusic(
     try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
 }
 
-fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayListUnmanaged(u8)) !void {
+fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayList(u8)) !void {
     // Store consts as they're emitted, to track duplicates
     var emit_log: std.StringHashMapUnmanaged(i32) = .empty;
     defer emit_log.deinit(cx.gpa);
@@ -2461,7 +2461,7 @@ fn emitConst(
     emit_log: *std.StringHashMapUnmanaged(i32),
     name: []const u8,
     value: i32,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const log_entry = try emit_log.getOrPut(cx.gpa, name);
     if (log_entry.found_existing) {

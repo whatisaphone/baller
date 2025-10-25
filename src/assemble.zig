@@ -21,17 +21,17 @@ pub fn assemble(
     asm_str: []const u8,
     project_scope: *const std.StringHashMapUnmanaged(script.Symbol),
     room_scope: *const std.StringHashMapUnmanaged(script.Symbol),
-) !std.ArrayListUnmanaged(u8) {
+) !std.ArrayList(u8) {
     // map from label name to offset
     var label_offsets: std.StringHashMapUnmanaged(u16) = .empty;
     defer label_offsets.deinit(allocator);
 
-    var label_fixups: std.ArrayListUnmanaged(Fixup) = .empty;
+    var label_fixups: std.ArrayList(Fixup) = .empty;
     defer label_fixups.deinit(allocator);
 
     var locals: utils.TinyArray([]const u8, UsageTracker.max_local_vars) = .empty;
 
-    var bytecode: std.ArrayListUnmanaged(u8) = .empty;
+    var bytecode: std.ArrayList(u8) = .empty;
     errdefer bytecode.deinit(allocator);
     try bytecode.ensureTotalCapacity(allocator, asm_str.len / 8);
 
@@ -83,11 +83,11 @@ fn assembleLine(
     vm: *const lang.Vm,
     scopes: Scopes,
     label_offsets: *std.StringHashMapUnmanaged(u16),
-    label_fixups: *std.ArrayListUnmanaged(Fixup),
+    label_fixups: *std.ArrayList(Fixup),
     locals: *utils.TinyArray([]const u8, UsageTracker.max_local_vars),
     line_number: u32,
     line_full: []const u8,
-    bytecode: *std.ArrayListUnmanaged(u8),
+    bytecode: *std.ArrayList(u8),
 ) !void {
     const line = std.mem.trim(u8, line_full, horizontal_whitespace);
 

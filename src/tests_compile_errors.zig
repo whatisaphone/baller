@@ -304,13 +304,13 @@ fn testRoomError(case_str: []const u8) !void {
 }
 
 fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
-    source: std.ArrayListUnmanaged(u8),
-    message: std.ArrayListUnmanaged(u8),
+    source: std.ArrayList(u8),
+    message: std.ArrayList(u8),
 } {
-    var source: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, combined.len);
+    var source: std.ArrayList(u8) = try .initCapacity(gpa, combined.len);
     errdefer source.deinit(gpa);
 
-    var message: std.ArrayListUnmanaged(u8) = .empty;
+    var message: std.ArrayList(u8) = .empty;
     errdefer message.deinit(gpa);
 
     var line_number: usize = 0;

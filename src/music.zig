@@ -29,7 +29,7 @@ pub fn extract(
     input_path: [:0]const u8,
     output_dir: std.fs.Dir,
     output_path: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
 ) !void {
     const in_file = try fsd.openFileZ(diagnostic, input_dir, input_path);
     defer in_file.close();
@@ -117,7 +117,7 @@ const Cx = struct {
     symbols: *const Symbols,
     in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     output_dir: std.fs.Dir,
     output_path: []const u8,
 };
@@ -229,11 +229,11 @@ pub fn build(
     try fxbc.skip(out, sgens_total_size);
 
     // Buffer SGENs here until then
-    var sgens: std.ArrayListUnmanaged(u8) = try .initCapacity(gpa, sgens_total_size);
+    var sgens: std.ArrayList(u8) = try .initCapacity(gpa, sgens_total_size);
     defer sgens.deinit(gpa);
 
     // TODO: avoid allocating, copy streams directly
-    var buf: std.ArrayListUnmanaged(u8) = .empty;
+    var buf: std.ArrayList(u8) = .empty;
     defer buf.deinit(gpa);
     try buf.ensureTotalCapacity(gpa, 2 << 20);
 

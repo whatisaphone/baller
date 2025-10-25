@@ -44,7 +44,7 @@ pub fn decode(
     akos_raw: []const u8,
     out_path: []const u8,
     out_dir: std.fs.Dir,
-    manifest: *std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayList(u8),
 ) !void {
     var stream: std.io.Reader = .fixed(akos_raw);
     var blocks = oldFixedBlockReader(&stream);
@@ -120,7 +120,7 @@ fn decodeCel(
     cel: Cel,
     out_path: []const u8,
     out_dir: std.fs.Dir,
-    manifest: *std.ArrayListUnmanaged(u8),
+    manifest: *std.ArrayList(u8),
 ) !void {
     const codec = std.meta.intToEnum(CompressionCodec, akhd.cel_compression_codec) catch
         return error.CelDecode;
@@ -207,7 +207,7 @@ fn byleParams(akpl_len: usize) ?struct { u8, u3 } {
 
 fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
     var data_stream: std.io.Reader = .fixed(cel.data);
-    var pixels_buf: std.ArrayListUnmanaged(u8) = .initBuffer(pixels);
+    var pixels_buf: std.ArrayList(u8) = .initBuffer(pixels);
     try awiz.decodeRle(cel.info.width, cel.info.height, &data_stream, &pixels_buf);
     // ensure buffer is fully initialized
     if (pixels_buf.items.len != pixels_buf.capacity)
@@ -216,9 +216,9 @@ fn decodeCelTrle(cel: Cel, pixels: []u8) !void {
 
 const EncodeState = struct {
     project_dir: std.fs.Dir,
-    akci: std.ArrayListUnmanaged(Akci) = .empty,
-    cd_offsets: std.ArrayListUnmanaged(u32) = .empty,
-    akcd: std.ArrayListUnmanaged(u8) = .empty,
+    akci: std.ArrayList(Akci) = .empty,
+    cd_offsets: std.ArrayList(u32) = .empty,
+    akcd: std.ArrayList(u8) = .empty,
 
     fn deinit(self: *EncodeState, allocator: std.mem.Allocator) void {
         self.akcd.deinit(allocator);
@@ -235,7 +235,7 @@ pub fn encode(
     awiz_strategy: awiz.EncodingStrategy,
     room_number: u8,
     akos_node_index: Ast.NodeIndex,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const file = &project.files.items[room_number].?;
     const akos = &file.ast.nodes.at(akos_node_index).akos;
@@ -343,7 +343,7 @@ fn encodeCelByleRle(
     loc: Diagnostic.Location,
     bitmap: *const bmp.Bmp8,
     akpl: []const u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const run_mask, const color_shift = byleParams(akpl.len) orelse return error.BadData;
 
@@ -392,11 +392,7 @@ fn encodeCelByleRle(
     try flushRun(allocator, &state, out);
 }
 
-fn flushRun(
-    allocator: std.mem.Allocator,
-    state: *CelEncodeState,
-    out: *std.ArrayListUnmanaged(u8),
-) !void {
+fn flushRun(allocator: std.mem.Allocator, state: *CelEncodeState, out: *std.ArrayList(u8)) !void {
     const index = state.color_map[state.color];
     if (index == 0xff) {
         state.diagnostic.errAt(
@@ -419,16 +415,12 @@ fn encodeCelTrle(
     allocator: std.mem.Allocator,
     bitmap: *const bmp.Bmp8,
     strategy: awiz.EncodingStrategy,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try awiz.encodeRle(allocator, bitmap.*, strategy, out);
 }
 
-fn flushCels(
-    gpa: std.mem.Allocator,
-    state: *EncodeState,
-    out: *std.ArrayListUnmanaged(u8),
-) !void {
+fn flushCels(gpa: std.mem.Allocator, state: *EncodeState, out: *std.ArrayList(u8)) !void {
     if (state.akci.items.len == 0)
         return;
 

@@ -134,7 +134,7 @@ pub fn SafeManyPointer(ManyPtr: type) type {
 
 pub fn growArrayList(
     T: type,
-    xs: *std.ArrayListUnmanaged(T),
+    xs: *std.ArrayList(T),
     allocator: std.mem.Allocator,
     minimum_len: usize,
     fill: T,
@@ -304,7 +304,7 @@ pub fn bitSetEnsureAddressable(
 
 pub fn writeInt(
     gpa: std.mem.Allocator,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
     comptime T: type,
     value: T,
     comptime endian: std.builtin.Endian,

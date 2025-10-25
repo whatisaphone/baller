@@ -14,7 +14,7 @@ const Ast = @This();
 root: NodeIndex,
 nodes: keyed.List(NodeIndex, Node),
 node_tokens: keyed.List(NodeIndex, lexer.TokenIndex),
-extra: std.ArrayListUnmanaged(u32),
+extra: std.ArrayList(u32),
 strings: StringTable,
 
 pub fn deinit(self: *Ast, gpa: std.mem.Allocator) void {
@@ -327,7 +327,7 @@ pub const ExtraSlice = struct {
 };
 
 const StringTable = struct {
-    buf: std.ArrayListUnmanaged(u8),
+    buf: std.ArrayList(u8),
 
     pub const empty: StringTable = .{ .buf = .empty };
 

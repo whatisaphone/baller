@@ -564,7 +564,7 @@ fn buildDummyPals() [extract.expected_pals_size]u8 {
     const na = utils.null_allocator;
 
     var result: [extract.expected_pals_size]u8 = undefined;
-    var out: std.ArrayListUnmanaged(u8) = .initBuffer(&result);
+    var out: std.ArrayList(u8) = .initBuffer(&result);
 
     const wrap_start = beginBlockAl(na, &out, .WRAP) catch unreachable;
 

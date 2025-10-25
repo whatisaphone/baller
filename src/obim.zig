@@ -17,7 +17,7 @@ pub fn extract(
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
     palette: *const [0x300]u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
@@ -87,7 +87,7 @@ fn decodeSmap(
     im_number: u8,
     smap_raw: []const u8,
     palette: *const [0x300]u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
@@ -137,7 +137,7 @@ fn decodeSmapData(imhd: *align(1) const Imhd, smap_raw: []const u8, out: []u8) !
 
 fn writeCompressionTypes(
     gpa: std.mem.Allocator,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     imhd: *align(1) const Imhd,
     smap_raw: []const u8,
 ) !void {
@@ -292,7 +292,7 @@ pub fn encodeSmap(
     loc: Diagnostic.Location,
     bmp_raw: []u8,
     strip_compression: []const u32,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     var bmp_err: bmp.HeaderError = undefined;
     const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
@@ -337,7 +337,7 @@ fn encodeStrip(
     height: u31,
     pixels: []const u8,
     compression: u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try out.append(gpa, compression);
     switch (compression) {
@@ -356,7 +356,7 @@ fn encodeZigZagV(
     height: u31,
     pixels: []const u8,
     compression: u8,
-    out_al: *std.ArrayListUnmanaged(u8),
+    out_al: *std.ArrayList(u8),
 ) !void {
     const bpp: u4 = @intCast(compression % 10);
 
@@ -423,7 +423,7 @@ fn encodeRMajMin(
     height: u31,
     pixels: []const u8,
     compression: u8,
-    out_al: *std.ArrayListUnmanaged(u8),
+    out_al: *std.ArrayList(u8),
 ) !void {
     const bpp: u4 = @intCast(compression % 10);
 

@@ -54,7 +54,7 @@ pub fn OrderedReceiver(T: type, comptime capacity: usize) type {
 
         channel: *Channel(OrderedEvent(T), capacity),
         // TODO: optimize mem usage
-        buffer: std.ArrayListUnmanaged(?T),
+        buffer: std.ArrayList(?T),
         index: u16,
 
         pub fn init(channel: *Channel(OrderedEvent(T), capacity)) Self {

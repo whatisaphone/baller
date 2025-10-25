@@ -108,7 +108,7 @@ fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args:
     self.add(level, .fromOwnedSlice(text));
 }
 
-fn add(self: *Diagnostic, level: Level, text: std.ArrayListUnmanaged(u8)) void {
+fn add(self: *Diagnostic, level: Level, text: std.ArrayList(u8)) void {
     if (live_spew) {
         var buf: [4096]u8 = undefined;
         var writer = std.fs.File.stderr().writer(&buf);

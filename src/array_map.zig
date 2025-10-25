@@ -6,7 +6,7 @@ pub fn ArrayMap(V: type) type {
     return struct {
         const Self = @This();
 
-        items: std.ArrayListUnmanaged(?V),
+        items: std.ArrayList(?V),
 
         pub const empty: Self = .{
             .items = .empty,

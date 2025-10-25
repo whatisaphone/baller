@@ -29,7 +29,7 @@ pub fn run(
     /// Bitmask of which local scripts exist in the room. Any script in the mask
     /// is eligible to be emitted by name instead of by number.
     lsc_mask: *const UsageTracker.LocalScripts,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
     indent: u16,
     usage: *UsageTracker,
 ) !void {
@@ -130,8 +130,8 @@ fn scanBasicBlocks(
     gpa: std.mem.Allocator,
     vm: *const lang.Vm,
     bytecode: []const u8,
-) !std.ArrayListUnmanaged(BasicBlock) {
-    var result: std.ArrayListUnmanaged(BasicBlock) = .empty;
+) !std.ArrayList(BasicBlock) {
+    var result: std.ArrayList(BasicBlock) = .empty;
     errdefer result.deinit(gpa);
     try result.ensureTotalCapacity(gpa, bytecode.len / 16);
 
@@ -185,7 +185,7 @@ fn jumpTarget(ins: *const lang.Ins, bytecode_len: u16) !u16 {
 
 fn insertBasicBlock(
     gpa: std.mem.Allocator,
-    basic_blocks: *std.ArrayListUnmanaged(BasicBlock),
+    basic_blocks: *std.ArrayList(BasicBlock),
     end: u16,
     exit: BasicBlockExit,
 ) !void {
@@ -246,13 +246,13 @@ const DecompileCx = struct {
     op_map: *const std.EnumArray(lang.Op, Op),
     basic_blocks: []BasicBlock,
 
-    pending_basic_blocks: std.ArrayListUnmanaged(u16),
+    pending_basic_blocks: std.ArrayList(u16),
     stack: utils.TinyArray(ExprIndex, 80),
     str_stack: utils.TinyArray(ExprIndex, 3),
-    stmts: std.ArrayListUnmanaged(Stmt),
-    stmt_ends: std.ArrayListUnmanaged(u16),
-    exprs: std.ArrayListUnmanaged(Expr),
-    extra: std.ArrayListUnmanaged(ExprIndex),
+    stmts: std.ArrayList(Stmt),
+    stmt_ends: std.ArrayList(u16),
+    exprs: std.ArrayList(Expr),
+    extra: std.ArrayList(ExprIndex),
     usage: *UsageTracker,
 };
 
@@ -1077,10 +1077,10 @@ const StructuringCx = struct {
     stmts: utils.SafeManyPointer([*]Stmt),
     stmt_ends: utils.SafeManyPointer([*]u16),
     exprs: utils.SafeManyPointer([*]const Expr),
-    extra: *std.ArrayListUnmanaged(ExprIndex),
+    extra: *std.ArrayList(ExprIndex),
 
-    queue: std.ArrayListUnmanaged(NodeIndex),
-    nodes: std.ArrayListUnmanaged(Node),
+    queue: std.ArrayList(NodeIndex),
+    nodes: std.ArrayList(Node),
     /// debug only, used to assert that all nodes are scanned once per phase
     trail: if (builtin.mode == .Debug) std.DynamicBitSetUnmanaged else void,
 };
@@ -2392,16 +2392,13 @@ fn chopEndStmts(cx: *StructuringCx, ni: NodeIndex, len: u16) void {
         cx.stmt_ends.get(ss.last());
 }
 
-fn getExtra2(
-    extra: *const std.ArrayListUnmanaged(ExprIndex),
-    slice: ExtraSlice,
-) []const ExprIndex {
+fn getExtra2(extra: *const std.ArrayList(ExprIndex), slice: ExtraSlice) []const ExprIndex {
     return extra.items[slice.start..][0..slice.len];
 }
 
 fn storeExtra2(
     gpa: std.mem.Allocator,
-    extra: *std.ArrayListUnmanaged(ExprIndex),
+    extra: *std.ArrayList(ExprIndex),
     items: []const ExprIndex,
 ) !ExtraSlice {
     const start: u16 = @intCast(extra.items.len);
@@ -2413,13 +2410,10 @@ fn storeExtra2(
 const FindJumpTargetsCx = struct {
     gpa: std.mem.Allocator,
     nodes: utils.SafeManyPointer([*]const Node),
-    result: std.ArrayListUnmanaged(u16),
+    result: std.ArrayList(u16),
 };
 
-fn findJumpTargets(
-    gpa: std.mem.Allocator,
-    nodes: []const Node,
-) !std.ArrayListUnmanaged(u16) {
+fn findJumpTargets(gpa: std.mem.Allocator, nodes: []const Node) !std.ArrayList(u16) {
     var cx: FindJumpTargetsCx = .{
         .gpa = gpa,
         .nodes = .init(nodes),
@@ -2480,7 +2474,7 @@ fn findJumpTargetsInSingleNode(cx: *FindJumpTargetsCx, ni: NodeIndex) !void {
     }
 }
 
-fn insertSortedNoDup(gpa: std.mem.Allocator, xs: *std.ArrayListUnmanaged(u16), item: u16) !void {
+fn insertSortedNoDup(gpa: std.mem.Allocator, xs: *std.ArrayList(u16), item: u16) !void {
     const index = std.sort.lowerBound(u16, xs.items, item, orderU16);
     if (index != xs.items.len and xs.items[index] == item)
         return;
@@ -2510,7 +2504,7 @@ const EmitCx = struct {
     types: *const ArrayMap(Symbols.TypeIndex),
     jump_targets: []const u16,
 
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
     indent: u16,
 };
 
@@ -2871,7 +2865,7 @@ fn emitExpr(
 
 pub fn emitStringContents(
     gpa: std.mem.Allocator,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
     str: []const u8,
 ) !void {
     for (str) |c| {

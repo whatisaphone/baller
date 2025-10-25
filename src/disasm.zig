@@ -131,8 +131,8 @@ fn findJumpTargets(
     allocator: std.mem.Allocator,
     vm: *const lang.Vm,
     bytecode: []const u8,
-) !std.ArrayListUnmanaged(u16) {
-    var targets: std.ArrayListUnmanaged(u16) = .empty;
+) !std.ArrayList(u16) {
+    var targets: std.ArrayList(u16) = .empty;
     errdefer targets.deinit(allocator);
     try targets.ensureUnusedCapacity(allocator, bytecode.len / 32);
 
@@ -154,7 +154,7 @@ fn findJumpTargets(
 
 fn insertSortedNoDup(
     allocator: std.mem.Allocator,
-    list: *std.ArrayListUnmanaged(u16),
+    list: *std.ArrayList(u16),
     item: u16,
 ) !void {
     const index = std.sort.upperBound(u16, list.items, item, orderU16);

@@ -407,7 +407,7 @@ fn emitIndex(cx: *const Cx) !void {
     try writeFixups(&out_direct, out, fixups.items);
 }
 
-fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayListUnmanaged(u8)) !void {
+fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayList(u8)) !void {
     var data = data_mut;
     defer data.deinit(cx.gpa);
 

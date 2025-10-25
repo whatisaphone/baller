@@ -6,7 +6,7 @@ const lexer = @import("lexer.zig");
 const Project = @This();
 
 /// 0 is project.scu; 1+ are the room scus indexed by room number
-files: std.ArrayListUnmanaged(?SourceFile),
+files: std.ArrayList(?SourceFile),
 
 pub const empty: Project = .{
     .files = .empty,

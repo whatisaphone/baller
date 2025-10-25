@@ -31,7 +31,7 @@ pub fn decode(
     awiz_raw: []const u8,
     default_palette: *const [0x300]u8,
     name: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     indent: u8,
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -49,7 +49,7 @@ fn decodeInner(
     reader: *std.io.Reader,
     default_palette: *const [0x300]u8,
     name: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     indent: u8,
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -147,7 +147,7 @@ fn decodeUncompressed(
     height: u31,
     palette: *const [0x300]u8,
     reader: *std.io.Reader,
-) !std.ArrayListUnmanaged(u8) {
+) !std.ArrayList(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
     errdefer bmp_writer.deinit();
@@ -175,7 +175,7 @@ pub fn decodeRleToBmp(
     height: u31,
     palette: *const [0x300]u8,
     reader: *std.io.Reader,
-) !std.ArrayListUnmanaged(u8) {
+) !std.ArrayList(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
     var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
     errdefer bmp_writer.deinit();
@@ -196,7 +196,7 @@ pub fn decodeRle(
     width: u31,
     height: u31,
     reader: *std.io.Reader,
-    bmp_buf: *std.ArrayListUnmanaged(u8),
+    bmp_buf: *std.ArrayList(u8),
 ) !void {
     for (0..height) |_| {
         const out_row_end = bmp_buf.items.len + width;
@@ -231,7 +231,7 @@ fn decodeUncompressed16bit(
     width: u31,
     height: u31,
     reader: *std.io.Reader,
-) !std.ArrayListUnmanaged(u8) {
+) !std.ArrayList(u8) {
     const bmp_file_size = bmp.calcFileSize15(width, height);
     var bmp_writer: std.io.Writer.Allocating = try .initCapacity(allocator, bmp_file_size);
     errdefer bmp_writer.deinit();
@@ -262,7 +262,7 @@ pub fn encode(
     file: *const Project.SourceFile,
     children: Ast.ExtraSlice,
     strategy: EncodingStrategy,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     // First find the bitmap block so we can preload all data before we start
 
@@ -340,7 +340,7 @@ pub const placeholder_palette = placeholder_palette: {
     break :placeholder_palette result;
 };
 
-pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp8, out: *std.ArrayListUnmanaged(u8)) !void {
+pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp8, out: *std.ArrayList(u8)) !void {
     for (header.palette) |color| {
         try out.append(gpa, color.rgbRed);
         try out.append(gpa, color.rgbGreen);
@@ -351,7 +351,7 @@ pub fn writeRgbs(gpa: std.mem.Allocator, header: bmp.Bmp8, out: *std.ArrayListUn
 pub fn encodeUncompressed(
     gpa: std.mem.Allocator,
     header: bmp.Bmp8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, header.width * header.height);
     var rows = header.iterRows();
@@ -362,7 +362,7 @@ pub fn encodeUncompressed(
 pub fn encodeUncompressed15Bit(
     gpa: std.mem.Allocator,
     header: bmp.Bmp15,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, header.width * header.height * @sizeOf(u16));
     var rows = header.iterRows();
@@ -374,7 +374,7 @@ pub fn encodeRle(
     gpa: std.mem.Allocator,
     header: bmp.Bmp8,
     strategy: EncodingStrategy,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, header.width * header.height / 4);
     var rows = header.iterRows();

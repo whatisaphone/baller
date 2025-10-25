@@ -69,9 +69,9 @@ const State = struct {
     block_seqs: *std.AutoArrayHashMapUnmanaged(BlockId, u32),
     cur_path: *pathf.Path,
     path_rel_start: pathf.PathLen,
-    manifest: std.ArrayListUnmanaged(u8),
+    manifest: std.ArrayList(u8),
     indent: u8,
-    block_buf: std.ArrayListUnmanaged(u8),
+    block_buf: std.ArrayList(u8),
 
     fn readerPos(self: *const State) u32 {
         return @intCast(self.reader.logicalPos());

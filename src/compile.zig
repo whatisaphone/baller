@@ -21,7 +21,7 @@ pub fn compile(
     root_node: Ast.NodeIndex,
     param_names: Ast.ExtraSlice,
     statements: Ast.ExtraSlice,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     try out.ensureUnusedCapacity(gpa, statements.len * 16);
 
@@ -93,10 +93,10 @@ const Cx = struct {
     lex: *const lexer.Lex,
     ast: *const Ast,
 
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
     local_vars: utils.TinyArray(?[]const u8, UsageTracker.max_local_vars),
     label_offsets: std.StringHashMapUnmanaged(u16),
-    label_fixups: std.ArrayListUnmanaged(struct { offset: u16, label_name: []const u8 }),
+    label_fixups: std.ArrayList(struct { offset: u16, label_name: []const u8 }),
 };
 
 fn emitBody(cx: *Cx, slice: Ast.ExtraSlice) !void {

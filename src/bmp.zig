@@ -417,7 +417,7 @@ pub fn writePlaceholderPalette(out: *std.io.Writer) !void {
         });
 }
 
-pub fn padRow(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), row_size: u31) !void {
+pub fn padRow(gpa: std.mem.Allocator, out: *std.ArrayList(u8), row_size: u31) !void {
     // Per the BMP spec, align each row to a multiple of 4 bytes
     const mask = row_align - 1;
     const bytes = mask - ((row_size + mask) & mask);
@@ -425,7 +425,7 @@ pub fn padRow(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), row_size
         try out.append(gpa, 0);
 }
 
-pub fn padRow15(gpa: std.mem.Allocator, out: *std.ArrayListUnmanaged(u8), width: u31) !void {
+pub fn padRow15(gpa: std.mem.Allocator, out: *std.ArrayList(u8), width: u31) !void {
     const row_size = width * @sizeOf(u16);
     return padRow(gpa, out, row_size);
 }

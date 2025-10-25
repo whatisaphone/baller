@@ -17,7 +17,7 @@ pub fn extract(
     diag: *const Diagnostic.ForBinaryFile,
     name: []const u8,
     raw: []const u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
@@ -51,7 +51,7 @@ pub fn build(
     project_dir: std.fs.Dir,
     file: *const Project.SourceFile,
     children: Ast.ExtraSlice,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     for (file.ast.getExtra(children)) |node| {
         switch (file.ast.nodes.at(node).*) {
@@ -122,7 +122,7 @@ fn readWav(
     loc: Diagnostic.Location,
     dir: std.fs.Dir,
     path: []const u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     var file = try fsd.openFile(diagnostic, loc, dir, path);
     defer file.close();

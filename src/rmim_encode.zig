@@ -15,7 +15,7 @@ pub fn encode(
     target: games.Target,
     compression: u8,
     bmp_raw: []u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     var bmp_err: bmp.HeaderError = undefined;
     const bmp_header = bmp.readHeader(bmp_raw, &bmp_err) catch
@@ -38,7 +38,7 @@ fn compressBmap(
     header: bmp.Bmp8,
     target: games.Target,
     compression: u8,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     var writer: std.io.Writer.Allocating = .fromArrayList(gpa, out);
     defer out.* = writer.toArrayList();

@@ -12,7 +12,7 @@ const io = @import("io.zig");
 pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var output_path_opt: ?[*:0]const u8 = null;
     var xor_key_opt: ?u8 = null;
-    var skip: std.ArrayListUnmanaged(BlockId) = .empty;
+    var skip: std.ArrayList(BlockId) = .empty;
     defer skip.deinit(gpa);
 
     var it: cliargs.Iterator = .init(args);

@@ -63,7 +63,7 @@ const Room = struct {
 
 const Enum = struct {
     /// Sorted by value
-    entries: std.ArrayListUnmanaged(EnumEntry),
+    entries: std.ArrayList(EnumEntry),
 
     const empty: Enum = .{ .entries = .empty };
 
@@ -85,7 +85,7 @@ const MapIndex = keyed.Key(enum(u16) {});
 
 const Map = struct {
     /// Sorted by value
-    entries: std.ArrayListUnmanaged(MapEntry),
+    entries: std.ArrayList(MapEntry),
 
     const empty: Map = .{ .entries = .empty };
 
@@ -105,13 +105,13 @@ pub const MapEntry = struct {
 };
 
 game: games.Game,
-types: std.ArrayListUnmanaged(Type) = .empty,
+types: std.ArrayList(Type) = .empty,
 globals: ArrayMap(Variable) = .empty,
 /// Map from name to number
 global_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 scripts: ArrayMap(Script) = .empty,
 rooms: ArrayMap(Room) = .empty,
-enums: std.ArrayListUnmanaged(Enum) = .empty,
+enums: std.ArrayList(Enum) = .empty,
 /// Map from enum name to index within `enums`
 enum_names: std.StringArrayHashMapUnmanaged(u16) = .empty,
 maps: keyed.List(MapIndex, Map) = .empty,

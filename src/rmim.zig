@@ -26,7 +26,7 @@ pub fn decode(
     rmim_raw: []const u8,
     diag: *const Diagnostic.ForBinaryFile,
     apal: *const [0x300]u8,
-    code: *std.ArrayListUnmanaged(u8),
+    code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
 ) !void {
@@ -90,7 +90,7 @@ fn decompressBmap(
     compression: u8,
     reader: *std.io.Reader,
     end: u32,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     switch (compression) {
         Compression.BMCOMP_NMAJMIN_H4,
@@ -116,7 +116,7 @@ fn decompressBmapNMajMin(
     compression: u8,
     reader: *std.io.Reader,
     end: u32,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const delta: [8]i8 = .{ -4, -3, -2, -1, 1, 2, 3, 4 };
 
@@ -166,7 +166,7 @@ fn decompressBmapNMajMin(
 fn decompressBmapSolidColorFill(
     reader: *std.io.Reader,
     end: u32,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const color = try reader.takeByte();
     if (reader.seek != end) return error.BadData;

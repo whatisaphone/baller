@@ -44,7 +44,7 @@ pub const Payload = union(enum) {
         node_index: Ast.NodeIndex,
         block_id: BlockId,
         glob_number: u16,
-        data: std.ArrayListUnmanaged(u8),
+        data: std.ArrayList(u8),
     },
     glob_start: struct {
         node_index: Ast.NodeIndex,
@@ -54,11 +54,11 @@ pub const Payload = union(enum) {
     glob_end,
     raw_block: struct {
         block_id: BlockId,
-        data: std.ArrayListUnmanaged(u8),
+        data: std.ArrayList(u8),
     },
     index_start,
     index_end,
-    index_maxs: std.ArrayListUnmanaged(u8),
+    index_maxs: std.ArrayList(u8),
     index_block: @FieldType(Ast.Node, "index_block"),
     err,
 };
@@ -343,7 +343,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
 }
 
 const RoomPlan = struct {
-    work: std.EnumArray(RoomSection, std.ArrayListUnmanaged(RoomWork)),
+    work: std.EnumArray(RoomSection, std.ArrayList(RoomWork)),
     cur_section: RoomSection,
 
     fn add(self: *RoomPlan, section: RoomSection, work: RoomWork) !void {
@@ -618,7 +618,7 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     const file = &cx.project.files.items[room_number].?;
     const rmim = &file.ast.nodes.at(node_index).rmim;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     const rmih = &file.ast.nodes.at(rmim.rmih).raw_block;
@@ -662,7 +662,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     const file = &cx.project.files.items[room_number].?;
     const rmim = &file.ast.nodes.at(node_index).rmim;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
     try out.ensureTotalCapacityPrecise(cx.gpa, expected_pals_size);
 
@@ -698,7 +698,7 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
     } });
 }
 
-fn buildPals(bitmap: *const bmp.Bmp8, out: *std.ArrayListUnmanaged(u8)) !void {
+fn buildPals(bitmap: *const bmp.Bmp8, out: *std.ArrayList(u8)) !void {
     const na = utils.null_allocator;
 
     const wrap_start = try beginBlockAl(na, out, .WRAP);
@@ -835,7 +835,7 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
 }
 
 fn planObim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try compileObim(cx, room_number, node_index, &out);
@@ -850,7 +850,7 @@ fn compileObim(
     cx: *const Context,
     room_number: u8,
     node_index: Ast.NodeIndex,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const file = &cx.project.files.items[room_number].?;
     const obim_node = &file.ast.nodes.at(node_index).obim;
@@ -879,7 +879,7 @@ fn compileIm(
     cx: *const Context,
     room_number: u8,
     node_index: Ast.NodeIndex,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const file = &cx.project.files.items[room_number].?;
     const im_node = &file.ast.nodes.at(node_index).obim_im;
@@ -910,7 +910,7 @@ pub fn encodeRawBlock(
     dir: std.fs.Dir,
     file: *const Project.SourceFile,
     node: *const @FieldType(Ast.Node, "raw_block"),
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const start = try beginBlockAl(gpa, out, node.block_id);
     switch (node.contents) {
@@ -929,7 +929,7 @@ fn planSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).sound;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try sounds.build(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, node.children, &out);
@@ -946,7 +946,7 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     const file = &cx.project.files.items[room_number].?;
     const awiz_node = &file.ast.nodes.at(node_index).awiz;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try awiz.encode(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
@@ -963,7 +963,7 @@ fn planMult(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     const file = &cx.project.files.items[room_number].?;
     const mult = &file.ast.nodes.at(node_index).mult;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try planMultInner(cx, room_number, mult, &out);
@@ -980,7 +980,7 @@ fn planMultInner(
     cx: *const Context,
     room_number: u8,
     mult_node: *const @FieldType(Ast.Node, "mult"),
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const room_file = &cx.project.files.items[room_number].?;
 
@@ -1023,7 +1023,7 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).akos;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try akos.encode(cx.gpa, cx.diagnostic, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
@@ -1040,7 +1040,7 @@ fn planTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).talkie;
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
     try out.ensureTotalCapacityPrecise(cx.gpa, 8 + node.text.len + 1);
 
@@ -1065,7 +1065,7 @@ fn planScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);
@@ -1084,7 +1084,7 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     const lsc_type = cx.room_lsc_types[room_number].defined;
@@ -1107,7 +1107,7 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
@@ -1124,7 +1124,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
@@ -1136,7 +1136,7 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
 }
 
 fn planObject(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
-    var out: std.ArrayListUnmanaged(u8) = .empty;
+    var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
     try planObjectInner(cx, room_number, node_index, &out);
@@ -1151,7 +1151,7 @@ fn planObjectInner(
     cx: *const Context,
     room_number: u8,
     node_index: Ast.NodeIndex,
-    out: *std.ArrayListUnmanaged(u8),
+    out: *std.ArrayList(u8),
 ) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const object = &room_file.ast.nodes.at(node_index).object;
@@ -1283,7 +1283,7 @@ fn planMaxs(cx: *Context, node_index: Ast.NodeIndex) !void {
 }
 
 fn planRoomNames(cx: *Context) !void {
-    var result: std.ArrayListUnmanaged(u8) = .empty;
+    var result: std.ArrayList(u8) = .empty;
     errdefer result.deinit(cx.gpa);
     try result.ensureTotalCapacity(cx.gpa, 256);
 

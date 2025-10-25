@@ -56,7 +56,7 @@ pub fn List(K: type, V: type) type {
     return struct {
         const Self = @This();
 
-        list: std.ArrayListUnmanaged(V),
+        list: std.ArrayList(V),
 
         pub const empty: Self = .{ .list = .empty };
 
