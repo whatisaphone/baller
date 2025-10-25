@@ -56,13 +56,14 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
     const out = &xor_writer.interface;
 
     var state: State = .{
+        .allocator = allocator,
         .diagnostic = diagnostic,
         .manifest_reader = &reader.interface,
         .cur_path = &cur_path,
         .output_writer = out,
-        .fixups = .init(allocator),
+        .fixups = .empty,
     };
-    defer state.fixups.deinit();
+    defer state.fixups.deinit(allocator);
 
     const tlkb_start = try beginBlock(state.output_writer, .TLKB);
 
@@ -78,7 +79,7 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
             return error.BadData;
     }
 
-    try endBlock(state.output_writer, &state.fixups, tlkb_start);
+    try endBlock(allocator, state.output_writer, &state.fixups, tlkb_start);
 
     try file_writer.interface.flush();
 
@@ -86,11 +87,12 @@ pub fn run(allocator: std.mem.Allocator, diagnostic: *Diagnostic, args: *const B
 }
 
 const State = struct {
+    allocator: std.mem.Allocator,
     diagnostic: *Diagnostic,
     manifest_reader: *std.io.Reader,
     cur_path: *pathf.Path,
     output_writer: *std.io.Writer,
-    fixups: std.array_list.Managed(Fixup),
+    fixups: std.ArrayList(Fixup),
 };
 
 fn buildRawBlock(state: *State, line: []const u8) !void {
@@ -114,7 +116,7 @@ fn buildRawBlock(state: *State, line: []const u8) !void {
 
     try fs.readFileIntoZ(std.fs.cwd(), path.full(), state.output_writer);
 
-    try endBlock(state.output_writer, &state.fixups, start);
+    try endBlock(state.allocator, state.output_writer, &state.fixups, start);
 }
 
 fn buildTalk(state: *State) !void {
@@ -182,7 +184,7 @@ fn buildTalk(state: *State) !void {
 
         try fs.readFileIntoZ(std.fs.cwd(), raw_path.full(), state.output_writer);
 
-        try endBlock(state.output_writer, &state.fixups, block_start);
+        try endBlock(state.allocator, state.output_writer, &state.fixups, block_start);
     }
 
     {
@@ -213,8 +215,8 @@ fn buildTalk(state: *State) !void {
 
         const sdat_start = try beginBlock(state.output_writer, .SDAT);
         _ = try wav_reader.interface.streamExact(state.output_writer, data_size);
-        try endBlock(state.output_writer, &state.fixups, sdat_start);
+        try endBlock(state.allocator, state.output_writer, &state.fixups, sdat_start);
     }
 
-    try endBlock(state.output_writer, &state.fixups, talk_start);
+    try endBlock(state.allocator, state.output_writer, &state.fixups, talk_start);
 }

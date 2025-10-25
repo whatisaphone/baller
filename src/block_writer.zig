@@ -14,9 +14,14 @@ pub fn beginBlock(w: *std.io.Writer, id: BlockId) !u32 {
     return block_start;
 }
 
-pub fn endBlock(w: *std.io.Writer, fixups: *std.array_list.Managed(Fixup), block_start: u32) !void {
+pub fn endBlock(
+    gpa: std.mem.Allocator,
+    w: *std.io.Writer,
+    fixups: *std.ArrayList(Fixup),
+    block_start: u32,
+) !void {
     const stream_pos = fxbc.pos(w);
-    try fixups.append(.{
+    try fixups.append(gpa, .{
         .offset = block_start + 4,
         .bytes = Fixup.encode(stream_pos - block_start, .big),
     });

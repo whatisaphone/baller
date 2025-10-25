@@ -212,8 +212,8 @@ pub fn build(
     var xor_writer: io.XorWriter = .init(&file_writer.interface, 0x00, &.{});
     const out = &xor_writer.interface;
 
-    var fixups: std.array_list.Managed(Fixup) = .init(gpa);
-    defer fixups.deinit();
+    var fixups: std.ArrayList(Fixup) = .empty;
+    defer fixups.deinit(gpa);
 
     const song_start = try beginBlock(out, .SONG);
 
@@ -221,7 +221,7 @@ pub fn build(
     const num_sounds = music_node.children.len;
     try out.writeInt(u32, num_sounds, .little);
     try out.writeAll(&@as([28]u8, @splat(0)));
-    try endBlock(out, &fixups, sghd_start);
+    try endBlock(gpa, out, &fixups, sghd_start);
 
     const sgens_start = fxbc.pos(out);
     const sgens_total_size = num_sounds * (Block.header_size + @sizeOf(Sgen));
@@ -249,7 +249,7 @@ pub fn build(
                 buf.clearRetainingCapacity();
                 try sounds.build(gpa, diagnostic, .node(file, node_index), project_dir, file, sound.children, &buf);
                 try out.writeAll(buf.items);
-                try endBlock(out, &fixups, fixup);
+                try endBlock(gpa, out, &fixups, fixup);
                 break :glob_number sound.glob_number;
             },
             .riff => |*riff| {
@@ -272,7 +272,7 @@ pub fn build(
         endBlockAl(&sgens, sgen_start);
     }
 
-    try endBlock(out, &fixups, song_start);
+    try endBlock(gpa, out, &fixups, song_start);
 
     try file_writer.interface.flush();
 

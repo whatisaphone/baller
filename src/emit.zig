@@ -117,8 +117,8 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
     var out_xor: io.XorWriter = .init(&out_direct.interface, xor_key, &.{});
     const out = &out_xor.interface;
 
-    var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
+    var fixups: std.ArrayList(Fixup) = .empty;
+    defer fixups.deinit(cx.gpa);
 
     const lecf_start = try beginBlock(out, .LECF);
 
@@ -129,7 +129,7 @@ fn emitDisk(cx: *const Cx, disk_number: u8) !void {
         else => unreachable,
     };
 
-    try endBlock(out, &fixups, lecf_start);
+    try endBlock(cx.gpa, out, &fixups, lecf_start);
 
     try out_direct.interface.flush();
 
@@ -140,7 +140,7 @@ fn emitRoom(
     cx: *const Cx,
     disk_number: u8,
     out: *std.io.Writer,
-    fixups: *std.array_list.Managed(Fixup),
+    fixups: *std.ArrayList(Fixup),
     room_number: u8,
 ) !void {
     const lflf_start = try beginBlock(out, .LFLF);
@@ -160,7 +160,7 @@ fn emitRoom(
         else => unreachable,
     };
 
-    try endBlock(out, fixups, lflf_start);
+    try endBlock(cx.gpa, out, fixups, lflf_start);
 }
 
 fn emitRawBlock(
@@ -194,7 +194,7 @@ fn emitGlob(
 fn emitGlobBlock(
     cx: *const Cx,
     out: *std.io.Writer,
-    fixups: *std.array_list.Managed(Fixup),
+    fixups: *std.ArrayList(Fixup),
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob_start"),
 ) !void {
@@ -207,7 +207,7 @@ fn emitGlobBlock(
         else => unreachable,
     };
 
-    try endBlock(out, fixups, start);
+    try endBlock(cx.gpa, out, fixups, start);
     const end = fxbc.pos(out);
     const size = end - start;
 
@@ -356,8 +356,8 @@ fn emitIndex(cx: *const Cx) !void {
     var out_xor: io.XorWriter = .init(&out_direct.interface, xor_key, &.{});
     const out = &out_xor.interface;
 
-    var fixups: std.array_list.Managed(Fixup) = .init(cx.gpa);
-    defer fixups.deinit();
+    var fixups: std.ArrayList(Fixup) = .empty;
+    defer fixups.deinit(cx.gpa);
 
     // SCUMM outputs sequential room numbers for these whether or not the room
     // actually exists.
@@ -369,25 +369,25 @@ fn emitIndex(cx: *const Cx) !void {
     while (true) switch (try cx.receiver.next(cx.gpa)) {
         .index_maxs => |data| try writeMaxs(cx, out, data),
         .index_block => |id| switch (id) {
-            .DIRI => try writeDirectory(out, &fixups, .DIRI, &cx.index.directories.room_images),
-            .DIRR => try writeDirectory(out, &fixups, .DIRR, &cx.index.directories.rooms),
-            .DIRS => try writeDirectory(out, &fixups, .DIRS, &cx.index.directories.scripts),
-            .DIRN => try writeDirectory(out, &fixups, .DIRN, &cx.index.directories.sounds),
-            .DIRC => try writeDirectory(out, &fixups, .DIRC, &cx.index.directories.costumes),
-            .DIRF => try writeDirectory(out, &fixups, .DIRF, &cx.index.directories.charsets),
-            .DIRM => try writeDirectory(out, &fixups, .DIRM, &cx.index.directories.images),
-            .DIRT => try writeDirectory(out, &fixups, .DIRT, &cx.index.directories.talkies),
+            .DIRI => try writeDirectory(cx.gpa, out, &fixups, .DIRI, &cx.index.directories.room_images),
+            .DIRR => try writeDirectory(cx.gpa, out, &fixups, .DIRR, &cx.index.directories.rooms),
+            .DIRS => try writeDirectory(cx.gpa, out, &fixups, .DIRS, &cx.index.directories.scripts),
+            .DIRN => try writeDirectory(cx.gpa, out, &fixups, .DIRN, &cx.index.directories.sounds),
+            .DIRC => try writeDirectory(cx.gpa, out, &fixups, .DIRC, &cx.index.directories.costumes),
+            .DIRF => try writeDirectory(cx.gpa, out, &fixups, .DIRF, &cx.index.directories.charsets),
+            .DIRM => try writeDirectory(cx.gpa, out, &fixups, .DIRM, &cx.index.directories.images),
+            .DIRT => try writeDirectory(cx.gpa, out, &fixups, .DIRT, &cx.index.directories.talkies),
             .DLFL => {
                 const start = try beginBlock(out, .DLFL);
                 try out.writeInt(u16, @intCast(cx.index.rooms.len), .little);
                 try out.writeAll(std.mem.sliceAsBytes(cx.index.rooms.items(.offset)));
-                try endBlock(out, &fixups, start);
+                try endBlock(cx.gpa, out, &fixups, start);
             },
             .DISK => {
                 const start = try beginBlock(out, .DISK);
                 try out.writeInt(u16, @intCast(cx.index.rooms.len), .little);
                 try out.writeAll(cx.index.rooms.items(.disk));
-                try endBlock(out, &fixups, start);
+                try endBlock(cx.gpa, out, &fixups, start);
             },
             .RNAM => unreachable,
         },
@@ -431,8 +431,9 @@ fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayList(u8)) !v
 }
 
 fn writeDirectory(
+    gpa: std.mem.Allocator,
     out: *std.io.Writer,
-    fixups: *std.array_list.Managed(Fixup),
+    fixups: *std.ArrayList(Fixup),
     block_id: BlockId,
     directory: *const std.MultiArrayList(DirectoryEntry),
 ) !void {
@@ -442,13 +443,13 @@ fn writeDirectory(
     try out.writeAll(slice.items(.room));
     try out.writeAll(std.mem.sliceAsBytes(slice.items(.offset)));
     try out.writeAll(std.mem.sliceAsBytes(slice.items(.size)));
-    try endBlock(out, fixups, start);
+    try endBlock(gpa, out, fixups, start);
 }
 
 fn writeVersionIntoInib(
     gpa: std.mem.Allocator,
     out: *std.io.Writer,
-    fixups: *std.array_list.Managed(Fixup),
+    fixups: *std.ArrayList(Fixup),
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
     std.debug.assert(raw_block.block_id == .INIB);
@@ -467,7 +468,7 @@ fn writeVersionIntoInib(
         .{build_options.version},
     );
     try out.writeByte(0);
-    try endBlock(out, fixups, note_start);
+    try endBlock(gpa, out, fixups, note_start);
 
-    try endBlock(out, fixups, inib_start);
+    try endBlock(gpa, out, fixups, inib_start);
 }
