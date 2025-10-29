@@ -318,8 +318,17 @@ fn handleGlobalScript(cx: *Cx) !void {
 }
 
 fn handleScript(cx: *Cx, script: *Script, can_have_name_and_params: bool) !void {
-    if (cx.key_parts.next()) |_| return error.BadData;
+    const next_part = cx.key_parts.next() orelse
+        return handleScriptShorthand(cx, script, can_have_name_and_params);
+    if (std.mem.eql(u8, next_part, "local"))
+        _ = try handleScriptLocal(cx, script)
+    else if (std.mem.eql(u8, next_part, "param") and can_have_name_and_params)
+        return handleScriptParam(cx, script)
+    else
+        return error.BadData;
+}
 
+fn handleScriptShorthand(cx: *Cx, script: *Script, can_have_name_and_params: bool) !void {
     const name_str, const after_name_opt = split(cx.value, '(');
     script.name = if (name_str.len == 0) null else name_str;
     if (!can_have_name_and_params and script.name != null) return error.BadData;
@@ -343,6 +352,23 @@ fn handleScript(cx: *Cx, script: *Script, can_have_name_and_params: bool) !void 
         const v = try parseVariable(cx, s);
         try script.locals.putNew(cx.allocator, script.locals.len(), v);
     }
+}
+
+fn handleScriptLocal(cx: *Cx, script: *Script) !u8 {
+    const local_num_str = cx.key_parts.next() orelse return error.BadData;
+    if (cx.key_parts.next()) |_| return error.BadData;
+
+    const local_num = std.fmt.parseInt(u8, local_num_str, 10) catch return error.BadData;
+
+    const v = try parseVariable(cx, cx.value);
+    try script.locals.putNew(cx.allocator, local_num, v);
+
+    return local_num;
+}
+
+fn handleScriptParam(cx: *Cx, script: *Script) !void {
+    const local_num = try handleScriptLocal(cx, script);
+    script.params = @max(script.params orelse 0, local_num + 1);
 }
 
 fn handleRoom(cx: *Cx) !void {

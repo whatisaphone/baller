@@ -288,6 +288,35 @@ test "type script args" {
     );
 }
 
+test "type script params on separate lines" {
+    try testRoundTrip(
+        \\
+    ,
+        \\script s1@1 {
+        \\    start-script s2 0
+        \\}
+        \\
+        \\script s2@2 a {
+        \\    var b
+        \\    b = a
+        \\}
+    ,
+        \\enum.Foo.0 = FOO
+        \\script.2.param.0 = foo:Foo
+        \\script.2.local.1 = v
+    ,
+        \\script scr1@1 {
+        \\    start-script scr2 FOO
+        \\}
+        \\
+        \\script scr2@2 foo {
+        \\    var v
+        \\
+        \\    v = foo
+        \\}
+    );
+}
+
 test "unused args and vars become underscore" {
     try testRoundTrip(
         \\
