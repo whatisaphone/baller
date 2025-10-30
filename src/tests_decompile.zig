@@ -371,6 +371,28 @@ test "unnamed args and locals are named appropriately" {
     );
 }
 
+test "map entry with type but no name" {
+    try testRoundTrip(
+        \\var foo@0
+    ,
+        \\script s@1 {
+        \\    foo[1] = 5
+        \\    foo[2] = 5
+        \\}
+    ,
+        \\global.0 = foo:[Foo]
+        \\map.Foo.1 = ONE:One
+        \\map.Foo.2 = _:Two
+        \\enum.One.5 = FOO
+        \\enum.Two.5 = BAR
+    ,
+        \\script scr1@1 {
+        \\    foo[ONE] = FOO
+        \\    foo[2] = BAR
+        \\}
+    );
+}
+
 test "symbols: forward reference from map to enum" {
     try testRoundTrip(
         \\var v@0

@@ -73,7 +73,7 @@ const Enum = struct {
 };
 
 pub const EnumEntry = struct {
-    name: []const u8,
+    name: ?[]const u8,
     value: i32,
 
     pub fn orderByValue(value: i32, other: EnumEntry) std.math.Order {

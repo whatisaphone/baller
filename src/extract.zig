@@ -2440,7 +2440,8 @@ fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayList(u8)) !
         try code.print(cx.gpa, "\n; {s}\n", .{enum_name});
         const the_enum = &cx.symbols.enums.items[enum_index];
         for (the_enum.entries.items) |*entry|
-            try emitConst(cx, diagnostic, &emit_log, entry.name, entry.value, code);
+            if (entry.name) |name|
+                try emitConst(cx, diagnostic, &emit_log, name, entry.value, code);
     }
 
     for (

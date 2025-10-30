@@ -2947,8 +2947,10 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
                 Symbols.EnumEntry.orderByValue,
             ) orelse break :write_name;
             const entry = &the_enum.entries.items[index];
-            try cx.out.appendSlice(cx.gpa, entry.name);
-            return;
+            if (entry.name) |name| {
+                try cx.out.appendSlice(cx.gpa, name);
+                return;
+            }
         },
         .map => |map_index| {
             const map = cx.symbols.maps.at(map_index);
@@ -2970,6 +2972,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         .image => if (try emitIntAsGlob(cx, .image, int)) return,
         .talkie => if (try emitIntAsGlob(cx, .talkie, int)) return,
     };
+    // if we didn't find a name, fall back to emitting it as a number
     try cx.out.print(cx.gpa, "{}", .{int});
 }
 
