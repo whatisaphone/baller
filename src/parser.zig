@@ -20,7 +20,7 @@ const Cx = struct {
     result: Ast,
 };
 
-const ParseError = error{ OutOfMemory, AddedToDiagnostic };
+pub const ParseError = error{ OutOfMemory, AddedToDiagnostic };
 
 const dummy_root_token: lexer.TokenIndex = .fromIndex(0);
 

@@ -140,13 +140,20 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     try emit.run(gpa, diagnostic, &project, output_dir, index_name, &args.options, &events);
 }
 
+const ParseFn = *const fn (
+    gpa: std.mem.Allocator,
+    diag: *const Diagnostic.ForTextFile,
+    source: []const u8,
+    lex: *const lexer.Lex,
+) parser.ParseError!Ast;
+
 fn addFile(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
     loc: ?Diagnostic.Location,
     project_dir: std.fs.Dir,
     path: []const u8,
-    parseFn: anytype,
+    parseFn: ParseFn,
 ) !Project.SourceFile {
     const diag: Diagnostic.ForTextFile = .init(diagnostic, path);
 
