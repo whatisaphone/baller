@@ -381,28 +381,24 @@ pub fn encodeRle(
     while (rows.next()) |row| {
         // worst-case encoding is 2 bytes for the line size, then 2 output bytes
         // for every input byte
-        var line_buf: utils.TinyArray(u8, 2 + max_supported_width * 2) = .empty;
+        try out.ensureUnusedCapacity(gpa, 2 + max_supported_width * 2);
 
         // reserve space for line size, to be filled in later
-        line_buf.len = 2;
+        const line_start = out.items.len;
+        _ = out.addManyAsSliceAssumeCapacity(2);
 
         switch (strategy) {
-            .original => encodeRleRowOriginal(row, &line_buf),
-            .max => encodeRleRowMax(row, &line_buf),
+            .original => encodeRleRowOriginal(row, out),
+            .max => encodeRleRowMax(row, out),
         }
 
         // fill in line size
-        std.mem.writeInt(i16, line_buf.buffer[0..2], @intCast(line_buf.len - 2), .little);
-
-        // flush line to output stream
-        try out.appendSlice(gpa, line_buf.slice());
+        const line_size = out.items.len - line_start - 2;
+        std.mem.writeInt(i16, out.items[line_start..][0..2], @intCast(line_size), .little);
     }
 }
 
-fn encodeRleRowMax(
-    row: []const u8,
-    line_buf: *utils.TinyArray(u8, 2 + max_supported_width * 2),
-) void {
+fn encodeRleRowMax(row: []const u8, line_buf: *std.ArrayList(u8)) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))
         return;
@@ -455,10 +451,7 @@ fn encodeRleRowMax(
     }
 }
 
-fn encodeRleRowOriginal(
-    row: []const u8,
-    line_buf: *utils.TinyArray(u8, 2 + max_supported_width * 2),
-) void {
+fn encodeRleRowOriginal(row: []const u8, line_buf: *std.ArrayList(u8)) void {
     // skip encoding fully transparent rows
     if (std.mem.allEqual(u8, row, transparent))
         return;
