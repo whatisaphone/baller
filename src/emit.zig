@@ -168,10 +168,9 @@ fn emitRawBlock(
     out: *std.io.Writer,
     raw_block: *const @FieldType(plan.Payload, "raw_block"),
 ) !void {
-    var data_mut = raw_block.data;
-    defer data_mut.deinit(gpa);
+    defer gpa.free(raw_block.data);
 
-    try writeBlock(out, raw_block.block_id, raw_block.data.items);
+    try writeBlock(out, raw_block.block_id, raw_block.data);
 }
 
 fn emitGlob(
@@ -180,11 +179,10 @@ fn emitGlob(
     room_number: u8,
     glob: *const @FieldType(plan.Payload, "glob"),
 ) !void {
-    var data_mut = glob.data;
-    defer data_mut.deinit(cx.gpa);
+    defer cx.gpa.free(glob.data);
 
     const start = fxbc.pos(out);
-    try writeBlock(out, glob.block_id, glob.data.items);
+    try writeBlock(out, glob.block_id, glob.data);
     const end = fxbc.pos(out);
     const size = end - start;
 
@@ -407,15 +405,14 @@ fn emitIndex(cx: *const Cx) !void {
     try writeFixups(&out_direct, out, fixups.items);
 }
 
-fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayList(u8)) !void {
-    var data = data_mut;
-    defer data.deinit(cx.gpa);
+fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
+    defer cx.gpa.free(data);
 
-    if (data.items.len != games.maxsLen(cx.target.pickAnyGame()))
+    if (data.len != games.maxsLen(cx.target.pickAnyGame()))
         return error.BadData;
 
     // Overwrite some of the fields I know how to generate
-    const maxs: *align(1) Maxs = @ptrCast(data.items);
+    const maxs: *align(1) Maxs = @ptrCast(data);
     maxs.rooms = @intCast(cx.index.rooms.len);
     maxs.scripts = @intCast(cx.index.directories.scripts.len);
     maxs.sounds = @intCast(cx.index.directories.sounds.len);
@@ -425,8 +422,8 @@ fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data_mut: std.ArrayList(u8)) !v
     if (games.hasTalkies(cx.target.pickAnyGame()))
         maxs.talkies = @intCast(cx.index.directories.talkies.len);
 
-    const start = try beginBlockKnown(out, .MAXS, @intCast(data.items.len));
-    try out.writeAll(data.items);
+    const start = try beginBlockKnown(out, .MAXS, @intCast(data.len));
+    try out.writeAll(data);
     endBlockKnown(out, start);
 }
 
@@ -455,8 +452,7 @@ fn writeVersionIntoInib(
     std.debug.assert(raw_block.block_id == .INIB);
 
     // Discard the data since we're replacing it
-    var data_mut = raw_block.data;
-    data_mut.deinit(gpa);
+    gpa.free(raw_block.data);
 
     const inib_start = try beginBlock(out, .INIB);
 

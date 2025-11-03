@@ -44,7 +44,7 @@ pub const Payload = union(enum) {
         node_index: Ast.NodeIndex,
         block_id: BlockId,
         glob_number: u16,
-        data: std.ArrayList(u8),
+        data: []u8,
     },
     glob_start: struct {
         node_index: Ast.NodeIndex,
@@ -54,11 +54,11 @@ pub const Payload = union(enum) {
     glob_end,
     raw_block: struct {
         block_id: BlockId,
-        data: std.ArrayList(u8),
+        data: []u8,
     },
     index_start,
     index_end,
-    index_maxs: std.ArrayList(u8),
+    index_maxs: []u8,
     index_block: @FieldType(Ast.Node, "index_block"),
     err,
 };
@@ -410,12 +410,12 @@ fn scanRoom(cx: *Context, plan: *RoomPlan, room_number: u8) !void {
     if (plan.work.getPtr(.rmda_excd).items.len == 0)
         plan.work.getPtr(.rmda_excd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
             .block_id = .EXCD,
-            .data = .empty,
+            .data = &.{},
         } } });
     if (plan.work.getPtr(.rmda_encd).items.len == 0)
         plan.work.getPtr(.rmda_encd).appendAssumeCapacity(.{ .event = .{ .raw_block = .{
             .block_id = .ENCD,
-            .data = .empty,
+            .data = &.{},
         } } });
 
     // Any rooms where every script number < 256, all local scripts are LSCR.
@@ -527,7 +527,7 @@ fn planRawBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void 
 
     cx.sendSyncEvent(.{ .raw_block = .{
         .block_id = node.block_id,
-        .data = .fromOwnedSlice(data),
+        .data = data,
     } });
 }
 
@@ -548,7 +548,7 @@ fn planRawGlobFile(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !vo
         .node_index = node_index,
         .block_id = node.block_id,
         .glob_number = node.glob_number,
-        .data = .fromOwnedSlice(data),
+        .data = data,
     } });
 }
 
@@ -650,11 +650,13 @@ fn planRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
 
     endBlockAl(&out, im00_start);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .RMIM,
         .glob_number = room_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -690,11 +692,13 @@ fn planPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeInd
         return bmp_err.addToDiag(cx.diagnostic, .node(file, bmap_node_index));
     try buildPals(&bmp8, &out);
 
+    errdefer comptime unreachable;
     std.debug.assert(out.items.len == out.capacity);
+    const data = out.items;
 
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .PALS,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -728,7 +732,7 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     );
     defer cx.gpa.free(in);
 
-    const result = try assemble.assemble(
+    var result = try assemble.assemble(
         cx.gpa,
         cx.diagnostic,
         path,
@@ -737,12 +741,15 @@ fn planScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
         &cx.project_scope,
         &cx.room_scopes[room_number],
     );
+    errdefer result.deinit(cx.gpa);
+
+    const data = try result.toOwnedSlice(cx.gpa);
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .SCRP,
         .glob_number = scr.glob_number,
-        .data = result,
+        .data = data,
     } });
 }
 
@@ -780,9 +787,10 @@ fn planEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, 
         .encd => .ENCD,
         .excd => .EXCD,
     };
+    const data = try result.toOwnedSlice(cx.gpa);
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = block_id,
-        .data = result,
+        .data = data,
     } });
 }
 
@@ -830,7 +838,7 @@ fn planLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     };
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = block_id,
-        .data = .fromOwnedSlice(result),
+        .data = result,
     } });
 }
 
@@ -840,9 +848,11 @@ fn planObim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
 
     try compileObim(cx, room_number, node_index, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .OBIM,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -934,11 +944,13 @@ fn planSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
 
     try sounds.build(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, node.children, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = node.block_id,
         .glob_number = node.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -951,11 +963,13 @@ fn planAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
 
     try awiz.encode(cx.gpa, cx.diagnostic, .node(file, node_index), cx.project_dir, file, awiz_node.children, cx.awiz_strategy, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .AWIZ,
         .glob_number = awiz_node.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -968,11 +982,13 @@ fn planMult(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
 
     try planMultInner(cx, room_number, mult, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .MULT,
         .glob_number = mult.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1028,11 +1044,13 @@ fn planAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
 
     try akos.encode(cx.gpa, cx.diagnostic, cx.project, cx.project_dir, cx.awiz_strategy, room_number, node_index, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .AKOS,
         .glob_number = node.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1049,13 +1067,15 @@ fn planTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
     out.appendAssumeCapacity(0);
     endBlockAl(&out, text_start);
 
+    errdefer comptime unreachable;
     std.debug.assert(out.items.len == out.capacity);
+    const data = out.items;
 
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .TLKE,
         .glob_number = node.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1070,11 +1090,13 @@ fn planScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .glob = .{
         .node_index = node_index,
         .block_id = .SCRP,
         .glob_number = node.glob_number,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1095,9 +1117,11 @@ fn planLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, node.params, node.statements, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = lsc_type.blockId(),
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1112,9 +1136,11 @@ fn planEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeInde
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .ENCD,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1129,9 +1155,11 @@ fn planExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
 
     try compile.compile(cx.gpa, &diag, &cx.vm.defined, &cx.op_map.defined, &cx.project_scope, &cx.room_scopes[room_number], room_file, node_index, .empty, node.statements, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .EXCD,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1141,9 +1169,11 @@ fn planObject(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, ev
 
     try planObjectInner(cx, room_number, node_index, &out);
 
+    const data = try out.toOwnedSlice(cx.gpa);
+
     cx.sendEvent(event_index, .{ .raw_block = .{
         .block_id = .OBCD,
-        .data = out,
+        .data = data,
     } });
 }
 
@@ -1279,7 +1309,7 @@ fn planMaxs(cx: *Context, node_index: Ast.NodeIndex) !void {
     );
     errdefer cx.gpa.free(data);
 
-    cx.sendSyncEvent(.{ .index_maxs = .fromOwnedSlice(data) });
+    cx.sendSyncEvent(.{ .index_maxs = data });
 }
 
 fn planRoomNames(cx: *Context) !void {
@@ -1313,9 +1343,11 @@ fn planRoomNames(cx: *Context) !void {
     }
     try result.appendSlice(cx.gpa, &.{ 0, 0 });
 
+    const data = try result.toOwnedSlice(cx.gpa);
+
     cx.sendSyncEvent(.{ .raw_block = .{
         .block_id = .RNAM,
-        .data = result,
+        .data = data,
     } });
 }
 
