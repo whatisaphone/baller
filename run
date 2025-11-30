@@ -24,9 +24,10 @@ command_build() {
 command_xor() {
     game=$1
     for file in "/tmp/${game}build"/*; do
-        echo /tmp/{f,b}."${file##*.}"
-        <"src/fixtures/${game}/${file##*/}" xor -x 69 >"/tmp/f.${file##*.}"
-        <"${file}" xor -x 69 >"/tmp/b.${file##*.}"
+        ext=${file##*.}
+        [[ ${ext,,} =~ he0|he1|(a)|(b) ]] && key=69 || key=00
+        <"src/fixtures/${game}/${file##*/}" xor -x "${key}" >"/tmp/f.${ext}"
+        <"${file}" xor -x "${key}" >"/tmp/b.${ext}"
     done
 }
 
