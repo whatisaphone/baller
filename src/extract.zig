@@ -377,7 +377,7 @@ pub fn run(
             const num: u14 = @intCast(num_usize);
             if (!UsageTracker.get(&cx.global_var_usage, num)) continue;
             try code.print(gpa, "var {f}@{}\n", .{
-                symbols.fmtVariableName(undefined, undefined, .init(.global, num)),
+                symbols.fmtGlobalVarName(num),
                 num,
             });
         }
@@ -966,7 +966,7 @@ fn emitRoomVars(cx: *RoomContext) !void {
         const num: u14 = @intCast(num_usize);
         if (!UsageTracker.get(&cx.room_var_usage, num)) continue;
         try out.print(cx.cx.gpa, "var {f}@{}\n", .{
-            cx.cx.symbols.fmtVariableName(cx.room_number, undefined, .init(.room, num)),
+            cx.cx.symbols.fmtRoomVarName(cx.room_number, num),
             num,
         });
     }

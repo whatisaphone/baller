@@ -693,6 +693,24 @@ pub fn fmtVariableName(
     };
 }
 
+pub fn fmtGlobalVarName(self: *const Symbols, num: u14) FormatVariableName {
+    return .{
+        .symbols = self,
+        .room_number = undefined,
+        .script_id = undefined,
+        .variable = .init(.global, num),
+    };
+}
+
+pub fn fmtRoomVarName(self: *const Symbols, room_number: u8, num: u14) FormatVariableName {
+    return .{
+        .symbols = self,
+        .room_number = room_number,
+        .script_id = undefined,
+        .variable = .init(.room, num),
+    };
+}
+
 pub fn getRoom(self: *const Symbols, number: u8) ?*const Room {
     return self.rooms.getPtr(number - first_room);
 }
