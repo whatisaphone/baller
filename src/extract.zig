@@ -4,6 +4,7 @@ const std = @import("std");
 const build_options = @import("build_options");
 
 const Ast = @import("Ast.zig");
+const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
@@ -352,8 +353,12 @@ pub fn run(
         .index = &index,
         .global_var_usage = @splat(0),
         .output_dir = output_dir,
+        .blinken = undefined,
         .stats = .initFill(0),
     };
+
+    try cx.blinken.initAndStart();
+    defer cx.blinken.stop();
 
     const num_disks = if (games.hasDisk(game)) num_disks: {
         var max: u8 = 0;
@@ -361,6 +366,18 @@ pub fn run(
             max = @max(max, n);
         break :num_disks max;
     } else 1;
+
+    const bytes = try countInputBytes(
+        game,
+        input_dir,
+        index_name,
+        &args.options,
+        diagnostic,
+        num_disks,
+    );
+    cx.blinken.setText(.root, std.fs.path.stem(index_name));
+    cx.blinken.setProgressStyle(.root, .bar_bytes);
+    cx.blinken.setMax(.root, bytes);
 
     for (0..num_disks) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
@@ -387,9 +404,48 @@ pub fn run(
 
     try fsd.writeFileZ(diagnostic, output_dir, "project.scu", code.items);
 
+    cx.blinken.debugAssertProgressFinished(.root);
     sanityCheckStats(&cx.stats);
 
     return cx.stats;
+}
+
+fn countInputBytes(
+    game: games.Game,
+    input_dir: std.fs.Dir,
+    index_name: []const u8,
+    options: *const Options,
+    diagnostic: *Diagnostic,
+    num_disks: u8,
+) !u32 {
+    var path_buf: [games.longest_index_name_len]u8 = undefined;
+    const path = std.fmt.bufPrint(&path_buf, "{s}", .{index_name}) catch unreachable;
+
+    var result: u32 = 0;
+    for (0..num_disks) |disk_index| {
+        const disk_number: u8 = @intCast(disk_index + 1);
+        games.pointPathToDisk(game.target(), path, disk_number);
+        result = try addFileSize(result, input_dir, path, diagnostic);
+    }
+    if (options.music) {
+        _ = std.fmt.bufPrint(&path_buf, "{s}", .{index_name}) catch unreachable;
+        games.pointPathToMusic(path);
+        result = try addFileSize(result, input_dir, path, diagnostic);
+    }
+    return result;
+}
+
+fn addFileSize(
+    total: u32,
+    input_dir: std.fs.Dir,
+    path: []const u8,
+    diagnostic: *Diagnostic,
+) !u32 {
+    const stat = try fsd.statFile(diagnostic, input_dir, path);
+    return utils.add(u32, total, stat.size) orelse {
+        diagnostic.err("file too big: {s}", .{path});
+        return error.AddedToDiagnostic;
+    };
 }
 
 pub const Index = struct {
@@ -735,6 +791,7 @@ const Context = struct {
     index: *const Index,
     global_var_usage: UsageTracker.GlobalVars,
     output_dir: std.fs.Dir,
+    blinken: Blinkenlights,
     stats: std.EnumArray(Stat, u16),
 
     fn incStat(self: *Context, stat: Stat) void {
@@ -746,6 +803,14 @@ const Context = struct {
         if (stat) |s| self.incStat(s);
     }
 };
+
+fn attributePositionToProgress(last_progress_offset: *u32, in: *std.io.Reader) u32 {
+    const pos = fxbcl.pos(in);
+    const bytes = pos - last_progress_offset.*;
+    last_progress_offset.* = pos;
+    std.debug.assert(bytes != 0);
+    return bytes;
+}
 
 fn extractDisk(
     cx: *Context,
@@ -771,20 +836,49 @@ fn extractDisk(
     var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
     const in = &in_limit.interface;
 
+    var last_progress_offset: u32 = 0;
+
     var file_blocks: StreamingBlockReader = .init(in, &diag);
 
     const lecf = try file_blocks.expect(.LECF) orelse return error.BadData;
     var lecf_blocks: StreamingBlockReader = .init(in, &diag);
 
+    const disk_blink = cx.blinken.addNode(.root);
+    defer cx.blinken.removeNode(disk_blink);
+    cx.blinken.setText(disk_blink, disk_name);
+    cx.blinken.setProgressStyle(disk_blink, .bar_bytes);
+    cx.blinken.setMax(disk_blink, Block.header_size + lecf.size);
+
     while (try lecf_blocks.expect(.LFLF)) |block| {
-        try extractRoom(cx, disk_number, in, &diag, code);
+        const catchup = attributePositionToProgress(&last_progress_offset, in);
+        cx.blinken.addProgress(disk_blink, catchup);
+        cx.blinken.addProgress(.root, catchup);
+
+        const room_blink = cx.blinken.addNode(disk_blink);
+        defer cx.blinken.removeNode(room_blink);
+        cx.blinken.setMax(room_blink, block.size);
+
+        try extractRoom(
+            cx,
+            disk_number,
+            in,
+            &diag,
+            &last_progress_offset,
+            disk_blink,
+            room_blink,
+            code,
+        );
         try lecf_blocks.finish(&block);
+
+        cx.blinken.debugAssertProgressFinished(room_blink);
     }
 
     try lecf_blocks.end();
 
     try file_blocks.finish(&lecf);
     file_blocks.expectMismatchedEnd();
+
+    cx.blinken.debugAssertProgressFinished(disk_blink);
 
     try code.appendSlice(cx.gpa, "}\n");
 }
@@ -815,6 +909,9 @@ fn extractRoom(
     disk_number: u8,
     in: *std.io.Reader,
     disk_diag: *const Diagnostic.ForBinaryFile,
+    last_progress_offset: *u32,
+    disk_blink: Blinkenlights.NodeId,
+    room_blink: Blinkenlights.NodeId,
     project_code: *std.ArrayList(u8),
 ) !void {
     const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbcl.pos(in)) orelse
@@ -824,7 +921,16 @@ fn extractRoom(
 
     var events: sync.Channel(Event, 16) = .init;
 
-    try cx.pool.spawn(readRoomJob, .{ cx, in, &diag, room_number, &events });
+    try cx.pool.spawn(readRoomJob, .{
+        cx,
+        in,
+        &diag,
+        room_number,
+        last_progress_offset,
+        disk_blink,
+        room_blink,
+        &events,
+    });
 
     try emitRoom(cx, diag.diagnostic, room_number, project_code, &events);
 }
@@ -856,6 +962,9 @@ const RoomContext = struct {
     lsc_mask: UsageTracker.LocalScripts,
     /// Used to assert `lsc_mask` isn't modified while being read
     lsc_mask_state: union { collecting: void, frozen: void },
+    last_progress_offset: *u32,
+    disk_blink: Blinkenlights.NodeId,
+    room_blink: Blinkenlights.NodeId,
     events: *sync.Channel(Event, 16),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
@@ -904,6 +1013,9 @@ fn readRoomJob(
     in: *std.io.Reader,
     diag: *const Diagnostic.ForBinaryFile,
     room_number: u8,
+    last_progress_offset: *u32,
+    disk_blink: Blinkenlights.NodeId,
+    room_blink: Blinkenlights.NodeId,
     events: *sync.Channel(Event, 16),
 ) void {
     // store these a level up so they outlive the jobs
@@ -919,6 +1031,9 @@ fn readRoomJob(
         .room_var_usage = @splat(0),
         .lsc_mask = @splat(0),
         .lsc_mask_state = .{ .collecting = {} },
+        .last_progress_offset = last_progress_offset,
+        .disk_blink = disk_blink,
+        .room_blink = room_blink,
         .events = events,
         .pending_jobs = .init(0),
         .next_chunk_index = 0,
@@ -926,6 +1041,7 @@ fn readRoomJob(
 
     (blk: {
         rcx.room_path = cx.index.room_names.get(room_number) orelse break :blk error.BadData;
+        cx.blinken.setText(room_blink, rcx.room_path);
         fsd.makeDirIfNotExist(diag.diagnostic, cx.output_dir, rcx.room_path) catch |err| break :blk err;
         room_dir = fsd.openDir(diag.diagnostic, cx.output_dir, rcx.room_path) catch |err| break :blk err;
         rcx.room_dir = room_dir.?;
@@ -991,6 +1107,7 @@ fn readRoomInner(
     errdefer cx.cx.gpa.free(rmim_raw);
     try in.readSliceAll(rmim_raw);
     try lflf_blocks.finish(&rmim_block);
+    const rmim_progress_bytes = attributePositionToProgress(cx.last_progress_offset, in);
 
     const rmda_block = try lflf_blocks.expect(.RMDA) orelse return error.BadData;
     const pals_chunk_index, var pals_raw = try extractRmda(cx, in, diag);
@@ -998,7 +1115,15 @@ fn readRoomInner(
     try lflf_blocks.finish(&rmda_block);
 
     // extract RMIM after RMDA since it needs the room palette
-    try spawnBlockJob(extractRmimAndPalsJob, cx, diag, &rmim_block, rmim_raw, rmim_chunk_index, .{ pals_raw, pals_chunk_index });
+    try spawnBlockJob(
+        extractRmimAndPalsJob,
+        cx,
+        diag,
+        &rmim_block,
+        rmim_raw,
+        rmim_chunk_index,
+        .{ rmim_progress_bytes, pals_raw, pals_chunk_index },
+    );
     rmim_raw.len = 0; // ownership was moved to the job, don't free it here
     pals_raw.len = 0;
 
@@ -1044,6 +1169,13 @@ fn extractRmda(
                 try in.readSliceAll(pals_raw);
 
                 cx.room_palette.setOnce(try extractPals(pals_raw, diag, &block));
+
+                // since this skipped the thread pool, we didn't bother with a
+                // blinken node, but we still need to track the progress
+                const progress = attributePositionToProgress(cx.last_progress_offset, in);
+                cx.cx.blinken.addProgress(cx.room_blink, progress);
+                cx.cx.blinken.addProgress(cx.disk_blink, progress);
+                cx.cx.blinken.addProgress(.root, progress);
             },
             .OBIM => {
                 // The OBIM decoder uses the palette, so make sure it has
@@ -1054,13 +1186,20 @@ fn extractRmda(
                 try readBlockAndSpawn(extractRmdaChildJob, cx, in, diag, &block);
             },
             .OBCD, .EXCD, .ENCD, .LSCR, .LSC2 => {
-                try addBlockToBuffer(cx, in, &block, &buffered_blocks);
+                try readBlockAndAddToBuffer(cx, in, &block, &buffered_blocks);
             },
             else => {
                 var code: std.ArrayList(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
                 try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = in }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
+
+                // since this skipped the thread pool, we didn't bother with a
+                // blinken node, but we still need to track the progress
+                const progress = attributePositionToProgress(cx.last_progress_offset, in);
+                cx.cx.blinken.addProgress(cx.room_blink, progress);
+                cx.cx.blinken.addProgress(cx.disk_blink, progress);
+                cx.cx.blinken.addProgress(.root, progress);
             },
         }
         try rmda_blocks.finish(&block);
@@ -1105,9 +1244,13 @@ fn extractPals(
 const BufferedBlock = struct {
     block: Block,
     data: []u8,
+
+    fn calcProgressBytes(data: []const u8) u32 {
+        return @intCast(Block.header_size + data.len);
+    }
 };
 
-fn addBlockToBuffer(
+fn readBlockAndAddToBuffer(
     cx: *RoomContext,
     in: *std.io.Reader,
     block: *const Block,
@@ -1116,6 +1259,11 @@ fn addBlockToBuffer(
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
     try in.readSliceAll(raw);
+
+    // we recompute this later instead of storing it in memory. make sure the
+    // value is what we expect
+    const progress_bytes = attributePositionToProgress(cx.last_progress_offset, in);
+    std.debug.assert(progress_bytes == BufferedBlock.calcProgressBytes(raw));
 
     try buffered_blocks.append(cx.cx.gpa, .{ .block = block.*, .data = raw });
     errdefer comptime unreachable;
@@ -1147,8 +1295,18 @@ fn spawnBufferedBlockJobs(
         const lsc = buffered_blocks.orderedRemove(0);
         errdefer cx.cx.gpa.free(lsc.data);
 
+        const progress_bytes = BufferedBlock.calcProgressBytes(lsc.data);
+
         const chunk_index = try cx.claimChunkIndex();
-        try spawnBlockJob(extractRmdaChildJob, cx, diag, &lsc.block, lsc.data, chunk_index, .{});
+        try spawnBlockJob(
+            extractRmdaChildJob,
+            cx,
+            diag,
+            &lsc.block,
+            lsc.data,
+            chunk_index,
+            .{progress_bytes},
+        );
     }
 }
 
@@ -1158,6 +1316,7 @@ const BlockJob = fn (
     block: *const Block,
     raw: []const u8,
     chunk_index: u16,
+    progress_bytes: u32,
 ) anyerror!void;
 
 fn readBlockAndSpawn(
@@ -1170,10 +1329,11 @@ fn readBlockAndSpawn(
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
     try in.readSliceAll(raw);
+    const progress_bytes = attributePositionToProgress(cx.last_progress_offset, in);
 
     const chunk_index = try cx.claimChunkIndex();
 
-    try spawnBlockJob(job, cx, diag, block, raw, chunk_index, .{});
+    try spawnBlockJob(job, cx, diag, block, raw, chunk_index, .{progress_bytes});
 }
 
 fn spawnBlockJob(
@@ -1219,12 +1379,22 @@ fn extractRmimAndPalsJob(
     block: *const Block,
     rmim_raw: []const u8,
     rmim_chunk_index: u16,
+    progress_bytes: u32,
     pals_raw: []const u8,
     pals_chunk_index: u16,
 ) !void {
     defer cx.cx.gpa.free(pals_raw);
 
     cx.cx.incStat(.rmim_total);
+
+    const block_blink = cx.cx.blinken.addNode(cx.room_blink);
+    defer {
+        cx.cx.blinken.removeNode(block_blink);
+        cx.cx.blinken.addProgress(cx.room_blink, progress_bytes);
+        cx.cx.blinken.addProgress(cx.disk_blink, progress_bytes);
+        cx.cx.blinken.addProgress(.root, progress_bytes);
+    }
+    cx.cx.blinken.setTextPrint(block_blink, "{f}", .{block.id});
 
     std.debug.assert(disk_diag.offset == 0);
     var diag = disk_diag.child(block.start, .{ .block_id = .RMIM });
@@ -1271,6 +1441,7 @@ fn extractRmdaChildJob(
     block: *const Block,
     raw: []const u8,
     chunk_index: u16,
+    progress_bytes: u32,
 ) !void {
     cx.cx.incStatOpt(switch (block.id) {
         .OBIM, .OBCD => null,
@@ -1280,6 +1451,15 @@ fn extractRmdaChildJob(
         .LSC2 => .lsc2_total,
         else => unreachable,
     });
+
+    const block_blink = cx.cx.blinken.addNode(cx.room_blink);
+    defer {
+        cx.cx.blinken.removeNode(block_blink);
+        cx.cx.blinken.addProgress(cx.room_blink, progress_bytes);
+        cx.cx.blinken.addProgress(cx.disk_blink, progress_bytes);
+        cx.cx.blinken.addProgress(.root, progress_bytes);
+    }
+    cx.cx.blinken.setTextPrint(block_blink, "{f}", .{block.id});
 
     std.debug.assert(disk_diag.offset == 0);
     var diag = disk_diag.child(block.start, .{ .block_id = block.id });
@@ -1305,7 +1485,7 @@ fn extractRmdaChildJob(
                 return;
         },
         .LSCR, .LSC2 => {
-            if (extractLsc(cx, &tx, &diag, block.id, raw, &code, chunk_index))
+            if (extractLsc(cx, &tx, &diag, block_blink, block.id, raw, &code, chunk_index))
                 return;
         },
         else => unreachable, // This is only called for the above block ids
@@ -1636,6 +1816,7 @@ fn extractLsc(
     cx: *RoomContext,
     tx: *Transaction,
     diag: *Diagnostic.ForBinaryFile,
+    block_blink: Blinkenlights.NodeId,
     block_id: BlockId,
     raw: []const u8,
     code: *std.ArrayList(u8),
@@ -1654,6 +1835,8 @@ fn extractLsc(
     // mild hack: patch the log context now that we know the script number
     diag.section = .{ .glob = .{ block_id, script_number } };
     diag.trace(0, "found script number", .{});
+
+    cx.cx.blinken.setTextPrint(block_blink, "{f} {}", .{ block_id, script_number });
 
     if (cx.cx.options.script == .decompile and
         tryDecode("decompile", extractLscDecompile, cx, tx, diag, .{ block_type, script_number, bytecode }, code))
@@ -1794,6 +1977,7 @@ fn extractGlobJob(
     block: *const Block,
     raw: []const u8,
     chunk_index: u16,
+    progress_bytes: u32,
 ) !void {
     cx.cx.incStatOpt(switch (block.id) {
         .SCRP => .scrp_total,
@@ -1802,6 +1986,15 @@ fn extractGlobJob(
         .AWIZ => .awiz_total,
         else => null,
     });
+
+    const glob_blink = cx.cx.blinken.addNode(cx.room_blink);
+    defer {
+        cx.cx.blinken.removeNode(glob_blink);
+        cx.cx.blinken.addProgress(cx.room_blink, progress_bytes);
+        cx.cx.blinken.addProgress(cx.disk_blink, progress_bytes);
+        cx.cx.blinken.addProgress(.root, progress_bytes);
+    }
+    cx.cx.blinken.setTextPrint(glob_blink, "{f}", .{block.id});
 
     var code: std.ArrayList(u8) = .empty;
     errdefer code.deinit(cx.cx.gpa);
@@ -1816,6 +2009,7 @@ fn extractGlobJob(
     };
 
     disk_diag.trace(block.offset(), "glob number {}", .{glob_number});
+    cx.cx.blinken.setTextPrint(glob_blink, "{f} {}", .{ block.id, glob_number });
 
     std.debug.assert(disk_diag.offset == 0);
     var diag = disk_diag.child(block.start, .{ .glob = .{ block.id, glob_number } });
@@ -2425,7 +2619,17 @@ fn extractMusic(
     var output_dir = try fsd.openDirZ(diagnostic, output_parent_dir, output_path);
     defer output_dir.close();
 
-    try music.extract(cx.gpa, diagnostic, cx.symbols, input_dir, in_path, output_dir, output_path, code);
+    try music.extract(
+        cx.gpa,
+        diagnostic,
+        &cx.blinken,
+        cx.symbols,
+        input_dir,
+        in_path,
+        output_dir,
+        output_path,
+        code,
+    );
 }
 
 fn emitConsts(cx: *Context, diagnostic: *Diagnostic, code: *std.ArrayList(u8)) !void {

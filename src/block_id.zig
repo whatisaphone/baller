@@ -47,6 +47,21 @@ pub const BlockId = enum(u32) {
         }
     };
 
+    pub fn fmtSafe(value: Raw) FmtSafe {
+        return .{ .value = value };
+    }
+
+    const FmtSafe = struct {
+        value: Raw,
+
+        pub fn format(self: FmtSafe, w: *std.io.Writer) !void {
+            if (init(self.value)) |block_id|
+                try block_id.format(w)
+            else
+                try fmtInvalid(self.value).format(w);
+        }
+    };
+
     AARY = make("AARY"),
     AKCD = make("AKCD"),
     AKCI = make("AKCI"),

@@ -124,3 +124,14 @@ pub fn writeFileZ(
         return error.AddedToDiagnostic;
     };
 }
+
+pub fn statFile(
+    diagnostic: *Diagnostic,
+    dir: std.fs.Dir,
+    sub_path: []const u8,
+) !std.fs.File.Stat {
+    return dir.statFile(sub_path) catch |err| {
+        diagnostic.err("failed to stat file: {s} ({s})", .{ sub_path, @errorName(err) });
+        return error.AddedToDiagnostic;
+    };
+}

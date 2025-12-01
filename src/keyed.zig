@@ -31,12 +31,13 @@ pub fn Key(Template: type) type {
             null = std.math.maxInt(Index),
             _,
 
-            fn fromIndex(idx: Index) Optional {
+            pub fn fromIndex(idx: Index) Optional {
                 std.debug.assert(idx != @intFromEnum(Optional.null));
                 return @enumFromInt(idx);
             }
 
             pub fn index(self: Optional) Index {
+                std.debug.assert(self != .null);
                 return @intFromEnum(self);
             }
 

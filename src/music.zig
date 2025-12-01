@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
@@ -24,6 +25,7 @@ const utils = @import("utils.zig");
 pub fn extract(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    blinken: *Blinkenlights,
     symbols: *const Symbols,
     input_dir: std.fs.Dir,
     input_path: [:0]const u8,
@@ -39,6 +41,8 @@ pub fn extract(
     var in_limit: std.io.Reader.Limited = .init(&in_xor.interface, .unlimited, &.{});
     const in = &in_limit.interface;
 
+    var last_progress_offset: u32 = 0;
+
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, input_path);
 
     try code.appendSlice(gpa, "\nmusic {\n");
@@ -47,6 +51,12 @@ pub fn extract(
 
     const song_block = try file_blocks.expect(.SONG) orelse return error.BadData;
     var song_blocks: StreamingBlockReader = .init(in, &diag);
+
+    const file_blink = blinken.addNode(.root);
+    defer blinken.removeNode(file_blink);
+    blinken.setText(file_blink, input_path);
+    blinken.setProgressStyle(file_blink, .bar_bytes);
+    blinken.setMax(file_blink, Block.header_size + song_block.size);
 
     const sghd_block = try song_blocks.expect(.SGHD) orelse return error.BadData;
     const sghd = try readBlockAsValue(in, &sghd_block, Sghd);
@@ -78,6 +88,14 @@ pub fn extract(
         // block structure, so the parsing gets a little hacky, beware.
         const block_offset, const block_header = try song_blocks.readHeader() orelse
             return error.BadData;
+
+        const block_blink = blinken.addNode(file_blink);
+        defer blinken.removeNode(block_blink);
+        blinken.setTextPrint(block_blink, "{f} {}", .{
+            BlockId.fmtSafe(block_header.raw[0]),
+            sgen.number,
+        });
+
         switch (block_header.raw[0]) {
             BlockId.DIGI.raw() => {
                 const block = song_blocks.validate(block_offset, block_header) orelse
@@ -102,6 +120,12 @@ pub fn extract(
             },
             else => return error.BadData,
         }
+
+        const pos = fxbcl.pos(in);
+        const progress_bytes = pos - last_progress_offset;
+        last_progress_offset = pos;
+        blinken.addProgress(file_blink, progress_bytes);
+        blinken.addProgress(.root, progress_bytes);
     }
 
     try song_blocks.end();
@@ -110,6 +134,8 @@ pub fn extract(
     file_blocks.expectMismatchedEnd();
 
     try code.appendSlice(gpa, "}\n");
+
+    blinken.debugAssertProgressFinished(file_blink);
 }
 
 const Cx = struct {
