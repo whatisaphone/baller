@@ -10,18 +10,22 @@ const saveload_dump = @import("saveload_dump.zig");
 const talkie_build = @import("talkie_build.zig");
 const talkie_extract = @import("talkie_extract.zig");
 
-pub fn main() !u8 {
-    runCli() catch |err| {
-        if (err == error.CommandLine) {
-            try std.fs.File.stderr().writeAll(usage);
-            return 1;
-        }
-        if (err == error.CommandLineReported or err == error.Reported) {
-            return 1;
-        }
-        return err;
-    };
-    return 0;
+pub fn main() u8 {
+    const err = if (runCli()) return 0 else |err| err;
+
+    switch (err) {
+        error.CommandLine => {
+            std.fs.File.stderr().writeAll(usage) catch {};
+        },
+        error.CommandLineReported, error.Reported => {},
+        else => { // TODO: handle all errors downstream, then get rid of this else
+            std.fs.File.stderr().writeAll("unexpected error\n") catch {};
+            if (builtin.mode == .Debug)
+                if (@errorReturnTrace()) |trace|
+                    std.debug.dumpStackTrace(trace.*);
+        },
+    }
+    return 1;
 }
 
 fn runCli() !void {
