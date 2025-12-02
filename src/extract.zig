@@ -317,7 +317,7 @@ pub fn run(
     // the cpu will be oversubscribed. But adding 1 results in faster wall clock
     // time on slower machines. This could be improved by putting the reader
     // thread in a separate thread pool for io-bound jobs.
-    const n_jobs = 1 + (std.Thread.getCpuCount() catch 1);
+    const n_jobs = 1 + @min(std.Thread.getCpuCount() catch 1, sync.max_concurrency);
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa, .n_jobs = n_jobs });
@@ -927,7 +927,7 @@ fn extractRoom(
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
 
-    var events: sync.Channel(Event, 16) = .init;
+    var events: sync.Channel(Event, sync.max_concurrency) = .init;
 
     try cx.pool.spawn(readRoomJob, .{
         cx,
@@ -973,7 +973,7 @@ const RoomContext = struct {
     last_progress_offset: *u32,
     disk_blink: Blinkenlights.NodeId,
     room_blink: Blinkenlights.NodeId,
-    events: *sync.Channel(Event, 16),
+    events: *sync.Channel(Event, sync.max_concurrency),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
 
@@ -1024,7 +1024,7 @@ fn readRoomJob(
     last_progress_offset: *u32,
     disk_blink: Blinkenlights.NodeId,
     room_blink: Blinkenlights.NodeId,
-    events: *sync.Channel(Event, 16),
+    events: *sync.Channel(Event, sync.max_concurrency),
 ) void {
     // store these a level up so they outlive the jobs
     var room_dir: ?std.fs.Dir = null;
@@ -2544,7 +2544,7 @@ fn emitRoom(
     diagnostic: *Diagnostic,
     room_number: u8,
     project_code: *std.ArrayList(u8),
-    events: *sync.Channel(Event, 16),
+    events: *sync.Channel(Event, sync.max_concurrency),
 ) !void {
     var chunks: utils.TinyArray(Chunk, max_room_code_chunks) = .empty;
     defer for (chunks.slice()) |*chunk| chunk.code.deinit(cx.gpa);

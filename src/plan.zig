@@ -72,7 +72,7 @@ pub fn run(
     output_dir: std.fs.Dir,
     index_name: []const u8,
     pool: *std.Thread.Pool,
-    events: *sync.Channel(sync.OrderedEvent(Payload), 16),
+    events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
 ) void {
     var cx: Context = undefined;
 
@@ -137,7 +137,7 @@ const Context = struct {
     room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
     pool: *std.Thread.Pool,
-    events: *sync.Channel(sync.OrderedEvent(Payload), 16),
+    events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
     next_event_index: u16,
     pending_jobs: std.atomic.Value(u32),
 

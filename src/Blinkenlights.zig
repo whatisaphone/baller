@@ -1,9 +1,11 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const sync = @import("sync.zig");
+
 const Blinkenlights = @This();
 
-const max_nodes = 31; // TODO: handle too much parallelism
+const max_nodes = sync.max_concurrency + 3; // 3 additional rows for total, file, room
 const max_lines = 10;
 
 mutex: std.Thread.Mutex,

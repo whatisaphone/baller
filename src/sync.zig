@@ -2,6 +2,8 @@ const std = @import("std");
 
 const utils = @import("utils.zig");
 
+pub const max_concurrency = 32;
+
 pub fn Channel(T: type, capacity: usize) type {
     return struct {
         const Self = @This();

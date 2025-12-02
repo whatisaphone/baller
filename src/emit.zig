@@ -31,9 +31,9 @@ pub fn run(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    events: *sync.Channel(sync.OrderedEvent(plan.Payload), 16),
+    events: *sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency),
 ) !void {
-    var receiver: sync.OrderedReceiver(plan.Payload, 16) = .init(events);
+    var receiver: sync.OrderedReceiver(plan.Payload, sync.max_concurrency) = .init(events);
     defer receiver.deinit(gpa);
 
     runInner(gpa, diagnostic, project, output_dir, index_name, options, &receiver) catch |err| {
@@ -59,7 +59,7 @@ pub fn runInner(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *sync.OrderedReceiver(plan.Payload, 16),
+    receiver: *sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
 ) !void {
     const target_message = try receiver.next(gpa);
     const target = switch (target_message) {
@@ -100,7 +100,7 @@ const Cx = struct {
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *sync.OrderedReceiver(plan.Payload, 16),
+    receiver: *sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
     target: games.Target,
     index: *Index,
 };
