@@ -308,10 +308,18 @@ pub fn run(
         try symbols.parse(gpa, symbols_text);
     }
 
+    // Give the pool enough jobs for:
+    //
+    // - reader thread: io bound, mostly idle, 1 job
+    // - block decode jobs: cpu bound, `num_cpus` jobs
+    //
+    // This isn't exact. The reader thread exits eagerly, so after it's done,
+    // the cpu will be oversubscribed. But adding 1 results in faster wall clock
+    // time on slower machines. This could be improved by putting the reader
+    // thread in a separate thread pool for io-bound jobs.
+    const n_jobs = 1 + (std.Thread.getCpuCount() catch 1);
+
     var pool: std.Thread.Pool = undefined;
-    // 1 thread isn't enough, we need a minimum of 2 since the reader thread is
-    // here and spawns its own jobs too.
-    const n_jobs = @max(2, std.Thread.getCpuCount() catch 1);
     try pool.init(.{ .allocator = gpa, .n_jobs = n_jobs });
     defer pool.deinit();
 
