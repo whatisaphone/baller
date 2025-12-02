@@ -88,6 +88,120 @@ fn runCli() !void {
     }
 }
 
+pub const panic = if (std.debug.runtime_safety)
+    // this is the default, as seen in std.builtin.panic
+    std.debug.FullPanic(std.debug.defaultPanic)
+else
+    // in release builds, just abort. this is here to avoid bloating the binary
+    // with code for printing stack traces. based on std.debug.no_panic
+    struct {
+        pub fn call(_: []const u8, _: ?usize) noreturn {
+            @branchHint(.cold);
+            std.fs.File.stderr().writeAll("unexpected error\n") catch {};
+            std.process.abort();
+        }
+
+        pub fn sentinelMismatch(_: anytype, _: anytype) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn unwrapError(_: anyerror) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn outOfBounds(_: usize, _: usize) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn startGreaterThanEnd(_: usize, _: usize) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn inactiveUnionField(_: anytype, _: anytype) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn sliceCastLenRemainder(_: usize) noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn reachedUnreachable() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn unwrapNull() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn castToNull() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn incorrectAlignment() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn invalidErrorCode() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn integerOutOfBounds() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn integerOverflow() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn shlOverflow() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn shrOverflow() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn divideByZero() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn exactDivisionRemainder() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn integerPartOutOfBounds() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn corruptSwitch() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn shiftRhsTooBig() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn invalidEnumValue() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn forLenMismatch() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn copyLenMismatch() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn memcpyAlias() noreturn {
+            call(undefined, undefined);
+        }
+
+        pub fn noreturnReturned() noreturn {
+            call(undefined, undefined);
+        }
+    };
+
 const usage =
     \\Baller <https://github.com/whatisaphone/baller> licensed under AGPL 3.0
     \\
