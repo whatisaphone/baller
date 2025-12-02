@@ -225,9 +225,6 @@ fn setupTerminal() bool {
     if (!stderr.isTty()) return false;
 
     if (builtin.target.os.tag == .windows) {
-        const CP_UTF8 = 65001;
-        if (std.os.windows.kernel32.SetConsoleOutputCP(CP_UTF8) == 0)
-            return false;
         if (!stderr.getOrEnableAnsiEscapeSupport())
             return false;
     }
@@ -275,18 +272,25 @@ fn renderNode(rs: *RenderState, id: NodeId) !void {
 
 fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, max: u32) !void {
     const width = 32;
-    const empty_char = "∙";
-    const filled_char = "⚾";
-    const filled_char_width = 2;
+    const chars = if (builtin.target.os.tag == .windows) struct {
+        // conhost.exe can't render emojis, so on windows use plain old ascii
+        const empty = "-";
+        const filled = "#";
+        const filled_width = 1;
+    } else struct {
+        const empty = "∙";
+        const filled = "⚾";
+        const filled_width = 2;
+    };
 
     const raw_cells = @as(u64, progress) * (width + 1) / max;
     const filled_cells = @min(raw_cells, width);
-    const filled_count = filled_cells / filled_char_width;
-    const empty_count = width - filled_count * filled_char_width;
+    const filled_count = filled_cells / chars.filled_width;
+    const empty_count = width - filled_count * chars.filled_width;
 
     try out.writeByte('[');
-    try out.splatBytesAll(filled_char, filled_count);
-    try out.splatBytesAll(empty_char, empty_count);
+    try out.splatBytesAll(chars.filled, filled_count);
+    try out.splatBytesAll(chars.empty, empty_count);
     try out.writeAll("] ");
     if (style == .bar_bytes)
         try out.print("{:5.1} MB / {:5.1} MB ", .{
