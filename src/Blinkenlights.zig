@@ -1,47 +1,109 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-const keyed = @import("keyed.zig");
-const sync = @import("sync.zig");
-
 const Blinkenlights = @This();
 
 const max_nodes = 31; // TODO: handle too much parallelism
 const max_lines = 10;
 
-queue: sync.Channel(Message, 16),
-next_node_id: std.atomic.Value(NodeIndex),
+mutex: std.Thread.Mutex,
+nodes: [max_nodes]Node,
+terminate: std.atomic.Value(u32),
 thread: std.Thread,
 
 pub fn initAndStart(self: *Blinkenlights) !void {
-    self.queue = .init;
-    self.next_node_id = .init(1); // 0 is `.root`, and is allocated automatically
+    self.mutex = .{};
+    self.nodes[0] = .{
+        .parent = .null,
+        .prev_sibling = .null,
+        .next_sibling = .null,
+        .first_child = .null,
+        .last_child = .null,
+        .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
+        .progress_style = .initial,
+        .max = null,
+        .progress = 0,
+    };
+    for (self.nodes[1..]) |*node|
+        node.* = .{
+            .parent = .null,
+            .prev_sibling = undefined,
+            .next_sibling = undefined,
+            .first_child = undefined,
+            .last_child = undefined,
+            .text = undefined,
+            .progress_style = undefined,
+            .max = undefined,
+            .progress = undefined,
+        };
+    self.terminate = .init(0);
     self.thread = try std.Thread.spawn(.{}, threadEntry, .{self});
 }
 
 pub fn stop(self: *Blinkenlights) void {
-    self.queue.send(.terminate);
+    self.terminate.store(1, .monotonic);
+    std.Thread.Futex.wake(&self.terminate, 1);
     self.thread.join();
 }
 
 pub fn addNode(self: *Blinkenlights, parent: NodeId) NodeId {
-    const prev_index = self.next_node_id.fetchAdd(1, .monotonic);
-    const index = prev_index + 1;
-    const id: NodeId = .fromIndex(index);
-    self.queue.send(.{ .add = .{ .id = id, .parent = parent } });
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const index = for (self.nodes[1..], 1..) |node, i| {
+        if (node.parent == .null) break i;
+    } else unreachable;
+    const id: NodeId = .fromIndex(@intCast(index));
+
+    self.nodes[id.index()] = .{
+        .parent = parent,
+        .prev_sibling = .null,
+        .next_sibling = .null,
+        .first_child = .null,
+        .last_child = .null,
+        .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
+        .progress_style = .initial,
+        .max = null,
+        .progress = 0,
+    };
+    if (self.nodes[parent.index()].first_child == .null) {
+        self.nodes[parent.index()].first_child = id;
+    } else {
+        const old_last_child = self.nodes[parent.index()].last_child;
+        std.debug.assert(self.nodes[old_last_child.index()].next_sibling == .null);
+        self.nodes[old_last_child.index()].next_sibling = id;
+        self.nodes[id.index()].prev_sibling = old_last_child;
+    }
+    self.nodes[parent.index()].last_child = id;
+
     return id;
 }
 
 pub fn removeNode(self: *Blinkenlights, id: NodeId) void {
-    self.queue.send(.{ .remove = .{ .id = id } });
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
+    if (node.prev_sibling != .null)
+        self.nodes[node.prev_sibling.index()].next_sibling = node.next_sibling;
+    if (node.next_sibling != .null)
+        self.nodes[node.next_sibling.index()].prev_sibling = node.prev_sibling;
+    if (id == self.nodes[node.parent.index()].last_child)
+        self.nodes[node.parent.index()].last_child = node.prev_sibling;
+    if (id == self.nodes[node.parent.index()].first_child)
+        self.nodes[node.parent.index()].first_child = node.next_sibling;
+    node.* = undefined;
+    node.parent = .null;
 }
 
 pub fn setText(self: *Blinkenlights, id: NodeId, text: []const u8) void {
-    var buf: [Node.max_text_len:0]u8 = undefined;
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
     const len = @min(text.len, Node.max_text_len); // silently truncate text :(
-    @memcpy(buf[0..len], text[0..len]);
-    buf[len] = 0;
-    self.queue.send(.{ .set_text = .{ .id = id, .text = buf } });
+    @memcpy(node.text[0..len], text[0..len]);
+    node.text[len] = 0;
 }
 
 pub fn setTextPrint(
@@ -50,88 +112,51 @@ pub fn setTextPrint(
     comptime fmt: []const u8,
     args: anytype,
 ) void {
-    var buf: [Node.max_text_len:0]u8 = undefined;
-    var w: std.io.Writer = .fixed(&buf);
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
+    var w: std.io.Writer = .fixed(&node.text);
     w.print(fmt, args) catch {}; // silently truncate text :(
-    buf[w.end] = 0;
-    self.queue.send(.{ .set_text = .{ .id = id, .text = buf } });
+    node.text[w.end] = 0;
 }
 
 pub fn setProgressStyle(self: *Blinkenlights, id: NodeId, style: ProgressStyle) void {
-    self.queue.send(.{ .set_progress_style = .{ .id = id, .style = style } });
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
+    node.progress_style = style;
 }
 
 pub fn setMax(self: *Blinkenlights, id: NodeId, max: u32) void {
-    self.queue.send(.{ .set_max = .{ .id = id, .max = max } });
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
+    node.max = max;
 }
 
 pub fn addProgress(self: *Blinkenlights, id: NodeId, amount: u32) void {
-    self.queue.send(.{ .add_progress = .{ .id = id, .amount = amount } });
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const node = &self.nodes[id.index()];
+    std.debug.assert(node.max != null);
+    node.progress += amount;
 }
 
 pub fn debugAssertProgressFinished(self: *Blinkenlights, id: NodeId) void {
     if (builtin.mode != .Debug) return;
 
-    var start_barrier: std.atomic.Value(u32) = .init(0);
-    var state: *State = undefined;
-    var end_barrier: *std.atomic.Value(u32) = undefined;
-    // Tell the render thread to pause and temporarily send us the state so we
-    // can examine it.
-    self.queue.send(.{ .debug = .{
-        .start_barrier = &start_barrier,
-        .state = &state,
-        .end_barrier = &end_barrier,
-    } });
-    // Wait for the render thread to populate the state.
-    futexWaitNotEqual(&start_barrier, 0, .acquire);
+    self.mutex.lock();
+    defer self.mutex.unlock();
 
-    const slot = findSlotById(state, id);
-    const node = &state.nodes[slot.index()];
+    const node = &self.nodes[id.index()];
     std.testing.expectEqual(node.progress, node.max.?) catch unreachable;
-
-    // Signal the render thread to continue.
-    end_barrier.store(1, .monotonic);
-    std.Thread.Futex.wake(end_barrier, 1);
 }
 
-fn futexWaitNotEqual(
-    ptr: *std.atomic.Value(u32),
-    not_equal_to: u32,
-    comptime order: std.builtin.AtomicOrder,
-) void {
-    while (true) {
-        const value = ptr.load(order);
-        if (value != not_equal_to) break;
-        std.Thread.Futex.wait(ptr, value);
-    }
-}
-
-const Message = union(enum) {
-    add: struct { id: NodeId, parent: NodeId },
-    remove: struct { id: NodeId },
-    set_text: struct { id: NodeId, text: [Node.max_text_len:0]u8 },
-    set_progress_style: struct { id: NodeId, style: ProgressStyle },
-    set_max: struct { id: NodeId, max: u32 },
-    add_progress: struct { id: NodeId, amount: u32 },
-    terminate,
-    debug: if (builtin.mode == .Debug)
-        struct {
-            start_barrier: *std.atomic.Value(u32),
-            state: **State,
-            end_barrier: **std.atomic.Value(u32),
-        }
-    else
-        noreturn,
-};
-
-const State = struct {
-    /// Stores the external `NodeId` associated with each storage slot
-    ids: [max_nodes]NodeId,
-    /// Densely indexed storage slots
-    nodes: [max_nodes]Node,
-};
-
-const NodeIndex = u32;
+const NodeIndex = u8;
 
 pub const NodeId = enum(NodeIndex) {
     root = 0,
@@ -150,17 +175,15 @@ pub const NodeId = enum(NodeIndex) {
     }
 };
 
-const Slot = keyed.Key(enum(u8) {}).Optional;
-
 const Node = struct {
     const max_text_len = 23;
 
     // tree relationships
-    parent: Slot,
-    prev_sibling: Slot,
-    next_sibling: Slot,
-    first_child: Slot,
-    last_child: Slot,
+    parent: NodeId,
+    prev_sibling: NodeId,
+    next_sibling: NodeId,
+    first_child: NodeId,
+    last_child: NodeId,
     // node data
     text: [max_text_len:0]u8,
     progress_style: ProgressStyle,
@@ -176,46 +199,23 @@ const ProgressStyle = enum {
 };
 
 fn threadEntry(self: *Blinkenlights) void {
-    var state: State = .{
-        .ids = @splat(.null),
-        .nodes = undefined,
-    };
-    state.ids[0] = .root;
-    state.nodes[0] = .{
-        .parent = .null,
-        .prev_sibling = .null,
-        .next_sibling = .null,
-        .first_child = .null,
-        .last_child = .null,
-        .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1),
-        .progress_style = .initial,
-        .max = null,
-        .progress = 0,
-    };
-
     var stderr_buf: [4096]u8 = undefined;
     var stderr = std.fs.File.stderr().writer(&stderr_buf);
 
-    const display = setupTerminal();
+    if (!setupTerminal()) return;
 
-    outer: while (true) {
-        const start = std.time.Instant.now() catch unreachable;
+    while (true) {
+        if (std.Thread.Futex.timedWait(&self.terminate, 0, 50 * std.time.ns_per_ms))
+            break
+        else |_| {}
 
-        while (true) {
-            const message = self.queue.receive();
-            if (message == .terminate) break :outer;
-            handleMessage(&state, &message);
+        self.mutex.lock();
+        defer self.mutex.unlock();
 
-            const now = std.time.Instant.now() catch unreachable;
-            if (now.since(start) >= 50 * std.time.ns_per_ms)
-                break;
-        }
-
-        if (display)
-            renderTree(&state, &stderr.interface) catch {};
+        self.renderTree(&stderr.interface) catch {};
     }
-    if (display)
-        renderClear(&stderr.interface) catch {};
+
+    renderClear(&stderr.interface) catch {};
 }
 
 fn setupTerminal() bool {
@@ -232,96 +232,15 @@ fn setupTerminal() bool {
     return true;
 }
 
-fn handleMessage(state: *State, message: *const Message) void {
-    switch (message.*) {
-        .add => |*msg| {
-            const slot = findSlotById(state, .null);
-            state.ids[slot.index()] = msg.id;
-            const parent_slot = findSlotById(state, msg.parent);
-            state.nodes[slot.index()] = .{
-                .parent = parent_slot,
-                .prev_sibling = .null,
-                .next_sibling = .null,
-                .first_child = .null,
-                .last_child = .null,
-                .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1),
-                .progress_style = .initial,
-                .max = null,
-                .progress = 0,
-            };
-            if (state.nodes[parent_slot.index()].first_child == .null) {
-                state.nodes[parent_slot.index()].first_child = slot;
-            } else {
-                const old_last_child = state.nodes[parent_slot.index()].last_child;
-                std.debug.assert(state.nodes[old_last_child.index()].next_sibling == .null);
-                state.nodes[old_last_child.index()].next_sibling = slot;
-                state.nodes[slot.index()].prev_sibling = old_last_child;
-            }
-            state.nodes[parent_slot.index()].last_child = slot;
-        },
-        .remove => |*msg| {
-            const slot = findSlotById(state, msg.id);
-            state.ids[slot.index()] = .null;
-            const node = &state.nodes[slot.index()];
-            if (node.prev_sibling != .null)
-                state.nodes[node.prev_sibling.index()].next_sibling = node.next_sibling;
-            if (node.next_sibling != .null)
-                state.nodes[node.next_sibling.index()].prev_sibling = node.prev_sibling;
-            if (slot == state.nodes[node.parent.index()].last_child)
-                state.nodes[node.parent.index()].last_child = node.prev_sibling;
-            if (slot == state.nodes[node.parent.index()].first_child)
-                state.nodes[node.parent.index()].first_child = node.next_sibling;
-            node.* = undefined;
-        },
-        .set_text => |*msg| {
-            const slot = findSlotById(state, msg.id);
-            state.nodes[slot.index()].text = msg.text;
-        },
-        .set_progress_style => |*msg| {
-            const slot = findSlotById(state, msg.id);
-            state.nodes[slot.index()].progress_style = msg.style;
-        },
-        .set_max => |*msg| {
-            const slot = findSlotById(state, msg.id);
-            state.nodes[slot.index()].max = msg.max;
-        },
-        .add_progress => |*msg| {
-            const slot = findSlotById(state, msg.id);
-            std.debug.assert(state.nodes[slot.index()].max != null);
-            state.nodes[slot.index()].progress += msg.amount;
-        },
-        .terminate => unreachable, // handled by caller
-        .debug => |*msg| {
-            var end_barrier: std.atomic.Value(u32) = .init(0);
-            msg.state.* = state;
-            msg.end_barrier.* = &end_barrier;
-
-            // Signal to the caller that the state was populated
-            msg.start_barrier.store(1, .release);
-            std.Thread.Futex.wake(msg.start_barrier, 1);
-
-            // Wait for the caller to be finished with the state
-            futexWaitNotEqual(&end_barrier, 0, .monotonic);
-        },
-    }
-}
-
-fn findSlotById(state: *const State, needle: NodeId) Slot {
-    for (&state.ids, 0..) |id, i|
-        if (id == needle)
-            return .fromIndex(@intCast(i));
-    unreachable;
-}
-
 const RenderState = struct {
     nodes: *const [max_nodes]Node,
     out: *std.io.Writer,
     lines: u8,
 };
 
-fn renderTree(state: *const State, out: *std.io.Writer) !void {
+fn renderTree(self: *Blinkenlights, out: *std.io.Writer) !void {
     var rs: RenderState = .{
-        .nodes = &state.nodes,
+        .nodes = &self.nodes,
         .out = out,
         .lines = 0,
     };
@@ -336,10 +255,10 @@ fn renderClear(out: *std.io.Writer) !void {
     try out.flush();
 }
 
-fn renderNode(rs: *RenderState, slot: Slot) !void {
+fn renderNode(rs: *RenderState, id: NodeId) !void {
     if (rs.lines == max_lines) return;
 
-    const node = &rs.nodes[slot.index()];
+    const node = &rs.nodes[id.index()];
     if (node.max) |max|
         try renderProgressBar(rs.out, node.progress_style, node.progress, max);
     try rs.out.writeAll(std.mem.sliceTo(&node.text, 0));
