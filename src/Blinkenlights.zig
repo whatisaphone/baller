@@ -9,35 +9,13 @@ const max_nodes = sync.max_concurrency + 3; // 3 additional rows for total, file
 const max_lines = 10;
 
 mutex: std.Thread.Mutex,
-nodes: [max_nodes]Node,
+tree: Tree,
 terminate: std.atomic.Value(u32),
 thread: std.Thread,
 
 pub fn initAndStart(self: *Blinkenlights) !void {
     self.mutex = .{};
-    self.nodes[0] = .{
-        .parent = .null,
-        .prev_sibling = .null,
-        .next_sibling = .null,
-        .first_child = .null,
-        .last_child = .null,
-        .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
-        .progress_style = .initial,
-        .max = null,
-        .progress = 0,
-    };
-    for (self.nodes[1..]) |*node|
-        node.* = .{
-            .parent = .null,
-            .prev_sibling = undefined,
-            .next_sibling = undefined,
-            .first_child = undefined,
-            .last_child = undefined,
-            .text = undefined,
-            .progress_style = undefined,
-            .max = undefined,
-            .progress = undefined,
-        };
+    self.tree.init();
     self.terminate = .init(0);
     self.thread = try std.Thread.spawn(.{}, threadEntry, .{self});
 }
@@ -48,64 +26,33 @@ pub fn stop(self: *Blinkenlights) void {
     self.thread.join();
 }
 
-pub fn addNode(self: *Blinkenlights, parent: NodeId) NodeId {
+pub fn lock(self: *Blinkenlights) void {
     self.mutex.lock();
-    defer self.mutex.unlock();
+}
 
-    const index = for (self.nodes[1..], 1..) |node, i| {
-        if (node.parent == .null) break i;
-    } else unreachable;
-    const id: NodeId = .fromIndex(@intCast(index));
+pub fn unlock(self: *Blinkenlights) void {
+    self.mutex.unlock();
+}
 
-    self.nodes[id.index()] = .{
-        .parent = parent,
-        .prev_sibling = .null,
-        .next_sibling = .null,
-        .first_child = .null,
-        .last_child = .null,
-        .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
-        .progress_style = .initial,
-        .max = null,
-        .progress = 0,
-    };
-    if (self.nodes[parent.index()].first_child == .null) {
-        self.nodes[parent.index()].first_child = id;
-    } else {
-        const old_last_child = self.nodes[parent.index()].last_child;
-        std.debug.assert(self.nodes[old_last_child.index()].next_sibling == .null);
-        self.nodes[old_last_child.index()].next_sibling = id;
-        self.nodes[id.index()].prev_sibling = old_last_child;
-    }
-    self.nodes[parent.index()].last_child = id;
+pub fn addNode(self: *Blinkenlights, parent: NodeId) NodeId {
+    self.lock();
+    defer self.unlock();
 
-    return id;
+    return self.tree.addNode(parent);
 }
 
 pub fn removeNode(self: *Blinkenlights, id: NodeId) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
-    if (node.prev_sibling != .null)
-        self.nodes[node.prev_sibling.index()].next_sibling = node.next_sibling;
-    if (node.next_sibling != .null)
-        self.nodes[node.next_sibling.index()].prev_sibling = node.prev_sibling;
-    if (id == self.nodes[node.parent.index()].last_child)
-        self.nodes[node.parent.index()].last_child = node.prev_sibling;
-    if (id == self.nodes[node.parent.index()].first_child)
-        self.nodes[node.parent.index()].first_child = node.next_sibling;
-    node.* = undefined;
-    node.parent = .null;
+    self.tree.removeNode(id);
 }
 
 pub fn setText(self: *Blinkenlights, id: NodeId, text: []const u8) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
-    const len = @min(text.len, Node.max_text_len); // silently truncate text :(
-    @memcpy(node.text[0..len], text[0..len]);
-    node.text[len] = 0;
+    self.tree.setText(id, text);
 }
 
 pub fn setTextPrint(
@@ -114,39 +61,136 @@ pub fn setTextPrint(
     comptime fmt: []const u8,
     args: anytype,
 ) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
-    var w: std.io.Writer = .fixed(&node.text);
-    w.print(fmt, args) catch {}; // silently truncate text :(
-    node.text[w.end] = 0;
+    self.tree.setTextPrint(id, fmt, args);
 }
 
 pub fn setProgressStyle(self: *Blinkenlights, id: NodeId, style: ProgressStyle) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
+    const node = self.tree.at(id);
     node.progress_style = style;
 }
 
 pub fn setMax(self: *Blinkenlights, id: NodeId, max: u32) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
+    const node = self.tree.at(id);
     node.max = max;
 }
 
 pub fn addProgress(self: *Blinkenlights, id: NodeId, amount: u32) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
+    self.lock();
+    defer self.unlock();
 
-    const node = &self.nodes[id.index()];
+    const node = self.tree.at(id);
     std.debug.assert(node.max != null);
     node.progress += amount;
 }
+
+const Tree = struct {
+    nodes: [max_nodes]Node,
+
+    pub fn init(self: *Tree) void {
+        self.nodes[0] = .{
+            .parent = .null,
+            .prev_sibling = .null,
+            .next_sibling = .null,
+            .first_child = .null,
+            .last_child = .null,
+            .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
+            .progress_style = .initial,
+            .max = null,
+            .progress = 0,
+        };
+        for (self.nodes[1..]) |*node|
+            node.* = .{
+                .parent = .null,
+                .prev_sibling = undefined,
+                .next_sibling = undefined,
+                .first_child = undefined,
+                .last_child = undefined,
+                .text = undefined,
+                .progress_style = undefined,
+                .max = undefined,
+                .progress = undefined,
+            };
+    }
+
+    pub fn at(self: *Tree, id: NodeId) *Node {
+        return &self.nodes[id.index()];
+    }
+
+    pub fn addNode(self: *Tree, parent: NodeId) NodeId {
+        // find a free node
+        const index = for (self.nodes[1..], 1..) |node, i| {
+            if (node.parent == .null) break i;
+        } else unreachable;
+        const id: NodeId = .fromIndex(@intCast(index));
+
+        const node = self.at(id);
+        std.debug.assert(node.parent == .null);
+        node.* = .{
+            .parent = parent,
+            .prev_sibling = .null,
+            .next_sibling = .null,
+            .first_child = .null,
+            .last_child = .null,
+            .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
+            .progress_style = .initial,
+            .max = null,
+            .progress = 0,
+        };
+        if (self.at(parent).first_child == .null) {
+            self.at(parent).first_child = id;
+        } else {
+            const old_last_child = self.at(parent).last_child;
+            std.debug.assert(self.at(old_last_child).next_sibling == .null);
+            self.at(old_last_child).next_sibling = id;
+            self.at(id).prev_sibling = old_last_child;
+        }
+        self.at(parent).last_child = id;
+
+        return id;
+    }
+
+    pub fn removeNode(self: *Tree, id: NodeId) void {
+        const node = self.at(id);
+        if (node.prev_sibling != .null)
+            self.at(node.prev_sibling).next_sibling = node.next_sibling;
+        if (node.next_sibling != .null)
+            self.at(node.next_sibling).prev_sibling = node.prev_sibling;
+        if (id == self.at(node.parent).last_child)
+            self.at(node.parent).last_child = node.prev_sibling;
+        if (id == self.at(node.parent).first_child)
+            self.at(node.parent).first_child = node.next_sibling;
+        node.* = undefined;
+        node.parent = .null;
+    }
+
+    pub fn setText(self: *Tree, id: NodeId, text: []const u8) void {
+        const node = self.at(id);
+        const len = @min(text.len, Node.max_text_len); // silently truncate text :(
+        @memcpy(node.text[0..len], text[0..len]);
+        node.text[len] = 0;
+    }
+
+    pub fn setTextPrint(
+        self: *Tree,
+        id: NodeId,
+        comptime fmt: []const u8,
+        args: anytype,
+    ) void {
+        const node = self.at(id);
+        var w: std.io.Writer = .fixed(&node.text);
+        w.print(fmt, args) catch {}; // silently truncate text :(
+        node.text[w.end] = 0;
+    }
+};
 
 pub fn debugAssertProgressFinished(self: *Blinkenlights, id: NodeId) void {
     if (builtin.mode != .Debug) return;
@@ -154,7 +198,7 @@ pub fn debugAssertProgressFinished(self: *Blinkenlights, id: NodeId) void {
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    const node = &self.nodes[id.index()];
+    const node = self.tree.at(id);
     std.testing.expectEqual(node.progress, node.max.?) catch unreachable;
 }
 
@@ -239,12 +283,12 @@ const RenderState = struct {
 
 fn renderTree(self: *Blinkenlights, out: *std.io.Writer) !void {
     var rs: RenderState = .{
-        .nodes = &self.nodes,
+        .nodes = &self.tree.nodes,
         .out = out,
         .lines = 0,
     };
     try out.writeAll(ansi.sync_begin ++ ansi.erase_in_display_to_end);
-    try renderNode(&rs, .fromIndex(0));
+    try renderNode(&rs, .root, 0);
     try out.print(ansi.cursor_up_fmt ++ ansi.sync_end, .{rs.lines});
     try out.flush();
 }
@@ -254,20 +298,21 @@ fn renderClear(out: *std.io.Writer) !void {
     try out.flush();
 }
 
-fn renderNode(rs: *RenderState, id: NodeId) !void {
+fn renderNode(rs: *RenderState, id: NodeId, indent: u8) !void {
     if (rs.lines == max_lines) return;
 
     const node = &rs.nodes[id.index()];
     if (node.max) |max|
         try renderProgressBar(rs.out, node.progress_style, node.progress, max);
+    try rs.out.splatByteAll(' ', indent * 2);
     try rs.out.writeAll(std.mem.sliceTo(&node.text, 0));
     try rs.out.writeByte('\n');
     rs.lines += 1;
 
     if (node.first_child != .null)
-        try renderNode(rs, node.first_child);
+        try renderNode(rs, node.first_child, indent + 1);
     if (node.next_sibling != .null)
-        try renderNode(rs, node.next_sibling);
+        try renderNode(rs, node.next_sibling, indent);
 }
 
 fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, max: u32) !void {
