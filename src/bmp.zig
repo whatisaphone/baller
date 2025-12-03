@@ -396,14 +396,17 @@ pub fn writeHeader15(out: *std.io.Writer, width: u31, height: u31, file_size: u3
 }
 
 pub fn writePalette(out: *std.io.Writer, pal: *const [0x300]u8) !void {
-    var i: usize = 0;
-    while (i < 0x300) {
+    const dest = try out.writableArray(256 * 4);
+    var s: usize = 0;
+    var d: usize = 0;
+    while (s < 256 * 3) {
         // convert from RGB to BGR0
-        try out.writeByte(pal[i + 2]);
-        try out.writeByte(pal[i + 1]);
-        try out.writeByte(pal[i]);
-        try out.writeByte(0);
-        i += 3;
+        dest[d + 0] = pal[s + 2];
+        dest[d + 1] = pal[s + 1];
+        dest[d + 2] = pal[s];
+        dest[d + 3] = 0;
+        s += 3;
+        d += 4;
     }
 }
 
