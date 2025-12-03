@@ -61,6 +61,10 @@ pub fn peekInPlaceAsValue(stream: *std.io.Reader, T: type) !*align(1) const T {
     return std.mem.bytesAsValue(T, data);
 }
 
+pub fn assertReaderFixed(r: *const std.io.Reader) void {
+    std.debug.assert(r.vtable == std.io.Reader.fixed(&.{}).vtable);
+}
+
 /// A faster drop-in replacement for std.io.Reader.fixed
 pub const FixedReader = struct {
     buffer: []const u8,

@@ -181,8 +181,7 @@ pub const FixedBlockReader = struct {
         stream: *std.io.Reader,
         diag: *const Diagnostic.ForBinaryFile,
     ) FixedBlockReader {
-        // Assert that it's a `std.io.Reader.fixed`
-        std.debug.assert(std.meta.eql(stream.vtable, std.io.Reader.fixed(&.{}).vtable));
+        io.assertReaderFixed(stream);
         std.debug.assert(stream.seek == 0);
 
         return .{
