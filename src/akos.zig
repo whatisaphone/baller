@@ -160,7 +160,7 @@ fn decodeCel(
 fn decodeCelByleRle(akpl: []const u8, cel: Cel, pixels: []u8, stride: u31) !void {
     const run_mask, const color_shift = byleParams(akpl.len) orelse return error.CelDecode;
 
-    var in: std.io.Reader = .fixed(cel.data);
+    var in: io.FixedReader = .init(cel.data);
 
     var i: u32 = 0;
     var x: u16 = 0;

@@ -61,6 +61,49 @@ pub fn peekInPlaceAsValue(stream: *std.io.Reader, T: type) !*align(1) const T {
     return std.mem.bytesAsValue(T, data);
 }
 
+/// A faster drop-in replacement for std.io.Reader.fixed
+pub const FixedReader = struct {
+    buffer: []const u8,
+    pos: usize,
+
+    pub fn init(buffer: []const u8) FixedReader {
+        return .{
+            .buffer = buffer,
+            .pos = 0,
+        };
+    }
+
+    pub fn peek(self: *const FixedReader, n: usize) ![]const u8 {
+        const remaining = self.buffer[self.pos..];
+        if (remaining.len < n) return error.EndOfStream;
+        return remaining[0..n];
+    }
+
+    pub fn toss(self: *FixedReader, n: usize) void {
+        self.pos += n;
+        std.debug.assert(self.pos <= self.buffer.len);
+    }
+
+    pub fn take(self: *FixedReader, n: usize) ![]const u8 {
+        const result = try self.peek(n);
+        self.toss(n);
+        return result;
+    }
+
+    pub fn takeByte(self: *FixedReader) !u8 {
+        return (try self.take(1))[0];
+    }
+
+    pub fn takeArray(self: *FixedReader, comptime n: usize) !*const [n]u8 {
+        return (try self.take(n))[0..n];
+    }
+
+    pub inline fn takeInt(self: *FixedReader, T: type, endian: std.builtin.Endian) !T {
+        const n = @divExact(@typeInfo(T).int.bits, 8);
+        return std.mem.readInt(T, try self.takeArray(n), endian);
+    }
+};
+
 pub const XorReader = struct {
     inner: *std.io.Reader,
     key: u8,
