@@ -570,28 +570,6 @@ fn planRawGlobBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !v
     cx.sendSyncEvent(.glob_end);
 }
 
-fn planRmda(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
-    const rmda = &cx.project.files.items[room_number].?.ast.nodes.items[node_index].rmda;
-
-    cx.sendSyncEvent(.{ .glob_start = .{
-        .block_id = .RMDA,
-        .glob_number = room_number,
-    } });
-
-    const room_file = &cx.project.files.items[room_number].?;
-    for (room_file.ast.getExtra(rmda.children)) |node| {
-        const child = &room_file.ast.nodes.items[node];
-        switch (child.*) {
-            .raw_block => try planRawBlock(cx, room_number, node),
-            .encd, .excd => try spawnJob(planEncdExcd, cx, room_number, node),
-            .lsc => try spawnJob(planLsc, cx, room_number, node),
-            else => unreachable,
-        }
-    }
-
-    cx.sendSyncEvent(.glob_end);
-}
-
 const Job = fn (cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) anyerror!void;
 
 fn spawnJob(job: Job, cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
