@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
+const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
@@ -72,6 +73,9 @@ pub fn run(
     awiz_strategy: awiz.EncodingStrategy,
     output_dir: std.fs.Dir,
     index_name: []const u8,
+    blinken: *Blinkenlights,
+    plan_blink: Blinkenlights.NodeId,
+    build_blink: Blinkenlights.NodeId,
     pool: *std.Thread.Pool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
 ) void {
@@ -90,12 +94,18 @@ pub fn run(
         .room_nodes = room_nodes,
         .room_scopes = @splat(.empty),
         .room_lsc_types = @splat(.undef),
+        .blinken = blinken,
+        .plan_blink = plan_blink,
+        .build_blink = build_blink,
+        .room_blinks = @splat(.null),
         .pool = pool,
         .events = events,
         .next_event_index = 0,
         .pending_jobs = .init(0),
     };
     defer {
+        cx.blinken.removeNode(cx.build_blink);
+        // plan_blink is removed below
         for (&cx.room_scopes) |*s|
             s.deinit(gpa);
         cx.project_scope.deinit(gpa);
@@ -112,6 +122,8 @@ pub fn run(
         cx.sendSyncEvent(.err);
         cx.sendSyncEvent(.project_end);
     };
+
+    cx.blinken.removeNode(cx.plan_blink);
 
     diagnostic.trace("waiting for jobs", .{});
     while (true) {
@@ -137,6 +149,10 @@ const Context = struct {
     room_nodes: *const [256]Ast.NodeIndex.Optional,
     room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
+    blinken: *Blinkenlights,
+    plan_blink: Blinkenlights.NodeId,
+    build_blink: Blinkenlights.NodeId,
+    room_blinks: [256]Blinkenlights.NodeId,
     pool: *std.Thread.Pool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
     next_event_index: u16,
@@ -167,7 +183,7 @@ fn planProject(cx: *Context) !void {
         for (project_file.ast.getExtra(node.disk.children)) |room_node| {
             const room = &project_file.ast.nodes.at(room_node).disk_room;
             cx.sendSyncEvent(.{ .room_start = room.room_number });
-            try planRoom(cx, room);
+            try planRoom(cx, room_node);
             cx.sendSyncEvent(.room_end);
         }
         cx.sendSyncEvent(.disk_end);
@@ -288,7 +304,14 @@ fn checkUniqueSymbolName(
     }
 }
 
-fn planRoom(cx: *Context, room: *const @FieldType(Ast.Node, "disk_room")) !void {
+fn planRoom(cx: *Context, room_node: Ast.NodeIndex) !void {
+    const project_file = &cx.project.files.items[0].?;
+    const room = &project_file.ast.nodes.at(room_node).disk_room;
+
+    const room_blink = cx.blinken.addNode(cx.plan_blink);
+    defer cx.blinken.removeNode(room_blink);
+    cx.blinken.setText(room_blink, project_file.ast.strings.get(room.name));
+
     try buildRoomScope(cx, room.room_number);
 
     var start: [6]RoomWork = undefined;
@@ -571,7 +594,7 @@ fn planRawGlobBlock(cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !v
     cx.sendSyncEvent(.glob_end);
 }
 
-const Job = fn (cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) anyerror!void;
+const Job = fn (cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) anyerror!void;
 
 fn spawnJob(job: Job, cx: *Context, room_number: u8, node_index: Ast.NodeIndex) !void {
     const event_index = cx.next_event_index;
@@ -593,9 +616,58 @@ fn runJob(job: Job, cx: *Context, room_number: u8, node_index: Ast.NodeIndex, ev
         std.Thread.Futex.wake(&cx.pending_jobs, 1);
 }
 
-fn jobRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn addRoomJobBlink(
+    cx: *Context,
+    room_number: u8,
+    comptime fmt: []const u8,
+    args: anytype,
+) Blinkenlights.NodeId {
+    cx.blinken.lock();
+    defer cx.blinken.unlock();
+
+    const blink = addRoomJobBlinkInner(cx, room_number);
+    cx.blinken.tree.setTextPrint(blink, fmt, args);
+    return blink;
+}
+
+// split out the non-generic part for better codegen
+fn addRoomJobBlinkInner(cx: *Context, room_number: u8) Blinkenlights.NodeId {
+    // if the room blink doesn't exist yet, add it
+    var room_blink = cx.room_blinks[room_number];
+    if (room_blink == .null) {
+        room_blink = cx.blinken.tree.addNode(cx.build_blink);
+        cx.room_blinks[room_number] = room_blink;
+
+        const project_file = cx.project.files.items[0].?;
+        const room_node = cx.room_nodes[room_number].unwrap().?;
+        const room = &project_file.ast.nodes.at(room_node).disk_room;
+        const room_name = project_file.ast.strings.get(room.name);
+        cx.blinken.tree.setText(room_blink, room_name);
+    }
+
+    return cx.blinken.tree.addNode(room_blink);
+}
+
+fn removeRoomJobBlink(cx: *Context, room_number: u8, blink: Blinkenlights.NodeId) void {
+    cx.blinken.lock();
+    defer cx.blinken.unlock();
+
+    cx.blinken.tree.removeNode(blink);
+
+    // remove the room blink if that was its last child
+    const parent = cx.room_blinks[room_number];
+    if (cx.blinken.tree.at(parent).first_child == .null) {
+        cx.blinken.tree.removeNode(parent);
+        cx.room_blinks[room_number] = .null;
+    }
+}
+
+fn jobRmim(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const rmim = &file.ast.nodes.at(node_index).rmim;
+
+    const blink = addRoomJobBlink(cx, room_number, "rmim", .{});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -639,9 +711,12 @@ fn jobRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     } });
 }
 
-fn jobPalsFromRmim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobPalsFromRmim(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const rmim = &file.ast.nodes.at(node_index).rmim;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{"rmim palette"});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -697,9 +772,12 @@ fn buildPals(bitmap: *const bmp.Bmp8, out: *std.ArrayList(u8)) !void {
     endBlockAl(out, wrap_start);
 }
 
-fn jobScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobScr(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const scr = &file.ast.nodes.at(node_index).scr;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(scr.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const path = file.ast.strings.get(scr.path);
     const in = try fsd.readFile(
@@ -732,7 +810,7 @@ fn jobScr(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_
     } });
 }
 
-fn jobEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobEncdExcd(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const node = file.ast.nodes.at(node_index);
     const edge: enum { encd, excd }, const path_slice = switch (node.*) {
@@ -740,6 +818,9 @@ fn jobEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, e
         .excd => |*n| .{ .excd, n.path },
         else => unreachable,
     };
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{@tagName(edge)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const path = file.ast.strings.get(path_slice);
     const in = try fsd.readFile(
@@ -773,9 +854,12 @@ fn jobEncdExcd(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, e
     } });
 }
 
-fn jobLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobLsc(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const lsc = &file.ast.nodes.at(node_index).lsc;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(lsc.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const path = file.ast.strings.get(lsc.path);
     const in = try fsd.readFile(
@@ -821,7 +905,10 @@ fn jobLsc(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_
     } });
 }
 
-fn jobObim(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobObim(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+    const blink = addRoomJobBlink(cx, room_number, "obim", .{});
+    defer removeRoomJobBlink(cx, room_number, blink);
+
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
@@ -914,9 +1001,12 @@ pub fn encodeRawBlock(
     endBlockAl(out, start);
 }
 
-fn jobSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobSound(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).sound;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -933,9 +1023,12 @@ fn jobSound(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     } });
 }
 
-fn jobAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobAwiz(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const awiz_node = &file.ast.nodes.at(node_index).awiz;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(awiz_node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -952,9 +1045,12 @@ fn jobAwiz(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     } });
 }
 
-fn jobMult(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobMult(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const mult = &file.ast.nodes.at(node_index).mult;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(mult.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -1014,9 +1110,12 @@ fn buildMult(
     endBlockAl(out, wrap_start);
 }
 
-fn jobAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobAkos(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).akos;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -1033,9 +1132,12 @@ fn jobAkos(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event
     } });
 }
 
-fn jobTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobTalkie(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const file = &cx.project.files.items[room_number].?;
     const node = &file.ast.nodes.at(node_index).talkie;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{file.ast.strings.get(node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
@@ -1058,9 +1160,12 @@ fn jobTalkie(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
     } });
 }
 
-fn jobScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobScript(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).script;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{room_file.ast.strings.get(node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
@@ -1079,9 +1184,12 @@ fn jobScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, eve
     } });
 }
 
-fn jobLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobLocalScript(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).local_script;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{room_file.ast.strings.get(node.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
@@ -1104,9 +1212,12 @@ fn jobLocalScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
     } });
 }
 
-fn jobEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobEnterScript(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).enter;
+
+    const blink = addRoomJobBlink(cx, room_number, "enter", .{});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
@@ -1123,9 +1234,12 @@ fn jobEnterScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex
     } });
 }
 
-fn jobExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobExitScript(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const node = &room_file.ast.nodes.at(node_index).exit;
+
+    const blink = addRoomJobBlink(cx, room_number, "exit", .{});
+    defer removeRoomJobBlink(cx, room_number, blink);
 
     const diag: Diagnostic.ForTextFile = .init(cx.diagnostic, room_file.path);
 
@@ -1142,7 +1256,13 @@ fn jobExitScript(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex,
     } });
 }
 
-fn jobObject(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+fn jobObject(cx: *Context, room_number: u8, node_index: Ast.NodeIndex, event_index: u16) !void {
+    const room_file = &cx.project.files.items[room_number].?;
+    const object = &room_file.ast.nodes.at(node_index).object;
+
+    const blink = addRoomJobBlink(cx, room_number, "{s}", .{room_file.ast.strings.get(object.name)});
+    defer removeRoomJobBlink(cx, room_number, blink);
+
     var out: std.ArrayList(u8) = .empty;
     errdefer out.deinit(cx.gpa);
 
@@ -1248,6 +1368,10 @@ fn buildObject(
 }
 
 fn planIndex(cx: *Context) !void {
+    const blink = cx.blinken.addNode(cx.plan_blink);
+    defer cx.blinken.removeNode(blink);
+    cx.blinken.setText(blink, "index");
+
     cx.sendSyncEvent(.index_start);
 
     const project_file = &cx.project.files.items[0].?;

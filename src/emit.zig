@@ -3,6 +3,7 @@ const std = @import("std");
 const build_options = @import("build_options");
 
 const Ast = @import("Ast.zig");
+const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
@@ -27,16 +28,30 @@ const utils = @import("utils.zig");
 pub fn run(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    blinken: *Blinkenlights,
+    emit_blink: Blinkenlights.NodeId,
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
     events: *sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency),
 ) !void {
+    defer blinken.removeNode(emit_blink);
+
     var receiver: sync.OrderedReceiver(plan.Payload, sync.max_concurrency) = .init(events);
     defer receiver.deinit(gpa);
 
-    runInner(gpa, diagnostic, project, output_dir, index_name, options, &receiver) catch |err| {
+    runInner(
+        gpa,
+        diagnostic,
+        blinken,
+        emit_blink,
+        project,
+        output_dir,
+        index_name,
+        options,
+        &receiver,
+    ) catch |err| {
         if (err != error.AddedToDiagnostic)
             diagnostic.zigErr("unexpected error: {s}", .{}, err);
 
@@ -55,6 +70,8 @@ pub fn run(
 pub fn runInner(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    blinken: *Blinkenlights,
+    emit_blink: Blinkenlights.NodeId,
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
@@ -74,6 +91,7 @@ pub fn runInner(
     const cx: Cx = .{
         .gpa = gpa,
         .diagnostic = diagnostic,
+        .blinken = blinken,
         .project = project,
         .output_dir = output_dir,
         .index_name = index_name,
@@ -85,7 +103,7 @@ pub fn runInner(
 
     while (true) switch (try receiver.next(gpa)) {
         .nop => {},
-        .disk_start => |num| try emitDisk(&cx, num),
+        .disk_start => |num| try emitDisk(&cx, num, emit_blink),
         .index_start => try emitIndex(&cx),
         .project_end => break,
         .err => return error.AddedToDiagnostic,
@@ -96,6 +114,7 @@ pub fn runInner(
 const Cx = struct {
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    blinken: *Blinkenlights,
     project: *const Project,
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
@@ -105,10 +124,14 @@ const Cx = struct {
     index: *Index,
 };
 
-fn emitDisk(cx: *const Cx, disk_number: u8) !void {
+fn emitDisk(cx: *const Cx, disk_number: u8, emit_blink: Blinkenlights.NodeId) !void {
     var out_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const out_name = std.fmt.bufPrintZ(&out_name_buf, "{s}", .{cx.index_name}) catch unreachable;
     games.pointPathToDisk(cx.target, out_name, disk_number);
+
+    const blink = cx.blinken.addNode(emit_blink);
+    defer cx.blinken.removeNode(blink);
+    cx.blinken.setText(blink, out_name);
 
     const out_file = try cx.output_dir.createFileZ(out_name, .{});
     defer out_file.close();

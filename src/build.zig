@@ -2,6 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const Ast = @import("Ast.zig");
+const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const awiz = @import("awiz.zig");
@@ -116,6 +117,11 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     defer if (output_path_opt) |_|
         output_dir.close();
 
+    var blinken: Blinkenlights = undefined;
+    try blinken.initAndStart();
+    defer blinken.stop();
+    blinken.setText(.root, std.fs.path.stem(args.index_path));
+
     var project: Project = .empty;
     defer project.deinit(gpa);
     try project.files.ensureTotalCapacity(gpa, 32);
@@ -128,7 +134,16 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     diagnostic.trace("parsing rooms", .{});
 
     var room_nodes: [256]Ast.NodeIndex.Optional = undefined;
-    try readRooms(gpa, diagnostic, &project, project_dir, &room_nodes);
+    try readRooms(gpa, diagnostic, &blinken, &project, project_dir, &room_nodes);
+
+    // Create these all up front so they're in the right order. The functions
+    // below are responsible for removing them.
+    const plan_blink = blinken.addNode(.root);
+    blinken.setText(plan_blink, "plan");
+    const build_blink = blinken.addNode(.root);
+    blinken.setText(build_blink, "build");
+    const emit_blink = blinken.addNode(.root);
+    blinken.setText(emit_blink, "emit");
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
@@ -145,6 +160,9 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
         args.options.awiz_strategy,
         output_dir,
         index_name,
+        &blinken,
+        plan_blink,
+        build_blink,
         &pool,
         &events,
     });
@@ -152,6 +170,8 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     try emit.run(
         gpa,
         diagnostic,
+        &blinken,
+        emit_blink,
         &project,
         output_dir,
         index_name,
@@ -196,11 +216,18 @@ fn addFile(
 fn readRooms(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
+    blinken: *Blinkenlights,
     project: *Project,
     project_dir: std.fs.Dir,
     room_nodes: *[256]Ast.NodeIndex.Optional,
 ) !void {
-    const max_room_number = try collectRoomsByRoomNumber(project, diagnostic, room_nodes);
+    const number_of_rooms, const max_room_number =
+        try collectRoomsByRoomNumber(project, diagnostic, room_nodes);
+
+    const blink = blinken.addNode(.root);
+    defer blinken.removeNode(blink);
+    blinken.setText(blink, "parse");
+    blinken.setMax(blink, number_of_rooms);
 
     try utils.growArrayList(?Project.SourceFile, &project.files, gpa, max_room_number + 1, null);
 
@@ -214,6 +241,8 @@ fn readRooms(
         const room_path = project_file.ast.strings.get(room.path);
         const file = try addFile(gpa, diagnostic, loc, project_dir, room_path, parser.parseRoom);
         project.files.items[room.room_number] = file;
+
+        blinken.addProgress(blink, 1);
     }
 }
 
@@ -221,8 +250,9 @@ fn collectRoomsByRoomNumber(
     project: *const Project,
     diagnostic: *Diagnostic,
     out: *[256]Ast.NodeIndex.Optional,
-) !u8 {
+) !struct { u8, u8 } {
     @memset(out, .null);
+    var number_of_rooms: u8 = 0;
     var max_room_number: u8 = 0;
 
     var file = &project.files.items[0].?;
@@ -240,9 +270,10 @@ fn collectRoomsByRoomNumber(
             }
             out[disk_child.disk_room.room_number] = disk_child_node.wrap();
 
+            number_of_rooms += 1;
             max_room_number = @max(max_room_number, disk_child.disk_room.room_number);
         }
     }
 
-    return max_room_number;
+    return .{ number_of_rooms, max_room_number };
 }

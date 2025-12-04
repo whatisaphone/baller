@@ -5,8 +5,8 @@ const sync = @import("sync.zig");
 
 const Blinkenlights = @This();
 
-const max_nodes = sync.max_concurrency + 3; // 3 additional rows for total, file, room
-const max_lines = 10;
+const max_nodes = 6 + sync.max_concurrency * 2; // XXX: this is very delicate
+const max_lines = 16;
 
 mutex: std.Thread.Mutex,
 tree: Tree,
