@@ -68,6 +68,7 @@ pub fn run(
     diagnostic: *Diagnostic,
     project_dir: std.fs.Dir,
     project: *const Project,
+    room_nodes: *const [256]Ast.NodeIndex.Optional,
     awiz_strategy: awiz.EncodingStrategy,
     output_dir: std.fs.Dir,
     index_name: []const u8,
@@ -86,6 +87,7 @@ pub fn run(
         .vm = .undef,
         .op_map = .undef,
         .project_scope = .empty,
+        .room_nodes = room_nodes,
         .room_scopes = @splat(.empty),
         .room_lsc_types = @splat(.undef),
         .pool = pool,
@@ -132,6 +134,7 @@ const Context = struct {
     vm: utils.SafeUndefined(lang.Vm),
     op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
+    room_nodes: *const [256]Ast.NodeIndex.Optional,
     room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
     pool: *std.Thread.Pool,
@@ -1293,24 +1296,8 @@ fn planRoomNames(cx: *Context) !void {
     errdefer result.deinit(cx.gpa);
     try result.ensureTotalCapacity(cx.gpa, 256);
 
-    // Collect rooms by number
-    var room_nodes: utils.TinyArray(Ast.NodeIndex.Optional, 256) = .empty;
-    const project_file = &cx.project.files.items[0].?;
-    const project_root = &project_file.ast.nodes.at(project_file.ast.root).project;
-    for (project_file.ast.getExtra(project_root.children)) |node_index| {
-        const node = project_file.ast.nodes.at(node_index);
-        if (node.* != .disk) continue;
-        for (project_file.ast.getExtra(node.disk.children)) |child_node| {
-            const child = project_file.ast.nodes.at(child_node);
-            if (child.* != .disk_room) continue;
-            const room = &child.disk_room;
-            room_nodes.grow(room.room_number + 1, Ast.NodeIndex.Optional.null);
-            room_nodes.set(room.room_number, child_node.wrap());
-        }
-    }
-
-    // Write room names in order
-    for (room_nodes.slice()) |room_node_opt| {
+    var project_file = &cx.project.files.items[0].?;
+    for (cx.room_nodes) |room_node_opt| {
         const room_node = room_node_opt.unwrap() orelse continue;
         const room = &project_file.ast.nodes.at(room_node).disk_room;
         try result.appendSlice(cx.gpa, std.mem.asBytes(&@as(u16, room.room_number)));

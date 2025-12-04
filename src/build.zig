@@ -127,7 +127,8 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     diagnostic.trace("parsing rooms", .{});
 
-    try readRooms(gpa, diagnostic, &project, project_dir);
+    var room_nodes: [256]Ast.NodeIndex.Optional = undefined;
+    try readRooms(gpa, diagnostic, &project, project_dir, &room_nodes);
 
     var pool: std.Thread.Pool = undefined;
     try pool.init(.{ .allocator = gpa });
@@ -135,9 +136,28 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
 
     var events: sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency) = .init;
 
-    try pool.spawn(plan.run, .{ gpa, diagnostic, project_dir, &project, args.options.awiz_strategy, output_dir, index_name, &pool, &events });
+    try pool.spawn(plan.run, .{
+        gpa,
+        diagnostic,
+        project_dir,
+        &project,
+        &room_nodes,
+        args.options.awiz_strategy,
+        output_dir,
+        index_name,
+        &pool,
+        &events,
+    });
 
-    try emit.run(gpa, diagnostic, &project, output_dir, index_name, &args.options, &events);
+    try emit.run(
+        gpa,
+        diagnostic,
+        &project,
+        output_dir,
+        index_name,
+        &args.options,
+        &events,
+    );
 }
 
 const ParseFn = *const fn (
@@ -178,37 +198,51 @@ fn readRooms(
     diagnostic: *Diagnostic,
     project: *Project,
     project_dir: std.fs.Dir,
+    room_nodes: *[256]Ast.NodeIndex.Optional,
 ) !void {
-    var room_nodes: utils.TinyArray(Ast.NodeIndex, 255) = .empty;
-    var max_room_number: u8 = 0;
-
-    var project_file = &project.files.items[0].?;
-    const root = &project_file.ast.nodes.at(project_file.ast.root).project;
-    for (project_file.ast.getExtra(root.children)) |child_node| {
-        const child = project_file.ast.nodes.at(child_node);
-        if (child.* != .disk) continue;
-        for (project_file.ast.getExtra(child.disk.children)) |disk_child_node| {
-            const disk_child = project_file.ast.nodes.at(disk_child_node);
-            if (disk_child.* != .disk_room) continue;
-            try room_nodes.append(disk_child_node);
-            max_room_number = @max(max_room_number, disk_child.disk_room.room_number);
-        }
-    }
+    const max_room_number = try collectRoomsByRoomNumber(project, diagnostic, room_nodes);
 
     try utils.growArrayList(?Project.SourceFile, &project.files, gpa, max_room_number + 1, null);
-    project_file = &project.files.items[0].?; // since pointer was invalidated
 
-    for (room_nodes.slice()) |room_node| {
+    const project_file = &project.files.items[0].?;
+
+    for (room_nodes) |room_node_opt| {
+        const room_node = room_node_opt.unwrap() orelse continue;
+
         const loc: Diagnostic.Location = .node(project_file, room_node);
         const room = &project_file.ast.nodes.at(room_node).disk_room;
-
-        if (project.files.items[room.room_number] != null) {
-            diagnostic.errAt(loc, "duplicate room number", .{});
-            return error.AddedToDiagnostic;
-        }
-
         const room_path = project_file.ast.strings.get(room.path);
         const file = try addFile(gpa, diagnostic, loc, project_dir, room_path, parser.parseRoom);
         project.files.items[room.room_number] = file;
     }
+}
+
+fn collectRoomsByRoomNumber(
+    project: *const Project,
+    diagnostic: *Diagnostic,
+    out: *[256]Ast.NodeIndex.Optional,
+) !u8 {
+    @memset(out, .null);
+    var max_room_number: u8 = 0;
+
+    var file = &project.files.items[0].?;
+    const root = &file.ast.nodes.at(file.ast.root).project;
+    for (file.ast.getExtra(root.children)) |file_child_node| {
+        const file_child = file.ast.nodes.at(file_child_node);
+        if (file_child.* != .disk) continue;
+        for (file.ast.getExtra(file_child.disk.children)) |disk_child_node| {
+            const disk_child = file.ast.nodes.at(disk_child_node);
+            if (disk_child.* != .disk_room) continue;
+
+            if (out[disk_child.disk_room.room_number] != .null) {
+                diagnostic.errAt(.node(file, disk_child_node), "duplicate room number", .{});
+                return error.AddedToDiagnostic;
+            }
+            out[disk_child.disk_room.room_number] = disk_child_node.wrap();
+
+            max_room_number = @max(max_room_number, disk_child.disk_room.room_number);
+        }
+    }
+
+    return max_room_number;
 }
