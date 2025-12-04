@@ -38,7 +38,7 @@ pub fn run(
 ) !void {
     defer blinken.removeNode(emit_blink);
 
-    var receiver: sync.OrderedReceiver(plan.Payload, sync.max_concurrency) = .init(events);
+    var receiver: PlanReceiver = .init(events, blinken);
     defer receiver.deinit(gpa);
 
     runInner(
@@ -67,6 +67,33 @@ pub fn run(
     };
 }
 
+/// Just a simple wrapper around OrderedReceiver that updates a progress node
+/// whenever an item is received.
+const PlanReceiver = struct {
+    receiver: sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
+    blinken: *Blinkenlights,
+
+    pub fn init(
+        channel: *sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency),
+        blinken: *Blinkenlights,
+    ) PlanReceiver {
+        return .{
+            .receiver = .init(channel),
+            .blinken = blinken,
+        };
+    }
+
+    pub fn deinit(self: *PlanReceiver, gpa: std.mem.Allocator) void {
+        self.receiver.deinit(gpa);
+    }
+
+    pub fn next(self: *PlanReceiver, gpa: std.mem.Allocator) !plan.Payload {
+        const result = try self.receiver.next(gpa);
+        self.blinken.addProgress(.root, 1);
+        return result;
+    }
+};
+
 pub fn runInner(
     gpa: std.mem.Allocator,
     diagnostic: *Diagnostic,
@@ -76,7 +103,7 @@ pub fn runInner(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
+    receiver: *PlanReceiver,
 ) !void {
     const target_message = try receiver.next(gpa);
     const target = switch (target_message) {
@@ -119,7 +146,7 @@ const Cx = struct {
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    receiver: *sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
+    receiver: *PlanReceiver,
     target: games.Target,
     index: *Index,
 };

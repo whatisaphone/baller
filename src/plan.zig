@@ -125,6 +125,9 @@ pub fn run(
 
     cx.blinken.removeNode(cx.plan_blink);
 
+    // this joins up with emit.PlanReceiver which updates the progress
+    cx.blinken.setMax(.root, cx.next_event_index);
+
     diagnostic.trace("waiting for jobs", .{});
     while (true) {
         const pending = cx.pending_jobs.load(.acquire);

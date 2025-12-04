@@ -88,7 +88,6 @@ pub fn addProgress(self: *Blinkenlights, id: NodeId, amount: u32) void {
     defer self.unlock();
 
     const node = self.tree.at(id);
-    std.debug.assert(node.max != null);
     node.progress += amount;
 }
 
