@@ -145,8 +145,12 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     const emit_blink = blinken.addNode(.root);
     blinken.setText(emit_blink, "emit");
 
-    var pool: std.Thread.Pool = undefined;
-    try pool.init(.{ .allocator = gpa });
+    // Minimum of 2 threads. 1 for the planner, and `num_cpus` for the actual
+    // work (which must run concurrently with the planner).
+    const n_jobs = 1 + @min(std.Thread.getCpuCount() catch 1, sync.max_concurrency);
+
+    var pool: sync.ThreadPool = undefined;
+    try pool.init(gpa, n_jobs);
     defer pool.deinit();
 
     var events: sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency) = .init;

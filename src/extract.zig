@@ -320,8 +320,8 @@ pub fn run(
     // thread in a separate thread pool for io-bound jobs.
     const n_jobs = 1 + @min(std.Thread.getCpuCount() catch 1, sync.max_concurrency);
 
-    var pool: std.Thread.Pool = undefined;
-    try pool.init(.{ .allocator = gpa, .n_jobs = n_jobs });
+    var pool: sync.ThreadPool = undefined;
+    try pool.init(gpa, n_jobs);
     defer pool.deinit();
 
     var code: std.ArrayList(u8) = .empty;
@@ -791,7 +791,7 @@ fn extractRawIndexBlock(
 
 const Context = struct {
     gpa: std.mem.Allocator,
-    pool: *std.Thread.Pool,
+    pool: *sync.ThreadPool,
     options: Options,
     game: games.Game,
     vm: utils.SafeUndefined(*const lang.Vm),

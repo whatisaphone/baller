@@ -1,8 +1,95 @@
 const std = @import("std");
 
+const Deque = @import("deque.zig").Deque;
 const utils = @import("utils.zig");
 
 pub const max_concurrency = 32;
+
+/// This differs from the one in std, in that it runs jobs in the same order
+/// they're spawned.
+pub const ThreadPool = struct {
+    gpa: std.mem.Allocator,
+    threads: utils.TinyArray(std.Thread, max_concurrency + 1),
+    /// guards `queue`
+    mutex: std.Thread.Mutex,
+    queue: Deque(Job),
+    terminate: std.atomic.Value(bool),
+    wake: std.Thread.Condition,
+
+    const Job = struct {
+        run: *const fn (*const anyopaque) void,
+        cx: *const anyopaque,
+    };
+
+    pub fn init(self: *ThreadPool, gpa: std.mem.Allocator, n_jobs: usize) !void {
+        self.* = .{
+            .gpa = gpa,
+            .threads = .empty,
+            .mutex = .{},
+            .queue = .empty,
+            .terminate = .init(false),
+            .wake = .{},
+        };
+        errdefer self.deinit();
+
+        for (0..n_jobs) |_| {
+            const thread = try std.Thread.spawn(.{}, worker, .{self});
+            self.threads.appendAssumeCapacity(thread);
+        }
+    }
+
+    pub fn deinit(self: *ThreadPool) void {
+        self.terminate.store(true, .monotonic);
+        self.wake.broadcast();
+        for (self.threads.slice()) |thread|
+            thread.join();
+        self.queue.deinit(self.gpa);
+    }
+
+    pub fn spawn(self: *ThreadPool, comptime func: anytype, args: anytype) !void {
+        const Args = @TypeOf(args);
+
+        const Runner = struct {
+            pool: *const ThreadPool,
+            args: Args,
+
+            fn run(f: *const anyopaque) void {
+                const runner: *const @This() = @ptrCast(@alignCast(f));
+                @call(.auto, func, runner.args);
+                runner.pool.gpa.destroy(runner);
+            }
+        };
+
+        const runner = try self.gpa.create(Runner);
+        errdefer self.gpa.destroy(runner);
+        runner.* = .{ .pool = self, .args = args };
+
+        {
+            self.mutex.lock();
+            defer self.mutex.unlock();
+            try self.queue.pushBack(self.gpa, .{ .run = Runner.run, .cx = runner });
+        }
+        self.wake.signal();
+    }
+
+    fn worker(self: *ThreadPool) void {
+        while (true) {
+            const job = job: {
+                self.mutex.lock();
+                defer self.mutex.unlock();
+
+                while (true) {
+                    if (self.terminate.load(.monotonic))
+                        return;
+                    if (self.queue.popFront()) |job|
+                        break :job job;
+                    self.wake.wait(&self.mutex);
+                }
+            };
+            job.run(job.cx);
+        }
+    }
+};
 
 pub fn Channel(T: type, capacity: usize) type {
     return struct {

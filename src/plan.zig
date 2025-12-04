@@ -76,7 +76,7 @@ pub fn run(
     blinken: *Blinkenlights,
     plan_blink: Blinkenlights.NodeId,
     build_blink: Blinkenlights.NodeId,
-    pool: *std.Thread.Pool,
+    pool: *sync.ThreadPool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
 ) void {
     var cx: Context = .{
@@ -156,7 +156,7 @@ const Context = struct {
     plan_blink: Blinkenlights.NodeId,
     build_blink: Blinkenlights.NodeId,
     room_blinks: [256]Blinkenlights.NodeId,
-    pool: *std.Thread.Pool,
+    pool: *sync.ThreadPool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
     next_event_index: u16,
     pending_jobs: std.atomic.Value(u32),
