@@ -74,34 +74,32 @@ pub fn run(
     pool: *std.Thread.Pool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
 ) void {
-    var cx: Context = undefined;
-
-    // Bit messy, watch out
-    cx.project_scope = .empty;
-    defer cx.project_scope.deinit(gpa);
-    var room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol) = @splat(.empty);
-    defer for (&room_scopes) |*s| s.deinit(gpa);
+    var cx: Context = .{
+        .gpa = gpa,
+        .diagnostic = diagnostic,
+        .project_dir = project_dir,
+        .project = project,
+        .awiz_strategy = awiz_strategy,
+        .output_dir = output_dir,
+        .index_name = index_name,
+        .target = .undef,
+        .vm = .undef,
+        .op_map = .undef,
+        .project_scope = .empty,
+        .room_scopes = @splat(.empty),
+        .room_lsc_types = @splat(.undef),
+        .pool = pool,
+        .events = events,
+        .next_event_index = 0,
+        .pending_jobs = .init(0),
+    };
+    defer {
+        for (&cx.room_scopes) |*s|
+            s.deinit(gpa);
+        cx.project_scope.deinit(gpa);
+    }
 
     (blk: {
-        cx = .{
-            .gpa = gpa,
-            .diagnostic = diagnostic,
-            .project_dir = project_dir,
-            .project = project,
-            .awiz_strategy = awiz_strategy,
-            .output_dir = output_dir,
-            .index_name = index_name,
-            .target = .undef,
-            .vm = .undef,
-            .op_map = .undef,
-            .project_scope = .empty,
-            .room_scopes = &room_scopes,
-            .room_lsc_types = @splat(.undef),
-            .pool = pool,
-            .events = events,
-            .next_event_index = 0,
-            .pending_jobs = .init(0),
-        };
         cx.project_scope.ensureTotalCapacity(cx.gpa, 4096) catch |err| break :blk err;
 
         diagnostic.trace("planning jobs", .{});
@@ -134,7 +132,7 @@ const Context = struct {
     vm: utils.SafeUndefined(lang.Vm),
     op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
-    room_scopes: *[256]std.StringHashMapUnmanaged(script.Symbol),
+    room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol),
     room_lsc_types: [256]utils.SafeUndefined(LocalScriptBlockType),
     pool: *std.Thread.Pool,
     events: *sync.Channel(sync.OrderedEvent(Payload), sync.max_concurrency),
