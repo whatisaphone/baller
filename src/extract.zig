@@ -17,6 +17,7 @@ const StreamingBlockReader = @import("block_reader.zig").StreamingBlockReader;
 const fxbcl = @import("block_reader.zig").fxbcl;
 const cliargs = @import("cliargs.zig");
 const decompile = @import("decompile.zig");
+const Deque = @import("deque.zig").Deque;
 const disasm = @import("disasm.zig");
 const fs = @import("fs.zig");
 const fsd = @import("fsd.zig");
@@ -1158,9 +1159,9 @@ fn extractRmda(
     // local script numbers for the decompiler. This is needed specifically for
     // Backyard Baseball 2001 teaminfo lsc2204, which references lsc2173, which
     // does not actually exist.
-    var buffered_blocks: std.ArrayList(BufferedBlock) = .empty;
+    var buffered_blocks: Deque(BufferedBlock) = .empty;
     defer {
-        for (buffered_blocks.items) |*b|
+        while (buffered_blocks.popFront()) |b|
             cx.cx.gpa.free(b.data);
         buffered_blocks.deinit(cx.cx.gpa);
     }
@@ -1262,7 +1263,7 @@ fn readBlockAndAddToBuffer(
     cx: *RoomContext,
     in: *std.io.Reader,
     block: *const Block,
-    buffered_blocks: *std.ArrayList(BufferedBlock),
+    buffered_blocks: *Deque(BufferedBlock),
 ) !void {
     const raw = try cx.cx.gpa.alloc(u8, block.size);
     errdefer cx.cx.gpa.free(raw);
@@ -1273,7 +1274,7 @@ fn readBlockAndAddToBuffer(
     const progress_bytes = attributePositionToProgress(cx.last_progress_offset, in);
     std.debug.assert(progress_bytes == BufferedBlock.calcProgressBytes(raw));
 
-    try buffered_blocks.append(cx.cx.gpa, .{ .block = block.*, .data = raw });
+    try buffered_blocks.pushBack(cx.cx.gpa, .{ .block = block.*, .data = raw });
     errdefer comptime unreachable;
 
     switch (block.id) {
@@ -1293,14 +1294,12 @@ fn readBlockAndAddToBuffer(
 fn spawnBufferedBlockJobs(
     cx: *RoomContext,
     diag: *const Diagnostic.ForBinaryFile,
-    buffered_blocks: *std.ArrayList(BufferedBlock),
+    buffered_blocks: *Deque(BufferedBlock),
 ) !void {
     _ = cx.lsc_mask_state.collecting;
     cx.lsc_mask_state = .{ .frozen = {} };
 
-    while (buffered_blocks.items.len != 0) {
-        // TODO: fix this with VecDeque
-        const lsc = buffered_blocks.orderedRemove(0);
+    while (buffered_blocks.popFront()) |lsc| {
         errdefer cx.cx.gpa.free(lsc.data);
 
         const progress_bytes = BufferedBlock.calcProgressBytes(lsc.data);
