@@ -43,10 +43,16 @@ jobs:
           ghtok: ${{ secrets.SECRET_GITHUB_TOKEN_BALLER_FIXTURES_BALLER_CI }}
         run: ci/download-fixture "${ghtok}" baseball2001
 
+      # normal smoke test
       - run: zig build --summary all
       - run: zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
       - run: zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'
 
+      # single core
+      - run: taskset -c 0 zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
+      - run: taskset -c 0 zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'
+
+      # release build
       - run: zig build -Doptimize=ReleaseFast --summary all
       - run: zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
       - run: zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'
