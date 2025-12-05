@@ -69,10 +69,7 @@ pub fn deinit(self: *Diagnostic) void {
 }
 
 pub fn err(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
-    self.formatAndAdd(.err, fmt, args);
+    self.formatAndAdd(.err, delayedFormat(fmt, args).thunk());
 }
 
 pub fn errAt(self: *Diagnostic, loc: ?Location, comptime fmt: []const u8, args: anytype) void {
@@ -85,10 +82,7 @@ pub fn errAt(self: *Diagnostic, loc: ?Location, comptime fmt: []const u8, args: 
 }
 
 pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_err: anytype) void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
-    self.formatAndAdd(.err, fmt, args ++ .{@errorName(zig_err)});
+    self.formatAndAdd(.err, delayedFormat(fmt, args ++ .{@errorName(zig_err)}).thunk());
 
     if (live_spew) if (@errorReturnTrace()) |err_trace|
         std.debug.dumpStackTrace(err_trace.*);
@@ -97,14 +91,14 @@ pub fn zigErr(self: *Diagnostic, comptime fmt: []const u8, args: anytype, zig_er
 pub fn trace(self: *Diagnostic, comptime fmt: []const u8, args: anytype) void {
     if (!enable_trace) return;
 
+    self.formatAndAdd(.trace, delayedFormat(fmt, args).thunk());
+}
+
+fn formatAndAdd(self: *Diagnostic, level: Level, message: FormatThunk) void {
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    self.formatAndAdd(.trace, fmt, args);
-}
-
-fn formatAndAdd(self: *Diagnostic, level: Level, comptime fmt: []const u8, args: anytype) void {
-    const text = std.fmt.allocPrint(self.arena.allocator(), fmt, args) catch oom();
+    const text = std.fmt.allocPrint(self.arena.allocator(), "{f}", .{message}) catch oom();
     self.add(level, .fromOwnedSlice(text));
 }
 
@@ -211,10 +205,7 @@ pub const ForBinaryFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.err, offset, fmt, args);
+        self.formatAndAdd(.err, offset, delayedFormat(fmt, args).thunk());
     }
 
     pub fn zigErr(
@@ -224,10 +215,7 @@ pub const ForBinaryFile = struct {
         args: anytype,
         zig_err: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.err, offset, fmt, args ++ .{@errorName(zig_err)});
+        self.formatAndAdd(.err, offset, delayedFormat(fmt, args ++ .{@errorName(zig_err)}).thunk());
 
         if (live_spew) if (@errorReturnTrace()) |err_trace|
             std.debug.dumpStackTrace(err_trace.*);
@@ -239,10 +227,7 @@ pub const ForBinaryFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.info, offset, fmt, args);
+        self.formatAndAdd(.info, offset, delayedFormat(fmt, args).thunk());
     }
 
     pub fn trace(
@@ -253,25 +238,23 @@ pub const ForBinaryFile = struct {
     ) void {
         if (!enable_trace) return;
 
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.trace, offset, fmt, args);
+        self.formatAndAdd(.trace, offset, delayedFormat(fmt, args).thunk());
     }
 
     fn formatAndAdd(
         self: *const ForBinaryFile,
         level: Level,
         offset: u32,
-        comptime fmt: []const u8,
-        args: anytype,
+        message: FormatThunk,
     ) void {
+        self.diagnostic.mutex.lock();
+        defer self.diagnostic.mutex.unlock();
+
         var text: std.io.Writer.Allocating = .init(self.diagnostic.arena.allocator());
         errdefer comptime unreachable;
         const writer = &text.writer;
         self.writeSection(writer) catch oom();
-        writer.print(":0x{x:0>8}: ", .{self.offset + offset}) catch oom();
-        writer.print(fmt, args) catch oom();
+        writer.print(":0x{x:0>8}: {f}", .{ self.offset + offset, message }) catch oom();
 
         const effective_level: Level = if (self.cap_level and level == .err) .info else level;
         self.diagnostic.add(effective_level, text.toArrayList());
@@ -307,10 +290,7 @@ pub const ForTextFile = struct {
         comptime fmt: []const u8,
         args: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.err, loc, fmt, args);
+        self.formatAndAdd(.err, loc, delayedFormat(fmt, args).thunk());
     }
 
     pub fn zigErr(
@@ -320,10 +300,7 @@ pub const ForTextFile = struct {
         args: anytype,
         zig_err: anytype,
     ) void {
-        self.diagnostic.mutex.lock();
-        defer self.diagnostic.mutex.unlock();
-
-        self.formatAndAdd(.err, loc, fmt, args ++ .{@errorName(zig_err)});
+        self.formatAndAdd(.err, loc, delayedFormat(fmt, args ++ .{@errorName(zig_err)}).thunk());
 
         if (live_spew) if (@errorReturnTrace()) |err_trace|
             std.debug.dumpStackTrace(err_trace.*);
@@ -333,16 +310,45 @@ pub const ForTextFile = struct {
         self: *const ForTextFile,
         level: Level,
         loc: Loc,
-        comptime fmt: []const u8,
-        args: anytype,
+        message: FormatThunk,
     ) void {
+        self.diagnostic.mutex.lock();
+        defer self.diagnostic.mutex.unlock();
+
         var text: std.io.Writer.Allocating = .init(self.diagnostic.arena.allocator());
         errdefer comptime unreachable;
         const w = &text.writer;
-        w.print("{s}:{}:{}: ", .{ self.path, loc.line, loc.column }) catch oom();
-        w.print(fmt, args) catch oom();
+        w.print("{s}:{}:{}: {f}", .{ self.path, loc.line, loc.column, message }) catch oom();
 
         self.diagnostic.add(level, text.toArrayList());
+    }
+};
+
+fn delayedFormat(comptime fmt: []const u8, args: anytype) DelayedFormat(fmt, @TypeOf(args)) {
+    return .{ .args = args };
+}
+
+fn DelayedFormat(fmt: []const u8, Args: type) type {
+    return struct {
+        args: Args,
+
+        fn thunk(self: *const @This()) FormatThunk {
+            return .{ .f = formatOpaque, .cx = &self.args };
+        }
+
+        fn formatOpaque(cx: *const anyopaque, w: *std.io.Writer) !void {
+            const args: *const Args = @ptrCast(@alignCast(cx));
+            try w.print(fmt, args.*);
+        }
+    };
+}
+
+const FormatThunk = struct {
+    f: *const fn (*const anyopaque, w: *std.io.Writer) std.io.Writer.Error!void,
+    cx: *const anyopaque,
+
+    pub fn format(self: FormatThunk, w: *std.io.Writer) !void {
+        try self.f(self.cx, w);
     }
 };
 
