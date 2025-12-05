@@ -2,6 +2,7 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const sync = @import("sync.zig");
+const utils = @import("utils.zig");
 
 const Blinkenlights = @This();
 
@@ -268,15 +269,24 @@ fn setupTerminal() bool {
     if (!stderr.isTty()) return false;
 
     if (builtin.target.os.tag == .windows) {
+        const CP_UTF8 = 65001;
+        if (std.os.windows.kernel32.SetConsoleOutputCP(CP_UTF8) == 0)
+            return false;
         if (!stderr.getOrEnableAnsiEscapeSupport())
             return false;
     }
     return true;
 }
 
+const Indent = enum {
+    blank,
+    line,
+};
+
 const RenderState = struct {
     nodes: *const [max_nodes]Node,
     out: *std.io.Writer,
+    indent: utils.TinyArray(Indent, 3),
     lines: u8,
 };
 
@@ -284,10 +294,11 @@ fn renderTree(self: *Blinkenlights, out: *std.io.Writer) !void {
     var rs: RenderState = .{
         .nodes = &self.tree.nodes,
         .out = out,
+        .indent = .empty,
         .lines = 0,
     };
     try out.writeAll(ansi.sync_begin ++ ansi.erase_in_display_to_end);
-    try renderNode(&rs, .root, 0);
+    try renderNode(&rs, .root);
     try out.print(ansi.cursor_up_fmt ++ ansi.sync_end, .{rs.lines});
     try out.flush();
 }
@@ -297,21 +308,43 @@ fn renderClear(out: *std.io.Writer) !void {
     try out.flush();
 }
 
-fn renderNode(rs: *RenderState, id: NodeId, indent: u8) !void {
+fn renderNode(rs: *RenderState, id: NodeId) !void {
     if (rs.lines == max_lines) return;
 
     const node = &rs.nodes[id.index()];
+    const show_tree = node.max == null;
+
     if (node.max) |max|
         try renderProgressBar(rs.out, node.progress_style, node.progress, max);
-    try rs.out.splatByteAll(' ', indent * 2);
+
+    if (show_tree) {
+        for (rs.indent.slice(), 0..) |indent, i| {
+            if (indent == .blank) {
+                try rs.out.writeAll("   ");
+            } else if (i != rs.indent.len - 1) {
+                try rs.out.writeAll("│  ");
+            } else if (node.next_sibling != .null) {
+                try rs.out.writeAll("├─ ");
+            } else {
+                try rs.out.writeAll("└─ ");
+                rs.indent.set(rs.indent.len - 1, .blank);
+            }
+        }
+    }
+
     try rs.out.writeAll(std.mem.sliceTo(&node.text, 0));
     try rs.out.writeByte('\n');
     rs.lines += 1;
 
-    if (node.first_child != .null)
-        try renderNode(rs, node.first_child, indent + 1);
+    if (node.first_child != .null) {
+        if (show_tree)
+            rs.indent.appendAssumeCapacity(.line);
+        try renderNode(rs, node.first_child);
+        if (show_tree)
+            rs.indent.len -= 1;
+    }
     if (node.next_sibling != .null)
-        try renderNode(rs, node.next_sibling, indent);
+        try renderNode(rs, node.next_sibling);
 }
 
 fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, max: u32) !void {

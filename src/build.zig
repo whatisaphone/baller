@@ -120,6 +120,9 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     var blinken: Blinkenlights = undefined;
     try blinken.initAndStart();
     defer blinken.stop();
+    // Set a dummy max just so it displays the progress bar immediately. The
+    // real value is set during planning.
+    blinken.setMax(.root, 1);
     blinken.setText(.root, std.fs.path.stem(args.index_path));
 
     var project: Project = .empty;
