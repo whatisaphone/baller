@@ -136,30 +136,22 @@ pub fn writeToStderrAndPropagateIfAnyErrors(self: *const Diagnostic) !void {
     if (live_spew)
         try out.writeByte('\n');
 
-    var total: std.EnumArray(Level, u32) = .initFill(0);
+    var total: u32 = 0;
     var it = self.messages.constIterator(0);
     while (it.next()) |message| {
+        if (message.level != .err) continue;
         try out.print("[{c}] {s}\n", .{ message.level.char(), message.text });
-        total.set(message.level, total.get(message.level) + 1);
+        total += 1;
     }
+    if (total == 0) return;
 
-    if (total.get(.err) != 0 or total.get(.info) != 0) {
-        try out.print("{} error", .{total.get(.err)});
-        if (total.get(.err) != 1)
-            try out.writeByte('s');
+    try out.print("{} error", .{total});
+    if (total != 1)
+        try out.writeByte('s');
+    try out.writeByte('\n');
+    try out.flush();
 
-        if (total.get(.info) != 0) {
-            try out.print(", {} info", .{total.get(.info)});
-            if (total.get(.info) != 1)
-                try out.writeByte('s');
-        }
-
-        try out.writeByte('\n');
-        try out.flush();
-    }
-
-    if (total.get(.err) != 0)
-        return error.Reported;
+    return error.Reported;
 }
 
 fn oom() noreturn {
