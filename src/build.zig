@@ -120,9 +120,7 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     var blinken: Blinkenlights = undefined;
     try blinken.initAndStart();
     defer blinken.stop();
-    // Set a dummy max just so it displays the progress bar immediately. The
-    // real value is set during planning.
-    blinken.setMax(.root, 1);
+    blinken.setProgressStyle(.root, .bar_count);
     blinken.setText(.root, std.fs.path.stem(args.index_path));
 
     var project: Project = .empty;
@@ -234,6 +232,7 @@ fn readRooms(
     const blink = blinken.addNode(.root);
     defer blinken.removeNode(blink);
     blinken.setText(blink, "parse");
+    blinken.setProgressStyle(blink, .bar_count);
     blinken.setMax(blink, number_of_rooms);
 
     try utils.growArrayList(?Project.SourceFile, &project.files, gpa, max_room_number + 1, null);

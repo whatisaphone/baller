@@ -865,6 +865,7 @@ fn extractDisk(
 
         const room_blink = cx.blinken.addNode(disk_blink);
         defer cx.blinken.removeNode(room_blink);
+        cx.blinken.setProgressStyle(room_blink, .bar);
         cx.blinken.setMax(room_blink, block.size);
 
         try extractRoom(

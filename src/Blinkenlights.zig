@@ -81,6 +81,7 @@ pub fn setMax(self: *Blinkenlights, id: NodeId, max: u32) void {
     defer self.unlock();
 
     const node = self.tree.at(id);
+    std.debug.assert(node.progress_style != .none);
     node.max = max;
 }
 
@@ -89,6 +90,7 @@ pub fn addProgress(self: *Blinkenlights, id: NodeId, amount: u32) void {
     defer self.unlock();
 
     const node = self.tree.at(id);
+    std.debug.assert(node.progress_style != .none);
     node.progress += amount;
 }
 
@@ -103,7 +105,7 @@ const Tree = struct {
             .first_child = .null,
             .last_child = .null,
             .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
-            .progress_style = .initial,
+            .progress_style = .none,
             .max = null,
             .progress = 0,
         };
@@ -141,7 +143,7 @@ const Tree = struct {
             .first_child = .null,
             .last_child = .null,
             .text = .{0} ++ .{undefined} ** (Node.max_text_len - 1) ++ .{undefined},
-            .progress_style = .initial,
+            .progress_style = .none,
             .max = null,
             .progress = 0,
         };
@@ -238,10 +240,10 @@ const Node = struct {
 };
 
 const ProgressStyle = enum {
+    none,
     bar,
+    bar_count,
     bar_bytes,
-
-    const initial: ProgressStyle = .bar;
 };
 
 fn threadEntry(self: *Blinkenlights) void {
@@ -312,12 +314,10 @@ fn renderNode(rs: *RenderState, id: NodeId) !void {
     if (rs.lines == max_lines) return;
 
     const node = &rs.nodes[id.index()];
-    const show_tree = node.max == null;
 
-    if (node.max) |max|
-        try renderProgressBar(rs.out, node.progress_style, node.progress, max);
-
-    if (show_tree) {
+    if (node.progress_style != .none) {
+        try renderProgressBar(rs.out, node.progress_style, node.progress, node.max);
+    } else {
         for (rs.indent.slice(), 0..) |indent, i| {
             if (indent == .blank) {
                 try rs.out.writeAll("   ");
@@ -337,17 +337,22 @@ fn renderNode(rs: *RenderState, id: NodeId) !void {
     rs.lines += 1;
 
     if (node.first_child != .null) {
-        if (show_tree)
+        if (node.progress_style == .none)
             rs.indent.appendAssumeCapacity(.line);
         try renderNode(rs, node.first_child);
-        if (show_tree)
+        if (node.progress_style == .none)
             rs.indent.len -= 1;
     }
     if (node.next_sibling != .null)
         try renderNode(rs, node.next_sibling);
 }
 
-fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, max: u32) !void {
+fn renderProgressBar(
+    out: *std.io.Writer,
+    style: ProgressStyle,
+    progress: u32,
+    maxOpt: ?u32,
+) !void {
     const width = 32;
     const chars = if (builtin.target.os.tag == .windows) struct {
         // conhost.exe can't render emojis, so on windows use plain old ascii
@@ -360,7 +365,10 @@ fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, m
         const filled_width = 2;
     };
 
-    const raw_cells = @as(u64, progress) * (width + 1) / max;
+    const raw_cells = if (maxOpt) |max|
+        @as(u64, progress) * (width + 1) / max
+    else
+        0;
     const filled_cells = @min(raw_cells, width);
     const filled_count = filled_cells / chars.filled_width;
     const empty_count = width - filled_count * chars.filled_width;
@@ -369,11 +377,30 @@ fn renderProgressBar(out: *std.io.Writer, style: ProgressStyle, progress: u32, m
     try out.splatBytesAll(chars.filled, filled_count);
     try out.splatBytesAll(chars.empty, empty_count);
     try out.writeAll("] ");
-    if (style == .bar_bytes)
-        try out.print("{:5.1} MB / {:5.1} MB ", .{
-            @as(f32, @floatFromInt(progress)) / 1024 / 1024,
-            @as(f32, @floatFromInt(max)) / 1024 / 1024,
-        });
+
+    switch (style) {
+        .none => unreachable,
+        .bar => return,
+        .bar_bytes => {
+            const max = maxOpt.?;
+            try out.print("{:5.1} MB / {:5.1} MB ", .{
+                @as(f32, @floatFromInt(progress)) / 1024 / 1024,
+                @as(f32, @floatFromInt(max)) / 1024 / 1024,
+            });
+        },
+        .bar_count => {
+            if (progress != 0)
+                try out.print("{:5}", .{progress})
+            else
+                try out.splatByteAll(' ', 5);
+            try out.writeByte(' ');
+            if (maxOpt) |max|
+                try out.print("/ {:5}", .{max})
+            else
+                try out.splatByteAll(' ', "/ 12345".len);
+            try out.writeByte(' ');
+        },
+    }
 }
 
 const ansi = struct {
