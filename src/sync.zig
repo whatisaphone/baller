@@ -91,7 +91,7 @@ pub const ThreadPool = struct {
     }
 };
 
-pub fn Channel(T: type, capacity: usize) type {
+pub fn Channel(T: type) type {
     return struct {
         const Self = @This();
 
@@ -101,7 +101,7 @@ pub fn Channel(T: type, capacity: usize) type {
         queue_not_empty: std.Thread.Condition,
         queue_not_full: std.Thread.Condition,
 
-        pub fn init(buffer: *[capacity]T) Self {
+        pub fn init(buffer: []T) Self {
             return .{
                 .mutex = .{},
                 .queue = .initBuffer(buffer),
@@ -115,7 +115,7 @@ pub fn Channel(T: type, capacity: usize) type {
                 self.mutex.lock();
                 defer self.mutex.unlock();
 
-                while (self.queue.len == capacity)
+                while (self.queue.len == self.queue.buffer.len)
                     self.queue_not_full.wait(&self.mutex);
 
                 self.queue.pushBackBounded(value) catch unreachable;
@@ -139,16 +139,16 @@ pub fn Channel(T: type, capacity: usize) type {
     };
 }
 
-pub fn OrderedReceiver(T: type, comptime capacity: usize) type {
+pub fn OrderedReceiver(T: type) type {
     return struct {
         const Self = @This();
 
-        channel: *Channel(OrderedEvent(T), capacity),
+        channel: *Channel(OrderedEvent(T)),
         // TODO: optimize mem usage
         buffer: std.ArrayList(?T),
         index: u16,
 
-        pub fn init(channel: *Channel(OrderedEvent(T), capacity)) Self {
+        pub fn init(channel: *Channel(OrderedEvent(T))) Self {
             return .{
                 .channel = channel,
                 .buffer = .empty,

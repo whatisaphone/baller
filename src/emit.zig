@@ -34,7 +34,7 @@ pub fn run(
     output_dir: std.fs.Dir,
     index_name: [:0]const u8,
     options: *const Options,
-    events: *sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency),
+    events: *sync.Channel(sync.OrderedEvent(plan.Payload)),
 ) !void {
     defer blinken.removeNode(emit_blink);
 
@@ -70,11 +70,11 @@ pub fn run(
 /// Just a simple wrapper around OrderedReceiver that updates a progress node
 /// whenever an item is received.
 const PlanReceiver = struct {
-    receiver: sync.OrderedReceiver(plan.Payload, sync.max_concurrency),
+    receiver: sync.OrderedReceiver(plan.Payload),
     blinken: *Blinkenlights,
 
     pub fn init(
-        channel: *sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency),
+        channel: *sync.Channel(sync.OrderedEvent(plan.Payload)),
         blinken: *Blinkenlights,
     ) PlanReceiver {
         return .{

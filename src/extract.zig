@@ -937,7 +937,7 @@ fn extractRoom(
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
 
     var events_buffer: [sync.max_concurrency]Event = undefined;
-    var events: sync.Channel(Event, sync.max_concurrency) = .init(&events_buffer);
+    var events: sync.Channel(Event) = .init(&events_buffer);
 
     try cx.pool.spawn(readRoomJob, .{
         cx,
@@ -983,7 +983,7 @@ const RoomContext = struct {
     last_progress_offset: *u32,
     disk_blink: Blinkenlights.NodeId,
     room_blink: Blinkenlights.NodeId,
-    events: *sync.Channel(Event, sync.max_concurrency),
+    events: *sync.Channel(Event),
     pending_jobs: std.atomic.Value(u32),
     next_chunk_index: u16,
 
@@ -1034,7 +1034,7 @@ fn readRoomJob(
     last_progress_offset: *u32,
     disk_blink: Blinkenlights.NodeId,
     room_blink: Blinkenlights.NodeId,
-    events: *sync.Channel(Event, sync.max_concurrency),
+    events: *sync.Channel(Event),
 ) void {
     // store these a level up so they outlive the jobs
     var room_dir: ?std.fs.Dir = null;
@@ -2552,7 +2552,7 @@ fn emitRoom(
     diagnostic: *Diagnostic,
     room_number: u8,
     project_code: *std.ArrayList(u8),
-    events: *sync.Channel(Event, sync.max_concurrency),
+    events: *sync.Channel(Event),
 ) !void {
     var chunks: utils.TinyArray(Chunk, max_room_code_chunks) = .empty;
     defer for (chunks.slice()) |*chunk| chunk.code.deinit(cx.gpa);
