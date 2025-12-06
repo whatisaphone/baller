@@ -100,10 +100,6 @@ pub const Target = enum {
         return target.ge(.sputm99);
     }
 
-    pub fn hasDisk(target: Target) bool {
-        return target != .sputm90;
-    }
-
     pub fn hasIndexInib(target: Target) bool {
         return target != .sputm90;
     }

@@ -375,12 +375,12 @@ pub fn run(
     try cx.blinken.initAndStart();
     defer cx.blinken.stop();
 
-    const num_disks = if (game.target().hasDisk()) num_disks: {
+    const num_disks = num_disks: {
         var max: u8 = 0;
-        for (index.lfl_disks.defined.slice(index.maxs.rooms)) |n|
+        for (index.lfl_disks.slice(index.maxs.rooms)) |n|
             max = @max(max, n);
         break :num_disks max;
-    } else 1;
+    };
 
     const bytes = try countInputBytes(
         game,
@@ -467,7 +467,7 @@ pub const Index = struct {
     maxs: Maxs,
     directories: Directories,
     lfl_offsets: utils.SafeManyPointer([*]u32),
-    lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)),
+    lfl_disks: utils.SafeManyPointer([*]u8),
     room_names: RoomNames,
 
     pub fn directory(
@@ -629,20 +629,25 @@ fn extractIndex(
 
     // DISK
 
-    var lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)) = .undef;
-    if (game.target().hasDisk()) {
+    var lfl_disks: utils.SafeManyPointer([*]u8) = undefined;
+    if (try blocks.peek() == .DISK) {
         const disk_raw = try blocks.expect(.DISK).bytes();
         if (disk_raw.len != 2 + maxs.rooms)
             return error.BadData;
         if (std.mem.readInt(u16, disk_raw[0..2], .little) != maxs.rooms)
             return error.BadData;
         const lfl_disks_slice = try fba.allocator().dupe(u8, disk_raw[2..]);
-        lfl_disks = .{ .defined = .init(lfl_disks_slice) };
+        lfl_disks = .init(lfl_disks_slice);
 
         try code.appendSlice(gpa, "    index-block DISK\n");
 
-        for (lfl_disks.defined.slice(maxs.rooms), 0..) |disk, i|
+        for (lfl_disks.slice(maxs.rooms), 0..) |disk, i|
             diag.trace(@intCast(in.seek), "  {:>3}: {:>3}", .{ i, disk });
+    } else {
+        // If there's no DISK block, all rooms are on disk 1
+        const lfl_disks_slice = try fba.allocator().alloc(u8, maxs.rooms);
+        @memset(lfl_disks_slice, 1);
+        lfl_disks = .init(lfl_disks_slice);
     }
 
     // SVER
@@ -933,7 +938,7 @@ fn extractRoom(
     room_blink: Blinkenlights.NodeId,
     project_code: *std.ArrayList(u8),
 ) !void {
-    const room_number = findRoomNumber(cx.game(), cx.index, disk_number, fxbcl.pos(in)) orelse
+    const room_number = findRoomNumber(cx.index, disk_number, fxbcl.pos(in)) orelse
         return error.BadData;
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
@@ -955,17 +960,10 @@ fn extractRoom(
     try emitRoom(cx, diag.diagnostic, room_number, project_code, &events);
 }
 
-fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
+fn findRoomNumber(index: *const Index, disk_number: u8, offset: u32) ?u8 {
     const len = index.maxs.rooms;
 
-    if (!game.target().hasDisk()) {
-        for (index.lfl_offsets.slice(len), 0..) |off, i|
-            if (off == offset)
-                return @intCast(i);
-        return null;
-    }
-
-    for (index.lfl_offsets.slice(len), index.lfl_disks.defined.slice(len), 0..) |off, dsk, i|
+    for (index.lfl_offsets.slice(len), index.lfl_disks.slice(len), 0..) |off, dsk, i|
         if (off == offset and dsk == disk_number)
             return @intCast(i);
     return null;
