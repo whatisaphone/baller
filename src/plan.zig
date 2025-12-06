@@ -216,10 +216,9 @@ fn planTarget(cx: *Context) !void {
 
     cx.sendSyncEvent(.{ .target = target });
 
-    const game = target.pickAnyGame();
     cx.target.setOnce(target);
-    cx.vm.setOnce(lang.buildVm(game));
-    cx.op_map.setOnce(decompile.buildOpMap(game));
+    cx.vm.setOnce(lang.buildVm(target));
+    cx.op_map.setOnce(decompile.buildOpMap(target));
 }
 
 fn buildProjectScope(cx: *Context) !void {

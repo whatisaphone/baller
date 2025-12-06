@@ -89,18 +89,6 @@ pub const Target = enum {
         return @intFromEnum(a) >= @intFromEnum(b);
     }
 
-    // mild hack, i should probably get rid of `Game` and switch to `Target`
-    // everywhere
-    pub fn pickAnyGame(self: Target) Game {
-        return switch (self) {
-            .sputm90 => .baseball_1997,
-            .sputm98 => .soccer_1998,
-            .sputm99 => .baseball_2001,
-            .sputm100 => .basketball,
-            .sputm101 => .soccer_2004,
-        };
-    }
-
     pub fn maxsLen(target: Target) u32 {
         return if (target.le(.sputm98))
             38

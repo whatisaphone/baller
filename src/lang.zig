@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const Game = @import("games.zig").Game;
+const Target = @import("games.zig").Target;
 const langdef = @import("langdef.zig");
 const utils = @import("utils.zig");
 
@@ -100,9 +100,8 @@ const VmBuilder = struct {
     }
 };
 
-pub fn buildVm(game: Game) Vm {
+pub fn buildVm(target: Target) Vm {
     var b: VmBuilder = .init();
-    const target = game.target();
     for (langdef.inss) |ins| {
         if (!(target.ge(ins.target_min) and target.le(ins.target_max))) continue;
         b.add(ins.opcode, ins.op, ins.operands);

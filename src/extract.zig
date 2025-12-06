@@ -342,9 +342,9 @@ pub fn run(
     var op_map: std.EnumArray(lang.Op, decompile.Op) = undefined;
     var op_map_ptr: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)) = .undef;
     if (args.options.anyScriptDecode()) {
-        vm = lang.buildVm(game);
+        vm = lang.buildVm(game.target());
         vm_ptr = .{ .defined = &vm };
-        op_map = decompile.buildOpMap(game);
+        op_map = decompile.buildOpMap(game.target());
         op_map_ptr = .{ .defined = &op_map };
     }
 

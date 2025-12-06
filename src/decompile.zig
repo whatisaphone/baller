@@ -321,7 +321,7 @@ pub const Op = union(enum) {
     illegal,
 };
 
-pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
+pub fn buildOpMap(target: games.Target) std.EnumArray(lang.Op, Op) {
     var result: std.EnumArray(lang.Op, Op) = .initFill(.illegal);
     result.set(.@"push.u8", .push8);
     result.set(.@"push.i16", .push16);
@@ -335,7 +335,6 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
     result.set(.jump, .jump);
     result.set(.override, .override);
 
-    const target = game.target();
     for (langdef.calls) |c| {
         if (!(target.ge(c.target_min) and target.le(c.target_max))) continue;
         std.debug.assert(result.getPtrConst(c.op).* == .illegal);
