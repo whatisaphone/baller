@@ -154,7 +154,8 @@ pub fn run(gpa: std.mem.Allocator, diagnostic: *Diagnostic, args: Build) !void {
     try pool.init(gpa, n_jobs);
     defer pool.deinit();
 
-    var events: sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency) = .init;
+    var events_buffer: [sync.max_concurrency]sync.OrderedEvent(plan.Payload) = undefined;
+    var events: sync.Channel(sync.OrderedEvent(plan.Payload), sync.max_concurrency) = .init(&events_buffer);
 
     try pool.spawn(plan.run, .{
         gpa,

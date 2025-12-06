@@ -936,7 +936,8 @@ fn extractRoom(
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
 
-    var events: sync.Channel(Event, sync.max_concurrency) = .init;
+    var events_buffer: [sync.max_concurrency]Event = undefined;
+    var events: sync.Channel(Event, sync.max_concurrency) = .init(&events_buffer);
 
     try cx.pool.spawn(readRoomJob, .{
         cx,

@@ -97,26 +97,28 @@ pub fn Channel(T: type, capacity: usize) type {
 
         // yeah this could be better
         mutex: std.Thread.Mutex,
-        queue: utils.TinyArray(T, capacity),
+        queue: Deque(T),
         queue_not_empty: std.Thread.Condition,
         queue_not_full: std.Thread.Condition,
 
-        pub const init: Self = .{
-            .mutex = .{},
-            .queue = .empty,
-            .queue_not_empty = .{},
-            .queue_not_full = .{},
-        };
+        pub fn init(buffer: *[capacity]T) Self {
+            return .{
+                .mutex = .{},
+                .queue = .initBuffer(buffer),
+                .queue_not_empty = .{},
+                .queue_not_full = .{},
+            };
+        }
 
         pub fn send(self: *Self, value: T) void {
             {
                 self.mutex.lock();
                 defer self.mutex.unlock();
 
-                while (self.queue.len == self.queue.theCapacity())
+                while (self.queue.len == capacity)
                     self.queue_not_full.wait(&self.mutex);
 
-                self.queue.append(value) catch unreachable;
+                self.queue.pushBackBounded(value) catch unreachable;
             }
             self.queue_not_empty.signal();
         }
@@ -129,7 +131,7 @@ pub fn Channel(T: type, capacity: usize) type {
                 while (self.queue.len == 0)
                     self.queue_not_empty.wait(&self.mutex);
 
-                break :result self.queue.orderedRemove(0);
+                break :result self.queue.popFront().?;
             };
             self.queue_not_full.signal();
             return result;
