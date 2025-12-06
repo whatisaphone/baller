@@ -100,14 +100,6 @@ pub const Target = enum {
         return target.ge(.sputm99);
     }
 
-    pub fn hasIndexInib(target: Target) bool {
-        return target != .sputm90;
-    }
-
-    pub fn hasIndexSver(target: Target) bool {
-        return target.ge(.sputm100);
-    }
-
     pub fn firstLocalScript(target: Target) u16 {
         return if (target.le(.sputm98))
             200

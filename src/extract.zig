@@ -652,8 +652,8 @@ fn extractIndex(
 
     // SVER
 
-    if (game.target().hasIndexSver())
-        try extractRawIndexBlock(gpa, &blocks, output_dir, code, .SVER);
+    if (try blocks.peek() == .SVER)
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code);
 
     // RNAM
 
@@ -662,10 +662,9 @@ fn extractIndex(
 
     // remaining blocks
 
-    for ([_]BlockId{ .DOBJ, .AARY }) |id|
-        try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
-    if (game.target().hasIndexInib())
-        try extractRawIndexBlock(gpa, &blocks, output_dir, code, .INIB);
+    // DOBJ, AARY, possibly INIB
+    while (!blocks.atEnd())
+        try extractRawIndexBlock(gpa, &blocks, output_dir, code);
 
     try blocks.finish();
 
@@ -793,9 +792,8 @@ fn extractRawIndexBlock(
     blocks: *FixedBlockReader,
     output_dir: std.fs.Dir,
     code: *std.ArrayList(u8),
-    block_id: BlockId,
 ) !void {
-    const block = try blocks.expect(block_id).block();
+    const block = try blocks.next().block();
     const bytes = try io.readInPlace(blocks.stream, block.size);
     try writeRawBlock(gpa, block.id, bytes, output_dir, null, 4, .index_block, code);
 }
