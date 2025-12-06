@@ -781,7 +781,7 @@ fn recoverScriptArgs(cx: *TypeCx, script_ei: ExprIndex, args_ei: ExprIndex) void
         else => return,
     };
     const script_number = std.math.cast(u32, script_number_i32) orelse return;
-    const first_lsc = games.firstLocalScript(cx.symbols.game);
+    const first_lsc = cx.symbols.game.firstLocalScript();
     const script_id: Symbols.ScriptId = if (script_number < first_lsc)
         .{ .global = script_number }
     else
@@ -2917,7 +2917,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
         },
         .script => {
             const num = std.math.cast(u32, int) orelse break :write_name;
-            if (num < games.firstLocalScript(cx.symbols.game)) {
+            if (num < cx.symbols.game.firstLocalScript()) {
                 // it's a global script
                 const valid = num < cx.index.maxs.scripts and
                     cx.index.directories.scripts.rooms.get(num) != 0;
@@ -2928,7 +2928,7 @@ fn emitInt(cx: *const EmitCx, ei: ExprIndex) !void {
                 }
             } else {
                 // it's a local script
-                const index = num - games.firstLocalScript(cx.symbols.game);
+                const index = num - cx.symbols.game.firstLocalScript();
                 if (index >= UsageTracker.max_local_scripts) break :write_name;
                 const valid = std.mem.readPackedInt(u1, std.mem.asBytes(cx.lsc_mask), index, .little) != 0;
                 if (!valid) {

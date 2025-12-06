@@ -303,7 +303,7 @@ pub fn run(
     var output_dir = try fsd.openDirZ(diagnostic, std.fs.cwd(), args.output_path);
     defer output_dir.close();
 
-    const game = try games.detectGameOrFatal(diagnostic, index_name);
+    const game: games.Game = try .detectGameOrFatal(diagnostic, index_name);
 
     var symbols_text: []const u8 = "";
     defer gpa.free(symbols_text);
@@ -375,7 +375,7 @@ pub fn run(
     try cx.blinken.initAndStart();
     defer cx.blinken.stop();
 
-    const num_disks = if (games.hasDisk(game)) num_disks: {
+    const num_disks = if (game.hasDisk()) num_disks: {
         var max: u8 = 0;
         for (index.lfl_disks.defined.slice(index.maxs.rooms)) |n|
             max = @max(max, n);
@@ -433,13 +433,13 @@ fn countInputBytes(
     diagnostic: *Diagnostic,
     num_disks: u8,
 ) !u32 {
-    var path_buf: [games.longest_index_name_len]u8 = undefined;
+    var path_buf: [games.Game.longest_index_name_len]u8 = undefined;
     const path = std.fmt.bufPrint(&path_buf, "{s}", .{index_name}) catch unreachable;
 
     var result: u32 = 0;
     for (0..num_disks) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
-        games.pointPathToDisk(game.target(), path, disk_number);
+        game.target().pointPathToDisk(path, disk_number);
         result = try addFileSize(result, input_dir, path, diagnostic);
     }
     if (options.music) {
@@ -577,7 +577,7 @@ fn extractIndex(
 
     const maxs = maxs: {
         const maxs_raw = try blocks.expect(.MAXS).bytes();
-        if (maxs_raw.len != games.maxsLen(game))
+        if (maxs_raw.len != game.maxsLen())
             return error.BadData;
 
         var maxs: Maxs = undefined;
@@ -607,7 +607,7 @@ fn extractIndex(
     const dirc = try readDirectory(gpa, &fba, &blocks, code, .DIRC, maxs.costumes);
     const dirf = try readDirectory(gpa, &fba, &blocks, code, .DIRF, maxs.charsets);
     const dirm = try readDirectory(gpa, &fba, &blocks, code, .DIRM, maxs.images);
-    const dirt: Directory = if (games.hasTalkies(game))
+    const dirt: Directory = if (game.hasTalkies())
         try readDirectory(gpa, &fba, &blocks, code, .DIRT, maxs.talkies)
     else
         .empty;
@@ -630,7 +630,7 @@ fn extractIndex(
     // DISK
 
     var lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)) = .undef;
-    if (games.hasDisk(game)) {
+    if (game.hasDisk()) {
         const disk_raw = try blocks.expect(.DISK).bytes();
         if (disk_raw.len != 2 + maxs.rooms)
             return error.BadData;
@@ -647,7 +647,7 @@ fn extractIndex(
 
     // SVER
 
-    if (games.hasIndexSver(game))
+    if (game.hasIndexSver())
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, .SVER);
 
     // RNAM
@@ -659,7 +659,7 @@ fn extractIndex(
 
     for ([_]BlockId{ .DOBJ, .AARY }) |id|
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
-    if (games.hasIndexInib(game))
+    if (game.hasIndexInib())
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, .INIB);
 
     try blocks.finish();
@@ -840,9 +840,9 @@ fn extractDisk(
 ) !void {
     try code.print(cx.gpa, "disk {} {{\n", .{disk_number});
 
-    var disk_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    var disk_name_buf: [games.Game.longest_index_name_len + 1]u8 = undefined;
     const disk_name = std.fmt.bufPrintZ(&disk_name_buf, "{s}", .{index_name}) catch unreachable;
-    games.pointPathToDisk(cx.game().target(), disk_name, disk_number);
+    cx.game().target().pointPathToDisk(disk_name, disk_number);
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name);
 
@@ -958,7 +958,7 @@ fn extractRoom(
 fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
     const len = index.maxs.rooms;
 
-    if (!games.hasDisk(game)) {
+    if (!game.hasDisk()) {
         for (index.lfl_offsets.slice(len), 0..) |off, i|
             if (off == offset)
                 return @intCast(i);
@@ -1294,7 +1294,7 @@ fn readBlockAndAddToBuffer(
             _ = cx.lsc_mask_state.collecting;
 
             const script_number, _ = parseLscHeader(.from(block.id), raw) catch return;
-            const script_index = std.math.sub(u16, script_number, games.firstLocalScript(cx.cx.game())) catch return;
+            const script_index = std.math.sub(u16, script_number, cx.cx.game().firstLocalScript()) catch return;
             if (script_index >= UsageTracker.max_local_scripts) return;
             std.mem.writePackedInt(u1, std.mem.asBytes(&cx.lsc_mask), script_index, 1, .little);
         },
@@ -2628,7 +2628,7 @@ fn extractMusic(
     output_parent_dir: std.fs.Dir,
     code: *std.ArrayList(u8),
 ) !void {
-    var in_path_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    var in_path_buf: [games.Game.longest_index_name_len + 1]u8 = undefined;
     const in_path = std.fmt.bufPrintZ(&in_path_buf, "{s}", .{index_name}) catch unreachable;
     games.pointPathToMusic(in_path);
 

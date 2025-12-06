@@ -1447,7 +1447,7 @@ fn jobMusic(cx: *const Context, room_number: u8, node_index: Ast.NodeIndex, even
     _ = room_number;
     _ = node_index;
 
-    var path_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    var path_buf: [games.Game.longest_index_name_len + 1]u8 = undefined;
     const path = std.fmt.bufPrintZ(&path_buf, "{s}", .{cx.index_name}) catch unreachable;
     games.pointPathToMusic(path);
 

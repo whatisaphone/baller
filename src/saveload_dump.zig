@@ -62,7 +62,7 @@ const Args = struct {
 };
 
 pub fn run(args: Args) !void {
-    const game = try games.detectGameOrFatal(args.diagnostic, args.index_path);
+    const game: games.Game = try .detectGameOrFatal(args.diagnostic, args.index_path);
     const maxs = try readIndex(args.diagnostic, game, args.index_path);
 
     var arena: std.heap.ArenaAllocator = .init(args.gpa);
@@ -93,7 +93,7 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
     var blocks: FixedBlockReader = .init(&in, &diag);
 
     const maxs_raw = try blocks.expect(.MAXS).bytes();
-    if (maxs_raw.len != games.maxsLen(game))
+    if (maxs_raw.len != game.maxsLen())
         return error.BadData;
 
     var maxs: Maxs = undefined;
@@ -310,7 +310,7 @@ fn dumpScript(
     const real_pc = pc: switch (script.type) {
         .script => script.pc - Block.header_size,
         .local_script => {
-            const first_lsc = games.firstLocalScript(game);
+            const first_lsc = game.firstLocalScript();
             if (script.script < first_lsc) break :pc null;
             const number: u32 = @intCast(script.script - first_lsc);
             if (number >= maxs.local_scripts) break :pc null;

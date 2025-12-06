@@ -152,9 +152,9 @@ const Cx = struct {
 };
 
 fn emitDisk(cx: *const Cx, disk_number: u8, emit_blink: Blinkenlights.NodeId) !void {
-    var out_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
+    var out_name_buf: [games.Game.longest_index_name_len + 1]u8 = undefined;
     const out_name = std.fmt.bufPrintZ(&out_name_buf, "{s}", .{cx.index_name}) catch unreachable;
-    games.pointPathToDisk(cx.target, out_name, disk_number);
+    cx.target.pointPathToDisk(out_name, disk_number);
 
     const blink = cx.blinken.addNode(emit_blink);
     defer cx.blinken.removeNode(blink);
@@ -286,7 +286,7 @@ fn addGlobToIndex(
     const zero: DirectoryEntry = .{
         .room = 0,
         .offset = 0,
-        .size = games.directoryNonPresentLen(cx.target),
+        .size = cx.target.directoryNonPresentLen(),
     };
     try utils.growMultiArrayList(DirectoryEntry, directory, cx.gpa, glob_number + 1, zero);
 
@@ -300,7 +300,7 @@ fn addGlobToIndex(
     }
 
     const offset_in_room = offset_in_disk - cx.index.rooms.items(.offset)[room_number];
-    const write_size = if (block_id == .MULT and !games.writeMultLen(cx.target))
+    const write_size = if (block_id == .MULT and !cx.target.writeMultLen())
         std.math.maxInt(u32)
     else
         size;
@@ -337,7 +337,7 @@ const Index = struct {
         try index.directories.costumes.ensureTotalCapacity(gpa, 512);
         try index.directories.charsets.ensureTotalCapacity(gpa, 8);
         try index.directories.images.ensureTotalCapacity(gpa, 1024);
-        if (games.hasTalkies(target.pickAnyGame()))
+        if (target.pickAnyGame().hasTalkies())
             try index.directories.talkies.ensureTotalCapacity(gpa, 2048);
 
         // Globs start at 1, so 0 doesn't exist, so SCUMM sets the sizes in the
@@ -458,7 +458,7 @@ fn emitIndex(cx: *const Cx) !void {
 fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
     defer cx.gpa.free(data);
 
-    if (data.len != games.maxsLen(cx.target.pickAnyGame()))
+    if (data.len != cx.target.pickAnyGame().maxsLen())
         return error.BadData;
 
     // Overwrite some of the fields I know how to generate
@@ -469,7 +469,7 @@ fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
     maxs.charsets = @intCast(cx.index.directories.charsets.len);
     maxs.costumes = @intCast(cx.index.directories.costumes.len);
     maxs.images = @intCast(cx.index.directories.images.len);
-    if (games.hasTalkies(cx.target.pickAnyGame()))
+    if (cx.target.pickAnyGame().hasTalkies())
         maxs.talkies = @intCast(cx.index.directories.talkies.len);
 
     const start = try beginBlockKnown(out, .MAXS, @intCast(data.len));
