@@ -16,12 +16,13 @@ pub fn extract(
     name: [:0]const u8,
     mult_raw: []const u8,
     room_palette: *const [0x300]u8,
+    rainbow: bool,
     room_dir: std.fs.Dir,
     room_path: []const u8,
     code: *std.ArrayList(u8),
 ) !void {
     var in: std.io.Reader = .fixed(mult_raw);
-    extractMultInner(gpa, diag, name, &in, room_palette, room_dir, room_path, code) catch |err| {
+    extractMultInner(gpa, diag, name, &in, room_palette, rainbow, room_dir, room_path, code) catch |err| {
         if (err != error.AddedToDiagnostic)
             diag.zigErr(@intCast(in.seek), "unexpected error: {s}", .{}, err);
         return error.AddedToDiagnostic;
@@ -34,6 +35,7 @@ fn extractMultInner(
     name: [:0]const u8,
     in: *std.io.Reader,
     room_palette: *const [0x300]u8,
+    rainbow: bool,
     room_dir: std.fs.Dir,
     room_path: []const u8,
     code: *std.ArrayList(u8),
@@ -75,7 +77,7 @@ fn extractMultInner(
         const awiz_name = std.fmt.bufPrint(&awiz_name_buf, "{:0>4}", .{first_index}) catch unreachable;
 
         try code.appendSlice(gpa, "    awiz {\n");
-        try awiz.decode(gpa, diag, awiz_raw, mult_palette orelse room_palette, awiz_name, code, 8, mult_dir, mult_path);
+        try awiz.decode(gpa, diag, awiz_raw, mult_palette orelse room_palette, rainbow, awiz_name, code, 8, mult_dir, mult_path);
         try code.appendSlice(gpa, "    }\n");
     }
 

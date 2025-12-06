@@ -42,6 +42,7 @@ pub const CompressionCodec = enum(u8) {
 pub fn decode(
     allocator: std.mem.Allocator,
     akos_raw: []const u8,
+    rainbow: bool,
     out_path: []const u8,
     out_dir: std.fs.Dir,
     manifest: *std.ArrayList(u8),
@@ -95,7 +96,7 @@ pub fn decode(
             .info = cel_info.*,
             .data = cel_data,
         };
-        try decodeCel(allocator, akhd, akpl, rgbs, cel, out_path, out_dir, manifest);
+        try decodeCel(allocator, akhd, akpl, rgbs, rainbow, cel, out_path, out_dir, manifest);
     }
 
     while (stream.seek < akos_raw.len) {
@@ -117,6 +118,7 @@ fn decodeCel(
     akhd: *align(1) const Akhd,
     akpl: []const u8,
     rgbs: *const [0x300]u8,
+    rainbow: bool,
     cel: Cel,
     out_path: []const u8,
     out_dir: std.fs.Dir,
@@ -133,7 +135,7 @@ fn decodeCel(
     var bmp_writer: std.io.Writer = .fixed(bmp_buf);
 
     try bmp.writeHeader(&bmp_writer, cel.info.width, cel.info.height, bmp_size);
-    try bmp.writePalette(&bmp_writer, rgbs);
+    try bmp.writePaletteOrRainbow(&bmp_writer, rgbs, rainbow);
 
     switch (codec) {
         .byle_rle => try decodeCelByleRle(akpl, cel, bmp_writer.unusedCapacitySlice(), stride),

@@ -26,6 +26,7 @@ pub fn decode(
     rmim_raw: []const u8,
     diag: *const Diagnostic.ForBinaryFile,
     apal: *const [0x300]u8,
+    rainbow: bool,
     code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -55,7 +56,7 @@ pub fn decode(
     defer bmp_writer.deinit();
 
     try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_size);
-    try bmp.writePalette(&bmp_writer.writer, apal);
+    try bmp.writePaletteOrRainbow(&bmp_writer.writer, apal, rainbow);
 
     var bmp_buf = bmp_writer.toArrayList();
     defer bmp_buf.deinit(allocator);

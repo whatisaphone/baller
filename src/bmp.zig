@@ -395,6 +395,16 @@ pub fn writeHeader15(out: *std.io.Writer, width: u31, height: u31, file_size: u3
     try out.writeInt(u32, 0, .little);
 }
 
+pub fn writePaletteOrRainbow(out: *std.io.Writer, pal: *const [0x300]u8, rainbow: bool) !void {
+    if (rainbow) {
+        @branchHint(.cold);
+        try writePlaceholderPalette(out);
+        return;
+    }
+
+    try writePalette(out, pal);
+}
+
 pub fn writePalette(out: *std.io.Writer, pal: *const [0x300]u8) !void {
     const dest = try out.writableArray(256 * 4);
     var s: usize = 0;

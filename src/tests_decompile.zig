@@ -576,6 +576,7 @@ fn testRoundTrip(
             .script = .decompile,
             .annotate = false,
             .music = false,
+            .rainbow = false,
             .rmim = .decode,
             .scrp = .decode,
             .encd = .decode,

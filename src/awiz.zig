@@ -30,6 +30,7 @@ pub fn decode(
     diag: *const Diagnostic.ForBinaryFile,
     awiz_raw: []const u8,
     default_palette: *const [0x300]u8,
+    rainbow: bool,
     name: []const u8,
     code: *std.ArrayList(u8),
     indent: u8,
@@ -37,7 +38,7 @@ pub fn decode(
     out_path: []const u8,
 ) error{AddedToDiagnostic}!void {
     var stream: std.io.Reader = .fixed(awiz_raw);
-    return decodeInner(allocator, diag, &stream, default_palette, name, code, indent, out_dir, out_path) catch |err| {
+    return decodeInner(allocator, diag, &stream, default_palette, rainbow, name, code, indent, out_dir, out_path) catch |err| {
         diag.zigErr(@intCast(stream.seek), "general decode failure: {s}", .{}, err);
         return error.AddedToDiagnostic;
     };
@@ -48,6 +49,7 @@ fn decodeInner(
     diag: *const Diagnostic.ForBinaryFile,
     reader: *std.io.Reader,
     default_palette: *const [0x300]u8,
+    rainbow: bool,
     name: []const u8,
     code: *std.ArrayList(u8),
     indent: u8,
@@ -114,8 +116,8 @@ fn decodeInner(
         return error.BadData;
 
     var bmp_buf = switch (wizh.compression) {
-        .none => try decodeUncompressed(allocator, width, height, rgbs_opt orelse default_palette, reader),
-        .rle => try decodeRleToBmp(allocator, width, height, rgbs_opt orelse default_palette, reader),
+        .none => try decodeUncompressed(allocator, width, height, rgbs_opt orelse default_palette, rainbow, reader),
+        .rle => try decodeRleToBmp(allocator, width, height, rgbs_opt orelse default_palette, rainbow, reader),
         .none_16bit => try decodeUncompressed16bit(allocator, width, height, reader),
     };
     defer bmp_buf.deinit(allocator);
@@ -146,6 +148,7 @@ fn decodeUncompressed(
     width: u31,
     height: u31,
     palette: *const [0x300]u8,
+    rainbow: bool,
     reader: *std.io.Reader,
 ) !std.ArrayList(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
@@ -153,7 +156,7 @@ fn decodeUncompressed(
     errdefer bmp_writer.deinit();
 
     try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_file_size);
-    try bmp.writePalette(&bmp_writer.writer, palette);
+    try bmp.writePaletteOrRainbow(&bmp_writer.writer, palette, rainbow);
 
     var bmp_buf = bmp_writer.toArrayList();
     errdefer bmp_buf.deinit(allocator);
@@ -174,6 +177,7 @@ pub fn decodeRleToBmp(
     width: u31,
     height: u31,
     palette: *const [0x300]u8,
+    rainbow: bool,
     reader: *std.io.Reader,
 ) !std.ArrayList(u8) {
     const bmp_file_size = bmp.calcFileSize(width, height);
@@ -181,7 +185,7 @@ pub fn decodeRleToBmp(
     errdefer bmp_writer.deinit();
 
     try bmp.writeHeader(&bmp_writer.writer, width, height, bmp_file_size);
-    try bmp.writePalette(&bmp_writer.writer, palette);
+    try bmp.writePaletteOrRainbow(&bmp_writer.writer, palette, rainbow);
 
     var bmp_buf = bmp_writer.toArrayList();
     errdefer bmp_buf.deinit(allocator);

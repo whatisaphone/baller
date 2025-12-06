@@ -41,6 +41,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
     var script: ?ScriptMode = null;
     var annotate: ?YesNo = null;
     var music_option: ?YesNo = null;
+    var rainbow: ?YesNo = null;
     var rmim_option: ?RawOrDecode = null;
     var scrp_option: ?RawOrDecode = null;
     var encd_option: ?RawOrDecode = null;
@@ -81,6 +82,10 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             } else if (std.mem.eql(u8, opt.flag, "music")) {
                 if (music_option != null) return arg.reportDuplicate();
                 music_option = std.meta.stringToEnum(YesNo, opt.value) orelse
+                    return arg.reportInvalidValue();
+            } else if (std.mem.eql(u8, opt.flag, "rainbow")) {
+                if (rainbow != null) return arg.reportDuplicate();
+                rainbow = std.meta.stringToEnum(YesNo, opt.value) orelse
                     return arg.reportInvalidValue();
             } else if (std.mem.eql(u8, opt.flag, "rmim")) {
                 if (rmim_option != null) return arg.reportDuplicate();
@@ -159,6 +164,7 @@ pub fn runCli(gpa: std.mem.Allocator, args: []const [:0]const u8) !void {
             .script = script orelse .decompile,
             .annotate = (annotate orelse YesNo.no).toBool(),
             .music = (music_option orelse YesNo.yes).toBool(),
+            .rainbow = (rainbow orelse YesNo.no).toBool(),
             .rmim = rmim_option orelse .decode,
             .scrp = scrp_option orelse .decode,
             .encd = encd_option orelse .decode,
@@ -192,6 +198,7 @@ const Options = struct {
     script: ScriptMode,
     annotate: bool,
     music: bool,
+    rainbow: bool,
     rmim: RawOrDecode,
     scrp: RawOrDecode,
     encd: RawOrDecode,
@@ -1436,7 +1443,7 @@ fn extractRmimInner(
     raw: []const u8,
     code: *std.ArrayList(u8),
 ) !void {
-    try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
+    try rmim.decode(cx.cx.gpa, raw, diag, &cx.room_palette.defined, cx.cx.options.rainbow, code, cx.room_dir, cx.room_path);
 
     errdefer comptime unreachable; // if we get here, success and commit
 
@@ -1527,7 +1534,7 @@ fn extractObim(
     raw: []const u8,
     code: *std.ArrayList(u8),
 ) !void {
-    try obim.extract(cx.cx.gpa, diag, raw, &cx.room_palette.defined, code, cx.room_dir, cx.room_path);
+    try obim.extract(cx.cx.gpa, diag, raw, &cx.room_palette.defined, cx.cx.options.rainbow, code, cx.room_dir, cx.room_path);
 }
 
 const Cdhd = extern struct {
@@ -2305,7 +2312,7 @@ fn extractAwiz(
 
     try code.print(cx.cx.gpa, "awiz {s}@{} {{\n", .{ name, glob_number });
 
-    try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined, name, code, 4, cx.room_dir, cx.room_path);
+    try awiz.decode(cx.cx.gpa, diag, raw, &cx.room_palette.defined, cx.cx.options.rainbow, name, code, 4, cx.room_dir, cx.room_path);
 
     try code.appendSlice(cx.cx.gpa, "}\n");
 
@@ -2328,7 +2335,7 @@ fn extractMult(
 
     try code.print(cx.cx.gpa, "mult {s}@{} {{\n", .{ name, glob_number });
 
-    try mult.extract(cx.cx.gpa, diag, name, raw, &cx.room_palette.defined, cx.room_dir, cx.room_path, code);
+    try mult.extract(cx.cx.gpa, diag, name, raw, &cx.room_palette.defined, cx.cx.options.rainbow, cx.room_dir, cx.room_path, code);
 }
 
 fn extractAkos(
@@ -2356,7 +2363,7 @@ fn extractAkos(
     ) catch unreachable;
 
     try code.print(cx.cx.gpa, "akos {s}@{} {{\n", .{ name, glob_number });
-    try akos.decode(cx.cx.gpa, raw, path, dir, code);
+    try akos.decode(cx.cx.gpa, raw, cx.cx.options.rainbow, path, dir, code);
     try code.appendSlice(cx.cx.gpa, "}\n");
 }
 

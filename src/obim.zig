@@ -17,6 +17,7 @@ pub fn extract(
     diag: *const Diagnostic.ForBinaryFile,
     raw: []const u8,
     palette: *const [0x300]u8,
+    rainbow: bool,
     code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -41,7 +42,7 @@ pub fn extract(
         try code.appendSlice(gpa, "    im {\n");
 
         const smap_raw = try im_blocks.expect(.SMAP).bytes();
-        try decodeSmap(gpa, imhd, im_number, smap_raw, palette, code, out_dir, out_path);
+        try decodeSmap(gpa, imhd, im_number, smap_raw, palette, rainbow, code, out_dir, out_path);
 
         if (!im_blocks.atEnd()) {
             const zp01 = try im_blocks.expect(.ZP01).bytes();
@@ -87,6 +88,7 @@ fn decodeSmap(
     im_number: u8,
     smap_raw: []const u8,
     palette: *const [0x300]u8,
+    rainbow: bool,
     code: *std.ArrayList(u8),
     out_dir: std.fs.Dir,
     out_path: []const u8,
@@ -97,7 +99,7 @@ fn decodeSmap(
 
     var bmp_writer: std.io.Writer = .fixed(bmp_raw);
     try bmp.writeHeader(&bmp_writer, imhd.width, imhd.height, bmp_size);
-    try bmp.writePalette(&bmp_writer, palette);
+    try bmp.writePaletteOrRainbow(&bmp_writer, palette, rainbow);
     const bmp_pixels = bmp_writer.unusedCapacitySlice();
 
     try decodeSmapData(imhd, smap_raw, bmp_pixels);
