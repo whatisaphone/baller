@@ -362,7 +362,6 @@ pub fn run(
         .gpa = gpa,
         .pool = &pool,
         .options = args.options,
-        .game = game,
         .vm = vm_ptr,
         .op_map = op_map_ptr,
         .symbols = &symbols,
@@ -800,7 +799,6 @@ const Context = struct {
     gpa: std.mem.Allocator,
     pool: *sync.ThreadPool,
     options: Options,
-    game: games.Game,
     vm: utils.SafeUndefined(*const lang.Vm),
     op_map: utils.SafeUndefined(*const std.EnumArray(lang.Op, decompile.Op)),
     symbols: *const Symbols,
@@ -809,6 +807,10 @@ const Context = struct {
     output_dir: std.fs.Dir,
     blinken: Blinkenlights,
     stats: std.EnumArray(Stat, u16),
+
+    fn game(self: *const Context) games.Game {
+        return self.symbols.game;
+    }
 
     fn incStat(self: *Context, stat: Stat) void {
         const old = @atomicRmw(u16, self.stats.getPtr(stat), .Add, 1, .monotonic);
@@ -840,7 +842,7 @@ fn extractDisk(
 
     var disk_name_buf: [games.longest_index_name_len + 1]u8 = undefined;
     const disk_name = std.fmt.bufPrintZ(&disk_name_buf, "{s}", .{index_name}) catch unreachable;
-    games.pointPathToDisk(cx.game.target(), disk_name, disk_number);
+    games.pointPathToDisk(cx.game().target(), disk_name, disk_number);
 
     const diag: Diagnostic.ForBinaryFile = .init(diagnostic, disk_name);
 
@@ -931,7 +933,7 @@ fn extractRoom(
     room_blink: Blinkenlights.NodeId,
     project_code: *std.ArrayList(u8),
 ) !void {
-    const room_number = findRoomNumber(cx.game, cx.index, disk_number, fxbcl.pos(in)) orelse
+    const room_number = findRoomNumber(cx.game(), cx.index, disk_number, fxbcl.pos(in)) orelse
         return error.BadData;
 
     const diag = disk_diag.child(0, .{ .glob = .{ .LFLF, room_number } });
@@ -1292,7 +1294,7 @@ fn readBlockAndAddToBuffer(
             _ = cx.lsc_mask_state.collecting;
 
             const script_number, _ = parseLscHeader(.from(block.id), raw) catch return;
-            const script_index = std.math.sub(u16, script_number, games.firstLocalScript(cx.cx.game)) catch return;
+            const script_index = std.math.sub(u16, script_number, games.firstLocalScript(cx.cx.game())) catch return;
             if (script_index >= UsageTracker.max_local_scripts) return;
             std.mem.writePackedInt(u1, std.mem.asBytes(&cx.lsc_mask), script_index, 1, .little);
         },
@@ -1625,7 +1627,7 @@ fn disassembleVerb(
     var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
     defer out.deinit();
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, bytecode, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
@@ -1661,7 +1663,7 @@ fn decompileVerb(
         .verb = verb,
     } };
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     try code.print(cx.cx.gpa, "\n    verb {}", .{verb});
     _ = cx.lsc_mask_state.frozen;
@@ -1740,7 +1742,7 @@ fn extractEncdExcdDisassemble(
     var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
     defer out.deinit();
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
@@ -1798,7 +1800,7 @@ fn extractEncdExcdDecompileInner(
         .excd => .{ .exit = .{ .room = cx.room_number } },
     };
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     const keyword = switch (edge) {
         .encd => "enter",
@@ -1899,7 +1901,7 @@ fn extractLscDisassemble(
     var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
     defer out.deinit();
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     const id: Symbols.ScriptId = .{ .local = .{
         .room = cx.room_number,
@@ -1951,7 +1953,7 @@ fn extractLscDecompile(
         .number = script_number,
     } };
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     try code.print(cx.cx.gpa, "\nlocal-script {f}@{}", .{
         cx.cx.symbols.fmtScriptName(cx.room_number, script_number),
@@ -2192,7 +2194,7 @@ fn extractScrpDisassemble(
     var out: std.io.Writer.Allocating = .init(cx.cx.gpa);
     defer out.deinit();
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     disasm.disassemble(cx.cx.gpa, cx.cx.vm.defined, cx.room_number, id, raw, cx.cx.symbols, cx.cx.options.annotate, &out.writer, &usage, &diagnostic) catch |err| {
         diag.zigErr(0, "unexpected error: {s}", .{}, err);
@@ -2255,7 +2257,7 @@ fn extractScrpDecompile(
 ) !void {
     const id: Symbols.ScriptId = .{ .global = glob_number };
 
-    var usage: UsageTracker = .init(cx.cx.game);
+    var usage: UsageTracker = .init(cx.cx.game());
 
     try code.print(cx.cx.gpa, "\nscript {f}@{}", .{
         cx.cx.symbols.fmtScriptName(cx.room_number, glob_number),
