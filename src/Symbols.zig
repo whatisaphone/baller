@@ -416,7 +416,7 @@ fn handleRoomScript(cx: *Cx, room: *Room) !void {
     const number_str = cx.key_parts.next() orelse return error.BadData;
     const number = try std.fmt.parseInt(u16, number_str, 10);
 
-    const index = try std.math.sub(u16, number, cx.result.game.firstLocalScript());
+    const index = try std.math.sub(u16, number, cx.result.game.target().firstLocalScript());
     const script_entry = try room.scripts.getOrPut(cx.allocator, index);
     if (script_entry.* == null)
         script_entry.* = .{};
@@ -623,7 +623,7 @@ pub fn getScript(self: *const Symbols, id: ScriptId) ?*const Script {
         },
         .local => |s| {
             const room = self.getRoom(s.room) orelse return null;
-            const index = s.number - self.game.firstLocalScript();
+            const index = s.number - self.game.target().firstLocalScript();
             return room.scripts.getPtr(index);
         },
         .object => null,
@@ -726,7 +726,7 @@ const FormatScriptName = struct {
             return;
         }
         // If not found, generate a default name
-        const prefix = if (f.script_number < f.symbols.game.firstLocalScript()) "scr" else "lsc";
+        const prefix = if (f.script_number < f.symbols.game.target().firstLocalScript()) "scr" else "lsc";
         try w.print("{s}{}", .{ prefix, f.script_number });
     }
 };
@@ -736,7 +736,7 @@ pub fn fmtScriptName(self: *const Symbols, room_number: u8, script_number: u32) 
 }
 
 fn getScriptName(self: *const Symbols, room_number: u8, script_number: u32) ?[]const u8 {
-    const id: ScriptId = if (script_number < self.game.firstLocalScript())
+    const id: ScriptId = if (script_number < self.game.target().firstLocalScript())
         .{ .global = script_number }
     else
         .{ .local = .{ .room = room_number, .number = script_number } };

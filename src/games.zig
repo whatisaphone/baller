@@ -72,36 +72,6 @@ pub const Game = enum {
         diagnostic.err("index filename not recognized: {s}" ++ error_suffix, .{input_name});
         return error.AddedToDiagnostic;
     }
-
-    pub fn maxsLen(game: Game) u32 {
-        return if (game.target().le(.sputm98))
-            38
-        else
-            44;
-    }
-
-    pub fn hasTalkies(game: Game) bool {
-        return @intFromEnum(game) >= @intFromEnum(Game.football_1999);
-    }
-
-    pub fn hasDisk(game: Game) bool {
-        return game != .baseball_1997;
-    }
-
-    pub fn hasIndexInib(game: Game) bool {
-        return game != .baseball_1997;
-    }
-
-    pub fn hasIndexSver(game: Game) bool {
-        return game.target().ge(.sputm100);
-    }
-
-    pub fn firstLocalScript(game: Game) u16 {
-        return if (@intFromEnum(game) <= @intFromEnum(Game.soccer_1998))
-            200
-        else
-            2048;
-    }
 };
 
 pub const Target = enum {
@@ -129,6 +99,36 @@ pub const Target = enum {
             .sputm100 => .basketball,
             .sputm101 => .soccer_2004,
         };
+    }
+
+    pub fn maxsLen(target: Target) u32 {
+        return if (target.le(.sputm98))
+            38
+        else
+            44;
+    }
+
+    pub fn hasTalkies(target: Target) bool {
+        return target.ge(.sputm99);
+    }
+
+    pub fn hasDisk(target: Target) bool {
+        return target != .sputm90;
+    }
+
+    pub fn hasIndexInib(target: Target) bool {
+        return target != .sputm90;
+    }
+
+    pub fn hasIndexSver(target: Target) bool {
+        return target.ge(.sputm100);
+    }
+
+    pub fn firstLocalScript(target: Target) u16 {
+        return if (target.le(.sputm98))
+            200
+        else
+            2048;
     }
 
     pub fn directoryNonPresentLen(target: Target) u32 {

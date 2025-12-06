@@ -337,7 +337,7 @@ const Index = struct {
         try index.directories.costumes.ensureTotalCapacity(gpa, 512);
         try index.directories.charsets.ensureTotalCapacity(gpa, 8);
         try index.directories.images.ensureTotalCapacity(gpa, 1024);
-        if (target.pickAnyGame().hasTalkies())
+        if (target.hasTalkies())
             try index.directories.talkies.ensureTotalCapacity(gpa, 2048);
 
         // Globs start at 1, so 0 doesn't exist, so SCUMM sets the sizes in the
@@ -458,7 +458,7 @@ fn emitIndex(cx: *const Cx) !void {
 fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
     defer cx.gpa.free(data);
 
-    if (data.len != cx.target.pickAnyGame().maxsLen())
+    if (data.len != cx.target.maxsLen())
         return error.BadData;
 
     // Overwrite some of the fields I know how to generate
@@ -469,7 +469,7 @@ fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
     maxs.charsets = @intCast(cx.index.directories.charsets.len);
     maxs.costumes = @intCast(cx.index.directories.costumes.len);
     maxs.images = @intCast(cx.index.directories.images.len);
-    if (cx.target.pickAnyGame().hasTalkies())
+    if (cx.target.hasTalkies())
         maxs.talkies = @intCast(cx.index.directories.talkies.len);
 
     const start = try beginBlockKnown(out, .MAXS, @intCast(data.len));

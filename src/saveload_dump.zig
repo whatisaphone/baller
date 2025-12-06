@@ -93,7 +93,7 @@ fn readIndex(diagnostic: *Diagnostic, game: games.Game, index_path: [:0]const u8
     var blocks: FixedBlockReader = .init(&in, &diag);
 
     const maxs_raw = try blocks.expect(.MAXS).bytes();
-    if (maxs_raw.len != game.maxsLen())
+    if (maxs_raw.len != game.target().maxsLen())
         return error.BadData;
 
     var maxs: Maxs = undefined;
@@ -310,7 +310,7 @@ fn dumpScript(
     const real_pc = pc: switch (script.type) {
         .script => script.pc - Block.header_size,
         .local_script => {
-            const first_lsc = game.firstLocalScript();
+            const first_lsc = game.target().firstLocalScript();
             if (script.script < first_lsc) break :pc null;
             const number: u32 = @intCast(script.script - first_lsc);
             if (number >= maxs.local_scripts) break :pc null;

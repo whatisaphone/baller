@@ -375,7 +375,7 @@ pub fn run(
     try cx.blinken.initAndStart();
     defer cx.blinken.stop();
 
-    const num_disks = if (game.hasDisk()) num_disks: {
+    const num_disks = if (game.target().hasDisk()) num_disks: {
         var max: u8 = 0;
         for (index.lfl_disks.defined.slice(index.maxs.rooms)) |n|
             max = @max(max, n);
@@ -577,7 +577,7 @@ fn extractIndex(
 
     const maxs = maxs: {
         const maxs_raw = try blocks.expect(.MAXS).bytes();
-        if (maxs_raw.len != game.maxsLen())
+        if (maxs_raw.len != game.target().maxsLen())
             return error.BadData;
 
         var maxs: Maxs = undefined;
@@ -607,7 +607,7 @@ fn extractIndex(
     const dirc = try readDirectory(gpa, &fba, &blocks, code, .DIRC, maxs.costumes);
     const dirf = try readDirectory(gpa, &fba, &blocks, code, .DIRF, maxs.charsets);
     const dirm = try readDirectory(gpa, &fba, &blocks, code, .DIRM, maxs.images);
-    const dirt: Directory = if (game.hasTalkies())
+    const dirt: Directory = if (game.target().hasTalkies())
         try readDirectory(gpa, &fba, &blocks, code, .DIRT, maxs.talkies)
     else
         .empty;
@@ -630,7 +630,7 @@ fn extractIndex(
     // DISK
 
     var lfl_disks: utils.SafeUndefined(utils.SafeManyPointer([*]u8)) = .undef;
-    if (game.hasDisk()) {
+    if (game.target().hasDisk()) {
         const disk_raw = try blocks.expect(.DISK).bytes();
         if (disk_raw.len != 2 + maxs.rooms)
             return error.BadData;
@@ -647,7 +647,7 @@ fn extractIndex(
 
     // SVER
 
-    if (game.hasIndexSver())
+    if (game.target().hasIndexSver())
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, .SVER);
 
     // RNAM
@@ -659,7 +659,7 @@ fn extractIndex(
 
     for ([_]BlockId{ .DOBJ, .AARY }) |id|
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, id);
-    if (game.hasIndexInib())
+    if (game.target().hasIndexInib())
         try extractRawIndexBlock(gpa, &blocks, output_dir, code, .INIB);
 
     try blocks.finish();
@@ -958,7 +958,7 @@ fn extractRoom(
 fn findRoomNumber(game: games.Game, index: *const Index, disk_number: u8, offset: u32) ?u8 {
     const len = index.maxs.rooms;
 
-    if (!game.hasDisk()) {
+    if (!game.target().hasDisk()) {
         for (index.lfl_offsets.slice(len), 0..) |off, i|
             if (off == offset)
                 return @intCast(i);
@@ -1294,7 +1294,7 @@ fn readBlockAndAddToBuffer(
             _ = cx.lsc_mask_state.collecting;
 
             const script_number, _ = parseLscHeader(.from(block.id), raw) catch return;
-            const script_index = std.math.sub(u16, script_number, cx.cx.game().firstLocalScript()) catch return;
+            const script_index = std.math.sub(u16, script_number, cx.cx.game().target().firstLocalScript()) catch return;
             if (script_index >= UsageTracker.max_local_scripts) return;
             std.mem.writePackedInt(u1, std.mem.asBytes(&cx.lsc_mask), script_index, 1, .little);
         },
