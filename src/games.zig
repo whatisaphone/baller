@@ -36,32 +36,38 @@ pub const Game = enum {
         };
     }
 
+    const index_names: []const struct { []const u8, Game } = &.{
+        .{ "BASEBALL.HE0", .baseball_1997 },
+        .{ "SOCCER.HE0", .soccer_1998 },
+        .{ "FOOTBALL.HE0", .football_1999 },
+        .{ "baseball 2001.he0", .baseball_2001 },
+        .{ "SoccerMLS.he0", .soccer_mls },
+        .{ "Football2002.HE0", .football_2002 },
+        .{ "Basketball.he0", .basketball },
+        .{ "baseball2003.HE0", .baseball_2003 },
+        .{ "Soccer2004.HE0", .soccer_2004 },
+    };
+
     pub const longest_index_name_len = "baseball 2001.he0".len;
 
+    fn detectGame(input_name: []const u8) ?Game {
+        for (index_names) |p|
+            if (std.mem.eql(u8, input_name, p[0]))
+                return p[1];
+        return null;
+    }
+
     pub fn detectGameOrFatal(diagnostic: *Diagnostic, index_path: []const u8) !Game {
-        const names: []const struct { []const u8, Game } = &.{
-            .{ "BASEBALL.HE0", .baseball_1997 },
-            .{ "SOCCER.HE0", .soccer_1998 },
-            .{ "FOOTBALL.HE0", .football_1999 },
-            .{ "baseball 2001.he0", .baseball_2001 },
-            .{ "SoccerMLS.he0", .soccer_mls },
-            .{ "Football2002.HE0", .football_2002 },
-            .{ "Basketball.he0", .basketball },
-            .{ "baseball2003.HE0", .baseball_2003 },
-            .{ "Soccer2004.HE0", .soccer_2004 },
-        };
+        const input_name = std.fs.path.basename(index_path);
+        if (detectGame(input_name)) |game|
+            return game;
 
         const error_suffix = comptime error_suffix: {
             var error_suffix: []const u8 = "\nsupported filenames:";
-            for (names) |p|
+            for (index_names) |p|
                 error_suffix = error_suffix ++ "\n- " ++ p[0];
             break :error_suffix error_suffix[0..error_suffix.len];
         };
-
-        const input_name = std.fs.path.basename(index_path);
-        for (names) |p|
-            if (std.mem.eql(u8, input_name, p[0]))
-                return p[1];
 
         diagnostic.err("index filename not recognized: {s}" ++ error_suffix, .{input_name});
         return error.AddedToDiagnostic;
@@ -159,21 +165,23 @@ pub fn pointPathToMusic(path: []u8) void {
         std.debug.assert(std.mem.eql(u8, ext, ".he0") or std.mem.eql(u8, ext, ".HE0"));
     }
 
-    path[path.len - 1] = '4';
-
     // Hardcode instances where the official releases had inconsistent filename
     // casing:
-    const basename = path[0 .. path.len - 4];
-    if (std.mem.eql(u8, basename, "FOOTBALL")) {
-        for (path) |*c|
-            c.* = std.ascii.toLower(c.*);
-    }
-    if (std.mem.eql(u8, basename, "baseball2003")) {
-        for (path[path.len - 3 ..]) |*c|
-            c.* = std.ascii.toLower(c.*);
-    }
-    if (std.mem.eql(u8, basename, "Soccer2004")) {
-        for (path) |*c|
-            c.* = std.ascii.toLower(c.*);
-    }
+    if (Game.detectGame(path)) |game| switch (game) {
+        .football_1999 => {
+            for (path) |*c|
+                c.* = std.ascii.toLower(c.*);
+        },
+        .baseball_2003 => {
+            for (path[path.len - 3 ..]) |*c|
+                c.* = std.ascii.toLower(c.*);
+        },
+        .soccer_2004 => {
+            for (path) |*c|
+                c.* = std.ascii.toLower(c.*);
+        },
+        else => {},
+    };
+
+    path[path.len - 1] = '4';
 }
