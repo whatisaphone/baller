@@ -6,6 +6,7 @@ const Diagnostic = @import("Diagnostic.zig");
 const Symbols = @import("Symbols.zig");
 const UsageTracker = @import("UsageTracker.zig");
 const ArrayMap = @import("array_map.zig").ArrayMap;
+const Deque = @import("deque.zig").Deque;
 const Directory = @import("extract.zig").Directory;
 const Index = @import("extract.zig").Index;
 const games = @import("games.zig");
@@ -246,7 +247,7 @@ const DecompileCx = struct {
     op_map: *const std.EnumArray(lang.Op, Op),
     basic_blocks: []BasicBlock,
 
-    pending_basic_blocks: std.ArrayList(u16),
+    pending_basic_blocks: Deque(u16),
     stack: utils.TinyArray(ExprIndex, 80),
     str_stack: utils.TinyArray(ExprIndex, 3),
     stmts: std.ArrayList(Stmt),
@@ -350,7 +351,7 @@ pub fn buildOpMap(game: games.Game) std.EnumArray(lang.Op, Op) {
 
 fn decompileBasicBlocks(cx: *DecompileCx, bytecode: []const u8) !void {
     try scheduleBasicBlock(cx, 0, &.{});
-    while (cx.pending_basic_blocks.pop()) |bbi|
+    while (cx.pending_basic_blocks.popFront()) |bbi|
         try decompileBasicBlock(cx, bytecode, bbi);
 
     // Check if any basic blocks were unreachable and not decompiled. If so,
@@ -400,7 +401,7 @@ fn scheduleBasicBlock(cx: *DecompileCx, bbi: u16, stack: []const ExprIndex) !voi
     }
     bb.state = .pending;
     bb.stack_on_enter.setOnce(try .fromSlice(stack));
-    try cx.pending_basic_blocks.append(cx.gpa, bbi);
+    try cx.pending_basic_blocks.pushBack(cx.gpa, bbi);
 }
 
 fn scheduleBasicBlockWithAssumedStack(cx: *DecompileCx, bbi: u16) !void {
@@ -1079,7 +1080,7 @@ const StructuringCx = struct {
     exprs: utils.SafeManyPointer([*]const Expr),
     extra: *std.ArrayList(ExprIndex),
 
-    queue: std.ArrayList(NodeIndex),
+    queue: Deque(NodeIndex),
     nodes: std.ArrayList(Node),
     /// debug only, used to assert that all nodes are scanned once per phase
     trail: if (builtin.mode == .Debug) std.DynamicBitSetUnmanaged else void,
@@ -1178,56 +1179,56 @@ fn structure(cx: *StructuringCx, basic_blocks: []const BasicBlock) !void {
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntCase(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntIf(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntWhile(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntBreakUntil(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntDo(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntIfElse(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntFor(cx, ni);
     try endPhase(cx);
 
     try startPhase(cx);
     try queueNode(cx, root_node_index);
-    while (cx.queue.pop()) |ni|
+    while (cx.queue.popFront()) |ni|
         try huntForIn(cx, ni);
     try endPhase(cx);
 }
 
 fn queueNode(cx: *StructuringCx, ni: NodeIndex) !void {
     if (ni == null_node) return;
-    try cx.queue.append(cx.gpa, ni);
+    try cx.queue.pushBack(cx.gpa, ni);
 }
 
 fn queueChildren(cx: *StructuringCx, ni: NodeIndex) !void {
