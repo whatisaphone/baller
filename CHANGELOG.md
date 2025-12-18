@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.6.3 – 2025-12-18
+
+- Add support for Soccer MLS, Football 2002, Baseball 2003, and Soccer 2004
+- Show progress during extract and build
+- Misc performance improvements, on a mid-spec machine I see these improvements over v0.6.2:
+  - extract – 34% faster, uses 10% less RAM
+  - build – 15% faster, uses 64% less RAM
+- In symbols, allow splitting script variables onto their own lines (Baller 0.5-style)
+- Name an enum value `_` to give it a type without a name
+- Add extract --rainbow option for palette debugging
+- Hide internal infos after extract, since they aren't actionable
+
 ## v0.6.2 – 2025-09-30
 
 Added:

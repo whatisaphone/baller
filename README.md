@@ -1,11 +1,13 @@
 # ⚾ Baller
 
-Modding tools for Backyard Sports, with support for:
+Modding tools for Backyard Sports. Baller supports every released title using the SCUMM engine:
 
-- Backyard Baseball 1997/2001
-- Backyard Soccer
-- Backyard Football
+- Backyard Baseball (OG, 2001, 2003)
+- Backyard Soccer (OG, MLS, 2004)
+- Backyard Football (OG, 2002)
 - Backyard Basketball
+
+Baller supports scripts, images, audio, and more. Given original assets, it can decompile and recompile them into 100% byte-identical copies of the originals.
 
 This project also hosts a [decompilation of Backyard Baseball 2001](https://github.com/whatisaphone/baller/tree/browse).
 

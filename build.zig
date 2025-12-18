@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = "0.6.2";
+const version = "0.6.3";
 
 pub fn build(b: *std.Build) void {
     const valgrind = b.option(bool, "valgrind", "Add valgrind support") orelse false;
