@@ -81,6 +81,6 @@ zig build test
 ### Running under valgrind
 
 ```sh
-zig build -Dvalgrind && valgrind --leak-check=full --error-exitcode=1 --exit-on-first-error=yes zig-out/bin/baller <args>
+zig build -Dvalgrind && valgrind --leak-check=full --error-exitcode=1 --exit-on-first-error=yes --track-origins=yes -- zig-out/bin/baller <args>
 zig build -Dvalgrind test:valgrind
 ```

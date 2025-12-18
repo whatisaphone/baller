@@ -59,7 +59,12 @@ pub const fxbc = struct {
         std.debug.assert(xor.interface.buffer.len == 0);
         // for small skips, buffer undefined bytes
         if (n <= file.interface.unusedCapacityLen()) {
-            @memset(file.interface.unusedCapacitySlice()[0..n], undefined);
+            // Skip bytes intentionally. We don't want a valgrind error for
+            // these, but we still want 0xaa as a clue for humans
+            const skipped = file.interface.unusedCapacitySlice()[0..n];
+            @memset(skipped, undefined);
+            utils.valgrindMakeMemDefined(skipped);
+
             file.interface.advance(n);
             return;
         }

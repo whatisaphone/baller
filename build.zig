@@ -73,6 +73,7 @@ pub fn build(b: *std.Build) void {
         "--leak-check=full",
         "--error-exitcode=1",
         "--exit-on-first-error=yes",
+        "--track-origins=yes",
         "--",
     });
     run_tests_valgrind.addFileArg(exe_unit_tests.getEmittedBin());

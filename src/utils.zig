@@ -313,3 +313,17 @@ pub fn writeInt(
     const dest = try out.addManyAsArray(gpa, size);
     std.mem.writeInt(std.math.ByteAlignedInt(@TypeOf(value)), dest, value, endian);
 }
+
+/// VALGRIND_MAKE_MEM_DEFINED
+pub fn valgrindMakeMemDefined(mem: []const u8) void {
+    const VG_USERREQ__MAKE_MEM_DEFINED = 0x4d430002;
+    _ = std.valgrind.doClientRequest(
+        undefined,
+        VG_USERREQ__MAKE_MEM_DEFINED,
+        @intFromPtr(mem.ptr),
+        mem.len,
+        undefined,
+        undefined,
+        undefined,
+    );
+}
