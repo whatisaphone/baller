@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.4 – 2026-08-02
+
+Fixed:
+
+- `extract` used to produce an unbuildable project when a local script was not decoded (due to `--lsc2=raw` or otherwise) and was referenced in another script that was decoded. That is now fixed.
+
 ## v0.6.3 – 2025-12-18
 
 - Add support for Soccer MLS, Football 2002, Baseball 2003, and Soccer 2004
