@@ -2083,7 +2083,6 @@ const Transaction = struct {
 
     fn rollback(self: *Transaction, code: *std.ArrayList(u8)) void {
         code.shrinkRetainingCapacity(self.code_initial_len);
-        self.* = undefined;
     }
 };
 
