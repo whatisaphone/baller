@@ -922,6 +922,17 @@ fn parseMusicChildren(cx: *Cx) !Ast.ExtraSlice {
 fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const block_id = try expectBlockId(cx);
 
+    // not really the best place to enforce this, but whatever
+    const can_have_name = block_id == .LSCR or block_id == .LSC2;
+
+    var name_and_number: ?struct { Ast.StringSlice, u16 } = null;
+    if (can_have_name and peekRight(cx).kind == .identifier) {
+        const name = try expectIdentifier(cx);
+        try expect(cx, .swat);
+        const number = try expectInteger(cx, u16);
+        name_and_number = .{ name, number };
+    }
+
     const contents_token = consumeRight(cx);
     const contents: Ast.RawContents = switch (contents_token.kind) {
         .string => .{ .path = try parseString(cx, contents_token) },
@@ -933,6 +944,7 @@ fn parseRawBlock(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
 
     return storeNode(cx, token, .{ .raw_block = .{
         .block_id = block_id,
+        .name_and_number = name_and_number,
         .contents = contents,
     } });
 }

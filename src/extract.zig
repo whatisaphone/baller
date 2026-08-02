@@ -1207,7 +1207,7 @@ fn extractRmda(
             else => {
                 var code: std.ArrayList(u8) = .empty;
                 errdefer code.deinit(cx.cx.gpa);
-                try writeRawBlockImpl(cx.cx.gpa, block.id, .{ .reader = in }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
+                try writeRawBlockImpl(cx.cx.gpa, block.id, null, .{ .reader = in }, cx.room_dir, cx.room_path, 4, .{ .block_offset = block.offset() }, &code);
                 try cx.sendSync(.top, code);
 
                 // since this skipped the thread pool, we didn't bother with a
@@ -1499,7 +1499,7 @@ fn extractRmdaChildJob(
                 return;
         },
         .LSCR, .LSC2 => {
-            if (extractLsc(cx, &tx, &diag, block_blink, block.id, raw, &code, chunk_index))
+            if (extractLsc(cx, &tx, &diag, block_blink, block, raw, &code, chunk_index))
                 return;
         },
         else => unreachable, // This is only called for the above block ids
@@ -1831,26 +1831,94 @@ fn extractLsc(
     tx: *Transaction,
     diag: *Diagnostic.ForBinaryFile,
     block_blink: Blinkenlights.NodeId,
-    block_id: BlockId,
+    block: *const Block,
     raw: []const u8,
     code: *std.ArrayList(u8),
     chunk_index: u16,
 ) bool {
-    const block_type: LocalScriptBlockType = .from(block_id);
+    // XXX: This function is very similar to `tryDecode`. Should they be merged?
+    const result = extractLscInner(cx, tx, diag, block_blink, block, raw, code, chunk_index);
+    return handleDecodeResult(result, tx, "decode", diag, code);
+}
+
+fn extractLscInner(
+    cx: *RoomContext,
+    tx: *Transaction,
+    diag: *Diagnostic.ForBinaryFile,
+    block_blink: Blinkenlights.NodeId,
+    block: *const Block,
+    raw: []const u8,
+    code: *std.ArrayList(u8),
+    chunk_index: u16,
+) !void {
+    // We did a scan at the beginning to collect local script numbers. All
+    // script jobs assume that if a script number was found in the scan, it can
+    // be referred to by name. Therefore this function must always emit a script
+    // name, except for these conditions:
+    // - `parseLscHeader` fails: This is the same function used in the initial
+    //   scan. If it fails, it must have also failed before, so other jobs won't
+    //   use a name for this script.
+    // - OutOfMemory or IO errors: As far as I'm concerned, all bets are off
+    //   here.
+
+    const block_type: LocalScriptBlockType = .from(block.id);
+    const script_number, const bytecode = try parseLscHeader(block_type, raw);
+
+    // mild hack: patch the log context now that we know the script number
+    diag.section = .{ .glob = .{ block.id, script_number } };
+    diag.trace(0, "found script number", .{});
+
+    cx.cx.blinken.setTextPrint(block_blink, "{f} {}", .{ block.id, script_number });
+
+    // Attempt decoding
+
+    if (decodeLsc(cx, tx, diag, block_type, script_number, bytecode, code, chunk_index))
+        return;
+
+    // If decoding fails, write a raw block. Do this here instead of relying on
+    // the normal fallback in `extractRmdaChildJob`, because we additionally
+    // have to give it a name and number.
+
+    var name_buf: [Symbols.max_name_len]u8 = undefined;
+    const name = std.fmt.bufPrint(&name_buf, "{f}", .{
+        cx.cx.symbols.fmtScriptName(cx.room_number, script_number),
+    }) catch unreachable;
+
+    try writeRawBlockImpl(
+        cx.cx.gpa,
+        block.id,
+        .{ name, script_number },
+        .{ .bytes = raw },
+        cx.room_dir,
+        cx.room_path,
+        4,
+        .{ .block_offset = block.offset() },
+        code,
+    );
+    cx.sendChunk(chunk_index, .local_scripts, code.*);
+
+    cx.cx.incStatOpt(switch (block.id) {
+        .LSCR => .lscr_raw,
+        .LSC2 => .lsc2_raw,
+        else => unreachable,
+    });
+}
+
+fn decodeLsc(
+    cx: *RoomContext,
+    tx: *Transaction,
+    diag: *Diagnostic.ForBinaryFile,
+    block_type: LocalScriptBlockType,
+    script_number: u16,
+    bytecode: []const u8,
+    code: *std.ArrayList(u8),
+    chunk_index: u16,
+) bool {
     const option = switch (block_type) {
         .lscr => cx.cx.options.lscr,
         .lsc2 => cx.cx.options.lsc2,
     };
     if (option == .raw) return false;
-
-    const script_number, const bytecode = parseLscHeader(block_type, raw) catch |err|
-        return handleDecodeResult(err, tx, "decode", diag, code);
-
-    // mild hack: patch the log context now that we know the script number
-    diag.section = .{ .glob = .{ block_id, script_number } };
-    diag.trace(0, "found script number", .{});
-
-    cx.cx.blinken.setTextPrint(block_blink, "{f} {}", .{ block_id, script_number });
 
     if (cx.cx.options.script == .decompile and
         tryDecode("decompile", extractLscDecompile, cx, tx, diag, .{ block_type, script_number, bytecode }, code))
@@ -2429,15 +2497,16 @@ pub fn writeRawBlock(
     output_dir: std.fs.Dir,
     output_path: ?[]const u8,
     indent: u8,
-    filename_pattern: @typeInfo(@TypeOf(writeRawBlockImpl)).@"fn".params[6].type.?,
+    filename_pattern: @typeInfo(@TypeOf(writeRawBlockImpl)).@"fn".params[7].type.?,
     code: *std.ArrayList(u8),
 ) !void {
-    try writeRawBlockImpl(gpa, block_id, .{ .bytes = bytes }, output_dir, output_path, indent, filename_pattern, code);
+    try writeRawBlockImpl(gpa, block_id, null, .{ .bytes = bytes }, output_dir, output_path, indent, filename_pattern, code);
 }
 
 fn writeRawBlockImpl(
     gpa: std.mem.Allocator,
     block_id: BlockId,
+    name_and_number: ?struct { []const u8, u16 },
     data_source: union(enum) {
         bytes: []const u8,
         reader: *std.io.Reader,
@@ -2462,6 +2531,11 @@ fn writeRawBlockImpl(
     for (0..indent) |_|
         try code.append(gpa, ' ');
     try code.print(gpa, "raw-block {f} ", .{block_id});
+
+    if (name_and_number) |nn| {
+        const name, const number = nn;
+        try code.print(gpa, "{s}@{} ", .{ name, number });
+    }
 
     // If the data is short enough, write it inline
 

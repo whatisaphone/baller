@@ -333,7 +333,7 @@ test "dump smoke test" {
 
 fn testRoundTrip(
     comptime game: Game,
-    options: enum { raw, decode_all, disasm },
+    options: enum { raw, decode_all, disasm, decode_except_lsc2 },
     comptime addl_fixtures: []const [:0]const u8,
 ) !std.EnumArray(extract.Stat, u16) {
     var diagnostic: Diagnostic = .init(std.testing.allocator);
@@ -410,6 +410,26 @@ fn testRoundTrip(
                 .mult = .raw,
                 .akos = .raw,
                 .tlke = .raw,
+            },
+            .decode_except_lsc2 => .{
+                .script = .decompile,
+                .annotate = false,
+                .music = true,
+                .rainbow = false,
+                .rmim = .decode,
+                .scrp = .decode,
+                .encd = .decode,
+                .excd = .decode,
+                .lscr = .decode,
+                .lsc2 = .raw,
+                .obim = .decode,
+                .obcd = .decode,
+                .digi = .decode,
+                .talk = .decode,
+                .awiz = .decode,
+                .mult = .decode,
+                .akos = .decode,
+                .tlke = .decode,
             },
         },
     });
@@ -516,6 +536,13 @@ test "disasm annotate smoke test" {
         },
     });
     try diagnostic.writeToStderrAndPropagateIfAnyErrors();
+}
+
+// Test that if a local script is extracted as a raw block, it's still emitted
+// with a name, so other scripts are able to refer to it by name without an
+// error when later building.
+test "raw LSC2 blocks have names" {
+    _ = try testRoundTrip(baseball2001, .decode_except_lsc2, &.{});
 }
 
 fn expectFileHashEquals(dir: std.fs.Dir, path: [*:0]const u8, expected_hex: *const [64]u8) !void {

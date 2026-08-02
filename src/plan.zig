@@ -359,9 +359,14 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
 
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.at(node_index).*) {
-            inline .lsc, .local_script => |n| {
+            inline .lsc, .local_script => |*n| {
                 try checkUniqueSymbolName(&from_room, node_index, n.name);
                 try addScopeSymbol(&from_room, node_index, n.name, .{ .constant = n.script_number });
+            },
+            .raw_block => |*rb| if (rb.name_and_number) |nn| {
+                const name, const number = nn;
+                try checkUniqueSymbolName(&from_room, node_index, name);
+                try addScopeSymbol(&from_room, node_index, name, .{ .constant = number });
             },
             else => {},
         }

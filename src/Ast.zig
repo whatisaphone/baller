@@ -69,6 +69,7 @@ pub const Node = union(enum) {
     },
     raw_block: struct {
         block_id: BlockId,
+        name_and_number: ?struct { StringSlice, u16 },
         contents: RawContents,
     },
     raw_block_nested: struct {
