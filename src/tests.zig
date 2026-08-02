@@ -180,6 +180,8 @@ fn freeTempDir(allocator: std.mem.Allocator, str: []const u8) void {
 }
 
 fn expectFileHashEquals(path: [*:0]const u8, comptime expected_hex: *const [64]u8) !void {
+    errdefer std.debug.print("{s}", .{path});
+
     var expected_hash: [32]u8 = undefined;
     _ = try std.fmt.hexToBytes(&expected_hash, expected_hex);
 
