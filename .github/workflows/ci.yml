@@ -72,10 +72,9 @@ jobs:
           ghtok: ${{ secrets.SECRET_GITHUB_TOKEN_BALLER_FIXTURES_BALLER_CI }}
         run: ci/download-fixture "${ghtok}" baseball2001
 
-      - run: zig build -Dvalgrind --summary all
-      - run: |
-          valgrind --leak-check=full --error-exitcode=1 --exit-on-first-error=yes -- \
-            zig-out/bin/baller extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
-      - run: |
-          valgrind --leak-check=full --error-exitcode=1 --exit-on-first-error=yes -- \
-            zig-out/bin/baller build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'
+      # Just run one single test to make sure testing with Valgrind doesn't
+      # break. Running all the tests would take way too long.
+      - run: zig build test:valgrind -Dtest-filter='empty char literal'
+
+      - run: zig build run:valgrind -- extract 'src/fixtures/baseball2001/baseball 2001.he0' /tmp/baseball2001
+      - run: zig build run:valgrind -- build /tmp/baseball2001/project.scu '/tmp/baseball2001build/baseball 2001.he0'

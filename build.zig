@@ -3,7 +3,6 @@ const std = @import("std");
 const version = "0.6.3";
 
 pub fn build(b: *std.Build) void {
-    const valgrind = b.option(bool, "valgrind", "Add valgrind support") orelse false;
     const test_filters = b.option(
         []const []const u8,
         "test-filter",
@@ -11,77 +10,129 @@ pub fn build(b: *std.Build) void {
     ) orelse &.{};
 
     const optimize = b.standardOptimizeOption(.{});
-
-    var target_args: std.Build.StandardTargetOptionsArgs = .{};
-    if (valgrind)
-        target_args.default_target.cpu_model = .baseline;
-    const target = b.standardTargetOptions(target_args);
+    const target = b.standardTargetOptions(.{});
 
     /////////
     // exe
 
-    const exe = b.addExecutable(.{
-        .name = "baller",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
-    if (valgrind)
-        exe.linkLibC();
+    {
+        const exe = b.addExecutable(.{
+            .name = "baller",
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = target,
+                .optimize = optimize,
+            }),
+        });
 
-    const exe_options = b.addOptions();
-    exe_options.addOption([]const u8, "version", "dev");
-    exe.root_module.addOptions("build_options", exe_options);
+        const options = b.addOptions();
+        options.addOption([]const u8, "version", "dev");
+        exe.root_module.addOptions("build_options", options);
 
-    b.installArtifact(exe);
+        b.installArtifact(exe);
 
-    const run_cmd = b.addRunArtifact(exe);
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+        const run = b.addRunArtifact(exe);
+        run.step.dependOn(b.getInstallStep());
+        if (b.args) |args| {
+            run.addArgs(args);
+        }
+
+        const step = b.step("run", "Run the app");
+        step.dependOn(&run.step);
     }
 
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
+    //////////////////
+    // exe+valgrind
+
+    {
+        const exe = b.addExecutable(.{
+            .name = "baller",
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = baselineTarget(b, &target.query),
+                .optimize = optimize,
+                .link_libc = true,
+            }),
+            .use_llvm = true, // https://codeberg.org/ziglang/zig/issues/31272
+        });
+
+        const options = b.addOptions();
+        options.addOption([]const u8, "version", "dev");
+        exe.root_module.addOptions("build_options", options);
+
+        const run = b.addSystemCommand(&.{
+            "valgrind",
+            "--leak-check=full",
+            "--error-exitcode=1",
+            "--exit-on-first-error=yes",
+            "--track-origins=yes",
+            "--",
+        });
+        run.addArtifactArg(exe);
+        if (b.args) |args| {
+            run.addArgs(args);
+        }
+
+        const step = b.step("run:valgrind", "Run the app under valgrind");
+        step.dependOn(&run.step);
+    }
 
     ///////////
     // tests
 
-    const exe_unit_tests = b.addTest(.{
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-        .filters = test_filters,
-    });
-    if (valgrind)
-        exe_unit_tests.linkLibC();
+    {
+        const tests = b.addTest(.{
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = target,
+                .optimize = optimize,
+            }),
+            .filters = test_filters,
+        });
 
-    exe_unit_tests.root_module.addOptions("build_options", exe_options);
+        const options = b.addOptions();
+        options.addOption([]const u8, "version", "test");
+        tests.root_module.addOptions("build_options", options);
 
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-    run_exe_unit_tests.has_side_effects = true;
+        const run = b.addRunArtifact(tests);
+        run.has_side_effects = true;
 
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_exe_unit_tests.step);
+        const step = b.step("test", "Run unit tests");
+        step.dependOn(&run.step);
+    }
 
-    const run_tests_valgrind = b.addSystemCommand(&.{
-        "valgrind",
-        "--leak-check=full",
-        "--error-exitcode=1",
-        "--exit-on-first-error=yes",
-        "--track-origins=yes",
-        "--",
-    });
-    run_tests_valgrind.addFileArg(exe_unit_tests.getEmittedBin());
-    const test_valgrind_step = b.step("test:valgrind", "Run unit tests under valgrind");
-    if (valgrind)
-        test_valgrind_step.dependOn(&run_tests_valgrind.step)
-    else
-        test_valgrind_step.dependOn(&b.addFail("missing valgrind flag").step);
+    ////////////////////
+    // tests+valgrind
+
+    {
+        const tests = b.addTest(.{
+            .root_module = b.createModule(.{
+                .root_source_file = b.path("src/main.zig"),
+                .target = baselineTarget(b, &target.query),
+                .optimize = optimize,
+                .link_libc = true,
+            }),
+            .use_llvm = true, // https://codeberg.org/ziglang/zig/issues/31272
+            .filters = test_filters,
+        });
+
+        const options = b.addOptions();
+        options.addOption([]const u8, "version", "test");
+        tests.root_module.addOptions("build_options", options);
+
+        const run = b.addSystemCommand(&.{
+            "valgrind",
+            "--leak-check=full",
+            "--error-exitcode=1",
+            "--exit-on-first-error=yes",
+            "--track-origins=yes",
+            "--",
+        });
+        run.addFileArg(tests.getEmittedBin());
+
+        const step = b.step("test:valgrind", "Run unit tests under valgrind");
+        step.dependOn(&run.step);
+    }
 
     /////////////
     // release
@@ -123,4 +174,10 @@ pub fn build(b: *std.Build) void {
         });
         release.dependOn(&install.step);
     }
+}
+
+fn baselineTarget(b: *std.Build, query: *const std.Target.Query) std.Build.ResolvedTarget {
+    var q = query.*;
+    q.cpu_model = .baseline;
+    return b.resolveTargetQuery(q);
 }
