@@ -4,6 +4,14 @@ const Diagnostic = @import("Diagnostic.zig");
 const build = @import("build.zig");
 const fs = @import("fs.zig");
 
+test "helpful error when project is not a project" {
+    try testProjectError(
+        \\rmim {}
+        \\^ projects must begin with a target directive. make sure you're building a project file, usually called project.scu.
+        \\
+    );
+}
+
 test "empty char literal" {
     try testRoomError(
         \\''
@@ -253,6 +261,45 @@ test "parse multiline lists" {
     );
 }
 
+fn testProjectError(case_str: []const u8) !void {
+    const gpa = std.testing.allocator;
+
+    const in_path = "/tmp/baller-test-in";
+    const build_path = "/tmp/baller-test-build";
+
+    try std.fs.cwd().deleteTree(in_path);
+    try std.fs.cwd().deleteTree(build_path);
+
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
+    var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
+    defer in_dir.close();
+
+    var case = try parseSourceAndError(gpa, "project.scu", case_str);
+    defer case.source.deinit(gpa);
+    defer case.message.deinit(gpa);
+
+    try fs.writeFileZ(in_dir, "project.scu", case.source.items);
+
+    var diagnostic: Diagnostic = .init(gpa);
+    defer diagnostic.deinit();
+    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
+
+    const result = build.run(gpa, &diagnostic, .{
+        .project_path = in_path ++ "/project.scu",
+        .index_path = build_path ++ "/baseball 2001.he0",
+        .options = .{
+            .awiz_strategy = .max,
+            .write_version = true,
+        },
+    });
+    if (result) |_| {} else |err| try std.testing.expect(err == error.AddedToDiagnostic);
+    try std.testing.expect(diagnostic.messages.len != 0);
+
+    const message = diagnostic.messages.at(0);
+    try std.testing.expectEqual(message.level, .err);
+    try std.testing.expectEqualStrings(message.text, case.message.items);
+}
+
 fn testRoomError(case_str: []const u8) !void {
     const gpa = std.testing.allocator;
 
@@ -277,7 +324,7 @@ fn testRoomError(case_str: []const u8) !void {
     ;
     try fs.writeFileZ(in_dir, "project.scu", project_scu);
 
-    var case = try parseSourceAndError(gpa, case_str);
+    var case = try parseSourceAndError(gpa, "room.scu", case_str);
     defer case.source.deinit(gpa);
     defer case.message.deinit(gpa);
 
@@ -303,7 +350,11 @@ fn testRoomError(case_str: []const u8) !void {
     try std.testing.expectEqualStrings(message.text, case.message.items);
 }
 
-fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
+fn parseSourceAndError(
+    gpa: std.mem.Allocator,
+    filename: []const u8,
+    combined: []const u8,
+) !struct {
     source: std.ArrayList(u8),
     message: std.ArrayList(u8),
 } {
@@ -326,8 +377,8 @@ fn parseSourceAndError(gpa: std.mem.Allocator, combined: []const u8) !struct {
             std.debug.assert(message.items.len == 0);
             try message.print(
                 gpa,
-                "room.scu:{}:{}: {s}",
-                .{ line_number, caret_pos + 1, line[text_pos..] },
+                "{s}:{}:{}: {s}",
+                .{ filename, line_number, caret_pos + 1, line[text_pos..] },
             );
             continue;
         }

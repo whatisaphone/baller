@@ -69,7 +69,8 @@ fn parseProjectChildren(cx: *Cx) !Ast.NodeIndex {
 
     {
         const token = consumeDown(cx);
-        _ = try parseIdentifier(cx, token, enum { target });
+        _ = parseIdentifierOpt(cx, token, enum { target }) orelse
+            return reportError(cx, token, "projects must begin with a target directive. make sure you're building a project file, usually called project.scu.", .{});
         const target = try parseIdentifier(cx, consumeRight(cx), games.Target);
         try expect(cx, .newline);
 
