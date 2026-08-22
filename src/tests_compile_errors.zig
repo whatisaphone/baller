@@ -181,7 +181,7 @@ test "local script number too small" {
     std.debug.assert(Target.sputm99.firstLocalScript() == 2048);
     try testRoomError(
         \\local-script a@2048 {}
-        \\local-script a@2047 {}
+        \\local-script b@2047 {}
         \\^ symbol number too small
     );
 }
@@ -192,7 +192,7 @@ test "local script number too big" {
     std.debug.assert(UsageTracker.max_local_scripts == 1024);
     try testRoomError(
         \\local-script a@3071 {}
-        \\local-script a@3072 {}
+        \\local-script b@3072 {}
         \\^ symbol number too big
     );
 }
@@ -416,57 +416,12 @@ test "parse multiline lists" {
 }
 
 fn testProjectError(case_str: []const u8) !void {
-    const gpa = std.testing.allocator;
-
-    const in_path = "/tmp/baller-test-in";
-    const build_path = "/tmp/baller-test-build";
-
-    try std.fs.cwd().deleteTree(in_path);
-    try std.fs.cwd().deleteTree(build_path);
-
-    try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
-    var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
-    defer in_dir.close();
-
-    var case = try parseSourceAndError(gpa, "project.scu", case_str);
-    defer case.source.deinit(gpa);
-    defer case.message.deinit(gpa);
-
-    try fs.writeFileZ(in_dir, "project.scu", case.source.items);
-
-    var diagnostic: Diagnostic = .init(gpa);
-    defer diagnostic.deinit();
-    errdefer diagnostic.writeToStderrAndPropagateIfAnyErrors() catch {};
-
-    const result = build.run(gpa, &diagnostic, .{
-        .project_path = in_path ++ "/project.scu",
-        .index_path = build_path ++ "/baseball 2001.he0",
-        .options = .{
-            .awiz_strategy = .max,
-            .write_version = true,
-        },
+    try testErrors(&.{
+        .{ .filename = "project.scu", .source = case_str },
     });
-    if (result) |_| {} else |err| try std.testing.expect(err == error.AddedToDiagnostic);
-    try std.testing.expect(diagnostic.messages.len != 0);
-
-    const message = diagnostic.messages.at(0);
-    try std.testing.expectEqual(message.level, .err);
-    try std.testing.expectEqualStrings(message.text, case.message.items);
 }
 
 fn testRoomError(case_str: []const u8) !void {
-    const gpa = std.testing.allocator;
-
-    const in_path = "/tmp/baller-test-in";
-    const build_path = "/tmp/baller-test-build";
-
-    try std.fs.cwd().deleteTree(in_path);
-    try std.fs.cwd().deleteTree(build_path);
-
-    try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
-    var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
-    defer in_dir.close();
-
     const project_scu =
         \\target sputm99
         \\index {}
@@ -476,13 +431,45 @@ fn testRoomError(case_str: []const u8) !void {
         \\var global_var@0
         \\
     ;
-    try fs.writeFileZ(in_dir, "project.scu", project_scu);
+    try testErrors(&.{
+        .{ .filename = "project.scu", .binary = project_scu },
+        .{ .filename = "room.scu", .source = case_str },
+    });
+}
 
-    var case = try parseSourceAndError(gpa, "room.scu", case_str);
-    defer case.source.deinit(gpa);
-    defer case.message.deinit(gpa);
+const TestFile = struct {
+    filename: [:0]const u8,
+    // Exactly one of these must be given:
+    source: ?[]const u8 = null,
+    binary: ?[]const u8 = null,
+};
 
-    try fs.writeFileZ(in_dir, "room.scu", case.source.items);
+fn testErrors(inputs: []const TestFile) !void {
+    const gpa = std.testing.allocator;
+    var arena_state: std.heap.ArenaAllocator = .init(gpa);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+
+    const in_path = "/tmp/baller-test-in";
+    const build_path = "/tmp/baller-test-build";
+
+    try std.fs.cwd().deleteTree(in_path);
+    try std.fs.cwd().deleteTree(build_path);
+
+    try fs.makeDirIfNotExistZ(std.fs.cwd(), in_path);
+    var in_dir = try std.fs.cwd().openDirZ(in_path, .{});
+    defer in_dir.close();
+
+    var expected_messages: std.ArrayList([]const u8) = .empty;
+    for (inputs) |input| {
+        std.debug.assert(@intFromBool(input.source != null) + @intFromBool(input.binary != null) == 1);
+        if (input.source) |source| {
+            const data = try parseSourceAndErrors(arena, input.filename, source, &expected_messages);
+            try fs.writeFileZ(in_dir, input.filename, data.items);
+        } else if (input.binary) |data| {
+            try fs.writeFileZ(in_dir, input.filename, data);
+        } else unreachable;
+    }
 
     var diagnostic: Diagnostic = .init(gpa);
     defer diagnostic.deinit();
@@ -497,26 +484,25 @@ fn testRoomError(case_str: []const u8) !void {
         },
     });
     if (result) |_| {} else |err| try std.testing.expect(err == error.AddedToDiagnostic);
-    try std.testing.expect(diagnostic.messages.len != 0);
 
-    const message = diagnostic.messages.at(0);
-    try std.testing.expectEqual(message.level, .err);
-    try std.testing.expectEqualStrings(message.text, case.message.items);
+    try std.testing.expect(expected_messages.items.len != 0);
+    try std.testing.expectEqual(diagnostic.messages.len, expected_messages.items.len);
+    var it = diagnostic.messages.iterator(0);
+    for (expected_messages.items) |expected_message| {
+        const actual_message = it.next().?;
+        try std.testing.expectEqual(actual_message.level, .err);
+        try std.testing.expectEqualStrings(actual_message.text, expected_message);
+    }
 }
 
-fn parseSourceAndError(
+fn parseSourceAndErrors(
     gpa: std.mem.Allocator,
     filename: []const u8,
     combined: []const u8,
-) !struct {
-    source: std.ArrayList(u8),
-    message: std.ArrayList(u8),
-} {
+    messages: *std.ArrayList([]const u8),
+) !std.ArrayList(u8) {
     var source: std.ArrayList(u8) = try .initCapacity(gpa, combined.len);
     errdefer source.deinit(gpa);
-
-    var message: std.ArrayList(u8) = .empty;
-    errdefer message.deinit(gpa);
 
     var line_number: usize = 0;
     var it = std.mem.splitScalar(u8, combined, '\n');
@@ -528,12 +514,14 @@ fn parseSourceAndError(
             if (line[caret_pos] != '^') break :msg;
             const text_pos = std.mem.indexOfNonePos(u8, line, caret_pos + 1, " ") orelse break :msg;
 
-            std.debug.assert(message.items.len == 0);
-            try message.print(
+            const message = try std.fmt.allocPrint(
                 gpa,
                 "{s}:{}:{}: {s}",
                 .{ filename, line_number, caret_pos + 1, line[text_pos..] },
             );
+            errdefer gpa.free(message);
+            try messages.append(gpa, message);
+            line_number -= 1; // follow output line numbers, not input
             continue;
         }
 
@@ -541,7 +529,7 @@ fn parseSourceAndError(
         try source.append(gpa, '\n');
     }
 
-    return .{ .source = source, .message = message };
+    return source;
 }
 
 fn testNoErrors(room_scu: []const u8) !void {
