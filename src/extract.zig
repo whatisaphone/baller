@@ -381,6 +381,8 @@ pub fn run(
             max = @max(max, n);
         break :num_disks max;
     };
+    if (num_disks > Ast.max_disk_number)
+        return error.BadData;
 
     const bytes = try countInputBytes(
         game,

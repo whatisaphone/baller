@@ -5,6 +5,7 @@ const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
 const Symbols = @import("Symbols.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const akos = @import("akos.zig");
 const assemble = @import("assemble.zig");
 const awiz = @import("awiz.zig");
@@ -225,6 +226,9 @@ fn buildProjectScope(cx: *Context) !void {
     const project_file = &cx.project.files.items[0].?;
     const project_node = &project_file.ast.nodes.at(project_file.ast.root).project;
 
+    var seen_disks: std.StaticBitSet(Ast.max_disk_number) = .initEmpty();
+    var seen_vars: std.StaticBitSet(UsageTracker.max_global_vars) = .initEmpty();
+
     const from_proj: AddSymbolArgs = .{
         .cx = cx,
         .scope = &cx.project_scope,
@@ -238,10 +242,16 @@ fn buildProjectScope(cx: *Context) !void {
             },
             .variable => |v| {
                 const var_num = std.math.cast(u14, v.number) orelse return error.BadData;
+                try trackSymbolNumber(cx, 0, node_index, var_num, &seen_vars, 0);
                 const variable: lang.Variable = .init(.global, var_num);
                 try addScopeSymbol(&from_proj, node_index, v.name, .{ .variable = variable });
             },
             .disk => |disk| {
+                if (cx.target.defined.singleDisk() and disk.number != 1) {
+                    cx.diagnostic.errAt(.node(project_file, node_index), "target only supports disk 1", .{});
+                    return error.AddedToDiagnostic;
+                }
+                try trackSymbolNumber(cx, 0, node_index, disk.number, &seen_disks, Ast.min_disk_number);
                 for (project_file.ast.getExtra(disk.children)) |room_node| {
                     const disk_room = &project_file.ast.nodes.at(room_node).disk_room;
                     const num = disk_room.room_number;
@@ -271,6 +281,35 @@ fn buildProjectScope(cx: *Context) !void {
             else => {},
         }
     }
+}
+
+fn trackSymbolNumber(
+    cx: *const Context,
+    room_number: u8,
+    node_index: Ast.NodeIndex,
+    number: u16,
+    seen: anytype,
+    first: u16,
+) !void {
+    const SeenBitSet = @typeInfo(@TypeOf(seen)).pointer.child;
+    const max_count = SeenBitSet.bit_length;
+
+    const file = &cx.project.files.items[room_number].?;
+
+    if (number < first) {
+        cx.diagnostic.errAt(.node(file, node_index), "symbol number too small", .{});
+        return;
+    }
+    const index = number - first;
+    if (index >= max_count) {
+        cx.diagnostic.errAt(.node(file, node_index), "symbol number too big", .{});
+        return;
+    }
+    if (seen.isSet(index)) {
+        cx.diagnostic.errAt(.node(file, node_index), "duplicate symbol number", .{});
+        return;
+    }
+    seen.set(index);
 }
 
 const AddSymbolArgs = struct {
@@ -344,6 +383,9 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
     const room_file = &cx.project.files.items[room_number].?;
     const root = &room_file.ast.nodes.at(room_file.ast.root).room_file;
 
+    var seen_vars: std.StaticBitSet(UsageTracker.max_room_vars) = .initEmpty();
+    var seen_lscs: std.StaticBitSet(UsageTracker.max_local_scripts) = .initEmpty();
+
     const from_room: AddSymbolArgs = .{
         .cx = cx,
         .scope = &cx.room_scopes[room_number],
@@ -353,6 +395,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
     for (room_file.ast.getExtra(root.variables)) |node_index| {
         const node = &room_file.ast.nodes.at(node_index).variable;
         const num = std.math.cast(u14, node.number) orelse return error.BadData;
+        try trackSymbolNumber(cx, room_number, node_index, num, &seen_vars, 0);
         try checkUniqueSymbolName(&from_room, node_index, node.name);
         try addScopeSymbol(&from_room, node_index, node.name, .{ .variable = .init(.room, num) });
     }
@@ -360,8 +403,11 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
     for (room_file.ast.getExtra(root.children)) |node_index| {
         switch (room_file.ast.nodes.at(node_index).*) {
             inline .lsc, .local_script => |*n| {
+                const num = n.script_number;
+                const first_lsc = cx.target.defined.firstLocalScript();
+                try trackSymbolNumber(cx, room_number, node_index, num, &seen_lscs, first_lsc);
                 try checkUniqueSymbolName(&from_room, node_index, n.name);
-                try addScopeSymbol(&from_room, node_index, n.name, .{ .constant = n.script_number });
+                try addScopeSymbol(&from_room, node_index, n.name, .{ .constant = num });
             },
             .raw_block => |*rb| if (rb.name_and_number) |nn| {
                 const name, const number = nn;

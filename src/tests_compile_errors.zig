@@ -1,8 +1,11 @@
 const std = @import("std");
 
+const Ast = @import("Ast.zig");
 const Diagnostic = @import("Diagnostic.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const build = @import("build.zig");
 const fs = @import("fs.zig");
+const Target = @import("games.zig").Target;
 
 test "helpful error when project is not a project" {
     try testProjectError(
@@ -58,6 +61,139 @@ test "raw-glob file not found" {
     try testRoomError(
         \\raw-glob DIGI 1 "oops.bin"
         \\^ failed to read file: oops.bin (FileNotFound)
+    );
+}
+
+test "duplicate disk numbers" {
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 1 {}
+        \\disk 1 {}
+        \\^ duplicate symbol number
+    );
+}
+
+test "forbid disk number 0" {
+    std.debug.assert(Ast.min_disk_number == 1);
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 0 {}
+        \\^ symbol number too small
+    );
+}
+
+test "disk number too big" {
+    std.debug.assert(Ast.max_disk_number == 9);
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 9 {}
+        \\disk 10 {}
+        \\^ symbol number too big
+    );
+}
+
+test "duplicate room numbers" {
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 1 {
+        \\    room 1 "room" "room.scu"
+        \\    room 1 "room" "room.scu"
+        \\    ^ duplicate room number
+        \\}
+    );
+}
+
+// SCUMM uses room 0 as "no room"
+test "forbid room 0" {
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 1 {
+        \\    room 0 "room" "room.scu"
+        \\    ^ out of range
+        \\}
+    );
+}
+
+// SCUMM uses room 255 as a special value in some places, e.g. `put-actor`
+test "forbid room 255" {
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\disk 1 {
+        \\    room 254 "room" "room.scu"
+        \\    room 255 "room" "room.scu"
+        \\    ^ out of range
+        \\}
+    );
+}
+
+test "duplicate global var numbers" {
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\var a@0
+        \\var b@0
+        \\^ duplicate symbol number
+    );
+}
+
+test "global var number too big" {
+    std.debug.assert(UsageTracker.max_global_vars == 800);
+    try testProjectError(
+        \\target sputm99
+        \\index {}
+        \\var a@799
+        \\var b@800
+        \\^ symbol number too big
+    );
+}
+
+test "duplicate room var numbers" {
+    try testRoomError(
+        \\var a@0
+        \\var b@0
+        \\^ duplicate symbol number
+    );
+}
+
+test "room var number too big" {
+    try testRoomError(
+        \\var a@255
+        \\var b@256
+        \\^ symbol number too big
+    );
+}
+
+test "duplicate local script numbers" {
+    try testRoomError(
+        \\local-script a@2048 {}
+        \\local-script b@2048 {}
+        \\^ duplicate symbol number
+    );
+}
+
+test "local script number too small" {
+    std.debug.assert(Target.sputm99.firstLocalScript() == 2048);
+    try testRoomError(
+        \\local-script a@2048 {}
+        \\local-script a@2047 {}
+        \\^ symbol number too small
+    );
+}
+
+test "local script number too big" {
+    // 3072 is 2048 + 1024
+    std.debug.assert(Target.sputm99.firstLocalScript() == 2048);
+    std.debug.assert(UsageTracker.max_local_scripts == 1024);
+    try testRoomError(
+        \\local-script a@3071 {}
+        \\local-script a@3072 {}
+        \\^ symbol number too big
     );
 }
 
@@ -187,8 +323,8 @@ test "node in forbidden position" {
 test "forbid statements in expression position" {
     try testRoomError(
         \\script s@1 {
-        \\    g1 = start-script a
-        \\         ^ this instruction does not return a value
+        \\    global_var = start-script s
+        \\                 ^ this instruction does not return a value
         \\}
     );
 }
@@ -196,7 +332,7 @@ test "forbid statements in expression position" {
 test "forbid expressions in statement position" {
     try testRoomError(
         \\script s@1 {
-        \\    call-script a
+        \\    call-script s
         \\    ^ this instruction cannot appear at statement level
         \\}
     );

@@ -36,6 +36,8 @@ pub fn getExtraU32(self: *const Ast, slice: ExtraSlice) []const u32 {
     return self.extra.items[slice.start..][0..slice.len];
 }
 
+pub const min_disk_number = 1;
+pub const max_disk_number = 9;
 pub const max_room_name_len = 255;
 pub const max_mult_children = 256;
 pub const max_case_branches = 512;

@@ -208,7 +208,7 @@ fn parseDiskRoom(cx: *Cx, token: *const lexer.Token) !Ast.NodeIndex {
     const path = try expectString(cx);
     try expect(cx, .newline);
 
-    if (room_number == 0)
+    if (room_number == 0 or room_number == 255)
         return reportError(cx, token, "out of range", .{});
     if (!(1 <= room_name.len and room_name.len <= Ast.max_room_name_len))
         return reportError(cx, token, "invalid room name", .{});

@@ -5,6 +5,7 @@ const Ast = @import("Ast.zig");
 const Blinkenlights = @import("Blinkenlights.zig");
 const Diagnostic = @import("Diagnostic.zig");
 const Project = @import("Project.zig");
+const UsageTracker = @import("UsageTracker.zig");
 const awiz = @import("awiz.zig");
 const cliargs = @import("cliargs.zig");
 const emit = @import("emit.zig");

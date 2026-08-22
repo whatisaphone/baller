@@ -120,7 +120,7 @@ pub const Target = enum {
 
     pub fn pointPathToDisk(target: Target, path: []u8, disk_number: u8) void {
         // change ".HE0" to ".HE1"
-        if (target.le(.sputm90)) {
+        if (target.singleDisk()) {
             std.debug.assert(disk_number == 1);
             path[path.len - 1] = '1';
             return;
@@ -131,6 +131,10 @@ pub const Target = enum {
         path[path.len - 3] = '(';
         path[path.len - 2] = @as(u8, if (lowercase) 'a' else 'A') - 1 + disk_number;
         path[path.len - 1] = ')';
+    }
+
+    pub fn singleDisk(target: Target) bool {
+        return target.le(.sputm90);
     }
 };
 
