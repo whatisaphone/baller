@@ -403,6 +403,45 @@ test "parse multiline lists" {
     );
 }
 
+test "verify MAXS against symbol numbers" {
+    try testErrors(&.{
+        .{
+            .filename = "project.scu",
+            .source =
+            \\target sputm90
+            \\index {
+            \\    maxs "index_MAXS.bin"
+            \\    ^ MAXS constrains global variables (count=500) below project usage (max=500)
+            \\    ^ MAXS constrains room variables (count=64) below project usage (max=70)
+            \\    ^ MAXS constrains local scripts (count=256) below project usage (max=456)
+            \\}
+            \\disk 1 {
+            \\    room 1 "room" "room.scu"
+            \\}
+            \\var gv@500
+            ,
+        },
+        .{
+            .filename = "index_MAXS.bin",
+            .binary = baseball1997_maxs,
+        },
+        .{
+            .filename = "room.scu",
+            .source =
+            \\var rv@70
+            \\local-script s@456 {}
+            ,
+        },
+    });
+}
+
+/// This is a copy of baseball1997's index_MAXS.bin
+const baseball1997_maxs: []const u8 = &.{
+    0xf4, 0x01, 0x10, 0x00, 0x40, 0x00, 0xc8, 0x00, 0x64, 0x00, 0x00, 0x00, 0x64, 0x00, 0x20, 0x00,
+    0x50, 0x00, 0x1f, 0x00, 0xc5, 0x00, 0x10, 0x07, 0x0c, 0x00, 0x97, 0x01, 0xe2, 0x04, 0x0b, 0x05,
+    0x00, 0x01, 0x00, 0x01, 0x00, 0x0c,
+};
+
 fn testProjectError(case_str: []const u8) !void {
     try testErrors(&.{
         .{ .filename = "project.scu", .source = case_str },

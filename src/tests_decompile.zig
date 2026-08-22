@@ -483,6 +483,13 @@ test "saveload consts" {
     );
 }
 
+/// This is a copy of baseball2001's index_MAXS.bin
+const baseball2001_maxs: []const u8 = &.{
+    0xee, 0x02, 0x10, 0x00, 0x00, 0x01, 0xc8, 0x00, 0x7f, 0x00, 0x00, 0x00, 0x64, 0x00, 0x20, 0x00,
+    0x07, 0x00, 0x29, 0x00, 0xac, 0x01, 0xba, 0x10, 0x09, 0x00, 0x8d, 0x02, 0xe2, 0x04, 0x2f, 0x06,
+    0xe8, 0x03, 0x00, 0x02, 0x00, 0x0c, 0x20, 0x00, 0x20, 0x00, 0xcd, 0x09,
+};
+
 /// Compile a project and decompile, then check that the decompilation matches
 /// the expected output.
 fn testRoundTrip(
@@ -532,7 +539,7 @@ fn testRoundTrip(
         \\
     ++ build_project_scu ++ "\n";
     try fs.writeFileZ(in_dir, "project.scu", full_build_project_scu);
-    try fs.writeFileZ(in_dir, "index_MAXS.bin", @as(*const [44]u8, &@splat(0)));
+    try fs.writeFileZ(in_dir, "index_MAXS.bin", baseball2001_maxs);
     try fs.writeFileZ(in_dir, "empty.bin", &.{});
 
     const full_build_room_scu =

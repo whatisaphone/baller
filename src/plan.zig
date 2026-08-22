@@ -58,9 +58,16 @@ pub const Payload = union(enum) {
         block_id: BlockId,
         data: []u8,
     },
-    index_start,
+    index_start: struct {
+        max_global_var_number: u16,
+        max_room_var_number: u16,
+        max_local_script_number: u16,
+    },
     index_end,
-    index_maxs: []u8,
+    index_maxs: struct {
+        node_index: Ast.NodeIndex,
+        data: []u8,
+    },
     index_block: @FieldType(Ast.Node, "index_block"),
     err,
 };
@@ -91,6 +98,9 @@ pub fn run(
         .target = .undef,
         .vm = .undef,
         .op_map = .undef,
+        .max_global_var_number = 0,
+        .max_room_var_number = 0,
+        .max_local_script_number = 0,
         .project_scope = .empty,
         .room_nodes = room_nodes,
         .room_scopes = @splat(.empty),
@@ -149,6 +159,9 @@ const Context = struct {
     target: utils.SafeUndefined(games.Target),
     vm: utils.SafeUndefined(lang.Vm),
     op_map: utils.SafeUndefined(std.EnumArray(lang.Op, decompile.Op)),
+    max_global_var_number: u16,
+    max_room_var_number: u16,
+    max_local_script_number: u16,
     project_scope: std.StringHashMapUnmanaged(script.Symbol),
     room_nodes: *const [256]Ast.NodeIndex.Optional,
     room_scopes: [256]std.StringHashMapUnmanaged(script.Symbol),
@@ -243,6 +256,7 @@ fn buildProjectScope(cx: *Context) !void {
             .variable => |v| {
                 const var_num = std.math.cast(u14, v.number) orelse return error.BadData;
                 try trackSymbolNumber(cx, 0, node_index, var_num, &seen_vars, 0);
+                cx.max_global_var_number = @max(cx.max_global_var_number, var_num);
                 const variable: lang.Variable = .init(.global, var_num);
                 try addScopeSymbol(&from_proj, node_index, v.name, .{ .variable = variable });
             },
@@ -396,6 +410,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
         const node = &room_file.ast.nodes.at(node_index).variable;
         const num = std.math.cast(u14, node.number) orelse return error.BadData;
         try trackSymbolNumber(cx, room_number, node_index, num, &seen_vars, 0);
+        cx.max_room_var_number = @max(cx.max_room_var_number, num);
         try checkUniqueSymbolName(&from_room, node_index, node.name);
         try addScopeSymbol(&from_room, node_index, node.name, .{ .variable = .init(.room, num) });
     }
@@ -406,6 +421,7 @@ fn buildRoomScope(cx: *Context, room_number: u8) !void {
                 const num = n.script_number;
                 const first_lsc = cx.target.defined.firstLocalScript();
                 try trackSymbolNumber(cx, room_number, node_index, num, &seen_lscs, first_lsc);
+                cx.max_local_script_number = @max(cx.max_local_script_number, num);
                 try checkUniqueSymbolName(&from_room, node_index, n.name);
                 try addScopeSymbol(&from_room, node_index, n.name, .{ .constant = num });
             },
@@ -1425,7 +1441,11 @@ fn planIndex(cx: *Context) !void {
     defer cx.blinken.removeNode(blink);
     cx.blinken.setText(blink, "index");
 
-    cx.sendSyncEvent(.index_start);
+    cx.sendSyncEvent(.{ .index_start = .{
+        .max_global_var_number = cx.max_global_var_number,
+        .max_room_var_number = cx.max_room_var_number,
+        .max_local_script_number = cx.max_local_script_number,
+    } });
 
     const project_file = &cx.project.files.items[0].?;
     const project_root = &project_file.ast.nodes.at(project_file.ast.root).project;
@@ -1465,7 +1485,10 @@ fn planMaxs(cx: *Context, node_index: Ast.NodeIndex) !void {
     );
     errdefer cx.gpa.free(data);
 
-    cx.sendSyncEvent(.{ .index_maxs = data });
+    cx.sendSyncEvent(.{ .index_maxs = .{
+        .node_index = node_index,
+        .data = data,
+    } });
 }
 
 fn planRoomNames(cx: *Context) !void {

@@ -131,7 +131,7 @@ pub fn runInner(
     while (true) switch (try receiver.next(gpa)) {
         .nop => {},
         .disk_start => |num| try emitDisk(&cx, num, emit_blink),
-        .index_start => try emitIndex(&cx),
+        .index_start => |info| try emitIndex(&cx, info),
         .project_end => break,
         .err => return error.AddedToDiagnostic,
         else => unreachable,
@@ -396,7 +396,7 @@ const DirectoryEntry = struct {
     size: u32,
 };
 
-fn emitIndex(cx: *const Cx) !void {
+fn emitIndex(cx: *const Cx, info: @FieldType(plan.Payload, "index_start")) !void {
     const out_file = try cx.output_dir.createFileZ(cx.index_name, .{});
     defer out_file.close();
     var out_buf: [4096]u8 = undefined;
@@ -415,7 +415,7 @@ fn emitIndex(cx: *const Cx) !void {
         room.* = @intCast(i);
 
     while (true) switch (try cx.receiver.next(cx.gpa)) {
-        .index_maxs => |data| try writeMaxs(cx, out, data),
+        .index_maxs => |event| try writeMaxs(cx, out, event, info),
         .index_block => |id| switch (id) {
             .DIRI => try writeDirectory(cx.gpa, out, &fixups, .DIRI, &cx.index.directories.room_images),
             .DIRR => try writeDirectory(cx.gpa, out, &fixups, .DIRR, &cx.index.directories.rooms),
@@ -455,14 +455,40 @@ fn emitIndex(cx: *const Cx) !void {
     try writeFixups(&out_direct, out, fixups.items);
 }
 
-fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
-    defer cx.gpa.free(data);
+fn writeMaxs(
+    cx: *const Cx,
+    out: *std.io.Writer,
+    event: @FieldType(plan.Payload, "index_maxs"),
+    info: @FieldType(plan.Payload, "index_start"),
+) !void {
+    defer cx.gpa.free(event.data);
 
-    if (data.len != cx.target.maxsLen())
+    if (event.data.len != cx.target.maxsLen())
         return error.BadData;
+    const maxs: *align(1) Maxs = @ptrCast(event.data);
+
+    // Verify SCUMM allocations will be big enough to hold all symbols
+    const project_file = &cx.project.files.items[0].?;
+    if (info.max_global_var_number >= maxs.variables)
+        cx.diagnostic.errAt(
+            .node(project_file, event.node_index),
+            "MAXS constrains {s} (count={}) below project usage (max={})",
+            .{ "global variables", maxs.variables, info.max_global_var_number },
+        );
+    if (info.max_room_var_number >= maxs.room_variables)
+        cx.diagnostic.errAt(
+            .node(project_file, event.node_index),
+            "MAXS constrains {s} (count={}) below project usage (max={})",
+            .{ "room variables", maxs.room_variables, info.max_room_var_number },
+        );
+    if (info.max_local_script_number >= cx.target.firstLocalScript() + maxs.local_scripts)
+        cx.diagnostic.errAt(
+            .node(project_file, event.node_index),
+            "MAXS constrains {s} (count={}) below project usage (max={})",
+            .{ "local scripts", maxs.local_scripts, info.max_local_script_number },
+        );
 
     // Overwrite some of the fields I know how to generate
-    const maxs: *align(1) Maxs = @ptrCast(data);
     maxs.rooms = @intCast(cx.index.rooms.len);
     maxs.scripts = @intCast(cx.index.directories.scripts.len);
     maxs.sounds = @intCast(cx.index.directories.sounds.len);
@@ -472,8 +498,8 @@ fn writeMaxs(cx: *const Cx, out: *std.io.Writer, data: []u8) !void {
     if (cx.target.hasTalkies())
         maxs.talkies = @intCast(cx.index.directories.talkies.len);
 
-    const start = try beginBlockKnown(out, .MAXS, @intCast(data.len));
-    try out.writeAll(data);
+    const start = try beginBlockKnown(out, .MAXS, @intCast(event.data.len));
+    try out.writeAll(event.data);
     endBlockKnown(out, start);
 }
 
