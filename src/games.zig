@@ -52,7 +52,7 @@ pub const Game = enum {
 
     fn detectGame(input_name: []const u8) ?Game {
         for (index_names) |p|
-            if (std.mem.eql(u8, input_name, p[0]))
+            if (std.ascii.eqlIgnoreCase(input_name, p[0]))
                 return p[1];
         return null;
     }
