@@ -74,10 +74,10 @@ Run the app:
 zig build run
 ```
 
-Run the tests:
+Run the tests. If you're running all the tests, ReleaseSafe is way faster.
 
 ```sh
-zig build test
+zig build test -Doptimize=ReleaseSafe
 ```
 
 Run under valgrind:

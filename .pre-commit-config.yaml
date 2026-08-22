@@ -21,4 +21,5 @@ repos:
         language: system
         files: \.zig$
         pass_filenames: false
-        entry: zig build test
+        # ReleaseSafe is way faster then Debug, 1 min vs 15 min
+        entry: zig build test -Doptimize=ReleaseSafe
