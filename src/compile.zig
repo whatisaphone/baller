@@ -201,7 +201,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
                 try emitVariable(cx, lhs.array_get2.lhs);
             } else return forbiddenNode(cx, e.lhs);
         },
-        .call => try emitCall(cx, node_index),
+        .call => try emitCall(cx, node_index, .stmt),
         .@"if" => |*s| {
             try pushExpr(cx, s.condition);
             try emitOpcode(cx, .@"jump-unless");
@@ -368,7 +368,7 @@ fn emitStatement(cx: *Cx, node_index: Ast.NodeIndex) !void {
     }
 }
 
-fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
+fn emitCall(cx: *Cx, node_index: Ast.NodeIndex, position: enum { stmt, expr }) !void {
     const call = &cx.ast.nodes.at(node_index).call;
 
     const callee = findCallee(cx, call.callee) orelse {
@@ -377,6 +377,16 @@ fn emitCall(cx: *Cx, node_index: Ast.NodeIndex) !void {
         cx.diag.err(loc, "instruction not found", .{});
         return error.AddedToDiagnostic;
     };
+
+    const has_return_value = switch (callee) {
+        .ins => |*ins| ins.has_return_value,
+        .compound => false,
+    };
+    if (position == .stmt and has_return_value)
+        addError(cx, node_index, "this instruction cannot appear at statement level", .{})
+    else if (position == .expr and !has_return_value)
+        addError(cx, node_index, "this instruction does not return a value", .{});
+
     switch (callee) {
         .ins => |*ins| try emitCallIns(cx, node_index, ins, call.args),
         .compound => |c| try emitCallCompound(cx, node_index, c, call.args),
@@ -416,6 +426,7 @@ const InsData = struct {
     operands: utils.TinyArray(lang.LangOperand, lang.max_operands),
     normal_params: usize,
     variadic: bool,
+    has_return_value: bool,
 };
 
 fn findCallee(cx: *const Cx, node_index: Ast.NodeIndex) ?union(enum) {
@@ -434,12 +445,13 @@ fn findCallee(cx: *const Cx, node_index: Ast.NodeIndex) ?union(enum) {
 }
 
 fn makeInsData(cx: *const Cx, ins: lang.LangIns) ?InsData {
-    const params: []const script.Param = switch (cx.op_map.getPtrConst(ins.op).*) {
-        .jump_if, .jump_unless => &.{.int},
-        .jump, .override => &.{},
-        .generic => |*g| g.params,
-        else => return null,
-    };
+    const params: []const script.Param, const has_return_value =
+        switch (cx.op_map.getPtrConst(ins.op).*) {
+            .jump_if, .jump_unless => .{ &.{.int}, false },
+            .jump, .override => .{ &.{}, false },
+            .generic => |*g| .{ g.params, g.call },
+            else => return null,
+        };
     var param_exprs = params.len;
     var variadic = false;
     if (params.len != 0 and params[params.len - 1] == .variadic) {
@@ -453,6 +465,7 @@ fn makeInsData(cx: *const Cx, ins: lang.LangIns) ?InsData {
         .operands = ins.operands,
         .normal_params = param_exprs,
         .variadic = variadic,
+        .has_return_value = has_return_value,
     };
 }
 
@@ -579,7 +592,7 @@ fn pushExpr(cx: *Cx, node_index: Ast.NodeIndex) error{ OutOfMemory, AddedToDiagn
         .integer => |int| try pushInt(cx, int),
         .string => try pushStr(cx, node_index),
         .identifier => try pushSymbol(cx, node_index),
-        .call => try emitCall(cx, node_index),
+        .call => try emitCall(cx, node_index, .expr),
         .list => |list| try pushList(cx, cx.ast.getExtra(list.items)),
         .array_get => |e| {
             try pushExpr(cx, e.index);
@@ -725,10 +738,19 @@ fn fail(
     comptime fmt: []const u8,
     args: anytype,
 ) error{AddedToDiagnostic} {
+    addError(cx, node_index, fmt, args);
+    return error.AddedToDiagnostic;
+}
+
+fn addError(
+    cx: *const Cx,
+    node_index: Ast.NodeIndex,
+    comptime fmt: []const u8,
+    args: anytype,
+) void {
     const token_index = cx.ast.node_tokens.get(node_index);
     const token = cx.lex.tokens.at(token_index);
     cx.diag.err(token.span.start, fmt, args);
-    return error.AddedToDiagnostic;
 }
 
 fn forbiddenNode(cx: *const Cx, node_index: Ast.NodeIndex) error{AddedToDiagnostic} {

@@ -184,6 +184,24 @@ test "node in forbidden position" {
     );
 }
 
+test "forbid statements in expression position" {
+    try testRoomError(
+        \\script s@1 {
+        \\    g1 = start-script a
+        \\         ^ this instruction does not return a value
+        \\}
+    );
+}
+
+test "forbid expressions in statement position" {
+    try testRoomError(
+        \\script s@1 {
+        \\    call-script a
+        \\    ^ this instruction cannot appear at statement level
+        \\}
+    );
+}
+
 test "duplicate label" {
     try testRoomError(
         \\script s@1 {
