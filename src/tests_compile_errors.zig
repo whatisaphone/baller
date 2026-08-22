@@ -185,6 +185,38 @@ test "local script number range" {
     );
 }
 
+test "too many parameters" {
+    std.debug.assert(UsageTracker.max_local_vars == 25);
+    try testRoomError(
+        \\script s@0 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11 a12 a13 a14 a15 a16 a17 a18 a19 a20 a21 a22 a23 a24 a25 a26 {}
+        \\                                                                                                      ^ too many children
+    );
+}
+
+test "too many local variables on one line" {
+    std.debug.assert(UsageTracker.max_local_vars == 25);
+    try testRoomError(
+        \\script s@0 {
+        \\    var v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 v16 v17 v18 v19 v20 v21 v22 v23 v24 v25 v26
+        \\                                                                                                   ^ too many children
+        \\}
+    );
+}
+
+// The above tests, the error comes from the parser. This one, the error comes
+// from the compiler. That's why the messages are different.
+test "too many local variables on multiple lines" {
+    std.debug.assert(UsageTracker.max_local_vars == 25);
+    try testRoomError(
+        \\script s@0 {
+        \\    var v1 v2 v3 v4 v5 v6 v7 v8 v9 v10
+        \\    var v11 v12 v13 v14 v15 v16 v17 v18 v19 v20
+        \\    var v21 v22 v23 v24 v25 v26
+        \\                            ^ too many local variables
+        \\}
+    );
+}
+
 test "duplicate glob numbers" {
     try testRoomError(
         \\raw-glob DIGI a@1 {}
