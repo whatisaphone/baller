@@ -5,10 +5,12 @@ const lang = @import("lang.zig");
 
 const UsageTracker = @This();
 
-pub const max_global_vars = 768;
-pub const max_local_vars = 32;
-pub const max_room_vars = 192;
-pub const max_local_scripts = 640;
+// These are the highest values seen in MAXS for any supported game, except for
+// max_local_vars, which is just the highest number used in any supported game.
+pub const max_global_vars = 800;
+pub const max_local_vars = 25;
+pub const max_room_vars = 256;
+pub const max_local_scripts = 1024;
 
 pub const GlobalVars = BitArray(max_global_vars);
 pub const LocalVars = BitArray(max_local_vars);
