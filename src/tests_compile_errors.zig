@@ -74,21 +74,15 @@ test "duplicate disk numbers" {
     );
 }
 
-test "forbid disk number 0" {
+test "disk number range" {
     std.debug.assert(Ast.min_disk_number == 1);
+    std.debug.assert(Ast.max_disk_number == 9);
     try testProjectError(
         \\target sputm99
         \\index {}
         \\disk 0 {}
         \\^ symbol number too small
-    );
-}
-
-test "disk number too big" {
-    std.debug.assert(Ast.max_disk_number == 9);
-    try testProjectError(
-        \\target sputm99
-        \\index {}
+        \\disk 1 {}
         \\disk 9 {}
         \\disk 10 {}
         \\^ symbol number too big
@@ -177,22 +171,16 @@ test "duplicate local script numbers" {
     );
 }
 
-test "local script number too small" {
-    std.debug.assert(Target.sputm99.firstLocalScript() == 2048);
-    try testRoomError(
-        \\local-script a@2048 {}
-        \\local-script b@2047 {}
-        \\^ symbol number too small
-    );
-}
-
-test "local script number too big" {
-    // 3072 is 2048 + 1024
+test "local script number range" {
     std.debug.assert(Target.sputm99.firstLocalScript() == 2048);
     std.debug.assert(UsageTracker.max_local_scripts == 1024);
+    // 3072 is 2048 + 1024
     try testRoomError(
-        \\local-script a@3071 {}
-        \\local-script b@3072 {}
+        \\local-script a@2047 {}
+        \\^ symbol number too small
+        \\local-script b@2048 {}
+        \\local-script c@3071 {}
+        \\local-script d@3072 {}
         \\^ symbol number too big
     );
 }
