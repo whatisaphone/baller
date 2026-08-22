@@ -442,12 +442,12 @@ fn countInputBytes(
     for (0..num_disks) |disk_index| {
         const disk_number: u8 = @intCast(disk_index + 1);
         game.target().pointPathToDisk(path, disk_number);
-        result = try addFileSize(result, input_dir, path, diagnostic);
+        result = try addFileSize(result, input_dir, path, diagnostic, .normal);
     }
     if (options.music) {
         _ = std.fmt.bufPrint(&path_buf, "{s}", .{index_name}) catch unreachable;
         games.pointPathToMusic(path);
-        result = try addFileSize(result, input_dir, path, diagnostic);
+        result = try addFileSize(result, input_dir, path, diagnostic, .music);
     }
     return result;
 }
@@ -457,8 +457,19 @@ fn addFileSize(
     input_dir: std.fs.Dir,
     path: []const u8,
     diagnostic: *Diagnostic,
+    reporting: enum { normal, music },
 ) !u32 {
-    const stat = try fsd.statFile(diagnostic, input_dir, path);
+    const stat = input_dir.statFile(path) catch |err| {
+        if (err == error.FileNotFound and reporting == .music) {
+            diagnostic.err(
+                \\failed to stat file: {s} ({s})
+                \\hint: if you don't care about extracting music, you can run with --music=no
+            , .{ path, @errorName(err) });
+        } else {
+            diagnostic.err("failed to stat file: {s} ({s})", .{ path, @errorName(err) });
+        }
+        return error.AddedToDiagnostic;
+    };
     return utils.add(u32, total, stat.size) orelse {
         diagnostic.err("file too big: {s}", .{path});
         return error.AddedToDiagnostic;
