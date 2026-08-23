@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.5 – 2026-08-22
+
+- The compiler now checks that statement/expression operations are not mixed up
+- The planner now checks that symbol numbers are in range, and there are no duplicates
+- Some error messages have been improved
+
 ## v0.6.4 – 2026-08-02
 
 Fixed:
